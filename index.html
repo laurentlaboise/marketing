@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Website</title>
+    <title>Buy & Rent AI Agents – AgentHub</title>
+    <meta name="description" content="Discover and deploy AI agents for writing, automation, and productivity. Instant access, flexible pricing, full dashboard control.">
+    <meta name="keywords" content="AI agents, micro automations, rent AI tools, buy GPT bots, agent subscription">
+    <meta property="og:title" content="Buy & Rent AI Agents – AgentHub">
+    <meta property="og:description" content="Discover and deploy AI agents for writing, automation, and productivity. Instant access, flexible pricing, full dashboard control.">
+    <meta property="og:image" content="https://www.agenthub.ai/social-preview.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -11,42 +18,50 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        :root {
+            --primary-blue: #007bff;
+            --dark-gray: #1f1f1f;
+            --soft-blue: #e6f0ff;
+            --hover-blue: #0056b3;
+            --white: #ffffff;
+            --light-gray: #e0e0e0;
+            --very-light-gray: #cfcfcf;
+            --section-padding: 2rem;
+            --grid-gap: 1rem;
+            --border-radius: 1rem;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+        body {
+            font-family: 'Lato', sans-serif;
+            line-height: 1.5;
+            color: var(--dark-gray);
+            scroll-behavior: smooth;
         }
 
         /* Header */
-        header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1rem 0;
+        .header {
             position: fixed;
-            width: 100%;
             top: 0;
+            width: 100%;
+            background: var(--dark-gray);
+            padding: 1rem 0;
             z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        nav {
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 1rem;
         }
 
         .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: white;
+            font-size: 23pt;
+            font-weight: 700;
+            color: var(--primary-blue);
             text-decoration: none;
         }
 
@@ -57,153 +72,608 @@
         }
 
         .nav-links a {
-            color: white;
+            color: var(--light-gray);
             text-decoration: none;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
+            font-size: 14pt;
         }
 
         .nav-links a:hover {
-            color: #ffd700;
+            color: var(--primary-blue);
+        }
+
+        .auth-section {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-family: 'Lato', sans-serif;
+            font-size: 14pt;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--hover-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--light-gray);
+            border: 1px solid var(--light-gray);
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-family: 'Lato', sans-serif;
+            font-size: 14pt;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+            border-color: var(--primary-blue);
         }
 
         /* Hero Section */
-        .hero {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .hero-banner {
+            background: linear-gradient(135deg, var(--dark-gray), var(--primary-blue));
+            color: var(--white);
+            padding: 8rem 0 4rem;
             text-align: center;
-            color: white;
             position: relative;
             overflow: hidden;
         }
 
-        .hero::before {
+        .hero-banner::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.1)" points="0,1000 1000,1000 1000,0 0,200"/></svg>');
-            animation: float 6s ease-in-out infinite;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23007bff" stroke-width="0.5" opacity="0.3"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+            filter: brightness(1.2);
         }
 
         .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
             position: relative;
             z-index: 1;
         }
 
-        .hero h1 {
-            font-size: 4rem;
+        .hero-banner h1 {
+            font-size: 23pt;
+            font-weight: 700;
             margin-bottom: 1rem;
-            animation: fadeInUp 1s ease-out;
+            color: var(--white);
         }
 
-        .hero p {
-            font-size: 1.5rem;
+        .hero-banner p {
+            font-size: 16pt;
+            color: var(--light-gray);
             margin-bottom: 2rem;
-            animation: fadeInUp 1s ease-out 0.3s both;
         }
 
-        .btn {
-            display: inline-block;
-            background: linear-gradient(45deg, #ffd700, #ffed4a);
-            color: #333;
-            padding: 12px 30px;
+        .cta-button {
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 1rem 2rem;
             border: none;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
+            border-radius: 0.5rem;
+            font-size: 16pt;
+            font-weight: 700;
+            cursor: pointer;
             transition: all 0.3s ease;
-            animation: fadeInUp 1s ease-out 0.6s both;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        }
+
+        .cta-button:hover {
+            background: var(--hover-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+        }
+
+        /* About Section */
+        .about-section {
+            padding: var(--section-padding) 0;
+            background: var(--white);
+        }
+
+        .about-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-section h2 {
+            font-size: 16pt;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark-gray);
+        }
+
+        .about-section p {
+            font-size: 14pt;
+            line-height: 1.6;
+            color: var(--dark-gray);
+        }
+
+        .about-image {
+            text-align: center;
+            padding: 2rem;
+            background: var(--soft-blue);
+            border-radius: var(--border-radius);
+            filter: brightness(1.1);
+        }
+
+        .about-image svg {
+            width: 200px;
+            height: 200px;
+        }
+
+        /* Use Case Section */
+        .use-case-section {
+            padding: var(--section-padding) 0;
+            background: var(--soft-blue);
+        }
+
+        .use-case-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .use-case-section h2 {
+            text-align: center;
+            font-size: 16pt;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: var(--dark-gray);
+        }
+
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--grid-gap);
+        }
+
+        .use-case-cell {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
             cursor: pointer;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+        .use-case-cell:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
-        /* Features Section */
-        .features {
-            padding: 100px 0;
-            background: rgba(255, 255, 255, 0.95);
+        .use-case-cell svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 1rem;
         }
 
-        .features h2 {
+        .use-case-cell h3 {
+            font-size: 14pt;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark-gray);
+        }
+
+        .use-case-cell p {
+            font-size: 12pt;
+            color: var(--dark-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .use-case-cell a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+
+        .use-case-cell a:hover {
+            color: var(--hover-blue);
+        }
+
+        /* Agent Grid */
+        .agent-grid-section {
+            padding: var(--section-padding) 0;
+            background: var(--white);
+        }
+
+        .agent-grid-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .agent-grid-section h2 {
             text-align: center;
-            font-size: 2.5rem;
+            font-size: 16pt;
+            font-weight: 700;
             margin-bottom: 3rem;
-            color: #333;
+            color: var(--dark-gray);
         }
 
-        .features-grid {
+        .agent-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--grid-gap);
         }
 
-        .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        .agent-card {
+            background: var(--white);
+            border: 1px solid var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
             text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .agent-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .agent-card svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+
+        .agent-card h3 {
+            font-size: 14pt;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark-gray);
+        }
+
+        .agent-card p {
+            font-size: 12pt;
+            color: var(--dark-gray);
+            margin-bottom: 1rem;
+        }
+
+        .agent-card .price {
+            font-size: 14pt;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .agent-card button {
+            background: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-family: 'Lato', sans-serif;
+            font-size: 12pt;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card button:hover {
+            background: var(--hover-blue);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: scale(0.9);
             transition: transform 0.3s ease;
         }
 
-        .feature-card:hover {
-            transform: translateY(-5px);
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
         }
 
-        .feature-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: white;
-        }
-
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #333;
-        }
-
-        .feature-card p {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        /* Footer */
-        footer {
-            background: #333;
-            color: white;
+        .modal-header {
+            padding: 2rem 2rem 1rem;
             text-align: center;
-            padding: 2rem 0;
+            border-bottom: 1px solid var(--light-gray);
         }
 
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .modal-header h2 {
+            font-size: 16pt;
+            font-weight: 700;
+            color: var(--dark-gray);
+            margin-bottom: 1rem;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+        .modal-header svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-body p {
+            font-size: 14pt;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: var(--dark-gray);
+        }
+
+        .features-list {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .features-list li {
+            padding: 0.5rem 0;
+            font-size: 14pt;
+            color: var(--dark-gray);
+        }
+
+        .features-list li::before {
+            content: "✓";
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .pricing-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-card {
+            background: var(--soft-blue);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .pricing-card:hover {
+            border-color: var(--primary-blue);
+            background: var(--white);
+        }
+
+        .pricing-card.selected {
+            border-color: var(--primary-blue);
+            background: var(--white);
+        }
+
+        .pricing-card h4 {
+            font-size: 14pt;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark-gray);
+        }
+
+        .pricing-card .price {
+            font-size: 16pt;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-card p {
+            font-size: 12pt;
+            color: var(--dark-gray);
+            margin: 0;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 24pt;
+            cursor: pointer;
+            color: var(--dark-gray);
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--primary-blue);
+        }
+
+        .stripe-checkout-btn {
+            width: 100%;
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 16pt;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stripe-checkout-btn:hover {
+            background: var(--hover-blue);
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            background: var(--white);
+            padding-top: 100px;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .dashboard h1 {
+            font-size: 23pt;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--dark-gray);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .dashboard-section {
+            background: var(--soft-blue);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+        }
+
+        .dashboard-section h2 {
+            font-size: 16pt;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark-gray);
+        }
+
+        .your-agents {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .agent-item {
+            background: var(--white);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .agent-toggle {
+            width: 50px;
+            height: 25px;
+            background: var(--light-gray);
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .agent-toggle.active {
+            background: var(--primary-blue);
+        }
+
+        .agent-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 21px;
+            height: 21px;
+            background: var(--white);
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .agent-toggle.active::after {
+            transform: translateX(25px);
+        }
+
+        /* Login Modal */
+        .login-modal .modal-content {
+            max-width: 400px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .login-form input {
+            padding: 0.75rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 0.5rem;
+            font-family: 'Lato', sans-serif;
+            font-size: 14pt;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .google-login {
+            background: var(--white);
+            color: var(--dark-gray);
+            border: 1px solid var(--light-gray);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-family: 'Lato', sans-serif;
+            font-size: 14pt;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .google-login:hover {
+            background: var(--soft-blue);
         }
 
         /* Responsive Design */
@@ -212,112 +682,174 @@
                 display: none;
             }
             
-            .hero h1 {
-                font-size: 2.5rem;
+            .hero-banner h1 {
+                font-size: 20pt;
             }
             
-            .hero p {
-                font-size: 1.2rem;
-            }
-            
-            .features-grid {
+            .about-container {
                 grid-template-columns: 1fr;
             }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        /* Hidden by default */
+        .hidden {
+            display: none;
+        }
+
+        /* Main content */
+        .main-content {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <header>
-        <nav class="container">
-            <a href="#" class="logo">YourSite</a>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <section class="hero" id="home">
-        <div class="hero-content">
-            <h1>Welcome to Your Website</h1>
-            <p>Building amazing digital experiences</p>
-            <a href="#features" class="btn">Get Started</a>
-        </div>
-    </section>
-
-    <section class="features" id="features">
-        <div class="container">
-            <h2>What We Offer</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🚀</div>
-                    <h3>Fast Performance</h3>
-                    <p>Lightning-fast loading times and optimized performance for the best user experience.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3>Mobile Responsive</h3>
-                    <p>Perfect display on all devices, from desktop computers to mobile phones.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎨</div>
-                    <h3>Modern Design</h3>
-                    <p>Beautiful, contemporary design that captures attention and engages users.</p>
-                </div>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <a href="#" class="logo">AgentHub</a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#agent-grid">Browse Agents</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                </ul>
+            </nav>
+            <div class="auth-section">
+                <button class="btn-primary" id="loginBtn" onclick="openLoginModal()">Log In</button>
+                <button class="btn-secondary hidden" id="dashboardBtn" onclick="showDashboard()">Dashboard</button>
+                <button class="btn-secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
             </div>
         </div>
-    </section>
+    </header>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Your Website. All rights reserved.</p>
-        </div>
-    </footer>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-banner">
+            <div class="hero-content">
+                <h1>Buy & Rent Powerful AI Agents</h1>
+                <p>Plug & play bots for productivity, sales, creativity, and more.</p>
+                <button class="cta-button" onclick="scrollToAgents()">Browse Agents</button>
+            </div>
+        </section>
 
-    <script>
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
+        <!-- About Section -->
+        <section class="about-section" id="about">
+            <div class="about-container">
+                <div class="text-column">
+                    <h2>Let AI Work For You</h2>
+                    <p>AgentHub lets you access small, intelligent AI agents trained for focused tasks—from writing emails to managing schedules. No complexity. Just plug, rent, or own.</p>
+                </div>
+                <div class="image-column">
+                    <div class="about-image">
+                        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="100" cy="100" r="80" fill="#007bff" opacity="0.2"/>
+                            <circle cx="100" cy="100" r="60" fill="#007bff" opacity="0.3"/>
+                            <circle cx="100" cy="100" r="40" fill="#007bff" opacity="0.4"/>
+                            <circle cx="100" cy="100" r="20" fill="#007bff"/>
+                            <path d="M100 20 L120 40 L100 60 L80 40 Z" fill="#007bff"/>
+                            <path d="M180 100 L160 120 L140 100 L160 80 Z" fill="#007bff"/>
+                            <path d="M100 180 L80 160 L100 140 L120 160 Z" fill="#007bff"/>
+                            <path d="M20 100 L40 80 L60 100 L40 120 Z" fill="#007bff"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        // Add scroll effect to header
-        window.addEventListener('scroll', () => {
-            const header = document.querySelector('header');
-            if (window.scrollY > 100) {
-                header.style.background = 'rgba(255, 255, 255, 0.2)';
-            } else {
-                header.style.background = 'rgba(255, 255, 255, 0.1)';
-            }
-        });
+        <!-- Use Case Section -->
+        <section class="use-case-section">
+            <div class="use-case-container">
+                <h2>Choose Your Agent Category</h2>
+                <div class="use-case-grid">
+                    <div class="use-case-cell" onclick="filterAgents('email')">
+                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="5" y="15" width="50" height="30" rx="5" fill="#007bff" opacity="0.2"/>
+                            <path d="M10 20 L30 35 L50 20" stroke="#007bff" stroke-width="2" fill="none"/>
+                        </svg>
+                        <h3>Email Assistant</h3>
+                        <p>Automated email responses, scheduling, and follow-ups</p>
+                        <a href="#agent-grid">View Agents</a>
+                    </div>
+                    <div class="use-case-cell" onclick="filterAgents('writing')">
+                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="10" y="5" width="40" height="50" rx="3" fill="#007bff" opacity="0.2"/>
+                            <line x1="15" y1="15" x2="45" y2="15" stroke="#007bff" stroke-width="2"/>
+                            <line x1="15" y1="25" x2="45" y2="25" stroke="#007bff" stroke-width="2"/>
+                            <line x1="15" y1="35" x2="35" y2="35" stroke="#007bff" stroke-width="2"/>
+                        </svg>
+                        <h3>Writing & Copy</h3>
+                        <p>Content creation, copywriting, and editing assistance</p>
+                        <a href="#agent-grid">View Agents</a>
+                    </div>
+                    <div class="use-case-cell" onclick="filterAgents('automation')">
+                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="30" r="20" fill="#007bff" opacity="0.2"/>
+                            <circle cx="30" cy="30" r="5" fill="#007bff"/>
+                            <line x1="30" y1="10" x2="30" y2="20" stroke="#007bff" stroke-width="2"/>
+                            <line x1="50" y1="30" x2="40" y2="30" stroke="#007bff" stroke-width="2"/>
+                            <line x1="30" y1="50" x2="30" y2="40" stroke="#007bff" stroke-width="2"/>
+                            <line x1="10" y1="30" x2="20" y2="30" stroke="#007bff" stroke-width="2"/>
+                        </svg>
+                        <h3>Task Automation</h3>
+                        <p>Workflow automation and task management</p>
+                        <a href="#agent-grid">View Agents</a>
+                    </div>
+                    <div class="use-case-cell" onclick="filterAgents('sales')">
+                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 45 L20 35 L30 40 L40 25 L50 15" stroke="#007bff" stroke-width="3" fill="none"/>
+                            <circle cx="50" cy="15" r="3" fill="#007bff"/>
+                            <path d="M45 10 L50 15 L45 20" stroke="#007bff" stroke-width="2" fill="none"/>
+                        </svg>
+                        <h3>Sales & Outreach</h3>
+                        <p>Lead generation, outreach, and CRM management</p>
+                        <a href="#agent-grid">View Agents</a>
+                    </div>
+                    <div class="use-case-cell" onclick="filterAgents('creative')">
+                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="30" r="20" fill="#007bff" opacity="0.2"/>
+                            <path d="M20 20 Q30 10 40 20 Q50 30 40 40 Q30 50 20 40 Q10 30 20 20" fill="#007bff" opacity="0.3"/>
+                        </svg>
+                        <h3>Creative Design</h3>
+                        <p>Visual content creation and design assistance</p>
+                        <a href="#agent-grid">View Agents</a>
+                    </div>
+                    <div class="use-case-cell" onclick="filterAgents('analysis')">
+                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="10" y="40" width="8" height="15" fill="#007bff" opacity="0.6"/>
+                            <rect x="22" y="30" width="8" height="25" fill="#007bff" opacity="0.7"/>
+                            <rect x="34" y="20" width="8" height="35" fill="#007bff" opacity="0.8"/>
+                            <rect x="46" y="10" width="8" height="45" fill="#007bff"/>
+                        </svg>
+                        <h3>Data Analysis</h3>
+                        <p>Data processing, analysis, and reporting</p>
+                        <a href="#agent-grid">View Agents</a>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        // Simple animation on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animation = 'fadeInUp 0.8s ease-out';
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.feature-card').forEach(card => {
-            observer.observe(card);
-        });
-    </script>
-</body>
-</html>
+        <!-- Agent Grid -->
+        <section class="agent-grid-section" id="agent-grid">
+            <div class="agent-grid-container">
+                <h2>Available AI Agents</h2>
+                <div class="agent-grid" id="agentGrid">
+                    <!-- Agent cards will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+    </main>
