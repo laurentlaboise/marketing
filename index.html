@@ -456,12 +456,32 @@
 
         const supabaseUrl = 'https://msivaavxwszurzopourl.supabase.co'
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zaXZhYXZ4d3N6dXJ6b3BvdXJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTAzMDAsImV4cCI6MjA2ODgyNjMwMH0.BznUDkfio5o83f7ZsYyTgrN-oa8NkPy5I1Wqiq46x78'
-
         const supabase = createClient(supabaseUrl, supabaseKey)
 
-        // Example: Test connection
-        // const { data, error } = await supabase.from('your_table').select('*')
-        // console.log(data, error)
+        const quoteForm = document.getElementById('quote-form');
+        if (quoteForm) {
+            quoteForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(quoteForm);
+                const name = formData.get('name');
+                const email = formData.get('email');
+                const company = formData.get('company');
+                const service = formData.get('service');
+                const message = formData.get('message');
+
+                // Insert into Supabase
+                const { data, error } = await supabase
+                    .from('GET A QUOTE WTS')
+                    .insert([{ name, email, company, service, message }]);
+
+                if (error) {
+                    alert('Error: ' + error.message);
+                } else {
+                    alert('Thank you! Your request has been submitted.');
+                    quoteForm.reset();
+                }
+            });
+        }
     </script>
 </body>
 </html>
