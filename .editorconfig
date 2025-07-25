@@ -1,100 +1,100 @@
-# EditorConfig: http://editorconfig.org
-# Top-level configuration for WordsThatSells.website to ensure consistent formatting
+# http://editorconfig.org
 root = true
 
-# Global settings for all files
+# Generic rules for all files in the project
 [*]
-# Use UTF-8 encoding for universal compatibility
-charset = utf-8
-# Use LF line endings for cross-platform consistency
-end_of_line = lf
-# Ensure a single newline at file end for clean diffs
-insert_final_newline = true
-# Remove trailing whitespace for cleaner code
-trim_trailing_whitespace = true
-# Enforce 120-character line length for readability
-max_line_length = 120
+charset = utf-8                # Ensure all files are saved with UTF-8 encoding for consistent character representation.
+end_of_line = lf              # Enforce Unix-style line endings (LF) to prevent cross-platform line ending issues (CRLF on Windows).
+insert_final_newline = true   # Ensure that files end with a single newline character, which is a common Unix convention.
+trim_trailing_whitespace = true # Remove any whitespace characters at the end of lines to maintain clean code.
+max_line_length = 120         # Enforce a maximum line length of 120 characters for improved readability and consistency.
 
 # HTML files: 2-space indentation for clean, SEO-friendly markup
 [*.{html,htm}]
-indent_style = space
-indent_size = 2
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for HTML files.
 
-# CSS files: 2-space indentation for styling consistency
-[*.css]
-indent_style = space
-indent_size = 2
+# CSS/SCSS files: 2-space indentation for styling consistency
+[*.{css,scss}]
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for CSS and SCSS files.
 
 # JavaScript and JSON files: 2-space indentation for modern JS development
+# JSON is covered here for consistency with JavaScript formatting.
 [*.{js,json}]
-indent_style = space
-indent_size = 2
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for JavaScript and JSON files.
 
 # Markdown files: Preserve trailing whitespace for syntax, no line length limit
 [*.{md,markdown}]
-trim_trailing_whitespace = false
-max_line_length = off
+trim_trailing_whitespace = false # Do not trim trailing whitespace in Markdown files, as it can be used for line breaks.
+max_line_length = off         # Disable line length limit for Markdown files to allow for flexible content.
 
 # YAML files (e.g., CI/CD workflows): 2-space indentation for configuration
 [*.{yml,yaml}]
-indent_style = space
-indent_size = 2
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for YAML files.
 
-# XML files (e.g., sitemap.xml, schema.json): 2-space indentation for SEO
-[*.{xml,json}]
-indent_style = space
-indent_size = 2
+# XML files (e.g., sitemap.xml): 2-space indentation for SEO and structure
+[*.xml]
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for XML files.
 
-# Configuration files: 2-space indentation for JSON-based configs
+# Specific configuration files: 2-space indentation for JSON-based configs
+# This explicitly targets common project configuration files.
 [{package.json,.eslintrc,.prettierrc,manifest.json,schema.json}]
-indent_style = space
-indent_size = 2
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for these specific configuration files.
 
 # Webpack configuration: 2-space indentation for JavaScript config
 [webpack.config.js]
-indent_style = space
-indent_size = 2
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for the Webpack configuration file.
 
 # Environment files: No final newline for security, no trailing whitespace
+# This is crucial for files that might be read line-by-line by scripts.
 [*.env]
-trim_trailing_whitespace = true
-insert_final_newline = false
+trim_trailing_whitespace = true # Ensure no trailing whitespace.
+insert_final_newline = false  # Do not insert a final newline.
 
-# Lockfiles: Prevent accidental edits
+# Lockfiles: Prevent accidental edits and preserve integrity
 [package-lock.json]
-trim_trailing_whitespace = false
-insert_final_newline = false
+trim_trailing_whitespace = false # Do not trim whitespace, as it might be part of the file's integrity hash.
+insert_final_newline = false  # Do not insert a final newline to maintain file integrity.
 
-# Git-related files: Preserve whitespace, 2-space indentation
+# Git-related files: Preserve whitespace, 2-space indentation (if applicable)
+# These files often rely on exact content, including whitespace.
 [*.{gitignore,gitattributes}]
-indent_style = space
-indent_size = 2
-trim_trailing_whitespace = false
+indent_style = space          # Use spaces for indentation.
+indent_size = 2               # Set indentation to 2 spaces.
+trim_trailing_whitespace = false # Preserve trailing whitespace.
 
 # Apache configuration (.htaccess): No trailing whitespace for server stability
 [.htaccess]
-trim_trailing_whitespace = true
-insert_final_newline = true
+trim_trailing_whitespace = true # Ensure no trailing whitespace for server configuration files.
+insert_final_newline = true   # Ensure a final newline for proper file termination.
 
 # Robots.txt: No trailing whitespace for clean SEO configuration
 [robots.txt]
-trim_trailing_whitespace = true
-insert_final_newline = true
+trim_trailing_whitespace = true # Ensure no trailing whitespace for robots.txt.
+insert_final_newline = true   # Ensure a final newline for proper file termination.
 
 # Font-related files: No specific formatting to preserve binary or external formats
+# These are often binary or highly specific formats that should not be altered by text editor rules.
 [fonts/**]
-charset = unset
-end_of_line = unset
-indent_style = unset
-indent_size = unset
-trim_trailing_whitespace = false
-insert_final_newline = false
+charset = unset               # Do not enforce character set.
+end_of_line = unset           # Do not enforce line endings.
+indent_style = unset          # Do not enforce indentation style.
+indent_size = unset           # Do not enforce indentation size.
+trim_trailing_whitespace = false # Preserve trailing whitespace.
+insert_final_newline = false  # Do not insert a final newline.
 
 # Image files (e.g., favicon.ico): No formatting to preserve binary integrity
+# Crucial for binary assets to prevent corruption.
 [*.{ico,png,jpg,jpeg,svg}]
-charset = unset
-end_of_line = unset
-indent_style = unset
-indent_size = unset
-trim_trailing_whitespace = false
-insert_final_newline = false
+charset = unset               # Do not enforce character set.
+end_of_line = unset           # Do not enforce line endings.
+indent_style = unset          # Do not enforce indentation style.
+indent_size = unset           # Do not enforce indentation size.
+trim_trailing_whitespace = false # Preserve trailing whitespace.
+insert_final_newline = false  # Do not insert a final newline.
