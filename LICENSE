@@ -1,1 +1,48 @@
+MIT License
+Copyright (c) 2024-2025 Laboise Ltd and Laboise eworker laos enterprise
 
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Specific Clauses for Words That Sells Website
+1. Commercial Use Permissions and Restrictions
+The Software may be used for commercial purposes, including modification, distribution, and sale, provided all terms of this License are followed. No additional restrictions on commercial use are imposed beyond those specified in the MIT License. Users must ensure compliance with applicable laws and regulations when utilizing the Software commercially.
+
+2. Attribution Requirements for Derivative Works
+Any derivative works distributed must retain the original copyright notice and this permission notice in all copies or substantial portions of the Software. While not mandatory for all modifications, attribution to "Words That Sells" (Laboise Ltd and Laboise eworker laos enterprise) in documentation, "About" pages, or public-facing materials of derivative products is strongly encouraged to acknowledge the original work.
+
+3. Liability Limitations for Business Use
+The Software is provided without warranties, and Laboise Ltd and Laboise eworker laos enterprise shall not be liable for any damages, losses, or liabilities, including but not limited to loss of profits, business interruption, or data loss, arising from its use in business operations. Users are responsible for evaluating the Software’s suitability for their specific business applications and implementing adequate testing, backups, and safeguards.
+
+4. Patent Rights
+This License grants only the patent rights necessary to use, modify, and distribute the Software as permitted herein. It does not provide any additional patent licenses or protections. Users must ensure their use of the Software does not infringe on third-party patents, and Laboise Ltd and Laboise eworker laos enterprise make no representations regarding patent infringement risks.
+
+5. Export Control Compliance
+Users agree to comply with all applicable export control laws and regulations of Canada, Laos, and other relevant jurisdictions when using, distributing, or transferring the Software. Users represent that they are not located in a country subject to a government embargo, designated as a "terrorist-supporting" country, or listed on any government prohibited or restricted parties list.
+
+Contact Information for Licensing Questions
+For inquiries regarding this License or the Software’s terms of use, please contact:
+Email: support@wordsthatsells.website
+Address:
+
+Laboise Ltd: 1000, ave Rockland, suite 100, Outremont, QC, H2V 4P5, Canada
+
+Laboise eworker laos enterprise: 20 Rue Samsenthai, Vientiane, Vientiane Province 01300, Laos
+
+Third-Party Dependencies and Licenses
+The Software may include third-party components, libraries, or assets, each governed by its respective license. These licenses are provided within the source code or documentation of the third-party components. For Node.js projects, a list of primary dependencies and their licenses can be found in the package.json and package-lock.json files. Users are responsible for complying with the terms of all applicable third-party licenses when using the Software.
