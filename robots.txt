@@ -1,1 +1,107 @@
+# robots.txt for WordsThatSells.website
+# This file provides strategic instructions for search engine crawlers,
+# defining indexing permissions, crawl rates, and sitemap locations.
+# It optimizes crawl budget, protects sensitive areas, and maximizes search visibility.
+
+# --- 1. Global Rules for All Crawlers (User-agent: *) ---
+# Applies to all web robots unless a more specific User-agent rule is defined below.
+User-agent: *
+# Default Crawl-delay: Wait 1 second between requests to reduce server load for all bots.
+# Major bots like Googlebot often ignore this, but it helps manage less sophisticated crawlers.
+Crawl-delay: 1
+
+# Allow access to all public content areas by default.
+# This ensures that main content, including all language subdirectories (e.g., /en/, /lo/, /th/, /fr/),
+# is discoverable and indexable.
+Allow: /
+
+# Disallow access to sensitive or non-public directories.
+# These paths typically contain administrative interfaces, private data, or temporary files
+# that should not be indexed by search engines.
+Disallow: /admin/
+Disallow: /private/
+Disallow: /temp/
+Disallow: /logs/ # Prevent indexing of server log files
+Disallow: /config/ # Protect configuration files (e.g., secrets.json if directly accessible)
+Disallow: /tmp/ # Prevent indexing of temporary files
+
+# Disallow access to common duplicate content or parameter-based URLs.
+# This helps prevent crawl budget waste and avoids duplicate content issues in search results.
+Disallow: /*?* # Disallow URLs with query parameters (e.g., example.com/page?id=123)
+Disallow: /*.bak$ # Disallow backup files
+Disallow: /*.old$ # Disallow old versions of files
+
+# More specific disallows for configuration files, to avoid blocking legitimate public XML/JSON
+Disallow: /config/*.json$ # Disallow JSON files specifically within the /config/ directory
+Disallow: /config/*.xml$  # Disallow XML files specifically within the /config/ directory
+
+# Allow access to CSS and JavaScript files for proper rendering.
+# Modern search engines need to render pages like a browser to understand content and layout.
+# Ensure these paths are correct for your project's asset delivery.
+Allow: /*.css$
+Allow: /*.js$
+Allow: /css/
+Allow: /js/
+Allow: /fonts/
+Allow: /images/
+
+# --- 2. Specific Rules for Major Search Engines and Social Media Crawlers ---
+# You can define specific rules for particular bots if their crawling behavior needs
+# to be managed differently (e.g., to reduce server load from a very active bot).
+
+# Googlebot (Google's primary crawler)
+User-agent: Googlebot
+# Googlebot generally ignores Crawl-delay, preferring internal algorithms.
+# If you need to manage crawl rate, use Google Search Console's crawl rate settings.
+
+# Bingbot (Microsoft Bing's crawler)
+User-agent: Bingbot
+Crawl-delay: 1 # Bingbot respects Crawl-delay.
+
+# YandexBot (Yandex's crawler - relevant for some international markets)
+User-agent: YandexBot
+Crawl-delay: 1
+
+# Baiduspider (Baidu's crawler - relevant for Chinese markets)
+User-agent: Baiduspider
+Crawl-delay: 1
+
+# Twitterbot (Used by X/Twitter for card previews)
+User-agent: Twitterbot
+# Allow access to article pages for proper social card previews across all languages.
+Allow: /en/resources/articles/
+Allow: /lo/resources/articles/
+Allow: /th/resources/articles/
+Allow: /fr/resources/articles/
+
+# facebookexternalhit (Used by Facebook/Meta for link previews)
+User-agent: facebookexternalhit
+# Allow access to article pages for proper social card previews across all languages.
+Allow: /en/resources/articles/
+Allow: /lo/resources/articles/
+Allow: /th/resources/articles/
+Allow: /fr/resources/articles/
+
+# --- 3. Sitemap Locations ---
+# Informs search engines about the location of your XML sitemaps.
+# This helps crawlers discover all important pages on your site, including multilingual content.
+# Ensure these sitemaps are up-to-date and include all language versions of your URLs.
+Sitemap: https://wordsthatsells.website/sitemap.xml
+# If you have specific sitemaps for news or video content, include them here:
+# Sitemap: https://wordsthatsells.website/news-sitemap.xml
+# Sitemap: https://wordsthatsells.website/video-sitemap.xml
+
+# --- 4. Protection of Customer Data and Internal Business Documents ---
+# While specific sensitive paths are disallowed above, ensure that any
+# directories containing customer data, internal reports, or proprietary
+# business documents are never publicly accessible and are explicitly
+# disallowed in this file or protected by server-side configurations.
+# Example (if such a directory existed and was web-accessible):
+# Disallow: /customer-data/
+# Disallow: /internal-reports/
+
+# --- 5. International SEO and Multilingual Content ---
+# The 'Allow: /' directive at the top ensures all language subdirectories are crawlable.
+# No specific 'Disallow' rules are needed for language directories themselves,
+# as they are part of the public content.
 
