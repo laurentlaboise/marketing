@@ -1,1 +1,466 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Words That Sells",
+    "description": "Pioneering AI-powered digital marketing agency based in Vientiane, Laos, specializing in SEO, content creation, social media management, web development, and business automation.",
+    "url": "https://wordsthatsells.website",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://wordsthatsells.website/images/wordsthatsells-logo.png",
+      "width": "500",
+      "height": "500",
+      "caption": "Words That Sells Official Logo"
+    },
+    "sameAs": [
+      "https://www.instagram.com/wordsthatsells.website.laos/",
+      "https://www.linkedin.com/company/wordsthatsells",
+      "https://www.facebook.com/wordsthatsells/",
+      "https://x.com/wordsthatsells/",
+      "https://www.youtube.com/@wordsthatsells"
+    ],
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "telephone": "+8562055528034",
+        "contactType": "Customer Service",
+        "areaServed": ["LA", "TH", "VN", "KH", "MY", "SG", "ID", "PH", "MM", "BN"],
+        "availableLanguage": ["en", "lo", "th", "fr"]
+      },
+      {
+        "@type": "ContactPoint",
+        "telephone": "+8562076005888",
+        "contactType": "Sales",
+        "areaServed": ["LA", "TH", "VN", "KH", "MY", "SG", "ID", "PH", "MM", "BN"],
+        "availableLanguage": ["en", "lo", "th", "fr"]
+      },
+      {
+        "@type": "ContactPoint",
+        "email": "contact@wordsthatsells.website",
+        "contactType": "General Inquiries"
+      }
+    ],
+    "foundingDate": "2024",
+    "legalName": "Laboise eworker laos enterprise",
+    "parentOrganization": {
+      "@type": "Organization",
+      "name": "Laboise Ltd",
+      "url": "https://laboise.ltd",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "1000, ave Rockland, suite 100",
+        "addressLocality": "Outremont",
+        "addressRegion": "QC",
+        "postalCode": "H2V 4P5",
+        "addressCountry": "CA"
+      }
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "20 Rue Samsenthai",
+      "addressLocality": "Vientiane",
+      "addressRegion": "Vientiane Province",
+      "postalCode": "01300",
+      "addressCountry": "LA"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "DigitalMarketingAgency",
+    "name": "Words That Sells - AI Digital Marketing Agency",
+    "description": "Top AI Digital Marketing Agency in Laos providing SEO-friendly content, local business solutions, and expert digital marketing strategies across Southeast Asia.",
+    "url": "https://wordsthatsells.website",
+    "image": {
+      "@type": "ImageObject",
+      "url": "https://wordsthatsells.website/images/ai-digital-marketing-laos.jpg",
+      "width": "1200",
+      "height": "675",
+      "caption": "AI Digital Marketing in Laos"
+    },
+    "telephone": "+8562055528034",
+    "email": "contact@wordsthatsells.website",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "20 Rue Samsenthai",
+      "addressLocality": "Vientiane",
+      "addressRegion": "Vientiane Province",
+      "postalCode": "01300",
+      "addressCountry": "LA"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 17.974855,
+      "longitude": 102.630867
+    },
+    "hasMap": "https://maps.app.goo.gl/YOUR_GOOGLE_MAPS_LINK",
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "09:00",
+        "closes": "17:00"
+      }
+    ],
+    "areaServed": [
+      { "@type": "Country", "name": "Laos" },
+      { "@type": "Country", "name": "Thailand" },
+      { "@type": "Country", "name": "Vietnam" },
+      { "@type": "Country", "name": "Cambodia" },
+      { "@type": "Country", "name": "Myanmar" },
+      { "@type": "Country", "name": "Malaysia" },
+      { "@type": "Country", "name": "Singapore" },
+      { "@type": "Country", "name": "Indonesia" },
+      { "@type": "Country", "name": "Philippines" },
+      { "@type": "Country", "name": "Brunei" }
+    ],
+    "priceRange": "$500 - $10000+",
+    "paymentAccepted": "Bank Transfer, Credit Card, PayPal, PromptPay (Thailand), TrueMoney (Laos)",
+    "review": [
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "A. Client (Vientiane)" },
+        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+        "reviewBody": "Words That Sells delivered exceptional SEO results for our business. Highly recommended!",
+        "datePublished": "2024-07-20"
+      },
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "B. Partner (Bangkok)" },
+        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+        "reviewBody": "Their AI-powered content creation is a game-changer. Our engagement rates have soared.",
+        "datePublished": "2024-07-22"
+      }
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5",
+      "reviewCount": "25"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "DigitalMarketingService",
+    "serviceType": "Digital Marketing Strategy",
+    "name": "Digital Marketing Strategy Consulting",
+    "description": "Comprehensive digital marketing strategy development tailored for SMEs and marketing agencies in Southeast Asia.",
+    "provider": {
+      "@type": "Organization",
+      "name": "Words That Sells"
+    },
+    "areaServed": [
+      { "@type": "Country", "name": "Laos" },
+      { "@type": "Country", "name": "Thailand" },
+      { "@type": "Country", "name": "Vietnam" },
+      { "@type": "Country", "name": "Cambodia" },
+      { "@type": "Country", "name": "Myanmar" },
+      { "@type": "Country", "name": "Malaysia" },
+      { "@type": "Country", "name": "Singapore" },
+      { "@type": "Country", "name": "Indonesia" },
+      { "@type": "Country", "name": "Philippines" },
+      { "@type": "Country", "name": "Brunei" }
+    ],
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "USD",
+      "priceRange": "$500 - $5000",
+      "availability": "https://schema.org/InStock",
+      "url": "https://wordsthatsells.website/en/digital-marketing-services/"
+    },
+    "mainEntityOfPage": "https://wordsthatsells.website/en/digital-marketing-services/"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "DigitalMarketingService",
+    "serviceType": "SEO Content Creation",
+    "name": "AI-Powered SEO Content Writing Services",
+    "description": "Expert SEO content writing services leveraging AI to improve search rankings and drive organic traffic for businesses in Southeast Asia.",
+    "provider": {
+      "@type": "Organization",
+      "name": "Words That Sells"
+    },
+    "areaServed": [
+      { "@type": "Country", "name": "Laos" },
+      { "@type": "Country", "name": "Thailand" },
+      { "@type": "Country", "name": "Vietnam" },
+      { "@type": "Country", "name": "Cambodia" },
+      { "@type": "Country", "name": "Myanmar" },
+      { "@type": "Country", "name": "Malaysia" },
+      { "@type": "Country", "name": "Singapore" },
+      { "@type": "Country", "name": "Indonesia" },
+      { "@type": "Country", "name": "Philippines" },
+      { "@type": "Country", "name": "Brunei" }
+    ],
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "USD",
+      "priceRange": "$499 - $2500",
+      "availability": "https://schema.org/InStock",
+      "url": "https://wordsthatsells.website/en/digital-marketing-services/content-creation/copy-writing/"
+    },
+    "mainEntityOfPage": "https://wordsthatsells.website/en/digital-marketing-services/content-creation/copy-writing/"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "DigitalMarketingService",
+    "serviceType": "Social Media Management",
+    "name": "Comprehensive Social Media Management",
+    "description": "Complete social media solutions including multi-platform management, content strategy, community engagement, and growth strategies for businesses.",
+    "provider": {
+      "@type": "Organization",
+      "name": "Words That Sells"
+    },
+    "areaServed": [
+      { "@type": "Country", "name": "Laos" },
+      { "@type": "Country", "name": "Thailand" },
+      { "@type": "Country", "name": "Vietnam" },
+      { "@type": "Country", "name": "Cambodia" },
+      { "@type": "Country", "name": "Myanmar" },
+      { "@type": "Country", "name": "Malaysia" },
+      { "@type": "Country", "name": "Singapore" },
+      { "@type": "Country", "name": "Indonesia" },
+      { "@type": "Country", "name": "Philippines" },
+      { "@type": "Country", "name": "Brunei" }
+    ],
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "USD",
+      "priceRange": "$750 - $4000",
+      "availability": "https://schema.org/InStock",
+      "url": "https://wordsthatsells.website/en/digital-marketing-services/social-media-management/"
+    },
+    "mainEntityOfPage": "https://wordsthatsells.website/en/digital-marketing-services/social-media-management/"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "DigitalMarketingService",
+    "serviceType": "Web Development",
+    "name": "Custom Web Development Solutions",
+    "description": "Comprehensive website and web application development services, including custom websites, e-commerce solutions, and advanced web applications.",
+    "provider": {
+      "@type": "Organization",
+      "name": "Words That Sells"
+    },
+    "areaServed": [
+      { "@type": "Country", "name": "Laos" },
+      { "@type": "Country", "name": "Thailand" },
+      { "@type": "Country", "name": "Vietnam" },
+      { "@type": "Country", "name": "Cambodia" },
+      { "@type": "Country", "name": "Myanmar" },
+      { "@type": "Country", "name": "Malaysia" },
+      { "@type": "Country", "name": "Singapore" },
+      { "@type": "Country", "name": "Indonesia" },
+      { "@type": "Country", "name": "Philippines" },
+      { "@type": "Country", "name": "Brunei" }
+    ],
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "USD",
+      "priceRange": "$1500 - $10000+",
+      "availability": "https://schema.org/InStock",
+      "url": "https://wordsthatsells.website/en/digital-marketing-services/web-development/"
+    },
+    "mainEntityOfPage": "https://wordsthatsells.website/en/digital-marketing-services/web-development/"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "AI Marketing Hub Subscription Service",
+    "description": "An exclusive subscription service providing access to Words That Sells' proprietary AI marketing tools and advanced analytics platform.",
+    "sku": "AI-HUB-SUB-001",
+    "brand": {
+      "@type": "Organization",
+      "name": "Words That Sells"
+    },
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "USD",
+      "price": "99.00",
+      "priceValidUntil": "2025-12-31",
+      "availability": "https://schema.org/InStock",
+      "itemCondition": "https://schema.org/NewCondition",
+      "url": "https://wordsthatsells.website/en/resources/ai-tools/"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Subscription Tiers",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Basic AI Marketing Hub Access"
+          },
+          "priceCurrency": "USD",
+          "price": "99.00",
+          "description": "Monthly access to core AI tools and basic analytics."
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Pro AI Marketing Hub Access"
+          },
+          "priceCurrency": "USD",
+          "price": "249.00",
+          "description": "Monthly access to advanced AI tools, premium analytics, and priority support."
+        }
+      ]
+    },
+    "featureList": [
+      "AI-powered content generation",
+      "Advanced SEO keyword research tools",
+      "Automated social media scheduling",
+      "Real-time analytics dashboards",
+      "Competitor analysis insights",
+      "Priority customer support"
+    ],
+    "warranty": {
+      "@type": "WarrantyPromise",
+      "description": "30-day money-back guarantee for new subscriptions."
+    },
+    "supportContact": {
+      "@type": "ContactPoint",
+      "telephone": "+8562055528034",
+      "contactType": "Customer Support"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://wordsthatsells.website/en/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Digital Marketing Services",
+        "item": "https://wordsthatsells.website/en/digital-marketing-services/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "SEO Content Creation",
+        "item": "https://wordsthatsells.website/en/digital-marketing-services/content-creation/copy-writing/"
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What services does Words That Sells offer?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Words That Sells provides comprehensive AI-powered digital marketing services including SEO content creation, social media management, web development, graphic design, and marketing automation solutions for businesses in Southeast Asia."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does AI enhance your marketing services?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We leverage AI for advanced data analysis, predictive analytics, automated content generation, personalized campaign optimization, and efficient workflow management, leading to superior results and ROI for our clients."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you offer services for businesses outside of Laos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, while based in Vientiane, Laos, we extend our transformative services across the dynamic Southeast Asian market, including Thailand, Vietnam, Cambodia, Malaysia, Singapore, Indonesia, Philippines, and Brunei."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the 'AI Marketing Hub' subscription service?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The AI Marketing Hub is our exclusive subscription service providing clients with direct access to our proprietary AI marketing tools, advanced analytics dashboards, and resources for self-managed marketing optimization."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How can I get a quote for your services?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You can request a free quote by visiting our 'Contact Us' page and filling out the inquiry form, or by calling us directly at +8562055528034 or +8562076005888."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can you provide white-label services for other agencies?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, we offer white-label solutions, allowing agencies to resell our AI-powered services under their brand with full support and training."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What payment methods do you accept?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We accept Bank Transfer, Credit Card, PayPal, PromptPay (Thailand), and TrueMoney (Laos) for your convenience."
+        }
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Words That Sells",
+    "url": "https://wordsthatsells.website",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://wordsthatsells.website/en/resources/articles/?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://wordsthatsells.website"
+    },
+    "about": {
+      "@type": "Organization",
+      "name": "Words That Sells",
+      "url": "https://wordsthatsells.website"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How AI Transforms Digital Marketing in Southeast Asia",
+    "description": "Explore how Words That Sells uses AI to boost SEO, content, and social media for SMEs in Southeast Asia.",
+    "author": {
+      "@type": "Organization",
+      "name": "Words That Sells"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Words That Sells",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://wordsthatsells.website/images/wordsthatsells-logo.png",
+        "width": "500",
+        "height": "500"
+      }
+    },
+    "datePublished": "2024-07-25",
+    "image": {
+      "@type": "ImageObject",
+      "url": "https://wordsthatsells.website/images/ai-digital-marketing-laos.jpg",
+      "width": "1200",
+      "height": "675",
+      "caption": "AI Digital Marketing in Southeast Asia"
+    },
+    "mainEntityOfPage": "https://wordsthatsells.website/en/resources/articles/ai-digital-marketing/"
+  }
+]
 
