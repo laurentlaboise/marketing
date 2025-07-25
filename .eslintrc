@@ -1,1 +1,98 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,    // Enables browser global variables (e.g., window, document).
+    "es2021": true,     // Enables ES2021 global variables and parsing.
+    "node": true        // Enables Node.js global variables and Node.js scoping.
+  },
+  "parserOptions": {
+    "ecmaVersion": 2021, // Specifies the version of ECMAScript syntax to be used (ES2021).
+    "sourceType": "module" // Allows for the use of ES modules (import/export syntax).
+  },
+  "extends": [
+    "eslint:recommended",         // Basic recommended ESLint rules for general code quality.
+    "@eslint/js/recommended",     // Recommended rules from the new flat config system (ESLint v9+).
+    "plugin:jsx-a11y/recommended",// Recommended accessibility rules for JSX/HTML elements.
+    "plugin:jsdoc/recommended"    // Recommended rules for JSDoc comment validation.
+  ],
+  "plugins": [
+    "jsx-a11y", // Plugin for enforcing accessibility rules on JSX elements.
+    "jsdoc"     // Plugin for enforcing JSDoc comment conventions.
+  ],
+  "rules": {
+    // --- General Code Quality Rules ---
+    "no-console": "warn",         // Warns about the use of console.log, console.warn, etc. (often left in production).
+    "no-unused-vars": "error",    // Disallows unused variables (marks as an error to ensure cleanup).
+    "prefer-const": "error",      // Requires `const` declarations for variables that are never reassigned.
+
+    // --- Accessibility Rules (from eslint-plugin-jsx-a11y) ---
+    // These rules help ensure your web content is accessible to a wider range of users.
+    "jsx-a11y/alt-text": "error", // Enforce that all elements that require alternative text have it.
+    "jsx-a11y/anchor-has-content": "error", // Enforce that anchors have content and that the content is accessible to screen readers.
+    "jsx-a11y/aria-props": "error", // Enforce all `aria-*` props are valid.
+    "jsx-a11y/aria-role": "error", // Enforce that elements with ARIA roles have a valid role.
+    "jsx-a11y/heading-has-content": "error", // Enforce that heading elements (h1-h6) have content.
+    "jsx-a11y/html-has-lang": "error", // Enforce `<html>` element has a `lang` attribute.
+    "jsx-a11y/iframe-has-title": "error", // Enforce `<iframe>` elements have a title attribute.
+    "jsx-a11y/interactive-supports-focus": "error", // Enforce interactive elements can be tabbed to.
+    "jsx-a11y/label-has-associated-control": ["error", { // Enforce a label tag has an associated control.
+      "labelComponents": ["Label"],
+      "controlComponents": ["Input", "Select", "Textarea"],
+      "depth": 3
+    }],
+    "jsx-a11y/mouse-events-have-key-events": "error", // Enforce that `onmouseover`/`onmouseout` are accompanied by `onfocus`/`onblur` for keyboard-only users.
+    "jsx-a11y/no-access-keys": "error", // Disallow the use of access keys on elements.
+    "jsx-a11y/no-autofocus": ["error", { "ignoreNonDOM": true }], // Disallow `autoFocus` property.
+    "jsx-a11y/no-distracting-elements": "error", // Disallow the use of `blink` and `marquee` elements.
+    "jsx-a11y/no-redundant-roles": "error", // Disallow redundant ARIA roles.
+    "jsx-a11y/role-has-required-aria-props": "error", // Enforce that elements with ARIA roles have all required `aria-*` properties.
+    "jsx-a11y/scope": "error", // Enforce `scope` prop is only used on `<th>` elements.
+    "jsx-a11y/tabindex-no-positive": "error", // Enforce `tabIndex` is not greater than zero.
+
+    // --- Performance Rules (focused on async/await) ---
+    // These rules help identify potential performance pitfalls related to asynchronous operations.
+    "require-await": "error", // Disallow async functions which have no `await` expression.
+    "no-return-await": "error", // Disallow unnecessary `await` in `return` statements.
+
+    // --- Custom Rules for Comment Requirements (using eslint-plugin-jsdoc) ---
+    // These rules enforce JSDoc comments for better code documentation and maintainability,
+    // especially for complex functions.
+    "jsdoc/require-jsdoc": ["error", { // Enforce JSDoc comments for functions and methods.
+      "require": {
+        "FunctionDeclaration": true,
+        "MethodDefinition": true,
+        "ClassDeclaration": true,
+        "ArrowFunctionExpression": true,
+        "FunctionExpression": true
+      },
+      "exemptEmptyFunctions": true // Allows functions with empty bodies to skip JSDoc.
+    }],
+    "jsdoc/check-param-names": "error", // Ensures parameter names in JSDoc match the function signature.
+    "jsdoc/require-param": "error",     // Requires all parameters to be documented in JSDoc.
+    "jsdoc/require-param-type": "error", // Requires parameter types to be documented.
+    "jsdoc/require-returns": "error",   // Requires JSDoc for functions that return a value.
+    "jsdoc/require-returns-type": "error" // Requires return types to be documented.
+  },
+  "overrides": [
+    {
+      "files": ["*.config.js", "*.config.json"], // Apply specific rules to configuration files.
+      "rules": {
+        "no-console": "off", // Allow console logs in configuration files for debugging.
+        "jsdoc/require-jsdoc": "off" // No need for JSDoc on config files.
+      }
+    },
+    {
+      "files": ["*.test.js", "*.spec.js"], // Apply specific rules to test files.
+      "env": {
+        "jest": true, // Enables Jest global variables for test files.
+        "mocha": true // Enables Mocha global variables for test files (if used).
+      },
+      "rules": {
+        "no-unused-vars": "off", // Often, variables in tests are just for setup and not directly "used".
+        "no-console": "off",     // Console logs are common in tests for debugging.
+        "jsdoc/require-jsdoc": "off" // No need for JSDoc on test functions.
+      }
+    }
+  ]
+}
 
