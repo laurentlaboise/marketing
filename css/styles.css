@@ -1,1 +1,321 @@
+/*
+ * styles.css for WordsThatSells.website
+ *
+ * Purpose: Comprehensive design system implementation and global stylesheet architecture.
+ * Description: Master stylesheet containing design tokens, component styles,
+ * responsive layouts, animation definitions, utility classes,
+ * and complete brand design system implementation with modular architecture.
+ * Implements modern CSS methodologies including BEM and component-based organization.
+ */
+
+/* --- 1. CSS Architecture: Custom Properties (Design Tokens) --- */
+:root {
+    /* Brand Colors */
+    --color-charcoal: #4A5568;
+    --color-charcoal-light: #6B7280; /* Lighter shade for text/borders */
+    --color-charcoal-dark: #2D3748; /* Darker shade for backgrounds */
+    --color-accent-blue: #3182CE;
+    --color-accent-blue-light: #63B3ED; /* Lighter for hover/active */
+    --color-accent-blue-dark: #2C5282; /* Darker for active/gradients */
+    --color-accent-magenta: #D53F8C;
+    --color-accent-magenta-light: #F687B3; /* Lighter for hover/active */
+    --color-accent-magenta-dark: #B83280; /* Darker for active/gradients */
+    --color-white: #FFFFFF;
+    --color-light-gray: #E5E7EB; /* Adjusted for better contrast with white background */
+    --color-mid-gray: #E2E8F0; /* Used for borders/dividers */
+    --color-dark-gray: #A0AEC0; /* Used for subtle text */
+
+    /* Typography Scale (Poppins for headings, Inter for body) */
+    --font-family-heading: 'Poppins', sans-serif;
+    --font-family-body: 'Inter', sans-serif;
+
+    --font-size-base: 1rem; /* 16px */
+    --font-size-sm: 0.875rem; /* 14px */
+    --font-size-lg: 1.125rem; /* 18px */
+    --font-size-xl: 1.25rem; /* 20px */
+    --font-size-2xl: 1.5rem; /* 24px */
+    --font-size-3xl: 1.875rem; /* 30px */
+    --font-size-4xl: 2.25rem; /* 36px */
+    --font-size-5xl: 3rem; /* 48px */
+    --font-size-6xl: 3.75rem; /* 60px */
+
+    /* Spacing Scale (based on 8px grid) */
+    --spacing-xs: 0.25rem; /* 4px */
+    --spacing-sm: 0.5rem; /* 8px */
+    --spacing-md: 1rem; /* 16px */
+    --spacing-lg: 1.5rem; /* 24px */
+    --spacing-xl: 2rem; /* 32px */
+    --spacing-2xl: 3rem; /* 48px */
+    --spacing-3xl: 4rem; /* 64px */
+    --spacing-4xl: 5rem; /* 80px */
+
+    /* Border Radius */
+    --border-radius-sm: 0.25rem; /* 4px */
+    --border-radius-md: 0.5rem; /* 8px */
+    --border-radius-lg: 0.75rem; /* 12px */
+    --border-radius-xl: 1rem; /* 16px */
+    --border-radius-full: 9999px; /* Full circle/pill */
+
+    /* Box Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+    /* Transitions */
+    --transition-duration: 0.3s;
+    --transition-timing-function: ease-in-out;
+}
+
+/* --- 2. Reset and Normalize Styles (Minimal) --- */
+/* A more comprehensive reset/normalize is often handled by Tailwind's base styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-size: var(--font-size-base);
+    color: var(--color-charcoal); /* Default body text color */
+}
+
+/* --- 3. Base Typography and Element Styles --- */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-heading);
+    line-height: 1.2;
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    color: var(--color-charcoal-dark); /* Darker headings */
+}
+
+h1 { font-size: var(--font-size-5xl); }
+h2 { font-size: var(--font-size-4xl); }
+h3 { font-size: var(--font-size-3xl); }
+h4 { font-size: var(--font-size-2xl); }
+h5 { font-size: var(--font-size-xl); }
+h6 { font-size: var(--font-size-lg); }
+
+p {
+    margin-bottom: var(--spacing-md);
+}
+
+a {
+    color: var(--color-accent-blue);
+    text-decoration: none;
+    transition: color var(--transition-duration) var(--transition-timing-function);
+}
+
+a:hover {
+    color: var(--color-accent-blue-dark);
+    text-decoration: underline;
+}
+
+/* --- 4. Utility Classes (Removed as Tailwind handles most of these) --- */
+/* Tailwind classes are preferred for actual usage. Custom colors can be extended in tailwind.config.js */
+/* .text-primary { color: var(--color-accent-blue); } */
+/* .bg-primary { background-color: var(--color-accent-blue); } */
+/* .text-secondary { color: var(--color-accent-magenta); } */
+/* .bg-secondary { background-color: var(--color-accent-magenta); } */
+/* .text-charcoal { color: var(--color-charcoal); } */
+/* .bg-charcoal { background-color: var(--color-charcoal); } */
+/* .shadow-md { box-shadow: var(--shadow-md); } */
+/* .rounded-lg { border-radius: var(--border-radius-lg); } */
+
+/* --- 5. Component-Specific Styles --- */
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    border: none;
+    transition: all var(--transition-duration) var(--transition-timing-function);
+}
+
+.btn-primary {
+    background-color: var(--color-accent-blue);
+    color: var(--color-white);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-accent-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    background-color: var(--color-accent-magenta);
+    color: var(--color-white);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-accent-magenta-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Cards */
+.card {
+    background-color: var(--color-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-lg);
+    transition: transform var(--transition-duration) var(--transition-timing-function),
+                box-shadow var(--transition-duration) var(--transition-timing-function);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Form Elements */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+textarea,
+select { /* Added select element */
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-mid-gray);
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    color: var(--color-charcoal);
+    background-color: var(--color-white); /* Ensure background is white for contrast */
+    transition: border-color var(--transition-duration) var(--transition-timing-function),
+                box-shadow var(--transition-duration) var(--transition-timing-function);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+textarea:focus,
+select:focus { /* Added select element */
+    outline: none;
+    border-color: var(--color-accent-blue);
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2); /* Accent blue ring */
+}
+
+/* --- 6. Responsive Layout Classes (Tailwind handles this primarily) --- */
+/* Example of custom media query usage if not relying solely on Tailwind's breakpoints */
+/* These custom breakpoints align with common responsive design patterns */
+@media (min-width: 768px) { /* md breakpoint */
+    h1 { font-size: var(--font-size-6xl); }
+    h2 { font-size: var(--font-size-5xl); }
+}
+
+@media (min-width: 1024px) { /* lg breakpoint */
+    body {
+        font-size: var(--font-size-lg);
+    }
+}
+
+/* --- 7. Animation and Transition Definitions --- */
+/* Reusable animation for elements like the 404 icon */
+@keyframes bounce-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+.animate-bounce-slow {
+    animation: bounce-slow 2s infinite;
+}
+
+/* Floating elements animation (already present) */
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+}
+
+
+/* --- 8. Performance Considerations --- */
+/* Font Loading Optimization */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 800; /* Variable font range */
+    font-display: swap; /* Ensures text is visible during font load */
+    src: url('../fonts/Inter-VariableFont.woff2') format('woff2'), /* Self-hosted WOFF2 */
+         url('../fonts/Inter-VariableFont.woff') format('woff');   /* WOFF fallback for broader support */
+}
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600 800; /* Variable font range */
+    font-display: swap; /* Ensures text is visible during font load */
+    src: url('../fonts/Poppins-VariableFont.woff2') format('woff2'), /* Self-hosted WOFF2 */
+         url('../fonts/Poppins-VariableFont.woff') format('woff');   /* WOFF fallback for broader support */
+}
+
+/* Vendor Prefix Management: Handled by Autoprefixer via PostCSS in Gulpfile.js */
+/* Critical CSS Identification: Handled by 'critical' plugin in Gulpfile.js */
+/* Lazy Loading for non-critical styles/images: Primarily handled via HTML/JS (e.g., Intersection Observer) */
+/* Efficient Selector Usage: Encouraged by Tailwind's utility-first approach and BEM for custom components */
+/* Animation Performance: Use transform/opacity for animations where possible to leverage GPU acceleration */
+
+/* --- 9. Accessibility --- */
+/* Focus Indicators and Keyboard Navigation */
+/* Default browser outline is often good, but can be customized for better visibility */
+:focus-visible {
+    outline: 2px solid var(--color-accent-magenta); /* High contrast focus indicator */
+    outline-offset: 2px;
+    border-radius: var(--border-radius-sm); /* Match element's border-radius */
+}
+
+/* High Contrast Mode Support */
+/* Ensure sufficient contrast for all text and interactive elements. */
+/* Use brand colors with good contrast ratios. */
+@media (prefers-color-scheme: dark) {
+    /* Example: Adjust colors for dark mode if implemented via a theme switcher */
+    /* If you're using a data-theme attribute on <html> or <body>: */
+    /* html[data-theme='dark'] body { background-color: var(--color-charcoal-dark); color: var(--color-white); } */
+    /* html[data-theme='dark'] .card { background-color: var(--color-charcoal); } */
+    /* html[data-theme='dark'] .btn-primary { background-color: var(--color-accent-blue-light); } */
+}
+@media (forced-colors: active) {
+    /* Ensure elements are visible in forced colors mode */
+    a { border: 1px solid transparent; } /* Add border for links if they become invisible */
+    :focus-visible { outline: 3px solid Highlight; } /* Use system highlight color */
+}
+
+/* Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+    /* Disable or reduce animations for users who prefer less motion */
+    .animate-bounce-slow, .float, .btn-primary::before, .card-hover {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
+/* Screen Reader Only Class */
+/* Use this class to visually hide content while keeping it accessible to screen readers. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* Screen Reader Compatibility: Primarily handled by semantic HTML and ARIA attributes */
+/* Color Contrast Compliance: Ensure all text and interactive elements meet WCAG AA standards (min 4.5:1 for normal text) */
+/* Use contrast checking tools (e.g., WebAIM Contrast Checker) during design and development. */
 
