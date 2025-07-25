@@ -1,82 +1,100 @@
 # EditorConfig: http://editorconfig.org
-# Top-level configuration to stop searching for .editorconfig files in parent directories
+# Top-level configuration for WordsThatSells.website to ensure consistent formatting
 root = true
 
 # Global settings for all files
 [*]
-# Use UTF-8 encoding for consistent character representation
+# Use UTF-8 encoding for universal compatibility
 charset = utf-8
-# Use LF (Unix-style) line endings for cross-platform compatibility
+# Use LF line endings for cross-platform consistency
 end_of_line = lf
-# Ensure a single newline at the end of each file
+# Ensure a single newline at file end for clean diffs
 insert_final_newline = true
-# Remove trailing whitespace for cleaner diffs
+# Remove trailing whitespace for cleaner code
 trim_trailing_whitespace = true
-# Enforce a maximum line length for better readability (except where overridden)
+# Enforce 120-character line length for readability
 max_line_length = 120
 
-# HTML files: 2-space indentation for clean, readable markup
+# HTML files: 2-space indentation for clean, SEO-friendly markup
 [*.{html,htm}]
 indent_style = space
 indent_size = 2
 
-# CSS and SCSS files: 2-space indentation for styling consistency
-[*.{css,scss}]
+# CSS files: 2-space indentation for styling consistency
+[*.css]
 indent_style = space
 indent_size = 2
 
-# JavaScript, TypeScript, JSX, TSX, and JSON files: 2-space indentation for code clarity
-[*.{js,ts,jsx,tsx,json}]
+# JavaScript and JSON files: 2-space indentation for modern JS development
+[*.{js,json}]
 indent_style = space
 indent_size = 2
 
-# Markdown files: Preserve trailing whitespace for syntax (e.g., line breaks)
+# Markdown files: Preserve trailing whitespace for syntax, no line length limit
 [*.{md,markdown}]
 trim_trailing_whitespace = false
 max_line_length = off
 
-# YAML files (e.g., CI/CD, Docker configs): 2-space indentation for configuration
+# YAML files (e.g., CI/CD workflows): 2-space indentation for configuration
 [*.{yml,yaml}]
 indent_style = space
 indent_size = 2
 
-# Vue.js files: 2-space indentation for single-file components
-[*.vue]
+# XML files (e.g., sitemap.xml, schema.json): 2-space indentation for SEO
+[*.{xml,json}]
 indent_style = space
 indent_size = 2
 
-# PHP files: 4-space indentation, common in PHP projects
-[*.php]
-indent_style = space
-indent_size = 4
-
-# GraphQL files: 2-space indentation for schema and query files
-[*.{graphql,gql}]
+# Configuration files: 2-space indentation for JSON-based configs
+[{package.json,.eslintrc,.prettierrc,manifest.json,schema.json}]
 indent_style = space
 indent_size = 2
 
-# Package.json and other JSON-based config files: 2-space indentation
-[{package.json,.eslintrc,.prettierrc,.babelrc}]
+# Webpack configuration: 2-space indentation for JavaScript config
+[webpack.config.js]
 indent_style = space
 indent_size = 2
 
-# Environment files: No trailing whitespace, no final newline for security
+# Environment files: No final newline for security, no trailing whitespace
 [*.env]
 trim_trailing_whitespace = true
 insert_final_newline = false
 
-# Lockfiles: Prevent accidental edits by disabling whitespace trimming and newlines
-[{yarn.lock,package-lock.json,pnpm-lock.yaml}]
+# Lockfiles: Prevent accidental edits
+[package-lock.json]
 trim_trailing_whitespace = false
 insert_final_newline = false
 
-# Gitignore and similar files: No specific indentation, preserve whitespace
-[*.{gitignore,gitattributes,dockerignore}]
+# Git-related files: Preserve whitespace, 2-space indentation
+[*.{gitignore,gitattributes}]
 indent_style = space
 indent_size = 2
 trim_trailing_whitespace = false
 
-# SVG files: 2-space indentation for XML-like structure
-[*.svg]
-indent_style = space
-indent_size = 2
+# Apache configuration (.htaccess): No trailing whitespace for server stability
+[.htaccess]
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Robots.txt: No trailing whitespace for clean SEO configuration
+[robots.txt]
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Font-related files: No specific formatting to preserve binary or external formats
+[fonts/**]
+charset = unset
+end_of_line = unset
+indent_style = unset
+indent_size = unset
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+# Image files (e.g., favicon.ico): No formatting to preserve binary integrity
+[*.{ico,png,jpg,jpeg,svg}]
+charset = unset
+end_of_line = unset
+indent_style = unset
+indent_size = unset
+trim_trailing_whitespace = false
+insert_final_newline = false
