@@ -1,1 +1,145 @@
+{
+  "name": "Words That Sells - AI Digital Marketing",
+  "short_name": "WordsThatSells",
+  "description": "Your AI-powered partner for digital marketing excellence in Southeast Asia. Specializing in SEO, content, social media, and web development.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/en/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#3182CE",
+  "background_color": "#4A5568",
+  "icons": [
+    {
+      "src": "/images/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "marketing"],
+  "screenshots": [
+    {
+      "src": "/images/screenshots/screenshot-desktop-1.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Words That Sells Desktop Homepage"
+    },
+    {
+      "src": "/images/screenshots/screenshot-mobile-1.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Words That Sells Mobile Homepage"
+    },
+    {
+      "src": "/images/screenshots/screenshot-services.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Words That Sells Services Page"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Get a Free Quote",
+      "short_name": "Get Quote",
+      "description": "Request a free consultation and quote for our services.",
+      "url": "/en/company/contact-us/?action=get-quote",
+      "icons": [
+        { "src": "/images/shortcuts/shortcut-quote.png", "sizes": "192x192" }
+      ]
+    },
+    {
+      "name": "View Our Services",
+      "short_name": "Services",
+      "description": "Explore our full range of AI-powered digital marketing services.",
+      "url": "/en/digital-marketing-services/",
+      "icons": [
+        { "src": "/images/shortcuts/shortcut-services.png", "sizes": "192x192" }
+      ]
+    },
+    {
+      "name": "Contact Us",
+      "short_name": "Contact",
+      "description": "Get in touch with the Words That Sells team.",
+      "url": "/en/company/contact-us/",
+      "icons": [
+        { "src": "/images/shortcuts/shortcut-contact.png", "sizes": "192x192" }
+      ]
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+wordsthatsells",
+      "url": "/en/company/contact-us/?protocol=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/en/resources/guides/?file=%s",
+      "accept": {
+        "application/pdf": [".pdf"],
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"]
+      },
+      "name": "Open Marketing Document"
+    }
+  ],
+  "share_target": {
+    "action": "/en/resources/articles/share/",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "name",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "related_applications": [],
+  "prefer_related_applications": false
+}
 
