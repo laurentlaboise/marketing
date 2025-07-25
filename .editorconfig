@@ -1,1 +1,82 @@
+# EditorConfig: http://editorconfig.org
+# Top-level configuration to stop searching for .editorconfig files in parent directories
+root = true
 
+# Global settings for all files
+[*]
+# Use UTF-8 encoding for consistent character representation
+charset = utf-8
+# Use LF (Unix-style) line endings for cross-platform compatibility
+end_of_line = lf
+# Ensure a single newline at the end of each file
+insert_final_newline = true
+# Remove trailing whitespace for cleaner diffs
+trim_trailing_whitespace = true
+# Enforce a maximum line length for better readability (except where overridden)
+max_line_length = 120
+
+# HTML files: 2-space indentation for clean, readable markup
+[*.{html,htm}]
+indent_style = space
+indent_size = 2
+
+# CSS and SCSS files: 2-space indentation for styling consistency
+[*.{css,scss}]
+indent_style = space
+indent_size = 2
+
+# JavaScript, TypeScript, JSX, TSX, and JSON files: 2-space indentation for code clarity
+[*.{js,ts,jsx,tsx,json}]
+indent_style = space
+indent_size = 2
+
+# Markdown files: Preserve trailing whitespace for syntax (e.g., line breaks)
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# YAML files (e.g., CI/CD, Docker configs): 2-space indentation for configuration
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Vue.js files: 2-space indentation for single-file components
+[*.vue]
+indent_style = space
+indent_size = 2
+
+# PHP files: 4-space indentation, common in PHP projects
+[*.php]
+indent_style = space
+indent_size = 4
+
+# GraphQL files: 2-space indentation for schema and query files
+[*.{graphql,gql}]
+indent_style = space
+indent_size = 2
+
+# Package.json and other JSON-based config files: 2-space indentation
+[{package.json,.eslintrc,.prettierrc,.babelrc}]
+indent_style = space
+indent_size = 2
+
+# Environment files: No trailing whitespace, no final newline for security
+[*.env]
+trim_trailing_whitespace = true
+insert_final_newline = false
+
+# Lockfiles: Prevent accidental edits by disabling whitespace trimming and newlines
+[{yarn.lock,package-lock.json,pnpm-lock.yaml}]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+# Gitignore and similar files: No specific indentation, preserve whitespace
+[*.{gitignore,gitattributes,dockerignore}]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+# SVG files: 2-space indentation for XML-like structure
+[*.svg]
+indent_style = space
+indent_size = 2
