@@ -1,1 +1,210 @@
+# .htaccess for WordsThatSells.website
+# This file provides comprehensive Apache web server configurations for
+# security, performance optimization, URL management, and multilingual support.
+
+# --- 1. Basic Settings and Error Handling ---
+# Ensures the RewriteEngine is enabled for URL rewriting rules.
+RewriteEngine On
+# Sets the base URL for rewrite rules. Adjust if your site is in a subdirectory.
+RewriteBase /
+
+# Custom Error Pages
+# Directs users to custom error pages when a requested resource is not found or a server error occurs.
+ErrorDocument 404 /404.html
+ErrorDocument 500 /500.html
+
+# --- 2. HTTPS and Non-WWW Enforcement ---
+# Redirects all HTTP traffic to HTTPS, ensuring secure connections for all users.
+# Also redirects www.domain.com to domain.com (non-www) for consistent domain usage.
+# This is crucial for SEO, security, and user trust.
+<IfModule mod_rewrite.c>
+    # Redirect HTTP to HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Redirect www.domain.com to domain.com (non-www)
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^(.*)$ https://%1%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# --- 3. Security Headers ---
+# Enhances website security by adding various HTTP security headers.
+# These headers help mitigate common web vulnerabilities like XSS, clickjacking, and content sniffing.
+<IfModule mod_headers.c>
+    # X-Frame-Options: Prevents clickjacking by controlling whether the page can be rendered in an iframe.
+    # DENY: The page cannot be displayed in a frame.
+    Header always set X-Frame-Options "DENY"
+    # X-Content-Type-Options: Prevents browsers from MIME-sniffing a response away from the declared content-type.
+    # nosniff: Forces browsers to respect the Content-Type header.
+    Header always set X-Content-Type-Options "nosniff"
+    # X-XSS-Protection: This header is largely deprecated in modern browsers in favor of CSP,
+    # but can still provide a layer of defense for older browsers.
+    # Header always set X-XSS-Protection "1; mode=block" # Uncomment if legacy browser support is critical.
+    # Referrer-Policy: Controls how much referrer information is included with requests.
+    # no-referrer-when-downgrade: Sends full URL to same-origin and secure origins, but no referrer to insecure origins.
+    Header always set Referrer-Policy "no-referrer-when-downgrade"
+    # Content-Security-Policy: A powerful header to prevent a wide range of attacks, including XSS and data injection.
+    # This CSP is tailored for WordsThatSells.website, allowing self-hosted resources and specific CDNs/APIs.
+    # IMPORTANT: Customize this CSP carefully based on all external resources your site uses.
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://www.google-analytics.com; style-src 'self' https://cdn.tailwindcss.com https://fonts.googleapis.com; img-src 'self' data: https://placehold.co https://*.wordsthatsells.website; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://generativelanguage.googleapis.com https://www.google-analytics.com; object-src 'none'; frame-ancestors 'none';"
+
+    # Canonical URL Header: Helps prevent duplicate content issues for SEO.
+    # Ensures search engines see the preferred version of a URL.
+    Header set Link "<https://%{HTTP_HOST}%{REQUEST_URI}>; rel=\"canonical\""
+</IfModule>
+
+# --- 4. GZIP and Brotli Compression ---
+# Compresses common text-based file types to reduce bandwidth and speed up loading times.
+# Prioritize Brotli if supported, otherwise fall back to GZIP.
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml text/css application/javascript application/json application/font-woff application/font-woff2 application/vnd.ms-fontobject application/x-font-ttf font/opentype image/svg+xml
+</IfModule>
+<IfModule mod_filter.c>
+    # Only apply DEFLATE if Brotli is not available
+    FilterDeclare BROTLI_COMPRESS
+    FilterProvider BROTLI_COMPRESS DEFLATE "%{HTTP:Accept-Encoding} ~ /(x-gzip|gzip)/"
+    FilterChain BROTLI_COMPRESS
+    FilterProtocol BROTLI_COMPRESS DEFLATE change=yes
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css application/javascript application/x-javascript application/json application/font-woff application/font-woff2 application/vnd.ms-fontobject application/x-font-ttf font/opentype image/svg+xml
+    # Don't compress images or already compressed files (they are already optimized).
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp|mp4|webm|ogg|flv|swf|pdf)$ no-gzip dont-vary
+    SetEnvIfNoCase Request_URI \.(?:exe|t?gz|zip|bz2|sit|rar)$ no-gzip dont-vary
+    # Ensure proxies don't deliver the wrong content.
+    Header append Vary Accept-Encoding
+</IfModule>
+
+
+# --- 5. Browser Caching Rules (Leverage Browser Caching) ---
+# Sets expiration and Cache-Control headers for different types of assets to enable browser caching,
+# reducing server requests for repeat visitors.
+<IfModule mod_expires.c>
+    ExpiresActive On
+    # Default expiration for unspecified types.
+    ExpiresDefault "access plus 1 month"
+
+    # Images: Cache for 1 year (highly static).
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year" # Favicon
+
+    # CSS and JavaScript: Cache for 1 week (more frequently updated than images).
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType application/x-javascript "access plus 1 week"
+
+    # HTML: Cache for 1 hour (content might change more frequently).
+    ExpiresByType text/html "access plus 1 hour"
+
+    # Fonts: Cache for 1 month.
+    ExpiresByType application/font-woff "access plus 1 month"
+    ExpiresByType application/font-woff2 "access plus 1 month"
+    ExpiresByType application/vnd.ms-fontobject "access plus 1 month"
+    ExpiresByType application/x-font-ttf "access plus 1 month"
+    ExpiresByType font/opentype "access plus 1 month"
+</IfModule>
+<IfModule mod_headers.c>
+    # Set Cache-Control for static assets (1 year for immutable, 1 week for others)
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico|woff|woff2|ttf|otf|eot)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=604800" # 1 week
+    </FilesMatch>
+    <FilesMatch "\.html$">
+        Header set Cache-Control "public, max-age=3600" # 1 hour
+    </FilesMatch>
+</IfModule>
+
+# --- 6. URL Rewriting for Clean URLs (Remove .html extensions) ---
+# Makes URLs cleaner by removing the .html extension, improving user experience and SEO.
+<IfModule mod_rewrite.c>
+    # Rewrite HTML files to remove .html extension (internal rewrite)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.html -f
+    RewriteRule ^(.*)$ $1.html [L]
+
+    # Redirect explicit .html requests to their extensionless counterparts (301 Permanent)
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^.]+)\.html\ HTTP/
+    RewriteRule ^([^.]+)\.html$ /$1 [R=301,L]
+</IfModule>
+
+# --- 7. 301 Redirects for Old URLs to New Structure ---
+# Use this section to define permanent redirects for any old URLs that have changed.
+# This is crucial for SEO when migrating content or restructuring your site.
+# Example: Redirect old-page.html to new-page/
+# Redirect 301 /old-page.html /new-page/
+# Redirect 301 /old-path/old-resource /new-path/new-resource
+
+# --- 8. Security Rules: Disable Directory Browsing & Protect Sensitive Files ---
+# Prevents unauthorized users from viewing the contents of directories if an index file is missing.
+Options -Indexes
+
+# Deny access to sensitive files and directories (e.g., configuration files, logs, temporary files).
+# This prevents direct access to files that should not be publicly available.
+# Using 'Require all denied' for Apache 2.4+ compatibility.
+<FilesMatch "\.(env|log|tmp|bak|sql|yml|yaml|json)$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "^(package\.json|package-lock\.json|yarn\.lock|pnpm-lock\.yaml|\.eslintrc|\.prettierrc|\.editorconfig|\.gitignore|\.gitattributes|\.htaccess|CONTRIBUTING\.md|LICENSE|schema\.json|gulpfile\.js|webpack\.config\.js)$">
+    Require all denied
+</FilesMatch>
+# Allow specific config files to be served if they are intended for public consumption
+# robots.txt is explicitly allowed here to ensure search engine access.
+<FilesMatch "^(manifest\.json|sitemap\.xml|robots\.txt)$">
+    Require all granted
+</FilesMatch>
+
+# --- 9. Performance Optimizations: ETags and Keep-Alive Headers ---
+# ETags: Provides a mechanism for web servers to determine if a cached component matches the original.
+# They can sometimes cause issues with load balancers/CDNs, so they are often disabled if using a CDN.
+# Uncomment the line below if you are NOT using a CDN and want to enable ETags.
+# FileETag MTime Size
+
+# Keep-Alive: Allows multiple HTTP requests/responses to be sent over a single TCP connection.
+# This reduces latency and CPU/memory usage.
+<IfModule mod_headers.c>
+    Header set Connection Keep-Alive
+</IfModule>
+
+# --- 10. Minification Headers for CSS and JavaScript ---
+# Informs browsers that CSS and JavaScript files are minified, which can help with caching and processing.
+<IfModule mod_headers.c>
+    # For minified CSS files
+    <FilesMatch "\.min\.css$">
+        Header set X-Content-Type-Options "nosniff"
+        Header set Content-Type "text/css; charset=utf-8"
+    </FilesMatch>
+    # For minified JavaScript files
+    <FilesMatch "\.min\.js$">
+        Header set X-Content-Type-Options "nosniff"
+        Header set Content-Type "application/javascript; charset=utf-8"
+    </FilesMatch>
+</IfModule>
+
+# --- 11. Rules for Multilingual URL Structure ---
+# These rules ensure that language-specific directories are handled correctly,
+# allowing for clean URLs like /en/about-us/ instead of /en/about-us.html.
+# This assumes your language directories (en/, lo/, th/, fr/) contain index.html files
+# and other .html files that you want to serve without the extension.
+<IfModule mod_rewrite.c>
+    # Rewrite requests for directories to their index.html within language folders
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(en|lo|th|fr)/?$ $1/index.html [L]
+    RewriteRule ^(en|lo|th|fr)/([^/]+)/?$ $1/$2/index.html [L]
+
+    # Rewrite requests for .html files within language folders to remove .html extension
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.html -f
+    RewriteRule ^(en|lo|th|fr)/(.*)$ $1/$2.html [L]
+
+    # Redirect .html requests within language folders to their extensionless counterparts (301 Permanent)
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /(en|lo|th|fr)/([^.]+)\.html\ HTTP/
+    RewriteRule ^(en|lo|th|fr)/([^.]+)\.html$ /$1/$2 [R=301,L]
+</IfModule>
 
