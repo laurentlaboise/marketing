@@ -1,98 +1,100 @@
-{
-  "root": true,
-  "env": {
-    "browser": true,    // Enables browser global variables (e.g., window, document).
-    "es2021": true,     // Enables ES2021 global variables and parsing.
-    "node": true        // Enables Node.js global variables and Node.js scoping.
-  },
-  "parserOptions": {
-    "ecmaVersion": 2021, // Specifies the version of ECMAScript syntax to be used (ES2021).
-    "sourceType": "module" // Allows for the use of ES modules (import/export syntax).
-  },
-  "extends": [
-    "eslint:recommended",         // Basic recommended ESLint rules for general code quality.
-    "@eslint/js/recommended",     // Recommended rules from the new flat config system (ESLint v9+).
-    "plugin:jsx-a11y/recommended",// Recommended accessibility rules for JSX/HTML elements.
-    "plugin:jsdoc/recommended"    // Recommended rules for JSDoc comment validation.
-  ],
-  "plugins": [
-    "jsx-a11y", // Plugin for enforcing accessibility rules on JSX elements.
-    "jsdoc"     // Plugin for enforcing JSDoc comment conventions.
-  ],
-  "rules": {
-    // --- General Code Quality Rules ---
-    "no-console": "warn",         // Warns about the use of console.log, console.warn, etc. (often left in production).
-    "no-unused-vars": "error",    // Disallows unused variables (marks as an error to ensure cleanup).
-    "prefer-const": "error",      // Requires `const` declarations for variables that are never reassigned.
+# http://editorconfig.org
+root = true
 
-    // --- Accessibility Rules (from eslint-plugin-jsx-a11y) ---
-    // These rules help ensure your web content is accessible to a wider range of users.
-    "jsx-a11y/alt-text": "error", // Enforce that all elements that require alternative text have it.
-    "jsx-a11y/anchor-has-content": "error", // Enforce that anchors have content and that the content is accessible to screen readers.
-    "jsx-a11y/aria-props": "error", // Enforce all `aria-*` props are valid.
-    "jsx-a11y/aria-role": "error", // Enforce that elements with ARIA roles have a valid role.
-    "jsx-a11y/heading-has-content": "error", // Enforce that heading elements (h1-h6) have content.
-    "jsx-a11y/html-has-lang": "error", // Enforce `<html>` element has a `lang` attribute.
-    "jsx-a11y/iframe-has-title": "error", // Enforce `<iframe>` elements have a title attribute.
-    "jsx-a11y/interactive-supports-focus": "error", // Enforce interactive elements can be tabbed to.
-    "jsx-a11y/label-has-associated-control": ["error", { // Enforce a label tag has an associated control.
-      "labelComponents": ["Label"],
-      "controlComponents": ["Input", "Select", "Textarea"],
-      "depth": 3
-    }],
-    "jsx-a11y/mouse-events-have-key-events": "error", // Enforce that `onmouseover`/`onmouseout` are accompanied by `onfocus`/`onblur` for keyboard-only users.
-    "jsx-a11y/no-access-keys": "error", // Disallow the use of access keys on elements.
-    "jsx-a11y/no-autofocus": ["error", { "ignoreNonDOM": true }], // Disallow `autoFocus` property.
-    "jsx-a11y/no-distracting-elements": "error", // Disallow the use of `blink` and `marquee` elements.
-    "jsx-a11y/no-redundant-roles": "error", // Disallow redundant ARIA roles.
-    "jsx-a11y/role-has-required-aria-props": "error", // Enforce that elements with ARIA roles have all required `aria-*` properties.
-    "jsx-a11y/scope": "error", // Enforce `scope` prop is only used on `<th>` elements.
-    "jsx-a11y/tabindex-no-positive": "error", // Enforce `tabIndex` is not greater than zero.
+# Generic rules for all files in the project
+[*]
+charset = utf-8                # Ensure all files are saved with UTF-8 encoding for consistent character representation.
+end_of_line = lf              # Enforce Unix-style line endings (LF) to prevent cross-platform line ending issues (CRLF on Windows).
+insert_final_newline = true   # Ensure that files end with a single newline character, which is a common Unix convention.
+trim_trailing_whitespace = true # Remove any whitespace characters at the end of lines to maintain clean code.
+max_line_length = 120         # Enforce a maximum line length of 120 characters for improved readability and consistency.
 
-    // --- Performance Rules (focused on async/await) ---
-    // These rules help identify potential performance pitfalls related to asynchronous operations.
-    "require-await": "error", // Disallow async functions which have no `await` expression.
-    "no-return-await": "error", // Disallow unnecessary `await` in `return` statements.
+# HTML files: 2-space indentation for clean, SEO-friendly markup
+[*.{html,htm}]
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for HTML files.
 
-    // --- Custom Rules for Comment Requirements (using eslint-plugin-jsdoc) ---
-    // These rules enforce JSDoc comments for better code documentation and maintainability,
-    // especially for complex functions.
-    "jsdoc/require-jsdoc": ["error", { // Enforce JSDoc comments for functions and methods.
-      "require": {
-        "FunctionDeclaration": true,
-        "MethodDefinition": true,
-        "ClassDeclaration": true,
-        "ArrowFunctionExpression": true,
-        "FunctionExpression": true
-      },
-      "exemptEmptyFunctions": true // Allows functions with empty bodies to skip JSDoc.
-    }],
-    "jsdoc/check-param-names": "error", // Ensures parameter names in JSDoc match the function signature.
-    "jsdoc/require-param": "error",     // Requires all parameters to be documented in JSDoc.
-    "jsdoc/require-param-type": "error", // Requires parameter types to be documented.
-    "jsdoc/require-returns": "error",   // Requires JSDoc for functions that return a value.
-    "jsdoc/require-returns-type": "error" // Requires return types to be documented.
-  },
-  "overrides": [
-    {
-      "files": ["*.config.js", "*.config.json"], // Apply specific rules to configuration files.
-      "rules": {
-        "no-console": "off", // Allow console logs in configuration files for debugging.
-        "jsdoc/require-jsdoc": "off" // No need for JSDoc on config files.
-      }
-    },
-    {
-      "files": ["*.test.js", "*.spec.js"], // Apply specific rules to test files.
-      "env": {
-        "jest": true, // Enables Jest global variables for test files.
-        "mocha": true // Enables Mocha global variables for test files (if used).
-      },
-      "rules": {
-        "no-unused-vars": "off", // Often, variables in tests are just for setup and not directly "used".
-        "no-console": "off",     // Console logs are common in tests for debugging.
-        "jsdoc/require-jsdoc": "off" // No need for JSDoc on test functions.
-      }
-    }
-  ]
-}
+# CSS/SCSS files: 2-space indentation for styling consistency
+[*.{css,scss}]
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for CSS and SCSS files.
 
+# JavaScript and JSON files: 2-space indentation for modern JS development
+# JSON is covered here for consistency with JavaScript formatting.
+[*.{js,json}]
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for JavaScript and JSON files.
+
+# Markdown files: Preserve trailing whitespace for syntax, no line length limit
+[*.{md,markdown}]
+trim_trailing_whitespace = false # Do not trim trailing whitespace in Markdown files, as it can be used for line breaks.
+max_line_length = off         # Disable line length limit for Markdown files to allow for flexible content.
+
+# YAML files (e.g., CI/CD workflows): 2-space indentation for configuration
+[*.{yml,yaml}]
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for YAML files.
+
+# XML files (e.g., sitemap.xml): 2-space indentation for SEO and structure
+[*.xml]
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for XML files.
+
+# Specific configuration files: 2-space indentation for JSON-based configs
+# This explicitly targets common project configuration files.
+[{package.json,.eslintrc,.prettierrc,manifest.json,schema.json}]
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for these specific configuration files.
+
+# Webpack configuration: 2-space indentation for JavaScript config
+[webpack.config.js]
+indent_style = space          # Use spaces instead of tabs for indentation.
+indent_size = 2               # Set indentation to 2 spaces for the Webpack configuration file.
+
+# Environment files: No final newline for security, no trailing whitespace
+# This is crucial for files that might be read line-by-line by scripts.
+[*.env]
+trim_trailing_whitespace = true # Ensure no trailing whitespace.
+insert_final_newline = false  # Do not insert a final newline.
+
+# Lockfiles: Prevent accidental edits and preserve integrity
+[package-lock.json]
+trim_trailing_whitespace = false # Do not trim whitespace, as it might be part of the file's integrity hash.
+insert_final_newline = false  # Do not insert a final newline to maintain file integrity.
+
+# Git-related files: Preserve whitespace, 2-space indentation (if applicable)
+# These files often rely on exact content, including whitespace.
+[*.{gitignore,gitattributes}]
+indent_style = space          # Use spaces for indentation.
+indent_size = 2               # Set indentation to 2 spaces.
+trim_trailing_whitespace = false # Preserve trailing whitespace.
+
+# Apache configuration (.htaccess): No trailing whitespace for server stability
+[.htaccess]
+trim_trailing_whitespace = true # Ensure no trailing whitespace for server configuration files.
+insert_final_newline = true   # Ensure a final newline for proper file termination.
+
+# Robots.txt: No trailing whitespace for clean SEO configuration
+[robots.txt]
+trim_trailing_whitespace = true # Ensure no trailing whitespace for robots.txt.
+insert_final_newline = true   # Ensure a final newline for proper file termination.
+
+# Font-related files: No specific formatting to preserve binary or external formats
+# These are often binary or highly specific formats that should not be altered by text editor rules.
+[fonts/**]
+charset = unset               # Do not enforce character set.
+end_of_line = unset           # Do not enforce line endings.
+indent_style = unset          # Do not enforce indentation style.
+indent_size = unset           # Do not enforce indentation size.
+trim_trailing_whitespace = false # Preserve trailing whitespace.
+insert_final_newline = false  # Do not insert a final newline.
+
+# Image files (e.g., favicon.ico): No formatting to preserve binary integrity
+# Crucial for binary assets to prevent corruption.
+[*.{ico,png,jpg,jpeg,svg}]
+charset = unset               # Do not enforce character set.
+end_of_line = unset           # Do not enforce line endings.
+indent_style = unset          # Do not enforce indentation style.
+indent_size = unset           # Do not enforce indentation size.
+trim_trailing_whitespace = false # Preserve trailing whitespace.
+insert_final_newline = false  # Do not insert a final newline.
