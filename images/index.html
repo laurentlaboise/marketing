@@ -8,7 +8,7 @@
     <link rel="canonical" href="https://wordsthatsells.website/images/index.html">
 
     <!-- Primary SEO Meta Tags -->
-    <meta name="description" content="Explore the official brand images and visuals from Words That Sells, a pioneering AI-powered digital marketing agency based in Vientiane, Laos, serving Southeast Asia with SEO, content creation, and more.">
+    <meta name="description" content="Explore the official brand images and visuals from Words That Sells, a pioneering AI-powered digital marketing agency based in Vientiane, Laos, serving Southeast Asia with SEO, content creation, social media management, web development, and business automation.">
     <meta name="keywords" content="Words That Sells, AI digital marketing, SEO, content creation, social media management, web development, Laos, Southeast Asia, marketing agency, brand images, logo, visuals, visual identity">
     <meta name="robots" content="index, follow">
     <meta name="author" content="Words That Sells">
@@ -323,7 +323,7 @@
         "@type": "Organization",
         "@id": "https://wordsthatsells.website/#organization",
         "name": "Words That Sells",
-        "description": "Pioneering AI-powered digital marketing agency based in Vientiane, Laos, specializing in SEO, content creation, social media management, web development, and business automation for Southeast Asia.",
+        "description": "Pioneering AI-powered digital marketing agency based in Vientiane, Laos, specializing in SEO, content creation, social media management, web development, and business automation.",
         "url": "https://wordsthatsells.website",
         "logo": {
           "@type": "ImageObject",
@@ -798,10 +798,54 @@
                 document.body.removeChild(textArea);
             });
 
+            // Function to call Gemini API for generation or translation
+            async function callGeminiAPI(prompt, isTranslation = false) {
+                socialPostOutput.textContent = ''; // Clear previous content
+                loadingIndicator.classList.remove('hidden'); // Show loading indicator
+                copyPostButton.disabled = true; // Disable copy button during generation
+                translateButton.disabled = true; // Disable translate button during generation/translation
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will automatically provide the API key at runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        socialPostOutput.textContent = text;
+                        if (!isTranslation) { // Only store if it's a new generation, not a translation
+                            currentGeneratedPost = text;
+                        }
+                    } else {
+                        socialPostOutput.textContent = "Error: Could not process request. Please try again.";
+                        console.error("Unexpected API response structure:", result);
+                    }
+                } catch (error) {
+                    socialPostOutput.textContent = "Error: Failed to connect to the AI service. Please check your network connection.";
+                    console.error("Fetch error:", error);
+                } finally {
+                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                    copyPostButton.disabled = false; // Enable copy button
+                    translateButton.disabled = false; // Enable translate button
+                }
+            }
 
             // Event listeners for all "Generate Social Post" buttons
             generateButtons.forEach(button => {
-                button.addEventListener('click', async () => {
+                button.addEventListener('click', () => {
                     const title = button.dataset.title;
                     const description = button.dataset.description;
 
