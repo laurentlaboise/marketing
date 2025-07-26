@@ -1,6 +1,3 @@
-Of course. Here is the structured data from your HTML, consolidated and properly formatted into a single `JSON-LD` object. I have removed the non-standard comments and ensured the syntax is correct.
-
-```json
 {
   "@context": "https://schema.org",
   "@graph": [
