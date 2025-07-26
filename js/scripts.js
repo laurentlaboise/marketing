@@ -3,24 +3,32 @@
  *
  * Purpose: Interactive functionality implementation and user experience enhancement.
  * Description: Core JavaScript file handling form validation, user interactions,
- * analytics tracking, performance monitoring, dynamic content loading, and API integrations.
+ * analytics tracking, performance monitoring, dynamic content loading, API integrations,
+ * and social media post generation with translation capabilities.
  * Implements modern ES6+ patterns with backward compatibility and comprehensive error handling.
  */
 
 // --- 1. Global Constants & Configuration ---
-// IMPORTANT: Replace these with your actual Supabase credentials and backend API URL.
-// For security, consider loading these from environment variables in a build process,
-// especially the Supabase Anon Key.
+// IMPORTANT: Replace these with your actual API credentials and backend API URL.
+// For security, consider loading these from environment variables in a build process.
 const API_BASE_URL = 'https://your-backend-api.com/api';
 const SUPABASE_URL = 'https://your-supabase-url.supabase.co';
 const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const GEMINI_API_KEY = ''; // Provided by environment for Gemini API
 
-// Brand colors for dynamic styling if needed in JS, matching styles.css
+// Brand colors for dynamic styling, updated to match HTML's blue palette
 const BRAND_COLORS = {
-    accentBlue: '#3182CE',
-    accentMagenta: '#D53F8C',
-    charcoal: '#4A5568'
+    primaryBase: '#1f85c9', // From HTML's --color-primary-base
+    slate900: '#122a3f', // From HTML's --color-slate-900
+    accentMagenta: '#d62b83', // From HTML's pink-download-button
+    white: '#ffffff'
 };
+
+// Supported languages for social post translation (from HTML)
+const SUPPORTED_LANGUAGES = [
+    'English', 'Lao', 'Thai', 'French', 'Vietnamese',
+    'Khmer', 'Malay', 'Indonesian', 'Filipino'
+];
 
 // --- 2. Utility Functions ---
 
@@ -47,14 +55,12 @@ const debounce = (func, delay) => {
  * @returns {string} The sanitized string.
  */
 // IMPORTANT: You need to install DOMPurify: `npm install dompurify`
-// and import it if using a module bundler like Webpack:
-// import DOMPurify from 'dompurify';
+// and import it if using a module bundler: `import DOMPurify from 'dompurify';`
 const sanitizeInput = (string) => {
-    // If DOMPurify is available (e.g., loaded via script tag or bundled)
     if (typeof DOMPurify !== 'undefined') {
         return DOMPurify.sanitize(string);
     }
-    // Fallback basic sanitization if DOMPurify is not available
+    // Fallback basic sanitization
     const map = {
         '&': '&amp;',
         '<': '&lt;',
@@ -86,12 +92,6 @@ const getUrlParameter = (name, url = window.location.href) => {
  * Manages cookies (set, get, delete).
  */
 const CookieManager = {
-    /**
-     * Sets a cookie.
-     * @param {string} name - The name of the cookie.
-     * @param {string} value - The value of the cookie.
-     * @param {number} days - Number of days until the cookie expires.
-     */
     set: (name, value, days) => {
         let expires = '';
         if (days) {
@@ -101,11 +101,6 @@ const CookieManager = {
         }
         document.cookie = name + '=' + (value || '') + expires + '; path=/; SameSite=Lax';
     },
-    /**
-     * Gets a cookie.
-     * @param {string} name - The name of the cookie.
-     * @returns {string|null} The cookie value or null if not found.
-     */
     get: (name) => {
         const nameEQ = name + '=';
         const ca = document.cookie.split(';');
@@ -116,10 +111,6 @@ const CookieManager = {
         }
         return null;
     },
-    /**
-     * Deletes a cookie.
-     * @param {string} name - The name of the cookie.
-     */
     delete: (name) => {
         document.cookie = name + '=; Max-Age=-99999999; path=/; SameSite=Lax';
     }
@@ -138,21 +129,17 @@ const DeviceDetector = {
 
 // Smooth Scrolling Navigation
 const setupSmoothScrolling = () => {
-    // Store event listeners in a map to allow for proper cleanup
     const handleClick = function(e) {
         e.preventDefault();
         const targetId = this.getAttribute('href').substring(1);
         const targetElement = document.getElementById(targetId);
         if (targetElement) {
-            targetElement.scrollIntoView({
-                behavior: 'smooth'
-            });
+            targetElement.scrollIntoView({ behavior: 'smooth' });
         }
     };
 
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', handleClick);
-        // Store the listener for potential future removal if DOM elements are dynamic
         anchor._handleClick = handleClick;
     });
 };
@@ -163,7 +150,7 @@ const setupBackToTopButton = () => {
     if (!backToTopButton) return;
 
     const toggleVisibility = () => {
-        if (window.pageYOffset > 300) { // Show button after scrolling 300px
+        if (window.pageYOffset > 300) {
             backToTopButton.classList.remove('hidden');
             backToTopButton.classList.add('opacity-100', 'translate-y-0');
         } else {
@@ -174,13 +161,10 @@ const setupBackToTopButton = () => {
     const debouncedToggleVisibility = debounce(toggleVisibility, 100);
     window.addEventListener('scroll', debouncedToggleVisibility);
     backToTopButton.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    toggleVisibility(); // Initial check on page load
+    toggleVisibility();
 };
 
 // FAQ Accordion Interactions
@@ -205,64 +189,263 @@ const setupFaqAccordion = () => {
 
 // Modal Management
 class ModalManager {
-    constructor(modalId, openButtonId, closeButtonId) {
+    constructor(modalId, openButtonSelector, closeButtonSelector) {
         this.modal = document.getElementById(modalId);
-        this.openButton = document.getElementById(openButtonId);
-        this.closeButton = document.getElementById(closeButtonId);
-        this.overlay = this.modal ? this.modal.querySelector('.modal-overlay') : null;
+        this.openButtons = document.querySelectorAll(openButtonSelector);
+        this.closeButton = document.querySelector(closeButtonSelector);
+        this.overlay = this.modal;
 
-        this.boundHandleKeyDown = this.handleKeyDown.bind(this); // Bind once for consistent reference
+        this.boundHandleKeyDown = this.handleKeyDown.bind(this);
+        this.boundHandleOverlayClick = this.handleOverlayClick.bind(this);
 
-        if (this.modal && this.openButton && this.closeButton) {
-            this.openButton.addEventListener('click', this.open.bind(this));
+        if (this.modal && this.openButtons.length && this.closeButton) {
+            this.openButtons.forEach(button => {
+                button.addEventListener('click', this.open.bind(this, button));
+            });
             this.closeButton.addEventListener('click', this.close.bind(this));
-            if (this.overlay) {
-                this.overlay.addEventListener('click', this.close.bind(this));
-            }
-            // Event listener for Escape key on document
+            this.modal.addEventListener('click', this.boundHandleOverlayClick);
             document.addEventListener('keydown', this.boundHandleKeyDown);
         }
     }
 
-    open() {
+    open(triggerButton) {
         if (this.modal) {
-            this.modal.classList.remove('hidden');
-            this.modal.classList.add('flex'); // Use flex to center
-            document.body.classList.add('overflow-hidden'); // Prevent body scroll
+            this.modal.style.display = 'flex';
+            document.body.classList.add('overflow-hidden');
             this.modal.setAttribute('aria-hidden', 'false');
-            this.closeButton.focus(); // Focus on close button for accessibility
+            this.closeButton.focus();
+            this.triggerButton = triggerButton; // Store the button that opened the modal
         }
     }
 
     close() {
         if (this.modal) {
-            this.modal.classList.add('hidden');
-            this.modal.classList.remove('flex');
+            this.modal.style.display = 'none';
             document.body.classList.remove('overflow-hidden');
             this.modal.setAttribute('aria-hidden', 'true');
-            this.openButton.focus(); // Return focus to the element that opened the modal
+            if (this.triggerButton) {
+                this.triggerButton.focus();
+            }
         }
     }
 
     handleKeyDown(event) {
-        if (event.key === 'Escape' && !this.modal.classList.contains('hidden')) {
+        if (event.key === 'Escape' && this.modal.style.display === 'flex') {
             this.close();
         }
     }
 
-    // Optional: Cleanup method if modals are dynamically added/removed
+    handleOverlayClick(event) {
+        if (event.target === this.modal) {
+            this.close();
+        }
+    }
+
     destroy() {
-        if (this.openButton) this.openButton.removeEventListener('click', this.open);
+        this.openButtons.forEach(button => {
+            button.removeEventListener('click', this.open);
+        });
         if (this.closeButton) this.closeButton.removeEventListener('click', this.close);
-        if (this.overlay) this.overlay.removeEventListener('click', this.close);
+        if (this.modal) this.modal.removeEventListener('click', this.boundHandleOverlayClick);
         document.removeEventListener('keydown', this.boundHandleKeyDown);
     }
 }
 
+// Social Post Handler
+class SocialPostHandler {
+    constructor(modalId, generateButtonSelector, copyButtonId, translateButtonId, outputId, languageSelectId, loadingIndicatorId) {
+        this.modal = document.getElementById(modalId);
+        this.generateButtons = document.querySelectorAll(generateButtonSelector);
+        this.copyButton = document.getElementById(copyButtonId);
+        this.translateButton = document.getElementById(translateButtonId);
+        this.output = document.getElementById(outputId);
+        this.languageSelect = document.getElementById(languageSelectId);
+        this.loadingIndicator = document.querySelector(loadingIndicatorId);
+        this.currentGeneratedPost = '';
+
+        if (this.modal && this.generateButtons.length && this.copyButton && this.translateButton && this.output && this.languageSelect) {
+            this.generateButtons.forEach(button => {
+                button.addEventListener('click', this.handleGenerate.bind(this));
+            });
+            this.copyButton.addEventListener('click', this.handleCopy.bind(this));
+            this.translateButton.addEventListener('click', this.handleTranslate.bind(this));
+        }
+    }
+
+    async callGeminiAPI(prompt, isTranslation = false) {
+        this.output.textContent = '';
+        this.loadingIndicator.classList.remove('hidden');
+        this.copyButton.disabled = true;
+        this.translateButton.disabled = true;
+
+        const payload = {
+            contents: [{ role: "user", parts: [{ text: prompt }] }]
+        };
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                const text = result.candidates[0].content.parts[0].text;
+                this.output.textContent = text;
+                if (!isTranslation) {
+                    this.currentGeneratedPost = text;
+                }
+            } else {
+                this.output.textContent = this.getTranslation('apiError');
+                console.error("Unexpected API response structure:", result);
+                Analytics.logError('Gemini API Response Error', { result });
+            }
+        } catch (error) {
+            this.output.textContent = this.getTranslation('apiConnectionError');
+            console.error("Fetch error:", error);
+            Analytics.logError('Gemini API Fetch Error', { error: error.message });
+        } finally {
+            this.loadingIndicator.classList.add('hidden');
+            this.copyButton.disabled = false;
+            this.translateButton.disabled = false;
+        }
+    }
+
+    handleGenerate(event) {
+        const button = event.target.closest('.generate-social-post');
+        const title = button.dataset.title;
+        const description = button.dataset.description;
+
+        this.languageSelect.value = 'English';
+        const prompt = `Generate a concise social media post (e.g., for LinkedIn or Instagram) for a digital marketing agency, based on the following image description. Include relevant emojis and 2-3 hashtags.\nImage Title: ${sanitizeInput(title)}\nImage Description: ${sanitizeInput(description)}\nFocus on promoting AI-powered digital marketing, SEO, and growth in Southeast Asia.`;
+
+        this.callGeminiAPI(prompt, false);
+        Analytics.trackEvent('Social Post Generated', { title, platform: 'LinkedIn/Instagram' });
+    }
+
+    handleCopy() {
+        const textToCopy = this.output.textContent;
+        if (!textToCopy) {
+            alert(this.getTranslation('noPostToCopy'));
+            return;
+        }
+
+        const textArea = document.createElement('textarea');
+        textArea.value = textToCopy;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert(this.getTranslation('postCopied'));
+            Analytics.trackEvent('Social Post Copied', { textLength: textToCopy.length });
+        } catch (err) {
+            console.error('Failed to copy text:', err);
+            alert(this.getTranslation('copyFailed'));
+            Analytics.logError('Copy Post Failed', { error: err.message });
+        }
+        document.body.removeChild(textArea);
+    }
+
+    handleTranslate() {
+        if (!this.currentGeneratedPost) {
+            alert(this.getTranslation('generateFirst'));
+            return;
+        }
+
+        const targetLanguage = this.languageSelect.value;
+        const translatePrompt = `Translate the following social media post into ${sanitizeInput(targetLanguage)}. Do not add any extra text, just the translation:\n\n${sanitizeInput(this.currentGeneratedPost)}`;
+        this.callGeminiAPI(translatePrompt, true);
+        Analytics.trackEvent('Social Post Translated', { language: targetLanguage });
+    }
+
+    getTranslation(key) {
+        const lang = document.documentElement.lang || 'en';
+        const translations = {
+            en: {
+                apiError: 'Error: Could not process request. Please try again.',
+                apiConnectionError: 'Error: Failed to connect to the AI service.',
+                noPostToCopy: 'No post available to copy.',
+                postCopied: 'Post copied to clipboard!',
+                copyFailed: 'Failed to copy post.',
+                generateFirst: 'Please generate a post first before translating.',
+                // Existing translations
+                requiredField: 'This field is required.',
+                invalidEmail: 'Please enter a valid email address.',
+                invalidPhone: 'Please enter a valid phone number (e.g., +1234567890).',
+                formErrors: 'Please correct the errors in the form.',
+                submissionSuccess: 'Your request has been sent successfully!',
+                submissionFailed: 'Submission failed',
+                tryAgainLater: 'Please try again later.',
+                sending: 'Sending...',
+                submitRequest: 'Submit Request',
+                subscribing: 'Subscribing...',
+                subscribe: 'Subscribe'
+            },
+            lo: {
+                apiError: 'ຂໍ້ຜິດພາດ: ບໍ່ສາມາດດຳເນີນການຮ້ອງຂໍໄດ້. ກະລຸນາລອງໃໝ່.',
+                apiConnectionError: 'ຂໍ້ຜິດພາດ: ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບບໍລິການ AI ໄດ້.',
+                noPostToCopy: 'ບໍ່ມີໂພສທີ່ສາມາດກອບປີ້ໄດ້.',
+                postCopied: 'ໂພສຖືກກອບປີ້ໄປຍັງຄລິບບອດແລ້ວ!',
+                copyFailed: 'ບໍ່ສາມາດກອບປີ້ໂພສໄດ້.',
+                generateFirst: 'ກະລຸນາສ້າງໂພສກ່ອນການແປພາສາ.',
+                requiredField: 'ຊ່ອງນີ້ຕ້ອງການ.',
+                invalidEmail: 'ກະລຸນາໃສ່ທີ່ຢູ່ອີເມວທີ່ຖືກຕ້ອງ.',
+                invalidPhone: 'ກະລຸນາໃສ່ເບີໂທລະສັບທີ່ຖືກຕ້ອງ (ຕົວຢ່າງ: +1234567890).',
+                formErrors: 'ກະລຸນາແກ້ໄຂຂໍ້ຜິດພາດໃນແບບຟອມ.',
+                submissionSuccess: 'ຄຳຮ້ອງຂໍຂອງທ່ານຖືກສົ່ງສຳເລັດແລ້ວ!',
+                submissionFailed: 'ການສົ່ງລົ້ມເຫລວ',
+                tryAgainLater: 'ກະລຸນາລອງໃໝ່ອີກຄັ້ງພາຍຫຼັງ.',
+                sending: 'ກຳລັງສົ່ງ...',
+                submitRequest: 'ສົ່ງຄຳຮ້ອງຂໍ',
+                subscribing: 'ກຳລັງສະໝັກ...',
+                subscribe: 'ສະໝັກ'
+            },
+            th: {
+                apiError: 'ข้อผิดพลาด: ไม่สามารถดำเนินการตามคำขอได้ กรุณาลองใหม่',
+                apiConnectionError: 'ข้อผิดพลาด: ไม่สามารถเชื่อมต่อกับบริการ AI ได้',
+                noPostToCopy: 'ไม่มีโพสต์ที่สามารถคัดลอกได้',
+                postCopied: 'คัดลอกโพสต์ไปยังคลิปบอร์ดแล้ว!',
+                copyFailed: 'ไม่สามารถคัดลอกโพสต์ได้',
+                generateFirst: 'กรุณาสร้างโพสต์ก่อนทำการแปล',
+                requiredField: 'ช่องนี้จำเป็นต้องกรอก',
+                invalidEmail: 'กรุณาใส่อีเมลที่ถูกต้อง',
+                invalidPhone: 'กรุณาใส่เบอร์โทรศัพท์ที่ถูกต้อง (เช่น +1234567890).',
+                formErrors: 'กรุณาแก้ไขข้อผิดพลาดในแบบฟอร์ม',
+                submissionSuccess: 'ส่งคำขอของคุณเรียบร้อยแล้ว!',
+                submissionFailed: 'การส่งล้มเหลว',
+                tryAgainLater: 'กรุณาลองใหม่อีกครั้งในภายหลัง',
+                sending: 'กำลังส่ง...',
+                submitRequest: 'ส่งคำขอ',
+                subscribing: 'กำลังสมัคร...',
+                subscribe: 'สมัคร'
+            },
+            fr: {
+                apiError: 'Erreur : Impossible de traiter la demande. Veuillez réessayer.',
+                apiConnectionError: 'Erreur : Échec de la connexion au service AI.',
+                noPostToCopy: 'Aucun message disponible pour la copie.',
+                postCopied: 'Message copié dans le presse-papiers !',
+                copyFailed: 'Échec de la copie du message.',
+                generateFirst: 'Veuillez générer un message avant de traduire.',
+                requiredField: 'Ce champ est obligatoire.',
+                invalidEmail: 'Veuillez entrer une adresse e-mail valide.',
+                invalidPhone: 'Veuillez entrer un numéro de téléphone valide (ex: +1234567890).',
+                formErrors: 'Veuillez corriger les erreurs dans le formulaire.',
+                submissionSuccess: 'Votre demande a été envoyée avec succès !',
+                submissionFailed: 'Échec de la soumission',
+                tryAgainLater: 'Veuillez réessayer plus tard.',
+                sending: 'Envoi en cours...',
+                submitRequest: 'Envoyer la demande',
+                subscribing: 'Abonnement en cours...',
+                subscribe: 'S\'abonner'
+            }
+        };
+        return translations[lang] && translations[lang][key] ? translations[lang][key] : translations.en[key];
+    }
+}
+
 // Form Validation and Submission (Supabase Integration)
-// IMPORTANT: Ensure `@supabase/supabase-js` is installed (`npm install @supabase/supabase-js`)
-// and imported if using a module bundler: `import { createClient } from '@supabase/supabase-js';`
-// For this example, we'll assume `createClient` is globally available or handled by build process.
 class FormHandler {
     constructor(formId, submitUrl, successMessageId, errorMessageId, isSupabase = false) {
         this.form = document.getElementById(formId);
@@ -281,11 +464,6 @@ class FormHandler {
         });
     }
 
-    /**
-     * Validates a single input field.
-     * @param {Event} event - The input event.
-     * @returns {boolean} True if validation passes, false otherwise.
-     */
     validateInput(event) {
         const input = event.target;
         const value = input.value.trim();
@@ -299,11 +477,9 @@ class FormHandler {
             isValid = false;
             message = this.getTranslation('invalidEmail');
         } else if (input.type === 'tel' && input.hasAttribute('pattern') && !new RegExp(input.pattern).test(value)) {
-            // Basic phone number validation based on pattern attribute
             isValid = false;
             message = this.getTranslation('invalidPhone');
         }
-        // Add more specific validation rules as needed (e.g., min/max length, custom regex)
 
         if (!isValid) {
             this.showError(input, message);
@@ -313,11 +489,6 @@ class FormHandler {
         return isValid;
     }
 
-    /**
-     * Shows an error message for a given input.
-     * @param {HTMLElement} input - The input element.
-     * @param {string} message - The error message.
-     */
     showError(input, message) {
         input.classList.add('border-red-500');
         input.setAttribute('aria-invalid', 'true');
@@ -333,10 +504,6 @@ class FormHandler {
         }
     }
 
-    /**
-     * Hides an error message for a given input.
-     * @param {HTMLElement} input - The input element.
-     */
     hideError(input) {
         input.classList.remove('border-red-500');
         input.setAttribute('aria-invalid', 'false');
@@ -347,32 +514,18 @@ class FormHandler {
         }
     }
 
-    /**
-     * Checks if an email is valid.
-     * @param {string} email - The email string.
-     * @returns {boolean} True if valid, false otherwise.
-     */
     isValidEmail(email) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
-    /**
-     * Gets CSRF token from meta tag.
-     * @returns {string|null} CSRF token or null if not found.
-     */
     getCsrfToken() {
         const metaTag = document.querySelector('meta[name="csrf-token"]');
         return metaTag ? metaTag.content : null;
     }
 
-    /**
-     * Handles form submission.
-     * @param {Event} event - The submit event.
-     */
     async handleSubmit(event) {
-        event.preventDefault(); // Prevent default form submission
+        event.preventDefault();
 
-        // Validate all fields before submission
         let formIsValid = true;
         this.form.querySelectorAll('input, textarea').forEach(input => {
             if (!this.validateInput({ target: input })) {
@@ -391,7 +544,7 @@ class FormHandler {
         const formData = new FormData(this.form);
         const data = {};
         for (let [key, value] of formData.entries()) {
-            data[key] = sanitizeInput(value); // Sanitize all input
+            data[key] = sanitizeInput(value);
         }
 
         let retries = 3;
@@ -399,27 +552,24 @@ class FormHandler {
             try {
                 let response;
                 if (this.isSupabase && typeof createClient !== 'undefined') {
-                    // Supabase integration
                     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     const { data: dbData, error: dbError } = await supabase
-                        .from('quote_requests') // Or your table name
+                        .from('quote_requests')
                         .insert([data]);
 
                     if (dbError) throw new Error(dbError.message);
-                    response = { ok: true }; // Simulate a successful response
+                    response = { ok: true };
                 } else {
-                    // Standard fetch to backend API
                     response = await fetch(this.submitUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'X-CSRF-Token': this.getCsrfToken() // Include CSRF token if applicable
+                            'X-CSRF-Token': this.getCsrfToken()
                         },
                         body: JSON.stringify(data)
                     });
                 }
-
 
                 if (!response.ok) {
                     const errorResponse = await response.json();
@@ -427,8 +577,9 @@ class FormHandler {
                 }
 
                 this.displayMessage(this.successMessage, this.getTranslation('submissionSuccess'));
-                this.form.reset(); // Clear form on success
-                break; // Exit retry loop on success
+                this.form.reset();
+                Analytics.trackEvent('Form Submission Success', { formId: this.form.id });
+                break;
 
             } catch (error) {
                 console.error('Form submission error:', error);
@@ -437,127 +588,45 @@ class FormHandler {
                 if (retries === 0) {
                     this.displayMessage(this.errorMessage, `${this.getTranslation('submissionFailed')}: ${error.message}. ${this.getTranslation('tryAgainLater')}`);
                 } else {
-                    console.log(`Retrying... (${retries} attempts left)`);
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             } finally {
-                if (retries === 0) { // Only set loading state to false after all retries
+                if (retries === 0) {
                     this.setLoadingState(false);
                 }
             }
         }
     }
 
-    /**
-     * Sets the loading state of the form.
-     * @param {boolean} isLoading - True to show loading, false otherwise.
-     */
     setLoadingState(isLoading) {
         if (this.submitButton) {
             this.submitButton.disabled = isLoading;
-            this.submitButton.textContent = isLoading ? this.getTranslation('sending') : this.getTranslation('submitRequest'); // Update button text
+            this.submitButton.textContent = isLoading ? this.getTranslation('sending') : this.getTranslation('submitRequest');
             this.submitButton.classList.toggle('opacity-50', isLoading);
             this.submitButton.classList.toggle('cursor-not-allowed', isLoading);
         }
     }
 
-    /**
-     * Displays a message (success or error).
-     * @param {HTMLElement} element - The message element.
-     * @param {string} message - The message text.
-     */
     displayMessage(element, message) {
         if (element) {
             element.textContent = message;
             element.classList.remove('hidden');
-            element.setAttribute('aria-live', 'polite'); // Announce message to screen readers
+            element.setAttribute('aria-live', 'polite');
         }
     }
 
-    /**
-     * Hides all messages.
-     */
     hideMessages() {
         if (this.successMessage) this.successMessage.classList.add('hidden');
         if (this.errorMessage) this.errorMessage.classList.add('hidden');
     }
-
-    /**
-     * Gets translated strings based on current language.
-     * @param {string} key - The translation key.
-     * @returns {string} The translated string.
-     */
-    getTranslation(key) {
-        const lang = document.documentElement.lang || 'en'; // Get current HTML lang attribute
-        const translations = {
-            en: {
-                requiredField: 'This field is required.',
-                invalidEmail: 'Please enter a valid email address.',
-                invalidPhone: 'Please enter a valid phone number (e.g., +1234567890).',
-                formErrors: 'Please correct the errors in the form.',
-                submissionSuccess: 'Your request has been sent successfully!',
-                submissionFailed: 'Submission failed',
-                tryAgainLater: 'Please try again later.',
-                sending: 'Sending...',
-                submitRequest: 'Submit Request',
-                subscribing: 'Subscribing...',
-                subscribe: 'Subscribe'
-            },
-            lo: {
-                requiredField: 'ຊ່ອງນີ້ຕ້ອງການ.',
-                invalidEmail: 'ກະລຸນາໃສ່ທີ່ຢູ່ອີເມວທີ່ຖືກຕ້ອງ.',
-                invalidPhone: 'ກະລຸນາໃສ່ເບີໂທລະສັບທີ່ຖືກຕ້ອງ (ຕົວຢ່າງ: +1234567890).',
-                formErrors: 'ກະລຸນາແກ້ໄຂຂໍ້ຜິດພາດໃນແບບຟອມ.',
-                submissionSuccess: 'ຄຳຮ້ອງຂໍຂອງທ່ານຖືກສົ່ງສຳເລັດແລ້ວ!',
-                submissionFailed: 'ການສົ່ງລົ້ມເຫລວ',
-                tryAgainLater: 'ກະລຸນາລອງໃໝ່ອີກຄັ້ງພາຍຫຼັງ.',
-                sending: 'ກຳລັງສົ່ງ...',
-                submitRequest: 'ສົ່ງຄຳຮ້ອງຂໍ',
-                subscribing: 'ກຳລັງສະໝັກ...',
-                subscribe: 'ສະໝັກ'
-            },
-            th: {
-                requiredField: 'ช่องนี้จำเป็นต้องกรอก',
-                invalidEmail: 'กรุณาใส่อีเมลที่ถูกต้อง',
-                invalidPhone: 'กรุณาใส่เบอร์โทรศัพท์ที่ถูกต้อง (เช่น +1234567890).',
-                formErrors: 'กรุณาแก้ไขข้อผิดพลาดในแบบฟอร์ม',
-                submissionSuccess: 'ส่งคำขอของคุณเรียบร้อยแล้ว!',
-                submissionFailed: 'การส่งล้มเหลว',
-                tryAgainLater: 'กรุณาลองใหม่อีกครั้งในภายหลัง',
-                sending: 'กำลังส่ง...',
-                submitRequest: 'ส่งคำขอ',
-                subscribing: 'กำลังสมัคร...',
-                subscribe: 'สมัคร'
-            },
-            fr: {
-                requiredField: 'Ce champ est obligatoire.',
-                invalidEmail: 'Veuillez entrer une adresse e-mail valide.',
-                invalidPhone: 'Veuillez entrer un numéro de téléphone valide (ex: +1234567890).',
-                formErrors: 'Veuillez corriger les erreurs dans le formulaire.',
-                submissionSuccess: 'Votre demande a été envoyée avec succès !',
-                submissionFailed: 'Échec de la soumission',
-                tryAgainLater: 'Veuillez réessayer plus tard.',
-                sending: 'Envoi en cours...',
-                submitRequest: 'Envoyer la demande',
-                subscribing: 'Abonnement en cours...',
-                subscribe: 'S\'abonner'
-            }
-        };
-        return translations[lang] && translations[lang][key] ? translations[lang][key] : translations.en[key];
-    }
 }
 
-
-// Newsletter Subscription Handler (Uses FormHandler for consistency)
-// This class is simplified as it can largely reuse FormHandler's logic
-// with specific messages.
+// Newsletter Subscription Handler
 class NewsletterHandler extends FormHandler {
     constructor(formId, submitUrl, successMessageId, errorMessageId) {
-        super(formId, submitUrl, successMessageId, errorMessageId); // Call parent constructor
-        // Override or add specific newsletter logic if needed
+        super(formId, submitUrl, successMessageId, errorMessageId);
     }
 
-    // Overrides parent's submit button text for newsletter specific wording
     setLoadingState(isLoading) {
         if (this.submitButton) {
             this.submitButton.disabled = isLoading;
@@ -568,25 +637,22 @@ class NewsletterHandler extends FormHandler {
     }
 }
 
-
 // --- 4. User Experience Enhancements ---
 
-// Intersection Observer for Scroll Animations (e.g., for sections revealing on scroll)
+// Intersection Observer for Scroll Animations
 const setupScrollAnimations = () => {
-    // Add 'animate-on-scroll' class to elements you want to animate.
-    // Define 'fade-in-up' (or other animation classes) in your CSS (e.g., styles.css).
     const animatedElements = document.querySelectorAll('.animate-on-scroll');
 
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in-up'); // Example animation class (define in CSS)
-                observer.unobserve(entry.target); // Stop observing once animated
+                entry.target.classList.add('fade-in-up');
+                observer.unobserve(entry.target);
             }
         });
     }, {
-        threshold: 0.1, // Trigger when 10% of element is visible
-        rootMargin: '0px 0px -50px 0px' // Adjust trigger point (e.g., trigger before element enters viewport)
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
     });
 
     animatedElements.forEach(element => observer.observe(element));
@@ -594,7 +660,6 @@ const setupScrollAnimations = () => {
 
 // Lazy Loading for Images and Iframes
 const setupLazyLoading = () => {
-    // Add 'lazyload' class and 'data-src'/'data-srcset' attributes to images/iframes.
     const lazyElements = document.querySelectorAll('img.lazyload, iframe.lazyload');
 
     const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
@@ -618,100 +683,62 @@ const setupLazyLoading = () => {
             }
         });
     }, {
-        rootMargin: '0px 0px 200px 0px' // Load elements when they are 200px from viewport
+        rootMargin: '0px 0px 200px 0px'
     });
 
     lazyElements.forEach(el => lazyLoadObserver.observe(el));
 };
 
-// Keyboard Navigation Support (beyond basic HTML elements)
+// Keyboard Navigation Support
 const setupKeyboardNavigation = () => {
-    // Enhance accordion keyboard navigation (already in FAQ setup, but here for general principle)
     document.querySelectorAll('.faq-accordion-header').forEach(header => {
-        header.setAttribute('tabindex', '0'); // Make header focusable
+        header.setAttribute('tabindex', '0');
         header.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault(); // Prevent default scroll behavior for spacebar
-                header.click(); // Trigger click event
+                e.preventDefault();
+                header.click();
             }
         });
     });
 
-    // General best practice: Ensure all interactive elements (buttons, links, form fields)
-    // are reachable via Tab key and operable with Enter/Space.
-    // Modals (ModalManager) already handle focus trapping for accessibility.
+    document.querySelectorAll('.generate-social-post').forEach(button => {
+        button.setAttribute('tabindex', '0');
+        button.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                button.click();
+            }
+        });
+    });
 };
 
-// --- 5. Performance Optimizations (beyond Gulp/Webpack) ---
-// Debounced event handlers are used in scroll and input validation (`debounce` utility).
-// Efficient DOM manipulation: Batch DOM updates where possible, avoid excessive reflows.
-// Memory leak prevention: Remove event listeners when elements are removed from DOM (if dynamically added/removed).
-// Example: if a component is removed, ensure its event listeners are cleaned up.
-// For static pages, browser handles most cleanup on navigation.
-
-// --- 6. Analytics (Placeholders) ---
+// --- 5. Analytics ---
 const Analytics = {
-    /**
-     * Tracks a custom event.
-     * @param {string} eventName - Name of the event.
-     * @param {object} eventData - Data associated with the event.
-     */
     trackEvent: (eventName, eventData) => {
         console.log(`Analytics Event: ${eventName}`, eventData);
-        // IMPORTANT: Replace with actual Google Analytics 4 (gtag.js) or other analytics integration.
-        // Example for gtag.js:
-        // if (typeof gtag === 'function') {
-        //     gtag('event', eventName, eventData);
-        // }
     },
-    /**
-     * Tracks page views.
-     * @param {string} path - The page path.
-     */
     trackPageView: (path = window.location.pathname) => {
         console.log(`Analytics Page View: ${path}`);
-        // IMPORTANT: Replace with actual Google Analytics 4 (gtag.js) or other analytics integration.
-        // Example for gtag.js:
-        // if (typeof gtag === 'function') {
-        //     gtag('config', 'G-XXXXXXX', { 'page_path': path }); // Replace G-XXXXXXX with your GA4 Measurement ID
-        // }
     },
-    /**
-     * Logs errors for monitoring.
-     * @param {string} message - Error message.
-     * @param {object} details - Error details.
-     */
     logError: (message, details) => {
         console.error(`Analytics Error: ${message}`, details);
-        // Send error to a logging service (e.g., Sentry, custom backend)
     },
-    /**
-     * Supports A/B testing (placeholder).
-     * @param {string} experimentName - Name of the experiment.
-     * @returns {string} The variant assigned to the user.
-     */
     getAbTestVariant: (experimentName) => {
-        // Logic to assign user to a variant (e.g., from a cookie, backend, or A/B testing tool)
         console.log(`A/B Test: ${experimentName} - Variant A (placeholder)`);
-        return 'A'; // Placeholder
+        return 'A';
     }
 };
 
-// --- 7. Security Considerations (Client-Side Best Practices) ---
-// Note: Many security measures (CSRF, comprehensive XSS, CSP) are primarily server-side or HTTP header configurations.
-// This section focuses on client-side contributions to security.
+// --- 6. Security Considerations ---
+// Input Sanitization: Implemented in `sanitizeInput` and used in `SocialPostHandler` and `FormHandler`.
+// XSS Prevention: Sanitizing inputs for social posts and form submissions.
+// CSRF Token Handling: Implemented in `FormHandler.getCsrfToken`.
+// Secure API Communication: Using HTTPS for Gemini API and other API calls.
 
-// Input Sanitization: Implemented in `sanitizeInput` function and used in `FormHandler`.
-// XSS Prevention: Sanitizing user-generated content before displaying it on the page.
-// CSRF Token Handling: Implemented in `FormHandler.getCsrfToken` and used in `FormHandler.handleSubmit`.
-// Content Security Policy (CSP) Compliance: Ensure all inline scripts/styles are removed or hashed, and external resources are whitelisted in your server's CSP header (e.g., in .htaccess). This JS won't directly enforce CSP but should comply.
-// Secure API Communication: Always use HTTPS for all API calls (implied by API_BASE_URL).
-
-// --- 8. Initialization ---
+// --- 7. Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log('WordsThatSells scripts loaded.');
 
-    // Initialize core functionality
     setupSmoothScrolling();
     setupBackToTopButton();
     setupFaqAccordion();
@@ -719,34 +746,36 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLazyLoading();
     setupKeyboardNavigation();
 
-    // Initialize Modal Managers
-    // Ensure corresponding HTML elements with these IDs exist for modals to work.
-    const quoteModal = new ModalManager('quote-modal', 'get-quote-button', 'close-quote-modal');
+    const socialPostModal = new ModalManager(
+        'socialPostModal',
+        '.generate-social-post',
+        '.close-button'
+    );
 
-    // Initialize Form Handlers
-    // Ensure corresponding HTML forms and message elements with these IDs exist.
-    // Set `isSupabase` to `true` if you intend to use Supabase for this form.
+    const socialPostHandler = new SocialPostHandler(
+        'socialPostModal',
+        '.generate-social-post',
+        'copyPostButton',
+        'translateButton',
+        'socialPostOutput',
+        'languageSelect',
+        '.loading-indicator'
+    );
+
     const quoteFormHandler = new FormHandler(
         'quote-request-form',
-        `${API_BASE_URL}/quote-requests`, // Example API endpoint for quotes
+        `${API_BASE_URL}/quote-requests`,
         'quote-success-message',
         'quote-error-message',
-        true // Set to true if this form submits to Supabase
+        true
     );
 
     const newsletterHandler = new NewsletterHandler(
         'newsletter-form',
-        `${API_BASE_URL}/newsletter-subscriptions`, // Example API endpoint for newsletter
+        `${API_BASE_URL}/newsletter-subscriptions`,
         'newsletter-success-message',
         'newsletter-error-message'
     );
 
-    // Initial analytics page view tracking
     Analytics.trackPageView();
-
-    // Example of tracking a button click (uncomment and adjust as needed)
-    // document.getElementById('get-quote-button').addEventListener('click', () => {
-    //     Analytics.trackEvent('Quote Request Initiated', { location: 'Homepage Hero' });
-    // });
 });
-
