@@ -19,7 +19,7 @@
     <!-- Open Graph (Facebook, LinkedIn, general social shares) -->
     <meta property="og:site_name" content="Words That Sells">
     <meta property="og:title" content="Official Brand Images & Logos - Words That Sells">
-    <meta property="og:description" content="Discover the official logos, brand visuals, and marketing assets from Words That Sells, driving AI-powered growth in Laos & Southeast Asia.">
+    <meta property="og:description" content="Discover the official logos, comprehensive brand visuals, and cutting-edge marketing assets from Words That Sells, a pioneering AI-powered digital marketing agency driving significant growth in Laos & Southeast Asia.">
     <meta property="og:image" content="https://wordsthatsells.website/images/wordsthatsells-logo-social-1200x630.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -31,7 +31,7 @@
     <meta name="twitter:site" content="@wordsthatsells"> 
     <meta name="twitter:creator" content="@wordsthatsells"> 
     <meta name="twitter:title" content="Brand Visuals: Words That Sells">
-    <meta name="twitter:description" content="Dive into the official image gallery of Words That Sells, featuring logos and visual assets for AI-powered marketing solutions in Southeast Asia.">
+    <meta name="twitter:description" content="Dive into the official image gallery of Words That Sells, showcasing our logos and visual assets for innovative AI-powered marketing solutions and business growth across Southeast Asia.">
     <meta name="twitter:image" content="https://wordsthatsells.website/images/wordsthatsells-logo-twitter-1200x675.png">
 
     <!-- Favicon -->
@@ -162,13 +162,22 @@
         }
 
         /* Image Container within cards */
+        .glass-card .image-preview-container {
+            flex-shrink: 0; /* Prevent image container from shrinking */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem; /* Consistent padding */
+            background-color: var(--color-slate-900); /* Dark background for image area */
+            border-radius: 8px; /* Match card border-radius */
+        }
+        
         .glass-card img {
             max-width: 100%;
             height: auto;
             display: block;
             margin: 0 auto;
             border-radius: 8px; /* Rounded corners for images inside cards */
-            background-color: var(--color-slate-900); /* Dark background for images */
             object-fit: contain; /* Ensure image fits within its bounds without cropping */
         }
 
@@ -312,15 +321,17 @@
       {
         "@context": "https://schema.org",
         "@type": "Organization",
+        "@id": "https://wordsthatsells.website/#organization",
         "name": "Words That Sells",
-        "description": "Pioneering AI-powered digital marketing agency based in Vientiane, Laos, specializing in SEO, content creation, social media management, web development, and business automation.",
+        "description": "Pioneering AI-powered digital marketing agency based in Vientiane, Laos, specializing in SEO, content creation, social media management, web development, and business automation for Southeast Asia.",
         "url": "https://wordsthatsells.website",
         "logo": {
           "@type": "ImageObject",
+          "inLanguage": "en",
           "url": "https://wordsthatsells.website/images/wordsthatsells-logo.png",
-          "width": "500", 
-          "height": "500", 
-          "caption": "Words That Sells Official Logo"
+          "width": "500",
+          "height": "500",
+          "caption": "Official logo for Words That Sells, an AI-powered digital marketing agency based in Vientiane, Laos."
         },
         "sameAs": [
           "https://www.instagram.com/wordsthatsells.website.laos/",
@@ -339,7 +350,7 @@
           },
           {
             "@type": "ContactPoint",
-            "telephone": "+8562055528039",
+            "telephone": "+8562076005888",
             "contactType": "Sales",
             "areaServed": ["LA", "TH", "VN", "KH", "MY", "SG", "ID", "PH", "MM", "BN"],
             "availableLanguage": ["en", "lo", "th", "fr"]
@@ -376,16 +387,17 @@
       },
       {
         "@context": "https://schema.org",
-        "@type": "DigitalMarketingAgency",
+        "@type": ["DigitalMarketingAgency", "ImageGallery"],
         "name": "Words That Sells - AI Digital Marketing Agency",
         "description": "Top AI Digital Marketing Agency in Laos providing SEO-friendly content, local business solutions, and expert digital marketing strategies across Southeast Asia.",
         "url": "https://wordsthatsells.website",
         "image": {
           "@type": "ImageObject",
+          "inLanguage": "en",
           "url": "https://wordsthatsells.website/images/ai-digital-marketing-laos.jpg",
-          "width": "1200", 
-          "height": "675", 
-          "caption": "AI Digital Marketing in Laos"
+          "width": "1200",
+          "height": "675",
+          "caption": "High-quality image representing AI Digital Marketing services provided by Words That Sells in Laos."
         },
         "telephone": "+8562055528034",
         "email": "contact@wordsthatsells.website",
@@ -786,54 +798,10 @@
                 document.body.removeChild(textArea);
             });
 
-            // Function to call Gemini API for generation or translation
-            async function callGeminiAPI(prompt, isTranslation = false) {
-                socialPostOutput.textContent = ''; // Clear previous content
-                loadingIndicator.classList.remove('hidden'); // Show loading indicator
-                copyPostButton.disabled = true; // Disable copy button during generation
-                translateButton.disabled = true; // Disable translate button during generation/translation
-
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-                const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will automatically provide the API key at runtime
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    const result = await response.json();
-
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        socialPostOutput.textContent = text;
-                        if (!isTranslation) { // Only store if it's a new generation, not a translation
-                            currentGeneratedPost = text;
-                        }
-                    } else {
-                        socialPostOutput.textContent = "Error: Could not process request. Please try again.";
-                        console.error("Unexpected API response structure:", result);
-                    }
-                } catch (error) {
-                    socialPostOutput.textContent = "Error: Failed to connect to the AI service. Please check your network connection.";
-                    console.error("Fetch error:", error);
-                } finally {
-                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
-                    copyPostButton.disabled = false; // Enable copy button
-                    translateButton.disabled = false; // Enable translate button
-                }
-            }
 
             // Event listeners for all "Generate Social Post" buttons
             generateButtons.forEach(button => {
-                button.addEventListener('click', () => {
+                button.addEventListener('click', async () => {
                     const title = button.dataset.title;
                     const description = button.dataset.description;
 
