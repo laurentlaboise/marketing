@@ -1,348 +1,779 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="description" content="Explore the official brand images and visuals from Words That Sells, a pioneering AI-powered digital marketing agency based in Vientiane, Laos, serving Southeast Asia.">
-  <meta name="keywords" content="Words That Sells, AI digital marketing, SEO, content creation, social media management, web development, Laos, Southeast Asia, marketing agency">
-  <meta name="robots" content="index, follow">
-  <meta name="author" content="Words That Sells">
+    <!-- Primary SEO Meta Tags -->
+    <meta name="description" content="Explore the official brand images and visuals from Words That Sells, a pioneering AI-powered digital marketing agency based in Vientiane, Laos, serving Southeast Asia with SEO, content creation, and more.">
+    <meta name="keywords" content="Words That Sells, AI digital marketing, SEO, content creation, social media management, web development, Laos, Southeast Asia, marketing agency, brand images, logo, visuals">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Words That Sells">
+    
+    <title>Words That Sells | Official Brand Images & Visuals</title>
 
-  <title>Words That Sells | Official Brand Images & Visuals</title>
+    <!-- Open Graph (Facebook, LinkedIn, general social shares) -->
+    <meta property="og:site_name" content="Words That Sells">
+    <meta property="og:title" content="Official Brand Images & Logos - Words That Sells">
+    <meta property="og:description" content="Discover the official logos, brand visuals, and marketing assets from Words That Sells, driving AI-powered growth in Laos & Southeast Asia.">
+    <meta property="og:image" content="https://wordsthatsells.website/images/wordsthatsells-logo-social-1200x630.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://wordsthatsells.website/images/index.html"> <!-- Specific URL for this gallery page -->
+    <meta property="og:type" content="website">
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:site_name" content="Words That Sells">
-  <meta property="og:title" content="Official Brand Images & Logos - Words That Sells">
-  <meta property="og:description" content="Discover the official logos, brand visuals, and marketing assets from Words That Sells, driving AI-powered growth in Laos & Southeast Asia.">
-  <meta property="og:image" content="https://wordsthatsells.website/images/wordsthatsells-logo-social-1200x630.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:url" content="https://wordsthatsells.website/images/">
-  <meta property="og:type" content="website">
+    <!-- Twitter Card (Twitter/X specific) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@wordsthatsells"> 
+    <meta name="twitter:creator" content="@wordsthatsells"> 
+    <meta name="twitter:title" content="Brand Visuals: Words That Sells">
+    <meta name="twitter:description" content="Dive into the official image gallery of Words That Sells, featuring logos and visual assets for AI-powered marketing solutions in Southeast Asia.">
+    <meta name="twitter:image" content="https://wordsthatsells.website/images/wordsthatsells-logo-twitter-1200x675.png">
 
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:site" content="@wordsthatsells">
-  <meta name="twitter:creator" content="@wordsthatsells">
-  <meta name="twitter:title" content="Brand Visuals: Words That Sells">
-  <meta name="twitter:description" content="Dive into the official image gallery of Words That Sells, featuring logos and visual assets for AI-powered marketing solutions in Southeast Asia.">
-  <meta name="twitter:image" content="https://wordsthatsells.website/images/wordsthatsells-logo-twitter-1200x675.png">
+    <!-- Favicon -->
+    <link rel="icon" href="https://wordsthatsells.website/favicon.ico" type="image/x-icon">
 
-  <!-- Favicon (replace with your own if desired) -->
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <!-- Google Fonts: Inter & Poppins (Preconnect for performance) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Preload critical fonts (ensure these are present & subset) -->
-  <link rel="preload" href="/fonts/Inter-VariableFont.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/Poppins-VariableFont.woff2" as="font" type="font/woff2" crossorigin">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Tailwind CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <!-- Custom Styles -->
+    <style>
+        /* Define CSS Variables for consistent theming and typography */
+        :root {
+            --font-family-body: 'Inter', sans-serif;
+            --font-family-heading: 'Poppins', sans-serif;
+            --font-size-base: 1rem; /* 16px */
+            --font-size-sm: 0.875rem; /* 14px */
+            --font-size-md: 1rem; /* 16px */
+            --font-size-lg: 1.25rem; /* 20px */
+            --font-size-xl: 1.5rem; /* 24px */
+            --font-size-2xl: 2rem; /* 32px */
+            --font-size-3xl: 2.5rem; /* 40px */
+            --font-size-4xl: 3rem; /* 48px */
+            --font-size-5xl: 3.75rem; /* 60px */
+            --spacing-md: 1.5rem;
+            --color-slate-900: #0f172a;
+            --color-slate-800: #1e293b;
+            --color-slate-700: #334155;
+            --color-slate-300: #cbd5e1;
+            --color-slate-100: #f1f5f9;
+            --color-indigo-400: #818cf8;
+            --color-indigo-300: #a5b4fc;
+        }
 
-  <style>
-    @font-face {
-      font-family: 'Inter';
-      src: url('/fonts/Inter-VariableFont.woff2') format('woff2'),
-           url('/fonts/Inter-VariableFont.woff') format('woff');
-      font-weight: 300 800;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Poppins';
-      src: url('/fonts/Poppins-VariableFont.woff2') format('woff2'),
-           url('/fonts/Poppins-VariableFont.woff') format('woff');
-      font-weight: 600 800;
-      font-display: swap;
-    }
+        body {
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-md);
+            line-height: 1.6;
+            letter-spacing: 0.01em;
+            background-color: var(--color-slate-900); /* Dark background */
+            color: var(--color-slate-100); /* Light text for dark background */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-family-heading);
+            font-weight: 700; /* Poppins-700 from font-weight range */
+            line-height: 1.2;
+            color: var(--color-slate-100); /* Headings are light */
+        }
 
-    :root {
-      --font-family-body: 'Inter', Arial, sans-serif;
-      --font-family-heading: 'Poppins', Helvetica, Arial, sans-serif;
-      --font-size-base: 1rem;
-      --font-size-sm: 0.875rem;
-      --font-size-md: 1rem;
-      --font-size-lg: 1.25rem;
-      --font-size-xl: 1.5rem;
-      --font-size-2xl: 2rem;
-      --font-size-3xl: 2.5rem;
-      --font-size-4xl: 3rem;
-      --font-size-5xl: 3.75rem;
-      --spacing-md: 1.5rem;
-      --color-charcoal: #4A5568;
-      --color-white: #FFFFFF;
-    }
+        /* Applying font sizes from variables to specific heading levels */
+        h1 { font-size: var(--font-size-5xl); }
+        h2 { font-size: var(--font-size-4xl); }
+        h3 { font-size: var(--font-size-2xl); } 
+        h4 { font-size: var(--font-size-xl); }
+        h5 { font-size: var(--font-size-lg); }
+        h6 { font-size: var(--font-size-md); }
 
-    body {
-      font-family: var(--font-family-body);
-      font-size: var(--font-size-md);
-      line-height: 1.6;
-      letter-spacing: 0.01em;
-      color: var(--color-charcoal);
-      background-color: var(--color-white);
-    }
-    h1, h2 {
-      font-family: var(--font-family-heading);
-      font-weight: 700;
-      line-height: 1.2;
-    }
-    h3, h4, h5, h6 {
-      font-family: var(--font-family-heading);
-      font-weight: 600;
-      line-height: 1.2;
-    }
-    h1 { font-size: var(--font-size-5xl); }
-    h2 { font-size: var(--font-size-4xl); }
-    h3 { font-size: var(--font-size-2xl); }
-    h4 { font-size: var(--font-size-xl); }
-    h5 { font-size: var(--font-size-lg); }
-    h6 { font-size: var(--font-size-md); }
-    p {
-      margin-bottom: var(--spacing-md);
-      font-size: var(--font-size-md);
-    }
-    .image-container {
-      max-width: 100%;
-      margin: 0 auto;
-      text-align: center;
-      padding: 1rem;
-      background-color: var(--color-white);
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: var(--spacing-md);
-    }
-    .image-container img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 0 auto;
-    }
-    .image-description {
-      font-size: var(--font-size-md);
-      color: var(--color-charcoal);
-      margin-top: 10px;
-      line-height: 1.6;
-      text-align: left;
-      padding: 0 15px;
-    }
-    .image-container figure { margin: 0; padding: 0; }
-    .image-container figcaption { font-weight: 600; color: #0056b3; margin-top: 15px; font-size: var(--font-size-lg); }
-    @media (max-width: 768px) {
-      h1 { font-size: var(--font-size-3xl); }
-      h2 { font-size: var(--font-size-2xl); }
-      .image-container img { width: 100%; height: auto; }
-    }
-    @media (forced-colors: active) {
-      body { color: CanvasText; background: Canvas; }
-    }
-  </style>
+        p {
+            margin-bottom: var(--spacing-md);
+            font-size: var(--font-size-md);
+        }
 
-  <!-- Structured Data (JSON-LD) -->
-  <script type="application/ld+json">
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Words That Sells",
-    "description": "Pioneering AI-powered digital marketing agency based in Vientiane, Laos, specializing in SEO, content creation, social media management, web development, and business automation for Southeast Asia.",
-    "url": "https://wordsthatsells.website",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://wordsthatsells.website/images/wordsthatsells-logo.png",
-      "width": "500",
-      "height": "500",
-      "caption": "Words That Sells Official Logo"
-    },
-    "sameAs": [
-      "https://www.instagram.com/wordsthatsells.website.laos/",
-      "https://www.linkedin.com/company/wordsthatsells",
-      "https://www.facebook.com/wordsthatsells/",
-      "https://x.com/wordsthatsells/",
-      "https://www.youtube.com/@wordsthatsells"
-    ],
-    "contactPoint": [
+        /* Animated Gradient Background */
+        .animated-gradient-bg {
+            background: linear-gradient(300deg, var(--color-slate-900), var(--color-slate-800), var(--color-slate-700));
+            background-size: 180% 180%;
+            animation: gradient-animation 18s ease infinite;
+        }
+
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Header Section Specifics */
+        .header-section {
+            position: relative;
+            /* Subtle noise pattern for texture */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%"><defs><filter id="noise" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/></filter></defs><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.05"/></svg>');
+            background-repeat: repeat;
+        }
+        .header-section .absolute {
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 1)); /* Adjusted gradient opacity */
+        }
+        .header-section h1 {
+            font-size: var(--font-size-4xl); /* Adjusted for header, can be overridden by Tailwind */
+            font-family: var(--font-family-heading);
+            font-weight: 800; /* Extrabold */
+            color: var(--color-white);
+        }
+        .header-section p {
+            font-family: var(--font-family-body);
+            color: var(--color-slate-300);
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5); /* slate-800 with opacity */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px); /* For Safari compatibility */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: var(--color-slate-100); /* Ensure text inside card is light */
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 0 30px 0 rgba(139, 92, 246, 0.2); /* Indigo glow on hover */
+        }
+        
+        /* Premium Button Style */
+        .btn-premium {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed); /* Indigo gradient */
+            transition: all 0.3s ease;
+            color: var(--color-white); /* White text */
+            font-family: var(--font-family-heading); /* Heading font for button text */
+        }
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Image Container within cards */
+        .glass-card img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px; /* Rounded corners for images inside cards */
+            background-color: var(--color-slate-900); /* Dark background for images */
+            object-fit: contain; /* Ensure image fits within its bounds without cropping */
+        }
+
+        .glass-card figcaption {
+            font-weight: 600;
+            color: var(--color-indigo-300); /* Indigo color for captions */
+            font-size: var(--font-size-lg);
+            font-family: var(--font-family-heading);
+        }
+
+        .glass-card .image-description {
+            font-size: var(--font-size-md);
+            color: var(--color-slate-300); /* Lighter text for description */
+            text-align: left;
+            padding: 0; /* Remove extra padding if parent has it */
+        }
+
+        /* Download Buttons within cards */
+        .glass-card .download-btn {
+            background-color: rgba(51, 65, 85, 0.5); /* slate-700 with opacity */
+            color: var(--color-indigo-300);
+            font-family: var(--font-family-body);
+            font-weight: 600;
+        }
+        .glass-card .download-btn:hover {
+            background-color: var(--color-slate-700);
+            color: var(--color-indigo-400);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .header-section h1 { font-size: var(--font-size-3xl); }
+            .header-section p { font-size: var(--font-size-md); }
+            h2 { font-size: var(--font-size-2xl); }
+            .glass-card .md\:flex { flex-direction: column; } /* Stack content on small screens */
+            .glass-card .md\:w-1\/3, .glass-card .md\:w-2\/3 { width: 100%; }
+            .glass-card img { max-height: none; } /* Remove max-height constraint on mobile if needed */
+        }
+
+        /* Forced Colors for Accessibility */
+        @media (forced-colors: active) {
+            body { color: CanvasText; background: Canvas; }
+            .header-section, .glass-card { background: Canvas; border-color: CanvasText; }
+            .header-section .absolute { background: transparent; }
+            h1, h2, h3, h4, h5, h6, .glass-card, .glass-card figcaption, .glass-card .image-description { color: CanvasText; }
+            .btn-premium, .glass-card .download-btn { background: ButtonFace; color: ButtonText; border-color: ButtonText; }
+            .btn-premium:hover, .glass-card .download-btn:hover { background: Highlight; color: HighlightText; }
+        }
+
+        /* Styles for the Social Post Modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--color-slate-800);
+            margin: auto;
+            padding: 20px;
+            border: 1px solid var(--color-slate-700);
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+            color: var(--color-slate-100);
+        }
+
+        .close-button {
+            color: var(--color-slate-300);
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--color-white);
+            text-decoration: none;
+        }
+
+        #socialPostOutput {
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            word-wrap: break-word; /* Break long words */
+            min-height: 100px;
+            padding: 10px;
+            background-color: var(--color-slate-900);
+            border-radius: 5px;
+            border: 1px solid var(--color-slate-700);
+            font-size: 0.9em;
+            color: var(--color-slate-100);
+            margin-top: 15px;
+        }
+
+        .loading-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px; /* Adjust as needed */
+            color: var(--color-indigo-300);
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--color-indigo-400);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <!-- Structured Data (JSON-LD) for SEO and Rich Snippets -->
+    <script type="application/ld+json">
+    [
       {
-        "@type": "ContactPoint",
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Words That Sells",
+        "description": "Pioneering AI-powered digital marketing agency based in Vientiane, Laos, specializing in SEO, content creation, social media management, web development, and business automation.",
+        "url": "https://wordsthatsells.website",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://wordsthatsells.website/images/wordsthatsells-logo.png",
+          "width": "500", 
+          "height": "500", 
+          "caption": "Words That Sells Official Logo"
+        },
+        "sameAs": [
+          "https://www.instagram.com/wordsthatsells.website.laos/",
+          "https://www.linkedin.com/company/wordsthatsells",
+          "https://www.facebook.com/wordsthatsells/",
+          "https://x.com/wordsthatsells/",
+          "https://www.youtube.com/@wordsthatsells"
+        ],
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "telephone": "+8562055528034",
+            "contactType": "Customer Service",
+            "areaServed": ["LA", "TH", "VN", "KH", "MY", "SG", "ID", "PH", "MM", "BN"],
+            "availableLanguage": ["en", "lo", "th", "fr"]
+          },
+          {
+            "@type": "ContactPoint",
+            "telephone": "+8562076005888",
+            "contactType": "Sales",
+            "areaServed": ["LA", "TH", "VN", "KH", "MY", "SG", "ID", "PH", "MM", "BN"],
+            "availableLanguage": ["en", "lo", "th", "fr"]
+          },
+          {
+            "@type": "ContactPoint",
+            "email": "contact@wordsthatsells.website",
+            "contactType": "General Inquiries"
+          }
+        ],
+        "foundingDate": "2024",
+        "legalName": "Laboise eworker laos enterprise",
+        "parentOrganization": {
+          "@type": "Organization",
+          "name": "Laboise Ltd",
+          "url": "https://laboise.ltd",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "1000, ave Rockland, suite 100",
+            "addressLocality": "Outremont",
+            "addressRegion": "QC",
+            "postalCode": "H2V 4P5",
+            "addressCountry": "CA"
+          }
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "20 Rue Samsenthai",
+          "addressLocality": "Vientiane",
+          "addressRegion": "Vientiane Province",
+          "postalCode": "01300",
+          "addressCountry": "LA"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "DigitalMarketingAgency",
+        "name": "Words That Sells - AI Digital Marketing Agency",
+        "description": "Top AI Digital Marketing Agency in Laos providing SEO-friendly content, local business solutions, and expert digital marketing strategies across Southeast Asia.",
+        "url": "https://wordsthatsells.website",
+        "image": {
+          "@type": "ImageObject",
+          "url": "https://wordsthatsells.website/images/ai-digital-marketing-laos.jpg",
+          "width": "1200", 
+          "height": "675", 
+          "caption": "AI Digital Marketing in Laos"
+        },
         "telephone": "+8562055528034",
-        "contactType": "Customer Service",
-        "areaServed": ["LA", "TH", "VN", "KH", "MY", "SG", "ID", "PH", "MM", "BN"],
-        "availableLanguage": ["en", "lo", "th", "fr"]
-      },
-      {
-        "@type": "ContactPoint",
-        "telephone": "+8562076005888",
-        "contactType": "Sales",
-        "areaServed": ["LA", "TH", "VN", "KH", "MY", "SG", "ID", "PH", "MM", "BN"],
-        "availableLanguage": ["en", "lo", "th", "fr"]
-      },
-      {
-        "@type": "ContactPoint",
         "email": "contact@wordsthatsells.website",
-        "contactType": "General Inquiries"
-      }
-    ],
-    "foundingDate": "2024",
-    "legalName": "Laboise eworker laos enterprise",
-    "parentOrganization": {
-      "@type": "Organization",
-      "name": "Laboise Ltd",
-      "url": "https://laboise.ltd",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "1000, ave Rockland, suite 100",
-        "addressLocality": "Outremont",
-        "addressRegion": "QC",
-        "postalCode": "H2V 4P5",
-        "addressCountry": "CA"
-      }
-    },
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "20 Rue Samsenthai",
-      "addressLocality": "Vientiane",
-      "addressRegion": "Vientiane Province",
-      "postalCode": "01300",
-      "addressCountry": "LA"
-    }
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "DigitalMarketingAgency",
-    "name": "Words That Sells - AI Digital Marketing Agency",
-    "description": "Top AI Digital Marketing Agency in Laos providing SEO-friendly content, local business solutions, and expert digital marketing strategies across Southeast Asia.",
-    "url": "https://wordsthatsells.website",
-    "image": {
-      "@type": "ImageObject",
-      "url": "https://wordsthatsells.website/images/ai-digital-marketing-laos.jpg",
-      "width": "1200",
-      "height": "675",
-      "caption": "AI Digital Marketing in Laos"
-    },
-    "telephone": "+8562055528034",
-    "email": "contact@wordsthatsells.website",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "20 Rue Samsenthai",
-      "addressLocality": "Vientiane",
-      "addressRegion": "Vientiane Province",
-      "postalCode": "01300",
-      "addressCountry": "LA"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 17.974855,
-      "longitude": 102.630867
-    },
-    "hasMap": "https://share.google/booH4gzT3zbBEm6LR",
-    "openingHoursSpecification": [
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "opens": "09:00",
-        "closes": "17:00"
-      }
-    ],
-    "areaServed": [
-      { "@type": "Country", "name": "Laos" },
-      { "@type": "Country", "name": "Thailand" },
-      { "@type": "Country", "name": "Vietnam" },
-      { "@type": "Country", "name": "Cambodia" },
-      { "@type": "Country", "name": "Myanmar" },
-      { "@type": "Country", "name": "Malaysia" },
-      { "@type": "Country", "name": "Singapore" },
-      { "@type": "Country", "name": "Indonesia" },
-      { "@type": "Country", "name": "Philippines" },
-      { "@type": "Country", "name": "Brunei" }
-    ],
-    "priceRange": "$500 - $10000+",
-    "paymentAccepted": "Bank Transfer, Credit Card, PayPal, PromptPay (Thailand), TrueMoney (Laos)",
-    "review": [
-      {
-        "@type": "Review",
-        "author": { "@type": "Person", "name": "A. Client (Vientiane)" },
-        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-        "reviewBody": "Words That Sells delivered exceptional SEO results for our business. Highly recommended!",
-        "datePublished": "2024-07-20"
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "20 Rue Samsenthai",
+          "addressLocality": "Vientiane",
+          "addressRegion": "Vientiane Province",
+          "postalCode": "01300",
+          "addressCountry": "LA"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 17.974855,
+          "longitude": 102.630867
+        },
+        "hasMap": "https://share.google/booH4gzT3zbBEm6LR", <!-- YOUR CONFIRMED GOOGLE MAPS LINK -->
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            "opens": "09:00",
+            "closes": "17:00"
+          }
+        ],
+        "areaServed": [
+          { "@type": "Country", "name": "Laos" },
+          { "@type": "Country", "name": "Thailand" },
+          { "@type": "Country", "name": "Vietnam" },
+          { "@type": "Country", "name": "Cambodia" },
+          { "@type": "Country", "name": "Myanmar" },
+          { "@type": "Country", "name": "Malaysia" },
+          { "@type": "Country", "name": "Singapore" },
+          { "@type": "Country", "name": "Indonesia" },
+          { "@type": "Country", "name": "Philippines" },
+          { "@type": "Country", "name": "Brunei" }
+        ],
+        "priceRange": "$500 - $10000+",
+        "paymentAccepted": "Bank Transfer, Credit Card, PayPal, PromptPay (Thailand), TrueMoney (Laos)",
+        "review": [
+          {
+            "@type": "Review",
+            "author": { "@type": "Person", "name": "A. Client (Vientiane)" },
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+            "reviewBody": "Words That Sells delivered exceptional SEO results for our business. Highly recommended!",
+            "datePublished": "2024-07-20"
+          },
+          {
+            "@type": "Review",
+            "author": { "@type": "Person", "name": "B. Partner (Bangkok)" },
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+            "reviewBody": "Their AI-powered content creation is a game-changer. Our engagement rates have soared.",
+            "datePublished": "2024-07-22"
+          }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "5",
+          "reviewCount": "25"
+        }
       },
       {
-        "@type": "Review",
-        "author": { "@type": "Person", "name": "B. Partner (Bangkok)" },
-        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-        "reviewBody": "Their AI-powered content creation is a game-changer. Our engagement rates have soared.",
-        "datePublished": "2024-07-22"
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Official Brand Images & Visuals | Words That Sells",
+        "url": "https://wordsthatsells.website/images/index.html",
+        "description": "A comprehensive gallery showcasing the official logos, brand assets, and marketing visuals of Words That Sells, optimized for various platforms.",
+        "isPartOf": {
+          "@type": "WebSite",
+          "url": "https://wordsthatsells.website/",
+          "name": "wordsthatsells.website"
+        }
       }
-    ],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "5",
-      "reviewCount": "25"
-    }
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Official Brand Images & Visuals | Words That Sells",
-    "url": "https://wordsthatsells.website/images/",
-    "description": "A comprehensive gallery showcasing the official logos, brand assets, and marketing visuals of Words That Sells, optimized for various platforms.",
-    "isPartOf": {
-      "@type": "WebSite",
-      "url": "https://wordsthatsells.website/",
-      "name": "wordsthatsells.website"
-    }
-  }
-]
-  </script>
+    ]
+    </script>
 </head>
-<body>
-  <header class="bg-gray-800 text-white p-4 text-center">
-    <h1 class="text-5xl font-bold">Words That Sells</h1>
-    <p class="text-lg italic">AI-Powered Growth for Laos & Southeast Asia</p>
-    <p class="text-md">Pioneering AI Digital Marketing Solutions</p>
-  </header>
-  <main class="container mx-auto p-4">
-    <section class="image-container">
-      <h2 class="text-4xl font-bold mb-4 text-gray-800">Official Logo (PNG)</h2>
-      <figure>
-        <img src="images/wordsthatsells-logo.png" alt="Words That Sells official logo" title="Official logo of Words That Sells" width="500" height="500" loading="lazy">
-        <figcaption>Words That Sells Official Logo</figcaption>
-        <p class="image-description">The official logo of Words That Sells, a pioneering AI-powered digital marketing agency based in Vientiane, Laos, representing innovation and growth in SEO, content, and business automation for Southeast Asia.</p>
-      </figure>
-    </section>
-    <section class="image-container">
-      <h2 class="text-4xl font-bold mb-4 text-gray-800">Social Media Logo (PNG)</h2>
-      <figure>
-        <img src="images/wordsthatsells-logo-social-1200x630.png" alt="Words That Sells logo optimized for social media sharing" title="Optimized Social Media Logo for Words That Sells" width="1200" height="630" loading="lazy">
-        <figcaption>Social Media Logo (PNG)</figcaption>
-        <p class="image-description">This PNG version of the Words That Sells logo, optimized at 1200x630 pixels, is designed for high-quality display on social media platforms like Facebook, LinkedIn, and others.</p>
-      </figure>
-    </section>
-    <section class="image-container">
-      <h2 class="text-4xl font-bold mb-4 text-gray-800">Twitter Large Image Card Logo (PNG)</h2>
-      <figure>
-        <img src="images/wordsthatsells-logo-twitter-1200x675.png" alt="Words That Sells logo for Twitter large image cards" title="Optimized Logo for Twitter Large Image Card" width="1200" height="675" loading="lazy">
-        <figcaption>Twitter Large Image Card Logo (PNG)</figcaption>
-        <p class="image-description">This PNG logo, sized at 1200x675 pixels, is optimized for Twitter's 'Summary Card with Large Image', ensuring prominent branding for AI-powered marketing content in social streams.</p>
-      </figure>
-    </section>
-    <section class="image-container">
-      <h2 class="text-4xl font-bold mb-4 text-gray-800">Pinterest Logo (PNG)</h2>
-      <figure>
-        <img src="images/wordsthatsells-logo-pinterest-1000x1500.png" alt="Words That Sells logo optimized for Pinterest vertical pins" title="Optimized Logo for Pinterest" width="1000" height="1500" loading="lazy">
-        <figcaption>Pinterest Logo (PNG)</figcaption>
-        <p class="image-description">This vertical PNG logo, sized at 1000x1500 pixels, is optimized for Pinterest's feed, maximizing visibility and engagement for Words That Sells' digital marketing content on vertical platforms.</p>
-      </figure>
-    </section>
-    <section class="image-container">
-      <h2 class="text-4xl font-bold mb-4 text-gray-800">AI Digital Marketing Image (JPEG)</h2>
-      <figure>
-        <img src="images/ai-digital-marketing-laos.jpg" alt="AI digital marketing in Laos by Words That Sells" title="AI Digital Marketing Services in Laos" width="1200" height="675" loading="lazy">
-        <figcaption>AI Digital Marketing in Laos</figcaption>
-        <p class="image-description">A high-quality image showcasing Words That Sells' AI-driven digital marketing services in Laos, highlighting innovative strategies for SEO, content, and social media growth.</p>
-      </figure>
-    </section>
-  </main>
-  <footer class="bg-gray-800 text-white p-4 text-center mt-4">
-    <p>&copy; 2025 Words That Sells. All rights reserved. | <a href="https://wordsthatsells.website" class="text-blue-300">wordsthatsells.website</a></p>
-    <p class="mt-2 text-xs text-gray-300">Font files are provided under the SIL Open Font License. Ensure OFL.txt is present in /fonts/.</p>
-  </footer>
+<body class="antialiased animated-gradient-bg">
+
+    <!-- Header Section -->
+    <header class="header-section relative py-20 md:py-28">
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900/50 to-slate-900"></div>
+        <div class="relative container mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4">Brand Assets & Visuals</h1>
+            <p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-8">
+                The official image gallery for Words That Sells. Find our logos and brand assets, optimized for all your marketing needs across Southeast Asia.
+            </p>
+            <!-- Example Download Media Kit Button (Update href with actual zip file) -->
+            <a href="/downloads/words-that-sells-media-kit.zip" download="words-that-sells-media-kit.zip" class="btn-premium inline-flex items-center text-white font-bold py-3 px-8 rounded-full shadow-lg text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Media Kit
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content: Image Gallery -->
+    <main class="container mx-auto px-6 py-16 md:py-24">
+        <!-- Using a responsive grid for the gallery -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Card 1: Full Colour Logo (SVG) - Primary Website Use -->
+            <div class="glass-card rounded-2xl flex flex-col overflow-hidden md:col-span-2">
+                <div class="md:flex">
+                    <div class="md:w-1/3 bg-slate-900/50 flex items-center justify-center p-8">
+                        <img src="images/wordsthatsells-logo-full-colour.svg" 
+                             alt="Words That Sells official logo in full color SVG format" 
+                             title="Official full-color SVG logo of Words That Sells" 
+                             width="500" 
+                             height="500" 
+                             loading="lazy" 
+                             class="max-w-full h-auto max-h-48 md:max-h-64">
+                    </div>
+                    <div class="md:w-2/3 p-8 flex flex-col">
+                        <h3 class="text-2xl font-bold text-white mb-3">Full Colour Logo (SVG)</h3>
+                        <p class="text-slate-300 mb-4 flex-grow">The primary official logo of Words That Sells in scalable vector graphics (SVG) format. Ideal for crisp display on websites, presentations, and print media, representing our AI-powered digital marketing agency in Laos and Southeast Asia.</p>
+                        <div class="mt-auto flex flex-wrap gap-3">
+                            <a href="images/wordsthatsells-logo-full-colour.png" download="wordsthatsells-logo-full-colour.png" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">PNG</a>
+                            <a href="images/wordsthatsells-logo-full-colour.jpg" download="wordsthatsells-logo-full-colour.jpg" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">JPEG</a>
+                            <a href="images/wordsthatsells-logo-full-colour.svg" download="wordsthatsells-logo-full-colour.svg" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">SVG</a>
+                        </div>
+                        <button class="mt-4 btn-premium inline-flex items-center justify-center text-white font-bold py-2 px-4 rounded-full shadow-lg text-sm generate-social-post" 
+                                data-title="Full Colour Logo (SVG)" 
+                                data-description="The primary official logo of Words That Sells in scalable vector graphics (SVG) format. Ideal for crisp display on websites, presentations, and print media, representing our AI-powered digital marketing agency in Laos and Southeast Asia.">
+                            Generate Social Post ✨
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: White Colour Logo (SVG) - Primary Website Use -->
+            <div class="glass-card rounded-2xl flex flex-col overflow-hidden md:col-span-2">
+                <div class="md:flex">
+                    <div class="md:w-1/3 bg-slate-900/50 flex items-center justify-center p-8">
+                        <img src="images/wordsthatsells-logo-white-colour.svg" 
+                             alt="Words That Sells official logo in white SVG format for dark backgrounds" 
+                             title="Official white SVG logo of Words That Sells" 
+                             width="500" 
+                             height="500" 
+                             loading="lazy" 
+                             class="max-w-full h-auto max-h-48 md:max-h-64">
+                    </div>
+                    <div class="md:w-2/3 p-8 flex flex-col">
+                        <h3 class="text-2xl font-bold text-white mb-3">White Colour Logo (SVG)</h3>
+                        <p class="text-slate-300 mb-4 flex-grow">The official white-colored logo of Words That Sells in SVG format, specifically designed for optimal visibility and branding on darker web backgrounds and materials. It embodies our expertise in AI-driven digital marketing across Southeast Asia.</p>
+                        <div class="mt-auto flex flex-wrap gap-3">
+                            <a href="images/wordsthatsells-logo-white-colour.png" download="wordsthatsells-logo-white-colour.png" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">PNG</a>
+                            <a href="images/wordsthatsells-logo-white-colour.jpg" download="wordsthatsells-logo-white-colour.jpg" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">JPEG</a>
+                            <a href="images/wordsthatsells-logo-white-colour.svg" download="wordsthatsells-logo-white-colour.svg" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">SVG</a>
+                        </div>
+                        <button class="mt-4 btn-premium inline-flex items-center justify-center text-white font-bold py-2 px-4 rounded-full shadow-lg text-sm generate-social-post" 
+                                data-title="White Colour Logo (SVG)" 
+                                data-description="The official white-colored logo of Words That Sells in SVG format, specifically designed for optimal visibility and branding on darker web backgrounds and materials. It embodies our expertise in AI-driven digital marketing across Southeast Asia.">
+                            Generate Social Post ✨
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Social Media Logo (PNG) - 1200x630px -->
+            <div class="glass-card rounded-2xl flex flex-col overflow-hidden">
+                <figure class="flex-grow flex flex-col">
+                    <img src="images/wordsthatsells-logo-social-1200x630.png" 
+                         alt="Words That Sells logo optimized for social media sharing" 
+                         title="Optimized Social Media Logo for Words That Sells" 
+                         width="1200" 
+                         height="630" 
+                         loading="lazy" 
+                         class="w-full h-auto bg-slate-900/50">
+                    <figcaption class="p-6 flex-grow flex flex-col">
+                        <h3 class="text-xl font-bold text-white mb-2">Social Media Share Logo (1200x630px)</h3>
+                        <p class="text-slate-300 text-sm mb-4 flex-grow">This PNG version of the Words That Sells logo, precisely optimized at 1200x630 pixels, ensures consistent, high-quality display when shared across social media platforms like Facebook, LinkedIn, and general web shares, enhancing brand visibility and engagement for our AI-powered marketing solutions.</p>
+                        <div class="mt-auto flex flex-wrap gap-3">
+                            <a href="images/wordsthatsells-logo-social-1200x630.png" download="wordsthatsells-logo-social.png" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">PNG</a>
+                            <a href="images/wordsthatsells-logo-social-1200x630.jpg" download="wordsthatsells-logo-social.jpg" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">JPEG</a>
+                        </div>
+                        <button class="mt-4 btn-premium inline-flex items-center justify-center text-white font-bold py-2 px-4 rounded-full shadow-lg text-sm generate-social-post" 
+                                data-title="Social Media Share Logo (1200x630px)" 
+                                data-description="This PNG version of the Words That Sells logo, precisely optimized at 1200x630 pixels, ensures consistent, high-quality display when shared across social media platforms like Facebook, LinkedIn, and general web shares, enhancing brand visibility and engagement for our AI-powered marketing solutions.">
+                            Generate Social Post ✨
+                        </button>
+                    </figcaption>
+                </figure>
+            </div>
+
+            <!-- Card 4: Twitter Large Image Card Logo (PNG) - 1200x675px -->
+            <div class="glass-card rounded-2xl flex flex-col overflow-hidden">
+                <figure class="flex-grow flex flex-col">
+                    <img src="images/wordsthatsells-logo-twitter-1200x675.png" 
+                         alt="Words That Sells logo for Twitter large image cards" 
+                         title="Optimized Logo for Twitter Large Image Card" 
+                         width="1200" 
+                         height="675" 
+                         loading="lazy" 
+                         class="w-full h-auto bg-slate-900/50">
+                    <figcaption class="p-6 flex-grow flex flex-col">
+                        <h3 class="text-xl font-bold text-white mb-2">Twitter Large Card Logo (1200x675px)</h3>
+                        <p class="text-slate-300 text-sm mb-4 flex-grow">Custom-sized for Twitter's 'Summary Card with Large Image' to ensure prominent and professional branding for Words That Sells in Twitter feeds, maximizing visual impact.</p>
+                        <div class="mt-auto flex flex-wrap gap-3">
+                            <a href="images/wordsthatsells-logo-twitter-1200x675.png" download="wordsthatsells-logo-twitter.png" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">PNG</a>
+                            <a href="images/wordsthatsells-logo-twitter-1200x675.jpg" download="wordsthatsells-logo-twitter.jpg" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">JPEG</a>
+                        </div>
+                        <button class="mt-4 btn-premium inline-flex items-center justify-center text-white font-bold py-2 px-4 rounded-full shadow-lg text-sm generate-social-post" 
+                                data-title="Twitter Large Card Logo (1200x675px)" 
+                                data-description="Custom-sized for Twitter's 'Summary Card with Large Image' to ensure prominent and professional branding for Words That Sells in Twitter feeds, maximizing visual impact.">
+                            Generate Social Post ✨
+                        </button>
+                    </figcaption>
+                </figure>
+            </div>
+            
+            <!-- Card 5: Pinterest Logo (PNG) - 1000x1500px -->
+            <div class="glass-card rounded-2xl flex flex-col overflow-hidden">
+                <figure class="flex-grow flex flex-col items-center p-6 text-center">
+                   <img src="images/wordsthatsells-logo-pinterest-1000x1500.png" 
+                        alt="Words That Sells logo optimized for Pinterest vertical pins" 
+                        title="Optimized Logo for Pinterest" 
+                        width="1000" 
+                        height="1500" 
+                        loading="lazy" 
+                        class="w-auto h-64 rounded-lg bg-slate-900/50">
+                    <figcaption class="p-6 flex-grow flex flex-col">
+                        <h3 class="text-xl font-bold text-white mb-2">Pinterest Logo (1000x1500px)</h3>
+                        <p class="text-slate-300 text-sm mb-4 flex-grow">This vertical PNG logo, sized at 1000x1500 pixels, is specifically optimized for Pinterest's feed. It ensures maximum visibility and engagement for Words That Sells' digital marketing content.</p>
+                        <div class="mt-auto flex flex-wrap gap-3 w-full">
+                            <a href="images/wordsthatsells-logo-pinterest-1000x1500.png" download="wordsthatsells-logo-pinterest.png" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">PNG</a>
+                            <a href="images/wordsthatsells-logo-pinterest-1000x1500.jpg" download="wordsthatsells-logo-pinterest.jpg" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">JPEG</a>
+                        </div>
+                        <button class="mt-4 btn-premium inline-flex items-center justify-center text-white font-bold py-2 px-4 rounded-full shadow-lg text-sm generate-social-post" 
+                                data-title="Pinterest Logo (1000x1500px)" 
+                                data-description="This vertical PNG logo, sized at 1000x1500 pixels, is specifically optimized for Pinterest's feed. It ensures maximum visibility and engagement for Words That Sells' digital marketing content.">
+                            Generate Social Post ✨
+                        </button>
+                    </figcaption>
+                </figure>
+            </div>
+
+            <!-- Card 6: AI Digital Marketing Example Image (JPEG) -->
+            <div class="glass-card rounded-2xl flex flex-col overflow-hidden">
+                <figure class="flex-grow flex flex-col">
+                    <img src="images/ai-digital-marketing-laos.jpg"
+                         alt="AI digital marketing team meeting in Vientiane office, discussing SEO strategies"
+                         title="AI Digital Marketing Services in Laos by Words That Sells"
+                         width="800" 
+                         height="450" 
+                         loading="lazy" 
+                         class="w-full h-auto bg-slate-900/50">
+                    <figcaption class="p-6 flex-grow flex flex-col">
+                        <h3 class="text-xl font-bold text-white mb-2">AI Digital Marketing In Action</h3>
+                        <p class="text-slate-300 text-sm mb-4 flex-grow">A high-quality photograph showcasing the dedicated team at Words That Sells collaborating on innovative AI-driven digital marketing strategies in our Vientiane office. This image highlights our commitment to teamwork and advanced solutions in SEO, content, and social media for clients in Laos, Thailand, and across Southeast Asia.</p>
+                        <div class="mt-auto flex flex-wrap gap-3">
+                            <a href="images/ai-digital-marketing-laos.png" download="ai-digital-marketing-laos.png" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">PNG</a>
+                            <a href="images/ai-digital-marketing-laos.jpg" download="ai-digital-marketing-laos.jpg" class="flex-1 text-center download-btn font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">JPEG</a>
+                        </div>
+                        <button class="mt-4 btn-premium inline-flex items-center justify-center text-white font-bold py-2 px-4 rounded-full shadow-lg text-sm generate-social-post" 
+                                data-title="AI Digital Marketing In Action" 
+                                data-description="A high-quality photograph showcasing the dedicated team at Words That Sells collaborating on innovative AI-driven digital marketing strategies in our Vientiane office. This image highlights our commitment to teamwork and advanced solutions in SEO, content, and social media for clients in Laos, Thailand, and across Southeast Asia.">
+                            Generate Social Post ✨
+                        </button>
+                    </figcaption>
+                </figure>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900/50 border-t border-slate-800 mt-16">
+        <div class="container mx-auto px-6 py-8 text-center text-slate-400">
+            <p>&copy; 2025 Words That Sells. All Rights Reserved.</p>
+            <p class="mt-2"><a href="https://wordsthatsells.website" class="text-indigo-400 hover:text-indigo-300 transition-colors font-semibold">wordsthatsells.website</a></p>
+        </div>
+    </footer>
+
+    <!-- Social Post Modal Structure -->
+    <div id="socialPostModal" class="modal fixed inset-0 flex items-center justify-center z-1000">
+        <div class="modal-content relative bg-slate-800 p-6 rounded-lg shadow-xl w-11/12 max-w-lg">
+            <span class="close-button absolute top-2 right-4 text-3xl font-bold cursor-pointer text-slate-300 hover:text-white">&times;</span>
+            <h3 class="text-2xl font-bold text-white mb-4">Generated Social Media Post</h3>
+            <div id="socialPostOutput" class="min-h-[100px] p-4 bg-slate-900 rounded-md border border-slate-700 text-slate-100 whitespace-pre-wrap word-wrap-break-word">
+                <!-- Social media post will be displayed here -->
+            </div>
+            <div class="loading-indicator hidden mt-4">
+                <div class="spinner"></div>
+                <span class="ml-3 text-indigo-300">Generating...</span>
+            </div>
+            <button id="copyPostButton" class="mt-4 w-full btn-premium py-2 px-4 rounded-full text-white font-bold">Copy Post</button>
+        </div>
+    </div>
+
+    <!-- JavaScript for Gemini API integration -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const generateButtons = document.querySelectorAll('.generate-social-post');
+            const modal = document.getElementById('socialPostModal');
+            const closeButton = document.querySelector('.close-button');
+            const socialPostOutput = document.getElementById('socialPostOutput');
+            const loadingIndicator = document.querySelector('.loading-indicator');
+            const copyPostButton = document.getElementById('copyPostButton');
+
+            // Function to show modal
+            function showModal() {
+                modal.style.display = 'flex';
+            }
+
+            // Function to hide modal
+            function hideModal() {
+                modal.style.display = 'none';
+                socialPostOutput.textContent = ''; // Clear content when closing
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+            }
+
+            // Close modal when clicking on 'x'
+            closeButton.addEventListener('click', hideModal);
+
+            // Close modal when clicking outside the modal content
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    hideModal();
+                }
+            });
+
+            // Copy post to clipboard
+            copyPostButton.addEventListener('click', () => {
+                const textToCopy = socialPostOutput.textContent;
+                // Use document.execCommand('copy') for broader compatibility in iframes
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Post copied to clipboard!'); // Using alert for simplicity as per instructions
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                    alert('Failed to copy post.');
+                }
+                document.body.removeChild(textArea);
+            });
+
+
+            // Event listeners for all "Generate Social Post" buttons
+            generateButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    const title = button.dataset.title;
+                    const description = button.dataset.description;
+
+                    showModal(); // Show modal immediately
+                    socialPostOutput.textContent = ''; // Clear previous content
+                    loadingIndicator.classList.remove('hidden'); // Show loading indicator
+                    copyPostButton.disabled = true; // Disable copy button during generation
+
+                    const prompt = `Generate a concise social media post (e.g., for LinkedIn or Instagram) for a digital marketing agency, based on the following image description. Include relevant emojis and 2-3 hashtags.
+Image Title: ${title}
+Image Description: ${description}
+Focus on promoting AI-powered digital marketing, SEO, and growth in Southeast Asia.`;
+
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // Canvas will automatically provide the API key at runtime
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            socialPostOutput.textContent = text;
+                        } else {
+                            socialPostOutput.textContent = "Error: Could not generate social media post. Please try again.";
+                            console.error("Unexpected API response structure:", result);
+                        }
+                    } catch (error) {
+                        socialPostOutput.textContent = "Error: Failed to connect to the AI service. Please check your network connection.";
+                        console.error("Fetch error:", error);
+                    } finally {
+                        loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                        copyPostButton.disabled = false; // Enable copy button
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
