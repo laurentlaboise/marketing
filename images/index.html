@@ -187,13 +187,13 @@
         }
 
         /* Download Buttons within cards */
-        .glass-card .download-btn {
+        .download-btn {
             background-color: rgba(51, 65, 85, 0.5); /* slate-700 with opacity */
             color: var(--color-indigo-300);
             font-family: var(--font-family-body);
             font-weight: 600;
         }
-        .glass-card .download-btn:hover {
+        .download-btn:hover {
             background-color: var(--color-slate-700);
             color: var(--color-indigo-400);
         }
@@ -214,8 +214,8 @@
             .header-section, .glass-card { background: Canvas; border-color: CanvasText; }
             .header-section .absolute { background: transparent; }
             h1, h2, h3, h4, h5, h6, .glass-card, .glass-card figcaption, .glass-card .image-description { color: CanvasText; }
-            .btn-premium, .glass-card .download-btn { background: ButtonFace; color: ButtonText; border-color: ButtonText; }
-            .btn-premium:hover, .glass-card .download-btn:hover { background: Highlight; color: HighlightText; }
+            .btn-premium, .download-btn { background: ButtonFace; color: ButtonText; border-color: ButtonText; }
+            .btn-premium:hover, .download-btn:hover { background: Highlight; color: HighlightText; }
         }
 
         /* Styles for the Social Post Modal */
@@ -339,7 +339,7 @@
           },
           {
             "@type": "ContactPoint",
-            "telephone": "+8562076005888",
+            "telephone": "+8562055528039",
             "contactType": "Sales",
             "areaServed": ["LA", "TH", "VN", "KH", "MY", "SG", "ID", "PH", "MM", "BN"],
             "availableLanguage": ["en", "lo", "th", "fr"]
@@ -702,6 +702,22 @@
         <div class="modal-content relative bg-slate-800 p-6 rounded-lg shadow-xl w-11/12 max-w-lg">
             <span class="close-button absolute top-2 right-4 text-3xl font-bold cursor-pointer text-slate-300 hover:text-white">&times;</span>
             <h3 class="text-2xl font-bold text-white mb-4">Generated Social Media Post</h3>
+            
+            <div class="mb-4">
+                <label for="languageSelect" class="block text-sm font-medium text-slate-300 mb-1">Translate to:</label>
+                <select id="languageSelect" class="w-full p-2 rounded-md bg-slate-700 border border-slate-600 text-slate-100 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="English">English</option>
+                    <option value="Lao">Lao</option>
+                    <option value="Thai">Thai</option>
+                    <option value="French">French</option>
+                    <option value="Vietnamese">Vietnamese</option>
+                    <option value="Khmer">Khmer</option>
+                    <option value="Malay">Malay</option>
+                    <option value="Indonesian">Indonesian</option>
+                    <option value="Filipino">Filipino</option>
+                </select>
+            </div>
+
             <div id="socialPostOutput" class="min-h-[100px] p-4 bg-slate-900 rounded-md border border-slate-700 text-slate-100 whitespace-pre-wrap word-wrap-break-word">
                 <!-- Social media post will be displayed here -->
             </div>
@@ -710,6 +726,7 @@
                 <span class="ml-3 text-indigo-300">Generating...</span>
             </div>
             <button id="copyPostButton" class="mt-4 w-full btn-premium py-2 px-4 rounded-full text-white font-bold">Copy Post</button>
+            <button id="translateButton" class="mt-2 w-full btn-premium py-2 px-4 rounded-full text-white font-bold">Translate Post</button>
         </div>
     </div>
 
@@ -722,6 +739,10 @@
             const socialPostOutput = document.getElementById('socialPostOutput');
             const loadingIndicator = document.querySelector('.loading-indicator');
             const copyPostButton = document.getElementById('copyPostButton');
+            const languageSelect = document.getElementById('languageSelect');
+            const translateButton = document.getElementById('translateButton');
+
+            let currentGeneratedPost = ''; // Store the last generated post for translation
 
             // Function to show modal
             function showModal() {
@@ -733,6 +754,8 @@
                 modal.style.display = 'none';
                 socialPostOutput.textContent = ''; // Clear content when closing
                 loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                currentGeneratedPost = ''; // Clear stored post
+                languageSelect.value = 'English'; // Reset language selection
             }
 
             // Close modal when clicking on 'x'
@@ -763,56 +786,78 @@
                 document.body.removeChild(textArea);
             });
 
+            // Function to call Gemini API for generation or translation
+            async function callGeminiAPI(prompt, isTranslation = false) {
+                socialPostOutput.textContent = ''; // Clear previous content
+                loadingIndicator.classList.remove('hidden'); // Show loading indicator
+                copyPostButton.disabled = true; // Disable copy button during generation
+                translateButton.disabled = true; // Disable translate button during generation/translation
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will automatically provide the API key at runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        socialPostOutput.textContent = text;
+                        if (!isTranslation) { // Only store if it's a new generation, not a translation
+                            currentGeneratedPost = text;
+                        }
+                    } else {
+                        socialPostOutput.textContent = "Error: Could not process request. Please try again.";
+                        console.error("Unexpected API response structure:", result);
+                    }
+                } catch (error) {
+                    socialPostOutput.textContent = "Error: Failed to connect to the AI service. Please check your network connection.";
+                    console.error("Fetch error:", error);
+                } finally {
+                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                    copyPostButton.disabled = false; // Enable copy button
+                    translateButton.disabled = false; // Enable translate button
+                }
+            }
 
             // Event listeners for all "Generate Social Post" buttons
             generateButtons.forEach(button => {
-                button.addEventListener('click', async () => {
+                button.addEventListener('click', () => {
                     const title = button.dataset.title;
                     const description = button.dataset.description;
 
                     showModal(); // Show modal immediately
-                    socialPostOutput.textContent = ''; // Clear previous content
-                    loadingIndicator.classList.remove('hidden'); // Show loading indicator
-                    copyPostButton.disabled = true; // Disable copy button during generation
+                    languageSelect.value = 'English'; // Reset language to English for new generation
 
                     const prompt = `Generate a concise social media post (e.g., for LinkedIn or Instagram) for a digital marketing agency, based on the following image description. Include relevant emojis and 2-3 hashtags.
 Image Title: ${title}
 Image Description: ${description}
 Focus on promoting AI-powered digital marketing, SEO, and growth in Southeast Asia.`;
-
-                    let chatHistory = [];
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-                    const payload = { contents: chatHistory };
-                    const apiKey = ""; // Canvas will automatically provide the API key at runtime
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                    try {
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        const result = await response.json();
-
-                        if (result.candidates && result.candidates.length > 0 &&
-                            result.candidates[0].content && result.candidates[0].content.parts &&
-                            result.candidates[0].content.parts.length > 0) {
-                            const text = result.candidates[0].content.parts[0].text;
-                            socialPostOutput.textContent = text;
-                        } else {
-                            socialPostOutput.textContent = "Error: Could not generate social media post. Please try again.";
-                            console.error("Unexpected API response structure:", result);
-                        }
-                    } catch (error) {
-                        socialPostOutput.textContent = "Error: Failed to connect to the AI service. Please check your network connection.";
-                        console.error("Fetch error:", error);
-                    } finally {
-                        loadingIndicator.classList.add('hidden'); // Hide loading indicator
-                        copyPostButton.disabled = false; // Enable copy button
-                    }
+                    
+                    callGeminiAPI(prompt, false); // Call API to generate, not translate
                 });
+            });
+
+            // Event listener for the Translate button
+            translateButton.addEventListener('click', () => {
+                if (currentGeneratedPost) {
+                    const targetLanguage = languageSelect.value;
+                    const translatePrompt = `Translate the following social media post into ${targetLanguage}. Do not add any extra text, just the translation:\n\n${currentGeneratedPost}`;
+                    callGeminiAPI(translatePrompt, true); // Call API to translate
+                } else {
+                    alert('Please generate a post first before translating.');
+                }
             });
         });
     </script>
