@@ -6,14 +6,13 @@
  * responsive layouts, animation definitions, utility classes,
  * and complete brand design system implementation with modular architecture.
  * Implements modern CSS methodologies including BEM and component-based organization.
- * Updated to align with the inline styles from the provided HTML, incorporating a blue-focused palette,
- * glassmorphism-inspired cards, and Tailwind CSS integration.
+ * Updated to ensure colors are applied correctly and modal is centered.
  */
 
 /* --- 1. CSS Architecture: Custom Properties (Design Tokens) --- */
 :root {
-    /* Brand Colors (Updated to match HTML's blue palette) */
-    --color-primary-base: #1f85c9; /* Primary blue from HTML */
+    /* Brand Colors (Blue-focused palette) */
+    --color-primary-base: #1f85c9; /* Primary blue */
     --color-slate-900: #122a3f; /* Darkest blue for backgrounds */
     --color-slate-800: #154266; /* Dark blue for text */
     --color-slate-700: #185a8d; /* Mid-dark blue for text and accents */
@@ -22,13 +21,13 @@
     --color-slate-200: #cce2f1; /* Very light blue for borders/backgrounds */
     --color-slate-100: #e6f1f8; /* Lightest blue for backgrounds */
     --color-indigo-300: #4b9edb; /* Lighter blue for gradients */
-    --color-accent-magenta: #d62b83; /* Pink for buttons (from pink-download-button) */
-    --color-white: #ffffff; /* Retained from original */
-    --color-light-gray: #e5e7eb; /* Retained for borders/dividers */
-    --color-mid-gray: #e2e8f0; /* Retained for subtle elements */
-    --color-dark-gray: #a0aec0; /* Retained for subtle text */
+    --color-accent-magenta: #d62b83; /* Pink for buttons */
+    --color-white: #ffffff; /* White for backgrounds and text */
+    --color-light-gray: #e5e7eb; /* Light gray for borders/dividers */
+    --color-mid-gray: #e2e8f0; /* Mid gray for subtle elements */
+    --color-dark-gray: #a0aec0; /* Dark gray for subtle text */
 
-    /* Typography Scale (Consistent with HTML: Poppins for headings, Inter for body) */
+    /* Typography Scale */
     --font-family-heading: 'Poppins', sans-serif;
     --font-family-body: 'Inter', sans-serif;
 
@@ -42,7 +41,7 @@
     --font-size-5xl: 3rem; /* 48px */
     --font-size-6xl: 3.75rem; /* 60px */
 
-    /* Spacing Scale (based on 8px grid, retained from original) */
+    /* Spacing Scale (8px grid) */
     --spacing-xs: 0.25rem; /* 4px */
     --spacing-sm: 0.5rem; /* 8px */
     --spacing-md: 1rem; /* 16px */
@@ -52,22 +51,22 @@
     --spacing-3xl: 4rem; /* 64px */
     --spacing-4xl: 5rem; /* 80px */
 
-    /* Border Radius (Updated to include HTML's rounded styles) */
+    /* Border Radius */
     --border-radius-sm: 0.25rem; /* 4px */
     --border-radius-md: 0.5rem; /* 8px */
     --border-radius-lg: 0.75rem; /* 12px */
     --border-radius-xl: 1rem; /* 16px */
-    --border-radius-2xl: 1.5rem; /* From HTML's glass-card */
+    --border-radius-2xl: 1.5rem; /* For glass-card */
     --border-radius-full: 9999px; /* Full circle/pill */
 
-    /* Box Shadows (Updated to match HTML's card and button shadows) */
+    /* Box Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* From HTML's glass-card */
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); /* From HTML's buttons */
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* From HTML's glass-card hover */
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
     --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
 
-    /* Transitions (Consistent with HTML) */
+    /* Transitions */
     --transition-duration: 0.3s;
     --transition-timing-function: ease-in-out;
 }
@@ -83,22 +82,22 @@ body {
     font-family: var(--font-family-body);
     font-size: var(--font-size-base);
     line-height: 1.6;
-    background-color: var(--color-white);
-    color: var(--color-slate-800);
+    background-color: var(--color-white) !important;
+    color: var(--color-slate-800) !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    overflow-x: hidden; /* From HTML */
+    overflow-x: hidden;
 }
 
 /* --- 3. Base Typography and Element Styles --- */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-family-heading);
-    font-weight: 700; /* From HTML */
+    font-weight: 700;
     line-height: 1.2;
     margin-top: var(--spacing-lg);
     margin-bottom: var(--spacing-md);
-    color: var(--color-slate-900); /* From HTML */
+    color: var(--color-slate-900) !important;
 }
 
 h1 { font-size: var(--font-size-5xl); }
@@ -110,17 +109,17 @@ h6 { font-size: var(--font-size-lg); }
 
 p {
     margin-bottom: var(--spacing-md);
-    color: var(--color-slate-800); /* From HTML */
+    color: var(--color-slate-800) !important;
 }
 
 a {
-    color: var(--color-primary-base); /* From HTML */
+    color: var(--color-primary-base) !important;
     text-decoration: none;
     transition: color var(--transition-duration) var(--transition-timing-function);
 }
 
 a:hover {
-    color: var(--color-slate-900); /* From HTML's footer links */
+    color: var(--color-slate-900) !important;
     text-decoration: underline;
 }
 
@@ -129,20 +128,20 @@ a:hover {
 /* Header Section */
 .header-section {
     position: relative;
-    background-color: var(--color-slate-900); /* From HTML */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%"><defs><filter id="noise" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/></filter></defs><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.05"/></svg>'); /* From HTML */
+    background-color: var(--color-slate-900) !important;
+    background-image: url('data:image/svg+xml;utf8,<10:00:00 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%"><defs><filter id="noise" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/></filter></defs><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.05"/></svg>') !important;
 }
 
 .header-section .absolute-overlay {
-    background: linear-gradient(to bottom, rgba(18, 42, 63, 0.5), rgba(18, 42, 63, 1)); /* From HTML */
+    background: linear-gradient(to bottom, rgba(18, 42, 63, 0.5), rgba(18, 42, 63, 1)) !important;
 }
 
 .header-section h1 {
-    color: var(--color-white); /* From HTML */
+    color: var(--color-white) !important;
 }
 
 .header-section p {
-    color: var(--color-slate-300); /* From HTML */
+    color: var(--color-slate-300) !important;
 }
 
 /* Buttons */
@@ -160,41 +159,28 @@ a:hover {
     transition: all var(--transition-duration) var(--transition-timing-function);
 }
 
-.btn-primary {
-    background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300)); /* From HTML's btn-premium */
-    color: var(--color-white);
-    box-shadow: var(--shadow-lg);
+.btn-premium {
+    background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300)) !important;
+    color: var(--color-white) !important;
+    box-shadow: var(--shadow-lg) !important;
 }
 
-.btn-primary:hover {
+.btn-premium:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(31, 133, 201, 0.3); /* From HTML's btn-premium */
-}
-
-.btn-secondary {
-    background-color: var(--color-accent-magenta);
-    color: var(--color-white);
-    box-shadow: var(--shadow-lg);
-}
-
-.btn-secondary:hover {
-    background-color: var(--color-accent-magenta-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(214, 43, 131, 0.3); /* Adapted from pink-download-button */
+    box-shadow: 0 10px 20px rgba(31, 133, 201, 0.3) !important;
 }
 
 .btn-download {
-    background-color: var(--color-slate-200); /* From HTML's download-btn */
-    color: var(--color-slate-800);
+    background-color: var(--color-slate-200) !important;
+    color: var(--color-slate-800) !important;
     font-weight: 600;
 }
 
 .btn-download:hover {
-    background-color: var(--color-slate-300); /* From HTML */
-    color: var(--color-slate-900);
+    background-color: var(--color-slate-300) !important;
+    color: var(--color-slate-900) !important;
 }
 
-/* Pink Download Button (From HTML's pink-download-button) */
 .btn-pink-download {
     display: inline-flex;
     align-items: center;
@@ -202,20 +188,20 @@ a:hover {
     font-weight: 700;
     padding: var(--spacing-md);
     border-radius: var(--border-radius-full);
-    color: var(--color-white);
-    background-color: var(--color-accent-magenta);
-    box-shadow: var(--shadow-lg);
+    color: var(--color-white) !important;
+    background-color: var(--color-accent-magenta) !important;
+    box-shadow: var(--shadow-lg) !important;
     transition: all var(--transition-duration) var(--transition-timing-function);
 }
 
 .btn-pink-download:hover {
     transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(214, 43, 131, 0.3); /* From HTML */
+    box-shadow: 0 10px 20px rgba(214, 43, 131, 0.3) !important;
 }
 
 /* Cards */
 .card {
-    background-color: var(--color-white);
+    background-color: var(--color-white) !important;
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
     padding: var(--spacing-lg);
@@ -229,64 +215,66 @@ a:hover {
 }
 
 .glass-card {
-    background: var(--color-white); /* From HTML */
-    border: 1px solid var(--color-slate-200);
+    background: var(--color-white) !important;
+    border: 1px solid var(--color-slate-200) !important;
     border-radius: var(--border-radius-2xl);
-    box-shadow: var(--shadow-md);
-    transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease; /* From HTML */
-    color: var(--color-slate-800);
+    box-shadow: var(--shadow-md) !important;
+    transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
+    color: var(--color-slate-800) !important;
 }
 
 .glass-card:hover {
-    transform: translateY(-8px); /* From HTML */
-    box-shadow: var(--shadow-xl); /* From HTML */
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl) !important;
 }
 
 .glass-card .image-preview-container {
-    background-color: var(--color-slate-100); /* From HTML */
+    background-color: var(--color-slate-100) !important;
 }
 
 .glass-card .card-title {
-    color: var(--color-slate-900); /* From HTML */
+    color: var(--color-slate-900) !important;
 }
 
 .glass-card .image-description {
-    color: var(--color-slate-700); /* From HTML */
+    color: var(--color-slate-700) !important;
 }
 
 /* Modal */
 .modal {
     display: none;
-    position: fixed;
+    position: fixed !important;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.7) !important;
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
-    align-items: center;
-    justify-content: center;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .modal-content {
-    background-color: #1e293b; /* From HTML */
+    background-color: #1e293b !important;
     margin: auto;
     padding: var(--spacing-lg);
-    border: 1px solid #334155;
+    border: 1px solid #334155 !important;
     border-radius: var(--border-radius-lg);
     width: 80%;
     max-width: 600px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-height: 80vh; /* Added to constrain content height */
+    overflow-y: auto; /* Added to handle overflow */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
     position: relative;
     animation: fadeIn 0.3s ease-out;
-    color: var(--color-slate-100);
+    color: var(--color-slate-100) !important;
 }
 
 .close-button {
-    color: #cbd5e1; /* From HTML */
+    color: #cbd5e1 !important;
     position: absolute;
     top: 10px;
     right: 20px;
@@ -296,19 +284,19 @@ a:hover {
 }
 
 #socialPostOutput {
-    background-color: #0f172a; /* From HTML */
-    border: 1px solid #334155;
+    background-color: #0f172a !important;
+    border: 1px solid #334155 !important;
     white-space: pre-wrap;
     word-wrap: break-word;
     min-height: 100px;
     padding: var(--spacing-sm);
     border-radius: var(--border-radius-sm);
     font-size: var(--font-size-sm);
-    color: var(--color-slate-100);
+    color: var(--color-slate-100) !important;
     margin-top: var(--spacing-md);
 }
 
-/* Form Elements (Updated to include select from HTML) */
+/* Form Elements */
 input[type="text"],
 input[type="email"],
 input[type="tel"],
@@ -316,12 +304,12 @@ textarea,
 select {
     width: 100%;
     padding: var(--spacing-sm);
-    border: 1px solid var(--color-mid-gray);
+    border: 1px solid var(--color-mid-gray) !important;
     border-radius: var(--border-radius-sm);
     font-family: var(--font-family-body);
     font-size: var(--font-size-base);
-    color: var(--color-slate-800);
-    background-color: var(--color-white);
+    color: var(--color-slate-800) !important;
+    background-color: var(--color-white) !important;
     transition: border-color var(--transition-duration) var(--transition-timing-function),
                 box-shadow var(--transition-duration) var(--transition-timing-function);
 }
@@ -332,8 +320,8 @@ input[type="tel"]:focus,
 textarea:focus,
 select:focus {
     outline: none;
-    border-color: var(--color-primary-base);
-    box-shadow: 0 0 0 3px rgba(31, 133, 201, 0.2); /* Updated to match HTML's blue */
+    border-color: var(--color-primary-base) !important;
+    box-shadow: 0 0 0 3px rgba(31, 133, 201, 0.2) !important;
 }
 
 /* Loading Indicator */
@@ -341,12 +329,12 @@ select:focus {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: var(--color-slate-300); /* From HTML */
+    color: var(--color-slate-300) !important;
 }
 
 .spinner {
     border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid var(--color-slate-300);
+    border-top: 4px solid var(--color-slate-300) !important;
     border-radius: 50%;
     width: 30px;
     height: 30px;
@@ -355,17 +343,17 @@ select:focus {
 
 /* Footer */
 .footer {
-    background-color: var(--color-slate-100); /* From HTML */
-    border-top: 1px solid var(--color-slate-200);
-    color: var(--color-slate-700);
+    background-color: var(--color-slate-100) !important;
+    border-top: 1px solid var(--color-slate-200) !important;
+    color: var(--color-slate-700) !important;
 }
 
 .footer a {
-    color: var(--color-primary-base); /* From HTML */
+    color: var(--color-primary-base) !important;
 }
 
 .footer a:hover {
-    color: var(--color-slate-900); /* From HTML */
+    color: var(--color-slate-900) !important;
 }
 
 /* --- 6. Responsive Layout Classes --- */
@@ -426,23 +414,22 @@ select:focus {
 
 /* --- 9. Accessibility --- */
 :focus-visible {
-    outline: 2px solid var(--color-accent-magenta);
+    outline: 2px solid var(--color-accent-magenta) !important;
     outline-offset: 2px;
     border-radius: var(--border-radius-sm);
 }
 
 @media (prefers-color-scheme: dark) {
-    /* Dark mode adjustments (optional, as HTML uses light theme) */
     body {
-        background-color: var(--color-slate-900);
-        color: var(--color-slate-100);
+        background-color: var(--color-slate-900) !important;
+        color: var(--color-slate-100) !important;
     }
     .card, .glass-card {
-        background-color: var(--color-slate-800);
-        border-color: var(--color-slate-700);
+        background-color: var(--color-slate-800) !important;
+        border-color: var(--color-slate-700) !important;
     }
-    .btn-primary {
-        background: linear-gradient(90deg, var(--color-indigo-300), var(--color-primary-base));
+    .btn-premium {
+        background: linear-gradient(90deg, var(--color-indigo-300), var(--color-primary-base)) !important;
     }
 }
 
@@ -452,7 +439,7 @@ select:focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .animate-bounce-slow, .float, .btn-primary, .btn-secondary, .btn-pink-download, .glass-card {
+    .animate-bounce-slow, .float, .btn-premium, .btn-download, .btn-pink-download, .card, .glass-card {
         animation: none !important;
         transition: none !important;
         transform: none !important;
@@ -469,6 +456,3 @@ select:focus {
     clip: rect(0, 0, 0, 0);
     border: 0;
 }
-
-
-
