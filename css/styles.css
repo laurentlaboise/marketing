@@ -500,9 +500,13 @@ details[open] > summary .icon {
 .horizontal-scroll-container {
     display: flex;
     overflow-x: auto;
-    padding-bottom: 0px;
+    padding-bottom: 20px;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar {
+    display: none; /* Hides the scrollbar for Webkit browsers */
 }
 
 .horizontal-scroll-container::-webkit-scrollbar {
