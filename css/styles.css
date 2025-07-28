@@ -497,6 +497,10 @@ details[open] > summary .icon {
 }
 
 /* Horizontal Scroller */
+
+.horizontal-scroll-container::-webkit-scrollbar {
+    display: none; /* Hides the scrollbar for Webkit browsers */
+}
 .horizontal-scroll-container {
     display: flex;
     overflow-x: auto;
