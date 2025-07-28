@@ -695,7 +695,8 @@ input:focus, textarea:focus, select:focus {
 .footer-logo {
     max-width: 200px;
     height: auto;
-    margin-bottom: var(--spacing-md);
+    margin: 0 auto var(--spacing-md) auto;
+    display: block;
 }
 
 .footer-brand-divider {
@@ -711,6 +712,7 @@ input:focus, textarea:focus, select:focus {
     line-height: 1.4;
     max-width: 300px;
     margin: 0 auto;
+    text-align: center;
 }
 
 .footer-grid {
@@ -838,6 +840,16 @@ input:focus, textarea:focus, select:focus {
         flex: 1 1 30%;
         text-align: left;
     }
+    .footer-logo {
+        margin: 0 0 var(--spacing-md) 0;
+    }
+    .footer-brand-divider {
+        margin: 0 0 var(--spacing-sm) 0;
+    }
+    .footer-brand-text {
+        margin: 0;
+        text-align: left;
+    }
     .footer-grid {
         flex: 1 1 70%;
     }
@@ -850,9 +862,6 @@ input:focus, textarea:focus, select:focus {
     }
     .footer-legal {
         justify-content: center;
-    }
-    .footer-brand-divider {
-        margin: 0 0 var(--spacing-sm) 0;
     }
 }
 
