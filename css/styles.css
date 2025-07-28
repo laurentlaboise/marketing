@@ -672,26 +672,104 @@ input:focus, textarea:focus, select:focus {
 
 /* Footer */
 .footer {
-    background-color: #374151;
-    color: #d1d5db;
-    padding: var(--spacing-2xl) 0;
+    background-color: var(--color-slate-900);
+    color: var(--color-slate-100);
+    padding: var(--spacing-3xl) 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.footer-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+}
+
+.footer-brand {
+    flex: 1 1 100%;
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.footer-logo {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: var(--spacing-md);
+}
+
+.footer-brand-divider {
+    width: 60px;
+    height: 2px;
+    background-color: var(--color-accent-magenta);
+    margin: 0 auto var(--spacing-sm) auto;
+}
+
+.footer-brand-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-slate-300);
+    line-height: 1.4;
+    max-width: 300px;
+    margin: 0 auto;
 }
 
 .footer-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: var(--spacing-xl);
+    width: 100%;
+}
+
+.footer-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 .footer-heading {
     color: var(--color-white);
     font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+    position: relative;
+}
+
+.footer-heading::after {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 3px;
+    background-color: var(--color-accent-magenta);
+    margin: var(--spacing-sm) auto 0;
+}
+
+.footer-contact-list {
+    list-style: none;
     margin-bottom: var(--spacing-md);
 }
 
-.footer-column p, .footer-links li {
+.footer-contact-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
     font-size: var(--font-size-sm);
+    color: var(--color-slate-300);
     margin-bottom: var(--spacing-sm);
+}
+
+.footer-contact-item i {
+    color: var(--color-primary-base);
+    font-size: var(--font-size-lg);
+}
+
+.footer-contact-item a {
+    color: var(--color-slate-300);
+    transition: var(--transition-fast);
+}
+
+.footer-contact-item a:hover {
+    color: var(--color-accent-magenta);
 }
 
 .footer-links {
@@ -701,34 +779,81 @@ input:focus, textarea:focus, select:focus {
     gap: var(--spacing-sm);
 }
 
-.footer a {
-    color: #d1d5db;
+.footer-links li a {
+    color: var(--color-slate-100);
+    font-size: var(--font-size-sm);
+    transition: var(--transition-fast);
 }
 
-.footer a:hover {
+.footer-links li a:hover {
     color: var(--color-primary-base);
+    transform: translateX(5px);
 }
 
 .social-links {
     display: flex;
     gap: var(--spacing-md);
+    justify-content: center;
+    margin-top: var(--spacing-sm);
 }
 
 .social-links a {
     font-size: var(--font-size-2xl);
-    color: #d1d5db;
+    color: var(--color-slate-100);
+    transition: var(--transition-fast);
 }
 
 .social-links a:hover {
     color: var(--color-accent-magenta);
+    transform: scale(1.1);
 }
 
 .footer-bottom {
+    border-top: 1px solid var(--color-slate-700);
+    padding-top: var(--spacing-xl);
     text-align: center;
     font-size: var(--font-size-sm);
-    margin-top: var(--spacing-xl);
-    padding-top: var(--spacing-xl);
-    border-top: 1px solid #4b5563;
+    color: var(--color-slate-300);
+}
+
+.footer-legal {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.footer-legal a {
+    color: var(--color-slate-100);
+    transition: var(--transition-fast);
+}
+
+.footer-legal a:hover {
+    color: var(--color-primary-base);
+}
+
+/* Responsive Adjustments */
+@media (min-width: 768px) {
+    .footer-brand {
+        flex: 1 1 30%;
+        text-align: left;
+    }
+    .footer-grid {
+        flex: 1 1 70%;
+    }
+    .footer-column {
+        align-items: flex-start;
+        text-align: left;
+    }
+    .social-links {
+        justify-content: flex-start;
+    }
+    .footer-legal {
+        justify-content: center;
+    }
+    .footer-brand-divider {
+        margin: 0 0 var(--spacing-sm) 0;
+    }
 }
 
 /* --- 5. Floating UI & Modals --- */
