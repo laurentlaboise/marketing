@@ -500,7 +500,7 @@ details[open] > summary .icon {
 .horizontal-scroll-container {
     display: flex;
     overflow-x: auto;
-    padding-bottom: 20px;
+    padding-bottom: 0px;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
 }
