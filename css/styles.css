@@ -160,13 +160,13 @@ a:hover {
     transition: all var(--transition-duration) var(--transition-timing-function);
 }
 
-.btn-primary {
+.btn-primary, .btn-premium { /* Combined btn-premium into btn-primary for consistency */
     background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300)); /* From HTML's btn-premium */
     color: var(--color-white);
     box-shadow: var(--shadow-lg);
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .btn-premium:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(31, 133, 201, 0.3); /* From HTML's btn-premium */
 }
@@ -178,29 +178,28 @@ a:hover {
 }
 
 .btn-secondary:hover {
-    background-color: var(--color-accent-magenta-dark);
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(214, 43, 131, 0.3); /* Adapted from pink-download-button */
 }
 
-.btn-download {
+.download-btn {
     background-color: var(--color-slate-200); /* From HTML's download-btn */
     color: var(--color-slate-800);
     font-weight: 600;
 }
 
-.btn-download:hover {
+.download-btn:hover {
     background-color: var(--color-slate-300); /* From HTML */
     color: var(--color-slate-900);
 }
 
 /* Pink Download Button (From HTML's pink-download-button) */
-.btn-pink-download {
+.pink-download-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    padding: var(--spacing-md);
+    padding: 0.75rem;
     border-radius: var(--border-radius-full);
     color: var(--color-white);
     background-color: var(--color-accent-magenta);
@@ -208,7 +207,7 @@ a:hover {
     transition: all var(--transition-duration) var(--transition-timing-function);
 }
 
-.btn-pink-download:hover {
+.pink-download-button:hover {
     transform: translateY(-1px);
     box-shadow: 0 10px 20px rgba(214, 43, 131, 0.3); /* From HTML */
 }
@@ -308,7 +307,7 @@ a:hover {
     margin-top: var(--spacing-md);
 }
 
-/* Form Elements (Updated to include select from HTML) */
+/* Form Elements */
 input[type="text"],
 input[type="email"],
 input[type="tel"],
@@ -405,26 +404,7 @@ select:focus {
     50% { transform: translateY(-20px) rotate(10deg); }
 }
 
-/* --- 8. Performance Considerations --- */
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 300 800;
-    font-display: swap;
-    src: url('../fonts/Inter-VariableFont.woff2') format('woff2'),
-         url('../fonts/Inter-VariableFont.woff') format('woff');
-}
-
-@font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 600 800;
-    font-display: swap;
-    src: url('../fonts/Poppins-VariableFont.woff2') format('woff2'),
-         url('../fonts/Poppins-VariableFont.woff') format('woff');
-}
-
-/* --- 9. Accessibility --- */
+/* --- 8. Accessibility --- */
 :focus-visible {
     outline: 2px solid var(--color-accent-magenta);
     outline-offset: 2px;
@@ -469,3 +449,7 @@ select:focus {
     clip: rect(0, 0, 0, 0);
     border: 0;
 }
+
+/* * NOTE: The local @font-face rules were removed from this section.
+ * The fonts are now loaded via the <link> in the HTML file from Google Fonts.
+ */
