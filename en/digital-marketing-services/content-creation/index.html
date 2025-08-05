@@ -1,1 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Content Creation Services | WordsThatSells - SEO Content for Southeast Asia</title>
+    <meta name="description" content="Professional content creation services for SMEs in Thailand and Laos. AI-powered SEO copywriting, blog posts, social media content, and graphic design that converts.">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Include the provided CSS */
+        :root {
+            /* --- 1. Custom Properties (Design Tokens) --- */
+            /* Colors (Merged palette, prioritizing styles.css with homepage additions) */
+            --color-primary-base: #1f85c9;         /* Unified blue from styles.css */
+            --color-accent-magenta: #d62b83;       /* Unified magenta from styles.css */
+            --color-slate-900: #122a3f;           /* Darkest blue */
+            --color-slate-800: #154266;           /* Dark blue */
+            --color-slate-700: #185a8d;           /* Mid-dark blue */
+            --color-slate-500: #64748b;           /* Mid blue-gray */
+            --color-slate-300: #a3cce8;           /* Light blue */
+            --color-slate-200: #cce2f1;           /* Very light blue */
+            --color-slate-100: #e6f1f8;           /* Lightest blue */
+            --color-indigo-300: #4b9edb;          /* Lighter blue */
+            --color-white: #ffffff;               /* White */
+            --color-light-gray: #e5e7eb;          /* Light gray (synced with --color-border) */
+            --color-mid-gray: #e2e8f0;            /* Mid gray */
+            --color-dark-gray: #a0aec0;           /* Dark gray */
+            --color-dark: #4e555b;                /* Dark gray from homepage */
+            --color-light: #f9f9f9;               /* Light background from homepage */
+            --color-border: #e5e7eb;              /* Border color from homepage */
 
+            /* Typography */
+            --font-family-heading: 'Poppins', sans-serif;
+            --font-family-body: 'Inter', sans-serif;
+            --font-size-base: 1rem;               /* 16px */
+            --font-size-sm: 0.875rem;             /* 14px */
+            --font-size-lg: 1.125rem;             /* 18px */
+            --font-size-xl: 1.25rem;              /* 20px */
+            --font-size-2xl: 1.5rem;              /* 24px */
+            --font-size-3xl: 1.875rem;            /* 30px */
+            --font-size-4xl: 2.25rem;             /* 36px */
+            --font-size-5xl: 3rem;                /* 48px */
+            --font-size-6xl: 3.75rem;             /* 60px */
+
+            /* Spacing (Merged, using styles.css scale with homepage mappings) */
+            --spacing-xs: 0.25rem;                /* 4px */
+            --spacing-sm: 0.5rem;                 /* 8px, maps to --spacing-1 */
+            --spacing-md: 1rem;                   /* 16px, maps to --spacing-2 */
+            --spacing-lg: 1.5rem;                 /* 24px, maps to --spacing-3 */
+            --spacing-xl: 2rem;                   /* 32px, maps to --spacing-4 */
+            --spacing-2xl: 3rem;                  /* 48px, maps to --spacing-6 */
+            --spacing-3xl: 4rem;                  /* 64px */
+            --spacing-4xl: 5rem;                  /* 80px, maps to --spacing-section */
+            --spacing-5: 2.5rem;                  /* 40px from homepage */
+
+            /* Border Radius */
+            --border-radius-sm: 0.25rem;          /* 4px */
+            --border-radius-md: 0.5rem;           /* 8px */
+            --border-radius-lg: 0.75rem;          /* 12px */
+            --border-radius-xl: 1rem;             /* 16px */
+            --border-radius-2xl: 1.5rem;          /* 24px */
+            --border-radius-full: 9999px;         /* Full circle */
+
+            /* Box Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+            /* Transitions */
+            --transition-duration: 0.3s;          /* Synced with --transition-medium */
+            --transition-timing-function: ease-in-out;
+            --transition-fast: all 0.2s ease-in-out;
+            --transition-medium: all 0.3s ease-in-out;
+        }
+
+        /* --- 2. Reset and Base Styles --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            background-color: var(--color-white);
+            color: var(--color-slate-800);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-family-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-900);
+        }
+
+        h1 { font-size: var(--font-size-5xl); }
+        h2 { font-size: var(--font-size-4xl); }
+        h3 { font-size: var(--font-size-3xl); }
+        h4 { font-size: var(--font-size-2xl); }
+        h5 { font-size: var(--font-size-xl); }
+        h6 { font-size: var(--font-size-lg); }
+
+        p {
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-800);
+        }
+
+        a {
+            color: var(--color-primary-base);
+            text-decoration: none;
+            transition: var(--transition-fast);
+        }
+
+        a:hover {
+            color: var(--color-accent-magenta);
+        }
+
+        ul, ol {
+            list-style-position: inside;
+        }
+
+        /* --- 3. Layout Styles --- */
+        .container {
+            width: 90%;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .section {
+            padding: var(--spacing-4xl) 0;
+        }
+
+        .section-alt {
+            background-color: var(--color-light);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .two-column-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xl);
+            align-items: center;
+        }
+
+        .column-left, .column-right {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .desktop-only { display: none; }
+        .mobile-only { display: inline; }
+
+        /* --- 4. Component Styles --- */
+
+        /* Header and Hero Sections */
+        .header-section {
+            position: relative;
+            background-color: var(--color-slate-900);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%"><defs><filter id="noise" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/></filter></defs><rect width="100%" height="100%" filter="url(#noise)" opacity="0.05"/></svg>');
+        }
+
+        .header-section .absolute-overlay {
+            background: linear-gradient(to bottom, rgba(18, 42, 63, 0.5), rgba(18, 42, 63, 1));
+        }
+
+        .header-section h1 {
+            color: var(--color-white);
+        }
+
+        .header-section p {
+            color: var(--color-slate-300);
+        }
+
+        .hero-section {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            padding: var(--spacing-xl);
+            text-align: center;
+            color: var(--color-white);
+            overflow: hidden;
+        }
+
+        .hero-background {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+        }
+
+        .hero-background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(18, 42, 63, 0.7);
+            z-index: -1;
+        }
+
+        .hero-content h1 {
+            line-height: 1.1;
+            font-weight: 800;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+        }
+
+        .hero-content p {
+            font-size: var(--font-size-xl);
+            max-width: 600px;
+            margin: var(--spacing-md) auto 0;
+            color: #e5e7eb;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: var(--transition-medium);
+            text-decoration: none;
+            border: 2px solid transparent;
+        }
+
+        .btn-accent {
+            background: radial-gradient(circle at center, rgba(249, 7, 132, 0.82) 37%, var(--color-accent-magenta) 100%);
+            color: var(--color-white);
+            border-color: var(--color-accent-magenta);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-accent:hover {
+            background: radial-gradient(circle at center, var(--color-accent-magenta) 60%, #f90784 100%);
+            border-color: #f90784;
+            box-shadow: 0 0 0 4px rgba(249, 7, 132, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn-premium {
+            background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300));
+            color: var(--color-white);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(31, 133, 201, 0.3);
+        }
+
+        .btn-download {
+            background-color: var(--color-slate-200);
+            color: var(--color-slate-800);
+            font-weight: 600;
+        }
+
+        .btn-download:hover {
+            background-color: var(--color-slate-300);
+            color: var(--color-slate-900);
+        }
+
+        .btn-pink-download {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-full);
+            color: var(--color-white);
+            background-color: var(--color-accent-magenta);
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition-medium);
+        }
+
+        .btn-pink-download:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(214, 43, 131, 0.3);
+        }
+
+        .btn i {
+            margin-right: var(--spacing-sm);
+            font-size: 1.1em;
+        }
+
+        /* Cards and Content Blocks */
+        .card {
+            background-color: var(--color-white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: var(--spacing-lg);
+            transition: transform var(--transition-duration) var(--transition-timing-function),
+                        box-shadow var(--transition-duration) var(--transition-timing-function);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .glass-card {
+            background: var(--color-white);
+            border: 1px solid var(--color-slate-200);
+            border-radius: var(--border-radius-2xl);
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
+            color: var(--color-slate-800);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .glass-card .image-preview-container {
+            background-color: var(--color-slate-100);
+        }
+
+        .glass-card .card-title {
+            color: var(--color-slate-900);
+        }
+
+        .glass-card .image-description {
+            color: var(--color-slate-700);
+        }
+
+        .heading-accent-line {
+            width: 40px;
+            height: 4px;
+            background-color: var(--color-accent-magenta);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .section-heading-large {
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            line-height: 1.1;
+            font-weight: 400;
+        }
+
+        .section-heading-large .font-bold {
+            font-weight: 700;
+        }
+
+        .process-card {
+            background: var(--color-white);
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--color-border);
+        }
+
+        .process-card-title {
+            text-align: center;
+            font-size: var(--font-size-2xl);
+            color: var(--color-dark);
+        }
+
+        .process-steps {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--color-accent-magenta);
+            color: var(--color-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-2xl);
+            font-weight: bold;
+        }
+
+        .step-title {
+            color: var(--color-primary-base);
+            font-size: var(--font-size-lg);
+        }
+
+        .step-content p {
+            font-size: var(--font-size-sm);
+            margin-top: 4px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--spacing-xl);
+        }
+
+        .service-card {
+            background-color: var(--color-white);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--color-border);
+        }
+
+        .service-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .service-card-header i {
+            font-size: var(--font-size-2xl);
+            color: var(--color-primary-base);
+        }
+
+        .service-card-header h3 {
+            font-size: var(--font-size-xl);
+            margin-bottom: 0;
+        }
+
+        .service-card-summary {
+            font-size: var(--font-size-sm);
+            color: #6b7280;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .service-card-details {
+            font-size: var(--font-size-sm);
+            margin-top: var(--spacing-sm);
+        }
+
+        .service-card-details ul {
+            margin-top: var(--spacing-sm);
+            padding-left: var(--spacing-md);
+        }
+
+        details > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            font-weight: 600;
+            color: var(--color-primary-base);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: color 0.2s;
+        }
+
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details[open] > summary {
+            color: var(--color-accent-magenta);
+        }
+
+        details > summary .icon {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        details[open] > summary .icon {
+            transform: rotate(180deg);
+        }
+
+        /* CTA & Newsletter */
+        .cta-banner {
+            background-color: var(--color-primary-base);
+            color: var(--color-white);
+            text-align: center;
+            padding: var(--spacing-2xl);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .cta-banner h2 {
+            color: var(--color-white);
+        }
+
+        .cta-banner p {
+            color: #cbd5e1;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- Animations & Utilities --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            will-change: opacity, transform;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 150ms; }
+        .reveal-delay-2 { transition-delay: 300ms; }
+
+        .text-accent { color: var(--color-accent-magenta); }
+        .text-primary { color: var(--color-primary-base); }
+        .text-dark { color: var(--color-dark); }
+        .font-bold { font-weight: 700; }
+
+        /* Responsive Layouts */
+        @media (min-width: 768px) {
+            h1 { font-size: var(--font-size-6xl); }
+            h2 { font-size: var(--font-size-5xl); }
+            .desktop-only { display: inline; }
+            .mobile-only { display: none; }
+        }
+
+        @media (min-width: 1024px) {
+            body { font-size: var(--font-size-lg); }
+        }
+
+        /* Accessibility */
+        :focus-visible {
+            outline: 2px solid var(--color-accent-magenta);
+            outline-offset: 2px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* Custom styles for this page */
+        .content-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-2xl);
+        }
+
+        .content-type-card {
+            background: var(--color-white);
+            border: 2px solid var(--color-slate-200);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-lg);
+            transition: all var(--transition-duration) ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-primary-base), var(--color-accent-magenta));
+            transform: scaleX(0);
+            transition: transform var(--transition-duration) ease;
+        }
+
+        .content-type-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .content-type-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--color-primary-base);
+        }
+
+        .content-type-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--color-primary-base), var(--color-indigo-300));
+            border-radius: var(--border-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-white);
+            font-size: var(--font-size-2xl);
+        }
+
+        .content-type-title {
+            color: var(--color-slate-900);
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .content-type-description {
+            color: var(--color-slate-700);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .content-features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .content-features li {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-xs);
+            font-size: var(--font-size-sm);
+            color: var(--color-slate-700);
+        }
+
+        .content-features li i {
+            color: var(--color-accent-magenta);
+            margin-right: var(--spacing-sm);
+            width: 16px;
+        }
+
+        .ai-tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-2xl);
+        }
+
+        .ai-tool-card {
+            background: linear-gradient(135deg, var(--color-slate-100) 0%, var(--color-slate-200) 100%);
+            border: 2px solid var(--color-primary-base);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-lg);
+            transition: all var(--transition-duration) ease;
+        }
+
+        .ai-tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--color-accent-magenta);
+        }
+
+        .ai-tool-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .ai-tool-logo {
+            width: 50px;
+            height: 50px;
+            background: var(--color-white);
+            border-radius: var(--border-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-xl);
+            color: var(--color-primary-base);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ai-tool-title {
+            color: var(--color-slate-900);
+            font-size: var(--font-size-lg);
+            margin: 0;
+        }
+
+        .ai-tool-description {
+            color: var(--color-slate-700);
+            font-size: var(--font-size-sm);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-2xl);
+        }
+
+        .benefit-card {
+            background: var(--color-white);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            transition: all var(--transition-duration) ease;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .benefit-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--color-accent-magenta), #f90784);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-md);
+            color: var(--color-white);
+            font-size: var(--font-size-3xl);
+        }
+
+        .benefit-title {
+            color: var(--color-slate-900);
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .benefit-description {
+            color: var(--color-slate-700);
+            font-size: var(--font-size-sm);
+        }
+
+        .pricing-preview {
+            background: var(--color-slate-100);
+            border-left: 4px solid var(--color-accent-magenta);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+        }
+
+        .pricing-preview h5 {
+            color: var(--color-primary-base);
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-base);
+        }
+
+        .pricing-preview ul {
+            font-size: var(--font-size-sm);
+            color: var(--color-slate-700);
+            margin: 0;
+            padding-left: var(--spacing-md);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-background">
+            <div style="background: linear-gradient(135deg, #1f85c9 0%, #4b9edb 50%, #d62b83 100%); width: 100%; height: 100%; opacity: 0.15;"></div>
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="container">
+            <div class="hero-content reveal">
+                <h1>AI-Powered Content Creation</h1>
+                <p>Engaging content that ranks, resonates, and converts. Strategic content creation for Southeast Asian businesses using cutting-edge AI tools and data-driven insights.</p>
+                <div style="margin-top: var(--spacing-xl);">
+                    <a href="#services" class="btn btn-accent">
+                        <i class="fas fa-pen-fancy"></i>
+                        Explore Our Content Services
+                    </a>
+                    <a href="#consultation" class="btn btn-premium" style="margin-left: var(--spacing-md);">
+                        <i class="fas fa-calendar"></i>
+                        Get Free Strategy Session
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="heading-accent-line" style="margin: 0 auto var(--spacing-md);"></div>
+                <h2>Content is King in Today's Digital Marketplace</h2>
+                <p>High-quality content is the backbone of any successful digital marketing strategy, essential for building trust and engaging audiences in the competitive Southeast Asian market.</p>
+                <p>We offer a <strong>premier SEO copywriting service</strong> that utilizes powerful AI tools to create high-quality blogs, articles, and social media posts designed to drive traffic and boost conversions for SMEs across Thailand, Laos, and beyond.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content Services Section -->
+    <section id="services" class="section section-alt">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>From Blog Posts to Brand Stories</h2>
+                <p>Content tailored to your goals and optimized for results</p>
+            </div>
+
+            <div class="content-type-grid">
+                <!-- SEO-Optimized Written Content -->
+                <div class="content-type-card reveal">
+                    <div class="content-type-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h3 class="content-type-title">SEO-Optimized Written Content</h3>
+                    <p class="content-type-description">Strategic content that ranks high and converts visitors into customers</p>
+                    
+                    <ul class="content-features">
+                        <li><i class="fas fa-blog"></i><strong>Blog Posts:</strong> Establish authority and attract organic traffic</li>
+                        <li><i class="fas fa-file-alt"></i><strong>In-Depth Articles:</strong> 1500+ word thought leadership pieces</li>
+                        <li><i class="fas fa-globe"></i><strong>Website & Landing Page Copy:</strong> Conversion-focused content</li>
+                        <li><i class="fas fa-share-alt"></i><strong>Social Media Posts:</strong> Engaging content for all platforms</li>
+                    </ul>
+
+                    <div class="pricing-preview">
+                        <h5>Package Options:</h5>
+                        <ul>
+                            <li>Blog series: 3, 6, or 12 posts</li>
+                            <li>Social media: 7, 36, or 124 posts</li>
+                            <li>Website copy: Priced by character count</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Creative & Visual Content -->
+                <div class="content-type-card reveal reveal-delay-1">
+                    <div class="content-type-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3 class="content-type-title">Creative & Visual Content</h3>
+                    <p class="content-type-description">Eye-catching designs that make your brand stand out</p>
+                    
+                    <ul class="content-features">
+                        <li><i class="fas fa-image"></i><strong>Graphic Design:</strong> Custom banners and digital assets</li>
+                        <li><i class="fas fa-star"></i><strong>Logo Design:</strong> Professional brand identity foundation</li>
+                        <li><i class="fas fa-camera"></i><strong>High-Quality Imagery:</strong> Professional stock and custom images</li>
+                        <li><i class="fas fa-paint-brush"></i><strong>Brand Assets:</strong> Consistent visual identity across platforms</li>
+                    </ul>
+
+                    <div class="pricing-preview">
+                        <h5>What's Included:</h5>
+                        <ul>
+                            <li>Multiple design concepts</li>
+                            <li>Unlimited revisions</li>
+                            <li>High-resolution files</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Specialized Content Solutions -->
+                <div class="content-type-card reveal reveal-delay-2">
+                    <div class="content-type-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3 class="content-type-title">Specialized Content Solutions</h3>
+                    <p class="content-type-description">Custom solutions for unique business needs</p>
+                    
+                    <ul class="content-features">
+                        <li><i class="fas fa-language"></i><strong>Translation Services:</strong> Adapt content for new markets</li>
+                        <li><i class="fas fa-car"></i><strong>Car Listing Generator:</strong> Automated automotive content</li>
+                        <li><i class="fas fa-utensils"></i><strong>Restaurant POS Setup:</strong> Complete system configuration</li>
+                        <li><i class="fas fa-tools"></i><strong>Custom Generators:</strong> Industry-specific content tools</li>
+                    </ul>
+
+                    <div class="pricing-preview">
+                        <h5>Specialized Services:</h5>
+                        <ul>
+                            <li>WordPress translation setup</li>
+                            <li>Industry-specific templates</li>
+                            <li>Custom automation tools</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Toolkit Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="heading-accent-line" style="margin: 0 auto var(--spacing-md);"></div>
+                <h2>Our AI Toolkit: Where Creativity Meets Data Science</h2>
+                <p>Our strategic advantage comes from leveraging a suite of best-in-class AI tools to research, create, and optimize every piece of content. This ensures data-driven results, not just guesswork.</p>
+            </div>
+
+            <div class="ai-tools-grid">
+                <!-- SEMrush -->
+                <div class="ai-tool-card reveal">
+                    <div class="ai-tool-header">
+                        <div class="ai-tool-logo">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3 class="ai-tool-title">SEMrush</h3>
+                    </div>
+                    <p class="ai-tool-description">We use SEMrush for deep keyword research, discovering what your audience is searching for, and analyzing competitor strategies to find content gaps that we can fill with your content.</p>
+                </div>
+
+                <!-- Google Keyword Planner -->
+                <div class="ai-tool-card reveal reveal-delay-1">
+                    <div class="ai-tool-header">
+                        <div class="ai-tool-logo">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <h3 class="ai-tool-title">Google Keyword Planner</h3>
+                    </div>
+                    <p class="ai-tool-description">Our go-to tool for validating keyword traffic and competition levels, ensuring we target terms that drive real results and measurable traffic to your website.</p>
+                </div>
+
+                <!-- Canva -->
+                <div class="ai-tool-card reveal reveal-delay-2">
+                    <div class="ai-tool-header">
+                        <div class="ai-tool-logo">
+                            <i class="fas fa-paint-brush"></i>
+                        </div>
+                        <h3 class="ai-tool-title">Canva Pro</h3>
+                    </div>
+                    <p class="ai-tool-description">Our design team uses Canva Pro to rapidly produce stunning, on-brand graphics for social media, blogs, and marketing materials that capture attention and drive engagement.</p>
+                </div>
+
+                <!-- AI Agents -->
+                <div class="ai-tool-card reveal">
+                    <div class="ai-tool-header">
+                        <div class="ai-tool-logo">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3 class="ai-tool-title">Custom AI Agents</h3>
+                    </div>
+                    <p class="ai-tool-description">Our proprietary AI agents instantly improve writing quality, fix spelling & grammar, simplify complex language, and adjust tone to perfectly match your brand's voice and audience.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Expect More From Your Content</h2>
+                <p>Content that drives real business growth and measurable results</p>
+            </div>
+
+            <div class="benefits-grid">
+                <!-- Increase Traffic & Visibility -->
+                <div class="benefit-card reveal">
+                    <div class="benefit-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="benefit-title">Increase Traffic & Visibility</h3>
+                    <p class="benefit-description">Our SEO-optimized content is designed to rank higher on search engines, driving organic traffic to your site and increasing your online visibility in competitive Southeast Asian markets.</p>
+                </div>
+
+                <!-- Build Trust & Authority -->
+                <div class="benefit-card reveal reveal-delay-1">
+                    <div class="benefit-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="benefit-title">Build Trust & Authority</h3>
+                    <p class="benefit-description">High-quality, valuable content establishes you as a credible expert in your field, building trust with your audience and positioning your brand as the go-to solution in your industry.</p>
+                </div>
+
+                <!-- Boost Audience Engagement -->
+                <div class="benefit-card reveal reveal-delay-2">
+                    <div class="benefit-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3 class="benefit-title">Boost Audience Engagement</h3>
+                    <p class="benefit-description">We create content that resonates with your target audience, encouraging likes, shares, and comments that build a loyal community around your brand and increase social proof.</p>
+                </div>
+
+                <!-- Drive Conversions -->
+                <div class="benefit-card reveal">
+                    <div class="benefit-icon">
+                        <i class="fas fa-target"></i>
+                    </div>
+                    <h3 class="benefit-title">Drive Conversions</h3>
+                    <p class="benefit-description">Our ultimate goal is to turn your audience into customers by guiding them through the buyer's journey with persuasive, helpful content that addresses their needs and motivates action.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Preview Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Our Content Creation Process</h2>
+                <p>Data-driven methodology that delivers consistent results</p>
+            </div>
+
+            <div class="process-card reveal">
+                <div class="process-steps">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Research & Strategy</h4>
+                            <p>We analyze your market, competitors, and audience using SEMrush and Google tools to identify the most valuable content opportunities for your business.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Content Planning</h4>
+                            <p>Based on our research, we create a strategic content calendar that aligns with your business goals and addresses your audience's needs at every stage of their journey.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4 class="step-title">AI-Enhanced Creation</h4>
+                            <p>Our team creates compelling content enhanced by AI tools for grammar, tone, and optimization, ensuring every piece meets our high standards for quality and effectiveness.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Review & Optimization</h4>
+                            <p>Every piece of content goes through our quality review process and is optimized for SEO, readability, and conversion before delivery to ensure maximum impact.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section id="consultation" class="section">
+        <div class="container">
+            <div class="cta-banner reveal">
+                <h2>Ready to Create Content That Sells?</h2>
+                <p>Let's tell your brand's story and achieve your marketing goals together. Join hundreds of successful businesses across Southeast Asia who trust WordsThatSells for their content creation needs.</p>
+                <div style="margin-top: var(--spacing-xl);">
+                    <a href="#contact" class="btn btn-accent pulse-animation" style="font-size: var(--font-size-lg); padding: var(--spacing-md) var(--spacing-xl);">
+                        <i class="fas fa-rocket"></i>
+                        Get Your Free Content Strategy Session
+                    </a>
+                </div>
+                <p style="margin-top: var(--spacing-md); font-size: var(--font-size-sm); opacity: 0.9;">
+                    Free 30-minute consultation • Content audit included • Custom strategy recommendations
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section section-alt">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Start Creating Today</h2>
+                <p>Let's discuss your content creation needs and develop a strategy that drives results</p>
+            </div>
+
+            <div class="two-column-layout">
+                <div class="column-left reveal">
+                    <div class="card">
+                        <h3><i class="fas fa-pen text-primary"></i> Content Packages</h3>
+                        <p>Choose from our flexible content packages designed for different business needs and budgets. From single blog posts to comprehensive content strategies.</p>
+                        <ul style="font-size: var(--font-size-sm); color: var(--color-slate-700); margin-top: var(--spacing-md);">
+                            <li>Blog series (3, 6, 12 posts)</li>
+                            <li>Social media packages (7, 36, 124 posts)</li>
+                            <li>Website copy (flexible pricing)</li>
+                            <li>Custom content solutions</li>
+                        </ul>
+                        <a href="#quote" class="btn btn-premium" style="margin-top: var(--spacing-md);">
+                            <i class="fas fa-calculator"></i>
+                            View Pricing
+                        </a>
+                    </div>
+                </div>
+
+                <div class="column-right reveal reveal-delay-1">
+                    <div class="card">
+                        <h3><i class="fas fa-comments text-primary"></i> Let's Talk Strategy</h3>
+                        <p>Ready to transform your content marketing? Get in touch for a personalized consultation and content audit.</p>
+                        <div style="margin-top: var(--spacing-lg);">
+                            <p><i class="fas fa-phone text-accent"></i> <strong>+856 20 XXX XXX</strong></p>
+                            <p><i class="fas fa-envelope text-accent"></i> <strong>hello@wordsthatsells.website</strong></p>
+                            <p><i class="fas fa-clock text-accent"></i> <strong>Mon-Fri: 9AM-6PM ICT</strong></p>
+                            <p><i class="fas fa-map-marker-alt text-accent"></i> <strong>Serving Thailand, Laos & SEA</strong></p>
+                        </div>
+                        <a href="#consultation" class="btn btn-accent" style="margin-top: var(--spacing-md);">
+                            <i class="fas fa-calendar-check"></i>
+                            Schedule Consultation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Back to Top button logic (from provided JS)
+            const backToTopButton = document.querySelector('.back-to-top');
+            if (backToTopButton) {
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 300) {
+                        backToTopButton.classList.add('show');
+                    } else {
+                        backToTopButton.classList.remove('show');
+                    }
+                });
+
+                backToTopButton.addEventListener('click', () => {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+
+            // On-scroll reveal animations (from provided JS)
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal').forEach(elem => {
+                revealObserver.observe(elem);
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Interactive hover effects for content type cards
+            document.querySelectorAll('.content-type-card').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-12px)';
+                    card.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0)';
+                    card.style.boxShadow = '';
+                });
+            });
+
+            // AI tools cards animation
+            document.querySelectorAll('.ai-tool-card').forEach((card, index) => {
+                card.addEventListener('mouseenter', () => {
+                    card.querySelector('.ai-tool-logo').style.transform = 'rotate(10deg) scale(1.1)';
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.querySelector('.ai-tool-logo').style.transform = 'rotate(0deg) scale(1)';
+                });
+            });
+
+            // Benefit cards pulse effect on scroll
+            const benefitObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.querySelector('.benefit-icon').style.animation = 'pulse 1.5s ease-in-out';
+                        }, index * 200);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            document.querySelectorAll('.benefit-card').forEach(card => {
+                benefitObserver.observe(card);
+            });
+
+            // Content type icons animation
+            setTimeout(() => {
+                document.querySelectorAll('.content-type-icon').forEach((icon, index) => {
+                    setTimeout(() => {
+                        icon.style.animation = `bounce 0.6s ease-out`;
+                    }, index * 200);
+                });
+            }, 1000);
+
+            // Process steps progressive highlight
+            const processObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const steps = entry.target.querySelectorAll('.step-item');
+                        steps.forEach((step, index) => {
+                            setTimeout(() => {
+                                step.style.opacity = '1';
+                                step.style.transform = 'translateX(0)';
+                                step.querySelector('.step-number').style.background = 'linear-gradient(135deg, var(--color-accent-magenta), #f90784)';
+                            }, index * 300);
+                        });
+                    }
+                });
+            }, { threshold: 0.3 });
+
+            document.querySelectorAll('.process-card').forEach(card => {
+                // Initially hide steps
+                card.querySelectorAll('.step-item').forEach(step => {
+                    step.style.opacity = '0.3';
+                    step.style.transform = 'translateX(-20px)';
+                    step.style.transition = 'all 0.5s ease';
+                });
+                processObserver.observe(card);
+            });
+        });
+
+        // Add CSS animations dynamically
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes bounce {
+                0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+                40%, 43% { transform: translate3d(0,-10px,0); }
+                70% { transform: translate3d(0,-5px,0); }
+                90% { transform: translate3d(0,-2px,0); }
+            }
+            
+            .back-to-top.show {
+                display: flex !important;
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            .ai-tool-logo {
+                transition: all 0.3s ease;
+            }
+            
+            @keyframes float {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-8px); }
+            }
+            
+            .pulse-animation:hover {
+                animation: pulse 0.8s ease-in-out;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
