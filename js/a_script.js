@@ -143,3 +143,29 @@ if (quoteForm) {
         }
     });
 }
+
+// footer multi-language 
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Get the language from the URL path (e.g., "/fr/page" -> "fr")
+        const pathParts = window.location.pathname.split('/');
+        // Use the first part of the path as the language. Fallback to 'en' if it's missing.
+        const currentLang = pathParts[1] || 'en';
+
+        // 2. Find all link containers we need to process
+        const linkContainers = document.querySelectorAll('[data-i18n-links]');
+
+        linkContainers.forEach(container => {
+            // 3. Find all anchor tags within this container
+            const links = container.querySelectorAll('a');
+
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                
+                // Only modify internal links that start with a '/'
+                if (href && href.startsWith('/')) {
+                    // 4. Prepend the language code to the href
+                    link.setAttribute('href', `/${currentLang}${href}`);
+                }
+            });
+        });
+    });
