@@ -95,27 +95,30 @@ ErrorDocument 500 /500.html
     </FilesMatch>
 </IfModule>
 
-# --- 6. URL Management: Clean URLs & Multilingual Handling ---
-# This single, consolidated block handles removing .html and serving correct index files.
+# --- 6. URL Management: Clean URLs & Multilingual Handling (Revised Logic) ---
+# This robust block correctly handles URLs with or without trailing slashes.
 <IfModule mod_rewrite.c>
-    # A. Redirect requests for .html files to their extensionless version.
-    # e.g., /en/about.html -> /en/about
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /(.*)\.html [NC]
-    RewriteRule ^(.*)\.html$ /$1 [R=301,L]
+    # A. Redirect any user-typed URL ending in .html to its clean, extensionless version.
+    RewriteCond %{THE_REQUEST} \s/+(.+?)\.html[\s?] [NC]
+    RewriteRule ^ /%1 [R=301,L]
 
-    # B. Internally rewrite extensionless URLs to the corresponding .html file.
-    # This handles both root-level and language-specific paths.
+    # B. Internally remove the trailing slash from all requests to directories.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^(.*)/$ /$1 [L]
+
+    # C. Rewrite the clean URL to the corresponding .html file if it exists.
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI}.html -f
-    RewriteRule ^(.*)$ %{REQUEST_URI}.html [L]
+    RewriteRule ^(.*)$ /$1.html [L]
 
-    # C. Internally rewrite requests for a directory to its index.html file.
-    # e.g., /en/services/ -> /en/services/index.html
+    # D. If the .html file doesn't exist, rewrite to an index.html file in a directory of the same name.
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^(.*)$ $1/index.html [L]
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI}/index.html -f
+    RewriteRule ^(.*)$ /$1/index.html [L]
 </IfModule>
+
 
 # --- 7. File Security: Disable Directory Browsing & Protect Files ---
 # Disable directory listing to prevent snooping.
