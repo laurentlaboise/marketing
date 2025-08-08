@@ -396,6 +396,46 @@
             border-top-right-radius: 8px;
             cursor: pointer;
         }
+        
+        /* Quote Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1050;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-container {
+            background-color: var(--color-white);
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius-xl);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: var(--font-size-2xl);
+            cursor: pointer;
+            color: #9ca3af;
+        }
+        
+        #quote-form-success {
+            text-align: center;
+        }
 
         /* --- 5. Animations & Utilities --- */
         @keyframes fadeIn {
@@ -696,158 +736,6 @@
     <!-- Footer and Floating UI -->
     <footer class="footer">
         <div class="container">
-            <!-- Footer content remains the same -->
-        </div>
-    </footer>
-
-    <a href="#top" class="back-to-top" aria-label="Back to top"><i class="fas fa-arrow-up"></i></a>
-    <div id="quote-tab" class="quote-tab">Get a Quote</div>
-    <!-- Quote Modal remains the same -->
-    
-    <!-- SLIDE-IN PANEL HTML -->
-    <div id="details-overlay"></div>
-    <aside id="details-slide-in">
-        <header class="slide-in-header">
-            <h2 id="slide-in-title">Service Details</h2>
-            <button id="slide-in-close" aria-label="Close details panel">&times;</button>
-        </header>
-        <div class="slide-in-body">
-            <img id="slide-in-image" src="https://placehold.co/800x400/e2e8f0/64748b?text=Details" alt="Service detail image">
-            <div id="slide-in-content">
-                <p>Detailed content about the service will appear here.</p>
-            </div>
-        </div>
-    </aside>
-
-    <!-- Main JavaScript Logic -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- Standard UI Logic (Scroll, Modals etc) ---
-            const backToTopButton = document.querySelector('.back-to-top');
-            if (backToTopButton) {
-                window.addEventListener('scroll', () => {
-                    backToTopButton.classList.toggle('show', window.scrollY > 300);
-                });
-            }
-
-            const revealObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) entry.target.classList.add('visible');
-                });
-            }, { threshold: 0.1 });
-            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-            // --- SLIDE-IN PANEL LOGIC ---
-
-            // 1. Get DOM elements
-            const slideInPanel = document.getElementById('details-slide-in');
-            const overlay = document.getElementById('details-overlay');
-            const closeBtn = document.getElementById('slide-in-close');
-            const learnMoreBtns = document.querySelectorAll('.btn-learn-more');
-            
-            const slideInTitle = document.getElementById('slide-in-title');
-            const slideInImage = document.getElementById('slide-in-image');
-            const slideInContent = document.getElementById('slide-in-content');
-
-            // 2. Define content for each service
-            const serviceDetails = {
-                copywriting: {
-                    title: 'Website Copywriting',
-                    img: 'https://placehold.co/800x400/1f85c9/ffffff?text=Copywriting',
-                    content: `
-                        <p>Our website copywriting service is the cornerstone of a successful digital presence. We go beyond just words; we craft compelling narratives that engage visitors from the moment they land on your page.</p>
-                        <p>Whether you need a punchy headline for your homepage, detailed product descriptions that sell, or an 'About Us' page that builds trust, our team has you covered.</p>
-                        <ul>
-                            <li>SEO keyword integration to improve search visibility.</li>
-                            <li>A/B testing for headlines and calls-to-action.</li>
-                            <li>Consistent brand voice across all pages.</li>
-                            <li>Packages scalable from a single landing page to a full enterprise-level website.</li>
-                        </ul>
-                    `
-                },
-                blogging: {
-                    title: 'Blog & Article Writing',
-                    img: 'https://placehold.co/800x400/d62b83/ffffff?text=Blogging',
-                    content: '<p>Content is king, and our blogging and article writing service ensures your reign is long and prosperous. We create high-quality, relevant, and engaging content that establishes your brand as a thought leader in your industry.</p><ul><li>In-depth research on industry trends.</li><li>Long-tail keyword strategies to capture niche audiences.</li><li>Includes royalty-free images with every post.</li></ul>'
-                },
-                rss: {
-                    title: 'RSS Feed Setup',
-                    img: 'https://placehold.co/800x400/64748b/ffffff?text=RSS',
-                    content: '<p>Maximize your content reach with our professional RSS feed setup. We ensure your latest articles and blog posts are automatically syndicated to various platforms, driving traffic back to your site and keeping your audience engaged with minimal effort.</p>'
-                },
-                translation: {
-                    title: 'Translation & Localization',
-                    img: 'https://placehold.co/800x400/154266/ffffff?text=Translation',
-                    content: '<p>Go global with confidence. Our translation and localization services adapt your content not just linguistically, but culturally. We ensure your message resonates with international audiences while maintaining your brand’s core identity and optimizing for multilingual SEO.</p>'
-                },
-                logo: {
-                    title: 'Logo Design Services',
-                    img: 'https://placehold.co/800x400/185a8d/ffffff?text=Logo+Design',
-                    content: '<p>A great logo is the face of your brand. We offer two distinct logo design paths: leverage cutting-edge AI for rapid, innovative concepts, or collaborate with our professional graphic designers for a bespoke, handcrafted identity. Both paths lead to a memorable and impactful brand mark.</p>'
-                },
-                banner: {
-                    title: 'Digital Banner Design',
-                    img: 'https://placehold.co/800x400/4b9edb/ffffff?text=Banners',
-                    content: '<p>Capture attention instantly with our custom digital banner designs. Optimized for web, social media, and advertising platforms, our banners are crafted to be visually striking and on-brand, driving clicks and conversions for your campaigns.</p>'
-                },
-                photo: {
-                    title: 'Photography Services',
-                    img: 'https://placehold.co/800x400/a3cce8/122a3f?text=Photography',
-                    content: '<p>Authentic visuals build trust. Our photography services range from providing curated, SEO-optimized stock photo packs to conducting professional on-site photo shoots that capture the unique essence of your business, products, and team.</p>'
-                },
-                tools: {
-                    title: 'Custom Digital Tools',
-                    img: 'https://placehold.co/800x400/122a3f/ffffff?text=Digital+Tools',
-                    content: '<p>Streamline your operations with our bespoke digital tools. We develop solutions like our SEO-friendly Restaurant Menu Software and our efficient Car Listing Generator to solve industry-specific challenges, saving you time and improving customer experience.</p>'
-                }
-            };
-
-            // 3. Functions to open and close the panel
-            function openPanel(serviceKey) {
-                const details = serviceDetails[serviceKey];
-                if (!details) return;
-
-                // Populate the panel
-                slideInTitle.textContent = details.title;
-                slideInImage.src = details.img;
-                slideInImage.alt = details.title + ' detail image';
-                slideInContent.innerHTML = details.content;
-                
-                // Show the panel and overlay
-                document.body.classList.add('no-scroll');
-                overlay.classList.add('is-open');
-                slideInPanel.classList.add('is-open');
-            }
-
-            function closePanel() {
-                document.body.classList.remove('no-scroll');
-                overlay.classList.remove('is-open');
-                slideInPanel.classList.remove('is-open');
-            }
-
-            // 4. Add event listeners
-            learnMoreBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const serviceKey = btn.dataset.service;
-                    openPanel(serviceKey);
-                });
-            });
-
-            closeBtn.addEventListener('click', closePanel);
-            overlay.addEventListener('click', closePanel);
-            
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && slideInPanel.classList.contains('is-open')) {
-                    closePanel();
-                }
-            });
-        });
-    </script>
-
-    <!-- Supabase script can remain as is -->
-    <!-- Paste Your Provided Footer & Floating UI HTML Here -->
-    <footer class="footer">
-        <div class="container">
             <div class="footer-top">
                 <div class="footer-brand">
                     <img src="https://wordsthatsells.website/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg?raw=true" 
@@ -939,68 +827,87 @@
     <div id="quote-modal-overlay" class="modal-overlay">
         <div id="quote-modal-container" class="modal-container">
             <button id="modal-close-btn" class="modal-close" aria-label="Close quote form">×</button>
-            <h2 class="modal-title">Request a Free Quote</h2>
-            <p class="modal-subtitle">Let's discuss how we can help your business grow. Fill out the form below and we'll get back to you shortly.</p>
-            <form id="quote-form" class="modal-form">
-                <div class="form-fields">
-                    <input type="text" name="name" placeholder="Your Name" required>
-                    <input type="email" name="email" placeholder="Your Email" required>
-                    <input type="text" name="company" placeholder="Company Name">
-                    <select name="service" required>
-                        <option value="">Select a Service of Interest</option>
-                        <option value="Digital Marketing Strategy">Digital Marketing Strategy</option>
-                        <option value="SEO Content Creation">SEO Content Creation</option>
-                        <option value="Social Media Management">Social Media Management</option>
-                        <option value="Web Development">Web Development</option>
-                        <option value="Graphic Design">Graphic Design</option>
-                        <option value="App Development">App Development</option>
-                        <option value="AI Marketing Hub">AI Marketing Hub</option>
-                    </select>
-                    <textarea name="message" placeholder="Tell us about your project..." rows="4"></textarea>
-                </div>
-                <button type="submit" class="btn btn-accent"><i class="fas fa-paper-plane"></i> Submit Request</button>
-            </form>
+            <div id="quote-form-content">
+                <h2 class="modal-title">Request a Free Quote</h2>
+                <p class="modal-subtitle">Let's discuss how we can help your business grow. Fill out the form below and we'll get back to you shortly.</p>
+                <form id="quote-form">
+                    <div class="form-fields" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                        <input type="text" name="name" placeholder="Your Name" required>
+                        <input type="email" name="email" placeholder="Your Email" required>
+                        <input type="text" name="company" placeholder="Company Name">
+                        <select name="service" required>
+                            <option value="">Select a Service of Interest</option>
+                            <option value="Digital Marketing Strategy">Digital Marketing Strategy</option>
+                            <option value="SEO Content Creation">SEO Content Creation</option>
+                            <option value="Social Media Management">Social Media Management</option>
+                            <option value="Web Development">Web Development</option>
+                            <option value="Graphic Design">Graphic Design</option>
+                            <option value="App Development">App Development</option>
+                            <option value="AI Marketing Hub">AI Marketing Hub</option>
+                        </select>
+                        <textarea name="message" placeholder="Tell us about your project..." rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-accent" style="margin-top: var(--spacing-lg); width: 100%;"><i class="fas fa-paper-plane" style="margin-right: var(--spacing-sm);"></i> Submit Request</button>
+                </form>
+            </div>
+            <div id="quote-form-success" style="display: none;">
+                <h2 class="modal-title">Thank You!</h2>
+                <p>Your quote request has been sent. We will get back to you within 24 hours.</p>
+            </div>
         </div>
     </div>
     
+    <!-- SLIDE-IN PANEL HTML -->
+    <div id="details-overlay"></div>
+    <aside id="details-slide-in">
+        <header class="slide-in-header">
+            <h2 id="slide-in-title">Service Details</h2>
+            <button id="slide-in-close" aria-label="Close details panel">&times;</button>
+        </header>
+        <div class="slide-in-body">
+            <img id="slide-in-image" src="https://placehold.co/800x400/e2e8f0/64748b?text=Details" alt="Service detail image">
+            <div id="slide-in-content">
+                <p>Detailed content about the service will appear here.</p>
+            </div>
+        </div>
+    </aside>
+
     <!-- Main JavaScript Logic -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Back to Top button logic
+            // --- Back to Top button logic ---
             const backToTopButton = document.querySelector('.back-to-top');
             if (backToTopButton) {
                 window.addEventListener('scroll', () => {
-                    if (window.scrollY > 300) {
-                        backToTopButton.classList.add('show');
-                    } else {
-                        backToTopButton.classList.remove('show');
-                    }
+                    backToTopButton.classList.toggle('show', window.scrollY > 300);
                 });
             }
 
-            // On-scroll reveal animations
+            // --- On-scroll reveal animations ---
             const revealObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
+                    if (entry.isIntersecting) entry.target.classList.add('visible');
                 });
             }, { threshold: 0.1 });
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-            document.querySelectorAll('.reveal').forEach(elem => {
-                revealObserver.observe(elem);
-            });
-
-            // "Get a Quote" Modal Logic
+            // --- "Get a Quote" Modal Logic (FIXED) ---
             const quoteTab = document.getElementById('quote-tab');
             const modalOverlay = document.getElementById('quote-modal-overlay');
-            const modalContainer = document.getElementById('quote-modal-container');
             const closeModalBtn = document.getElementById('modal-close-btn');
             const quoteForm = document.getElementById('quote-form');
+            const quoteFormContent = document.getElementById('quote-form-content');
+            const quoteFormSuccess = document.getElementById('quote-form-success');
 
             const openModal = () => {
-                if (modalOverlay) modalOverlay.style.display = 'flex';
+                if (modalOverlay) {
+                    modalOverlay.style.display = 'flex';
+                    // Ensure form is visible and success message is hidden on open
+                    quoteFormContent.style.display = 'block';
+                    quoteFormSuccess.style.display = 'none';
+                }
             };
+            
             const closeModal = () => {
                 if (modalOverlay) modalOverlay.style.display = 'none';
             };
@@ -1009,36 +916,114 @@
             if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
             if (modalOverlay) {
                 modalOverlay.addEventListener('click', (e) => {
-                    if (e.target === modalOverlay) {
-                        closeModal();
-                    }
+                    if (e.target === modalOverlay) closeModal();
                 });
             }
             
-            // Note: The form submission logic is handled in the Supabase script below.
-            // This listener provides immediate UI feedback.
-            if (quoteForm && modalContainer) {
-                 quoteForm.addEventListener('submit', (e) => {
-                    // This is for UI feedback only. The actual submission is in the module script.
-                    e.preventDefault(); 
-                    const originalContent = modalContainer.innerHTML;
-                    modalContainer.innerHTML = `<h2 class="modal-title">Thank You!</h2><p>Your quote request has been sent. We will get back to you within 24 hours.</p>`;
-                    setTimeout(() => {
-                        closeModal();
-                        // Restore original content after closing
-                        modalContainer.innerHTML = originalContent;
-                    }, 3000);
+            if (quoteForm) {
+                quoteForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    // UI feedback: hide form, show success message
+                    quoteFormContent.style.display = 'none';
+                    quoteFormSuccess.style.display = 'block';
+                    // The actual data submission is handled by the module script
+                    setTimeout(closeModal, 3000);
                 });
             }
 
-            // Footer multi-language link rewriting logic
+            // --- SLIDE-IN PANEL LOGIC ---
+            const slideInPanel = document.getElementById('details-slide-in');
+            const overlay = document.getElementById('details-overlay');
+            const closeBtn = document.getElementById('slide-in-close');
+            const learnMoreBtns = document.querySelectorAll('.btn-learn-more');
+            const slideInTitle = document.getElementById('slide-in-title');
+            const slideInImage = document.getElementById('slide-in-image');
+            const slideInContent = document.getElementById('slide-in-content');
+
+            const serviceDetails = {
+                copywriting: {
+                    title: 'Website Copywriting',
+                    img: 'https://placehold.co/800x400/1f85c9/ffffff?text=Copywriting',
+                    content: `<p>Our website copywriting service is the cornerstone of a successful digital presence. We go beyond just words; we craft compelling narratives that engage visitors from the moment they land on your page.</p><p>Whether you need a punchy headline for your homepage, detailed product descriptions that sell, or an 'About Us' page that builds trust, our team has you covered.</p><ul><li>SEO keyword integration to improve search visibility.</li><li>A/B testing for headlines and calls-to-action.</li><li>Consistent brand voice across all pages.</li><li>Packages scalable from a single landing page to a full enterprise-level website.</li></ul>`
+                },
+                blogging: {
+                    title: 'Blog & Article Writing',
+                    img: 'https://placehold.co/800x400/d62b83/ffffff?text=Blogging',
+                    content: '<p>Content is king, and our blogging and article writing service ensures your reign is long and prosperous. We create high-quality, relevant, and engaging content that establishes your brand as a thought leader in your industry.</p><ul><li>In-depth research on industry trends.</li><li>Long-tail keyword strategies to capture niche audiences.</li><li>Includes royalty-free images with every post.</li></ul>'
+                },
+                rss: {
+                    title: 'RSS Feed Setup',
+                    img: 'https://placehold.co/800x400/64748b/ffffff?text=RSS',
+                    content: '<p>Maximize your content reach with our professional RSS feed setup. We ensure your latest articles and blog posts are automatically syndicated to various platforms, driving traffic back to your site and keeping your audience engaged with minimal effort.</p>'
+                },
+                translation: {
+                    title: 'Translation & Localization',
+                    img: 'https://placehold.co/800x400/154266/ffffff?text=Translation',
+                    content: '<p>Go global with confidence. Our translation and localization services adapt your content not just linguistically, but culturally. We ensure your message resonates with international audiences while maintaining your brand’s core identity and optimizing for multilingual SEO.</p>'
+                },
+                logo: {
+                    title: 'Logo Design Services',
+                    img: 'https://placehold.co/800x400/185a8d/ffffff?text=Logo+Design',
+                    content: '<p>A great logo is the face of your brand. We offer two distinct logo design paths: leverage cutting-edge AI for rapid, innovative concepts, or collaborate with our professional graphic designers for a bespoke, handcrafted identity. Both paths lead to a memorable and impactful brand mark.</p>'
+                },
+                banner: {
+                    title: 'Digital Banner Design',
+                    img: 'https://placehold.co/800x400/4b9edb/ffffff?text=Banners',
+                    content: '<p>Capture attention instantly with our custom digital banner designs. Optimized for web, social media, and advertising platforms, our banners are crafted to be visually striking and on-brand, driving clicks and conversions for your campaigns.</p>'
+                },
+                photo: {
+                    title: 'Photography Services',
+                    img: 'https://placehold.co/800x400/a3cce8/122a3f?text=Photography',
+                    content: '<p>Authentic visuals build trust. Our photography services range from providing curated, SEO-optimized stock photo packs to conducting professional on-site photo shoots that capture the unique essence of your business, products, and team.</p>'
+                },
+                tools: {
+                    title: 'Custom Digital Tools',
+                    img: 'https://placehold.co/800x400/122a3f/ffffff?text=Digital+Tools',
+                    content: '<p>Streamline your operations with our bespoke digital tools. We develop solutions like our SEO-friendly Restaurant Menu Software and our efficient Car Listing Generator to solve industry-specific challenges, saving you time and improving customer experience.</p>'
+                }
+            };
+
+            function openPanel(serviceKey) {
+                const details = serviceDetails[serviceKey];
+                if (!details) return;
+                slideInTitle.textContent = details.title;
+                slideInImage.src = details.img;
+                slideInImage.alt = details.title + ' detail image';
+                slideInContent.innerHTML = details.content;
+                document.body.classList.add('no-scroll');
+                overlay.classList.add('is-open');
+                slideInPanel.classList.add('is-open');
+            }
+
+            function closePanel() {
+                document.body.classList.remove('no-scroll');
+                overlay.classList.remove('is-open');
+                slideInPanel.classList.remove('is-open');
+            }
+
+            learnMoreBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const serviceKey = btn.dataset.service;
+                    openPanel(serviceKey);
+                });
+            });
+
+            closeBtn.addEventListener('click', closePanel);
+            overlay.addEventListener('click', closePanel);
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && slideInPanel.classList.contains('is-open')) {
+                    closePanel();
+                }
+            });
+
+            // --- Footer multi-language link rewriting logic ---
             const pathParts = window.location.pathname.split('/');
             const currentLang = pathParts[1] || 'en';
             const linkContainers = document.querySelectorAll('[data-i18n-links]');
-
             linkContainers.forEach(container => {
-                const links = container.querySelectorAll('a');
-                links.forEach(link => {
+                container.querySelectorAll('a').forEach(link => {
                     const href = link.getAttribute('href');
                     if (href && href.startsWith('/')) {
                         link.setAttribute('href', `/${currentLang}${href}`);
@@ -1058,21 +1043,19 @@
 
         const quoteForm = document.getElementById('quote-form');
         if (quoteForm) {
-            // This listener handles the actual data submission.
             quoteForm.addEventListener('submit', async (e) => {
                 e.preventDefault(); 
                 const formData = new FormData(quoteForm);
                 const submission = Object.fromEntries(formData.entries());
-
                 const { data, error } = await supabase
                     .from('GET A QUOTE WTS')
                     .insert([submission]);
 
                 if (error) {
                     console.error('Supabase submission error:', error.message);
-                    // The UI will still show the "Thank You" message from the other listener for simplicity.
                 } else {
                     console.log('Supabase submission successful:', data);
+                    quoteForm.reset(); // Reset form fields after successful submission
                 }
             });
         }
