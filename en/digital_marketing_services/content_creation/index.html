@@ -944,52 +944,52 @@
                 copywriting: {
                     title: 'Website Copywriting',
                     img: 'https://placehold.co/800x400/1f85c9/ffffff?text=Copywriting',
-                    content: `<section class="copywriting-section">
-  <div class="container">
+                    content: `<section style="font-family: Arial, sans-serif; padding: 50px; background: linear-gradient(to bottom right, #ffffff, #f8f8f8);">
+  <div style="max-width: 1000px; margin: auto; text-align: center;">
 
     <!-- Headline -->
-    <h1 class="headline fade-in-up">
+    <h1 class="fade-in-up" style="font-size: 2.5em; font-weight: bold; color: #222; margin-bottom: 20px;">
       Website Copywriting That Captivates, Converts & Builds Your Brand
     </h1>
 
     <!-- Subheadline -->
-    <p class="subheadline fade-in-up">
+    <p class="fade-in-up" style="font-size: 1.2em; color: #555; margin-bottom: 40px;">
       We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.
     </p>
 
     <!-- Video Introduction -->
-    <div class="video-wrapper fade-in-up">
-      <iframe src="https://www.youtube.com/embed/ysz5S6PUM-U" 
+    <div class="fade-in-up" style="margin-bottom: 40px;">
+      <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" 
               title="Discover Our Website Copywriting Approach" frameborder="0" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
               allowfullscreen></iframe>
     </div>
 
-    <!-- Benefits Grid -->
-    <div class="benefits-grid">
-      <div class="benefit-card fade-in-up">
-        <img src="https://via.placeholder.com/400x250" alt="SEO Optimized Copy">
-        <h3>SEO-Driven Strategy</h3>
-        <p>Every word we write is optimized for search engines without sacrificing readability — ensuring your pages rank and resonate.</p>
+    <!-- Three Column Benefits -->
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+      <div class="fade-in-up" style="flex: 1 1 280px; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <img src="https://via.placeholder.com/400x250" alt="SEO Optimized Copy" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
+        <h3 style="color: #222; margin-bottom: 10px;">SEO-Driven Strategy</h3>
+        <p style="color: #555;">Every word we write is optimized for search engines without sacrificing readability — ensuring your pages rank and resonate.</p>
       </div>
 
-      <div class="benefit-card fade-in-up">
-        <img src="https://via.placeholder.com/400x250" alt="Conversion Optimized Headlines">
-        <h3>Conversion-Optimized Headlines</h3>
-        <p>We use A/B testing to refine your headlines, calls-to-action, and key messaging for maximum engagement and sales.</p>
+      <div class="fade-in-up" style="flex: 1 1 280px; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <img src="https://via.placeholder.com/400x250" alt="Conversion Optimized Headlines" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
+        <h3 style="color: #222; margin-bottom: 10px;">Conversion-Optimized Headlines</h3>
+        <p style="color: #555;">We use A/B testing to refine your headlines, calls-to-action, and key messaging for maximum engagement and sales.</p>
       </div>
 
-      <div class="benefit-card fade-in-up">
-        <img src="https://via.placeholder.com/400x250" alt="Brand Voice">
-        <h3>Consistent Brand Voice</h3>
-        <p>From your homepage to your FAQs, we maintain a seamless, recognizable tone that reinforces your brand identity.</p>
+      <div class="fade-in-up" style="flex: 1 1 280px; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <img src="https://via.placeholder.com/400x250" alt="Brand Voice" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
+        <h3 style="color: #222; margin-bottom: 10px;">Consistent Brand Voice</h3>
+        <p style="color: #555;">From your homepage to your FAQs, we maintain a seamless, recognizable tone that reinforces your brand identity.</p>
       </div>
     </div>
 
     <!-- Expanded Service List -->
-    <div class="service-list fade-in-up">
-      <h2>What’s Included in Our Copywriting Service</h2>
-      <ul>
+    <div class="fade-in-up" style="margin-top: 50px; text-align: left;">
+      <h2 style="font-size: 1.8em; color: #222; margin-bottom: 20px;">What’s Included in Our Copywriting Service</h2>
+      <ul style="color: #555; line-height: 1.8;">
         <li>SEO keyword integration to boost visibility on Google & Bing.</li>
         <li>A/B testing for headlines, calls-to-action, and value propositions.</li>
         <li>Story-driven copy to emotionally connect with your audience.</li>
@@ -999,12 +999,44 @@
     </div>
 
     <!-- Call to Action -->
-    <div class="cta-wrapper fade-in-up">
-      <a href="#contact" class="cta-button">Request Your Free Copywriting Audit</a>
+    <div class="fade-in-up" style="margin-top: 50px;">
+      <a href="#contact" style="display: inline-block; background: #0073e6; color: #fff; padding: 15px 30px; font-size: 1.1em; border-radius: 50px; text-decoration: none; transition: background 0.3s;">
+        Request Your Free Copywriting Audit
+      </a>
     </div>
 
   </div>
 </section>
+
+<!-- Scroll Animation Styles -->
+<style>
+  .fade-in-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-out;
+  }
+  .fade-in-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+
+<!-- Scroll Animation Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const elements = document.querySelectorAll(".fade-in-up");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        }
+      });
+    }, { threshold: 0.1 });
+
+    elements.forEach(el => observer.observe(el));
+  });
+</script>
+
 `
                 },
                 blogging: {
