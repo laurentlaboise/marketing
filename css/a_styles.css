@@ -624,7 +624,7 @@ input:focus, textarea:focus, select:focus {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-    max-width: 800px;
+    max-width: 400px;
     margin: 0 auto var(--spacing-xl);
 }
 
@@ -637,7 +637,7 @@ input:focus, textarea:focus, select:focus {
     list-style: none;
     cursor: pointer;
     padding: var(--spacing-sm) 0;
-    font-weight: 600;
+    font-weight: 300;
     font-size: var(--font-size-lg);
     color: var(--color-primary-base);
     display: flex;
