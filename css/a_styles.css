@@ -960,6 +960,7 @@ input:focus, textarea:focus, select:focus {
 .reveal-delay-2 { transition-delay: 300ms; }
 
 .text-accent { color: var(--color-accent-magenta); }
+.text-accent2 { color: var(--color-white); }
 .text-primary { color: var(--color-primary-base); }
 .text-dark { color: var(--color-dark); }
 .font-bold { font-weight: 700; }
