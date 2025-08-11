@@ -835,7 +835,7 @@ input:focus, textarea:focus, select:focus {
 /* --- 5. Floating UI & Modals --- */
 .back-to-top {
     position: fixed;
-    buttom: 20px;
+    bottom: 20px;
     right: 20px;
     background-color: var(--color-accent-magenta);
     color: white;
