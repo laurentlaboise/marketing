@@ -849,7 +849,7 @@ input:focus, textarea:focus, select:focus {
     justify-content: center;
     box-shadow: var(--shadow-lg);
     z-index: 1000;
-    transition: opacity 0.3s, visibility 0.3s;
+    transition: background-color 0.3s;
 }
 
 .back-to-top.show {
