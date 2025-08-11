@@ -856,6 +856,9 @@ input:focus, textarea:focus, select:focus {
     display: flex;
 }
 
+.back-to-top:hover {
+    background-color: #f90784;
+}
 .quote-tab {
     position: fixed;
     top: 50%;
