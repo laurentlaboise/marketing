@@ -835,10 +835,12 @@ input:focus, textarea:focus, select:focus {
 /* --- 5. Floating UI & Modals --- */
 .back-to-top {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 30px;
+    right: 10px;
+    transform: translateY(-50%) rotate(270deg);
+    transform-origin: bottom right;
     background-color: var(--color-accent-magenta);
-    color: var(--color-white);
+    color: white;
     width: 50px;
     height: 50px;
     border-radius: 50%;
