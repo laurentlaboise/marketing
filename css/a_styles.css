@@ -704,7 +704,7 @@ input:focus, textarea:focus, select:focus {
 
 .footer-brand-text {
     font-size: var(--font-size-sm);
-    color: var(--color-slate-300);
+    color: var(--color-white);
     line-height: 1.4;
     max-width: 300px;
     margin: 0 auto;
