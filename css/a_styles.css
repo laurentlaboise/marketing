@@ -753,7 +753,7 @@ input:focus, textarea:focus, select:focus {
     align-items: center;
     gap: var(--spacing-sm);
     font-size: var(--font-size-sm);
-    color: var(--color-slate-300);
+    color: var(--color-accent-magenta);
     margin-bottom: var(--spacing-sm);
     justify-content: center;
 }
