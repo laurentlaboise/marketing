@@ -258,3 +258,28 @@ if (quoteForm) {
             });
         });
     });
+
+ <!-- Add your existing JavaScript for animations if needed -->
+        // Basic scroll reveal animation
+        const revealElements = document.querySelectorAll(".reveal");
+
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = "1";
+                    entry.target.style.transform = "translateY(0)";
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        revealElements.forEach(el => {
+            el.style.opacity = "0";
+            el.style.transform = "translateY(30px)";
+            el.style.transition = "opacity 0.8s ease-out, transform 0.8s ease-out";
+            const delay = el.className.match(/reveal-delay-(\d+)/);
+            if (delay) {
+                el.style.transitionDelay = `${parseInt(delay[1], 10) * 150}ms`;
+            }
+            revealObserver.observe(el);
+        });
