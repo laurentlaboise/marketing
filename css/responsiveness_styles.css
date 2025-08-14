@@ -1,0 +1,100 @@
+  /* --- Responsive Layouts --- */
+@media (min-width: 576px) { 
+    .newsletter-form { 
+        flex-direction: row; 
+    } 
+    .hero-buttons {
+        flex-direction: row; 
+    }
+}
+
+@media (min-width: 768px) {
+    /* Font sizes */
+    h1 { font-size: var(--font-size-6xl); }
+    h2 { font-size: var(--font-size-5xl); }
+
+    /* Utility classes */
+    .desktop-only { display: inline; }
+    .mobile-only { display: none; }
+    .scroll-card { flex: 0 0 400px; }
+
+    /* Footer Layout */
+    .footer-brand {
+        flex: 1 1 30%;
+        text-align: left;
+        margin-bottom: 0;
+    }
+    .footer-grid {
+        flex: 1 1 70%;
+        display: flex; /* Use Flexbox for predictable spacing on desktop */
+        gap: var(--spacing-xl);
+    }
+    .footer-column {
+        flex: 1; /* Allow columns to grow/shrink within the flex container */
+        text-align: left;
+    }
+    /* This rule now works correctly to add space after the first column */
+    .footer-grid > .footer-column:first-child {
+        margin-right: var(--spacing-xl); /* Adjust this value for more/less space */
+    }
+    .footer-logo, .footer-brand-divider, .footer-brand-text {
+        margin-left: 0;
+        text-align: left;
+    }
+    .footer-heading::after {
+        margin-left: 0;
+    }
+    .footer-contact-item, .social-links {
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+}
+
+@media (min-width: 1024px) { 
+    body { font-size: var(--font-size-lg); } 
+}
+
+@media (max-width: 576px) {
+    .hero-buttons {
+        flex-direction: column; 
+        align-items: stretch;
+    }
+}
+
+/* --- Accessibility --- */
+:focus-visible { 
+    outline: 2px solid var(--color-accent-magenta); 
+    outline-offset: 2px; 
+}
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { 
+        animation-duration: 0.01ms !important; 
+        animation-iteration-count: 1 !important; 
+        transition-duration: 0.01ms !important; 
+        scroll-behavior: auto !important; 
+    }
+}
+
+@media (min-width: 768px) {
+    .footer-brand {
+        flex: 1 1 30%; /* On desktop, brand takes ~30% width */
+        text-align: left;
+        margin-bottom: 0;
+    }
+    .footer-grid {
+        flex: 1 1 65%; /* Grid takes the remaining space */
+    }
+    .footer-logo, .footer-brand-divider, .footer-brand-text {
+        margin-left: 0; /* Align brand content left */
+    }
+    .footer-column {
+        text-align: left; /* Align column content left */
+    }
+    .footer-heading::after {
+        margin-left: 0; /* Align heading underline left */
+    }
+    .footer-contact-item, .social-links {
+        justify-content: flex-start; /* Align contact/social items left */
+    }
+}
