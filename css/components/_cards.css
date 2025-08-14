@@ -1,9 +1,8 @@
-/* --- Unified Card Base Styles --- */
 .card-base {
     background-color: var(--color-white);
     border-radius: var(--border-radius-xl);
     border: 1px solid var(--color-border);
-    overflow: hidden;
+    overflow: hidden; 
 }
 
 .card {
@@ -16,7 +15,6 @@
     box-shadow: var(--shadow-lg);
 }
 
-/* --- Horizontal Scroll Cards (Case Studies) --- */
 .scroll-card {
     flex: 0 0 90%; 
     scroll-snap-align: center; 
@@ -55,13 +53,6 @@
     list-style-type: disc; 
 }
 
-@media (min-width: 768px) {
-    .scroll-card { 
-        flex: 0 0 400px; 
-    }
-}
-
-/* --- Service Cards --- */
 .services-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
@@ -91,7 +82,6 @@
     margin-bottom: var(--spacing-md); 
 }
 
-/* --- Process Step "Cards" --- */
 .process-card-title { 
     text-align: center; 
     font-size: var(--font-size-2xl); 
@@ -135,13 +125,19 @@
     margin-top: 4px; 
 }
 
-/* --- Circle Icon "Cards" --- */
 .services-section-header h1 { 
     font-size: var(--font-size-3xl); 
     font-weight: 600; 
     text-transform: uppercase; 
     letter-spacing: 1.5px; 
     color: var(--color-slate-900); 
+}
+
+.services-grid-four-column { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: var(--spacing-xl); 
+    text-align: center; 
 }
 
 .service-item-circle .service-icon-circle { 
@@ -180,4 +176,10 @@
     margin-left: auto; 
     margin-right: auto; 
     color: var(--color-slate-500); 
+}
+
+@media (min-width: 768px) {
+    .scroll-card { 
+        flex: 0 0 400px; 
+    }
 }
