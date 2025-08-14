@@ -1,0 +1,8 @@
+  /* --- Service Cards Specifics --- */
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--spacing-xl); }
+        .service-card-header { display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-md); }
+        .service-card-header i { font-size: var(--font-size-2xl); color: var(--color-primary-base); }
+        .service-card-header h3 { font-size: var(--font-size-xl); margin-bottom: 0; }
+        .service-card-summary { font-size: var(--font-size-sm); color: #6b7280; margin-bottom: var(--spacing-md); }
+        .service-card-details { font-size: var(--font-size-sm); margin-top: var(--spacing-sm); }
+        .service-card-details ul { margin-top: var(--spacing-sm); padding-left: var(--spacing-md); }
