@@ -1,8 +1,9 @@
- /* --- Floating UI & Modals --- */
+/* --- Floating UI & Modals --- */
+
 .back-to-top { 
     position: fixed; 
     bottom: 20px; 
-    right: 20px; 
+    right: 0px; 
     background-color: var(--color-accent-magenta); 
     color: white; 
     width: 50px; 
@@ -11,23 +12,23 @@
     cursor: pointer; 
     z-index: 1000; 
     transition: background-color 0.3s, transform 0.3s; 
-    display: none; 
+    display: none; /* Hidden by default */
     justify-content: center; 
     align-items: center; 
     font-size: 24px; 
 }
 .back-to-top.show { 
-    display: flex; 
+    display: flex; /* Appears when .show class is added */
     transform: translateY(-5px); 
 }
 .back-to-top:hover { 
     background-color: #f90784;
-    color: white; /* <-- THE FIX IS HERE */
+    color: white; 
 }
 
 .quote-tab { 
     position: fixed; 
-    top: 50%; 
+    top: 40%; 
     right: 0; 
     transform: translateY(-50%) rotate(270deg); 
     transform-origin: bottom right; 
@@ -39,11 +40,16 @@
     cursor: pointer; 
     z-index: 999; 
     font-weight: bold; 
-    transition: background-color 0.3s; 
+    transition: background-color 0.3s;
+    display: none; /* ADD THIS: Hidden by default */
+}
+.quote-tab.show {
+    display: block; /* ADD THIS: Appears when .show class is added */
 }
 .quote-tab:hover { 
     background-color: #f90784; 
 }
+
 .modal-overlay { 
     position: fixed; 
     top: 0; 
@@ -94,5 +100,3 @@
     margin-top: var(--spacing-lg); 
     width: 100%; 
 }
-
-       
