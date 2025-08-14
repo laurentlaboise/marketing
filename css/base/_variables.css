@@ -1,1 +1,53 @@
+:root {
+    /* Colors */
+    --color-primary-base: #1f85c9;
+    --color-accent-magenta: #d62b83;
+    --color-slate-900: #122a3f;
+    --color-slate-800: #154266;
+    --color-slate-700: #185a8d;
+    --color-slate-500: #64748b;
+    --color-slate-300: #a3cce8;
+    --color-slate-200: #cce2f1;
+    --color-slate-100: #e6f1f8;
+    --color-white: #ffffff;
+    --color-light-gray: #e5e7eb;
+    --color-dark-gray: #a0aec0;
+    --color-dark: #4e555b;
+    --color-light: #f9f9f9;
+    --color-border: #e5e7eb;
 
+    /* Typography */
+    --font-family-heading: 'Poppins', sans-serif;
+    --font-family-body: 'Inter', sans-serif;
+    --font-size-base: 1rem;
+    --font-size-sm: 0.875rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --font-size-5xl: 3rem;
+    --font-size-6xl: 3.75rem;
+
+    /* Spacing */
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
+    --spacing-4xl: 5rem;
+    
+    /* Border Radius */
+    --border-radius-md: 0.5rem;
+    --border-radius-xl: 1rem;
+    --border-radius-full: 50%;
+
+    /* Box Shadows */
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+    /* Transitions */
+    --transition-medium: all 0.3s ease-in-out;
+}
