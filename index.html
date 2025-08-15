@@ -1,34 +1,13 @@
-<script>
-  (function() {
-    // --- Configuration ---
-    // 1. Add all the language folders you support.
-    const supportedLanguages = ['en', 'lo', 'th', 'fr', 'zh'];
-    // 2. Set the default language for visitors whose language we don't support.
-    const defaultLanguage = 'en';
-    // --- End of Configuration ---
-
-    const currentPath = window.location.pathname;
-
-    // Check if the user is already on a language-specific page.
-    // This prevents an infinite redirect loop.
-    const onLanguagePage = supportedLanguages.some(lang => currentPath.startsWith('/' + lang));
-
-    if (onLanguagePage) {
-      // Do nothing if we are already on a language page.
-      return;
-    }
-
-    // Get the user's browser language (e.g., "en-US", "lo-LA", "th-TH").
-    const userLanguage = navigator.language || navigator.userLanguage;
-    const primaryLanguage = userLanguage.split('-')[0]; // Get the main part (e.g., "en", "lo", "th").
-
-    // Decide where to send the user.
-    let redirectTo = '/' + defaultLanguage;
-    if (supportedLanguages.includes(primaryLanguage)) {
-      redirectTo = '/' + primaryLanguage;
-    }
-
-    // Redirect the user to the correct language folder.
-    window.location.replace(redirectTo + currentPath);
-  })();
-</script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
