@@ -12,19 +12,6 @@ module.exports = {
     filename: 'js/[name].[contenthash].js',
     clean: true,
   },
-  // =================================================================
-  // START OF THE FIX
-  // This new section tells Webpack how to handle modern JavaScript
-  target: 'web',
-  experiments: {
-    outputModule: true,
-  },
-  externalsType: 'module',
-  externals: {
-    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm': 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-  },
-  // END OF THE FIX
-  // =================================================================
   module: {
     rules: [
       {
