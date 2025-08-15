@@ -1,14 +1,17 @@
 {
-  "name": "marketing",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "marketing-website",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode=production"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "vite": "^7.1.2"
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
   }
 }
