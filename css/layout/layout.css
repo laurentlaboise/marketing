@@ -124,3 +124,13 @@
     .desktop-only { display: inline; }
     .mobile-only { display: none; }
 }
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex-grow: 1;
+}
