@@ -6,13 +6,25 @@ const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'production',
-  // Your main JS file is in the 'js' folder, not 'src'.
-  entry: './js/main.js', 
+  entry: './js/main.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'js/[name].[contenthash].js',
     clean: true,
   },
+  // =================================================================
+  // START OF THE FIX
+  // This new section tells Webpack how to handle modern JavaScript
+  target: 'web',
+  experiments: {
+    outputModule: true,
+  },
+  externalsType: 'module',
+  externals: {
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm': 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+  },
+  // END OF THE FIX
+  // =================================================================
   module: {
     rules: [
       {
@@ -23,13 +35,11 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      // Your main HTML file is in the root folder.
-      template: './index.html', 
+      template: './index.html',
     }),
     new MiniCssExtractPlugin({
       filename: 'css/[name].[contenthash].css',
     }),
-    // This will correctly copy your images and other assets.
     new CopyPlugin({
         patterns: [
             { from: 'public', to: 'public' },
