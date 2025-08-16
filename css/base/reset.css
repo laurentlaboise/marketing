@@ -1,38 +1,108 @@
-/* A modern, comprehensive CSS reset */
-
-/* 1. Use a more intuitive box-sizing model. */
-*, *::before, *::after {
+/* --- 2. Reset and Base Styles --- */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-}
-
-/* 2. Remove default margin on all elements for a clean slate. */
-* {
   margin: 0;
+  padding: 0;
 }
 
-/* 3. Allow percentage-based heights. */
-html, body {
-  height: 100%;
+html {
+  scroll-behavior: smooth;
 }
 
-/* 4. Set core body defaults for typography and line height. */
 body {
-  line-height: 1.5;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  background-color: var(--color-white);
+  color: var(--color-slate-800);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-/* 5. Improve media defaults to make images responsive by default. */
-img, picture, video, canvas, svg {
-  display: block;
-  max-width: 100%;
+body.no-scroll {
+  overflow: hidden;
 }
 
-/* 6. Remove built-in form typography styles. */
-input, button, textarea, select {
-  font: inherit;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-slate-900);
 }
 
-/* 7. Avoid text overflows for better readability. */
-p, h1, h2, h3, h4, h5, h6 {
-  overflow-wrap: break-word;
+h1 {
+  font-size: var(--font-size-5xl);
+}
+
+h2 {
+  font-size: var(--font-size-4xl);
+}
+
+h3 {
+  font-size: var(--font-size-3xl);
+}
+
+h4 {
+  font-size: var(--font-size-2xl);
+}
+
+h5 {
+  font-size: var(--font-size-xl);
+}
+
+h6 {
+  font-size: var(--font-size-lg);
+}
+
+p {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-slate-800);
+}
+
+a {
+  color: var(--color-primary-base);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-accent-magenta);
+}
+
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.feature-content ul,
+#slide-in-content ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.feature-content ul li,
+#slide-in-content ul li {
+  position: relative;
+  padding-left: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+.feature-content ul li::before,
+#slide-in-content ul li::before {
+  content: '\f058'; /* Font Awesome check-circle */
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  left: 0;
+  top: 2px;
+  color: var(--color-accent-magenta);
 }
