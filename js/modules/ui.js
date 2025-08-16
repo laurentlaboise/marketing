@@ -47,3 +47,14 @@ export function initModalsAndButtons() {
         });
     }
 }
+
+ // --- Footer multi-language link rewriting logic ---
+            const pathParts = window.location.pathname.split('/');
+            const currentLang = pathParts[1] || 'en';
+            const linkContainers = document.querySelectorAll('[data-i18n-links]');
+            linkContainers.forEach(container => {
+                container.querySelectorAll('a').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && href.startsWith('/')) {
+                        link.setAttribute('href', `/${currentLang}${href}`);
+                    }
