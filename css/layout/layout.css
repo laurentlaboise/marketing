@@ -134,3 +134,43 @@ body {
 main {
   flex-grow: 1;
 }
+
+/* ============================================= */
+/* Mobile Phone Layout Overrides                 */
+/* ============================================= */
+
+/* This targets screens 480px wide or smaller */
+@media (max-width: 480px) {
+
+  /* Force two-column layouts to stack vertically */
+  .two-column-layout {
+    flex-direction: column;
+    gap: var(--spacing-lg); 
+  }
+
+  /* Adjust padding on all sections for small screens */
+  .section {
+    padding-top: var(--spacing-xl);
+    padding-bottom: var(--spacing-xl);
+  }
+
+  /* Make the horizontal scrolling section stack vertically */
+  .horizontal-scroll-container {
+    display: grid;
+    grid-template-columns: 1fr; /* Each card is one full-width column */
+    gap: var(--spacing-md);
+    overflow-x: hidden; /* Disable horizontal scrolling */
+    padding-bottom: 0;
+  }
+  
+  /* Make the hero title smaller to prevent awkward wrapping */
+  .hero-title {
+      font-size: 2.25rem; /* Uses --font-size-4xl from your variables */
+  }
+
+  /* Ensure service grid columns are never too squished */
+  .services-grid-four-column {
+    grid-template-columns: 1fr; /* Force a single column layout */
+  }
+
+}
