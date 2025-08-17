@@ -47,7 +47,7 @@
     --border-radius-lg: 0.75rem; /* New */
     --border-radius-xl: 1rem;
     --border-radius-2xl: 1.5rem; /* New */
-    --border-radius-full: 9999px; /* Updated */
+    --border-radius-full: 9999px; /* Updated 50%*/
 
     /* Box Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* New */
@@ -58,8 +58,4 @@
     /* Transitions */
     --transition-fast: all 0.2s ease-in-out; /* New */
     --transition-medium: all 0.3s ease-in-out;
-}
-
-.services-section-header h1 {
-  font-size: var(--font-size-4xl); /* This uses the 2.25rem size from your variables file */
 }
