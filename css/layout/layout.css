@@ -164,13 +164,17 @@ main {
     padding-bottom: 20px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    flex: 0 0 85%;   
-    scroll-snap-align: start;
+  
 }
 
 .horizontal-scroll-container::-webkit-scrollbar {
     display: none;
   
+}
+  
+.horizontal-scroll-container * {
+    flex: 0 0 85%;   
+    scroll-snap-align: start;
 }
   
   /* Make the hero title smaller to prevent awkward wrapping */
