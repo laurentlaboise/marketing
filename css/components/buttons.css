@@ -14,6 +14,31 @@
     border: 2px solid transparent; 
 }
 
+.btn-accent {
+    background: radial-gradient(circle at center, rgba(249, 7, 132, 0.82) 37%, var(--color-accent-magenta) 100%);
+    color: var(--color-white);
+    border-color: var(--color-accent-magenta);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-accent:hover {
+    transform: translateY(-2px);
+}
+
+.btn-premium {
+    background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300));
+    color: var(--color-white);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px);
+}
+
+.btn-learn-more {
+    margin-top: var(--spacing-md);
+}
+
 /* --- MAGENTA BUTTONS --- */
 .btn-accent-magenta { 
     background-color: var(--color-accent-magenta); 
