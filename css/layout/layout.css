@@ -158,7 +158,6 @@ main {
 .horizontal-scroll-container {
     display: flex;
     overflow-x: auto;
-    padding-bottom: 20px;
     scroll-snap-type: x mandatory;
     scroll-padding-left: var(--spacing-lg);
     -webkit-overflow-scrolling: touch;
