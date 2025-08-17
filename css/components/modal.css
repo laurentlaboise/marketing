@@ -54,3 +54,7 @@
     margin-top: var(--spacing-lg); 
     width: 100%; 
 }
+
+#quote-form-success {
+    text-align: center;
+}
