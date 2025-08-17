@@ -163,6 +163,8 @@ main {
     scroll-padding-left: var(--spacing-lg);
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    flex: 0 0 85%;
+
 }
 
 .horizontal-scroll-container::-webkit-scrollbar {
