@@ -9,8 +9,10 @@
     --color-slate-300: #a3cce8;
     --color-slate-200: #cce2f1;
     --color-slate-100: #e6f1f8;
+    --color-indigo-300: #4b9edb; /* New */
     --color-white: #ffffff;
     --color-light-gray: #e5e7eb;
+    --color-mid-gray: #e2e8f0; /* New */
     --color-dark-gray: #a0aec0;
     --color-dark: #4e555b;
     --color-light: #f9f9f9;
@@ -18,7 +20,7 @@
 
     /* Typography */
     --font-family-heading: 'Poppins', sans-serif;
---font-family-body: 'Inter', sans-serif; 
+    --font-family-body: 'Inter', sans-serif;
     --font-size-base: 1rem;
     --font-size-sm: 0.875rem;
     --font-size-lg: 1.125rem;
@@ -30,6 +32,7 @@
     --font-size-6xl: 3.75rem;
 
     /* Spacing */
+    --spacing-xs: 0.25rem; /* New */
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
@@ -37,18 +40,23 @@
     --spacing-2xl: 3rem;
     --spacing-3xl: 4rem;
     --spacing-4xl: 5rem;
-    
+
     /* Border Radius */
+    --border-radius-sm: 0.25rem; /* New */
     --border-radius-md: 0.5rem;
+    --border-radius-lg: 0.75rem; /* New */
     --border-radius-xl: 1rem;
-    --border-radius-full: 50%;
+    --border-radius-2xl: 1.5rem; /* New */
+    --border-radius-full: 9999px; /* Updated */
 
     /* Box Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* New */
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 
     /* Transitions */
+    --transition-fast: all 0.2s ease-in-out; /* New */
     --transition-medium: all 0.3s ease-in-out;
 }
 
