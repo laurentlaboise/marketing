@@ -154,14 +154,19 @@ main {
     padding-bottom: var(--spacing-xl);
   }
 
-  /* Make the horizontal scrolling section stack vertically */
-  .horizontal-scroll-container {
-    display: grid;
-    grid-template-columns: 1fr; /* Each card is one full-width column */
-    gap: var(--spacing-md);
-    overflow-x: hidden; /* Disable horizontal scrolling */
-    padding-bottom: 0;
-  }
+  /* horizontal scrolling section */
+.horizontal-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 20px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar {
+    display: none;
+}
   
   /* Make the hero title smaller to prevent awkward wrapping */
   .hero-title {
