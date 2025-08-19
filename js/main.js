@@ -3,7 +3,6 @@
 import { supabase } from './modules/supabase.js';
 import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
-import { initFaqSection } from '.services/content-creation.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
