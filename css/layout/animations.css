@@ -27,45 +27,194 @@
     }
 }
 
-
-
-@keyframes slowRotate {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+LAYOUT
+.container { 
+    width: 90%; 
+    max-width: 1280px; 
+    margin: 0 auto; 
 }
 
-@keyframes oscillate {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-8px);
-    }
+.section { 
+    padding: var(--spacing-4xl) 0; 
 }
 
-@keyframes pulseFloat {
-    0%,
-    100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.03);
-    }
+.section-alt { 
+    background-color: var(--color-light); 
 }
 
-.kinetic-rotate {
-    animation: slowRotate 25s linear infinite;
+.section-header { 
+    text-align: center; 
+    margin-bottom: var(--spacing-2xl); 
+    max-width: 650px; 
+    margin-left: auto; 
+    margin-right: auto; 
 }
 
-.kinetic-oscillate {
-    animation: oscillate 5s ease-in-out infinite;
+.text-center { 
+    text-align: center; 
 }
 
-.kinetic-pulse-float {
-    animation: pulseFloat 6s ease-in-out infinite alternate;
+.two-column-layout { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: var(--spacing-xl); 
+    align-items: center; 
+}
+
+.column-left, .column-right { 
+    flex: 1; 
+    min-width: 300px; 
+}
+
+.desktop-only { 
+    display: none; 
+}
+
+.mobile-only { 
+    display: inline; 
+}
+
+.heading-accent-line { 
+    width: 40px; 
+    height: 4px; 
+    background-color: var(--color-accent-magenta); 
+    margin-bottom: var(--spacing-md); 
+}
+
+.section-heading-large { 
+    font-size: clamp(2.5rem, 7vw, 4.5rem); 
+    line-height: 1.1; 
+    font-weight: 400; 
+}
+
+.text-accent { 
+    color: var(--color-accent-magenta); 
+}
+
+.text-accent2 { 
+    color: var(--color-light-gray); 
+}
+
+.text-dark { 
+    color: var(--color-dark); 
+}
+
+.font-bold { 
+    font-weight: 700; 
+}
+
+.horizontal-scroll-container { 
+    display: flex; 
+    overflow-x: auto; 
+    padding-bottom: 20px; 
+    scroll-snap-type: x mandatory; 
+    -webkit-overflow-scrolling: touch; 
+    scrollbar-width: none; 
+}
+
+.horizontal-scroll-container::-webkit-scrollbar { 
+    display: none; 
+}
+
+.map-container { 
+    max-width: 900px; 
+    margin: var(--spacing-xl) auto 0; 
+    border-radius: var(--border-radius-xl); 
+    overflow: hidden; 
+    box-shadow: var(--shadow-lg); 
+    border: 1px solid var(--color-border); 
+}
+
+.map-container iframe { 
+    border: 0; 
+    display: block; 
+}
+
+.cta-banner { 
+    background-color: var(--color-primary-base); 
+    color: var(--color-white); 
+    text-align: center; 
+    padding: var(--spacing-2xl); 
+    border-radius: var(--border-radius-xl); 
+    box-shadow: var(--shadow-lg); 
+}
+
+.cta-banner h2 { 
+    color: var(--color-white); 
+}
+
+.cta-banner p { 
+    color: var(--color-light-gray); 
+    max-width: 600px; 
+    margin-left: auto; 
+    margin-right: auto; 
+}
+
+@media (min-width: 768px) {
+    .desktop-only { display: inline; }
+    .mobile-only { display: none; }
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex-grow: 1;
+}
+
+/* ============================================= */
+/* Mobile Phone Layout Overrides                 */
+/* ============================================= */
+
+/* This targets screens 480px wide or smaller */
+@media (max-width: 480px) {
+
+  /* Force two-column layouts to stack vertically */
+  .two-column-layout {
+    flex-direction: column;
+    gap: var(--spacing-lg); 
+  }
+
+  /* Adjust padding on all sections for small screens */
+  .section {
+    padding-top: var(--spacing-xl);
+    padding-bottom: var(--spacing-xl);
+  }
+
+  /* horizontal scrolling section */
+.horizontal-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: var(--spacing-lg);
+    padding-left: var(--spacing-lg);
+    padding-bottom: 20px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  
+}
+
+.horizontal-scroll-container::-webkit-scrollbar {
+    display: none;
+  
+}
+  
+.horizontal-scroll-container * {
+    flex: 0 0 85%;   
+    scroll-snap-align: start;
+}
+  
+  /* Make the hero title smaller to prevent awkward wrapping */
+  .hero-title {
+      font-size: 2.25rem; /* Uses --font-size-4xl from your variables */
+  }
+
+  /* Ensure service grid columns are never too squished */
+  .services-grid-four-column {
+    grid-template-columns: 1fr; /* Force a single column layout */
+  }
+
 }
