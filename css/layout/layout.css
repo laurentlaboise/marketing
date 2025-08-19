@@ -188,3 +188,79 @@ main {
   }
 
 }
+
+
+/* Add these new layout rules to layout.css */
+
+.service-section {
+    padding: var(--spacing-3xl) 0;
+}
+
+.feature-layout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-2xl);
+}
+
+.feature-content {
+    flex: 1 1 50%;
+    min-width: 300px;
+}
+
+.feature-visual {
+    flex: 1 1 40%;
+    min-width: 300px;
+    text-align: center;
+}
+
+
+/* Add these responsive overrides to the bottom of layout.css */
+
+@media (max-width: 767px) {
+    :root {
+        --font-size-base: 0.9375rem; /* Slightly smaller base for mobile */
+        --font-size-sm: 0.8125rem;
+        --spacing-lg: 1.25rem;
+        --spacing-xl: 1.75rem;
+        --spacing-2xl: 2.5rem;
+        --spacing-3xl: 3rem;
+    }
+
+    h1 {
+        font-size: var(--font-size-4xl);
+    }
+
+    h2 {
+        font-size: var(--font-size-3xl);
+    }
+
+    h3 {
+        font-size: var(--font-size-2xl);
+    }
+
+    .container {
+        width: 95%;
+    }
+    
+    .feature-layout {
+        gap: var(--spacing-xl);
+    }
+
+    .feature-content,
+    .feature-visual {
+        min-width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .section-header {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-lg);
+    }
+}
