@@ -1,42 +1,61 @@
-/* --- Base Form Element Styles --- */
-input[type="text"], 
-input[type="email"], 
-textarea, 
-select { 
-    width: 100%; 
-    padding: var(--spacing-sm) var(--spacing-md); 
-    border: 1px solid var(--color-border); 
-    border-radius: var(--border-radius-md); 
-    font-family: var(--font-family-body); 
-    font-size: var(--font-size-base); 
-    color: var(--color-slate-800); 
-    background-color: var(--color-white); 
-    transition: var(--transition-medium); 
+.back-to-top { 
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px;
+    background-color: var(--color-accent-magenta); 
+    color: white; 
+    width: 50px; 
+    height: 50px; 
+    border-radius: 50%; 
+    cursor: pointer; 
+    z-index: 1000; 
+    transition: background-color 0.3s, transform 0.3s, opacity 0.3s; 
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    font-size: 24px; 
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
 }
 
-input:focus, 
-textarea:focus, 
-select:focus { 
-    outline: none; 
-    border-color: var(--color-primary-base); 
-    box-shadow: 0 0 0 3px rgba(31, 133, 201, 0.2); 
+.back-to-top.show { 
+    opacity: 1;
+    transform: translateY(0); 
+    pointer-events: auto;
 }
 
-/* --- Newsletter Form Layout --- */
-.newsletter-form { 
-    display: flex; 
-    flex-direction: column; 
-    gap: var(--spacing-md); 
-    max-width: 500px; 
-    margin: var(--spacing-lg) auto 0; 
+.back-to-top:hover { 
+    background-color: #f90784;
+    color: white; 
 }
 
-.newsletter-form input { 
-    flex-grow: 1; 
+.quote-tab { 
+    position: fixed; 
+    top: 40%; 
+    right: 0; 
+    transform: translateY(-50%) rotate(270deg); 
+    transform-origin: bottom right; 
+    background-color: var(--color-accent-magenta); 
+    color: white; 
+    padding: 10px 20px; 
+    border-top-left-radius: 8px; 
+    border-top-right-radius: 8px; 
+    cursor: pointer; 
+    z-index: 999; 
+    font-weight: bold; 
+    transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
+    opacity: 0;
+    transform: translateY(-50%) rotate(270deg) translateX(20px);
+    pointer-events: none;
 }
 
-@media (min-width: 576px) { 
-    .newsletter-form { 
-        flex-direction: row; 
-    } 
+.quote-tab.show {
+    opacity: 1;
+    transform: translateY(-50%) rotate(270deg) translateX(0);
+    pointer-events: auto;
+}
+
+.quote-tab:hover { 
+    background-color: #f90784; 
 }
