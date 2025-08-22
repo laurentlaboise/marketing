@@ -1,61 +1,32 @@
-.back-to-top { 
-    position: fixed; 
-    bottom: 20px; 
-    right: 20px;
-    background-color: var(--color-accent-magenta); 
-    color: white; 
-    width: 50px; 
-    height: 50px; 
-    border-radius: 50%; 
-    cursor: pointer; 
-    z-index: 1000; 
-    transition: background-color 0.3s, transform 0.3s, opacity 0.3s; 
-    display: flex;
-    justify-content: center; 
-    align-items: center; 
-    font-size: 24px; 
-    opacity: 0;
-    transform: translateY(20px);
-    pointer-events: none;
+/* --- Form Styling --- */
+.form-group {
+  margin-bottom: var(--spacing-md);
 }
 
-.back-to-top.show { 
-    opacity: 1;
-    transform: translateY(0); 
-    pointer-events: auto;
+.form-label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
+  color: var(--color-slate-800);
 }
 
-.back-to-top:hover { 
-    background-color: #f90784;
-    color: white; 
+.form-input {
+  width: 100%;
+  padding: 12px;
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-fast);
+  background-color: #f9fafb;
 }
 
-.quote-tab { 
-    position: fixed; 
-    top: 40%; 
-    right: 0; 
-    transform: translateY(-50%) rotate(270deg); 
-    transform-origin: bottom right; 
-    background-color: var(--color-accent-magenta); 
-    color: white; 
-    padding: 10px 20px; 
-    border-top-left-radius: 8px; 
-    border-top-right-radius: 8px; 
-    cursor: pointer; 
-    z-index: 999; 
-    font-weight: bold; 
-    transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
-    opacity: 0;
-    transform: translateY(-50%) rotate(270deg) translateX(20px);
-    pointer-events: none;
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary-base);
+  box-shadow: 0 0 0 2px rgba(31, 133, 201, 0.2);
 }
 
-.quote-tab.show {
-    opacity: 1;
-    transform: translateY(-50%) rotate(270deg) translateX(0);
-    pointer-events: auto;
-}
-
-.quote-tab:hover { 
-    background-color: #f90784; 
+textarea.form-input {
+  resize: vertical;
+  min-height: 120px;
 }
