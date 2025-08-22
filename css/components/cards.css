@@ -183,3 +183,77 @@
         flex: 0 0 400px; 
     }
 }
+
+
+/* Add these styles to your cards.css file */
+
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-2xl);
+}
+
+.service-card {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-xl);
+    padding: var(--spacing-lg);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.service-card .icon {
+    font-size: 2.5rem;
+    color: var(--color-primary-base);
+    margin-bottom: var(--spacing-md);
+    height: 40px;
+    display: inline-block;
+}
+
+.service-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    color: var(--color-slate-900);
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.service-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-slate-500);
+    flex-grow: 1;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Modifier for service-title when inside a feature section */
+.feature-content .service-title {
+    font-size: var(--font-size-2xl);
+}
+
+.feature-visual .icon {
+    font-size: 10rem;
+    color: var(--color-slate-100);
+    display: inline-block;
+}
+
+/* Add responsive overrides at the bottom of cards.css */
+@media (max-width: 767px) {
+    .service-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .service-card {
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .service-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
