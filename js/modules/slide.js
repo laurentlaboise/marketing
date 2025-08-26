@@ -1,4 +1,3 @@
-/*js/modules/slide.js*/
 document.addEventListener('DOMContentLoaded', () => {
     // --- On-scroll reveal animations ---
     // This looks for elements with the class 'reveal' and adds the 'visible'
