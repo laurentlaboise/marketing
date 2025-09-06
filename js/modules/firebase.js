@@ -1,30 +1,30 @@
 // js/modules/firebase.js
 
-// --- 1. FIXED IMPORTS: Added getFirestore, collection, and addDoc ---
+// These imports are essential for connecting to the database
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Your web app's Firebase configuration
+// Make sure this is the configuration you got from the Firebase console
 const firebaseConfig = {
   apiKey: "AIzaSyB3ZGL1BHhZ-uk1-ZsR0-uoQ6qKroa-HLw",
   authDomain: "wordsthatsells-website.firebaseapp.com",
   projectId: "wordsthatsells-website",
   storageBucket: "wordsthatsells-website.firebasestorage.app",
   messagingSenderId: "926017355408",
-  appId: "1:926017355408:web:e9740dbc89ad4fa2b5a215",
-  measurementId: "G-9EWB7GS931"
+  appId: "1:926017355408:web:e9740dbc89ad4fa2b5a215"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// --- 2. ADDED THIS LINE: Initialize the Firestore database ---
+// Initialize the Firestore database service
 const db = getFirestore(app);
 
 
 // Function to handle the form submission
 export async function handleFormSubmit(event) {
-  event.preventDefault(); // Prevent the form from reloading the page
+  event.preventDefault(); 
 
   const form = event.target;
   const formData = new FormData(form);
@@ -36,7 +36,6 @@ export async function handleFormSubmit(event) {
   const message = formData.get('message');
 
   try {
-    // This code should now work perfectly
     const docRef = await addDoc(collection(db, "submissions"), {
       name: name,
       email: email,
@@ -47,7 +46,7 @@ export async function handleFormSubmit(event) {
     });
 
     alert("Thank you for your submission!");
-    form.reset(); // Clear the form after submission
+    form.reset();
   } catch (e) {
     console.error("Error adding document: ", e);
     alert("There was an error submitting your form. Please try again.");
