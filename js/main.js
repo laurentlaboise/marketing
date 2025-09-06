@@ -1,5 +1,7 @@
 // js/main.js
-import { handleFormSubmit } from './modules/firebase.js'; // <-- 1. Switched to Firebase
+
+// 1. UPDATED THIS LINE: Import both form handlers now.
+import { handleFormSubmit, handleNewsletterSubmit } from './modules/firebase.js'; 
 import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
 import { initSlidePanel } from './modules/slide.js';
@@ -12,18 +14,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initSlidePanel();
 
   // --- Connect the Affiliate Form to Firebase ---
-  const quoteForm = document.getElementById('quote-form'); // <-- 2. Find the form
+  const quoteForm = document.getElementById('quote-form');
   if (quoteForm) {
-    quoteForm.addEventListener('submit', handleFormSubmit); // <-- 3. Connect it
+    quoteForm.addEventListener('submit', handleFormSubmit);
+  }
+
+  // --- 2. ADDED THIS BLOCK: Connect the new newsletter form ---
+  const newsletterForm = document.getElementById('newsletter-form');
+  if (newsletterForm) {
+    newsletterForm.addEventListener('submit', handleNewsletterSubmit);
   }
 
   // --- Page-Specific Logic ---
   updateFooterLanguageLinks();
 });
-
-
-// --- The old handleAffiliateFormSubmission() function is now removed ---
-// --- All form logic is now handled in js/modules/firebase.js ---
 
 
 // --- Footer Multi-language Link Logic (This function remains unchanged) ---
