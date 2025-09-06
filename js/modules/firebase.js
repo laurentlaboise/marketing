@@ -19,3 +19,36 @@
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
+
+// Function to handle the form submission
+export async function handleFormSubmit(event) {
+  event.preventDefault(); // Prevent the form from reloading the page
+
+  const form = event.target;
+  const formData = new FormData(form);
+
+  const name = formData.get('name');
+  const email = formData.get('email');
+  const company = formData.get('company');
+  const service = formData.get('service');
+  const message = formData.get('message');
+
+  try {
+    // This creates a new "submissions" collection if it doesn't exist
+    // and adds a new document to it.
+    const docRef = await addDoc(collection(db, "submissions"), {
+      name: name,
+      email: email,
+      company: company,
+      service: service,
+      message: message,
+      submittedAt: new Date()
+    });
+
+    alert("Thank you for your submission!");
+    form.reset(); // Clear the form after submission
+  } catch (e) {
+    console.error("Error adding document: ", e);
+    alert("There was an error submitting your form. Please try again.");
+  }
+}
