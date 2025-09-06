@@ -1,5 +1,5 @@
 // js/main.js
-import { supabase } from './modules/supabase.js';
+import { handleFormSubmit } from './modules/firebase.js'; // <-- 1. Switched to Firebase
 import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
 import { initSlidePanel } from './modules/slide.js';
@@ -11,62 +11,22 @@ document.addEventListener('DOMContentLoaded', () => {
   initFaqSection();
   initSlidePanel();
 
+  // --- Connect the Affiliate Form to Firebase ---
+  const quoteForm = document.getElementById('quote-form'); // <-- 2. Find the form
+  if (quoteForm) {
+    quoteForm.addEventListener('submit', handleFormSubmit); // <-- 3. Connect it
+  }
+
   // --- Page-Specific Logic ---
-  handleAffiliateFormSubmission();
   updateFooterLanguageLinks();
 });
 
-// --- Affiliate Form Submission Handler ---
-function handleAffiliateFormSubmission() {
-  const quoteForm = document.getElementById('quote-form');
-  if (!quoteForm) return;
 
-  quoteForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+// --- The old handleAffiliateFormSubmission() function is now removed ---
+// --- All form logic is now handled in js/modules/firebase.js ---
 
-    const submitButton = quoteForm.querySelector('button[type="submit"]');
-    const modalContainer = document.getElementById('quote-modal-container');
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Submitting...`;
-    }
 
-    const formData = new FormData(quoteForm);
-    const submission = Object.fromEntries(formData.entries());
-
-    let data, error;
-    try {
-      const result = await supabase.from('GET A QUOTE WTS').insert([submission]);
-      data = result.data;
-      error = result.error;
-    } catch (err) {
-      error = err;
-    }
-
-    if (modalContainer) {
-      if (error) {
-        console.error('Supabase error:', error.message || error);
-        modalContainer.innerHTML = `<h2 class="modal-title">Error!</h2><p>Something went wrong. Please try again.</p>`;
-      } else {
-        console.log('Supabase success:', data);
-        modalContainer.innerHTML = `<h2 class="modal-title">Thank You!</h2><p>Your application is sent. We'll reply within 24 hours.</p>`;
-      }
-    }
-
-    // Close the modal after a delay if it exists
-    setTimeout(() => {
-      const overlay = document.getElementById('quote-modal-overlay');
-      if (overlay) overlay.style.display = 'none';
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.innerHTML = `Submit`;
-      }
-      quoteForm.reset();
-    }, 4000);
-  });
-}
-
-// --- Footer Multi-language Link Logic ---
+// --- Footer Multi-language Link Logic (This function remains unchanged) ---
 function updateFooterLanguageLinks() {
   const pathParts = window.location.pathname.split('/');
   const currentLang = pathParts[1] || 'en';
