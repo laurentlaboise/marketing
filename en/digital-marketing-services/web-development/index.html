@@ -153,21 +153,90 @@
         </div>
         </div>
 </header>
-  
     <main>
-       <section class="section section-alt">
+
+<section class="section section-alt">
     <div class="container"> <div class="section-header services-section-header reveal text-center">
             <h1>
                 <span class="text-accent"><b>Digital Marketing</b></span>
                 <br>
-                <span class="heading-subtitle text-dark">SEO, Social Media & Website</span>
+                <span class="heading-subtitle text-dark">Copywriting & Article Services</span>
             </h1>
             <p class="reveal reveal-delay-1">
-                We provide expert SEO, content, and web services - you just put your brand on it.
+                Fuel your content marketing with expertly written, SEO-optimized content that builds authority and attracts organic traffic.
             </p>
         </div>
-<H2>WEB DEVELOPMENT</H2>
-        <section class="section">
+
+       
+
+                <div class="service-grid">
+                    <div class="service-card reveal">
+                        <div class="icon kinetic-rotate"><i class="fas fa-pen-nib"></i></div>
+                        <h3 class="service-title">Website Copywriting</h3>
+                        <p class="service-description">Scalable services from 1,000 to 10,000 characters, providing clear, engaging, and professional copy tailored to boost rankings and conversions.</p>
+                        <button class="btn btn-premium btn-learn-more" data-service="copywriting">Learn More</button>
+                    </div>
+
+                    <div class="service-card reveal reveal-delay-1">
+                        <div class="icon kinetic-oscillate"><i class="fas fa-feather-alt"></i></div>
+                        <h3 class="service-title">Blog & Article Writing</h3>
+                        <p class="service-description">Build brand authority with expert writing packages in sets of 3, 6, or 12, designed for engaging, SEO-optimized content creation.</p>
+                        <button class="btn btn-premium btn-learn-more" data-service="blogging">Learn More</button>
+                    </div>
+
+                    <div class="service-card reveal reveal-delay-2">
+                        <div class="icon kinetic-pulse-float"><i class="fas fa-rss"></i></div>
+                        <h3 class="service-title">RSS Feed Setup</h3>
+                        <p class="service-description">Automate your content delivery with professional RSS feed setup. Ensures seamless syndication of posts across multiple platforms.</p>
+                        <button class="btn btn-premium btn-learn-more" data-service="rss">Learn More</button>
+                    </div>
+
+                    <div class="service-card reveal reveal-delay-3">
+                        <div class="icon kinetic-pulse-float"><i class="fas fa-magic"></i></div>
+                        <h3 class="service-title">Logo Design Services</h3>
+                        <p class="service-description">Express your brand identity with AI-powered logo creation or professional graphic designer services for a memorable, compelling presence.</p>
+                        <button class="btn btn-premium btn-learn-more" data-service="logo">Learn More</button>
+                    </div>
+
+                    <div class="service-card reveal reveal-delay-4">
+                        <div class="icon kinetic-oscillate"><i class="fas fa-object-group"></i></div>
+                        <h3 class="service-title">Digital Banner Design</h3>
+                        <p class="service-description">Create visually striking and SEO-optimized digital banners to amplify your marketing campaigns across all digital channels.</p>
+                        <button class="btn btn-premium btn-learn-more" data-service="banner">Learn More</button>
+                    </div>
+
+                    <div class="service-card reveal reveal-delay-5">
+                        <div class="icon kinetic-pulse-float"><i class="fas fa-camera-retro"></i></div>
+                        <h3 class="service-title">Photography Services</h3>
+                        <p class="service-description">Enhance your visual storytelling with high-quality, SEO-optimized stock photos or professional on-site photography shoots.</p>
+                        <button class="btn btn-premium btn-learn-more" data-service="photo">Learn More</button>
+                    </div>
+
+                    <div class="service-card reveal reveal-delay-6">
+                        <div class="icon kinetic-pulse-float"><i class="fas fa-globe"></i></div>
+                        <h3 class="service-title">Translation & SEO Localization</h3>
+                        <p class="service-description">Expand your global reach with expert website translation services that maintain SEO value and cultural nuance.</p>
+                        <button class="btn btn-premium btn-learn-more" data-service="translation">Learn More</button>
+                    </div>
+
+                    <div class="service-card reveal reveal-delay-7">
+                        <div class="icon kinetic-pulse-float"><i class="fas fa-utensils"></i></div>
+                        <h3 class="service-title">Restaurant & Bar Menu Software</h3>
+                        <p class="service-description">Dynamic, QR-code enabled digital menu solutions for modern hospitality businesses.</p>
+                        <button class="btn btn-premium btn-learn-more" data-service="menu">Learn More</button>
+                    </div>
+
+                    <div class="service-card reveal reveal-delay-8">
+                        <div class="icon kinetic-pulse-float"><i class="fas fa-car"></i></div>
+                        <h3 class="service-title">Car Listing Generator</h3>
+                        <p class="service-description">Automate compelling, SEO-friendly vehicle descriptions for your auto dealership or marketplace.</p>
+                        <button class="btn btn-premium btn-learn-more" data-service="car">Learn More</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+      
+       <section class="section">
             <div class="container">
                 <div class="cta-banner reveal">
                     <h2>Get Ahead with AI Insights</h2>
@@ -197,8 +266,7 @@
             </div>
         </section>
     </main>
-
-   <footer class="footer" data-i18n-links>
+ <footer class="footer" data-i18n-links>
         <div class="container">
             <div class="footer-top">
                 <div class="footer-brand">
@@ -267,7 +335,7 @@
             </div>
             <div class="footer-bottom">
                 <div class="footer-legal">
-                    <a href="/company//about">About Us</a>
+                    <a href="/company/about">About Us</a>
                     <a href="/company/contact">Contact Us</a>
                     <a href="/company/legal">Legal</a>
                 </div>
@@ -307,9 +375,264 @@
             </form>
         </div>
     </div>
+    <div id="details-overlay"></div>
+    <aside id="details-slide-in">
+        <header class="slide-in-header">
+            <h2 id="slide-in-title">Service Details</h2>
+            <button id="slide-in-close" aria-label="Close details panel">&times;</button>
+        </header>
+        <div class="slide-in-body">
+            <img id="slide-in-image" src="https://placehold.co/800x400/e2e8f0/64748b?text=Details" alt="Service detail image">
+            <div id="slide-in-content">
+                <p>Detailed content about the service will appear here.</p>
+            </div>
+        </div>
+    </aside>
 
-    
-    <script type="module" src="/js/main.js"></script>
+    <div class="service-details-storage" style="display: none;">
+
+        <div id="details-copywriting" data-title="Website Copywriting" data-img="https://placehold.co/800x400/1f85c9/ffffff?text=Copywriting">
+            <section class="service-section section-alt">
+                <div class="container">
+                    <div class="section-header">
+                        <center><div class="heading-accent-line"></div></center>
+                        <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
+                        <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
+                    </div>
+                    <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"><iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe></div>
+                    <center><div class="heading-accent-line"></div></center>
+                    <div class="service-grid">
+                        <div class="service-card">
+                            <div class="icon kinetic-rotate"><i class="fas fa-pen-nib"></i></div>
+                            <h3 class="service-title">SEO-Driven Strategy</h3>
+                            <p class="service-description">Every word we write is optimized for search engines without sacrificing readability — ensuring your pages rank and resonate.</p>
+                        </div>
+                        <div class="service-card">
+                            <div class="icon kinetic-rotate"><i class="fas fa-bullseye"></i></div>
+                            <h3 class="service-title">Conversion-Optimized Headlines</h3>
+                            <p class="service-description">We use A/B testing to refine your headlines, calls-to-action, and key messaging for maximum engagement and sales.</p>
+                        </div>
+                        <div class="service-card">
+                            <div class="icon kinetic-rotate"><i class="fas fa-signature"></i></div>
+                            <h3 class="service-title">Consistent Brand Voice</h3>
+                            <p class="service-description">From your homepage to your FAQs, we maintain a seamless, recognizable tone that reinforces your brand identity.</p>
+                        </div>
+                    </div>
+                    <div class="feature-content" style="margin-top: var(--spacing-3xl);">
+                        <h2 class="service-title">What’s Included in Our Copywriting Service</h2>
+                        <ul>
+                            <li>SEO keyword integration to boost visibility on Google & Bing.</li>
+                            <li>A/B testing for headlines, calls-to-action, and value propositions.</li>
+                            <li>Story-driven copy to emotionally connect with your audience.</li>
+                            <li>Flexible packages — from one landing page to full enterprise websites.</li>
+                            <li>Ongoing optimization and performance monitoring.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="details-blogging" data-title="Blog & Article Writing" data-img="https://placehold.co/800x400/d62b83/ffffff?text=Blogging">
+            <section class="service-section section-alt">
+                <div class="container">
+                    <div class="section-header">
+                        <center><div class="heading-accent-line"></div></center>
+                        <h2>Content That Builds Authority and Drives Organic Traffic</h2>
+                        <p class="service-description" style="font-size: var(--font-size-lg);">Establish your brand as an industry leader with high-quality, data-driven articles and blog posts that your audience loves and search engines reward.</p>
+                    </div>
+                    <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"><iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Blog Writing Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe></div>
+                    <center><div class="heading-accent-line"></div></center>
+                    <div class="service-grid">
+                        <div class="service-card">
+                            <div class="icon kinetic-oscillate"><i class="fas fa-chart-line"></i></div>
+                            <h3 class="service-title">Topical Authority Strategy</h3>
+                            <p class="service-description">We develop content clusters around your core services to build topical authority, making you the go-to resource in your niche.</p>
+                        </div>
+                        <div class="service-card">
+                            <div class="icon kinetic-oscillate"><i class="fas fa-users"></i></div>
+                            <h3 class="service-title">Audience-Centric Writing</h3>
+                            <p class="service-description">Our content addresses your customers' pain points, answers their questions, and guides them through their buying journey.</p>
+                        </div>
+                        <div class="service-card">
+                            <div class="icon kinetic-oscillate"><i class="fas fa-share-alt"></i></div>
+                            <h3 class="service-title">Promotion-Ready Content</h3>
+                            <p class="service-description">We create link-worthy assets, infographics, and long-form guides designed for easy sharing across social media and partner sites.</p>
+                        </div>
+                    </div>
+                    <div class="feature-content" style="margin-top: var(--spacing-3xl);">
+                        <h2 class="service-title">Our Blog & Article Packages Include</h2>
+                        <ul>
+                            <li>In-depth topic and keyword research.</li>
+                            <li>100% original, professionally edited content.</li>
+                            <li>Inclusion of royalty-free stock imagery.</li>
+                            <li>Internal and external linking for SEO.</li>
+                            <li>Bulk packages available in sets of 3, 6, or 12 articles.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <div id="details-rss" data-title="RSS Feed Setup" data-img="https://placehold.co/800x400/64748b/ffffff?text=RSS">
+             <section class="service-section section-alt">
+                <div class="container">
+                    <div class="section-header">
+                        <center><div class="heading-accent-line"></div></center>
+                        <h2>Automate and Amplify Your Content Distribution</h2>
+                        <p class="service-description" style="font-size: var(--font-size-lg);">Ensure your latest content reaches the widest possible audience instantly. We handle the technical setup of your RSS feed for seamless syndication.</p>
+                    </div>
+                    <div class="feature-content" style="margin-top: var(--spacing-3xl);">
+                        <h2 class="service-title">What Our RSS Setup Service Provides</h2>
+                        <ul>
+                            <li>Generation and validation of a compliant RSS XML file.</li>
+                            <li>Integration with popular feed readers and platforms like Feedly.</li>
+                            <li>Connection to email marketing services for automated newsletters.</li>
+                            <li>Setup for syndication to partner websites and news aggregators.</li>
+                            <li>Troubleshooting and ongoing maintenance.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="details-logo" data-title="Logo Design Services" data-img="https://placehold.co/800x400/185a8d/ffffff?text=Logo+Design">
+            <section class="service-section section-alt">
+                <div class="container">
+                    <div class="section-header">
+                        <center><div class="heading-accent-line"></div></center>
+                        <h2>A Memorable Logo for a Standout Brand</h2>
+                        <p class="service-description" style="font-size: var(--font-size-lg);">Your logo is the face of your brand. We create unique, professional logos that capture your brand's essence and make a lasting impression.</p>
+                    </div>
+                    <div class="feature-content" style="margin-top: var(--spacing-3xl);">
+                        <h2 class="service-title">Choose Your Design Path</h2>
+                         <div class="service-grid">
+                            <div class="service-card">
+                                <h3 class="service-title">AI-Powered Logo Creation</h3>
+                                <p class="service-description">Fast, affordable, and high-quality logo options generated by cutting-edge AI. Perfect for startups and new projects.</p>
+                            </div>
+                            <div class="service-card">
+                                <h3 class="service-title">Professional Graphic Designer</h3>
+                                <p class="service-description">Work one-on-one with an experienced designer to create a completely bespoke logo and brand identity package.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <div id="details-banner" data-title="Digital Banner Design" data-img="https://placehold.co/800x400/4b9edb/ffffff?text=Banners">
+            <section class="service-section section-alt">
+                <div class="container">
+                    <div class="section-header">
+                        <center><div class="heading-accent-line"></div></center>
+                        <h2>Visually Striking Banners That Drive Clicks</h2>
+                        <p class="service-description" style="font-size: var(--font-size-lg);">Capture attention and drive traffic with professionally designed digital banners for your website, social media, and advertising campaigns.</p>
+                    </div>
+                    <div class="feature-content" style="margin-top: var(--spacing-3xl);">
+                        <h2 class="service-title">What We Design</h2>
+                        <ul>
+                            <li>Website hero banners and sliders.</li>
+                            <li>Google Ads and social media ad creatives.</li>
+                            <li>Email newsletter headers.</li>
+                            <li>Static, animated GIF, and HTML5 banners.</li>
+                            <li>All designs optimized for fast loading and SEO.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="details-photo" data-title="Photography Services" data-img="https://placehold.co/800x400/a3cce8/122a3f?text=Photography">
+            <section class="service-section section-alt">
+                <div class="container">
+                    <div class="section-header">
+                        <center><div class="heading-accent-line"></div></center>
+                        <h2>Enhance Your Brand with Professional Imagery</h2>
+                        <p class="service-description" style="font-size: var(--font-size-lg);">High-quality images are crucial for engagement. We provide stunning visual assets that tell your story and elevate your brand's perception.</p>
+                    </div>
+                     <div class="service-grid">
+                        <div class="service-card">
+                            <h3 class="service-title">SEO-Optimized Stock Photos</h3>
+                            <p class="service-description">Access to a vast library of high-quality stock photos, all properly licensed and optimized with relevant alt-text and file names for search engines.</p>
+                        </div>
+                        <div class="service-card">
+                            <h3 class="service-title">On-Site Professional Photography</h3>
+                            <p class="service-description">Our professional photographers come to your location to capture your products, team, and business in action for authentic, custom visuals.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="details-translation" data-title="Translation & Localization" data-img="https://placehold.co/800x400/154266/ffffff?text=Translation">
+             <section class="service-section section-alt">
+                <div class="container">
+                    <div class="section-header">
+                        <center><div class="heading-accent-line"></div></center>
+                        <h2>Go Global Without Losing Local Relevance</h2>
+                        <p class="service-description" style="font-size: var(--font-size-lg);">Expand your reach with expert translation and localization that preserves your brand's message, cultural nuance, and SEO value in any language.</p>
+                    </div>
+                    <div class="feature-content" style="margin-top: var(--spacing-3xl);">
+                        <h2 class="service-title">Our Localization Services Include</h2>
+                        <ul>
+                            <li>Translation by native-speaking subject matter experts.</li>
+                            <li>SEO keyword research for the target language and region.</li>
+                            <li>Adaptation of cultural references, imagery, and currencies.</li>
+                            <li>Implementation of hreflang tags for international SEO.</li>
+                            <li>Comprehensive website and document translation.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="details-menu" data-title="Restaurant & Bar Menu Software" data-img="https://placehold.co/800x400/d62b83/ffffff?text=Menus">
+             <section class="service-section section-alt">
+                <div class="container">
+                    <div class="section-header">
+                        <center><div class="heading-accent-line"></div></center>
+                        <h2>Modern Digital Menus for Your Business</h2>
+                        <p class="service-description" style="font-size: var(--font-size-lg);">Upgrade your customer experience with our easy-to-use, QR-code enabled digital menu software. Update items, prices, and specials in real-time.</p>
+                    </div>
+                    <div class="feature-content" style="margin-top: var(--spacing-3xl);">
+                        <h2 class="service-title">Software Features</h2>
+                        <ul>
+                            <li>Easy drag-and-drop menu builder.</li>
+                            <li>QR code generation for tables.</li>
+                            <li>Real-time updates from any device.</li>
+                            <li>Image and dietary information support.</li>
+                            <li>SEO-friendly public menu page for online visibility.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="details-car" data-title="Car Listing Generator" data-img="https://placehold.co/800x400/122a3f/ffffff?text=Car+Listings">
+             <section class="service-section section-alt">
+                <div class="container">
+                    <div class="section-header">
+                        <center><div class="heading-accent-line"></div></center>
+                        <h2>Automate Your Vehicle Descriptions</h2>
+                        <p class="service-description" style="font-size: var(--font-size-lg);">Save time and create compelling, keyword-rich vehicle listings instantly. Our AI-powered tool generates unique descriptions based on vehicle specs.</p>
+                    </div>
+                    <div class="feature-content" style="margin-top: var(--spacing-3xl);">
+                        <h2 class="service-title">Generator Capabilities</h2>
+                        <ul>
+                            <li>Input vehicle Make, Model, Year, Trim, and Features.</li>
+                            <li>Generates unique, readable, and engaging descriptions.</li>
+                            <li>Automatically includes relevant SEO keywords.</li>
+                            <li>Multiple tone and style options (e.g., luxury, rugged, family-friendly).</li>
+                            <li>Perfect for dealerships and online marketplaces.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+    </div>
+
+       <script type="module" src="/js/main.js"></script>
 
 </body>
 </html>
