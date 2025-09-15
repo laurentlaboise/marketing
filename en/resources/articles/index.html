@@ -1,1 +1,2262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Marketing Blog</title>
+    <script src="https://kit.fontawesome.com/a521ce00f6.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS styles from the provided files --- */
+        
+        /* --- BASE --- */
+        :root {
+            /* Colors */
+            --color-primary-base: #1f85c9;
+            --color-accent-magenta: #d62b83;
+            --color-slate-900: #122a3f;
+            --color-slate-800: #154266;
+            --color-slate-700: #185a8d;
+            --color-slate-500: #64748b;
+            --color-slate-300: #a3cce8;
+            --color-slate-200: #cce2f1;
+            --color-slate-100: #e6f1f8;
+            --color-indigo-300: #4b9edb;
+            --color-white: #ffffff;
+            --color-light-gray: #e5e7eb;
+            --color-mid-gray: #e2e8f0;
+            --color-dark-gray: #a0aec0;
+            --color-dark: #4e555b;
+            --color-light: #f9f9f9;
+            --color-border: #e5e7eb;
+
+            /* Typography */
+            --font-family-heading: 'Poppins', sans-serif;
+            --font-family-body: 'Inter', sans-serif;
+            --font-size-base: 1rem;
+            --font-size-sm: 0.875rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            --font-size-4xl: 2.25rem;
+            --font-size-5xl: 3rem;
+            --font-size-6xl: 3.75rem;
+
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
+            --spacing-4xl: 5rem;
+
+            /* Border Radius */
+            --border-radius-sm: 0.25rem;
+            --border-radius-md: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            --border-radius-2xl: 1.5rem;
+            --border-radius-full: 9999px;
+
+            /* Box Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+            /* Transitions */
+            --transition-fast: all 0.2s ease-in-out;
+            --transition-medium: all 0.3s ease-in-out;
+        }
+        
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            background-color: var(--color-white);
+            color: var(--color-slate-800);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+        
+        body.no-scroll {
+            overflow: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-family-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-900);
+        }
+        
+        h1 { font-size: var(--font-size-5xl); }
+        h2 { font-size: var(--font-size-4xl); }
+        h3 { font-size: var(--font-size-3xl); }
+        h4 { font-size: var(--font-size-2xl); }
+        h5 { font-size: var(--font-size-xl); }
+        h6 { font-size: var(--font-size-lg); }
+        
+        p {
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-800);
+        }
+        
+        a {
+            color: var(--color-primary-base);
+            text-decoration: none;
+            transition: var(--transition-fast);
+        }
+        
+        a:hover {
+            color: var(--color-accent-magenta);
+        }
+        
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .feature-content ul,
+        #slide-in-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .feature-content ul li,
+        #slide-in-content ul li {
+            position: relative;
+            padding-left: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .feature-content ul li::before,
+        #slide-in-content ul li::before {
+            content: '\f058';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            top: 2px;
+            color: var(--color-accent-magenta);
+        }
+
+        h1, h2, h3, h4 {
+            font-family: var(--font-family-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-900);
+        }
+        h1 { font-size: var(--font-size-5xl); }
+        h2 { font-size: var(--font-size-4xl); }
+        h3 { font-size: var(--font-size-3xl); }
+        h4 { font-size: var(--font-size-2xl); }
+        p {
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-800);
+        }
+        a {
+            color: var(--color-primary-base);
+            text-decoration: none;
+            transition: var(--transition-medium);
+        }
+        a:hover {
+            color: var(--color-accent-magenta);
+        }
+        ul {
+            list-style-position: inside;
+        }
+
+        @media (min-width: 768px) {
+            h1 { font-size: var(--font-size-6xl); }
+            h2 { font-size: var(--font-size-5xl); }
+        }
+
+        @media (min-width: 1024px) {
+            body { font-size: var(--font-size-lg); }
+        }
+        
+        /* --- LAYOUT --- */
+        .container {
+            width: 90%;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            padding: var(--spacing-4xl) 0;
+        }
+        
+        .section-alt {
+            background-color: var(--color-light);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .two-column-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xl);
+            align-items: center;
+        }
+        
+        .column-left, .column-right {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .desktop-only {
+            display: none;
+        }
+        
+        .mobile-only {
+            display: inline;
+        }
+        
+        .heading-accent-line {
+            width: 40px;
+            height: 4px;
+            background-color: var(--color-accent-magenta);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .section-heading-large {
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            line-height: 1.1;
+            font-weight: 400;
+        }
+        
+        .text-accent {
+            color: var(--color-accent-magenta);
+        }
+        
+        .text-accent2 {
+            color: var(--color-light-gray);
+        }
+        
+        .text-dark {
+            color: var(--color-dark);
+        }
+        
+        .font-bold {
+            font-weight: 700;
+        }
+        
+        .horizontal-scroll-container {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .horizontal-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .map-container {
+            max-width: 900px;
+            margin: var(--spacing-xl) auto 0;
+            border-radius: var(--border-radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--color-border);
+        }
+        
+        .map-container iframe {
+            border: 0;
+            display: block;
+        }
+        
+        .cta-banner {
+            background-color: var(--color-primary-base);
+            color: var(--color-white);
+            text-align: center;
+            padding: var(--spacing-2xl);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .cta-banner h2 {
+            color: var(--color-white);
+        }
+        
+        .cta-banner p {
+            color: var(--color-light-gray);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        @media (min-width: 768px) {
+            .desktop-only { display: inline; }
+            .mobile-only { display: none; }
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        main {
+            flex-grow: 1;
+        }
+        
+        @media (max-width: 480px) {
+            .two-column-layout {
+                flex-direction: column;
+                gap: var(--spacing-lg);
+            }
+            .section {
+                padding-top: var(--spacing-xl);
+                padding-bottom: var(--spacing-xl);
+            }
+            .horizontal-scroll-container {
+                display: flex;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                scroll-padding-left: var(--spacing-lg);
+                padding-left: var(--spacing-lg);
+                padding-bottom: 20px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .horizontal-scroll-container::-webkit-scrollbar {
+                display: none;
+            }
+            .horizontal-scroll-container * {
+                flex: 0 0 85%;
+                scroll-snap-align: start;
+            }
+            .hero-title {
+                font-size: 2.25rem;
+            }
+            .services-grid-four-column {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .hero-section {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: var(--spacing-xl);
+            text-align: center;
+            color: var(--color-white);
+            overflow: hidden;
+        }
+        
+        .hero-background {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+        }
+        
+        .hero-background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(18, 42, 63, 0.7);
+            z-index: -1;
+        }
+        
+        .hero-title {
+            font-family: var(--font-family-heading);
+            line-height: 1.1;
+            font-weight: 800;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .hero-content p.hero-title {
+            margin-bottom: 0;
+        }
+        
+        .hero-content .sub-title {
+            font-size: var(--font-size-xl);
+            max-width: 600px;
+            margin: var(--spacing-md) auto 0;
+            color: var(--color-light-gray);
+        }
+        
+        .hero-buttons {
+            margin-top: var(--spacing-lg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+        
+        @media (min-width: 576px) {
+            .hero-buttons {
+                flex-direction: row;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        
+        .accordion-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            max-width: 900px;
+            margin: 0 auto var(--spacing-xl);
+        }
+        
+        .accordion-item {
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .accordion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .accordion-summary {
+            list-style: none;
+            cursor: pointer;
+            padding: var(--spacing-sm) 0;
+            font-weight: 500;
+            font-size: var(--font-size-lg);
+            color: var(--color-slate-800);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: color 0.2s;
+        }
+        
+        .accordion-summary::-webkit-details-marker {
+            display: none;
+        }
+        
+        .accordion-item[open] > .accordion-summary {
+            color: var(--color-accent-magenta);
+        }
+        
+        .accordion-summary .icon {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .accordion-item[open] .icon {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            padding: var(--spacing-sm) 0;
+            color: var(--color-slate-500);
+        }
+        
+        .accordion-summary h3 {
+            font-size: var(--font-size-lg);
+            margin-bottom: 0;
+        }
+        
+        .service-card .accordion-summary {
+            font-weight: 600;
+            font-size: var(--font-size-base);
+            color: var(--color-primary-base);
+        }
+        
+        .service-card .accordion-item {
+            border-bottom: none;
+        }
+        
+        .service-card .accordion-content {
+            padding: 0;
+        }
+        
+        .service-card-details {
+            font-size: var(--font-size-sm);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .service-card-details ul {
+            margin-top: var(--spacing-sm);
+            padding-left: var(--spacing-md);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: var(--transition-medium);
+            text-decoration: none;
+            border: 2px solid transparent;
+        }
+
+        .btn-accent {
+            background: radial-gradient(circle at center, rgba(249, 7, 132, 0.82) 37%, var(--color-accent-magenta) 100%);
+            color: var(--color-white);
+            border-color: var(--color-accent-magenta);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-premium {
+            background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300));
+            color: var(--color-white);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-learn-more {
+            margin-top: var(--spacing-md);
+        }
+
+        .btn-accent-magenta {
+            background-color: var(--color-accent-magenta);
+            color: var(--color-white);
+            border-color: var(--color-accent-magenta);
+        }
+        .btn-accent-magenta:hover {
+            background-color: #f90784;
+            border-color: #f90784;
+            color: var(--color-white);
+        }
+        .btn-inverse-magenta {
+            background-color: var(--color-white);
+            border-color: var(--color-accent-magenta);
+            color: var(--color-accent-magenta);
+        }
+        .btn-inverse-magenta:hover {
+            background-color: var(--color-accent-magenta);
+            color: var(--color-white);
+        }
+
+        .btn-accent-blue {
+            background-color: #1F85C8;
+            color: var(--color-white);
+            border-color: #1F85C8;
+        }
+        .btn-accent-blue:hover {
+            background-color: #2593d9;
+            border-color: #2593d9;
+            color: var(--color-white);
+        }
+        .btn-inverse-blue {
+            background-color: var(--color-white);
+            border-color: #1F85C8;
+            color: #1F85C8;
+        }
+        .btn-inverse-blue:hover {
+            background-color: #1F85C8;
+            color: var(--color-white);
+        }
+
+        .btn i {
+            margin-right: var(--spacing-sm);
+            font-size: 1.1em;
+        }
+
+        .card-base {
+            background-color: var(--color-white);
+            border-radius: var(--border-radius-xl);
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+        }
+
+        .card {
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .process-card {
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .scroll-card {
+            flex: 0 0 90%;
+            scroll-snap-align: center;
+            margin-right: var(--spacing-md);
+            box-shadow: var(--shadow-md);
+            text-align: left;
+        }
+        
+        .scroll-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .scroll-card-content {
+            padding: var(--spacing-lg);
+        }
+        
+        .scroll-card-content h3 {
+            color: var(--color-primary-base);
+        }
+        
+        .scroll-card-content p {
+            font-size: var(--font-size-sm);
+        }
+        
+        .results-title {
+            font-weight: bold;
+            font-size: var(--font-size-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .scroll-card-content ul {
+            font-size: var(--font-size-sm);
+            margin-top: var(--spacing-sm);
+            list-style-type: disc;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-xl);
+        }
+        
+        .service-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .service-card-header i {
+            font-size: var(--font-size-2xl);
+            color: var(--color-primary-base);
+        }
+        
+        .service-card-header h3 {
+            font-size: var(--font-size-xl);
+            margin-bottom: 0;
+        }
+        
+        .service-card-summary {
+            font-size: var(--font-size-sm);
+            color: #6b7280;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .process-card-title {
+            text-align: center;
+            font-size: var(--font-size-2xl);
+            color: var(--color-dark);
+        }
+        
+        .process-steps {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+        
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+        }
+        
+        .step-number {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius-full);
+            background-color: var(--color-accent-magenta);
+            color: var(--color-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-2xl);
+            font-weight: bold;
+        }
+        
+        .step-title {
+            color: var(--color-primary-base);
+            font-size: var(--font-size-lg);
+        }
+        
+        .step-content p {
+            font-size: var(--font-size-sm);
+            margin-top: 4px;
+        }
+        
+        .services-section-header h1 {
+            font-size: var(--font-size-3xl);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--color-slate-900);
+        }
+        
+        .services-grid-four-column {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-xl);
+            text-align: center;
+        }
+        
+        .service-item-circle .service-icon-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: var(--border-radius-full);
+            background-color: var(--color-dark);
+            color: var(--color-white);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-lg);
+            font-size: var(--font-size-4xl);
+            transition: var(--transition-medium);
+        }
+        
+        .service-item-circle:hover .service-icon-circle {
+            background-color: var(--color-accent-magenta);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .service-item-circle h2 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--color-slate-900);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .service-item-circle p {
+            font-size: var(--font-size-sm);
+            line-height: 1.5;
+            max-width: 250px;
+            margin-left: auto;
+            margin-right: auto;
+            color: var(--color-slate-500);
+        }
+        
+        @media (min-width: 768px) {
+            .scroll-card {
+                flex: 0 0 400px;
+            }
+        }
+        
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-2xl);
+        }
+        
+        .service-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-lg);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .service-card .icon {
+            font-size: 2.5rem;
+            color: var(--color-primary-base);
+            margin-bottom: var(--spacing-md);
+            height: 40px;
+            display: inline-block;
+        }
+        
+        .service-title {
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-xl);
+            color: var(--color-slate-900);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .service-description {
+            font-size: var(--font-size-sm);
+            color: var(--color-slate-500);
+            flex-grow: 1;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .feature-content .service-title {
+            font-size: var(--font-size-2xl);
+        }
+        
+        .feature-visual .icon {
+            font-size: 10rem;
+            color: var(--color-slate-100);
+            display: inline-block;
+        }
+        
+        @media (max-width: 767px) {
+            .service-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: var(--spacing-lg);
+            }
+        
+            .service-card {
+                padding: var(--spacing-md);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .service-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--color-accent-magenta);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            transition: background-color 0.3s, transform 0.3s, opacity 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .back-to-top:hover {
+            background-color: #f90784;
+            color: white;
+        }
+
+        .quote-tab {
+            position: fixed;
+            top: 40%;
+            right: 0;
+            transform: translateY(-50%) rotate(270deg);
+            transform-origin: bottom right;
+            background-color: var(--color-accent-magenta);
+            color: white;
+            padding: 10px 20px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            cursor: pointer;
+            z-index: 999;
+            font-weight: bold;
+            transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
+            opacity: 0;
+            transform: translateY(-50%) rotate(270deg) translateX(20px);
+            pointer-events: none;
+        }
+
+        .quote-tab.show {
+            opacity: 1;
+            transform: translateY(-50%) rotate(270deg) translateX(0);
+            pointer-events: auto;
+        }
+
+        .quote-tab:hover {
+            background-color: #f90784;
+        }
+
+        input[type="text"], input[type="email"], textarea, select {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-base);
+            color: var(--color-slate-800);
+            background-color: var(--color-white);
+            transition: var(--transition-medium);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--color-primary-base);
+            box-shadow: 0 0 0 3px rgba(31, 133, 201, 0.2);
+        }
+        
+        .newsletter-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            max-width: 500px;
+            margin: var(--spacing-lg) auto 0;
+        }
+
+        .newsletter-form input {
+            flex-grow: 1;
+        }
+        
+        @media (min-width: 576px) {
+            .newsletter-form {
+                flex-direction: row;
+            }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1050;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-container {
+            background-color: var(--color-white);
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius-xl);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: var(--shadow-xl);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: var(--font-size-2xl);
+            cursor: pointer;
+            color: #9ca3af;
+        }
+
+        .modal-title {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .modal-subtitle {
+            color: #6b7280;
+            margin-bottom: var(--spacing-lg);
+            font-size: var(--font-size-sm);
+        }
+
+        .modal-form .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .modal-form button {
+            margin-top: var(--spacing-lg);
+            width: 100%;
+        }
+
+        #quote-form-success {
+            text-align: center;
+        }
+
+        #details-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(18, 42, 63, 0.6);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+        }
+
+        #details-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #details-slide-in {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 75%;
+            max-width: 800px;
+            height: 100%;
+            background-color: var(--color-white);
+            z-index: 2000;
+            transform: translateX(100%);
+            transition: transform 0.4s ease-in-out;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #details-slide-in.is-open {
+            transform: translateX(0);
+        }
+        
+        .slide-in-header {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #slide-in-title {
+            font-size: var(--font-size-2xl);
+            margin-bottom: 0;
+        }
+
+        #slide-in-close {
+            font-size: var(--font-size-2xl);
+            color: var(--color-slate-500);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: var(--spacing-sm);
+        }
+
+        .slide-in-body {
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        #slide-in-image {
+            width: 100%;
+            height: auto;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--spacing-lg);
+            background-color: var(--color-light);
+            object-fit: contain;
+        }
+        #slide-in-image-container {
+             width: 100%;
+             height: 200px;
+             margin: 0 auto var(--spacing-lg);
+             overflow: hidden;
+        }
+        #slide-in-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: var(--border-radius-lg);
+        }
+
+        #slide-in-content p {
+            margin-bottom: var(--spacing-md);
+        }
+
+        @media (max-width: 767px) {
+            #details-slide-in {
+                width: 100%;
+                max-width: none;
+            }
+        
+            .slide-in-header {
+                padding: var(--spacing-sm) var(--spacing-md);
+            }
+        
+            .slide-in-body {
+                padding: var(--spacing-md);
+            }
+        
+            #slide-in-title {
+                font-size: var(--font-size-xl);
+            }
+        
+            #slide-in-close {
+                font-size: var(--font-size-xl);
+            }
+        }
+
+        .services-section-header h1 {
+            font-size: var(--font-size-4xl);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            will-change: opacity, transform;
+        }
+        
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .reveal-delay-1 { transition-delay: 150ms; }
+        .reveal-delay-2 { transition-delay: 300ms; }
+        .reveal-delay-3 { transition-delay: 450ms; }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+        
+        /* New styles for the blog page */
+        .blog-filters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+        .blog-filter-pill {
+            background-color: var(--color-light-gray);
+            border-radius: var(--border-radius-full);
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-medium);
+        }
+        .blog-filter-pill:hover,
+        .blog-filter-pill.active {
+            background-color: var(--color-accent-magenta);
+            color: var(--color-white);
+        }
+        .search-bar {
+            width: 100%;
+            max-width: 600px;
+            margin: var(--spacing-lg) auto var(--spacing-xl);
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: var(--font-size-base);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-medium);
+        }
+        .search-bar:focus {
+            box-shadow: var(--shadow-md);
+        }
+        .featured-blogs {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: var(--spacing-xl);
+          margin-bottom: var(--spacing-2xl);
+        }
+        .featured-post-card {
+          border: 1px solid var(--color-border);
+          border-radius: var(--border-radius-xl);
+          overflow: hidden;
+          box-shadow: var(--shadow-md);
+          display: flex;
+          flex-direction: column;
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+          cursor: pointer;
+        }
+        .featured-post-card:hover {
+          transform: translateY(-5px);
+          box-shadow: var(--shadow-lg);
+        }
+        .featured-post-card .post-image {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+        }
+        .featured-post-card .post-content {
+          padding: var(--spacing-lg);
+          display: flex;
+          flex-direction: column;
+          flex-grow: 1;
+        }
+        .featured-post-card h3 {
+          font-size: var(--font-size-xl);
+          color: var(--color-slate-900);
+          margin-bottom: var(--spacing-sm);
+        }
+        .featured-post-card .post-meta {
+          font-size: var(--font-size-sm);
+          color: var(--color-slate-500);
+          margin-bottom: var(--spacing-md);
+        }
+        .featured-post-card p {
+          font-size: var(--font-size-sm);
+          flex-grow: 1;
+        }
+        .blog-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-xl);
+        }
+        .blog-card {
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+        .blog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        .blog-card .post-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .blog-card .post-content {
+            padding: var(--spacing-md);
+        }
+        .blog-card .post-content h3 {
+            font-size: var(--font-size-lg);
+            color: var(--color-primary-base);
+            margin-bottom: var(--spacing-sm);
+        }
+        .blog-card .post-content p {
+            font-size: var(--font-size-sm);
+            color: var(--color-slate-800);
+            flex-grow: 1;
+        }
+        .blog-card .post-meta {
+            font-size: var(--font-size-sm);
+            color: var(--color-slate-500);
+            margin-top: var(--spacing-sm);
+        }
+        .blog-card .post-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+        }
+        .blog-card .post-pills span {
+            font-size: var(--font-size-sm);
+            color: var(--color-white);
+            background-color: var(--color-slate-500);
+            border-radius: var(--border-radius-full);
+            padding: 2px 8px;
+            font-weight: 500;
+        }
+        #slide-in-content h2, #slide-in-content h3 {
+          margin-top: var(--spacing-md);
+          margin-bottom: var(--spacing-sm);
+        }
+        #slide-in-content h2 {
+          font-size: var(--font-size-2xl);
+        }
+        #slide-in-content h3 {
+          font-size: var(--font-size-xl);
+        }
+        .share-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--spacing-sm);
+          margin-top: var(--spacing-lg);
+          justify-content: center;
+        }
+        .share-buttons a {
+          background-color: var(--color-light-gray);
+          color: var(--color-dark);
+          width: 40px;
+          height: 40px;
+          border-radius: var(--border-radius-full);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: var(--transition-medium);
+        }
+        .share-buttons a:hover {
+          color: var(--color-white);
+        }
+        .share-buttons .share-x:hover {
+          background-color: #000000;
+        }
+        .share-buttons .share-linkedin:hover {
+          background-color: #0077b5;
+        }
+        .share-buttons .share-facebook:hover {
+          background-color: #3b5998;
+        }
+        .share-buttons .share-instagram:hover {
+          background: #C13584;
+        }
+        .share-buttons .share-whatsapp:hover {
+          background-color: #25d366;
+        }
+        .share-buttons .share-copy:hover {
+          background-color: var(--color-primary-base);
+        }
+        
+    </style>
+</head>
+<body>
+
+    <!-- Main Content Area -->
+    <main>
+        <div class="section">
+            <div class="container">
+                <div class="section-header reveal">
+                    <center>
+                        <div class="heading-accent-line"></div>
+                    </center>
+                    <h1>Digital Marketing Articles</h1>
+                    <p class="section-description">Insights and strategies to help your business thrive in the digital world. Browse our collection of articles on SEO, social media, web development, and more.</p>
+                </div>
+                
+                <!-- Search and Filters Section -->
+                <div class="text-center reveal reveal-delay-1">
+                    <input type="text" id="blog-search" class="search-bar" placeholder="Search for an article...">
+                    <div id="blog-filters" class="blog-filters"></div>
+                </div>
+
+                <!-- Featured Posts Section -->
+                <h2 class="text-center reveal" style="margin-top: var(--spacing-3xl);">Featured Articles</h2>
+                <div id="featured-posts-container" class="featured-blogs"></div>
+
+                <h2 class="text-center reveal" style="margin-top: var(--spacing-3xl);">All Articles</h2>
+                <!-- Blog Posts List -->
+                <div id="blog-posts-container" class="blog-list" style="margin-top: var(--spacing-xl);"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Slide-in Panel for Detailed View -->
+    <div id="details-overlay"></div>
+    <div id="details-slide-in">
+        <div class="slide-in-header">
+            <h2 id="slide-in-title"></h2>
+            <button id="slide-in-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="slide-in-body">
+            <div id="slide-in-image-container">
+                <img id="slide-in-image" src="" alt="" onerror="this.onerror=null;this.src='https://placehold.co/800x400/122a3f/ffffff?text=Image+Not+Found';">
+            </div>
+            <div id="slide-in-content"></div>
+        </div>
+    </div>
+    
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top" id="back-to-top">
+        <i class="fas fa-chevron-up"></i>
+    </a>
+    
+    <!-- Quote Tab -->
+    <a href="#" class="quote-tab" id="quote-tab" style="display: none;">
+        <span>Get a Quote</span>
+    </a>
+
+    <script>
+        const blogPosts = [
+            {
+              "id": "post-1",
+              "title": "Mastering SEO for Small Businesses in Southeast Asia",
+              "categories": ["SEO", "Content Strategy"],
+              "image": "https://images.unsplash.com/photo-1549923746-c502d488b113?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Boost your business's online visibility with these essential SEO strategies tailored for the Southeast Asian market.",
+              "date": "2024-10-27",
+              "featured": true,
+              "long_content": `
+                <h2>Mastering SEO for Small Businesses in Southeast Asia</h2>
+                <p>Local SEO is crucial for small businesses targeting customers in specific cities like Vientiane or Bangkok. By optimizing your Google Business Profile and building local citations, you can attract nearby customers and grow your brand.</p>
+                
+                <h3>Key Steps to Rank Higher</h3>
+                <ul>
+                  <li><strong>Google Business Profile:</strong> Claim and fully optimize your GMB listing with accurate information and high-quality photos.</li>
+                  <li><strong>Local Citations:</strong> Ensure your Name, Address, and Phone number are consistent across all online directories.</li>
+                  <li><strong>User Reviews:</strong> Actively encourage and respond to customer reviews on platforms like Google and Facebook.</li>
+                </ul>
+                
+                <h3>Long-Tail Keywords for Success</h3>
+                <p>Don't just target broad keywords. Instead, focus on specific, long-tail keywords that your ideal customer is searching for. For example, instead of "digital marketing", try "digital marketing agency for small business in Laos".</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Mastering SEO for Small Businesses in Southeast Asia', 'https://wordsthatsells.website/en/resources/articles/post-1'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Mastering SEO for Small Businesses in Southeast Asia', 'https://wordsthatsells.website/en/resources/articles/post-1'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Mastering SEO for Small Businesses in Southeast Asia', 'https://wordsthatsells.website/en/resources/articles/post-1'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Mastering SEO for Small Businesses in Southeast Asia', 'https://wordsthatsells.website/en/resources/articles/post-1'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-1'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-1"
+            },
+            {
+              "id": "post-2",
+              "title": "Crafting High-Converting Content for Your Website",
+              "categories": ["Content Creation", "Copywriting"],
+              "image": "https://images.unsplash.com/photo-1522204523234-8729aa6e993f?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Learn the art of creating content that not only engages your audience but also drives them to take action and become customers.",
+              "date": "2024-10-26",
+              "featured": false,
+              "long_content": `
+                <h2>Crafting High-Converting Content for Your Website</h2>
+                <p>Content is more than just words on a page; it's a strategic tool designed to guide your audience through a journey from discovery to conversion. By focusing on your user's needs, you can create compelling content that delivers results.</p>
+                
+                <h3>Essential Elements of a Great Post</h3>
+                <ul>
+                  <li><strong>Engaging Headline:</strong> Grab your reader's attention with a clear, benefit-driven headline.</li>
+                  <li><strong>Problem-Solution Structure:</strong> Clearly articulate a problem your audience faces and present your solution.</li>
+                  <li><strong>Strong Call-to-Action:</strong> End every piece of content with a clear call to action, telling your reader exactly what to do next.</li>
+                </ul>
+                
+                <h3>The 3% Rule for Keyword Density</h3>
+                <p>When writing, aim for a keyword density of around 3%. This means for every 100 words, your primary keyword should appear about 3 times. This helps with SEO without making your content sound unnatural or spammy.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Crafting High-Converting Content for Your Website', 'https://wordsthatsells.website/en/resources/articles/post-2'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Crafting High-Converting Content for Your Website', 'https://wordsthatsells.website/en/resources/articles/post-2'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Crafting High-Converting Content for Your Website', 'https://wordsthatsells.website/en/resources/articles/post-2'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Crafting High-Converting Content for Your Website', 'https://wordsthatsells.website/en/resources/articles/post-2'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-2'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-2"
+            },
+            {
+              "id": "post-3",
+              "title": "Social Media: From Likes to Leads",
+              "categories": ["Social Media", "Lead Generation"],
+              "image": "https://images.unsplash.com/photo-1552581234-26160f608093?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Transform your social media strategy from a simple branding exercise into a powerful lead-generating machine.",
+              "date": "2024-10-25",
+              "featured": true,
+              "long_content": `
+                <h2>Social Media: From Likes to Leads</h2>
+                <p>While likes and shares are nice, the real value of social media lies in its ability to generate qualified leads. By using a strategic approach, you can turn your followers into paying customers.</p>
+                
+                <h3>Effective Social Media Tactics</h3>
+                <ul>
+                  <li><strong>Targeted Campaigns:</strong> Use audience data to create hyper-targeted ads that reach your ideal customer.</li>
+                  <li><strong>Lead Magnets:</strong> Offer valuable content like e-books or checklists in exchange for an email address.</li>
+                  <li><strong>Engaging Content:</strong> Create polls, quizzes, and live Q&A sessions to engage your audience and gather valuable information.</li>
+                </ul>
+                
+                <h3>The Power of Facebook Groups</h3>
+                <p>Don't underestimate the power of Facebook groups. By building a community around your brand, you can establish yourself as an authority and generate a steady stream of warm leads.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Social Media: From Likes to Leads', 'https://wordsthatsells.website/en/resources/articles/post-3'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Social Media: From Likes to Leads', 'https://wordsthatsells.website/en/resources/articles/post-3'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Social Media: From Likes to Leads', 'https://wordsthatsells.website/en/resources/articles/post-3'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Social Media: From Likes to Leads', 'https://wordsthatsells.website/en/resources/articles/post-3'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-3'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-3"
+            },
+            {
+              "id": "post-4",
+              "title": "The Ultimate Guide to E-commerce SEO",
+              "categories": ["SEO", "E-commerce"],
+              "image": "https://images.unsplash.com/photo-1583947215286-905c14101d91?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "A deep dive into the strategies needed to rank your online store on Google and drive organic sales.",
+              "date": "2024-10-24",
+              "featured": false,
+              "long_content": `
+                <h2>The Ultimate Guide to E-commerce SEO</h2>
+                <p>Your product pages are the heart of your online store. To make them SEO-friendly, you need to write unique, compelling product descriptions, use high-quality images, and include relevant keywords in the title and meta description.</p>
+                
+                <h3>The Importance of Structured Data</h3>
+                <ul>
+                  <li><strong>Product Schema:</strong> Use product schema markup to tell Google about your products, including price, reviews, and availability.</li>
+                  <li><strong>Breadcrumbs:</strong> Implement breadcrumb navigation to improve site structure and user experience.</li>
+                  <li><strong>URL Optimization:</strong> Create clean, user-friendly URLs for all your product and category pages.</li>
+                </ul>
+                
+                <h3>Winning with Content</h3>
+                <p>In addition to optimizing your product pages, create blog content that targets your audience's interests. For example, if you sell hiking gear, write articles about "The Best Hiking Trails in Southeast Asia".</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'The Ultimate Guide to E-commerce SEO', 'https://wordsthatsells.website/en/resources/articles/post-4'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'The Ultimate Guide to E-commerce SEO', 'https://wordsthatsells.website/en/resources/articles/post-4'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'The Ultimate Guide to E-commerce SEO', 'https://wordsthatsells.website/en/resources/articles/post-4'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'The Ultimate Guide to E-commerce SEO', 'https://wordsthatsells.website/en/resources/articles/post-4'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-4'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-4"
+            },
+            {
+              "id": "post-5",
+              "title": "App Development: Your Business on the Go",
+              "categories": ["Web Development", "App Development"],
+              "image": "https://images.unsplash.com/photo-1533722238323-956554559b3a?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Explore how a mobile app can digitize your business, improve customer engagement, and give you a competitive edge in the market.",
+              "date": "2024-10-23",
+              "featured": false,
+              "long_content": `
+                <h2>App Development: Your Business on the Go</h2>
+                <p>A mobile app provides a direct line of communication to your customers, offering a personalized and convenient experience. It can be used for loyalty programs, push notifications, and exclusive offers, all of which drive sales and repeat business.</p>
+                
+                <h3>Key App Development Concepts</h3>
+                <ul>
+                  <li><strong>Native vs. Cross-Platform:</strong> Understand the pros and cons of building a native app (for a single OS) versus a cross-platform app (for multiple OS).</li>
+                  <li><strong>User Experience (UX):</strong> Focus on creating a seamless and intuitive user experience that makes your app a pleasure to use.</li>
+                  <li><strong>App Store Optimization (ASO):</strong> Optimize your app's listing with relevant keywords, compelling screenshots, and a clear description to improve its discoverability.</li>
+                </ul>
+                
+                <h3>Starting Your App Journey</h3>
+                <p>Don't jump into app development without a clear plan. Start by identifying a specific problem your app will solve, then create a simple MVP (Minimum Viable Product) to test your idea and gather user feedback.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'App Development: Your Business on the Go', 'https://wordsthatsells.website/en/resources/articles/post-5'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'App Development: Your Business on the Go', 'https://wordsthatsells.website/en/resources/articles/post-5'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'App Development: Your Business on the Go', 'https://wordsthatsells.website/en/resources/articles/post-5'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'App Development: Your Business on the Go', 'https://wordsthatsells.website/en/resources/articles/post-5'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-5'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-5"
+            },
+            {
+              "id": "post-6",
+              "title": "The Power of Data-Driven Marketing for Your SME",
+              "categories": ["Analytics", "Marketing Strategy"],
+              "image": "https://images.unsplash.com/photo-1551288049-ae80530d2f83?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Unlock the potential of your marketing campaigns by using data to make smarter decisions and achieve higher ROI.",
+              "date": "2024-10-22",
+              "featured": false,
+              "long_content": `
+                <h2>The Power of Data-Driven Marketing for Your SME</h2>
+                <p>Data-driven marketing is a strategy that uses customer data to create more personalized and effective campaigns. By analyzing customer behavior, you can understand their needs and preferences, allowing you to tailor your messaging and offers for maximum impact.</p>
+                
+                <h3>Tools of the Trade</h3>
+                <ul>
+                  <li><strong>Google Analytics:</strong> Track website traffic, user behavior, and conversion rates.</li>
+                  <li><strong>CRM Software:</strong> Use a CRM to manage customer relationships and track sales data.</li>
+                  <li><strong>A/B Testing:</strong> Use tools like Google Optimize to test different versions of your landing pages and ads.</li>
+                </ul>
+                
+                <h3>Making it Actionable</h3>
+                <p>Start with a simple goal, like increasing website conversions. Then, use your data to identify a problem, create a hypothesis, and test your solution. For example, if your bounce rate is high, you might test a new headline to see if it improves engagement.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'The Power of Data-Driven Marketing for Your SME', 'https://wordsthatsells.website/en/resources/articles/post-6'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'The Power of Data-Driven Marketing for Your SME', 'https://wordsthatsells.website/en/resources/articles/post-6'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'The Power of Data-Driven Marketing for Your SME', 'https://wordsthatsells.website/en/resources/articles/post-6'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'The Power of Data-Driven Marketing for Your SME', 'https://wordsthatsells.website/en/resources/articles/post-6'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-6'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-6"
+            },
+            {
+              "id": "post-7",
+              "title": "Boosting Your Business with a Google Business Profile",
+              "categories": ["SEO", "Local SEO"],
+              "image": "https://images.unsplash.com/photo-1579783902671-92b455b885da?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Learn how to optimize your Google Business Profile to attract local customers and rank higher in local search results.",
+              "date": "2024-10-21",
+              "featured": false,
+              "long_content": `
+                <h2>Boosting Your Business with a Google Business Profile</h2>
+                <p>For small businesses, local search is a game-changer. By optimizing your Google Business Profile, you can appear in the coveted local pack—the block of three businesses that appears at the top of local search results.</p>
+                
+                <h3>Steps to a Perfect Profile</h3>
+                <ul>
+                  <li><strong>Complete Your Profile:</strong> Fill out every section of your profile, including your business hours, contact information, and a clear description.</li>
+                  <li><strong>High-Quality Photos:</strong> Upload photos of your business, products, and team to make your profile more appealing to potential customers.</li>
+                  <li><strong>Respond to Reviews:</strong> Respond to all customer reviews, both positive and negative, to show that you value customer feedback.</li>
+                </ul>
+                
+                <h3>Driving Traffic with Posts</h3>
+                <p>Use the Google Business Profile posts feature to share updates, promotions, and news about your business. These posts appear on your profile and in the local pack, driving traffic and engagement.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Boosting Your Business with a Google Business Profile', 'https://wordsthatsells.website/en/resources/articles/post-7'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Boosting Your Business with a Google Business Profile', 'https://wordsthatsells.website/en/resources/articles/post-7'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Boosting Your Business with a Google Business Profile', 'https://wordsthatsells.website/en/resources/articles/post-7'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Boosting Your Business with a Google Business Profile', 'https://wordsthatsells.website/en/resources/articles/post-7'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-7'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-7"
+            },
+            {
+              "id": "post-8",
+              "title": "Content Strategy: The Foundation of Digital Marketing",
+              "categories": ["Content Strategy", "Marketing"],
+              "image": "https://images.unsplash.com/photo-1517430489679-b14197e44a30?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "A guide to building a strong content strategy that aligns with your business goals and resonates with your target audience.",
+              "date": "2024-10-20",
+              "featured": false,
+              "long_content": `
+                <h2>Content Strategy: The Foundation of Digital Marketing</h2>
+                <p>A content strategy is a plan for creating, publishing, and managing content that aligns with your business goals. It's more than just a blog post; it's a blueprint for all your content, from social media to whitepapers and videos.</p>
+                
+                <h3>Key Elements of a Strategy</h3>
+                <ul>
+                  <li><strong>Define Your Audience:</strong> Know who you're talking to and what their pain points are.</li>
+                  <li><strong>Set Clear Goals:</strong> What do you want your content to achieve? (e.g., generate leads, increase brand awareness, drive sales).</li>
+                  <li><strong>Choose Your Channels:</strong> Decide where your content will live and how you will promote it (e.g., blog, social media, email).</li>
+                </ul>
+                
+                <h3>Content That Converts</h3>
+                <p>Your content should always provide value. Whether it's an educational guide, an entertaining video, or a compelling case study, your content should help your audience solve a problem and ultimately lead them to your solution.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Content Strategy: The Foundation of Digital Marketing', 'https://wordsthatsells.website/en/resources/articles/post-8'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Content Strategy: The Foundation of Digital Marketing', 'https://wordsthatsells.website/en/resources/articles/post-8'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Content Strategy: The Foundation of Digital Marketing', 'https://wordsthatsells.website/en/resources/articles/post-8'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Content Strategy: The Foundation of Digital Marketing', 'https://wordsthatsells.website/en/resources/articles/post-8'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-8'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-8"
+            },
+            {
+              "id": "post-9",
+              "title": "E-commerce for Beginners: How to Set Up an Online Store",
+              "categories": ["E-commerce", "Web Development"],
+              "image": "https://images.unsplash.com/photo-1555529712-ae29e063a8a3?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "A comprehensive guide to launching your first online store, from choosing a platform to adding products and setting up payments.",
+              "date": "2024-10-19",
+              "featured": true,
+              "long_content": `
+                <h2>E-commerce for Beginners: How to Set Up an Online Store</h2>
+                <p>The first step is to choose an e-commerce platform. Options like Shopify, WooCommerce, and Squarespace offer a variety of features and pricing plans. Consider your budget, technical skills, and business needs when making a decision.</p>
+                
+                <h3>Essential Features to Look For</h3>
+                <ul>
+                  <li><strong>Mobile-Friendly Design:</strong> Most of your traffic will come from mobile, so a responsive design is a must.</li>
+                  <li><strong>Secure Payment Gateways:</strong> Offer a variety of payment options, including local and international gateways, to cater to your customers.</li>
+                  <li><strong>SEO-Friendly Features:</strong> Make sure the platform allows you to optimize your product pages and meta descriptions for search engines.</li>
+                </ul>
+                
+                <h3>Launching Your Store</h3>
+                <p>Don't wait for perfection. Launch your store with a few key products and a clear value proposition. Then, use marketing to drive traffic and gather customer feedback to improve your store over time.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'E-commerce for Beginners: How to Set Up an Online Store', 'https://wordsthatsells.website/en/resources/articles/post-9'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'E-commerce for Beginners: How to Set Up an Online Store', 'https://wordsthatsells.website/en/resources/articles/post-9'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'E-commerce for Beginners: How to Set Up an Online Store', 'https://wordsthatsells.website/en/resources/articles/post-9'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'E-commerce for Beginners: How to Set Up an Online Store', 'https://wordsthatsells.website/en/resources/articles/post-9'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-9'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-9"
+            },
+            {
+              "id": "post-10",
+              "title": "Instagram Reels: A Guide for Small Businesses",
+              "categories": ["Social Media", "Content Creation"],
+              "image": "https://images.unsplash.com/photo-1616467319918-2e06180630b4?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Unlock the power of Instagram Reels to grow your brand, engage your audience, and drive traffic to your website.",
+              "date": "2024-10-18",
+              "featured": false,
+              "long_content": `
+                <h2>Instagram Reels: A Guide for Small Businesses</h2>
+                <p>Instagram Reels are a powerful tool for brand discovery and engagement. The short-form video format is highly engaging and can help you reach a new audience beyond your existing followers.</p>
+                
+                <h3>Tips for Creating Viral Reels</h3>
+                <ul>
+                  <li><strong>Use Trending Audio:</strong> Jump on trending audio to increase your video's visibility.</li>
+                  <li><strong>Create Value-Driven Content:</strong> Share quick tips, tutorials, or behind-the-scenes content that your audience will find valuable.</li>
+                  <li><strong>Use Captions and Text:</strong> Many people watch without sound, so be sure to include captions and text overlays to get your message across.</li>
+                </ul>
+                
+                <h3>The Power of Consistency</h3>
+                <p>Just like with a blog, consistency is key. Post new Reels regularly to keep your audience engaged and stay top-of-mind. Use analytics to track what content performs best and double down on what works.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Instagram Reels: A Guide for Small Businesses', 'https://wordsthatsells.website/en/resources/articles/post-10'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Instagram Reels: A Guide for Small Businesses', 'https://wordsthatsells.website/en/resources/articles/post-10'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Instagram Reels: A Guide for Small Businesses', 'https://wordsthatsells.website/en/resources/articles/post-10'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Instagram Reels: A Guide for Small Businesses', 'https://wordsthatsells.website/en/resources/articles/post-10'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-10'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-10"
+            },
+            {
+              "id": "post-11",
+              "title": "Email Marketing: Building a Loyal Customer Base",
+              "categories": ["Marketing Strategy", "Lead Generation"],
+              "image": "https://images.unsplash.com/photo-1543286386-2e659306cd6c?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Learn how to build an email list, create engaging newsletters, and turn subscribers into repeat customers.",
+              "date": "2024-10-17",
+              "featured": false,
+              "long_content": `
+                <h2>Email Marketing: Building a Loyal Customer Base</h2>
+                <p>In a world of ever-changing algorithms, your email list is the one digital asset you truly own. It provides a direct line of communication to your audience, allowing you to build relationships and drive sales without relying on third-party platforms.</p>
+                
+                <h3>Key Email Marketing Strategies</h3>
+                <ul>
+                  <li><strong>Create a Lead Magnet:</strong> Offer a free e-book, checklist, or guide in exchange for an email address.</li>
+                  <li><strong>Segment Your List:</strong> Divide your subscribers into different groups based on their interests and behavior to send more personalized messages.</li>
+                  <li><strong>Automate Your Campaigns:</strong> Use an email marketing tool to create automated sequences that send the right message at the right time.</li>
+                </ul>
+                
+                <h3>Content for Your Newsletter</h3>
+                <p>Your newsletter shouldn't just be about sales. Share valuable content like blog posts, industry news, and exclusive tips to build trust and keep your audience engaged. A good rule of thumb is to follow an 80/20 rule: 80% value, 20% promotion.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Email Marketing: Building a Loyal Customer Base', 'https://wordsthatsells.website/en/resources/articles/post-11'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Email Marketing: Building a Loyal Customer Base', 'https://wordsthatsells.website/en/resources/articles/post-11'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Email Marketing: Building a Loyal Customer Base', 'https://wordsthatsells.website/en/resources/articles/post-11'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Email Marketing: Building a Loyal Customer Base', 'https://wordsthatsells.website/en/resources/articles/post-11'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-11'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-11"
+            },
+            {
+              "id": "post-12",
+              "title": "Google Analytics 4: What Small Businesses Need to Know",
+              "categories": ["Analytics", "Business Tools"],
+              "image": "https://images.unsplash.com/photo-1550592751-b0e77d95c1c0?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "A breakdown of Google Analytics 4, its key features, and how to use it to track your website's performance and customer journey.",
+              "date": "2024-10-16",
+              "featured": false,
+              "long_content": `
+                <h2>Google Analytics 4: What Small Businesses Need to Know</h2>
+                <p>Unlike its predecessor, Google Analytics 4 (GA4) is an event-based analytics tool. This means that instead of tracking sessions and page views, it tracks every user action as an "event." This provides a more detailed and accurate view of the customer journey across your website and app.</p>
+                
+                <h3>Key GA4 Features</h3>
+                <ul>
+                  <li><strong>Customizable Reports:</strong> Create custom reports to track the metrics that matter most to your business.</li>
+                  <li><strong>Predictive Metrics:</strong> Use AI-powered predictive metrics to forecast customer behavior and identify potential high-value customers.</li>
+                  <li><strong>Enhanced Measurement:</strong> GA4 automatically tracks key events like file downloads and outbound clicks, saving you the hassle of manual setup.</li>
+                </ul>
+                
+                <h3>Getting Started with GA4</h3>
+                <p>If you're new to GA4, start by setting up your account and getting familiar with the interface. Then, focus on tracking a few key metrics and building custom reports to get a clear picture of your website's performance.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Google Analytics 4: What Small Businesses Need to Know', 'https://wordsthatsells.website/en/resources/articles/post-12'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Google Analytics 4: What Small Businesses Need to Know', 'https://wordsthatsells.website/en/resources/articles/post-12'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Google Analytics 4: What Small Businesses Need to Know', 'https://wordsthatsells.website/en/resources/articles/post-12'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Google Analytics 4: What Small Businesses Need to Know', 'https://wordsthatsells.website/en/resources/articles/post-12'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-12'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-12"
+            },
+            {
+              "id": "post-13",
+              "title": "Using AI for Content Creation: A Guide for Entrepreneurs",
+              "categories": ["Content Creation", "AI"],
+              "image": "https://images.unsplash.com/photo-1620138546114-c116d82087d0?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "A guide to leveraging AI tools to generate ideas, draft content, and streamline your content creation process.",
+              "date": "2024-10-15",
+              "featured": false,
+              "long_content": `
+                <h2>Using AI for Content Creation: A Guide for Entrepreneurs</h2>
+                <p>AI isn't here to replace human writers; it's a powerful tool to enhance their creativity and productivity. By using AI to handle repetitive tasks like brainstorming ideas and drafting outlines, you can free up your time to focus on the strategic and creative aspects of your content.</p>
+                
+                <h3>AI-Powered Content Tools</h3>
+                <ul>
+                  <li><strong>ChatGPT:</strong> Use ChatGPT to brainstorm ideas, write headlines, and draft content outlines.</li>
+                  <li><strong>Midjourney:</strong> Use AI image generators to create unique and engaging visuals for your blog posts and social media.</li>
+                  <li><strong>Grammarly:</strong> Use Grammarly to proofread your content and ensure it's free of spelling and grammar errors.</li>
+                </ul>
+                
+                <h3>The Importance of a Human Touch</h3>
+                <p>While AI can help with content creation, it's crucial to add a human touch. Edit and refine all AI-generated content to ensure it aligns with your brand voice, provides value to your audience, and meets your quality standards.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Using AI for Content Creation: A Guide for Entrepreneurs', 'https://wordsthatsells.website/en/resources/articles/post-13'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Using AI for Content Creation: A Guide for Entrepreneurs', 'https://wordsthatsells.website/en/resources/articles/post-13'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Using AI for Content Creation: A Guide for Entrepreneurs', 'https://wordsthatsells.website/en/resources/articles/post-13'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Using AI for Content Creation: A Guide for Entrepreneurs', 'https://wordsthatsells.website/en/resources/articles/post-13'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-13'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-13"
+            },
+            {
+              "id": "post-14",
+              "title": "Why You Need a Mobile-Friendly Website in 2024",
+              "categories": ["Web Development", "SEO"],
+              "image": "https://images.unsplash.com/photo-1542831371-29b0f74f9413?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Discover why a mobile-friendly website is no longer an option but a necessity for business growth and a critical ranking factor.",
+              "date": "2024-10-14",
+              "featured": false,
+              "long_content": `
+                <h2>Why You Need a Mobile-Friendly Website in 2024</h2>
+                <p>Google's mobile-first indexing means that it primarily uses the mobile version of your website to crawl and index your content. If your website isn't mobile-friendly, you're at a serious disadvantage in the search results.</p>
+                
+                <h3>Key Elements of a Mobile-Friendly Site</h3>
+                <ul>
+                  <li><strong>Responsive Design:</strong> Ensure your website's layout automatically adjusts to fit any screen size.</li>
+                  <li><strong>Fast Loading Speed:</strong> Optimize your website's performance to ensure it loads quickly on mobile devices.</li>
+                  <li><strong>Easy Navigation:</strong> Use a simple and intuitive navigation menu that makes it easy for mobile users to find what they're looking for.</li>
+                </ul>
+                
+                <h3>Improving User Experience</h3>
+                <p>A mobile-friendly website provides a better user experience, which leads to lower bounce rates and higher engagement. This, in turn, sends positive signals to Google, helping your website rank higher in search results.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Why You Need a Mobile-Friendly Website in 2024', 'https://wordsthatsells.website/en/resources/articles/post-14'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Why You Need a Mobile-Friendly Website in 2024', 'https://wordsthatsells.website/en/resources/articles/post-14'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Why You Need a Mobile-Friendly Website in 2024', 'https://wordsthatsells.website/en/resources/articles/post-14'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Why You Need a Mobile-Friendly Website in 2024', 'https://wordsthatsells.website/en/resources/articles/post-14'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-14'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-14"
+            },
+            {
+              "id": "post-15",
+              "title": "Unlocking the Power of X (Formerly Twitter) for Business",
+              "categories": ["Social Media", "Marketing Strategy"],
+              "image": "https://images.unsplash.com/photo-1616467319918-2e06180630b4?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Learn how to use X (formerly Twitter) to build your brand, engage with customers, and drive traffic to your website.",
+              "date": "2024-10-13",
+              "featured": false,
+              "long_content": `
+                <h2>Unlocking the Power of X (Formerly Twitter) for Business</h2>
+                <p>X is a fast-paced platform that's perfect for sharing quick updates, industry insights, and engaging with your audience. By consistently posting valuable content, you can establish yourself as an authority and build a loyal following.</p>
+                
+                <h3>Effective X Strategies</h3>
+                <ul>
+                  <li><strong>Use Hashtags:</strong> Use relevant hashtags to increase your visibility and reach a new audience.</li>
+                  <li><strong>Engage with Your Audience:</strong> Respond to comments, retweet relevant content, and participate in conversations to build relationships.</li>
+                  <li><strong>Run a Contest:</strong> Run a contest or giveaway to increase your followers and engagement.</li>
+                </ul>
+                
+                <h3>Driving Traffic to Your Website</h3>
+                <p>Use X to drive traffic to your website by sharing links to your latest blog posts, guides, and products. Use a URL shortener and tracking parameters to measure your success and optimize your strategy.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Unlocking the Power of X (Formerly Twitter) for Business', 'https://wordsthatsells.website/en/resources/articles/post-15'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Unlocking the Power of X (Formerly Twitter) for Business', 'https://wordsthatsells.website/en/resources/articles/post-15'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Unlocking the Power of X (Formerly Twitter) for Business', 'https://wordsthatsells.website/en/resources/articles/post-15'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Unlocking the Power of X (Formerly Twitter) for Business', 'https://wordsthatsells.website/en/resources/articles/post-15'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-15'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-15"
+            },
+            {
+              "id": "post-16",
+              "title": "LinkedIn for Business: A Professional's Guide",
+              "categories": ["Social Media", "Business Tools"],
+              "image": "https://images.unsplash.com/photo-1611944212451-b8449c2d1b7e?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Harness the power of LinkedIn to network, build your brand, and generate leads for your business.",
+              "date": "2024-10-12",
+              "featured": false,
+              "long_content": `
+                <h2>LinkedIn for Business: A Professional's Guide</h2>
+                <p>LinkedIn is the world's largest professional social network. It's an essential platform for B2B marketing, networking, and lead generation. By building a strong brand presence on LinkedIn, you can connect with key decision-makers and grow your business.</p>
+                
+                <h3>Key Strategies for Success</h3>
+                <ul>
+                  <li><strong>Optimize Your Profile:</strong> Create a professional and compelling profile that highlights your expertise and value proposition.</li>
+                  <li><strong>Share Valuable Content:</strong> Share articles, insights, and thought leadership content to establish yourself as an authority in your industry.</li>
+                  <li><strong>Engage with Your Network:</strong> Comment on posts, participate in conversations, and connect with people in your target audience.</li>
+                </ul>
+                
+                <h3>Driving Leads with LinkedIn</h3>
+                <p>Use LinkedIn to generate leads by creating targeted campaigns, using lead magnets, and connecting with potential customers. Use LinkedIn Sales Navigator to find and connect with the right people, and use a CRM to track your leads.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'LinkedIn for Business: A Professional\'s Guide', 'https://wordsthatsells.website/en/resources/articles/post-16'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'LinkedIn for Business: A Professional\'s Guide', 'https://wordsthatsells.website/en/resources/articles/post-16'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'LinkedIn for Business: A Professional\'s Guide', 'https://wordsthatsells.website/en/resources/articles/post-16'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'LinkedIn for Business: A Professional\'s Guide', 'https://wordsthatsells.website/en/resources/articles/post-16'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-16'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-16"
+            },
+            {
+              "id": "post-17",
+              "title": "Creating a Digital Asset Library for Your SME",
+              "categories": ["Content Creation", "Business Tools"],
+              "image": "https://images.unsplash.com/photo-1549420076-a94f31c26b97?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Learn how to organize and manage your digital assets to streamline your workflow and improve team collaboration.",
+              "date": "2024-10-11",
+              "featured": false,
+              "long_content": `
+                <h2>Creating a Digital Asset Library for Your SME</h2>
+                <p>A digital asset library is a centralized repository for all your digital files, including images, videos, logos, and documents. It helps you keep your files organized, easily accessible, and ensures brand consistency across all your marketing materials.</p>
+                
+                <h3>Benefits of a DAM</h3>
+                <ul>
+                  <li><strong>Streamlined Workflow:</strong> Save time by easily finding and sharing the files you need.</li>
+                  <li><strong>Brand Consistency:</strong> Ensure all your team members are using the correct and most up-to-date brand assets.</li>
+                  <li><strong>Improved Collaboration:</strong> Collaborate more effectively with your team by sharing files and leaving comments in one central location.</li>
+                </ul>
+                
+                <h3>Building Your Library</h3>
+                <p>Start by choosing a digital asset management (DAM) tool like Dropbox or Google Drive. Then, create a logical folder structure and set clear naming conventions to ensure your files are easy to find and organize.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Creating a Digital Asset Library for Your SME', 'https://wordsthatsells.website/en/resources/articles/post-17'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Creating a Digital Asset Library for Your SME', 'https://wordsthatsells.website/en/resources/articles/post-17'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Creating a Digital Asset Library for Your SME', 'https://wordsthatsells.website/en/resources/articles/post-17'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Creating a Digital Asset Library for Your SME', 'https://wordsthatsells.website/en/resources/articles/post-17'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-17'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-17"
+            },
+            {
+              "id": "post-18",
+              "title": "How to Conduct a Competitor Analysis for SEO",
+              "categories": ["SEO", "Analytics"],
+              "image": "https://images.unsplash.com/photo-1563986768603-fd23a7304e22?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "Learn how to analyze your competitors' SEO strategies to identify opportunities and gain a competitive edge.",
+              "date": "2024-10-10",
+              "featured": false,
+              "long_content": `
+                <h2>How to Conduct a Competitor Analysis for SEO</h2>
+                <p>A competitor analysis is the process of identifying your key competitors and evaluating their SEO strategies. By understanding what they're doing well and where they're falling short, you can identify opportunities to improve your own SEO and outrank them.</p>
+                
+                <h3>Key Steps to Analysis</h3>
+                <ul>
+                  <li><strong>Identify Your Competitors:</strong> Use a tool like Semrush or Ahrefs to identify your key online competitors.</li>
+                  <li><strong>Analyze Their Keywords:</strong> Find out which keywords they're ranking for and which ones are driving the most traffic to their website.</li>
+                  <li><strong>Examine Their Backlinks:</strong> Analyze their backlink profile to identify opportunities for building your own high-quality backlinks.</li>
+                </ul>
+                
+                <h3>Putting it into Practice</h3>
+                <p>Use the insights from your competitor analysis to create a list of keywords to target, identify content gaps, and build a strategic link-building plan. Then, use these insights to create a plan that will help you outrank your competitors and grow your business.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'How to Conduct a Competitor Analysis for SEO', 'https://wordsthatsells.website/en/resources/articles/post-18'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'How to Conduct a Competitor Analysis for SEO', 'https://wordsthatsells.website/en/resources/articles/post-18'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'How to Conduct a Competitor Analysis for SEO', 'https://wordsthatsells.website/en/resources/articles/post-18'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'How to Conduct a Competitor Analysis for SEO', 'https://wordsthatsells.website/en/resources/articles/post-18'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-18'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-18"
+            },
+            {
+              "id": "post-19",
+              "title": "WordPress SEO: The Ultimate Guide for Beginners",
+              "categories": ["SEO", "Web Development"],
+              "image": "https://images.unsplash.com/photo-1616467319918-2e06180630b4?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "A comprehensive guide to optimizing your WordPress website for search engines and driving organic traffic to your business.",
+              "date": "2024-10-09",
+              "featured": true,
+              "long_content": `
+                <h2>WordPress SEO: The Ultimate Guide for Beginners</h2>
+                <p>WordPress is a powerful platform that's SEO-friendly right out of the box. With its clean code, a variety of SEO plugins, and a simple content management system, it's a great choice for small businesses looking to improve their online presence.</p>
+                
+                <h3>Key SEO Plugins</h3>
+                <ul>
+                  <li><strong>Yoast SEO:</strong> A powerful SEO plugin that helps you optimize your content, meta descriptions, and keywords.</li>
+                  <li><strong>Rank Math:</strong> An all-in-one SEO plugin that provides a variety of features, including a content optimization tool and a keyword tracker.</li>
+                  <li><strong>All in One SEO:</strong> A beginner-friendly SEO plugin that helps you optimize your website for search engines with a few simple clicks.</li>
+                </ul>
+                
+                <h3>Optimizing Your Content</h3>
+                <p>Use a WordPress SEO plugin to optimize your content, meta descriptions, and keywords. Then, create a content calendar and publish new blog posts regularly to keep your website fresh and engaging for your audience.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'WordPress SEO: The Ultimate Guide for Beginners', 'https://wordsthatsells.website/en/resources/articles/post-19'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'WordPress SEO: The Ultimate Guide for Beginners', 'https://wordsthatsells.website/en/resources/articles/post-19'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'WordPress SEO: The Ultimate Guide for Beginners', 'https://wordsthatsells.website/en/resources/articles/post-19'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'WordPress SEO: The Ultimate Guide for Beginners', 'https://wordsthatsells.website/en/resources/articles/post-19'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-19'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-19"
+            },
+            {
+              "id": "post-20",
+              "title": "Email List Building: Your Most Valuable Digital Asset",
+              "categories": ["Lead Generation", "Marketing Strategy"],
+              "image": "https://images.unsplash.com/photo-1579783902671-92b455b885da?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb",
+              "short_description": "A step-by-step guide to building a high-quality email list and nurturing leads into loyal customers.",
+              "date": "2024-10-08",
+              "featured": false,
+              "long_content": `
+                <h2>Email List Building: Your Most Valuable Digital Asset</h2>
+                <p>Your email list is your most valuable digital asset. Unlike social media followers, you own your email list and can communicate with your audience directly. This gives you a powerful tool for building relationships, driving sales, and growing your business.</p>
+                
+                <h3>Strategies to Grow Your List</h3>
+                <ul>
+                  <li><strong>Lead Magnets:</strong> Offer a free e-book, checklist, or guide in exchange for an email address.</li>
+                  <li><strong>Pop-Up Forms:</strong> Use a pop-up form on your website to encourage visitors to subscribe to your newsletter.</li>
+                  <li><strong>Social Media:</strong> Promote your lead magnet and newsletter on social media to drive traffic to your website.</li>
+                </ul>
+                
+                <h3>Nurturing Your Leads</h3>
+                <p>Once you have an email list, the real work begins. Use an email marketing tool to create a series of automated emails that provide value to your subscribers and guide them through a journey from new lead to loyal customer.</p>
+                <div class="share-buttons">
+                  <a href="#" class="share-x" onclick="sharePost('x', 'Email List Building: Your Most Valuable Digital Asset', 'https://wordsthatsells.website/en/resources/articles/post-20'); event.preventDefault();"><i class="fab fa-x-twitter"></i></a>
+                  <a href="#" class="share-linkedin" onclick="sharePost('linkedin', 'Email List Building: Your Most Valuable Digital Asset', 'https://wordsthatsells.website/en/resources/articles/post-20'); event.preventDefault();"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" class="share-facebook" onclick="sharePost('facebook', 'Email List Building: Your Most Valuable Digital Asset', 'https://wordsthatsells.website/en/resources/articles/post-20'); event.preventDefault();"><i class="fab fa-facebook"></i></a>
+                  <a href="#" class="share-instagram" onclick="alert('Instagram sharing is a bit more complex! You\'ll need to manually copy the image and text.'); event.preventDefault();"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', 'Email List Building: Your Most Valuable Digital Asset', 'https://wordsthatsells.website/en/resources/articles/post-20'); event.preventDefault();"><i class="fab fa-whatsapp"></i></a>
+                  <a href="#" class="share-copy" onclick="copyLink('https://wordsthatsells.website/en/resources/articles/post-20'); event.preventDefault();"><i class="fas fa-link"></i></a>
+                </div>
+              `,
+              "read_more_link": "https://wordsthatsells.website/en/resources/articles/post-20"
+            }
+          
+        ];
+        
+        const categories = [...new Set(blogPosts.flatMap(post => post.categories))].sort();
+        const featuredPosts = blogPosts.filter(post => post.featured);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initBlogPosts();
+            initSearch();
+            initPills();
+            initSlidePanel();
+            initFloatingButtons();
+        });
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+
+        function initBlogPosts(posts = blogPosts) {
+            const container = document.getElementById('blog-posts-container');
+            const featuredContainer = document.getElementById('featured-posts-container');
+            
+            // Render featured posts
+            featuredContainer.innerHTML = '';
+            featuredPosts.forEach(post => {
+                const postCard = createPostCard(post, 'featured-post-card');
+                featuredContainer.appendChild(postCard);
+            });
+
+            // Render all other posts
+            container.innerHTML = '';
+            const otherPosts = posts.filter(post => !post.featured);
+            if (otherPosts.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding: 4rem;">No articles found for this search or filter.</p>';
+            } else {
+                otherPosts.forEach(post => {
+                    const postCard = createPostCard(post, 'blog-card');
+                    container.appendChild(postCard);
+                });
+            }
+            
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        }
+
+        function createPostCard(post, cardClass) {
+            const card = document.createElement('a');
+            card.className = `${cardClass} reveal`;
+            card.href = post.read_more_link;
+            card.setAttribute('data-post-id', post.id);
+            card.innerHTML = `
+                <img src="${post.image}" alt="${post.title}" class="post-image" onerror="this.onerror=null;this.src='https://placehold.co/800x400/122a3f/ffffff?text=Image+Not+Found';">
+                <div class="post-content">
+                    <h3>${post.title}</h3>
+                    <p>${post.short_description}</p>
+                    <div class="post-pills">
+                        ${post.categories.map(cat => `<span>${cat}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                openPanel(post);
+            });
+            return card;
+        }
+
+        function initSearch() {
+            const searchBar = document.getElementById('blog-search');
+            searchBar.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = blogPosts.filter(post => {
+                    const titleMatches = post.title.toLowerCase().includes(query);
+                    const descriptionMatches = post.short_description.toLowerCase().includes(query);
+                    return titleMatches || descriptionMatches;
+                });
+                initBlogPosts(filtered);
+            });
+        }
+
+        function initPills() {
+            const filtersContainer = document.getElementById('blog-filters');
+            filtersContainer.innerHTML = '<span class="blog-filter-pill active" data-filter="all">All</span>';
+
+            categories.forEach(category => {
+                const pill = document.createElement('span');
+                pill.className = 'blog-filter-pill';
+                pill.textContent = category;
+                pill.setAttribute('data-filter', category);
+                filtersContainer.appendChild(pill);
+            });
+
+            filtersContainer.addEventListener('click', (e) => {
+                const target = e.target;
+                if (target.classList.contains('blog-filter-pill')) {
+                    document.querySelectorAll('.blog-filter-pill').forEach(p => p.classList.remove('active'));
+                    target.classList.add('active');
+                    const filter = target.getAttribute('data-filter');
+                    
+                    if (filter === 'all') {
+                        initBlogPosts(blogPosts);
+                    } else {
+                        const filtered = blogPosts.filter(post => post.categories.includes(filter));
+                        initBlogPosts(filtered);
+                    }
+                }
+            });
+        }
+        
+        const slideInPanel = document.getElementById('details-slide-in');
+        const overlay = document.getElementById('details-overlay');
+        const closeBtn = document.getElementById('slide-in-close');
+        const slideInTitle = document.getElementById('slide-in-title');
+        const slideInImage = document.getElementById('slide-in-image');
+        const slideInContent = document.getElementById('slide-in-content');
+        
+        function initSlidePanel() {
+            if (!slideInPanel || !overlay || !slideInTitle || !slideInContent) return;
+
+            closeBtn.addEventListener('click', closePanel);
+            overlay.addEventListener('click', closePanel);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && slideInPanel.classList.contains('is-open')) closePanel();
+            });
+        }
+
+        function openPanel(postData) {
+            slideInTitle.textContent = postData.title;
+            slideInImage.src = postData.image;
+            slideInImage.alt = `${postData.title} image`;
+            
+            let contentHTML = `
+                <div class="blog-info-section">
+                    ${postData.long_content}
+                </div>
+                <div class="guide-action-buttons">
+                    <a href="${postData.read_more_link}" class="btn btn-premium" target="_blank">
+                        <i class="fas fa-blog"></i> Read on Blog
+                    </a>
+                </div>
+            `;
+            
+            slideInContent.innerHTML = contentHTML;
+            document.body.classList.add('no-scroll');
+            overlay.classList.add('is-open');
+            slideInPanel.classList.add('is-open');
+        }
+
+        function closePanel() {
+            document.body.classList.remove('no-scroll');
+            overlay.classList.remove('is-open');
+            slideInPanel.classList.remove('is-open');
+        }
+        
+        function initFloatingButtons() {
+            const backToTopButton = document.querySelector('.back-to-top');
+            const quoteTab = document.querySelector('.quote-tab');
+            const handleFloatingButtons = () => {
+                const shouldShow = window.scrollY > 300;
+                if (backToTopButton) backToTopButton.classList.toggle('show', shouldShow);
+                if (quoteTab) quoteTab.classList.toggle('show', shouldShow);
+            };
+            window.addEventListener('scroll', handleFloatingButtons);
+            
+            handleFloatingButtons();
+        }
+        
+        function sharePost(platform, title, url) {
+            let shareUrl = '';
+            const encodedTitle = encodeURIComponent(title);
+            const encodedUrl = encodeURIComponent(url);
+            
+            switch (platform) {
+                case 'x':
+                    shareUrl = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
+                    break;
+                case 'linkedin':
+                    shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+                    break;
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+                    break;
+                case 'whatsapp':
+                    shareUrl = `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`;
+                    break;
+                case 'copy':
+                    copyLink(url);
+                    return;
+                case 'instagram':
+                    alert('Instagram sharing requires a mobile app and cannot be done from the web directly. Please save the image and text and share from your device.');
+                    return;
+            }
+            
+            if (shareUrl) {
+                window.open(shareUrl, '_blank');
+            }
+        }
+        
+        function copyLink(url) {
+            const tempInput = document.createElement('input');
+            tempInput.value = url;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('Link copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
 
