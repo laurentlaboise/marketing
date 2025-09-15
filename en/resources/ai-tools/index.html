@@ -1,1 +1,1909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agents and Tools</title>
+    <script src="https://kit.fontawesome.com/a521ce00f6.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS styles from the provided files --- */
+        
+        /* --- BASE --- */
+        :root {
+            /* Colors */
+            --color-primary-base: #1f85c9;
+            --color-accent-magenta: #d62b83;
+            --color-slate-900: #122a3f;
+            --color-slate-800: #154266;
+            --color-slate-700: #185a8d;
+            --color-slate-500: #64748b;
+            --color-slate-300: #a3cce8;
+            --color-slate-200: #cce2f1;
+            --color-slate-100: #e6f1f8;
+            --color-indigo-300: #4b9edb;
+            --color-white: #ffffff;
+            --color-light-gray: #e5e7eb;
+            --color-mid-gray: #e2e8f0;
+            --color-dark-gray: #a0aec0;
+            --color-dark: #4e555b;
+            --color-light: #f9f9f9;
+            --color-border: #e5e7eb;
+
+            /* Typography */
+            --font-family-heading: 'Poppins', sans-serif;
+            --font-family-body: 'Inter', sans-serif;
+            --font-size-base: 1rem;
+            --font-size-sm: 0.875rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            --font-size-4xl: 2.25rem;
+            --font-size-5xl: 3rem;
+            --font-size-6xl: 3.75rem;
+
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
+            --spacing-4xl: 5rem;
+
+            /* Border Radius */
+            --border-radius-sm: 0.25rem;
+            --border-radius-md: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            --border-radius-2xl: 1.5rem;
+            --border-radius-full: 9999px;
+
+            /* Box Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+            /* Transitions */
+            --transition-fast: all 0.2s ease-in-out;
+            --transition-medium: all 0.3s ease-in-out;
+        }
+        
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            background-color: var(--color-white);
+            color: var(--color-slate-800);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+        
+        body.no-scroll {
+            overflow: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-family-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-900);
+        }
+        
+        h1 { font-size: var(--font-size-5xl); }
+        h2 { font-size: var(--font-size-4xl); }
+        h3 { font-size: var(--font-size-3xl); }
+        h4 { font-size: var(--font-size-2xl); }
+        h5 { font-size: var(--font-size-xl); }
+        h6 { font-size: var(--font-size-lg); }
+        
+        p {
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-800);
+        }
+        
+        a {
+            color: var(--color-primary-base);
+            text-decoration: none;
+            transition: var(--transition-fast);
+        }
+        
+        a:hover {
+            color: var(--color-accent-magenta);
+        }
+        
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .feature-content ul,
+        #slide-in-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .feature-content ul li,
+        #slide-in-content ul li {
+            position: relative;
+            padding-left: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .feature-content ul li::before,
+        #slide-in-content ul li::before {
+            content: '\f058';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            top: 2px;
+            color: var(--color-accent-magenta);
+        }
+
+        h1, h2, h3, h4 {
+            font-family: var(--font-family-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-900);
+        }
+        h1 { font-size: var(--font-size-5xl); }
+        h2 { font-size: var(--font-size-4xl); }
+        h3 { font-size: var(--font-size-3xl); }
+        h4 { font-size: var(--font-size-2xl); }
+        p {
+            margin-bottom: var(--spacing-md);
+            color: var(--color-slate-800);
+        }
+        a {
+            color: var(--color-primary-base);
+            text-decoration: none;
+            transition: var(--transition-medium);
+        }
+        a:hover {
+            color: var(--color-accent-magenta);
+        }
+        ul {
+            list-style-position: inside;
+        }
+
+        @media (min-width: 768px) {
+            h1 { font-size: var(--font-size-6xl); }
+            h2 { font-size: var(--font-size-5xl); }
+        }
+
+        @media (min-width: 1024px) {
+            body { font-size: var(--font-size-lg); }
+        }
+        
+        /* --- LAYOUT --- */
+        .container {
+            width: 90%;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            padding: var(--spacing-4xl) 0;
+        }
+        
+        .section-alt {
+            background-color: var(--color-light);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .two-column-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xl);
+            align-items: center;
+        }
+        
+        .column-left, .column-right {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .desktop-only {
+            display: none;
+        }
+        
+        .mobile-only {
+            display: inline;
+        }
+        
+        .heading-accent-line {
+            width: 40px;
+            height: 4px;
+            background-color: var(--color-accent-magenta);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .section-heading-large {
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            line-height: 1.1;
+            font-weight: 400;
+        }
+        
+        .text-accent {
+            color: var(--color-accent-magenta);
+        }
+        
+        .text-accent2 {
+            color: var(--color-light-gray);
+        }
+        
+        .text-dark {
+            color: var(--color-dark);
+        }
+        
+        .font-bold {
+            font-weight: 700;
+        }
+        
+        .horizontal-scroll-container {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .horizontal-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .map-container {
+            max-width: 900px;
+            margin: var(--spacing-xl) auto 0;
+            border-radius: var(--border-radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--color-border);
+        }
+        
+        .map-container iframe {
+            border: 0;
+            display: block;
+        }
+        
+        .cta-banner {
+            background-color: var(--color-primary-base);
+            color: var(--color-white);
+            text-align: center;
+            padding: var(--spacing-2xl);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .cta-banner h2 {
+            color: var(--color-white);
+        }
+        
+        .cta-banner p {
+            color: var(--color-light-gray);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        @media (min-width: 768px) {
+            .desktop-only { display: inline; }
+            .mobile-only { display: none; }
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        main {
+            flex-grow: 1;
+        }
+        
+        @media (max-width: 480px) {
+            .two-column-layout {
+                flex-direction: column;
+                gap: var(--spacing-lg);
+            }
+            .section {
+                padding-top: var(--spacing-xl);
+                padding-bottom: var(--spacing-xl);
+            }
+            .horizontal-scroll-container {
+                display: flex;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                scroll-padding-left: var(--spacing-lg);
+                padding-left: var(--spacing-lg);
+                padding-bottom: 20px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .horizontal-scroll-container::-webkit-scrollbar {
+                display: none;
+            }
+            .horizontal-scroll-container * {
+                flex: 0 0 85%;
+                scroll-snap-align: start;
+            }
+            .hero-title {
+                font-size: 2.25rem;
+            }
+            .services-grid-four-column {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .hero-section {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: var(--spacing-xl);
+            text-align: center;
+            color: var(--color-white);
+            overflow: hidden;
+        }
+        
+        .hero-background {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+        }
+        
+        .hero-background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(18, 42, 63, 0.7);
+            z-index: -1;
+        }
+        
+        .hero-title {
+            font-family: var(--font-family-heading);
+            line-height: 1.1;
+            font-weight: 800;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .hero-content p.hero-title {
+            margin-bottom: 0;
+        }
+        
+        .hero-content .sub-title {
+            font-size: var(--font-size-xl);
+            max-width: 600px;
+            margin: var(--spacing-md) auto 0;
+            color: var(--color-light-gray);
+        }
+        
+        .hero-buttons {
+            margin-top: var(--spacing-lg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+        
+        @media (min-width: 576px) {
+            .hero-buttons {
+                flex-direction: row;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        
+        .accordion-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            max-width: 900px;
+            margin: 0 auto var(--spacing-xl);
+        }
+        
+        .accordion-item {
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .accordion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .accordion-summary {
+            list-style: none;
+            cursor: pointer;
+            padding: var(--spacing-sm) 0;
+            font-weight: 500;
+            font-size: var(--font-size-lg);
+            color: var(--color-slate-800);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: color 0.2s;
+        }
+        
+        .accordion-summary::-webkit-details-marker {
+            display: none;
+        }
+        
+        .accordion-item[open] > .accordion-summary {
+            color: var(--color-accent-magenta);
+        }
+        
+        .accordion-summary .icon {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .accordion-item[open] .icon {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            padding: var(--spacing-sm) 0;
+            color: var(--color-slate-500);
+        }
+        
+        .accordion-summary h3 {
+            font-size: var(--font-size-lg);
+            margin-bottom: 0;
+        }
+        
+        .service-card .accordion-summary {
+            font-weight: 600;
+            font-size: var(--font-size-base);
+            color: var(--color-primary-base);
+        }
+        
+        .service-card .accordion-item {
+            border-bottom: none;
+        }
+        
+        .service-card .accordion-content {
+            padding: 0;
+        }
+        
+        .service-card-details {
+            font-size: var(--font-size-sm);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .service-card-details ul {
+            margin-top: var(--spacing-sm);
+            padding-left: var(--spacing-md);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: var(--transition-medium);
+            text-decoration: none;
+            border: 2px solid transparent;
+        }
+
+        .btn-accent {
+            background: radial-gradient(circle at center, rgba(249, 7, 132, 0.82) 37%, var(--color-accent-magenta) 100%);
+            color: var(--color-white);
+            border-color: var(--color-accent-magenta);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-premium {
+            background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300));
+            color: var(--color-white);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-learn-more {
+            margin-top: var(--spacing-md);
+        }
+
+        .btn-accent-magenta {
+            background-color: var(--color-accent-magenta);
+            color: var(--color-white);
+            border-color: var(--color-accent-magenta);
+        }
+        .btn-accent-magenta:hover {
+            background-color: #f90784;
+            border-color: #f90784;
+            color: var(--color-white);
+        }
+        .btn-inverse-magenta {
+            background-color: var(--color-white);
+            border-color: var(--color-accent-magenta);
+            color: var(--color-accent-magenta);
+        }
+        .btn-inverse-magenta:hover {
+            background-color: var(--color-accent-magenta);
+            color: var(--color-white);
+        }
+
+        .btn-accent-blue {
+            background-color: #1F85C8;
+            color: var(--color-white);
+            border-color: #1F85C8;
+        }
+        .btn-accent-blue:hover {
+            background-color: #2593d9;
+            border-color: #2593d9;
+            color: var(--color-white);
+        }
+        .btn-inverse-blue {
+            background-color: var(--color-white);
+            border-color: #1F85C8;
+            color: #1F85C8;
+        }
+        .btn-inverse-blue:hover {
+            background-color: #1F85C8;
+            color: var(--color-white);
+        }
+
+        .btn i {
+            margin-right: var(--spacing-sm);
+            font-size: 1.1em;
+        }
+
+        .card-base {
+            background-color: var(--color-white);
+            border-radius: var(--border-radius-xl);
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+        }
+
+        .card {
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .process-card {
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .scroll-card {
+            flex: 0 0 90%;
+            scroll-snap-align: center;
+            margin-right: var(--spacing-md);
+            box-shadow: var(--shadow-md);
+            text-align: left;
+        }
+        
+        .scroll-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .scroll-card-content {
+            padding: var(--spacing-lg);
+        }
+        
+        .scroll-card-content h3 {
+            color: var(--color-primary-base);
+        }
+        
+        .scroll-card-content p {
+            font-size: var(--font-size-sm);
+        }
+        
+        .results-title {
+            font-weight: bold;
+            font-size: var(--font-size-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .scroll-card-content ul {
+            font-size: var(--font-size-sm);
+            margin-top: var(--spacing-sm);
+            list-style-type: disc;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-xl);
+        }
+        
+        .service-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .service-card-header i {
+            font-size: var(--font-size-2xl);
+            color: var(--color-primary-base);
+        }
+        
+        .service-card-header h3 {
+            font-size: var(--font-size-xl);
+            margin-bottom: 0;
+        }
+        
+        .service-card-summary {
+            font-size: var(--font-size-sm);
+            color: #6b7280;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .process-card-title {
+            text-align: center;
+            font-size: var(--font-size-2xl);
+            color: var(--color-dark);
+        }
+        
+        .process-steps {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+        
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+        }
+        
+        .step-number {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius-full);
+            background-color: var(--color-accent-magenta);
+            color: var(--color-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-2xl);
+            font-weight: bold;
+        }
+        
+        .step-title {
+            color: var(--color-primary-base);
+            font-size: var(--font-size-lg);
+        }
+        
+        .step-content p {
+            font-size: var(--font-size-sm);
+            margin-top: 4px;
+        }
+        
+        .services-section-header h1 {
+            font-size: var(--font-size-3xl);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--color-slate-900);
+        }
+        
+        .services-grid-four-column {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-xl);
+            text-align: center;
+        }
+        
+        .service-item-circle .service-icon-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: var(--border-radius-full);
+            background-color: var(--color-dark);
+            color: var(--color-white);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-lg);
+            font-size: var(--font-size-4xl);
+            transition: var(--transition-medium);
+        }
+        
+        .service-item-circle:hover .service-icon-circle {
+            background-color: var(--color-accent-magenta);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .service-item-circle h2 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--color-slate-900);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .service-item-circle p {
+            font-size: var(--font-size-sm);
+            line-height: 1.5;
+            max-width: 250px;
+            margin-left: auto;
+            margin-right: auto;
+            color: var(--color-slate-500);
+        }
+        
+        @media (min-width: 768px) {
+            .scroll-card {
+                flex: 0 0 400px;
+            }
+        }
+        
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-2xl);
+        }
+        
+        .service-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-lg);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .service-card .icon {
+            font-size: 2.5rem;
+            color: var(--color-primary-base);
+            margin-bottom: var(--spacing-md);
+            height: 40px;
+            display: inline-block;
+        }
+        
+        .service-title {
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-xl);
+            color: var(--color-slate-900);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .service-description {
+            font-size: var(--font-size-sm);
+            color: var(--color-slate-500);
+            flex-grow: 1;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .feature-content .service-title {
+            font-size: var(--font-size-2xl);
+        }
+        
+        .feature-visual .icon {
+            font-size: 10rem;
+            color: var(--color-slate-100);
+            display: inline-block;
+        }
+        
+        @media (max-width: 767px) {
+            .service-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: var(--spacing-lg);
+            }
+        
+            .service-card {
+                padding: var(--spacing-md);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .service-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--color-accent-magenta);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            transition: background-color 0.3s, transform 0.3s, opacity 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .back-to-top:hover {
+            background-color: #f90784;
+            color: white;
+        }
+
+        .quote-tab {
+            position: fixed;
+            top: 40%;
+            right: 0;
+            transform: translateY(-50%) rotate(270deg);
+            transform-origin: bottom right;
+            background-color: var(--color-accent-magenta);
+            color: white;
+            padding: 10px 20px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            cursor: pointer;
+            z-index: 999;
+            font-weight: bold;
+            transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
+            opacity: 0;
+            transform: translateY(-50%) rotate(270deg) translateX(20px);
+            pointer-events: none;
+        }
+
+        .quote-tab.show {
+            opacity: 1;
+            transform: translateY(-50%) rotate(270deg) translateX(0);
+            pointer-events: auto;
+        }
+
+        .quote-tab:hover {
+            background-color: #f90784;
+        }
+
+        input[type="text"], input[type="email"], textarea, select {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-base);
+            color: var(--color-slate-800);
+            background-color: var(--color-white);
+            transition: var(--transition-medium);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--color-primary-base);
+            box-shadow: 0 0 0 3px rgba(31, 133, 201, 0.2);
+        }
+        
+        .newsletter-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            max-width: 500px;
+            margin: var(--spacing-lg) auto 0;
+        }
+
+        .newsletter-form input {
+            flex-grow: 1;
+        }
+        
+        @media (min-width: 576px) {
+            .newsletter-form {
+                flex-direction: row;
+            }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1050;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-container {
+            background-color: var(--color-white);
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius-xl);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: var(--shadow-xl);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: var(--font-size-2xl);
+            cursor: pointer;
+            color: #9ca3af;
+        }
+
+        .modal-title {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .modal-subtitle {
+            color: #6b7280;
+            margin-bottom: var(--spacing-lg);
+            font-size: var(--font-size-sm);
+        }
+
+        .modal-form .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .modal-form button {
+            margin-top: var(--spacing-lg);
+            width: 100%;
+        }
+
+        #quote-form-success {
+            text-align: center;
+        }
+
+        #details-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(18, 42, 63, 0.6);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+        }
+
+        #details-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #details-slide-in {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 75%;
+            max-width: 800px;
+            height: 100%;
+            background-color: var(--color-white);
+            z-index: 2000;
+            transform: translateX(100%);
+            transition: transform 0.4s ease-in-out;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #details-slide-in.is-open {
+            transform: translateX(0);
+        }
+        
+        .slide-in-header {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #slide-in-title {
+            font-size: var(--font-size-2xl);
+            margin-bottom: 0;
+        }
+
+        #slide-in-close {
+            font-size: var(--font-size-2xl);
+            color: var(--color-slate-500);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: var(--spacing-sm);
+        }
+
+        .slide-in-body {
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        #slide-in-image {
+            width: 100%;
+            height: auto;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--spacing-lg);
+            background-color: var(--color-light);
+            object-fit: contain;
+        }
+        #slide-in-image-container {
+             width: 100px;
+             height: 100px;
+             margin: 0 auto var(--spacing-lg);
+        }
+        #slide-in-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: var(--border-radius-lg);
+        }
+
+        #slide-in-content p {
+            margin-bottom: var(--spacing-md);
+        }
+
+        @media (max-width: 767px) {
+            #details-slide-in {
+                width: 100%;
+                max-width: none;
+            }
+        
+            .slide-in-header {
+                padding: var(--spacing-sm) var(--spacing-md);
+            }
+        
+            .slide-in-body {
+                padding: var(--spacing-md);
+            }
+        
+            #slide-in-title {
+                font-size: var(--font-size-xl);
+            }
+        
+            #slide-in-close {
+                font-size: var(--font-size-xl);
+            }
+        }
+
+        .services-section-header h1 {
+            font-size: var(--font-size-4xl);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            will-change: opacity, transform;
+        }
+        
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .reveal-delay-1 { transition-delay: 150ms; }
+        .reveal-delay-2 { transition-delay: 300ms; }
+        .reveal-delay-3 { transition-delay: 450ms; }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+        
+        /* New styles for the AI tools page */
+        .ai-tool-filters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+        .ai-tool-filter-pill {
+            background-color: var(--color-light-gray);
+            border-radius: var(--border-radius-full);
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-medium);
+        }
+        .ai-tool-filter-pill:hover,
+        .ai-tool-filter-pill.active {
+            background-color: var(--color-accent-magenta);
+            color: var(--color-white);
+        }
+        .search-bar {
+            width: 100%;
+            max-width: 600px;
+            margin: var(--spacing-lg) auto var(--spacing-xl);
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: var(--font-size-base);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-medium);
+        }
+        .search-bar:focus {
+            box-shadow: var(--shadow-md);
+        }
+        .ai-tools-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-xl);
+        }
+        .ai-tool-card {
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+        }
+        .ai-tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        .ai-tool-card .card-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--spacing-md);
+        }
+        .ai-tool-card h3 {
+            color: var(--color-primary-base);
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-xl);
+        }
+        .ai-tool-card p {
+            font-size: var(--font-size-sm);
+            flex-grow: 1;
+        }
+        .ai-tool-card .pricing-pill {
+            display: inline-block;
+            background-color: var(--color-mid-gray);
+            color: var(--color-dark);
+            border-radius: var(--border-radius-full);
+            padding: 2px 8px;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            margin-top: var(--spacing-sm);
+        }
+        .pricing-pill.free {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .pricing-pill.freemium {
+            background-color: #e0e7ff;
+            color: #312e81;
+        }
+        .pricing-pill.paid {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        #slide-in-content .tool-info-section {
+            margin-top: var(--spacing-xl);
+        }
+        #slide-in-content .tool-info-section h3 {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacing-sm);
+        }
+        #slide-in-content .tool-info-section ul {
+            margin-bottom: var(--spacing-md);
+        }
+        #slide-in-content .tool-info-section li {
+            font-size: var(--font-size-base);
+            margin-bottom: var(--spacing-sm);
+            color: var(--color-slate-800);
+            position: relative;
+            padding-left: var(--spacing-lg);
+        }
+        #slide-in-content .tool-info-section li::before {
+            content: '\f058';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            top: 2px;
+            color: var(--color-accent-magenta);
+        }
+        #slide-in-content .tool-info-section .pros-list li::before {
+            content: '\f058';
+            color: green;
+        }
+        #slide-in-content .tool-info-section .cons-list li::before {
+            content: '\f00d';
+            font-weight: 900;
+            color: red;
+        }
+        .tool-action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-xl);
+            justify-content: center;
+        }
+        .tool-action-buttons .btn {
+            min-width: 150px;
+        }
+        .tool-action-buttons .btn.disabled {
+            background-color: var(--color-light-gray);
+            border-color: var(--color-dark-gray);
+            color: var(--color-dark-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .tool-action-buttons .btn.disabled:hover {
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Content Area -->
+    <main>
+        <div class="section">
+            <div class="container">
+                <div class="section-header reveal">
+                    <center>
+                        <div class="heading-accent-line"></div>
+                    </center>
+                    <h1>AI Agents and Tools</h1>
+                    <p class="section-description">A curated list of AI agents and tools for various business and personal tasks. Use the search bar and filters to find the perfect tool for your needs.</p>
+                </div>
+
+                <!-- Search and Filters Section -->
+                <div class="text-center reveal reveal-delay-1">
+                    <input type="text" id="ai-tool-search" class="search-bar" placeholder="Search for an AI tool...">
+                    <div id="ai-tool-filters" class="ai-tool-filters"></div>
+                </div>
+
+                <!-- AI Tools List -->
+                <div id="ai-tools-container" class="services-grid" style="margin-top: var(--spacing-xl);"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Slide-in Panel for Detailed View -->
+    <div id="details-overlay"></div>
+    <div id="details-slide-in">
+        <div class="slide-in-header">
+            <h2 id="slide-in-title"></h2>
+            <button id="slide-in-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="slide-in-body">
+            <div id="slide-in-image-container">
+                <img id="slide-in-image" src="" alt="">
+            </div>
+            <div id="slide-in-content"></div>
+        </div>
+    </div>
+    
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top" id="back-to-top">
+        <i class="fas fa-chevron-up"></i>
+    </a>
+    
+    <!-- Quote Tab -->
+    <a href="#" class="quote-tab" id="quote-tab" style="display: none;">
+        <span>Get a Quote</span>
+    </a>
+
+    <script>
+        const aiTools = [
+          {
+            "name": "Superagent",
+            "category": "AI Security",
+            "description": "Enterprise-grade platform for building, deploying, and managing secure AI agents.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1720405847714-6f9a2883c87281a5.jpg",
+            "website_link": "https://superagent.sh/",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Robust security for LLM applications.", "Easy deployment and management.", "Scalable for enterprise use."],
+            "pros": ["High level of security.", "Comprehensive management features."],
+            "cons": ["Paid-only model.", "Steep learning curve for smaller teams."]
+          },
+          {
+            "name": "7AI",
+            "category": "AI Security",
+            "description": "Swarming agentic security for proactive threat detection.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1733406536361-Frame13857.png",
+            "website_link": "https://www.7ai.com/",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Proactive security through agent swarms.", "Identifies vulnerabilities in real-time."],
+            "pros": ["Innovative approach to security.", "Fast and real-time threat analysis."],
+            "cons": ["Highly specialized.", "May require specific expertise to operate."]
+          },
+          {
+            "name": "Apify",
+            "category": "Web Scraping",
+            "description": "Powerful platform for web scraping, data extraction, and automation.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1733321009955-logo.png",
+            "website_link": "https://apify.com/",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Automatic data extraction.", "Pre-built scrapers.", "Integrates with various services."],
+            "pros": ["Easy to use for beginners.", "Extensive tool library."],
+            "cons": ["Free plan has limitations.", "Can be expensive for large-scale use."]
+          },
+          {
+            "name": "scrape.new",
+            "category": "Web Scraping",
+            "description": "Automatic data extraction in seconds with a simple interface.",
+            "pricing": "Free",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1734130780595-400x400black.png",
+            "website_link": "https://scrape.new/",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Quick and easy data extraction.", "No-code required.", "Intuitive design."],
+            "pros": ["Completely free.", "Very fast for simple tasks."],
+            "cons": ["Not suitable for complex scraping.", "Limited features."]
+          },
+          {
+            "name": "Inbox Zero",
+            "category": "Email AI Agents",
+            "description": "An AI assistant to help you achieve and maintain inbox zero by prioritizing and automating email tasks.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1728529076139-14095e92d69dc031.png",
+            "website_link": "https://www.inboxzero.com/",
+            "app_store_link": "https://apps.apple.com/app/inbox-zero",
+            "play_store_link": "https://play.google.com/store/apps/details?id=com.inboxzero.app",
+            "key_features": ["Email prioritization.", "Automated responses.", "Calendar integration."],
+            "pros": ["Great for productivity.", "Helps reduce email overload."],
+            "cons": ["Can be expensive.", "Requires access to personal email data."]
+          },
+          {
+            "name": "AI Agents Platform",
+            "category": "AI Agents Platform",
+            "description": "A robust platform for building and managing AI agents.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1721271102550-39af1b99fd21105b.png",
+            "website_link": "https://platform.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Comprehensive agent management.", "Integrates with various models.", "API access for developers."],
+            "pros": ["Flexible and powerful.", "Scalable for large projects."],
+            "cons": ["Can be complex to set up.", "Free plan has limitations."]
+          },
+          {
+            "name": "Vertex AI Agent Builder",
+            "category": "AI Agents Platform",
+            "description": "Google's platform for building custom, enterprise-grade AI agents.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1721271102550-39af1b99fd21105b.png",
+            "website_link": "https://cloud.google.com/vertex-ai/docs/agent-builder",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Integration with Google Cloud.", "No-code builder.", "Scalable and secure."],
+            "pros": ["Backed by Google's infrastructure.", "Good for large businesses."],
+            "cons": ["Can be costly.", "Vendor lock-in."]
+          },
+          {
+            "name": "AI Agents Frameworks",
+            "category": "AI Agents Frameworks",
+            "description": "Provides a framework for building AI-powered workflows.",
+            "pricing": "Free",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1724903431425-75c44a7a3a88d97b.png",
+            "website_link": "https://langroid.com/",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Python-based.", "Task-centric design.", "Orchestrates AI workflows."],
+            "pros": ["Open source.", "Highly customizable."],
+            "cons": ["Requires coding knowledge.", "Steep learning curve."]
+          },
+          {
+            "name": "Langroid",
+            "category": "AI Agents Frameworks",
+            "description": "Multi-agent programming framework for LLM applications.",
+            "pricing": "Free",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1724903431425-75c44a7a3a88d97b.png",
+            "website_link": "https://langroid.github.io/",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Python framework.", "Supports multiple agents.", "Good for complex LLM applications."],
+            "pros": ["Open source.", "Flexible and powerful."],
+            "cons": ["Requires strong coding skills.", "Documentation can be dense."]
+          },
+          {
+            "name": "Productivity AI Agents",
+            "category": "Productivity AI Agents",
+            "description": "AI tools designed to boost personal and team productivity.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1733811202105-512icon.png",
+            "website_link": "https://pointer.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Automates repetitive tasks.", "Integrates with popular apps.", "Improves workflow efficiency."],
+            "pros": ["Saves time and effort.", "Increases team efficiency."],
+            "cons": ["Freemium model can be limiting.", "May require integration with multiple tools."]
+          },
+          {
+            "name": "Voice AI Agents",
+            "category": "Voice AI Agents",
+            "description": "AI agents that handle voice interactions for various business needs.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1734557944916-fine-voicing-whisk.png",
+            "website_link": "https://www.finevoicing.com",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Natural language processing.", "Customer support automation.", "Sales lead conversion."],
+            "pros": ["Improves customer service.", "24/7 availability."],
+            "cons": ["Can be expensive.", "May not handle complex queries well."]
+          },
+          {
+            "name": "Customer Service AI Agents",
+            "category": "Customer Service AI Agents",
+            "description": "AI agents designed to automate and enhance customer support.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1735176001500-tagline-2-dark.svg",
+            "website_link": "https://kodif.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Automated ticketing.", "Chatbot support.", "Sentiment analysis."],
+            "pros": ["Reduces support costs.", "Provides instant responses."],
+            "cons": ["Can't replace human empathy.", "Setup can be complex."]
+          },
+          {
+            "name": "Data Analysis AI Agents",
+            "category": "Data Analysis AI Agents",
+            "description": "AI-powered tools for analyzing data, identifying trends, and generating reports.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1734419920392-fav.png",
+            "website_link": "https://www.zyler.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Automated data insights.", "Predictive modeling.", "Data visualization."],
+            "pros": ["Fast and accurate analysis.", "Finds hidden patterns."],
+            "cons": ["Requires high-quality data.", "Expensive for small businesses."]
+          },
+          {
+            "name": "Digital Workers AI Agents",
+            "category": "Digital Workers AI Agents",
+            "description": "Autonomous AI agents that perform complex business tasks, from finance to legal research.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1732913129411-louie-avatar.jpg",
+            "website_link": "https://www.louie.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Task automation.", "Financial document processing.", "Legal analysis."],
+            "pros": ["High precision.", "Saves a lot of time on complex tasks."],
+            "cons": ["Very expensive.", "May not fit all business models."]
+          },
+          {
+            "name": "Personal Assistant AI Agents",
+            "category": "Personal Assistant AI Agents",
+            "description": "AI assistants designed to help individuals with daily tasks, research, and scheduling.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1734372704490-OllieLogo.png",
+            "website_link": "https://www.kusog.ai",
+            "app_store_link": "https://apps.apple.com/app/ollie-ai",
+            "play_store_link": "https://play.google.com/store/apps/details?id=com.ollie.app",
+            "key_features": ["Task management.", "Personalized recommendations.", "Scheduling assistance."],
+            "pros": ["Boosts personal productivity.", "Always available."],
+            "cons": ["Privacy concerns.", "Can be costly."]
+          },
+          {
+            "name": "Sales AI Agents",
+            "category": "Sales AI Agents",
+            "description": "AI tools that automate sales tasks like lead scoring, prospecting, and personalized outreach.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1726105450937-752980b3b2449e06.jpg",
+            "website_link": "https://www.salezilla.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Lead scoring.", "Automated outreach.", "Sales analytics."],
+            "pros": ["Increases sales efficiency.", "Reduces manual workload."],
+            "cons": ["Can be expensive.", "May lack a personal touch."]
+          },
+          {
+            "name": "Coding Assistant AI Agents",
+            "category": "Coding Assistant AI Agents",
+            "description": "AI agents that assist with coding tasks, from generating code to debugging.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1729709048955-0943c198a72b6b7e.png",
+            "website_link": "https://cloud.google.com/gemini-code-assist",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Code generation.", "Debugging.", "Code reviews."],
+            "pros": ["Speeds up development.", "Helps with complex problems."],
+            "cons": ["Can generate incorrect code.", "Relies on the AI's understanding."]
+          },
+          {
+            "name": "Workflow AI Agents",
+            "category": "Workflow AI Agents",
+            "description": "AI tools to automate business workflows and processes.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1722499070021-cfae41a724027776.png",
+            "website_link": "https://qode.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Process automation.", "Integration with business apps.", "Real-time monitoring."],
+            "pros": ["Increases efficiency.", "Reduces human error."],
+            "cons": ["Complex to set up.", "Can be expensive."]
+          },
+          {
+            "name": "WEB 3 AI Agents",
+            "category": "WEB 3 AI Agents",
+            "description": "AI agents designed for decentralized applications and blockchain technology.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1733742471773-X-Profile-logo-1.png",
+            "website_link": "https://mettalex.com",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Smart contract analysis.", "Decentralized finance (DeFi) tools.", "Blockchain data analysis."],
+            "pros": ["Secures blockchain applications.", "Provides insights into crypto markets."],
+            "cons": ["Niche market.", "Can be highly technical."]
+          },
+          {
+            "name": "Content Creation AI Agents",
+            "category": "Content Creation AI Agents",
+            "description": "AI tools that assist in generating written, visual, and multimedia content.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1729153768583-1597748ce72f07e8.png",
+            "website_link": "https://effie.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Text generation.", "Image and video creation.", "Content optimization."],
+            "pros": ["Speeds up content production.", "Helps with creative blocks."],
+            "cons": ["Content may lack a human touch.", "Can be costly for premium features."]
+          },
+          {
+            "name": "Marketing AI Agents",
+            "category": "Marketing AI Agents",
+            "description": "AI agents that automate and optimize various marketing tasks.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1727452308055-f0183332dc51e28e.png",
+            "website_link": "https://seobot.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["SEO automation.", "Social media management.", "Ad campaign optimization."],
+            "pros": ["Increases marketing ROI.", "Provides data-driven insights."],
+            "cons": ["Expensive for small businesses.", "Requires careful monitoring."]
+          },
+          {
+            "name": "Lead Generation AI Agents",
+            "category": "Lead Generation AI Agents",
+            "description": "AI tools that help identify, qualify, and engage with potential leads.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1721247379143-277c691e8f0b1802.png",
+            "website_link": "https://aileadagent.com/",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Lead scoring.", "Automated outreach.", "Prospecting."],
+            "pros": ["Streamlines sales process.", "Increases lead conversion rates."],
+            "cons": ["Freemium plans are limited.", "Can be costly for large teams."]
+          },
+          {
+            "name": "Recruiting AI Agents",
+            "category": "Recruiting AI Agents",
+            "description": "AI agents that automate and optimize the recruitment process.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1735327783306-L408431305g.jpg",
+            "website_link": "https://mystemresume.com",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Resume screening.", "Candidate outreach.", "Interview scheduling."],
+            "pros": ["Saves time for recruiters.", "Reduces bias."],
+            "cons": ["May miss qualified candidates.", "Can be expensive."]
+          },
+          {
+            "name": "AI Video Agents",
+            "category": "AI Video Agents",
+            "description": "AI tools for video creation, editing, and enhancement.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1733406536361-Frame13857.png",
+            "website_link": "https://director.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Automated video editing.", "Faceless channel growth.", "Video transcription."],
+            "pros": ["Speeds up video production.", "Helps with content creation."],
+            "cons": ["Can be costly.", "May not have a human touch."]
+          },
+          {
+            "name": "Web AI Agents",
+            "category": "Web AI Agents",
+            "description": "AI browser agents that automate web tasks and documentation.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1724748497161-46f89a94626e8f40.png",
+            "website_link": "https://agent-e.com",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Browser automation.", "Documentation maintenance.", "Data extraction."],
+            "pros": ["Saves time on repetitive tasks.", "Increases efficiency."],
+            "cons": ["Can be costly.", "May have security risks."]
+          },
+          {
+            "name": "Software Testing Agent",
+            "category": "Software Testing Agent",
+            "description": "Autonomous AI agents for end-to-end software testing.",
+            "pricing": "Paid",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1722508534325-152b1f70015dc0f7.png",
+            "website_link": "https://kusho.ai",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Automated testing.", "End-to-end testing.", "Real-time reporting."],
+            "pros": ["Reduces testing time.", "Finds bugs faster."],
+            "cons": ["Can be expensive.", "Requires high-quality test data."]
+          },
+          {
+            "name": "Tool Libraries AI Agents",
+            "category": "Tool Libraries AI Agents",
+            "description": "AI agents that provide access to a wide range of tools and integrations.",
+            "pricing": "Free",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1721936587125-62d6611595bc8d41.png",
+            "website_link": "https://composio.dev",
+            "app_store_link": null,
+            "play_store_link": null,
+            "key_features": ["Integrates with a wide range of tools.", "Customizable workflows.", "Open source."],
+            "pros": ["High flexibility.", "Community support."],
+            "cons": ["Can be complex to set up.", "Requires technical knowledge."]
+          },
+          {
+            "name": "Email AI Agents",
+            "category": "Email AI Agents",
+            "description": "AI agents that automate email tasks, from drafting to sending.",
+            "pricing": "Freemium",
+            "logo": "https://storage.googleapis.com/aiagents_1/agent-logos/1728529076139-14095e92d69dc031.png",
+            "website_link": "https://inboxzero.com",
+            "app_store_link": "https://apps.apple.com/us/app/inbox-zero-email-manager/id1612456789",
+            "play_store_link": "https://play.google.com/store/apps/details?id=com.inboxzero.app",
+            "key_features": ["Automated email drafting.", "Email prioritization.", "Calendar integration."],
+            "pros": ["Saves time.", "Increases productivity."],
+            "cons": ["Can be costly.", "Requires access to personal email data."]
+          }
+        ];
+
+        const categories = [...new Set(aiTools.map(tool => tool.category))].sort();
+
+    </script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initAiTools();
+            initSearch();
+            initPills();
+            initSlidePanel();
+            initFloatingButtons();
+        });
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+
+        function initAiTools(filteredTools = aiTools) {
+            const container = document.getElementById('ai-tools-container');
+            container.innerHTML = '';
+            
+            if (filteredTools.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding: 4rem;">No AI tools found for this search or filter.</p>';
+                return;
+            }
+
+            filteredTools.forEach(tool => {
+                const toolCard = document.createElement('div');
+                toolCard.className = 'card ai-tool-card reveal';
+                toolCard.setAttribute('data-tool-name', tool.name);
+                toolCard.innerHTML = `
+                    <img src="${tool.logo}" alt="${tool.name} logo" class="card-logo">
+                    <h3>${tool.name}</h3>
+                    <p>${tool.description}</p>
+                    <span class="pricing-pill ${tool.pricing.toLowerCase().replace(' ', '-')}">${tool.pricing}</span>
+                `;
+                toolCard.addEventListener('click', () => openPanel(tool));
+                container.appendChild(toolCard);
+            });
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        }
+
+        function initSearch() {
+            const searchBar = document.getElementById('ai-tool-search');
+            searchBar.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = aiTools.filter(tool => {
+                    const nameMatches = tool.name.toLowerCase().includes(query);
+                    const descriptionMatches = tool.description.toLowerCase().includes(query);
+                    return nameMatches || descriptionMatches;
+                });
+                initAiTools(filtered);
+            });
+        }
+
+        function initPills() {
+            const filtersContainer = document.getElementById('ai-tool-filters');
+            filtersContainer.innerHTML = '<span class="ai-tool-filter-pill active" data-filter="all">All</span>';
+
+            categories.forEach(category => {
+                const pill = document.createElement('span');
+                pill.className = 'ai-tool-filter-pill';
+                pill.textContent = category.replace(' AI Agents', '').replace('AI Agent', 'Agent').trim();
+                pill.setAttribute('data-filter', category);
+                filtersContainer.appendChild(pill);
+            });
+
+            filtersContainer.addEventListener('click', (e) => {
+                const target = e.target;
+                if (target.classList.contains('ai-tool-filter-pill')) {
+                    document.querySelectorAll('.ai-tool-filter-pill').forEach(p => p.classList.remove('active'));
+                    target.classList.add('active');
+                    const filter = target.getAttribute('data-filter');
+                    
+                    if (filter === 'all') {
+                        initAiTools(aiTools);
+                    } else {
+                        const filtered = aiTools.filter(tool => tool.category === filter);
+                        initAiTools(filtered);
+                    }
+                }
+            });
+        }
+        
+        const slideInPanel = document.getElementById('details-slide-in');
+        const overlay = document.getElementById('details-overlay');
+        const closeBtn = document.getElementById('slide-in-close');
+        const slideInTitle = document.getElementById('slide-in-title');
+        const slideInImage = document.getElementById('slide-in-image');
+        const slideInContent = document.getElementById('slide-in-content');
+        
+        function initSlidePanel() {
+            if (!slideInPanel || !overlay || !slideInTitle || !slideInContent) return;
+
+            closeBtn.addEventListener('click', closePanel);
+            overlay.addEventListener('click', closePanel);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && slideInPanel.classList.contains('is-open')) closePanel();
+            });
+        }
+
+        function openPanel(toolData) {
+            slideInTitle.textContent = toolData.name;
+            slideInImage.src = toolData.logo;
+            slideInImage.alt = `${toolData.name} logo`;
+            
+            let contentHTML = `
+                <p>${toolData.description}</p>
+                <div class="tool-info-section">
+                    <h3>Key Features</h3>
+                    <ul class="key-features-list">
+                        ${toolData.key_features.map(feature => `<li>${feature}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="tool-info-section">
+                    <h3>Pros</h3>
+                    <ul class="pros-list">
+                        ${toolData.pros.map(pro => `<li>${pro}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="tool-info-section">
+                    <h3>Cons</h3>
+                    <ul class="cons-list">
+                        ${toolData.cons.map(con => `<li>${con}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="tool-action-buttons">
+                    <a href="${toolData.website_link}" class="btn btn-premium" target="_blank" ${!toolData.website_link ? 'disabled' : ''}>
+                        <i class="fas fa-globe"></i> Website
+                    </a>
+                    <a href="${toolData.app_store_link}" class="btn btn-premium ${!toolData.app_store_link ? 'disabled' : ''}" target="_blank">
+                        <i class="fab fa-apple"></i> App Store
+                    </a>
+                    <a href="${toolData.play_store_link}" class="btn btn-premium ${!toolData.play_store_link ? 'disabled' : ''}" target="_blank">
+                        <i class="fab fa-google-play"></i> Play Store
+                    </a>
+                </div>
+            `;
+            
+            slideInContent.innerHTML = contentHTML;
+            document.body.classList.add('no-scroll');
+            overlay.classList.add('is-open');
+            slideInPanel.classList.add('is-open');
+        }
+
+        function closePanel() {
+            document.body.classList.remove('no-scroll');
+            overlay.classList.remove('is-open');
+            slideInPanel.classList.remove('is-open');
+        }
+        
+        function initFloatingButtons() {
+            const backToTopButton = document.querySelector('.back-to-top');
+            const quoteTab = document.querySelector('.quote-tab');
+            const handleFloatingButtons = () => {
+                const shouldShow = window.scrollY > 300;
+                if (backToTopButton) backToTopButton.classList.toggle('show', shouldShow);
+                if (quoteTab) quoteTab.classList.toggle('show', shouldShow);
+            };
+            window.addEventListener('scroll', handleFloatingButtons);
+            
+            // Initial check
+            handleFloatingButtons();
+        }
+    </script>
+</body>
+</html>
 
