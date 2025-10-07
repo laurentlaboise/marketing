@@ -1,1 +1,36 @@
-https://wordsthatsells.website/digital-agency/digital-marketing/
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Redirecting...</title>
+    <link rel="canonical" href="https://wordsthatsells.website/en">
+    
+    <script>
+        (function() {
+            // STEP 1: List all the language folders you have.
+            const supportedLanguages = ['en', 'lo', 'th', 'fr', 'zh', 'vi']; // English, Lao, Thai, French, Mandarin, Vietnamese
+            
+            // STEP 2: Get the user's browser language (e.g., "fr-FR", "en-US", "th").
+            const userLang = navigator.language || navigator.userLanguage;
+            
+            // Get just the first two letters (e.g., "fr", "en", "th").
+            const langCode = userLang.split('-')[0];
+            
+            // STEP 3: Set the default redirect to English.
+            let redirectUrl = '/en/';
+            
+            // STEP 4: If the user's language is in your list, change the URL.
+            if (supportedLanguages.includes(langCode)) {
+                redirectUrl = `/${langCode}/`;
+            }
+            
+            // STEP 5: Send the user to the correct URL.
+            window.location.replace(redirectUrl);
+        })();
+    </script>
+</head>
+<body>
+    <p>Please wait while we direct you to the correct language version of our site.</p>
+    <p>If you are not redirected automatically, <a href="/en/">click here to continue in English</a>.</p>
+</body>
+</html>
