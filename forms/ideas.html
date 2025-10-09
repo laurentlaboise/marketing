@@ -1,13 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>airtable form input request</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airtable Form Input Request</title>
+    <style>
+        /* Make sure the html and body take up the full screen height */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif; /* A good practice for consistent font display */
+            background-color: #f4f4f4; /* A light background color to see the form better */
+        }
+
+        /* Use Flexbox to center the form container */
+        body {
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center;     /* Center vertically */
+        }
+
+        /* Container for the form to control its size and responsiveness */
+        .airtable-form-container {
+            width: 90%; /* Use 90% of the screen width */
+            max-width: 800px; /* But don't let it get wider than 800px on large screens */
+            height: 80vh; /* Use 80% of the viewport height */
+            max-height: 650px; /* But don't let it get taller than 650px */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Optional: Adds a nice shadow */
+            border-radius: 8px; /* Optional: Rounds the corners */
+            overflow: hidden; /* Hides anything that might spill out of the rounded corners */
+        }
+
+        /* Make the iframe fill its container */
+        .airtable-embed {
+            width: 100%;
+            height: 100%;
+            border: none; /* The container has a border/shadow, so the iframe doesn't need one */
+        }
+    </style>
 </head>
 <body>
 
-<iframe class="airtable-embed" src="https://airtable.com/embed/appJ9EVzzFNv8OETy/pagoL8QWRZf4whsFO/form" frameborder="0" onmousewheel="" width="100%" height="533" style="background: transparent; border: 1px solid #ccc;"></iframe>
+    <div class="airtable-form-container">
+        <iframe 
+            class="airtable-embed" 
+            src="https://airtable.com/embed/appJ9EVzzFNv8OETy/pagoL8QWRZf4whsFO/form" 
+            frameborder="0">
+        </iframe>
+    </div>
 
 </body>
 </html>
-
-
