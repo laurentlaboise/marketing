@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iframe Embed Page</title>
+    <style>
+        /* Basic reset to remove default margins and padding */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Prevents scrollbars on the main page */
+        }
+
+        /* Styling for the iframe to make it fill the entire page */
+        .iframe-container {
+            width: 100vw; /* 100% of the viewport width */
+            height: 100vh; /* 100% of the viewport height */
+            border: none; /* Removes the default iframe border */
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+        The iframe element is used to embed another HTML document within the current one.
+        The 'src' attribute points to the URL of the page to embed.
+        The 'class' attribute is used to apply the styling from the <style> tag.
+        The 'frameborder' attribute is set to 0 for older browser compatibility to remove the border.
+    -->
+    <iframe 
+        class="iframe-container"
+        src="https://test.divi.express/build/index.html" 
+        title="Embedded Content"
+        frameborder="0">
+    </iframe>
+</body>
+</html>
