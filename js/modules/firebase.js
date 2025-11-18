@@ -39,7 +39,7 @@ export async function handleFormSubmit(event) {
     form.reset();
   } catch (e) {
     console.error("Error adding document: ", e);
-    alert("There was an error submitting your form. Please try again.");
+    alert("There was an error submitting your form. Please try again. Error: " + e);
   }
 }
 
