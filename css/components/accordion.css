@@ -37,7 +37,7 @@
 
 .accordion-summary .icon { 
     transition: transform 0.2s ease-in-out;
-    font-size: 0.75em;     /* ← add this one line only */
+    font-size: 1.5em;     /* ← add this one line only */
     margin-left: 6px;      /* ← optional, but makes it look even better */
     vertical-align: middle;     /* ← THIS is the magic line */
 }
