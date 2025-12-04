@@ -1,51 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Redirecting...</title>
-    <link rel="canonical" href="https://wordsthatsells.website/en">
-  
-    <!-- FAVICONS: add these files to your repo root (or adjust the paths) -->
+    <meta name="description" content="Words That Sells — marketing copy and resources (English)">
+
+    <!-- canonical -->
+    <link rel="canonical" href="https://wordsthatsells.website/en/">
+
+    <!-- FAVICONS: ensure these files exist in the repo root (or adjust the paths) -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#ffffff">
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-  
+
     <script>
+        // Always redirect to the English site
         (function () {
-            // STEP 1: Languages you currently SUPPORT (i.e. folders that actually exist)
-            // Right now only English exists → only 'en' is listed here
-            const availableLanguages = ['en'];           // ← Add 'fr', 'th', etc. here when the folders are ready
-
-            // STEP 2: All languages you plan to support eventually (for future-proofing)
-            const plannedLanguages = ['en', 'lo', 'th', 'fr', 'zh', 'vi'];
-
-            // STEP 3: Detect browser language
-            const userLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
-            const langCode = userLang.split('-')[0]; // "fr-FR" → "fr", "en-US" → "en", etc.
-
-            // STEP 4: Choose the redirect URL
-            let redirectUrl = '/en/'; // Default fallback = always English
-
-            // Only redirect to a non-English version if:
-            //   • The folder actually exists (listed in availableLanguages)
-            //   • The user's language is one we plan to support
-            if (langCode !== 'en' && 
-                availableLanguages.includes(langCode) && 
-                plannedLanguages.includes(langCode)) {
-                redirectUrl = `/${langCode}/`;
-            }
-
-            // STEP 5: Perform the redirect
-            window.location.replace(redirectUrl);
+            // Use replace() so this redirect does not create an extra history entry
+            window.location.replace('/en/');
         })();
     </script>
 </head>
 <body>
-    <p>Please wait while we direct you to the correct language version of our site...</p>
+    <p>Please wait while we direct you to the English version of the site...</p>
     <p>If nothing happens, <a href="/en/">click here to continue in English</a>.</p>
 </body>
 </html>
