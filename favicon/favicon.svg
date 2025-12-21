@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E91E63;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF4081;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#brandGradient)"/>
+
+  <!-- Stylized W -->
+  <path d="M 20 30 L 28 65 L 38 35 L 50 70 L 62 35 L 72 65 L 80 30"
+        stroke="white"
+        stroke-width="6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"/>
+
+  <!-- Small accent dot for "Words" -->
+  <circle cx="50" cy="78" r="3" fill="white" opacity="0.9"/>
+</svg>
