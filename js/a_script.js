@@ -47,15 +47,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
-    // Note: The form submission logic is handled in the Supabase script below.
-    // This listener provides immediate UI feedback.
+
+    // Supabase Form Submission
     if (quoteForm && modalContainer) {
-         quoteForm.addEventListener('submit', (e) => {
-            // This is for UI feedback only. The actual submission is in the module script.
-            e.preventDefault(); 
-            modalContainer.innerHTML = `<h2 class="modal-title">Thank You!</h2><p>Your quote request has been sent. We will get back to you within 24 hours.</p>`;
-            setTimeout(closeModal, 3000);
+        quoteForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(quoteForm);
+            const submission = Object.fromEntries(formData.entries());
+
+            const { data, error } = await supabase
+                .from('GET A QUOTE WTS')
+                .insert([submission]);
+
+            if (error) {
+                console.error('Supabase submission error:', error.message);
+                modalContainer.innerHTML = `<h2 class="modal-title">Error</h2><p>There was an error submitting your request. Please try again or contact us directly.</p>`;
+                setTimeout(closeModal, 5000);
+            } else {
+                console.log('Supabase submission successful:', data);
+                modalContainer.innerHTML = `<h2 class="modal-title">Thank You!</h2><p>Your quote request has been sent. We will get back to you within 24 hours.</p>`;
+                setTimeout(closeModal, 3000);
+            }
         });
     }
 
@@ -210,28 +222,6 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const supabaseUrl = 'https://msivaavxwszurzopourl.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zaXZhYXZ4d3N6dXJ6b3BvdXJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTAzMDAsImV4cCI6MjA2ODgyNjMwMH0.BznUDkfio5o83f7ZsYyTgrN-oa8NkPy5I1Wqiq46x78';
 const supabase = createClient(supabaseUrl, supabaseKey);
-
-const quoteForm = document.getElementById('quote-form');
-if (quoteForm) {
-    // This listener handles the actual data submission.
-    quoteForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); 
-        const formData = new FormData(quoteForm);
-        const submission = Object.fromEntries(formData.entries());
-
-        const { data, error } = await supabase
-            .from('GET A QUOTE WTS')
-            .insert([submission]);
-
-        if (error) {
-            console.error('Supabase submission error:', error.message);
-            // The UI will still show the "Thank You" message from the other listener for simplicity.
-            // In a real app, you might want to show an error message here instead.
-        } else {
-            console.log('Supabase submission successful:', data);
-        }
-    });
-}
 
 // footer multi-language 
     document.addEventListener('DOMContentLoaded', function() {
