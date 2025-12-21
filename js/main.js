@@ -1,5 +1,6 @@
 // js/main.js
 
+import '../css/main.css';
 import { handleFormSubmit, handleNewsletterSubmit } from './modules/firebase.js'; 
 import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
