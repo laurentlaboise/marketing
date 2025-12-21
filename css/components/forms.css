@@ -35,7 +35,8 @@ select:focus {
     flex-grow: 1; 
 }
 
-@media (min-width: 576px) { 
-    .newsletter-form { 
-        flex-direction: row; 
-    } 
+@media (min-width: 576px) {
+    .newsletter-form {
+        flex-direction: row;
+    }
+}

@@ -11,6 +11,15 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'js/[name].[contenthash].js',
     clean: true,
+    module: true,
+  },
+  experiments: {
+    outputModule: true,
+  },
+  externalsType: 'module',
+  externals: {
+    'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js': 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js',
+    'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js': 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js',
   },
   module: {
     rules: [
