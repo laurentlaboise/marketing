@@ -19,6 +19,32 @@ export function initSlidePanel() {
     return;
   }
 
+  /**
+   * Sanitize HTML content from trusted data attributes
+   * @param {HTMLElement} sourceElement - Source element with content
+   * @returns {string} Sanitized HTML
+   */
+  function sanitizeContent(sourceElement) {
+    // Clone the element to work with it safely
+    const clone = sourceElement.cloneNode(true);
+
+    // Remove any script tags
+    const scripts = clone.querySelectorAll('script');
+    scripts.forEach(script => script.remove());
+
+    // Remove event handlers (onclick, onerror, etc.)
+    const allElements = clone.querySelectorAll('*');
+    allElements.forEach(el => {
+      Array.from(el.attributes).forEach(attr => {
+        if (attr.name.startsWith('on')) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    });
+
+    return clone.innerHTML;
+  }
+
   function openPanel(serviceKey) {
     const detailsSource = document.getElementById(`details-${serviceKey}`);
     if (!detailsSource) {
@@ -27,12 +53,14 @@ export function initSlidePanel() {
     }
     const title = detailsSource.dataset.title || '';
     const imgSrc = detailsSource.dataset.img || '';
-    const contentHTML = detailsSource.innerHTML || '';
 
-    slideInTitle.textContent = title;
+    // Sanitize content before injecting to prevent XSS
+    const contentHTML = sanitizeContent(detailsSource);
+
+    slideInTitle.textContent = title; // textContent prevents XSS
     slideInImage.src = imgSrc;
     slideInImage.alt = `${title} detail image`;
-    slideInContent.innerHTML = contentHTML;
+    slideInContent.innerHTML = contentHTML; // Now sanitized
 
     document.body.classList.add('no-scroll');
     overlay.classList.add('is-open');

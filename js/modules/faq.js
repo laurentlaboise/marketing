@@ -109,15 +109,29 @@ export function initFaqSection() {
 
   let usedFaqIndexes = new Set();
 
+  /**
+   * Escape HTML to prevent XSS attacks
+   * @param {string} str - String to escape
+   * @returns {string} Escaped string
+   */
+  function escapeHTML(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   function addFaqToDom(faq) {
     const details = document.createElement('details');
     details.className = 'accordion-item reveal';
+
+    // Use escapeHTML to prevent XSS vulnerabilities
     details.innerHTML = `
       <summary class="accordion-summary">
-        <h3>${faq.q}</h3>
+        <h3>${escapeHTML(faq.q)}</h3>
         <i class="fas fa-chevron-down icon"></i>
       </summary>
-      <p class="accordion-content">${faq.a}</p>
+      <p class="accordion-content">${escapeHTML(faq.a)}</p>
     `;
     faqList.appendChild(details);
     revealObserver.observe(details); // animate newly added item

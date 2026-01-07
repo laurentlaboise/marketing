@@ -1,0 +1,130 @@
+// firestore.rules
+// Firestore Security Rules - Zero Trust Implementation
+// Deploy these rules to your Firebase project to secure your database
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isValidEmail(email) {
+      return email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    function isRateLimited() {
+      // Check if more than 5 requests in the last minute from this IP
+      // Note: This requires additional implementation via Cloud Functions
+      return false;
+    }
+
+    // Submissions collection - Allow create only with validation
+    match /submissions/{submissionId} {
+      // Allow creating new submissions
+      allow create: if
+        // Request must contain valid fields
+        request.resource.data.keys().hasAll(['name', 'email', 'submittedAt']) &&
+        // Email must be valid format
+        isValidEmail(request.resource.data.email) &&
+        // Name must be between 2-100 characters
+        request.resource.data.name.size() >= 2 &&
+        request.resource.data.name.size() <= 100 &&
+        // Email must be max 255 characters
+        request.resource.data.email.size() <= 255 &&
+        // Message must be max 5000 characters
+        (!request.resource.data.keys().hasAny(['message']) ||
+         request.resource.data.message.size() <= 5000) &&
+        // Timestamp must be recent (within 5 minutes)
+        request.resource.data.submittedAt is timestamp &&
+        request.resource.data.submittedAt > request.time - duration.value(5, 'm') &&
+        request.resource.data.submittedAt < request.time + duration.value(1, 'm') &&
+        // Prevent rate limiting abuse
+        !isRateLimited();
+
+      // Deny all read, update, delete operations from clients
+      allow read: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Newsletter signups collection
+    match /newsletterSignups/{signupId} {
+      allow create: if
+        // Must have email field
+        request.resource.data.keys().hasAll(['email', 'signedUpAt']) &&
+        // Email must be valid
+        isValidEmail(request.resource.data.email) &&
+        request.resource.data.email.size() <= 255 &&
+        // Timestamp validation
+        request.resource.data.signedUpAt is timestamp &&
+        request.resource.data.signedUpAt > request.time - duration.value(5, 'm') &&
+        request.resource.data.signedUpAt < request.time + duration.value(1, 'm') &&
+        // Rate limiting
+        !isRateLimited();
+
+      allow read: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Admin access - Only authenticated admin users can read/write
+    // You'll need to set up Firebase Authentication and custom claims
+    match /{document=**} {
+      allow read, write: if
+        request.auth != null &&
+        request.auth.token.admin == true;
+    }
+  }
+}
+
+/*
+DEPLOYMENT INSTRUCTIONS:
+========================
+
+1. Install Firebase CLI:
+   npm install -g firebase-tools
+
+2. Login to Firebase:
+   firebase login
+
+3. Initialize Firebase in your project:
+   firebase init firestore
+
+4. Deploy these rules:
+   firebase deploy --only firestore:rules
+
+5. IMPORTANT: Set up rate limiting via Cloud Functions
+   - Create a Cloud Function to track submission counts
+   - Use Redis or Firestore to store rate limit counters
+   - Example: https://firebase.google.com/docs/firestore/solutions/rate-limiting
+
+6. Set up admin users:
+   - Use Firebase Authentication
+   - Set custom claims via Admin SDK:
+
+     admin.auth().setCustomUserClaims(uid, { admin: true })
+
+SECURITY BEST PRACTICES:
+========================
+
+✅ These rules implement Zero Trust principles:
+   - Deny by default
+   - Validate all input
+   - Limit data size
+   - Prevent time-based attacks
+   - No client-side reads (prevents data scraping)
+
+⚠️  Additional security measures needed:
+   - Set up reCAPTCHA for form submissions
+   - Implement rate limiting via Cloud Functions
+   - Monitor for abuse patterns in Firebase console
+   - Set up alerts for suspicious activity
+   - Regular security audits
+
+📊 Monitoring:
+   - Firebase Console > Firestore > Usage tab
+   - Set up alerts for unusual write patterns
+   - Monitor rejected requests in Firestore rules logs
+
+For more information:
+https://firebase.google.com/docs/firestore/security/get-started
+*/
