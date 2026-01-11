@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Admin - Words That Sells</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #1f3a5f;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="url"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    textarea#content {
+      min-height: 400px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #0066cc;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0052a3;
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #0066cc;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .helper-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .preview-btn {
+      background: #28a745;
+      color: white;
+      margin-left: 10px;
+    }
+
+    .preview-btn:hover {
+      background: #218838;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #0066cc;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="../en/resources/articles/index.html" class="back-link">← Back to Blog</a>
+
+    <h1>📝 Create New Blog Article</h1>
+
+    <div id="alertContainer"></div>
+
+    <form id="articleForm">
+      <div class="form-group">
+        <label for="title">Article Title *</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          placeholder="e.g., Mastering SEO for Small Businesses"
+          required
+        />
+        <div class="helper-text">The title will be automatically converted to a URL-friendly slug</div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Short Description *</label>
+        <textarea
+          id="description"
+          name="description"
+          placeholder="Brief description that appears in the article grid (1-2 sentences)"
+          required
+        ></textarea>
+        <div class="helper-text">This appears in search results and article previews</div>
+      </div>
+
+      <div class="form-group">
+        <label for="content">Full Article Content *</label>
+        <textarea
+          id="content"
+          name="content"
+          placeholder="Complete article content in HTML or plain text. You can use HTML tags like <p>, <h2>, <ul>, <li>, <strong>, etc."
+          required
+        ></textarea>
+        <div class="helper-text">
+          Supports HTML. Example: &lt;p&gt;Your content here&lt;/p&gt;&lt;h2&gt;Subheading&lt;/h2&gt;
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="featured_image_url">Featured Image URL</label>
+        <input
+          type="url"
+          id="featured_image_url"
+          name="featured_image_url"
+          placeholder="https://images.unsplash.com/photo-..."
+        />
+        <div class="helper-text">
+          Use Unsplash, your own CDN, or leave blank for placeholder image
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Categories * (Select at least one)</label>
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" name="categories" value="AI" /> AI
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Analytics" /> Analytics
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="App Development" /> App Development
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Business Tools" /> Business Tools
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Content Creation" /> Content Creation
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Content Strategy" /> Content Strategy
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Copywriting" /> Copywriting
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="E-commerce" /> E-commerce
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Lead Generation" /> Lead Generation
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Local SEO" /> Local SEO
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Marketing" /> Marketing
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Marketing Strategy" /> Marketing Strategy
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="SEO" /> SEO
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Social Media" /> Social Media
+          </label>
+          <label>
+            <input type="checkbox" name="categories" value="Web Development" /> Web Development
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="submitBtn">
+          Publish Article
+        </button>
+        <button type="reset" class="btn-secondary">Clear Form</button>
+      </div>
+
+      <div class="loading" id="loading">
+        <span class="spinner"></span>
+        Publishing article...
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // IMPORTANT: Update this to your backend URL
+    const API_URL = 'http://localhost:5000/api';
+
+    const form = document.getElementById('articleForm');
+    const alertContainer = document.getElementById('alertContainer');
+    const loading = document.getElementById('loading');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function showAlert(message, type = 'info') {
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.textContent = message;
+      alertContainer.innerHTML = '';
+      alertContainer.appendChild(alert);
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => alert.remove(), 5000);
+
+      // Scroll to top to show alert
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Get form data
+      const title = document.getElementById('title').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const content = document.getElementById('content').value.trim();
+      const featured_image_url = document.getElementById('featured_image_url').value.trim();
+
+      // Get selected categories
+      const categoryCheckboxes = document.querySelectorAll('input[name="categories"]:checked');
+      const categories = Array.from(categoryCheckboxes).map(cb => cb.value);
+
+      // Validation
+      if (!title || !description || !content) {
+        showAlert('Please fill in all required fields', 'error');
+        return;
+      }
+
+      if (categories.length === 0) {
+        showAlert('Please select at least one category', 'error');
+        return;
+      }
+
+      // Show loading state
+      loading.style.display = 'block';
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch(`${API_URL}/articles`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            content,
+            featured_image_url: featured_image_url || null,
+            categories,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create article');
+        }
+
+        showAlert(
+          `✅ Article "${title}" published successfully! View it on your blog.`,
+          'success'
+        );
+
+        // Reset form after successful submission
+        form.reset();
+
+        // Optional: Redirect to articles page after 2 seconds
+        setTimeout(() => {
+          window.location.href = '../en/resources/articles/index.html';
+        }, 2000);
+
+      } catch (error) {
+        showAlert(`❌ Error: ${error.message}`, 'error');
+        console.error('Form submission error:', error);
+      } finally {
+        loading.style.display = 'none';
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Auto-save to localStorage (draft functionality)
+    const inputs = ['title', 'description', 'content', 'featured_image_url'];
+
+    inputs.forEach(inputId => {
+      const input = document.getElementById(inputId);
+
+      // Load saved draft on page load
+      const savedValue = localStorage.getItem(`draft_${inputId}`);
+      if (savedValue && !input.value) {
+        input.value = savedValue;
+      }
+
+      // Save to localStorage on input
+      input.addEventListener('input', () => {
+        localStorage.setItem(`draft_${inputId}`, input.value);
+      });
+    });
+
+    // Clear draft on successful submission
+    form.addEventListener('submit', () => {
+      inputs.forEach(inputId => {
+        localStorage.removeItem(`draft_${inputId}`);
+      });
+    });
+  </script>
+</body>
+</html>
