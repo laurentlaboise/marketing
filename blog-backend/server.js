@@ -197,30 +197,79 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ==================== ERROR HANDLING ====================
+// ==================== ROOT ROUTE ====================
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// Root endpoint for testing
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Blog API Server',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/health',
+      articles: '/api/articles',
+      categories: '/api/categories'
+    }
+  });
 });
 
-// Global error handler
+// ==================== ERROR HANDLING ====================
+// IMPORTANT: These handlers must be defined AFTER all routes
+
+// 404 handler - catches all undefined routes
+app.use((req, res, next) => {
+  console.log(`404 Not Found: ${req.method} ${req.path}`);
+  res.status(404).json({
+    error: 'Route not found',
+    path: req.path,
+    method: req.method
+  });
+});
+
+// Global error handler - must have 4 parameters (err, req, res, next)
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(err.status || 500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n🚀 Blog API running on http://localhost:${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}\n`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📍 Routes registered:`);
+  console.log(`   GET  /`);
+  console.log(`   GET  /api/health`);
+  console.log(`   GET  /api/articles`);
+  console.log(`   GET  /api/articles/:slug`);
+  console.log(`   POST /api/articles`);
+  console.log(`   PUT  /api/articles/:id`);
+  console.log(`   DELETE /api/articles/:id`);
+  console.log(`   GET  /api/categories\n`);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
-  pool.end(() => {
-    console.log('Database pool closed');
+  server.close(() => {
+    console.log('HTTP server closed');
+    pool.end(() => {
+      console.log('Database pool closed');
+      process.exit(0);
+    });
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    pool.end(() => {
+      console.log('Database pool closed');
+      process.exit(0);
+    });
   });
 });
