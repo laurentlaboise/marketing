@@ -197,6 +197,95 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ==================== ONE-TIME DATABASE SETUP ====================
+
+app.get('/api/setup-database', async (req, res) => {
+  try {
+    console.log('🔧 Starting one-time database setup...');
+
+    // Check if table already exists
+    const checkTable = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'articles'
+      )
+    `);
+
+    if (checkTable.rows[0].exists) {
+      return res.json({
+        success: true,
+        message: '✅ Articles table already exists! Database is ready.',
+        alreadySetup: true
+      });
+    }
+
+    // Create articles table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS articles (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        description TEXT NOT NULL,
+        content TEXT NOT NULL,
+        featured_image_url VARCHAR(500),
+        categories TEXT[] DEFAULT ARRAY[]::TEXT[],
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_published BOOLEAN DEFAULT FALSE
+      )
+    `);
+
+    // Create indexes
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_articles_slug ON articles(slug)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_articles_published ON articles(is_published)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC)');
+
+    // Create update function
+    await pool.query(`
+      CREATE OR REPLACE FUNCTION update_updated_at_column()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+        RETURN NEW;
+      END;
+      $$ language 'plpgsql'
+    `);
+
+    // Create trigger
+    await pool.query(`
+      DROP TRIGGER IF EXISTS update_articles_updated_at ON articles
+    `);
+    await pool.query(`
+      CREATE TRIGGER update_articles_updated_at
+      BEFORE UPDATE ON articles
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
+    `);
+
+    console.log('✅ Database setup completed successfully!');
+
+    res.json({
+      success: true,
+      message: '🎉 Database setup completed! Articles table created with all indexes and triggers.',
+      setupComplete: true,
+      nextSteps: [
+        'Visit /api/articles to verify (should return empty array [])',
+        'Open admin panel to start creating articles',
+        'This endpoint can be safely removed after setup'
+      ]
+    });
+
+  } catch (error) {
+    console.error('❌ Database setup error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Database setup failed',
+      message: error.message
+    });
+  }
+});
+
 // ==================== ROOT ROUTE ====================
 
 // Root endpoint for testing
