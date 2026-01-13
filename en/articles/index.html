@@ -513,24 +513,40 @@
                         </div>
 
                         <div class="share-buttons">
-                            <a href="#" class="share-x" onclick="sharePost('x', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}', '${article.description.replace(/'/g, "\\'")}', '${article.featured_image_url || ''}'); return false;" title="Share on X (Twitter)">
-                                <i class="fa-brands fa-x-twitter"></i>
+                            <a href="#" class="share-btn share-x" data-platform="x" title="Share on X (Twitter)">
+                                <i class="fab fa-twitter"></i>
                             </a>
-                            <a href="#" class="share-linkedin" onclick="sharePost('linkedin', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}', '${article.description.replace(/'/g, "\\'")}', '${article.featured_image_url || ''}'); return false;" title="Share on LinkedIn">
-                                <i class="fa-brands fa-linkedin-in"></i>
+                            <a href="#" class="share-btn share-linkedin" data-platform="linkedin" title="Share on LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
                             </a>
-                            <a href="#" class="share-facebook" onclick="sharePost('facebook', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}', '${article.description.replace(/'/g, "\\'")}', '${article.featured_image_url || ''}'); return false;" title="Share on Facebook">
-                                <i class="fa-brands fa-facebook-f"></i>
+                            <a href="#" class="share-btn share-facebook" data-platform="facebook" title="Share on Facebook">
+                                <i class="fab fa-facebook-f"></i>
                             </a>
-                            <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}', '${article.description.replace(/'/g, "\\'")}', '${article.featured_image_url || ''}'); return false;" title="Share on WhatsApp">
-                                <i class="fa-brands fa-whatsapp"></i>
+                            <a href="#" class="share-btn share-whatsapp" data-platform="whatsapp" title="Share on WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
                             </a>
-                            <a href="#" class="share-copy" onclick="copyLink('${articleUrl}'); return false;" title="Copy Link">
-                                <i class="fa-solid fa-link"></i>
+                            <a href="#" class="share-btn share-copy" data-platform="copy" title="Copy Link">
+                                <i class="fas fa-link"></i>
                             </a>
                         </div>
                     </article>
                 `;
+
+                // Add event listeners to share buttons
+                setTimeout(() => {
+                    const shareButtons = container.querySelectorAll('.share-btn');
+                    shareButtons.forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const platform = btn.dataset.platform;
+                            if (platform === 'copy') {
+                                copyLink(articleUrl);
+                            } else {
+                                sharePost(platform, article.title, articleUrl, article.description || '', article.featured_image_url || '');
+                            }
+                        });
+                    });
+                }, 100);
 
             } catch (error) {
                 console.error('Error loading article:', error);
