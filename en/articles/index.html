@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Article | Words That Sells</title>
+
+    <!-- Dynamic SEO Meta Tags -->
+    <meta name="description" content="" id="meta-description">
+    <meta property="og:title" content="" id="meta-og-title">
+    <meta property="og:description" content="" id="meta-og-description">
+    <meta property="og:image" content="" id="meta-og-image">
+    <meta property="og:url" content="" id="meta-og-url">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="" id="meta-twitter-title">
+    <meta name="twitter:description" content="" id="meta-twitter-description">
+    <meta name="twitter:image" content="" id="meta-twitter-image">
+    <link rel="canonical" href="" id="canonical-url">
+
+    <script src="https://kit.fontawesome.com/a521ce00f6.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-primary-base: #1f85c9;
+            --color-accent-magenta: #d62b83;
+            --color-slate-900: #122a3f;
+            --color-slate-800: #154266;
+            --color-slate-500: #64748b;
+            --color-white: #ffffff;
+            --color-light: #f9f9f9;
+            --color-border: #e5e7eb;
+            --font-family-heading: 'Poppins', sans-serif;
+            --font-family-body: 'Inter', sans-serif;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
+            --border-radius-md: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family-body);
+            line-height: 1.6;
+            color: var(--color-slate-800);
+            background-color: var(--color-white);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: var(--spacing-3xl) 0;
+        }
+
+        .article-header {
+            margin-bottom: var(--spacing-2xl);
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-family-heading);
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: var(--color-slate-900);
+            margin-bottom: var(--spacing-md);
+            line-height: 1.2;
+        }
+
+        .article-meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--spacing-md);
+            font-size: 0.875rem;
+            color: var(--color-slate-500);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .article-meta span {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .article-meta i {
+            color: var(--color-primary-base);
+        }
+
+        .article-categories {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .category-pill {
+            background-color: var(--color-slate-500);
+            color: var(--color-white);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .featured-image {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .article-content {
+            font-size: 1.125rem;
+            line-height: 1.8;
+        }
+
+        .article-content h2 {
+            font-family: var(--font-family-heading);
+            font-size: 1.875rem;
+            color: var(--color-slate-900);
+            margin-top: var(--spacing-2xl);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .article-content h3 {
+            font-family: var(--font-family-heading);
+            font-size: 1.5rem;
+            color: var(--color-slate-900);
+            margin-top: var(--spacing-xl);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .article-content p {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: var(--spacing-md);
+            padding-left: var(--spacing-xl);
+        }
+
+        .article-content li {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--border-radius-md);
+            margin: var(--spacing-lg) 0;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--color-primary-base);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: var(--spacing-xl);
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--color-accent-magenta);
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--color-slate-500);
+        }
+
+        .loading-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--color-primary-base);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--color-accent-magenta);
+        }
+
+        .error-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .share-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-2xl);
+            padding-top: var(--spacing-xl);
+            border-top: 1px solid var(--color-border);
+            justify-content: center;
+        }
+
+        .share-buttons a {
+            background-color: #e5e7eb;
+            color: #4e555b;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .share-buttons a:hover {
+            color: var(--color-white);
+        }
+
+        .share-buttons .share-x:hover {
+            background-color: #000000;
+        }
+
+        .share-buttons .share-linkedin:hover {
+            background-color: #0077b5;
+        }
+
+        .share-buttons .share-facebook:hover {
+            background-color: #3b5998;
+        }
+
+        .share-buttons .share-whatsapp:hover {
+            background-color: #25d366;
+        }
+
+        .share-buttons .share-copy:hover {
+            background-color: var(--color-primary-base);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: var(--spacing-xl) 0;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .article-content {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../resources/articles/" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to All Articles
+        </a>
+
+        <div id="article-container">
+            <div class="loading-state">
+                <i class="fas fa-spinner"></i>
+                <p>Loading article...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://marketing-production-a3ee.up.railway.app/api';
+        const SITE_BASE_URL = 'https://wordsthatsells.website';
+
+        // Extract slug from URL query parameter or path
+        function getSlugFromURL() {
+            // Try query parameter first: ?slug=article-slug
+            const urlParams = new URLSearchParams(window.location.search);
+            const querySlug = urlParams.get('slug');
+            if (querySlug) return querySlug;
+
+            // Fallback: Try to get from path: /en/articles/article-slug
+            const path = window.location.pathname;
+            const parts = path.split('/').filter(p => p && p !== 'index.html');
+            return parts[parts.length - 1] || null;
+        }
+
+        // Calculate reading time
+        function calculateReadingTime(content) {
+            const text = content.replace(/<[^>]*>/g, '');
+            const wordCount = text.split(/\s+/).length;
+            const minutes = Math.ceil(wordCount / 200);
+            return minutes;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+
+        // Update SEO meta tags
+        function updateMetaTags(article) {
+            const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
+
+            document.getElementById('page-title').textContent = `${article.title} | Words That Sells`;
+            document.getElementById('meta-description').setAttribute('content', article.description);
+            document.getElementById('meta-og-title').setAttribute('content', article.title);
+            document.getElementById('meta-og-description').setAttribute('content', article.description);
+            document.getElementById('meta-og-image').setAttribute('content', article.featured_image_url || '');
+            document.getElementById('meta-og-url').setAttribute('content', articleUrl);
+            document.getElementById('meta-twitter-title').setAttribute('content', article.title);
+            document.getElementById('meta-twitter-description').setAttribute('content', article.description);
+            document.getElementById('meta-twitter-image').setAttribute('content', article.featured_image_url || '');
+            document.getElementById('canonical-url').setAttribute('href', articleUrl);
+        }
+
+        // Generate Schema.org JSON-LD
+        function generateSchema(article) {
+            return {
+                "@context": "https://schema.org",
+                "@type": "BlogPosting",
+                "headline": article.title,
+                "description": article.description,
+                "image": article.featured_image_url || '',
+                "datePublished": article.created_at,
+                "dateModified": article.updated_at || article.created_at,
+                "author": {
+                    "@type": "Organization",
+                    "name": "Words That Sells"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Words That Sells",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://wordsthatsells.website/logo.png"
+                    }
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": `${SITE_BASE_URL}/en/articles/${article.slug}`
+                }
+            };
+        }
+
+        // Add schema script to head
+        function addSchemaScript(schema) {
+            const script = document.createElement('script');
+            script.type = 'application/ld+json';
+            script.textContent = JSON.stringify(schema);
+            document.head.appendChild(script);
+        }
+
+        // Share functions
+        function sharePost(platform, title, url) {
+            let shareUrl = '';
+            const encodedTitle = encodeURIComponent(title);
+            const encodedUrl = encodeURIComponent(url);
+
+            switch (platform) {
+                case 'x':
+                    shareUrl = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
+                    break;
+                case 'linkedin':
+                    shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+                    break;
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+                    break;
+                case 'whatsapp':
+                    shareUrl = `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`;
+                    break;
+                case 'copy':
+                    copyLink(url);
+                    return;
+            }
+
+            if (shareUrl) {
+                window.open(shareUrl, '_blank');
+            }
+        }
+
+        function copyLink(url) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Link copied to clipboard!');
+                }).catch(err => {
+                    fallbackCopyLink(url);
+                });
+            } else {
+                fallbackCopyLink(url);
+            }
+        }
+
+        function fallbackCopyLink(url) {
+            const tempInput = document.createElement('input');
+            tempInput.value = url;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                alert('Link copied to clipboard!');
+            } catch (err) {
+                alert('Failed to copy link. Please copy it manually: ' + url);
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        // Load article
+        async function loadArticle() {
+            const slug = getSlugFromURL();
+            const container = document.getElementById('article-container');
+
+            if (!slug) {
+                container.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h2>Article Not Found</h2>
+                        <p>The article you're looking for doesn't exist.</p>
+                        <a href="../resources/articles/" class="back-link" style="margin-top: 1rem;">
+                            <i class="fas fa-arrow-left"></i> Back to All Articles
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/articles/${slug}`);
+
+                if (!response.ok) {
+                    throw new Error('Article not found');
+                }
+
+                const article = await response.json();
+
+                // Update SEO meta tags
+                updateMetaTags(article);
+
+                // Add Schema.org markup
+                const schema = generateSchema(article);
+                addSchemaScript(schema);
+
+                // Calculate reading time
+                const readingTime = calculateReadingTime(article.full_article_content || article.content || '');
+
+                // Format dates
+                const publishedDate = formatDate(article.created_at);
+                const updatedDate = article.updated_at ? formatDate(article.updated_at) : null;
+
+                // Current page URL for sharing
+                const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
+
+                // Render article
+                container.innerHTML = `
+                    <article>
+                        <header class="article-header">
+                            <h1>${article.title}</h1>
+
+                            <div class="article-meta">
+                                <span><i class="far fa-calendar"></i> ${publishedDate}</span>
+                                ${updatedDate ? `<span><i class="far fa-clock"></i> Updated: ${updatedDate}</span>` : ''}
+                                <span><i class="far fa-book-open"></i> ${readingTime} min read</span>
+                            </div>
+
+                            ${article.categories && article.categories.length > 0 ? `
+                                <div class="article-categories">
+                                    ${article.categories.map(cat => `<span class="category-pill">${cat}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                        </header>
+
+                        ${article.featured_image_url ? `
+                            <img src="${article.featured_image_url}" alt="${article.title}" class="featured-image" onerror="this.style.display='none'">
+                        ` : ''}
+
+                        <div class="article-content">
+                            ${article.full_article_content || article.content || '<p>Content not available.</p>'}
+                        </div>
+
+                        <div class="share-buttons">
+                            <a href="#" class="share-x" onclick="sharePost('x', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}'); return false;" title="Share on X">
+                                <i class="fab fa-x-twitter"></i>
+                            </a>
+                            <a href="#" class="share-linkedin" onclick="sharePost('linkedin', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}'); return false;" title="Share on LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a href="#" class="share-facebook" onclick="sharePost('facebook', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}'); return false;" title="Share on Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}'); return false;" title="Share on WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                            <a href="#" class="share-copy" onclick="copyLink('${articleUrl}'); return false;" title="Copy Link">
+                                <i class="fas fa-link"></i>
+                            </a>
+                        </div>
+                    </article>
+                `;
+
+            } catch (error) {
+                console.error('Error loading article:', error);
+                container.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h2>Unable to Load Article</h2>
+                        <p>We're having trouble loading this article. Please try again later.</p>
+                        <a href="../resources/articles/" class="back-link" style="margin-top: 1rem;">
+                            <i class="fas fa-arrow-left"></i> Back to All Articles
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        // Load article on page load
+        document.addEventListener('DOMContentLoaded', loadArticle);
+    </script>
+</body>
+</html>

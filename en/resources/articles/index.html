@@ -940,7 +940,7 @@
                 featured: article.featured || false,
                 sidebar_content: article.sidebar_content || article.content || '<p>Preview not available.</p>',
                 full_article_content: article.full_article_content || article.content || '<p>Content not available.</p>',
-                read_more_link: `${SITE_BASE_URL}/en/articles/${article.slug}`
+                read_more_link: `${SITE_BASE_URL}/en/articles/?slug=${article.slug}`
             };
         }
 
@@ -1214,7 +1214,7 @@
 
             // Update share buttons in sidebar content to use dynamic slug
             let contentWithDynamicShares = postData.sidebar_content;
-            const articleUrl = `${SITE_BASE_URL}/en/articles/${postData.slug}`;
+            const articleUrl = `${SITE_BASE_URL}/en/articles/?slug=${postData.slug}`;
 
             // Replace share button URLs and onclick handlers
             contentWithDynamicShares = contentWithDynamicShares.replace(
