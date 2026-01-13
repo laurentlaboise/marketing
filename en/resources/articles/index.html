@@ -938,8 +938,9 @@
                 date: article.created_at,
                 updated_at: article.updated_at,
                 featured: article.featured || false,
-                long_content: article.content || '<p>Content not available.</p>',
-                read_more_link: `${SITE_BASE_URL}/articles/${article.slug}`
+                sidebar_content: article.sidebar_content || article.content || '<p>Preview not available.</p>',
+                full_article_content: article.full_article_content || article.content || '<p>Content not available.</p>',
+                read_more_link: `${SITE_BASE_URL}/en/articles/?slug=${article.slug}`
             };
         }
 
@@ -1200,8 +1201,8 @@
             const schema = generateBlogPostingSchema(postData);
             updateSchemaScript(schema);
 
-            // Calculate reading time
-            const readingTime = calculateReadingTime(postData.long_content);
+            // Calculate reading time based on full article content
+            const readingTime = calculateReadingTime(postData.full_article_content);
 
             // Format dates
             const publishedDate = formatDate(postData.date);
@@ -1211,9 +1212,9 @@
             slideInImage.src = postData.image;
             slideInImage.alt = `${postData.title} image`;
 
-            // Update share buttons in content to use dynamic slug
-            let contentWithDynamicShares = postData.long_content;
-            const articleUrl = `${SITE_BASE_URL}/articles/${postData.slug}`;
+            // Update share buttons in sidebar content to use dynamic slug
+            let contentWithDynamicShares = postData.sidebar_content;
+            const articleUrl = `${SITE_BASE_URL}/en/articles/?slug=${postData.slug}`;
 
             // Replace share button URLs and onclick handlers
             contentWithDynamicShares = contentWithDynamicShares.replace(
@@ -1233,6 +1234,11 @@
                 </div>
                 <div class="blog-info-section">
                     ${contentWithDynamicShares}
+                </div>
+                <div style="text-align: center; margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border);">
+                    <a href="${postData.read_more_link}" target="_blank" class="btn btn-premium">
+                        <i class="fas fa-external-link-alt"></i> Read Full Article
+                    </a>
                 </div>
             `;
 

@@ -71,7 +71,13 @@
       min-height: 120px;
     }
 
-    textarea#content {
+    textarea#sidebar_content {
+      min-height: 200px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    textarea#full_article_content {
       min-height: 400px;
       font-family: 'Courier New', monospace;
       font-size: 13px;
@@ -244,15 +250,28 @@
       </div>
 
       <div class="form-group">
-        <label for="content">Full Article Content *</label>
+        <label for="sidebar_content">Sidebar Content (Preview) *</label>
         <textarea
-          id="content"
-          name="content"
-          placeholder="Complete article content in HTML or plain text. You can use HTML tags like <p>, <h2>, <ul>, <li>, <strong>, etc."
+          id="sidebar_content"
+          name="sidebar_content"
+          placeholder="Short preview content that appears in the sidebar when users click the article. Include a brief introduction with share buttons. Use HTML."
           required
         ></textarea>
         <div class="helper-text">
-          Supports HTML. Example: &lt;p&gt;Your content here&lt;/p&gt;&lt;h2&gt;Subheading&lt;/h2&gt;
+          This appears in the sidebar panel. Keep it concise (2-3 paragraphs). Example: &lt;p&gt;Introduction...&lt;/p&gt;
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="full_article_content">Full Article Content *</label>
+        <textarea
+          id="full_article_content"
+          name="full_article_content"
+          placeholder="Complete article content for the dedicated article page. Include all sections, headings, images, and detailed content in HTML format."
+          required
+        ></textarea>
+        <div class="helper-text">
+          This appears on the full article page at /en/articles/{slug}. Use HTML tags like &lt;p&gt;, &lt;h2&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;, etc.
         </div>
       </div>
 
@@ -363,7 +382,8 @@
       // Get form data
       const title = document.getElementById('title').value.trim();
       const description = document.getElementById('description').value.trim();
-      const content = document.getElementById('content').value.trim();
+      const sidebar_content = document.getElementById('sidebar_content').value.trim();
+      const full_article_content = document.getElementById('full_article_content').value.trim();
       const featured_image_url = document.getElementById('featured_image_url').value.trim();
 
       // Get selected categories
@@ -371,8 +391,8 @@
       const categories = Array.from(categoryCheckboxes).map(cb => cb.value);
 
       // Validation
-      if (!title || !description || !content) {
-        showAlert('Please fill in all required fields', 'error');
+      if (!title || !description || !sidebar_content || !full_article_content) {
+        showAlert('Please fill in all required fields (including both content fields)', 'error');
         return;
       }
 
@@ -394,7 +414,8 @@
           body: JSON.stringify({
             title,
             description,
-            content,
+            sidebar_content,
+            full_article_content,
             featured_image_url: featured_image_url || null,
             categories,
           }),
@@ -429,7 +450,7 @@
     });
 
     // Auto-save to localStorage (draft functionality)
-    const inputs = ['title', 'description', 'content', 'featured_image_url'];
+    const inputs = ['title', 'description', 'sidebar_content', 'full_article_content', 'featured_image_url'];
 
     inputs.forEach(inputId => {
       const input = document.getElementById(inputId);

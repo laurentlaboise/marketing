@@ -86,21 +86,25 @@ app.get('/api/articles/:slug', async (req, res) => {
 // POST: Create new article (Admin)
 app.post('/api/articles', async (req, res) => {
   try {
-    const { title, description, content, featured_image_url, categories } = req.body;
+    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, content } = req.body;
+
+    // Handle both old (content) and new (sidebar_content/full_article_content) field names for backwards compatibility
+    const sidebarContentValue = sidebar_content || content;
+    const fullArticleContentValue = full_article_content || content;
 
     // Validation
-    if (!title || !description || !content) {
-      return res.status(400).json({ error: 'Title, description, and content are required' });
+    if (!title || !description || !sidebarContentValue) {
+      return res.status(400).json({ error: 'Title, description, and sidebar content are required' });
     }
 
     const slug = titleToSlug(title);
     const categoriesArray = Array.isArray(categories) ? categories : [];
 
     const result = await pool.query(
-      `INSERT INTO articles (title, slug, description, content, featured_image_url, categories, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO articles (title, slug, description, sidebar_content, full_article_content, featured_image_url, categories, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-      [title, slug, description, content, featured_image_url || null, categoriesArray, true]
+      [title, slug, description, sidebarContentValue, fullArticleContentValue, featured_image_url || null, categoriesArray, true]
     );
 
     res.status(201).json({
@@ -121,20 +125,25 @@ app.post('/api/articles', async (req, res) => {
 app.put('/api/articles/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, content, featured_image_url, categories, is_published } = req.body;
+    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, is_published, content } = req.body;
+
+    // Handle both old (content) and new (sidebar_content/full_article_content) field names for backwards compatibility
+    const sidebarContentValue = sidebar_content || content;
+    const fullArticleContentValue = full_article_content || content;
 
     const result = await pool.query(
       `UPDATE articles
        SET title = COALESCE($1, title),
            description = COALESCE($2, description),
-           content = COALESCE($3, content),
-           featured_image_url = COALESCE($4, featured_image_url),
-           categories = COALESCE($5, categories),
-           is_published = COALESCE($6, is_published),
+           sidebar_content = COALESCE($3, sidebar_content),
+           full_article_content = COALESCE($4, full_article_content),
+           featured_image_url = COALESCE($5, featured_image_url),
+           categories = COALESCE($6, categories),
+           is_published = COALESCE($7, is_published),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $7
+       WHERE id = $8
        RETURNING *`,
-      [title, description, content, featured_image_url, categories, is_published, id]
+      [title, description, sidebarContentValue, fullArticleContentValue, featured_image_url, categories, is_published, id]
     );
 
     if (result.rows.length === 0) {
@@ -281,6 +290,73 @@ app.get('/api/setup-database', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Database setup failed',
+      message: error.message
+    });
+  }
+});
+
+// ==================== DATABASE MIGRATION ====================
+
+// Migrate content field to sidebar_content and add full_article_content
+app.get('/api/migrate-content-fields', async (req, res) => {
+  try {
+    console.log('🔄 Starting database migration for content fields...');
+
+    // Check if sidebar_content column exists (migration already done)
+    const checkColumn = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'articles'
+        AND column_name = 'sidebar_content'
+      )
+    `);
+
+    if (checkColumn.rows[0].exists) {
+      return res.json({
+        success: true,
+        message: '✅ Migration already completed! Fields: sidebar_content, full_article_content',
+        alreadyMigrated: true
+      });
+    }
+
+    // Step 1: Rename content to sidebar_content
+    await pool.query(`
+      ALTER TABLE articles
+      RENAME COLUMN content TO sidebar_content
+    `);
+    console.log('✅ Renamed content → sidebar_content');
+
+    // Step 2: Add full_article_content column
+    await pool.query(`
+      ALTER TABLE articles
+      ADD COLUMN full_article_content TEXT
+    `);
+    console.log('✅ Added full_article_content column');
+
+    // Step 3: Copy sidebar_content to full_article_content for existing articles
+    await pool.query(`
+      UPDATE articles
+      SET full_article_content = sidebar_content
+      WHERE full_article_content IS NULL
+    `);
+    console.log('✅ Copied existing content to both fields');
+
+    res.json({
+      success: true,
+      message: '✅ Migration completed successfully!',
+      details: {
+        renamed: 'content → sidebar_content',
+        added: 'full_article_content',
+        note: 'Existing articles have content in both fields'
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Migration failed',
       message: error.message
     });
   }
