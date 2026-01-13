@@ -326,16 +326,18 @@
         // Update SEO meta tags
         function updateMetaTags(article) {
             const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
+            const defaultImage = 'https://wordsthatsells.website/images/default-blog.jpg';
+            const shareImage = article.featured_image_url || defaultImage;
 
             document.getElementById('page-title').textContent = `${article.title} | Words That Sells`;
-            document.getElementById('meta-description').setAttribute('content', article.description);
+            document.getElementById('meta-description').setAttribute('content', article.description || article.title);
             document.getElementById('meta-og-title').setAttribute('content', article.title);
-            document.getElementById('meta-og-description').setAttribute('content', article.description);
-            document.getElementById('meta-og-image').setAttribute('content', article.featured_image_url || '');
+            document.getElementById('meta-og-description').setAttribute('content', article.description || article.title);
+            document.getElementById('meta-og-image').setAttribute('content', shareImage);
             document.getElementById('meta-og-url').setAttribute('content', articleUrl);
             document.getElementById('meta-twitter-title').setAttribute('content', article.title);
-            document.getElementById('meta-twitter-description').setAttribute('content', article.description);
-            document.getElementById('meta-twitter-image').setAttribute('content', article.featured_image_url || '');
+            document.getElementById('meta-twitter-description').setAttribute('content', article.description || article.title);
+            document.getElementById('meta-twitter-image').setAttribute('content', shareImage);
             document.getElementById('canonical-url').setAttribute('href', articleUrl);
         }
 
@@ -377,23 +379,30 @@
         }
 
         // Share functions
-        function sharePost(platform, title, url) {
+        function sharePost(platform, title, url, description, imageUrl) {
             let shareUrl = '';
             const encodedTitle = encodeURIComponent(title);
             const encodedUrl = encodeURIComponent(url);
+            const encodedDescription = encodeURIComponent(description || title);
+            const shareText = `${title} - ${description || ''}`;
+            const encodedShareText = encodeURIComponent(shareText);
 
             switch (platform) {
                 case 'x':
-                    shareUrl = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
+                    // X (Twitter) supports text + URL
+                    shareUrl = `https://twitter.com/intent/tweet?text=${encodedShareText}&url=${encodedUrl}`;
                     break;
                 case 'linkedin':
+                    // LinkedIn will auto-fetch image and description from OG tags
                     shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
                     break;
                 case 'facebook':
+                    // Facebook will auto-fetch image and description from OG tags
                     shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
                     break;
                 case 'whatsapp':
-                    shareUrl = `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`;
+                    // WhatsApp supports text + URL
+                    shareUrl = `https://api.whatsapp.com/send?text=${encodedShareText}%20${encodedUrl}`;
                     break;
                 case 'copy':
                     copyLink(url);
@@ -401,7 +410,7 @@
             }
 
             if (shareUrl) {
-                window.open(shareUrl, '_blank');
+                window.open(shareUrl, '_blank', 'width=600,height=400');
             }
         }
 
@@ -504,20 +513,20 @@
                         </div>
 
                         <div class="share-buttons">
-                            <a href="#" class="share-x" onclick="sharePost('x', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}'); return false;" title="Share on X">
-                                <i class="fab fa-x-twitter"></i>
+                            <a href="#" class="share-x" onclick="sharePost('x', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}', '${article.description.replace(/'/g, "\\'")}', '${article.featured_image_url || ''}'); return false;" title="Share on X (Twitter)">
+                                <i class="fa-brands fa-x-twitter"></i>
                             </a>
-                            <a href="#" class="share-linkedin" onclick="sharePost('linkedin', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}'); return false;" title="Share on LinkedIn">
-                                <i class="fab fa-linkedin-in"></i>
+                            <a href="#" class="share-linkedin" onclick="sharePost('linkedin', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}', '${article.description.replace(/'/g, "\\'")}', '${article.featured_image_url || ''}'); return false;" title="Share on LinkedIn">
+                                <i class="fa-brands fa-linkedin-in"></i>
                             </a>
-                            <a href="#" class="share-facebook" onclick="sharePost('facebook', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}'); return false;" title="Share on Facebook">
-                                <i class="fab fa-facebook-f"></i>
+                            <a href="#" class="share-facebook" onclick="sharePost('facebook', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}', '${article.description.replace(/'/g, "\\'")}', '${article.featured_image_url || ''}'); return false;" title="Share on Facebook">
+                                <i class="fa-brands fa-facebook-f"></i>
                             </a>
-                            <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}'); return false;" title="Share on WhatsApp">
-                                <i class="fab fa-whatsapp"></i>
+                            <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', '${article.title.replace(/'/g, "\\'")}', '${articleUrl}', '${article.description.replace(/'/g, "\\'")}', '${article.featured_image_url || ''}'); return false;" title="Share on WhatsApp">
+                                <i class="fa-brands fa-whatsapp"></i>
                             </a>
                             <a href="#" class="share-copy" onclick="copyLink('${articleUrl}'); return false;" title="Copy Link">
-                                <i class="fas fa-link"></i>
+                                <i class="fa-solid fa-link"></i>
                             </a>
                         </div>
                     </article>
