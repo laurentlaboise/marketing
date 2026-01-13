@@ -1,0 +1,8 @@
+# Netlify configuration for clean URLs
+# This enables clean article URLs like /en/articles/article-slug
+
+[[redirects]]
+  from = "/en/articles/*"
+  to = "/en/articles/index.html"
+  status = 200
+  force = false

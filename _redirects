@@ -1,0 +1,5 @@
+# Redirect rules for clean article URLs
+# This tells the server to serve /en/articles/index.html for all /en/articles/* URLs
+# while keeping the clean URL in the browser
+
+/en/articles/*  /en/articles/index.html  200

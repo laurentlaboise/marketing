@@ -291,17 +291,22 @@
         const API_BASE_URL = 'https://marketing-production-a3ee.up.railway.app/api';
         const SITE_BASE_URL = 'https://wordsthatsells.website';
 
-        // Extract slug from URL query parameter or path
+        // Extract slug from URL path (clean URL format)
         function getSlugFromURL() {
-            // Try query parameter first: ?slug=article-slug
-            const urlParams = new URLSearchParams(window.location.search);
-            const querySlug = urlParams.get('slug');
-            if (querySlug) return querySlug;
-
-            // Fallback: Try to get from path: /en/articles/article-slug
+            // Get path: /en/articles/article-slug
             const path = window.location.pathname;
             const parts = path.split('/').filter(p => p && p !== 'index.html');
-            return parts[parts.length - 1] || null;
+
+            // Last part should be the slug
+            // Path will be: ['en', 'articles', 'article-slug']
+            const slug = parts[parts.length - 1];
+
+            // If slug is 'articles', it means we're at /en/articles/ with no slug
+            if (slug === 'articles') {
+                return null;
+            }
+
+            return slug || null;
         }
 
         // Calculate reading time
