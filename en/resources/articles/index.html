@@ -895,30 +895,24 @@
                 isLoading = true;
                 showLoadingState();
 
-                // Fetch articles and categories in parallel
-                const [articlesResponse, categoriesResponse] = await Promise.all([
-                    fetch(ARTICLES_URL),
-                    fetch(CATEGORIES_URL)
-                ]);
+                // Fetch articles (categories endpoint may not exist, so extract from articles)
+                const articlesResponse = await fetch(ARTICLES_URL);
 
                 if (!articlesResponse.ok) {
                     throw new Error(`Failed to fetch articles: ${articlesResponse.status}`);
                 }
 
-                const articlesData = await articlesResponse.ok ? await articlesResponse.json() : [];
-                const categoriesData = categoriesResponse.ok ? await categoriesResponse.json() : [];
+                const articlesData = await articlesResponse.json();
 
                 // Transform API data to match expected format
                 blogPosts = articlesData
                     .filter(article => article.is_published)
                     .map(article => transformArticle(article));
 
-                // Extract categories from articles if API call failed
-                if (categoriesData.length > 0) {
-                    categories = categoriesData.map(cat => cat.name).sort();
-                } else {
-                    categories = [...new Set(blogPosts.flatMap(post => post.categories))].sort();
-                }
+                // Extract unique categories from all articles
+                categories = [...new Set(blogPosts.flatMap(post => post.categories))].filter(cat => cat && cat.trim()).sort();
+
+                console.log('Categories extracted:', categories); // Debug log
 
                 featuredPosts = blogPosts.filter(post => post.featured);
 
@@ -1239,11 +1233,6 @@
                 </div>
                 <div class="blog-info-section">
                     ${contentWithDynamicShares}
-                </div>
-                <div class="guide-action-buttons">
-                    <a href="${postData.read_more_link}" class="btn btn-premium" target="_blank">
-                        <i class="fas fa-blog"></i> Read on Blog
-                    </a>
                 </div>
             `;
 
