@@ -1,0 +1,13 @@
+# Jekyll configuration for GitHub Pages
+# This enables clean URLs for article pages
+
+permalink: pretty
+
+# Exclude files from processing
+exclude:
+  - node_modules
+  - blog-backend
+  - README.md
+  - BLOG_*.md
+  - QUICK_START.md
+  - BACKEND_INTEGRATION_GUIDE.md
