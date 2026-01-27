@@ -257,6 +257,39 @@
             background-color: var(--color-primary-base);
         }
 
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--color-accent-magenta);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            transition: background-color 0.3s, transform 0.3s, opacity 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            text-decoration: none;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .back-to-top:hover {
+            background-color: #f90784;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .container {
                 width: 95%;
@@ -286,6 +319,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top" id="back-to-top">
+        <i class="fas fa-chevron-up"></i>
+    </a>
 
     <script>
         const API_BASE_URL = 'https://marketing-production-a3ee.up.railway.app/api';
@@ -563,8 +601,34 @@
             }
         }
 
-        // Load article on page load
-        document.addEventListener('DOMContentLoaded', loadArticle);
+        // Initialize back to top button
+        function initBackToTop() {
+            const backToTopButton = document.querySelector('.back-to-top');
+
+            const handleScroll = () => {
+                const shouldShow = window.scrollY > 300;
+                if (backToTopButton) {
+                    backToTopButton.classList.toggle('show', shouldShow);
+                }
+            };
+
+            window.addEventListener('scroll', handleScroll);
+
+            if (backToTopButton) {
+                backToTopButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+
+            handleScroll();
+        }
+
+        // Load article and initialize features on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadArticle();
+            initBackToTop();
+        });
     </script>
 </body>
 </html>
