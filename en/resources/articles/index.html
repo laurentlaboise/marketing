@@ -466,11 +466,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: var(--spacing-md);
         }
 
         #slide-in-title {
             font-size: var(--font-size-2xl);
             margin-bottom: 0;
+            flex: 1;
+            min-width: 0;
+        }
+
+        #slide-in-read-more {
+            flex-shrink: 0;
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: var(--font-size-sm);
+            white-space: nowrap;
         }
 
         #slide-in-close {
@@ -480,6 +490,7 @@
             border: none;
             cursor: pointer;
             padding: var(--spacing-sm);
+            flex-shrink: 0;
         }
 
         .slide-in-body {
@@ -845,6 +856,9 @@
     <div id="details-slide-in">
         <div class="slide-in-header">
             <h2 id="slide-in-title"></h2>
+            <a href="#" id="slide-in-read-more" class="btn btn-premium" target="_blank">
+                <i class="fas fa-external-link-alt"></i> Read Full Article
+            </a>
             <button id="slide-in-close"><i class="fas fa-times"></i></button>
         </div>
         <div class="slide-in-body">
@@ -1211,6 +1225,10 @@
             slideInTitle.textContent = postData.title;
             slideInImage.src = postData.image;
             slideInImage.alt = `${postData.title} image`;
+
+            // Update the top "Read Full Article" button href
+            const slideInReadMore = document.getElementById('slide-in-read-more');
+            slideInReadMore.href = postData.read_more_link;
 
             // Update share buttons in sidebar content to use dynamic slug
             let contentWithDynamicShares = postData.sidebar_content;
