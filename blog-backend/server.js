@@ -178,6 +178,172 @@ app.delete('/api/articles/:id', async (req, res) => {
   }
 });
 
+// ============================================================
+// GUIDES API ROUTES
+// ============================================================
+
+// GET all published guides
+app.get('/api/guides', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT id, title, slug, description, sidebar_content, featured_image_url, 
+                    categories, table_of_contents, estimated_read_time_minutes, 
+                    difficulty_level, created_at, updated_at, is_published
+             FROM guides 
+             WHERE is_published = true 
+             ORDER BY created_at DESC`
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching guides:', error);
+        res.status(500).json({ error: 'Failed to fetch guides' });
+    }
+});
+
+// GET single guide by slug
+app.get('/api/guides/:slug', async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const result = await pool.query(
+            `SELECT * FROM guides WHERE slug = $1 AND is_published = true`,
+            [slug]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Guide not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error fetching guide:', error);
+        res.status(500).json({ error: 'Failed to fetch guide' });
+    }
+});
+
+// GET guides by category
+app.get('/api/guides/category/:category', async (req, res) => {
+    try {
+        const { category } = req.params;
+        const result = await pool.query(
+            `SELECT id, title, slug, description, sidebar_content, featured_image_url, 
+                    categories, table_of_contents, estimated_read_time_minutes, 
+                    difficulty_level, created_at, updated_at
+             FROM guides 
+             WHERE is_published = true AND $1 = ANY(categories)
+             ORDER BY created_at DESC`,
+            [category]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching guides by category:', error);
+        res.status(500).json({ error: 'Failed to fetch guides' });
+    }
+});
+
+// GET guides by difficulty
+app.get('/api/guides/difficulty/:level', async (req, res) => {
+    try {
+        const { level } = req.params;
+        const result = await pool.query(
+            `SELECT id, title, slug, description, sidebar_content, featured_image_url, 
+                    categories, table_of_contents, estimated_read_time_minutes, 
+                    difficulty_level, created_at, updated_at
+             FROM guides 
+             WHERE is_published = true AND difficulty_level = $1
+             ORDER BY created_at DESC`,
+            [level]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching guides by difficulty:', error);
+        res.status(500).json({ error: 'Failed to fetch guides' });
+    }
+});
+
+// POST create new guide
+app.post('/api/guides', async (req, res) => {
+    try {
+        const {
+            title, slug, description, sidebar_content, featured_image_url,
+            categories, table_of_contents, estimated_read_time_minutes,
+            difficulty_level, is_published, full_guide_content
+        } = req.body;
+        const result = await pool.query(
+            `INSERT INTO guides (
+                title, slug, description, sidebar_content, featured_image_url,
+                categories, table_of_contents, estimated_read_time_minutes,
+                difficulty_level, is_published, full_guide_content
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            RETURNING *`,
+            [title, slug, description, sidebar_content, featured_image_url,
+             categories, table_of_contents, estimated_read_time_minutes,
+             difficulty_level, is_published || false, full_guide_content]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Error creating guide:', error);
+        res.status(500).json({ error: 'Failed to create guide' });
+    }
+});
+
+// PUT update guide
+app.put('/api/guides/:slug', async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const {
+            title, description, sidebar_content, featured_image_url,
+            categories, table_of_contents, estimated_read_time_minutes,
+            difficulty_level, is_published, full_guide_content
+        } = req.body;
+        const result = await pool.query(
+            `UPDATE guides SET
+                title = COALESCE($1, title),
+                description = COALESCE($2, description),
+                sidebar_content = COALESCE($3, sidebar_content),
+                featured_image_url = COALESCE($4, featured_image_url),
+                categories = COALESCE($5, categories),
+                table_of_contents = COALESCE($6, table_of_contents),
+                estimated_read_time_minutes = COALESCE($7, estimated_read_time_minutes),
+                difficulty_level = COALESCE($8, difficulty_level),
+                is_published = COALESCE($9, is_published),
+                full_guide_content = COALESCE($10, full_guide_content),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE slug = $11
+            RETURNING *`,
+            [title, description, sidebar_content, featured_image_url,
+             categories, table_of_contents, estimated_read_time_minutes,
+             difficulty_level, is_published, full_guide_content, slug]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Guide not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating guide:', error);
+        res.status(500).json({ error: 'Failed to update guide' });
+    }
+});
+
+// DELETE guide
+app.delete('/api/guides/:slug', async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const result = await pool.query(
+            'DELETE FROM guides WHERE slug = $1 RETURNING id, title',
+            [slug]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Guide not found' });
+        }
+        res.json({ message: 'Guide deleted', deleted: result.rows[0] });
+    } catch (error) {
+        console.error('Error deleting guide:', error);
+        res.status(500).json({ error: 'Failed to delete guide' });
+    }
+});
+
+// ============================================================
+// END GUIDES ROUTES
+// ============================================================
+
 // GET all categories
 app.get('/api/categories', async (req, res) => {
   try {
