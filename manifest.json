@@ -1,5 +1,5 @@
 {
-  "name": "Words That Sells - AI Digital Marketing",
+  "name": "WordsThatSells.Website - AI Digital Marketing",
   "short_name": "WordsThatSells",
   "description": "Your AI-powered partner for digital marketing excellence in Southeast Asia. Specializing in SEO, content, social media, and web development.",
   "lang": "en",
@@ -67,21 +67,21 @@
       "sizes": "1280x800",
       "type": "image/png",
       "platform": "wide",
-      "label": "Words That Sells Desktop Homepage"
+      "label": "WordsThatSells.Website Desktop Homepage"
     },
     {
       "src": "/images/screenshots/screenshot-mobile-1.png",
       "sizes": "750x1334",
       "type": "image/png",
       "platform": "narrow",
-      "label": "Words That Sells Mobile Homepage"
+      "label": "WordsThatSells.Website Mobile Homepage"
     },
     {
       "src": "/images/screenshots/screenshot-services.png",
       "sizes": "1280x800",
       "type": "image/png",
       "platform": "wide",
-      "label": "Words That Sells Services Page"
+      "label": "WordsThatSells.Website Services Page"
     }
   ],
   "shortcuts": [
@@ -106,7 +106,7 @@
     {
       "name": "Contact Us",
       "short_name": "Contact",
-      "description": "Get in touch with the Words That Sells team.",
+      "description": "Get in touch with the WordsThatSells.Website team.",
       "url": "/en/company/contact-us/",
       "icons": [
         { "src": "/images/shortcuts/shortcut-contact.png", "sizes": "192x192" }

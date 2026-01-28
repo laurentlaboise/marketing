@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contributing to Words That Sells - Guidelines</title>
-    <meta name="description" content="Guidelines for contributing to the Words That Sells website project. Learn about our philosophy, setup, code style, Git workflow, testing, and documentation standards.">
+    <title>Contributing to WordsThatSells.Website - Guidelines</title>
+    <meta name="description" content="Guidelines for contributing to the WordsThatSells.Website website project. Learn about our philosophy, setup, code style, Git workflow, testing, and documentation standards.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://wordsthatsells.website/CONTRIBUTING.html">
 
@@ -266,7 +266,7 @@
                         <span class="text-white font-bold text-xl">W</span>
                     </div>
                     <!-- Brand Name with gradient text -->
-                    <span class="text-2xl font-bold bg-gradient-to-r from-white to-[rgba(49,130,206,0.5)] bg-clip-text text-transparent">Words That Sells</span>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-white to-[rgba(49,130,206,0.5)] bg-clip-text text-transparent">WordsThatSells.Website</span>
                 </a>
             </div>
 
@@ -311,11 +311,11 @@
     <main class="flex-grow flex justify-center p-4 py-8 relative z-20">
         <div class="max-w-5xl w-full glass rounded-3xl p-8 md:p-12 text-white/90">
             <h1 class="text-4xl md:text-5xl font-extrabold mb-8 text-center bg-gradient-to-r from-white to-[rgba(49,130,206,0.5)] bg-clip-text text-transparent">
-                Contributing to Words That Sells Website
+                Contributing to WordsThatSells.Website Website
             </h1>
 
             <p class="text-lg mb-8 leading-relaxed">
-                We welcome contributions from everyone! Whether you're a seasoned developer, a budding enthusiast, or simply a user with a great idea, your input helps make the Words That Sells website better. This document outlines the guidelines for contributing to ensure a smooth and collaborative process.
+                We welcome contributions from everyone! Whether you're a seasoned developer, a budding enthusiast, or simply a user with a great idea, your input helps make the WordsThatSells.Website website better. This document outlines the guidelines for contributing to ensure a smooth and collaborative process.
             </p>
 
             <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">
@@ -355,7 +355,7 @@
             <ol class="list-decimal list-inside space-y-4 mb-10 content-list">
                 <li>
                     <strong class="text-white">Fork the Repository:</strong>
-                    Navigate to the <a href="https://github.com/wordsthatsells/website" target="_blank" rel="noopener noreferrer" class="text-[var(--color-accent-blue)] hover:underline">Words That Sells GitHub repository</a> and click the "Fork" button. This creates a copy of the repository under your GitHub account.
+                    Navigate to the <a href="https://github.com/wordsthatsells/website" target="_blank" rel="noopener noreferrer" class="text-[var(--color-accent-blue)] hover:underline">WordsThatSells.Website GitHub repository</a> and click the "Fork" button. This creates a copy of the repository under your GitHub account.
                 </li>
                 <li>
                     <strong class="text-white">Clone Your Fork:</strong>
@@ -371,7 +371,7 @@ cd wordsthatsells.website</code></pre>
                 </li>
                 <li>
                     <strong class="text-white">Set Up Git Remotes:</strong>
-                    Add the original Words That Sells repository as an "upstream" remote:
+                    Add the original WordsThatSells.Website repository as an "upstream" remote:
                     <pre><code class="language-bash">git remote add upstream https://github.com/wordsthatsells/website.git</code></pre>
                     You can verify your remotes with <code class="language-bash">git remote -v</code>.
                 </li>
@@ -579,7 +579,7 @@ function calculateTotalPrice(items) {
             <ol class="list-decimal list-inside space-y-2 mb-10 content-list">
                 <li><strong class="text-white">Title:</strong> Clear and concise feature title (e.g., <code class="language-plaintext">Feature: Add multilingual support for contact form</code>).</li>
                 <li><strong class="text-white">Description:</strong> Detailed explanation of the feature.</li>
-                <li><strong class="text-white">Business Case/Problem Solved:</strong> Explain why this feature is valuable to Words That Sells or its users.</li>
+                <li><strong class="text-white">Business Case/Problem Solved:</strong> Explain why this feature is valuable to WordsThatSells.Website or its users.</li>
                 <li><strong class="text-white">Proposed Solution (Optional):</strong> How you envision the feature being implemented.</li>
                 <li><strong class="text-white">User Stories (Optional):</strong> Describe how a user would interact with the feature.</li>
             </ol>
@@ -681,7 +681,7 @@ function calculateTotalPrice(items) {
         <div class="max-w-7xl mx-auto py-8 px-8">
             <div class="flex flex-col md:flex-row justify-between items-center text-center md:text-left space-y-6 md:space-y-0">
                 <div class="text-white/80">
-                    &copy; <span id="current-year"></span> Words That Sells. All rights reserved.
+                    &copy; <span id="current-year"></span> WordsThatSells.Website. All rights reserved.
                 </div>
                 <div class="flex space-x-6">
                     <a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="text-white/70 hover:text-white hover:scale-110 transition-all duration-300">

@@ -104,12 +104,12 @@ function generateSchemaMarkup(article) {
     "dateModified": formatSchemaDate(article.updated_at || article.created_at),
     "author": {
       "@type": "Organization",
-      "name": "Words That Sells",
+      "name": "WordsThatSells.Website",
       "url": "https://wordsthatsells.website"
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Words That Sells",
+      "name": "WordsThatSells.Website",
       "url": "https://wordsthatsells.website",
       "logo": {
         "@type": "ImageObject",
@@ -171,7 +171,7 @@ function generateArticleHTML(article) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${escapeHtml(article.title)} | Words That Sells</title>
+    <title>${escapeHtml(article.title)} | WordsThatSells.Website</title>
 
     <!-- SEO Meta Tags -->
     <meta name="description" content="${escapeHtml(article.description || article.title)}">
@@ -185,7 +185,7 @@ function generateArticleHTML(article) {
     <meta property="og:url" content="${articleUrl}">
     <meta property="article:published_time" content="${formatSchemaDate(article.created_at)}">
     ${article.updated_at ? `<meta property="article:modified_time" content="${formatSchemaDate(article.updated_at)}">` : ''}
-    <meta property="article:author" content="Words That Sells">
+    <meta property="article:author" content="WordsThatSells.Website">
     ${article.categories && article.categories.length > 0 ? article.categories.map(cat => `<meta property="article:tag" content="${escapeHtml(cat)}">`).join('\n    ') : ''}
 
     <!-- Twitter Card -->

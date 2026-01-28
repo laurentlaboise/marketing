@@ -1,5 +1,5 @@
 fonts/README.md - Typography Asset Management and Optimization Guidelines
-This document provides comprehensive guidelines for implementing, optimizing, and managing the typography assets used on the Words That Sells website. Adhering to these standards ensures consistent branding, optimal performance, and enhanced accessibility across all language versions.
+This document provides comprehensive guidelines for implementing, optimizing, and managing the typography assets used on the WordsThatSells.Website website. Adhering to these standards ensures consistent branding, optimal performance, and enhanced accessibility across all language versions.
 
 Fonts for WordsThatSells.website
 Code File in Docs: fonts/README.md
@@ -286,7 +286,7 @@ cp Inter-OFL.txt fonts/
 cp Poppins-OFL.txt fonts/
 
 5.2. Commercial Usage Permissions
-Confirm that all fonts used are licensed for commercial use, which is essential for Words That Sells as a business.
+Confirm that all fonts used are licensed for commercial use, which is essential for WordsThatSells.Website as a business.
 
 5.3. Distribution and Modification Rights
 Understand the rights to distribute font files (e.g., self-hosting) and modify them (e.g., subsetting). OFL generally permits these actions.

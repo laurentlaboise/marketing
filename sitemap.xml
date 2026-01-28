@@ -31,7 +31,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
         <image:image>
             <image:loc>https://wordsthatsells.website/images/wordsthatsells-logo.png</image:loc>
-            <image:caption>Words That Sells Official Logo</image:caption>
+            <image:caption>WordsThatSells.Website Official Logo</image:caption>
         </image:image>
         <image:image>
             <image:loc>https://wordsthatsells.website/images/ai-digital-marketing-laos.jpg</image:loc>
@@ -518,7 +518,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/" />
         <image:image>
             <image:loc>https://wordsthatsells.website/images/resources/resources-hub.jpg</image:loc>
-            <image:caption>Words That Sells Resources Hub</image:caption>
+            <image:caption>WordsThatSells.Website Resources Hub</image:caption>
         </image:image>
     </url>
     <url>
@@ -611,7 +611,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/articles/" />
         <image:image>
             <image:loc>https://wordsthatsells.website/images/resources/articles-blog.jpg</image:loc>
-            <image:caption>Words That Sells Articles and Blog</image:caption>
+            <image:caption>WordsThatSells.Website Articles and Blog</image:caption>
         </image:image>
     </url>
     <url>
@@ -705,7 +705,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/guides/" />
         <image:image>
             <image:loc>https://wordsthatsells.website/images/resources/guides.jpg</image:loc>
-            <image:caption>Words That Sells Guides and Tutorials</image:caption>
+            <image:caption>WordsThatSells.Website Guides and Tutorials</image:caption>
         </image:image>
     </url>
     <url>
@@ -1474,11 +1474,11 @@
             <loc>https://wordsthatsells.website/en/news/new-ai-tool-launch.html</loc>
             <news:news>
                 <news:publication>
-                    <news:name>Words That Sells Blog</news:name>
+                    <news:name>WordsThatSells.Website Blog</news:name>
                     <news:language>en</news:language>
                 </news:publication>
                 <news:publication_date>2025-07-25</news:publication_date>
-                <news:title>Words That Sells Launches New AI Content Tool</news:title>
+                <news:title>WordsThatSells.Website Launches New AI Content Tool</news:title>
             </news:news>
         </url>
     -->
