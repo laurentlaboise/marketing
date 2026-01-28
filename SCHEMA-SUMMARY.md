@@ -159,6 +159,11 @@ npm run analyze-schema
 **Issue:** HTML comment inside JSON-LD block causing parsing failure
 **Fix:** Remove HTML comments from within `<script type="application/ld+json">` tags
 
+### ⚠️ Content Mismatch Alert
+**File:** ./en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html
+**Issue:** File name suggests "AI in Southeast Asia" content, but the schema headline says "South Korea AI Law Compliance"
+**Fix:** Either rename the file to match the content, or update the article content to match the filename
+
 ## Conclusion
 
 The website has a solid foundation with schema markup on key pages (31% coverage), but there's significant opportunity for improvement. Focusing on adding schema to resource pages, article listings, and the current pricing page would provide the biggest SEO impact. The existing schema quality is good, with consistent Organization and LocalBusiness markup.
