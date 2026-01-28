@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Marketing website build process",
   "scripts": {
-    "build": "webpack --mode=production"
+    "build": "webpack --mode=production",
+    "analyze-schema": "node analyze-schema.js"
   },
   "keywords": [],
   "author": "",
