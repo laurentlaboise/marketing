@@ -1,7 +1,7 @@
 {
   "name": "blog-backend",
   "version": "1.0.0",
-  "description": "Backend API for Words That Sells blog",
+  "description": "Backend API for WordsThatSells.Website blog",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

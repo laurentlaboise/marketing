@@ -54,11 +54,11 @@ This section shows which schema.org types are used across the site:
   "datePublished": "2026-01-27",
   "author": {
     "@type": "Organization",
-    "name": "Words That Sells"
+    "name": "WordsThatSells.Website"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "Words That Sells",
+    "name": "WordsThatSells.Website",
     "logo": {
       "@type": "ImageObject",
       "url": "https://wordsthatsells.website/images/wts-logo.png"
@@ -168,12 +168,12 @@ This section shows which schema.org types are used across the site:
   "dateModified": "2026-01-27T00:00:00.000Z",
   "author": {
     "@type": "Organization",
-    "name": "Words That Sells",
+    "name": "WordsThatSells.Website",
     "url": "https://wordsthatsells.website"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "Words That Sells",
+    "name": "WordsThatSells.Website",
     "url": "https://wordsthatsells.website",
     "logo": {
       "@type": "ImageObject",
@@ -307,7 +307,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -424,7 +424,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -541,7 +541,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -658,7 +658,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -775,7 +775,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -892,7 +892,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -1009,7 +1009,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -1126,7 +1126,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -1243,7 +1243,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -1360,7 +1360,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",
@@ -1478,7 +1478,7 @@ This section shows which schema.org types are used across the site:
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",

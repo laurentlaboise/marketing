@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">Article | Words That Sells</title>
+    <title id="page-title">Article | WordsThatSells.Website</title>
 
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
@@ -381,7 +381,7 @@
             const defaultImage = 'https://wordsthatsells.website/images/default-blog.jpg';
             const shareImage = article.featured_image_url || defaultImage;
 
-            document.getElementById('page-title').textContent = `${article.title} | Words That Sells`;
+            document.getElementById('page-title').textContent = `${article.title} | WordsThatSells.Website`;
             document.getElementById('meta-description').setAttribute('content', article.description || article.title);
             document.getElementById('meta-og-title').setAttribute('content', article.title);
             document.getElementById('meta-og-description').setAttribute('content', article.description || article.title);
@@ -405,11 +405,11 @@
                 "dateModified": article.updated_at || article.created_at,
                 "author": {
                     "@type": "Organization",
-                    "name": "Words That Sells"
+                    "name": "WordsThatSells.Website"
                 },
                 "publisher": {
                     "@type": "Organization",
-                    "name": "Words That Sells",
+                    "name": "WordsThatSells.Website",
                     "logo": {
                         "@type": "ImageObject",
                         "url": "https://wordsthatsells.website/logo.png"

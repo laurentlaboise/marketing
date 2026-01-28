@@ -1,4 +1,4 @@
-# Blog CMS Setup Guide - Words That Sells
+# Blog CMS Setup Guide - WordsThatSells.Website
 
 Complete step-by-step guide to set up and run your blog content management system.
 

@@ -53,7 +53,7 @@ Each article HTML file includes:
 ### In `<head>`:
 ```html
 <!-- Page title -->
-<title>Article Title | Words That Sells</title>
+<title>Article Title | WordsThatSells.Website</title>
 
 <!-- SEO meta tags -->
 <meta name="description" content="...">

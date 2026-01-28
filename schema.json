@@ -38,7 +38,7 @@
     {
       "@type": "LocalBusiness",
       "@id": "https://wordsthatsells.website/#localbusiness",
-      "name": "Words That Sells - AI Digital Marketing Agency Laos",
+      "name": "WordsThatSells.Website - AI Digital Marketing Agency Laos",
       "url": "https://wordsthatsells.website",
       "address": {
         "@type": "PostalAddress",
@@ -190,7 +190,7 @@
       "sku": "AI-HUB-001",
       "brand": {
         "@type": "Brand",
-        "name": "Words That Sells"
+        "name": "WordsThatSells.Website"
       },
       "offers": {
         "@type": "Offer",

@@ -1,4 +1,4 @@
-# Blog CMS Backend - Words That Sells
+# Blog CMS Backend - WordsThatSells.Website
 
 A lightweight Node.js/Express API for managing blog articles with PostgreSQL database.
 
