@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ['nodejs_18']
+
+[phases.install]
+cmds = ['cd blog-backend && npm install']
+
+[phases.build]
+cmds = []
+
+[start]
+cmd = 'cd blog-backend && npm start'

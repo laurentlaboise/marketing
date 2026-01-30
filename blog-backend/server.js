@@ -67,8 +67,8 @@ const initializeDatabase = async () => {
       }
 };
 
-// Run initialization
-initializeDatabase();
+// Note: Database initialization now runs AFTER server starts
+// This prevents blocking the server startup if DB is slow/unavailable
 // ============================================================
 // ==================== ARTICLE ROUTES ====================
 
@@ -607,8 +607,8 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`\n🚀 Blog API running on http://localhost:${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🚀 Blog API running on http://0.0.0.0:${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📍 Routes registered:`);
   console.log(`   GET  /`);
@@ -619,6 +619,13 @@ const server = app.listen(PORT, () => {
   console.log(`   PUT  /api/articles/:id`);
   console.log(`   DELETE /api/articles/:id`);
   console.log(`   GET  /api/categories\n`);
+  
+  // Initialize database AFTER server starts successfully
+  // This allows server to respond to health checks even if DB is slow
+  console.log('🔄 Initializing database...');
+  initializeDatabase().catch(err => {
+    console.error('❌ Database initialization failed (server still running):', err.message);
+  });
 });
 
 // Graceful shutdown
