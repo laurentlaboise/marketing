@@ -149,7 +149,8 @@ curl -X POST http://localhost:5000/api/articles \
   -d '{
     "title": "Getting Started with SEO",
     "description": "Learn the basics of search engine optimization",
-    "content": "<p>SEO is essential for online success...</p>",
+    "sidebar_content": "<p>SEO is essential for online success...</p>",
+    "full_article_content": "<p>SEO is essential for online success. Complete guide...</p>",
     "featured_image_url": "https://example.com/image.jpg",
     "categories": ["SEO", "Marketing Strategy"]
   }'
@@ -202,7 +203,8 @@ npm start
 | title | VARCHAR(255) | Article title |
 | slug | VARCHAR(255) | URL-friendly slug (unique) |
 | description | TEXT | Short description |
-| content | TEXT | Full article content (HTML) |
+| sidebar_content | TEXT | Sidebar/preview article content (HTML) |
+| full_article_content | TEXT | Full article content (HTML) |
 | featured_image_url | VARCHAR(500) | Image URL |
 | categories | TEXT[] | Array of category tags |
 | created_at | TIMESTAMP | Creation timestamp |
@@ -220,13 +222,14 @@ npm start
 Uncomment the sample data section in `database/schema.sql` or run:
 
 ```sql
-INSERT INTO articles (title, slug, description, content, featured_image_url, categories, is_published)
+INSERT INTO articles (title, slug, description, sidebar_content, full_article_content, featured_image_url, categories, is_published)
 VALUES
   (
     'Mastering SEO for Small Businesses',
     'mastering-seo-small-businesses',
     'Essential SEO strategies for small businesses',
     '<p>Complete guide to SEO...</p>',
+    '<p>Complete guide to SEO with detailed explanations...</p>',
     'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a',
     ARRAY['SEO', 'Marketing Strategy'],
     TRUE
