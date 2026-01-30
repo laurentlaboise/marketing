@@ -2,6 +2,19 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Validate DATABASE_URL exists
+if (!process.env.DATABASE_URL) {
+  console.error('❌ FATAL: DATABASE_URL environment variable is not set!');
+  console.error('📝 Please set DATABASE_URL in Railway dashboard:');
+  console.error('   1. Go to your service → Variables');
+  console.error('   2. Add Reference to Postgres DATABASE_URL');
+  console.error('   3. Or manually set: postgresql://user:pass@host:port/db');
+  process.exit(1);
+}
+
+console.log('🔌 Initializing database connection pool...');
+console.log(`📍 Database host: ${process.env.DATABASE_URL.split('@')[1]?.split('/')[0] || 'unknown'}`);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
@@ -9,8 +22,8 @@ const pool = new Pool({
   // Connection pool limits
   max: 20,                    // Maximum pool size (Railway default: 20 connections)
   
-  // Connection timeouts
-  connectionTimeoutMillis: 10000,  // Wait 10s for available connection
+  // Connection timeouts - INCREASED for Railway database startup
+  connectionTimeoutMillis: 30000,  // Wait 30s for available connection (Railway DB startup)
   idleTimeoutMillis: 120000,       // Close idle connections after 2 minutes
   maxLifetimeSeconds: 1800,        // Recycle connections after 30 minutes
   
