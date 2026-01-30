@@ -401,6 +401,30 @@ app.get('/api/categories', async (req, res) => {
   }
 });
 
+// GET version info (for debugging)
+app.get('/api/version', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach(middleware => {
+    if (middleware.route) {
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods)
+      });
+    }
+  });
+  
+  res.json({
+    version: '2.0.0',
+    deployedAt: new Date().toISOString(),
+    nodeVersion: process.version,
+    environment: process.env.NODE_ENV || 'development',
+    guidesRoutesCount: routes.filter(r => r.path && r.path.includes('/api/guides')).length,
+    articlesRoutesCount: routes.filter(r => r.path && r.path.includes('/api/articles')).length,
+    totalRoutes: routes.length,
+    allApiRoutes: routes.filter(r => r.path && r.path.startsWith('/api/')).map(r => r.path)
+  });
+});
+
 // ==================== HEALTH CHECK ====================
 
 app.get('/api/health', (req, res) => {
