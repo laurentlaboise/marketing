@@ -31,6 +31,45 @@ function titleToSlug(title) {
     .replace(/-+/g, '-');
 }
 
+// ============================================================
+// AUTO-CREATE GUIDES TABLE ON STARTUP
+// ============================================================
+const initializeDatabase = async () => {
+      try {
+                // Create guides table if it doesn't exist
+                await pool.query(`
+                            CREATE TABLE IF NOT EXISTS guides (
+                                            id SERIAL PRIMARY KEY,
+                                                            title VARCHAR(255) NOT NULL,
+                                                                            slug VARCHAR(255) UNIQUE NOT NULL,
+                                                                                            description TEXT,
+                                                                                                            sidebar_content TEXT,
+                                                                                                                            featured_image_url VARCHAR(500),
+                                                                                                                                            categories TEXT[],
+                                                                                                                                                            table_of_contents JSONB,
+                                                                                                                                                                            estimated_read_time_minutes INTEGER,
+                                                                                                                                                                                            difficulty_level VARCHAR(20) CHECK (difficulty_level IN ('Beginner', 'Intermediate', 'Advanced')),
+                                                                                                                                                                                                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                                                                                                                                                                                                                            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                                                                                                                                                                                                                                            is_published BOOLEAN DEFAULT FALSE,
+                                                                                                                                                                                                                                                            full_guide_content TEXT
+                                                                                                                                                                                                                                                                        );
+                                                                                                                                                                                                                                                                                `);
+
+                // Create indexes
+                await pool.query(`CREATE INDEX IF NOT EXISTS idx_guides_slug ON guides(slug);`);
+                await pool.query(`CREATE INDEX IF NOT EXISTS idx_guides_published ON guides(is_published);`);
+                await pool.query(`CREATE INDEX IF NOT EXISTS idx_guides_categories ON guides USING GIN(categories);`);
+
+                console.log('✅ Database initialized: guides table ready');
+      } catch (error) {
+                console.error('❌ Database initialization error:', error.message);
+      }
+};
+
+// Run initialization
+initializeDatabase();
+// ============================================================
 // ==================== ARTICLE ROUTES ====================
 
 // GET all published articles
