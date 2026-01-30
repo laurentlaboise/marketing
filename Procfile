@@ -1,1 +1,1 @@
-web: cd blog-backend && npm start
+web: bash start-server.sh

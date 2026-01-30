@@ -19,6 +19,18 @@ I've created configuration files to tell Railway to use the `blog-backend/` dire
 2. **`Procfile`** - Alternative Railway start command
 3. **`nixpacks.toml`** - Nixpacks build configuration
 
+## 🚨 If You See ONLY PostgreSQL Logs (No Server Logs)
+
+This means your Node.js server is **NOT starting**. The fix:
+
+1. **Use the startup script**: I've created `start-server.sh` that Railway will execute
+2. **Check Railway Settings**: Go to Settings → ensure no conflicting start commands
+3. **Verify Environment Variables**: Especially `DATABASE_URL` (Railway auto-provides this)
+4. **Check Build Logs**: In Railway, go to Deployments → Latest → "Build Logs" tab
+   - Look for errors during `npm install`
+   - Check if `blog-backend/` directory is found
+   - Verify Node.js version (should be 20.x)
+
 ## 🔧 Railway Configuration Steps
 
 ### Option A: In Railway Dashboard (Recommended)

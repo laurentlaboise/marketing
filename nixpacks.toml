@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ['nodejs_18']
+nixPkgs = ['nodejs_20', 'bash']
 
 [phases.install]
-cmds = ['cd blog-backend && npm install']
+cmds = ['cd blog-backend && npm ci --prefer-offline --no-audit || npm install']
 
 [phases.build]
-cmds = []
+cmds = ['chmod +x start-server.sh']
 
 [start]
-cmd = 'cd blog-backend && npm start'
+cmd = 'bash start-server.sh'

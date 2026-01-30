@@ -4,7 +4,8 @@
   "description": "Marketing website build process",
   "scripts": {
     "build": "webpack --mode=production",
-    "analyze-schema": "node analyze-schema.js"
+    "analyze-schema": "node analyze-schema.js",
+    "start": "cd blog-backend && npm install && npm start"
   },
   "keywords": [],
   "author": "",
