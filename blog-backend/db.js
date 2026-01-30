@@ -12,8 +12,8 @@ const pool = new Pool({
   
   // Connection timeouts
   connectionTimeoutMillis: 10000,  // Wait 10s for available connection
-  idleTimeoutMillis: 30000,        // Close idle connections after 30s
-  maxLifetime: 1800000,            // Recycle connections after 30 minutes
+  idleTimeoutMillis: 120000,       // Close idle connections after 2 minutes
+  maxLifetimeSeconds: 1800,        // Recycle connections after 30 minutes
   
   // Query timeout
   statement_timeout: 30000,        // Kill queries running longer than 30s
