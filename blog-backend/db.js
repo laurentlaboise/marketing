@@ -8,15 +8,11 @@ const pool = new Pool({
   
   // Connection pool limits
   max: 20,                    // Maximum pool size (Railway default: 20 connections)
-  min: 2,                     // Minimum pool size (keep some connections ready)
   
   // Connection timeouts
   connectionTimeoutMillis: 10000,  // Wait 10s for available connection
   idleTimeoutMillis: 120000,       // Close idle connections after 2 minutes
   maxLifetimeSeconds: 1800,        // Recycle connections after 30 minutes
-  
-  // Query timeout
-  statement_timeout: 30000,        // Kill queries running longer than 30s
   
   // Keep-alive settings (prevent NO_SOCKET errors)
   keepAlive: true,
@@ -24,7 +20,7 @@ const pool = new Pool({
 });
 
 // Handle pool errors gracefully (don't kill entire app)
-pool.on('error', (err, client) => {
+pool.on('error', (err) => {
   console.error('⚠️  Unexpected database error on idle client:', err.message);
   console.error('Stack:', err.stack);
   // Log but don't exit - let pool recover
@@ -32,6 +28,10 @@ pool.on('error', (err, client) => {
 
 pool.on('connect', (client) => {
   console.log('✅ Database client connected');
+  // Set query timeout for this connection (30 seconds)
+  client.query('SET statement_timeout = 30000').catch((err) => {
+    console.error('Warning: Failed to set statement_timeout:', err.message);
+  });
 });
 
 pool.on('remove', (client) => {
