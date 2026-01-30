@@ -2,34 +2,35 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// Validate DATABASE_URL exists
-if (!process.env.DATABASE_URL) {
-  console.error('');
-  console.error('❌ FATAL ERROR: DATABASE_URL environment variable is NOT SET!');
-  console.error('');
-  console.error('🔍 This means Railway is not passing the environment variable.');
-  console.error('');
-  console.error('📝 To fix in Railway dashboard:');
-  console.error('   1. Go to "marketing" service → Variables tab');
-  console.error('   2. Check if DATABASE_URL exists');
-  console.error('   3. If using Reference: Delete it and add as RAW variable');
-  console.error('   4. Add new variable:');
-  console.error('      Name: DATABASE_URL');
-  console.error('      Value: postgresql://postgres:PASSWORD@postgres.railway.internal:5432/railway');
-  console.error('');
-  console.error('🔧 Alternative: Check variable is exposed at RUNTIME (not just build)');
-  console.error('');
-  process.exit(1);
+// Build connection string from individual variables if DATABASE_URL not available
+let connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  console.warn('⚠️  DATABASE_URL not found, building from individual variables...');
+  
+  const pgHost = process.env.PGHOST || 'localhost';
+  const pgPort = process.env.PGPORT || '5432';
+  const pgUser = process.env.PGUSER || 'postgres';
+  const pgPassword = process.env.PGPASSWORD || '';
+  const pgDatabase = process.env.PGDATABASE || 'railway';
+  
+  if (!pgPassword) {
+    console.error('❌ FATAL: No DATABASE_URL and no PGPASSWORD set!');
+    console.error('📝 Please set either:');
+    console.error('   1. DATABASE_URL (full connection string), OR');
+    console.error('   2. PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE');
+    process.exit(1);
+  }
+  
+  connectionString = `postgresql://${pgUser}:${pgPassword}@${pgHost}:${pgPort}/${pgDatabase}`;
+  console.log('✅ Built connection string from PG* variables');
 }
 
-console.log('✅ DATABASE_URL is set');
-console.log(`📍 Database host: ${process.env.DATABASE_URL.split('@')[1]?.split('/')[0] || 'unknown'}`);
-
 console.log('🔌 Initializing database connection pool...');
-console.log(`📍 Database host: ${process.env.DATABASE_URL.split('@')[1]?.split('/')[0] || 'unknown'}`);
+console.log(`📍 Database host: ${connectionString.split('@')[1]?.split('/')[0] || 'unknown'}`);
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   
   // Connection pool limits
