@@ -1,4 +1,5 @@
 // server.js - Main Express server
+// Version: 2.0.0 - Updated 2026-01-30 with guides routes and diagnostics
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
