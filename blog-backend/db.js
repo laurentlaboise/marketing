@@ -4,13 +4,26 @@ require('dotenv').config();
 
 // Validate DATABASE_URL exists
 if (!process.env.DATABASE_URL) {
-  console.error('❌ FATAL: DATABASE_URL environment variable is not set!');
-  console.error('📝 Please set DATABASE_URL in Railway dashboard:');
-  console.error('   1. Go to your service → Variables');
-  console.error('   2. Add Reference to Postgres DATABASE_URL');
-  console.error('   3. Or manually set: postgresql://user:pass@host:port/db');
+  console.error('');
+  console.error('❌ FATAL ERROR: DATABASE_URL environment variable is NOT SET!');
+  console.error('');
+  console.error('🔍 This means Railway is not passing the environment variable.');
+  console.error('');
+  console.error('📝 To fix in Railway dashboard:');
+  console.error('   1. Go to "marketing" service → Variables tab');
+  console.error('   2. Check if DATABASE_URL exists');
+  console.error('   3. If using Reference: Delete it and add as RAW variable');
+  console.error('   4. Add new variable:');
+  console.error('      Name: DATABASE_URL');
+  console.error('      Value: postgresql://postgres:PASSWORD@postgres.railway.internal:5432/railway');
+  console.error('');
+  console.error('🔧 Alternative: Check variable is exposed at RUNTIME (not just build)');
+  console.error('');
   process.exit(1);
 }
+
+console.log('✅ DATABASE_URL is set');
+console.log(`📍 Database host: ${process.env.DATABASE_URL.split('@')[1]?.split('/')[0] || 'unknown'}`);
 
 console.log('🔌 Initializing database connection pool...');
 console.log(`📍 Database host: ${process.env.DATABASE_URL.split('@')[1]?.split('/')[0] || 'unknown'}`);

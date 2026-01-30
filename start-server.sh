@@ -21,7 +21,12 @@ if [ ! -d "node_modules" ]; then
 fi
 
 echo "✅ Dependencies ready"
-echo "🎯 Starting server with: node server.js"
 
-# Start the server
-exec node server.js
+# Run diagnostic and start server
+if [ -f "diagnose-and-start.sh" ]; then
+  echo "🔍 Running diagnostics..."
+  exec bash diagnose-and-start.sh
+else
+  echo "🎯 Starting server with: node server.js"
+  exec node server.js
+fi
