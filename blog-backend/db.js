@@ -4,17 +4,43 @@ require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  // Additional connection options for production
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  
+  // Connection pool limits
+  max: 20,                    // Maximum pool size (Railway default: 20 connections)
+  min: 2,                     // Minimum pool size (keep some connections ready)
+  
+  // Connection timeouts
+  connectionTimeoutMillis: 10000,  // Wait 10s for available connection
+  idleTimeoutMillis: 30000,        // Close idle connections after 30s
+  maxLifetime: 1800000,            // Recycle connections after 30 minutes
+  
+  // Query timeout
+  statement_timeout: 30000,        // Kill queries running longer than 30s
+  
+  // Keep-alive settings (prevent NO_SOCKET errors)
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
 });
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+// Handle pool errors gracefully (don't kill entire app)
+pool.on('error', (err, client) => {
+  console.error('⚠️  Unexpected database error on idle client:', err.message);
+  console.error('Stack:', err.stack);
+  // Log but don't exit - let pool recover
 });
 
-pool.on('connect', () => {
-  console.log('✅ Database connected successfully');
+pool.on('connect', (client) => {
+  console.log('✅ Database client connected');
 });
+
+pool.on('remove', (client) => {
+  console.log('🔌 Database client removed from pool');
+});
+
+// Note: Graceful shutdown is handled in server.js to ensure proper order:
+// 1. Stop accepting new connections (server.close())
+// 2. Close database pool (pool.end())
+// 3. Exit process
 
 module.exports = pool;
