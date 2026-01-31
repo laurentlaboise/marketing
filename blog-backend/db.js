@@ -5,6 +5,7 @@ require('dotenv').config();
 // Track database availability for graceful degradation
 let databaseAvailable = false;
 let connectionString = null;
+let dbHostForLogging = 'unknown';
 
 // Build connection string from individual variables if DATABASE_URL not available
 connectionString = process.env.DATABASE_URL;
@@ -20,6 +21,7 @@ if (!connectionString) {
 
   if (pgHost && pgUser && pgPassword && pgDatabase) {
     connectionString = `postgresql://${pgUser}:${pgPassword}@${pgHost}:${pgPort}/${pgDatabase}`;
+    dbHostForLogging = `${pgHost}:${pgPort}`;
     console.log('✅ Built connection string from PG* variables');
   } else {
     console.warn('⚠️  No database credentials available - running in degraded mode');
@@ -49,8 +51,19 @@ const createMockPool = () => {
 let pool;
 
 if (connectionString) {
+  // If connectionString came from DATABASE_URL and we haven't set dbHostForLogging yet, try to parse it safely
+  if (dbHostForLogging === 'unknown') {
+    try {
+      const url = new URL(connectionString);
+      const port = url.port || '5432';
+      dbHostForLogging = `${url.hostname}:${port}`;
+    } catch (e) {
+      // If parsing fails, keep dbHostForLogging as 'unknown'
+    }
+  }
+
   console.log('🔌 Initializing database connection pool...');
-  console.log(`📍 Database host: ${connectionString.split('@')[1]?.split('/')[0] || 'unknown'}`);
+  console.log(`📍 Database host: ${dbHostForLogging}`);
 
   pool = new Pool({
     connectionString: connectionString,
