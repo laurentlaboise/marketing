@@ -1,12 +1,20 @@
 // server.js - Main Express server
-// Version: 2.0.0 - Updated 2026-01-30 with guides routes and diagnostics
+// Version: 2.1.0 - Updated 2026-01-31 with graceful degradation when Postgres unavailable
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const app = express();
 const pool = require('./db');
+
+const dbHealthLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // limit each IP to 10 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Middleware
 app.use(cors({
@@ -99,6 +107,13 @@ app.get('/api/articles', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error('Error fetching articles:', err);
+    if (err.code === 'NO_DATABASE') {
+      return res.status(503).json({
+        error: 'Database unavailable',
+        message: 'Postgres deployment not configured. Check /api/db-health for details.',
+        code: err.code
+      });
+    }
     res.status(500).json({ error: 'Failed to fetch articles' });
   }
 });
@@ -226,16 +241,23 @@ app.delete('/api/articles/:id', async (req, res) => {
 app.get('/api/guides', async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT id, title, slug, description, sidebar_content, featured_image_url, 
-                    categories, table_of_contents, estimated_read_time_minutes, 
+            `SELECT id, title, slug, description, sidebar_content, featured_image_url,
+                    categories, table_of_contents, estimated_read_time_minutes,
                     difficulty_level, created_at, updated_at, is_published
-             FROM guides 
-             WHERE is_published = true 
+             FROM guides
+             WHERE is_published = true
              ORDER BY created_at DESC`
         );
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching guides:', error);
+        if (error.code === 'NO_DATABASE') {
+            return res.status(503).json({
+                error: 'Database unavailable',
+                message: 'Postgres deployment not configured. Check /api/db-health for details.',
+                code: error.code
+            });
+        }
         res.status(500).json({ error: 'Failed to fetch guides' });
     }
 });
@@ -415,10 +437,11 @@ app.get('/api/version', (req, res) => {
   });
   
   res.json({
-    version: '2.0.0',
+    version: '2.1.0',
     deployedAt: new Date().toISOString(),
     nodeVersion: process.version,
     environment: process.env.NODE_ENV || 'development',
+    database: pool.isDegraded() ? 'not_configured' : 'configured',
     guidesRoutesCount: routes.filter(r => r.path && r.path.includes('/api/guides')).length,
     articlesRoutesCount: routes.filter(r => r.path && r.path.includes('/api/articles')).length,
     totalRoutes: routes.length,
@@ -432,8 +455,64 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    database: pool.isDegraded() ? 'not_configured' : 'configured'
   });
+});
+
+// Database health check - tests actual connectivity
+app.get('/api/db-health', dbHealthLimiter, async (req, res) => {
+  if (pool.isDegraded()) {
+    return res.status(503).json({
+      status: 'UNAVAILABLE',
+      database: 'not_configured',
+      message: 'Database not configured - Postgres deployment may have been removed',
+      timestamp: new Date(),
+      help: {
+        issue: 'No DATABASE_URL or PG* environment variables found',
+        solution: 'Deploy a new Postgres service in Railway and link it to this service',
+        docs: 'https://docs.railway.app/databases/postgresql'
+      }
+    });
+  }
+
+  try {
+    const startTime = Date.now();
+    const result = await pool.query('SELECT NOW() as time, current_database() as database');
+    const latency = Date.now() - startTime;
+
+    res.json({
+      status: 'OK',
+      database: 'connected',
+      latencyMs: latency,
+      serverTime: result.rows[0].time,
+      databaseName: result.rows[0].database,
+      poolStats: {
+        total: pool.totalCount,
+        idle: pool.idleCount,
+        waiting: pool.waitingCount
+      },
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      database: 'connection_failed',
+      error: error.message,
+      code: error.code,
+      timestamp: new Date(),
+      help: {
+        issue: 'Database connection failed',
+        possibleCauses: [
+          'Postgres service was removed or restarting',
+          'Network connectivity issues',
+          'Invalid credentials',
+          'Connection pool exhausted'
+        ],
+        solution: 'Check Railway dashboard for Postgres service status'
+      }
+    });
+  }
 });
 
 // ==================== ONE-TIME DATABASE SETUP ====================
@@ -599,12 +678,16 @@ app.get('/api/migrate-content-fields', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     message: 'Blog API Server',
-    version: '1.0.0',
+    version: '2.1.0',
     status: 'running',
+    database: pool.isDegraded() ? 'not_configured' : 'configured',
     endpoints: {
       health: '/api/health',
+      dbHealth: '/api/db-health',
       articles: '/api/articles',
-      categories: '/api/categories'
+      guides: '/api/guides',
+      categories: '/api/categories',
+      version: '/api/version'
     }
   });
 });
@@ -636,22 +719,34 @@ const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 Blog API running on http://0.0.0.0:${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🗄️  Database: ${pool.isDegraded() ? 'NOT CONFIGURED (degraded mode)' : 'configured'}`);
   console.log(`📍 Routes registered:`);
   console.log(`   GET  /`);
   console.log(`   GET  /api/health`);
+  console.log(`   GET  /api/db-health`);
   console.log(`   GET  /api/articles`);
   console.log(`   GET  /api/articles/:slug`);
   console.log(`   POST /api/articles`);
   console.log(`   PUT  /api/articles/:id`);
   console.log(`   DELETE /api/articles/:id`);
-  console.log(`   GET  /api/categories\n`);
-  
-  // Initialize database AFTER server starts successfully
-  // This allows server to respond to health checks even if DB is slow
-  console.log('🔄 Initializing database...');
-  initializeDatabase().catch(err => {
-    console.error('❌ Database initialization failed (server still running):', err.message);
-  });
+  console.log(`   GET  /api/guides`);
+  console.log(`   GET  /api/guides/:slug`);
+  console.log(`   POST /api/guides`);
+  console.log(`   PUT  /api/guides/:slug`);
+  console.log(`   DELETE /api/guides/:slug`);
+  console.log(`   GET  /api/categories`);
+  console.log(`   GET  /api/version\n`);
+
+  // Only initialize database if it's configured
+  if (!pool.isDegraded()) {
+    console.log('🔄 Initializing database (creating guides table if needed)...');
+    initializeDatabase().catch(err => {
+      console.error('❌ Database initialization failed (server still running):', err.message);
+    });
+  } else {
+    console.log('⚠️  Skipping database initialization - no database configured');
+    console.log('📝 To enable database features, deploy a Postgres service in Railway');
+  }
 });
 
 // Graceful shutdown
