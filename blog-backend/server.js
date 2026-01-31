@@ -3,10 +3,18 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const app = express();
 const pool = require('./db');
+
+const dbHealthLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // limit each IP to 10 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Middleware
 app.use(cors({
@@ -453,7 +461,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Database health check - tests actual connectivity
-app.get('/api/db-health', async (req, res) => {
+app.get('/api/db-health', dbHealthLimiter, async (req, res) => {
   if (pool.isDegraded()) {
     return res.status(503).json({
       status: 'UNAVAILABLE',
