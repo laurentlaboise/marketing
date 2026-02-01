@@ -1,9 +1,19 @@
 const express = require('express');
 const { ensureAuthenticated } = require('../middleware/auth');
 const db = require('../../database/db');
+const RateLimit = require('express-rate-limit');
 
 const router = express.Router();
+
+// Apply authentication first
 router.use(ensureAuthenticated);
+
+// Apply rate limiting to all routes in this router
+const socialRateLimiter = RateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // limit each authenticated client to 300 requests per windowMs
+});
+router.use(socialRateLimiter);
 
 // ==================== SOCIAL POSTS ====================
 
