@@ -118,7 +118,7 @@ router.post('/signup', authLimiter, validateSignup, async (req, res) => {
       `INSERT INTO users (email, password_hash, first_name, last_name, verification_token, role)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [email.toLowerCase(), passwordHash, firstName, lastName, verificationToken, 'admin']
+      [email.toLowerCase(), passwordHash, firstName, lastName, verificationToken, 'user']
     );
 
     const user = result.rows[0];
