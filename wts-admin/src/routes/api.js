@@ -47,12 +47,13 @@ router.get('/stats', async (req, res) => {
 router.get('/search', async (req, res) => {
   const { q, type } = req.query;
 
-  if (!q || q.length < 2) {
+  const searchQuery = (typeof q === 'string') ? q.trim() : '';
+  if (!searchQuery || searchQuery.length < 2) {
     return respond(res, { results: [] });
   }
 
   try {
-    const searchTerm = `%${q}%`;
+    const searchTerm = `%${searchQuery}%`;
     let results = [];
 
     if (!type || type === 'all' || type === 'articles') {
