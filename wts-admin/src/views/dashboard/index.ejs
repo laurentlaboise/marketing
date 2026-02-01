@@ -1,0 +1,150 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Welcome back, <%= user ? user.first_name : 'User' %>!</p>
+      </div>
+      <div class="page-actions">
+        <a href="/content/articles/new" class="btn btn-primary">
+          <i class="fas fa-plus"></i> New Article
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <i class="fas fa-newspaper"></i>
+        </div>
+        <div class="stat-content">
+          <h3><%= stats.articles %></h3>
+          <p>Articles</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="stat-content">
+          <h3><%= stats.aiTools %></h3>
+          <p>AI Tools</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="fas fa-share-alt"></i>
+        </div>
+        <div class="stat-content">
+          <h3><%= stats.socialPosts %></h3>
+          <p>Social Posts</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <i class="fas fa-box"></i>
+        </div>
+        <div class="stat-content">
+          <h3><%= stats.products %></h3>
+          <p>Products</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <i class="fas fa-book"></i>
+        </div>
+        <div class="stat-content">
+          <h3><%= stats.glossary %></h3>
+          <p>Glossary Terms</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="fas fa-search"></i>
+        </div>
+        <div class="stat-content">
+          <h3><%= stats.seoTerms %></h3>
+          <p>SEO Terms</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+      <!-- Recent Articles -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Recent Articles</h2>
+          <a href="/content/articles" class="btn btn-sm btn-secondary">View All</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <% if (recentArticles.length > 0) { %>
+          <table class="table">
+            <tbody>
+              <% recentArticles.forEach(article => { %>
+              <tr>
+                <td>
+                  <strong><%= article.title %></strong>
+                  <br>
+                  <small style="color: var(--gray-500);"><%= new Date(article.created_at).toLocaleDateString() %></small>
+                </td>
+                <td style="text-align: right;">
+                  <span class="status-badge <%= article.status %>"><%= article.status %></span>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <% } else { %>
+          <div class="empty-state" style="padding: 40px;">
+            <i class="fas fa-newspaper" style="font-size: 32px; color: var(--gray-300); margin-bottom: 10px;"></i>
+            <p>No articles yet</p>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Quick Actions</h2>
+        </div>
+        <div class="card-body">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            <a href="/content/articles/new" class="btn btn-secondary">
+              <i class="fas fa-newspaper"></i> New Article
+            </a>
+            <a href="/content/ai-tools/new" class="btn btn-secondary">
+              <i class="fas fa-robot"></i> Add AI Tool
+            </a>
+            <a href="/content/glossary/new" class="btn btn-secondary">
+              <i class="fas fa-book"></i> Add Glossary
+            </a>
+            <a href="/social/posts/new" class="btn btn-secondary">
+              <i class="fas fa-share-alt"></i> New Post
+            </a>
+            <a href="/business/products/new" class="btn btn-secondary">
+              <i class="fas fa-box"></i> Add Product
+            </a>
+            <a href="/business/affiliates/new" class="btn btn-secondary">
+              <i class="fas fa-handshake"></i> Add Affiliate
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

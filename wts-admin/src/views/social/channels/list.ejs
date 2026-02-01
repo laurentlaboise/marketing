@@ -1,0 +1,74 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Social Channels</h1>
+        <p class="page-subtitle">Manage connected social accounts</p>
+      </div>
+      <div class="page-actions">
+        <a href="/social/channels/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Channel</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (channels.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Platform</th>
+                <th>Account</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% channels.forEach(channel => { %>
+              <tr>
+                <td>
+                  <strong>
+                    <% if (channel.platform === 'Facebook') { %><i class="fab fa-facebook" style="color: #1877f2;"></i>
+                    <% } else if (channel.platform === 'Twitter/X') { %><i class="fab fa-x-twitter"></i>
+                    <% } else if (channel.platform === 'Instagram') { %><i class="fab fa-instagram" style="color: #e4405f;"></i>
+                    <% } else if (channel.platform === 'LinkedIn') { %><i class="fab fa-linkedin" style="color: #0a66c2;"></i>
+                    <% } else if (channel.platform === 'TikTok') { %><i class="fab fa-tiktok"></i>
+                    <% } else { %><i class="fas fa-globe"></i>
+                    <% } %>
+                    <%= channel.platform %>
+                  </strong>
+                </td>
+                <td><%= channel.account_name || '-' %></td>
+                <td><span class="status-badge <%= channel.status %>"><%= channel.status %></span></td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/social/channels/<%= channel.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/social/channels/<%= channel.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-plug"></i></div>
+          <h3>No Channels Connected</h3>
+          <p>Connect your social media accounts.</p>
+          <a href="/social/channels/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Channel</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

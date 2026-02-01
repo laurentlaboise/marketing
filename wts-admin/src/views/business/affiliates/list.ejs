@@ -1,0 +1,65 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Affiliate Solutions</h1>
+        <p class="page-subtitle">Manage affiliate programs</p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/affiliates/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Affiliate</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (affiliates.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Commission</th>
+                <th>Cookie</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% affiliates.forEach(aff => { %>
+              <tr>
+                <td><strong><%= aff.name %></strong></td>
+                <td><%= aff.commission_rate || '-' %></td>
+                <td><%= aff.cookie_duration || '-' %></td>
+                <td><span class="status-badge <%= aff.status %>"><%= aff.status %></span></td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/business/affiliates/<%= aff.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/business/affiliates/<%= aff.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-handshake"></i></div>
+          <h3>No Affiliate Solutions</h3>
+          <p>Start adding affiliate programs.</p>
+          <a href="/business/affiliates/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Affiliate</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

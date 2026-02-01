@@ -1,0 +1,70 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= post ? 'Edit Post' : 'New Post' %></h1>
+        <p class="page-subtitle"><a href="/social/posts"><i class="fas fa-arrow-left"></i> Back</a></p>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= post ? '/social/posts/' + post.id : '/social/posts' %>" method="POST">
+          <div class="form-group">
+            <label class="form-label" for="content">Post Content *</label>
+            <textarea id="content" name="content" class="form-input" rows="6" required><%= post ? post.content : '' %></textarea>
+            <p class="form-help">Write your social media post content</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Platforms</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 8px;">
+              <% const platformList = ['Facebook', 'Twitter/X', 'Instagram', 'LinkedIn', 'TikTok']; %>
+              <% platformList.forEach(platform => { %>
+              <div class="form-checkbox">
+                <input type="checkbox" id="platform_<%= platform %>" name="platforms" value="<%= platform %>"
+                  <%= post && post.platforms && post.platforms.includes(platform) ? 'checked' : '' %>>
+                <label for="platform_<%= platform %>"><%= platform %></label>
+              </div>
+              <% }); %>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="media_urls">Media URLs (one per line)</label>
+            <textarea id="media_urls" name="media_urls" class="form-input" rows="3"><%= post && post.media_urls ? post.media_urls.join('\n') : '' %></textarea>
+            <p class="form-help">Add image or video URLs to include in your post</p>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="scheduled_at">Schedule For</label>
+              <input type="datetime-local" id="scheduled_at" name="scheduled_at" class="form-input"
+                value="<%= post && post.scheduled_at ? new Date(post.scheduled_at).toISOString().slice(0, 16) : '' %>">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="status">Status</label>
+              <select id="status" name="status" class="form-input">
+                <option value="draft" <%= !post || post.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                <option value="scheduled" <%= post && post.status === 'scheduled' ? 'selected' : '' %>>Scheduled</option>
+                <option value="published" <%= post && post.status === 'published' ? 'selected' : '' %>>Published</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="/social/posts" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

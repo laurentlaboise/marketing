@@ -1,0 +1,66 @@
+<header class="main-header">
+  <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <div class="header-search">
+    <form action="/api/search" method="GET" class="search-form" id="globalSearch">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" name="q" placeholder="Search..." class="search-input" autocomplete="off">
+      <div class="search-results" id="searchResults"></div>
+    </form>
+  </div>
+
+  <div class="header-actions">
+    <button class="header-btn" id="notificationsBtn" aria-label="Notifications">
+      <i class="fas fa-bell"></i>
+      <span class="notification-badge">0</span>
+    </button>
+
+    <div class="header-user">
+      <% if (user) { %>
+      <div class="user-dropdown">
+        <button class="user-dropdown-btn" aria-label="User menu">
+          <div class="user-avatar-small">
+            <% if (user.avatar_url) { %>
+            <img src="<%= user.avatar_url %>" alt="<%= user.first_name %>">
+            <% } else { %>
+            <span><%= user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U' %></span>
+            <% } %>
+          </div>
+          <span class="user-name-header"><%= user.first_name %></span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="dropdown-menu">
+          <a href="/dashboard/profile" class="dropdown-item">
+            <i class="fas fa-user"></i> Profile
+          </a>
+          <a href="/dashboard/settings" class="dropdown-item">
+            <i class="fas fa-cog"></i> Settings
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="/auth/logout" class="dropdown-item text-danger">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</header>
+
+<% if (messages && messages.success) { %>
+<div class="alert alert-success" id="successAlert">
+  <i class="fas fa-check-circle"></i>
+  <span><%= messages.success %></span>
+  <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+</div>
+<% } %>
+
+<% if (messages && messages.error) { %>
+<div class="alert alert-error" id="errorAlert">
+  <i class="fas fa-exclamation-circle"></i>
+  <span><%= messages.error %></span>
+  <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+</div>
+<% } %>

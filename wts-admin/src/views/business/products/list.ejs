@@ -1,0 +1,65 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Products</h1>
+        <p class="page-subtitle">Manage your products</p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/products/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (products.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% products.forEach(product => { %>
+              <tr>
+                <td><strong><%= product.name %></strong></td>
+                <td><%= product.price ? '$' + parseFloat(product.price).toFixed(2) : '-' %></td>
+                <td><%= product.category || '-' %></td>
+                <td><span class="status-badge <%= product.status %>"><%= product.status %></span></td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/business/products/<%= product.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/business/products/<%= product.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-box"></i></div>
+          <h3>No Products</h3>
+          <p>Start adding products to your catalog.</p>
+          <a href="/business/products/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

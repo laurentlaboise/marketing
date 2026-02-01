@@ -1,0 +1,74 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= model ? 'Edit Price Model' : 'New Price Model' %></h1>
+        <p class="page-subtitle"><a href="/business/pricing"><i class="fas fa-arrow-left"></i> Back</a></p>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= model ? '/business/pricing/' + model.id : '/business/pricing' %>" method="POST">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="name">Plan Name *</label>
+              <input type="text" id="name" name="name" class="form-input" value="<%= model ? model.name : '' %>" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="type">Type</label>
+              <select id="type" name="type" class="form-input">
+                <option value="">Select type</option>
+                <option value="free" <%= model && model.type === 'free' ? 'selected' : '' %>>Free</option>
+                <option value="basic" <%= model && model.type === 'basic' ? 'selected' : '' %>>Basic</option>
+                <option value="pro" <%= model && model.type === 'pro' ? 'selected' : '' %>>Pro</option>
+                <option value="enterprise" <%= model && model.type === 'enterprise' ? 'selected' : '' %>>Enterprise</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="description">Description</label>
+            <textarea id="description" name="description" class="form-input" rows="3"><%= model ? model.description : '' %></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="base_price">Base Price ($)</label>
+              <input type="number" id="base_price" name="base_price" class="form-input" step="0.01" value="<%= model ? model.base_price : '' %>">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="billing_cycle">Billing Cycle</label>
+              <select id="billing_cycle" name="billing_cycle" class="form-input">
+                <option value="">Select cycle</option>
+                <option value="monthly" <%= model && model.billing_cycle === 'monthly' ? 'selected' : '' %>>Monthly</option>
+                <option value="yearly" <%= model && model.billing_cycle === 'yearly' ? 'selected' : '' %>>Yearly</option>
+                <option value="one-time" <%= model && model.billing_cycle === 'one-time' ? 'selected' : '' %>>One-time</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="status">Status</label>
+            <select id="status" name="status" class="form-input">
+              <option value="active" <%= !model || model.status === 'active' ? 'selected' : '' %>>Active</option>
+              <option value="inactive" <%= model && model.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <a href="/business/pricing" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

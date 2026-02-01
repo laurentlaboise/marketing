@@ -1,0 +1,74 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= affiliate ? 'Edit Affiliate' : 'New Affiliate' %></h1>
+        <p class="page-subtitle"><a href="/business/affiliates"><i class="fas fa-arrow-left"></i> Back</a></p>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= affiliate ? '/business/affiliates/' + affiliate.id : '/business/affiliates' %>" method="POST">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="name">Name *</label>
+              <input type="text" id="name" name="name" class="form-input" value="<%= affiliate ? affiliate.name : '' %>" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="category">Category</label>
+              <input type="text" id="category" name="category" class="form-input" value="<%= affiliate ? affiliate.category : '' %>">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="description">Description</label>
+            <textarea id="description" name="description" class="form-input" rows="3"><%= affiliate ? affiliate.description : '' %></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="commission_rate">Commission Rate</label>
+              <input type="text" id="commission_rate" name="commission_rate" class="form-input" placeholder="e.g., 30%" value="<%= affiliate ? affiliate.commission_rate : '' %>">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="cookie_duration">Cookie Duration</label>
+              <input type="text" id="cookie_duration" name="cookie_duration" class="form-input" placeholder="e.g., 30 days" value="<%= affiliate ? affiliate.cookie_duration : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="payout_threshold">Payout Threshold ($)</label>
+              <input type="number" id="payout_threshold" name="payout_threshold" class="form-input" step="0.01" value="<%= affiliate ? affiliate.payout_threshold : '' %>">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="status">Status</label>
+              <select id="status" name="status" class="form-input">
+                <option value="active" <%= !affiliate || affiliate.status === 'active' ? 'selected' : '' %>>Active</option>
+                <option value="inactive" <%= affiliate && affiliate.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="affiliate_url">Affiliate URL</label>
+            <input type="url" id="affiliate_url" name="affiliate_url" class="form-input" value="<%= affiliate ? affiliate.affiliate_url : '' %>">
+          </div>
+
+          <div class="form-actions">
+            <a href="/business/affiliates" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>
