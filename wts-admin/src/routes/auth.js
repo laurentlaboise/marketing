@@ -5,8 +5,16 @@ const { v4: uuidv4 } = require('uuid');
 const { body, validationResult } = require('express-validator');
 const db = require('../../database/db');
 const { sendPasswordResetEmail } = require('../utils/email');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 auth requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 // Validation middleware
 const validateSignup = [
@@ -33,7 +41,7 @@ router.get('/login', (req, res) => {
 });
 
 // Login POST
-router.post('/login', validateLogin, (req, res, next) => {
+router.post('/login', authLimiter, validateLogin, (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.render('auth/login', {
@@ -75,7 +83,7 @@ router.get('/signup', (req, res) => {
 });
 
 // Signup POST
-router.post('/signup', validateSignup, async (req, res) => {
+router.post('/signup', authLimiter, validateSignup, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.render('auth/signup', {
