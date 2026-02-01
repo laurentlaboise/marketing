@@ -2,9 +2,17 @@ const express = require('express');
 const { ensureAuthenticated, logActivity } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 const db = require('../../database/db');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 router.use(ensureAuthenticated);
+
+const contentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each authenticated IP/user to 100 requests per windowMs
+});
+
+router.use(contentLimiter);
 
 // Helper to create slug
 const createSlug = (title) => {
