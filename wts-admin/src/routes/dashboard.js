@@ -1,10 +1,18 @@
 const express = require('express');
 const { ensureAuthenticated } = require('../middleware/auth');
 const db = require('../../database/db');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
-// Apply authentication to all dashboard routes
+// Rate limiting for dashboard routes to prevent abuse/DoS
+const dashboardLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per window
+});
+
+// Apply rate limiting and authentication to all dashboard routes
+router.use(dashboardLimiter);
 router.use(ensureAuthenticated);
 
 // Main dashboard
