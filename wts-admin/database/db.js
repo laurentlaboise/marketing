@@ -1,6 +1,17 @@
 const { Pool } = require('pg');
 
-// Database connection configuration
+/**
+ * Builds a PostgreSQL connection configuration from environment variables.
+ *
+ * Uses `DATABASE_URL` if present; otherwise uses individual `PG*` variables when `PGHOST` is set;
+ * if neither is available, returns a local development default configuration.
+ *
+ * The returned object is compatible with `pg` client/Pool initialization. When `NODE_ENV` is
+ * "production" the `ssl` property is set to `{ rejectUnauthorized: false }`; otherwise `ssl`
+ * is `false` or omitted for the local fallback.
+ *
+ * @returns {object} A configuration object for initializing a `pg` Pool or Client.
+ */
 function getConnectionConfig() {
   // Railway provides DATABASE_URL or individual PG* variables
   if (process.env.DATABASE_URL) {

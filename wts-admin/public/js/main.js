@@ -10,7 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initConfirmDelete();
 });
 
-// Sidebar functionality
+/**
+ * Initialize sidebar behavior: open/close controls, overlay activation, and Escape-key closing.
+ *
+ * Wires click handlers for the mobile menu button, overlay, and sidebar toggle to open and close
+ * the sidebar, toggles the overlay, and disables body scrolling while the sidebar is open.
+ */
 function initSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebarOverlay');
@@ -33,6 +38,12 @@ function initSidebar() {
     sidebarToggle.addEventListener('click', closeSidebar);
   }
 
+  /**
+   * Closes the sidebar, hides the overlay, and restores page scrolling.
+   *
+   * Removes the sidebar's `open` class, removes the overlay's `active` class,
+   * and resets the document body's overflow style so the page can scroll again.
+   */
   function closeSidebar() {
     sidebar.classList.remove('open');
     overlay.classList.remove('active');
@@ -47,7 +58,11 @@ function initSidebar() {
   });
 }
 
-// Submenu toggle
+/**
+ * Initialize click handlers that toggle navigation submenus.
+ *
+ * Binds click listeners to elements with the `.submenu-toggle` class. On click, the handler prevents the default action, toggles the toggle element's `active` class, and toggles the nearest `.submenu` element's `open` class to show or hide the submenu.
+ */
 function initSubmenuToggle() {
   const submenuToggles = document.querySelectorAll('.submenu-toggle');
 
@@ -76,7 +91,11 @@ function initSubmenuToggle() {
   });
 }
 
-// Dropdown menus
+/**
+ * Enables user dropdown behavior: toggles each dropdown's menu when its button is clicked and closes any open menus when clicking outside.
+ *
+ * This function binds click handlers to elements with the `.user-dropdown` structure (a `.user-dropdown-btn` and a `.dropdown-menu`) to control menu visibility.
+ */
 function initDropdowns() {
   const dropdowns = document.querySelectorAll('.user-dropdown');
 
@@ -100,7 +119,11 @@ function initDropdowns() {
   });
 }
 
-// Global search
+/**
+ * Initializes the global search UI: wires input handling, debounced queries, result rendering, outside-click closing, and prevents form submission.
+ *
+ * Listens to the #globalSearch input and, when the query is at least 2 characters, performs a debounced request to /api/search?q=... and renders returned results into #searchResults (or a "No results found" message). Closes results when clicking outside the search form and prevents the search form from submitting.
+ */
 function initSearch() {
   const searchForm = document.getElementById('globalSearch');
   const searchInput = searchForm?.querySelector('.search-input');
@@ -172,7 +195,11 @@ function initSearch() {
   });
 }
 
-// Alert auto-dismiss
+/**
+ * Automatically hides and removes any elements with the `.alert` class.
+ *
+ * Schedules each alert to fade and slide out after 5 seconds, then removes it from the DOM 300ms after the animation starts.
+ */
 function initAlerts() {
   const alerts = document.querySelectorAll('.alert');
 
@@ -185,7 +212,13 @@ function initAlerts() {
   });
 }
 
-// Form validation
+/**
+ * Attach client-side required-field validation to forms marked with `data-validate`.
+ *
+ * On form submit, checks every `[required]` field: if a field is empty it adds the `error`
+ * class and displays a "This field is required" message; if a field has a value it clears
+ * any error state. Submission is prevented when any required field is empty.
+ */
 function initFormValidation() {
   const forms = document.querySelectorAll('form[data-validate]');
 
@@ -212,7 +245,10 @@ function initFormValidation() {
   });
 }
 
-// Confirm delete
+/**
+ * Attaches click handlers to elements with `data-confirm-delete` that prompt the user for confirmation before proceeding.
+ *
+ * If the user cancels the confirmation dialog, the click's default action is prevented. */
 function initConfirmDelete() {
   const deleteButtons = document.querySelectorAll('[data-confirm-delete]');
 
@@ -226,13 +262,22 @@ function initConfirmDelete() {
   });
 }
 
-// Helper functions
+/**
+ * Escape a string for safe insertion into HTML.
+ * @param {string} text - The text to escape.
+ * @return {string} The HTML-escaped string safe for insertion into the DOM.
+ */
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 }
 
+/**
+ * Ensure a `.field-error` element immediately after the given field and set its text to the provided message.
+ * @param {HTMLElement} field - The form field element to attach the error to.
+ * @param {string} message - The error message to display.
+ */
 function showFieldError(field, message) {
   let error = field.nextElementSibling;
   if (!error || !error.classList.contains('field-error')) {
@@ -243,6 +288,10 @@ function showFieldError(field, message) {
   error.textContent = message;
 }
 
+/**
+ * Remove an adjacent `.field-error` element that follows the given form field, if present.
+ * @param {HTMLElement} field - The form field element whose following sibling error message should be removed.
+ */
 function hideFieldError(field) {
   const error = field.nextElementSibling;
   if (error && error.classList.contains('field-error')) {
@@ -250,7 +299,12 @@ function hideFieldError(field) {
   }
 }
 
-// Bulk selection
+/**
+ * Initialize bulk-selection UI for the table with the given id.
+ *
+ * Enables a ".select-all" checkbox to toggle all ".row-checkbox" items, updates the visibility of the global ".bulk-actions" container, and updates its ".selected-count" with the number of checked rows.
+ * @param {string} tableId - ID of the table element to enable bulk selection for.
+ */
 function initBulkSelection(tableId) {
   const table = document.getElementById(tableId);
   if (!table) return;
@@ -269,6 +323,12 @@ function initBulkSelection(tableId) {
     cb.addEventListener('change', updateBulkActions);
   });
 
+  /**
+   * Updates bulk action UI based on currently checked row checkboxes.
+   *
+   * Shows or hides the `.bulk-actions` element depending on whether any `.row-checkbox:checked`
+   * exist within the scoped table and updates the `.selected-count` text with the number selected.
+   */
   function updateBulkActions() {
     const selected = table.querySelectorAll('.row-checkbox:checked');
     const bulkActions = document.querySelector('.bulk-actions');
@@ -280,7 +340,11 @@ function initBulkSelection(tableId) {
   }
 }
 
-// Format date
+/**
+ * Format a date value into a short en-US date string.
+ * @param {string|Date} dateString - A value accepted by the Date constructor (e.g., ISO string or Date).
+ * @returns {string} The localized date, e.g. "Jan 2, 2023".
+ */
 function formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
@@ -290,7 +354,11 @@ function formatDate(dateString) {
   });
 }
 
-// Format time ago
+/**
+ * Convert a date or timestamp into a human-friendly relative time string (e.g., "3 days ago").
+ * @param {string|Date} dateString - A date string or Date object parseable by the JavaScript `Date` constructor.
+ * @returns {string} A relative time such as "`3 days ago`", "`1 hour ago`", or "`Just now`".
+ */
 function timeAgo(dateString) {
   const date = new Date(dateString);
   const now = new Date();
