@@ -30,7 +30,7 @@ const validateLogin = [
 ];
 
 // Login page
-router.get('/login', (req, res) => {
+router.get('/login', authLimiter, (req, res) => {
   if (req.isAuthenticated()) {
     return res.redirect('/dashboard');
   }
