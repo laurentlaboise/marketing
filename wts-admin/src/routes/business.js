@@ -1,9 +1,17 @@
 const express = require('express');
 const { ensureAuthenticated } = require('../middleware/auth');
 const db = require('../../database/db');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
+
+const businessLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
+
 router.use(ensureAuthenticated);
+router.use(businessLimiter);
 
 // ==================== AFFILIATE SOLUTIONS ====================
 
