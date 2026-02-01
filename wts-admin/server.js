@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+const csurf = require('csurf');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -99,22 +100,30 @@ if (process.env.DATABASE_URL) {
 
 app.use(session(sessionConfig));
 
-// Passport initialization
-app.use(passport.initialize());
-app.use(passport.session());
+// CSRF protection middleware (must come after session)
+app.use(csurf());
 
-// Global variables for views
+// Global variables for views (including CSRF token)
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
   res.locals.isAuthenticated = req.isAuthenticated();
   res.locals.messages = {
     success: req.session.successMessage,
     error: req.session.errorMessage
+  try {
+    res.locals.csrfToken = req.csrfToken();
+  } catch (e) {
+    res.locals.csrfToken = null;
+  }
   };
   delete req.session.successMessage;
   delete req.session.errorMessage;
   next();
 });
+// Passport initialization
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 // Routes
 app.use('/auth', authRoutes);

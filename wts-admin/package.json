@@ -8,7 +8,11 @@
     "dev": "nodemon server.js",
     "setup-db": "node database/setup.js"
   },
-  "keywords": ["admin", "dashboard", "cms"],
+  "keywords": [
+    "admin",
+    "dashboard",
+    "cms"
+  ],
   "author": "WordsThatSells",
   "license": "MIT",
   "dependencies": {
@@ -28,7 +32,8 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
     "pg": "^8.11.3",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "csurf": "^1.11.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
