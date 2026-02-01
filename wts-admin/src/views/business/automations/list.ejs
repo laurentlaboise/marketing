@@ -1,0 +1,65 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Automations</h1>
+        <p class="page-subtitle">Manage workflow automations</p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/automations/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Automation</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (automations.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Trigger</th>
+                <th>Action</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% automations.forEach(auto => { %>
+              <tr>
+                <td><strong><%= auto.name %></strong></td>
+                <td><%= auto.trigger_type || '-' %></td>
+                <td><%= auto.action_type || '-' %></td>
+                <td><span class="status-badge <%= auto.status %>"><%= auto.status %></span></td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/business/automations/<%= auto.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/business/automations/<%= auto.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-cogs"></i></div>
+          <h3>No Automations</h3>
+          <p>Create your first automation workflow.</p>
+          <a href="/business/automations/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Automation</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

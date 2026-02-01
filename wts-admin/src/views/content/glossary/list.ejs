@@ -1,0 +1,63 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Glossary</h1>
+        <p class="page-subtitle">Manage marketing glossary terms</p>
+      </div>
+      <div class="page-actions">
+        <a href="/content/glossary/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Term</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (items.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Term</th>
+                <th>Category</th>
+                <th>Letter</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% items.forEach(item => { %>
+              <tr>
+                <td><strong><%= item.term %></strong></td>
+                <td><%= item.category || '-' %></td>
+                <td><%= item.letter %></td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/content/glossary/<%= item.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/content/glossary/<%= item.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-book"></i></div>
+          <h3>No Glossary Terms Found</h3>
+          <p>Start building your marketing glossary.</p>
+          <a href="/content/glossary/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Term</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

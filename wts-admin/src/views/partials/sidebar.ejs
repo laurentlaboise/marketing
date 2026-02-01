@@ -1,0 +1,107 @@
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <span class="logo-icon"><i class="fas fa-bolt"></i></span>
+      <span class="logo-text">WTS Admin</span>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+      <li class="nav-item">
+        <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <!-- Content Management -->
+      <li class="nav-item has-submenu">
+        <a href="#" class="nav-link submenu-toggle <%= ['articles', 'seo-terms', 'ai-tools', 'glossary'].includes(currentPage) ? 'active' : '' %>">
+          <i class="fas fa-file-alt"></i>
+          <span>Content Management</span>
+          <i class="fas fa-chevron-down submenu-arrow"></i>
+        </a>
+        <ul class="submenu <%= ['articles', 'seo-terms', 'ai-tools', 'glossary'].includes(currentPage) ? 'open' : '' %>">
+          <li><a href="/content/articles" class="<%= currentPage === 'articles' ? 'active' : '' %>"><i class="fas fa-newspaper"></i> Articles</a></li>
+          <li><a href="/content/seo-terms" class="<%= currentPage === 'seo-terms' ? 'active' : '' %>"><i class="fas fa-search"></i> SEO Terms</a></li>
+          <li><a href="/content/ai-tools" class="<%= currentPage === 'ai-tools' ? 'active' : '' %>"><i class="fas fa-robot"></i> AI Tools</a></li>
+          <li><a href="/content/glossary" class="<%= currentPage === 'glossary' ? 'active' : '' %>"><i class="fas fa-book"></i> Glossary</a></li>
+        </ul>
+      </li>
+
+      <!-- Business Tools -->
+      <li class="nav-item has-submenu">
+        <a href="#" class="nav-link submenu-toggle <%= ['affiliates', 'agencies', 'automations', 'products', 'pricing'].includes(currentPage) ? 'active' : '' %>">
+          <i class="fas fa-briefcase"></i>
+          <span>Business Tools</span>
+          <i class="fas fa-chevron-down submenu-arrow"></i>
+        </a>
+        <ul class="submenu <%= ['affiliates', 'agencies', 'automations', 'products', 'pricing'].includes(currentPage) ? 'open' : '' %>">
+          <li><a href="/business/affiliates" class="<%= currentPage === 'affiliates' ? 'active' : '' %>"><i class="fas fa-handshake"></i> Affiliate Solutions</a></li>
+          <li><a href="/business/agencies" class="<%= currentPage === 'agencies' ? 'active' : '' %>"><i class="fas fa-building"></i> Agency Management</a></li>
+          <li><a href="/business/automations" class="<%= currentPage === 'automations' ? 'active' : '' %>"><i class="fas fa-cogs"></i> Automations</a></li>
+          <li><a href="/business/products" class="<%= currentPage === 'products' ? 'active' : '' %>"><i class="fas fa-box"></i> Products</a></li>
+          <li><a href="/business/pricing" class="<%= currentPage === 'pricing' ? 'active' : '' %>"><i class="fas fa-tags"></i> Price Models</a></li>
+        </ul>
+      </li>
+
+      <!-- Social Media Management -->
+      <li class="nav-item has-submenu">
+        <a href="#" class="nav-link submenu-toggle <%= ['social-posts', 'social-channels', 'social-calendar'].includes(currentPage) ? 'active' : '' %>">
+          <i class="fas fa-share-alt"></i>
+          <span>Social Media</span>
+          <i class="fas fa-chevron-down submenu-arrow"></i>
+        </a>
+        <ul class="submenu <%= ['social-posts', 'social-channels', 'social-calendar'].includes(currentPage) ? 'open' : '' %>">
+          <li><a href="/social/posts" class="<%= currentPage === 'social-posts' ? 'active' : '' %>"><i class="fas fa-pen"></i> Posts</a></li>
+          <li><a href="/social/channels" class="<%= currentPage === 'social-channels' ? 'active' : '' %>"><i class="fas fa-plug"></i> Channels</a></li>
+          <li><a href="/social/calendar" class="<%= currentPage === 'social-calendar' ? 'active' : '' %>"><i class="fas fa-calendar"></i> Content Calendar</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-divider"></li>
+
+      <li class="nav-item">
+        <a href="/dashboard/profile" class="nav-link <%= currentPage === 'profile' ? 'active' : '' %>">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a href="/dashboard/settings" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %>">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer">
+    <% if (user) { %>
+    <div class="user-info">
+      <div class="user-avatar">
+        <% if (user.avatar_url) { %>
+        <img src="<%= user.avatar_url %>" alt="<%= user.first_name %>">
+        <% } else { %>
+        <span><%= user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U' %></span>
+        <% } %>
+      </div>
+      <div class="user-details">
+        <span class="user-name"><%= user.first_name %> <%= user.last_name || '' %></span>
+        <span class="user-role"><%= user.role || 'User' %></span>
+      </div>
+    </div>
+    <% } %>
+    <a href="/auth/logout" class="logout-btn">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </a>
+  </div>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>

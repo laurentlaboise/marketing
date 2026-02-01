@@ -1,0 +1,61 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= term ? 'Edit SEO Term' : 'New SEO Term' %></h1>
+        <p class="page-subtitle"><a href="/content/seo-terms"><i class="fas fa-arrow-left"></i> Back to SEO Terms</a></p>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= term ? '/content/seo-terms/' + term.id : '/content/seo-terms' %>" method="POST">
+          <div class="form-group">
+            <label class="form-label" for="term">Term *</label>
+            <input type="text" id="term" name="term" class="form-input" value="<%= term ? term.term : '' %>" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="definition">Definition *</label>
+            <textarea id="definition" name="definition" class="form-input" rows="4" required><%= term ? term.definition : '' %></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="category">Category</label>
+            <select id="category" name="category" class="form-input">
+              <option value="">Select category</option>
+              <option value="technical" <%= term && term.category === 'technical' ? 'selected' : '' %>>Technical SEO</option>
+              <option value="on-page" <%= term && term.category === 'on-page' ? 'selected' : '' %>>On-Page SEO</option>
+              <option value="off-page" <%= term && term.category === 'off-page' ? 'selected' : '' %>>Off-Page SEO</option>
+              <option value="local" <%= term && term.category === 'local' ? 'selected' : '' %>>Local SEO</option>
+              <option value="analytics" <%= term && term.category === 'analytics' ? 'selected' : '' %>>Analytics</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="related_terms">Related Terms</label>
+            <input type="text" id="related_terms" name="related_terms" class="form-input" placeholder="term1, term2" value="<%= term && term.related_terms ? term.related_terms.join(', ') : '' %>">
+            <p class="form-help">Separate with commas</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="examples">Examples</label>
+            <textarea id="examples" name="examples" class="form-input" rows="3"><%= term ? term.examples : '' %></textarea>
+          </div>
+
+          <div class="form-actions">
+            <a href="/content/seo-terms" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

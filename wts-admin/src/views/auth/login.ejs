@@ -1,0 +1,72 @@
+<%- include('../partials/head', { title, bodyClass: 'auth-page' }) %>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
+        <i class="fas fa-bolt"></i>
+      </div>
+      <h1>Words That Sells</h1>
+      <p>Admin Dashboard</p>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-error">
+      <i class="fas fa-exclamation-circle"></i>
+      <span><%= error %></span>
+    </div>
+    <% } %>
+
+    <form class="auth-form" action="/auth/login" method="POST">
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <div class="form-input-icon">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" value="<%= typeof email !== 'undefined' ? email : '' %>" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="form-input-icon">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-checkbox">
+          <input type="checkbox" id="remember" name="remember">
+          <label for="remember">Remember me</label>
+        </div>
+        <a href="/auth/forgot-password" class="form-link">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-sign-in-alt"></i>
+        Sign In
+      </button>
+    </form>
+
+    <div class="auth-divider">
+      <span>or continue with</span>
+    </div>
+
+    <div class="social-login">
+      <a href="/auth/google" class="social-btn google">
+        <i class="fab fa-google"></i>
+        Google
+      </a>
+      <a href="/auth/facebook" class="social-btn facebook">
+        <i class="fab fa-facebook-f"></i>
+        Facebook
+      </a>
+    </div>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="/auth/signup">Sign up</a>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

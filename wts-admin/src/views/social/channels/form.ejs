@@ -1,0 +1,58 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= channel ? 'Edit Channel' : 'Add Channel' %></h1>
+        <p class="page-subtitle"><a href="/social/channels"><i class="fas fa-arrow-left"></i> Back</a></p>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= channel ? '/social/channels/' + channel.id : '/social/channels' %>" method="POST">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="platform">Platform *</label>
+              <select id="platform" name="platform" class="form-input" required>
+                <option value="">Select platform</option>
+                <% platformOptions.forEach(opt => { %>
+                <option value="<%= opt %>" <%= channel && channel.platform === opt ? 'selected' : '' %>><%= opt %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="account_name">Account Name</label>
+              <input type="text" id="account_name" name="account_name" class="form-input" placeholder="@username" value="<%= channel ? channel.account_name : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="account_id">Account ID</label>
+              <input type="text" id="account_id" name="account_id" class="form-input" value="<%= channel ? channel.account_id : '' %>">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="status">Status</label>
+              <select id="status" name="status" class="form-input">
+                <option value="active" <%= !channel || channel.status === 'active' ? 'selected' : '' %>>Active</option>
+                <option value="inactive" <%= channel && channel.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="/social/channels" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

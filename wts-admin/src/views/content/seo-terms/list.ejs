@@ -1,0 +1,65 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">SEO Terms</h1>
+        <p class="page-subtitle">Manage SEO terminology definitions</p>
+      </div>
+      <div class="page-actions">
+        <a href="/content/seo-terms/new" class="btn btn-primary">
+          <i class="fas fa-plus"></i> New Term
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (terms.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Term</th>
+                <th>Category</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% terms.forEach(term => { %>
+              <tr>
+                <td><strong><%= term.term %></strong></td>
+                <td><%= term.category || '-' %></td>
+                <td><%= new Date(term.created_at).toLocaleDateString() %></td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/content/seo-terms/<%= term.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/content/seo-terms/<%= term.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-search"></i></div>
+          <h3>No SEO Terms Found</h3>
+          <p>Start building your SEO terminology database.</p>
+          <a href="/content/seo-terms/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Term</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

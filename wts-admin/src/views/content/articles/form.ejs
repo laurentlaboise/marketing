@@ -1,0 +1,116 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= article ? 'Edit Article' : 'New Article' %></h1>
+        <p class="page-subtitle">
+          <a href="/content/articles"><i class="fas fa-arrow-left"></i> Back to Articles</a>
+        </p>
+      </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-error">
+      <i class="fas fa-exclamation-circle"></i>
+      <span><%= error %></span>
+    </div>
+    <% } %>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= article ? '/content/articles/' + article.id : '/content/articles' %>" method="POST">
+          <div class="form-section">
+            <h3 class="form-section-title">Article Content</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="title">Title *</label>
+              <input type="text" id="title" name="title" class="form-input" value="<%= article ? article.title : '' %>" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="excerpt">Excerpt</label>
+              <textarea id="excerpt" name="excerpt" class="form-input" rows="2" placeholder="Brief summary of the article"><%= article ? article.excerpt : '' %></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="content">Content *</label>
+              <textarea id="content" name="content" class="form-input" rows="15" required><%= article ? article.content : '' %></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="featured_image">Featured Image URL</label>
+              <input type="url" id="featured_image" name="featured_image" class="form-input" placeholder="https://example.com/image.jpg" value="<%= article ? article.featured_image : '' %>">
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">Organization</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="category">Category</label>
+                <select id="category" name="category" class="form-input">
+                  <option value="">Select category</option>
+                  <option value="marketing" <%= article && article.category === 'marketing' ? 'selected' : '' %>>Marketing</option>
+                  <option value="seo" <%= article && article.category === 'seo' ? 'selected' : '' %>>SEO</option>
+                  <option value="ai" <%= article && article.category === 'ai' ? 'selected' : '' %>>AI & Automation</option>
+                  <option value="social-media" <%= article && article.category === 'social-media' ? 'selected' : '' %>>Social Media</option>
+                  <option value="content" <%= article && article.category === 'content' ? 'selected' : '' %>>Content Creation</option>
+                  <option value="business" <%= article && article.category === 'business' ? 'selected' : '' %>>Business</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="status">Status</label>
+                <select id="status" name="status" class="form-input">
+                  <option value="draft" <%= !article || article.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                  <option value="published" <%= article && article.status === 'published' ? 'selected' : '' %>>Published</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="tags">Tags</label>
+              <input type="text" id="tags" name="tags" class="form-input" placeholder="marketing, seo, tips" value="<%= article && article.tags ? article.tags.join(', ') : '' %>">
+              <p class="form-help">Separate tags with commas</p>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">SEO Settings</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="seo_title">SEO Title</label>
+              <input type="text" id="seo_title" name="seo_title" class="form-input" value="<%= article ? article.seo_title : '' %>">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="seo_description">SEO Description</label>
+              <textarea id="seo_description" name="seo_description" class="form-input" rows="2"><%= article ? article.seo_description : '' %></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="seo_keywords">SEO Keywords</label>
+              <input type="text" id="seo_keywords" name="seo_keywords" class="form-input" placeholder="keyword1, keyword2" value="<%= article && article.seo_keywords ? article.seo_keywords.join(', ') : '' %>">
+              <p class="form-help">Separate keywords with commas</p>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="/content/articles" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> <%= article ? 'Update Article' : 'Create Article' %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

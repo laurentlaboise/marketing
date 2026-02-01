@@ -1,0 +1,108 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= tool ? 'Edit AI Tool' : 'New AI Tool' %></h1>
+        <p class="page-subtitle"><a href="/content/ai-tools"><i class="fas fa-arrow-left"></i> Back to AI Tools</a></p>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= tool ? '/content/ai-tools/' + tool.id : '/content/ai-tools' %>" method="POST">
+          <div class="form-section">
+            <h3 class="form-section-title">Basic Information</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="name">Tool Name *</label>
+                <input type="text" id="name" name="name" class="form-input" value="<%= tool ? tool.name : '' %>" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="category">Category</label>
+                <select id="category" name="category" class="form-input">
+                  <option value="">Select category</option>
+                  <option value="writing" <%= tool && tool.category === 'writing' ? 'selected' : '' %>>Writing</option>
+                  <option value="image" <%= tool && tool.category === 'image' ? 'selected' : '' %>>Image Generation</option>
+                  <option value="video" <%= tool && tool.category === 'video' ? 'selected' : '' %>>Video</option>
+                  <option value="audio" <%= tool && tool.category === 'audio' ? 'selected' : '' %>>Audio</option>
+                  <option value="marketing" <%= tool && tool.category === 'marketing' ? 'selected' : '' %>>Marketing</option>
+                  <option value="seo" <%= tool && tool.category === 'seo' ? 'selected' : '' %>>SEO</option>
+                  <option value="analytics" <%= tool && tool.category === 'analytics' ? 'selected' : '' %>>Analytics</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea id="description" name="description" class="form-input" rows="4"><%= tool ? tool.description : '' %></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="website_url">Website URL</label>
+                <input type="url" id="website_url" name="website_url" class="form-input" value="<%= tool ? tool.website_url : '' %>">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="pricing_model">Pricing Model</label>
+                <select id="pricing_model" name="pricing_model" class="form-input">
+                  <option value="">Select pricing</option>
+                  <option value="free" <%= tool && tool.pricing_model === 'free' ? 'selected' : '' %>>Free</option>
+                  <option value="freemium" <%= tool && tool.pricing_model === 'freemium' ? 'selected' : '' %>>Freemium</option>
+                  <option value="subscription" <%= tool && tool.pricing_model === 'subscription' ? 'selected' : '' %>>Subscription</option>
+                  <option value="one-time" <%= tool && tool.pricing_model === 'one-time' ? 'selected' : '' %>>One-time</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">Details</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="features">Features (one per line)</label>
+              <textarea id="features" name="features" class="form-input" rows="4"><%= tool && tool.features ? tool.features.join('\n') : '' %></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="pros">Pros (one per line)</label>
+                <textarea id="pros" name="pros" class="form-input" rows="3"><%= tool && tool.pros ? tool.pros.join('\n') : '' %></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="cons">Cons (one per line)</label>
+                <textarea id="cons" name="cons" class="form-input" rows="3"><%= tool && tool.cons ? tool.cons.join('\n') : '' %></textarea>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="logo_url">Logo URL</label>
+                <input type="url" id="logo_url" name="logo_url" class="form-input" value="<%= tool ? tool.logo_url : '' %>">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="status">Status</label>
+                <select id="status" name="status" class="form-input">
+                  <option value="active" <%= !tool || tool.status === 'active' ? 'selected' : '' %>>Active</option>
+                  <option value="inactive" <%= tool && tool.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="/content/ai-tools" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

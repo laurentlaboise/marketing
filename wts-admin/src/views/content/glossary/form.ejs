@@ -1,0 +1,57 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= item ? 'Edit Glossary Term' : 'New Glossary Term' %></h1>
+        <p class="page-subtitle"><a href="/content/glossary"><i class="fas fa-arrow-left"></i> Back to Glossary</a></p>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= item ? '/content/glossary/' + item.id : '/content/glossary' %>" method="POST">
+          <div class="form-group">
+            <label class="form-label" for="term">Term *</label>
+            <input type="text" id="term" name="term" class="form-input" value="<%= item ? item.term : '' %>" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="definition">Definition *</label>
+            <textarea id="definition" name="definition" class="form-input" rows="5" required><%= item ? item.definition : '' %></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="category">Category</label>
+            <select id="category" name="category" class="form-input">
+              <option value="">Select category</option>
+              <option value="marketing" <%= item && item.category === 'marketing' ? 'selected' : '' %>>Marketing</option>
+              <option value="seo" <%= item && item.category === 'seo' ? 'selected' : '' %>>SEO</option>
+              <option value="social" <%= item && item.category === 'social' ? 'selected' : '' %>>Social Media</option>
+              <option value="analytics" <%= item && item.category === 'analytics' ? 'selected' : '' %>>Analytics</option>
+              <option value="content" <%= item && item.category === 'content' ? 'selected' : '' %>>Content</option>
+              <option value="advertising" <%= item && item.category === 'advertising' ? 'selected' : '' %>>Advertising</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="related_terms">Related Terms</label>
+            <input type="text" id="related_terms" name="related_terms" class="form-input" placeholder="term1, term2" value="<%= item && item.related_terms ? item.related_terms.join(', ') : '' %>">
+            <p class="form-help">Separate with commas</p>
+          </div>
+
+          <div class="form-actions">
+            <a href="/content/glossary" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

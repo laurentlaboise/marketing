@@ -1,0 +1,80 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Social Posts</h1>
+        <p class="page-subtitle">Manage your social media content</p>
+      </div>
+      <div class="page-actions">
+        <a href="/social/posts/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Post</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <form action="/social/posts" method="GET" style="display: flex; gap: 12px;">
+          <select name="status" class="form-input" style="width: 150px;">
+            <option value="">All Status</option>
+            <option value="draft" <%= filter.status === 'draft' ? 'selected' : '' %>>Draft</option>
+            <option value="scheduled" <%= filter.status === 'scheduled' ? 'selected' : '' %>>Scheduled</option>
+            <option value="published" <%= filter.status === 'published' ? 'selected' : '' %>>Published</option>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+        </form>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <% if (posts.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Content</th>
+                <th>Platforms</th>
+                <th>Scheduled</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% posts.forEach(post => { %>
+              <tr>
+                <td style="max-width: 300px;">
+                  <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <%= post.content ? post.content.substring(0, 100) : '' %><%= post.content && post.content.length > 100 ? '...' : '' %>
+                  </div>
+                </td>
+                <td><%= post.platforms ? post.platforms.join(', ') : '-' %></td>
+                <td><%= post.scheduled_at ? new Date(post.scheduled_at).toLocaleString() : '-' %></td>
+                <td><span class="status-badge <%= post.status %>"><%= post.status %></span></td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/social/posts/<%= post.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/social/posts/<%= post.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-share-alt"></i></div>
+          <h3>No Social Posts</h3>
+          <p>Create your first social media post.</p>
+          <a href="/social/posts/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Post</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

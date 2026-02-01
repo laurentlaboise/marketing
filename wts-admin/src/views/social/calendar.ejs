@@ -1,0 +1,63 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Content Calendar</h1>
+        <p class="page-subtitle">View scheduled social media posts</p>
+      </div>
+      <div class="page-actions">
+        <a href="/social/posts/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Post</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <% if (posts.length > 0) { %>
+        <div style="display: grid; gap: 16px;">
+          <% posts.forEach(post => { %>
+          <div style="display: flex; gap: 16px; padding: 16px; background: var(--gray-50); border-radius: var(--radius); border-left: 4px solid var(--primary);">
+            <div style="min-width: 100px; text-align: center;">
+              <div style="font-size: 24px; font-weight: 700; color: var(--primary);">
+                <%= new Date(post.scheduled_at).getDate() %>
+              </div>
+              <div style="font-size: 12px; color: var(--gray-500); text-transform: uppercase;">
+                <%= new Date(post.scheduled_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) %>
+              </div>
+              <div style="font-size: 12px; color: var(--gray-600); margin-top: 4px;">
+                <%= new Date(post.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div style="margin-bottom: 8px;">
+                <%= post.platforms ? post.platforms.map(p => {
+                  const icons = { 'Facebook': 'fab fa-facebook', 'Twitter/X': 'fab fa-x-twitter', 'Instagram': 'fab fa-instagram', 'LinkedIn': 'fab fa-linkedin', 'TikTok': 'fab fa-tiktok' };
+                  return '<i class="' + (icons[p] || 'fas fa-globe') + '" style="margin-right: 8px;"></i>';
+                }).join('') : '' %>
+              </div>
+              <p style="color: var(--gray-700); margin: 0;"><%= post.content ? post.content.substring(0, 200) : '' %><%= post.content && post.content.length > 200 ? '...' : '' %></p>
+            </div>
+            <div>
+              <span class="status-badge <%= post.status %>"><%= post.status %></span>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-calendar"></i></div>
+          <h3>No Scheduled Posts</h3>
+          <p>Schedule posts to see them in the calendar.</p>
+          <a href="/social/posts/new" class="btn btn-primary"><i class="fas fa-plus"></i> Schedule Post</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

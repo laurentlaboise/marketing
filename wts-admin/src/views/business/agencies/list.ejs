@@ -1,0 +1,63 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Agency Management</h1>
+        <p class="page-subtitle">Manage digital agencies</p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/agencies/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Agency</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (agencies.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% agencies.forEach(agency => { %>
+              <tr>
+                <td><strong><%= agency.name %></strong></td>
+                <td><%= agency.location || '-' %></td>
+                <td><span class="status-badge <%= agency.status %>"><%= agency.status %></span></td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/business/agencies/<%= agency.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/business/agencies/<%= agency.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-building"></i></div>
+          <h3>No Agencies</h3>
+          <p>Start adding digital agencies.</p>
+          <a href="/business/agencies/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Agency</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>
