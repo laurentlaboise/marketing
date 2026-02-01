@@ -157,7 +157,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Initialize database and start server
+/**
+ * Initialize the database and start the HTTP server.
+ *
+ * Attempts to initialize the database; if successful, starts the server and binds to 0.0.0.0 on the configured port.
+ * If database initialization fails, starts the server anyway to allow health checks while the database connection is pending.
+ */
 async function startServer() {
   try {
     await db.initialize();
