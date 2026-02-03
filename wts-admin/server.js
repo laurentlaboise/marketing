@@ -100,29 +100,22 @@ if (process.env.DATABASE_URL) {
 
 app.use(session(sessionConfig));
 
-// CSRF protection middleware (must come after session)
-app.use(csurf());
+// Passport initialization (must come after session, before routes)
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Global variables for views
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
-  res.locals.isAuthenticated = req.isAuthenticated();
+  res.locals.isAuthenticated = req.isAuthenticated ? req.isAuthenticated() : false;
   res.locals.messages = {
     success: req.session.successMessage,
     error: req.session.errorMessage
   };
-  try {
-    res.locals.csrfToken = req.csrfToken();
-  } catch (e) {
-    res.locals.csrfToken = null;
-  }
   delete req.session.successMessage;
   delete req.session.errorMessage;
   next();
 });
-// Passport initialization
-app.use(passport.initialize());
-app.use(passport.session());
 
 
 // Routes
