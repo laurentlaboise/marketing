@@ -103,19 +103,19 @@ app.use(session(sessionConfig));
 // CSRF protection middleware (must come after session)
 app.use(csurf());
 
-// Global variables for views (including CSRF token)
+// Global variables for views
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
   res.locals.isAuthenticated = req.isAuthenticated();
   res.locals.messages = {
     success: req.session.successMessage,
     error: req.session.errorMessage
+  };
   try {
     res.locals.csrfToken = req.csrfToken();
   } catch (e) {
     res.locals.csrfToken = null;
   }
-  };
   delete req.session.successMessage;
   delete req.session.errorMessage;
   next();
