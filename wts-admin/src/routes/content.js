@@ -466,4 +466,153 @@ router.post('/glossary/:id/delete', async (req, res) => {
   res.redirect('/content/glossary');
 });
 
+// ==================== E-GUIDES ====================
+
+router.get('/guides', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const status = req.query.status || '';
+
+    let query = 'SELECT * FROM guides';
+    let countQuery = 'SELECT COUNT(*) FROM guides';
+    const params = [];
+    const conditions = [];
+
+    if (search) {
+      conditions.push(`(title ILIKE $${params.length + 1} OR short_description ILIKE $${params.length + 1})`);
+      params.push(`%${search}%`);
+    }
+
+    if (status) {
+      conditions.push(`status = $${params.length + 1}`);
+      params.push(status);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+      countQuery += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+
+    const [guides, count] = await Promise.all([
+      db.query(query, params),
+      db.query(countQuery, params)
+    ]);
+
+    const totalPages = Math.ceil(count.rows[0].count / limit);
+
+    res.render('content/guides/list', {
+      title: 'E-Guides - WTS Admin',
+      guides: guides.rows,
+      currentPage: 'guides',
+      pagination: { page, totalPages, search, status }
+    });
+  } catch (error) {
+    console.error('Guides list error:', error);
+    res.render('content/guides/list', {
+      title: 'E-Guides - WTS Admin',
+      guides: [],
+      currentPage: 'guides',
+      error: 'Failed to load guides'
+    });
+  }
+});
+
+router.get('/guides/new', (req, res) => {
+  res.render('content/guides/form', {
+    title: 'New E-Guide - WTS Admin',
+    guide: null,
+    currentPage: 'guides'
+  });
+});
+
+router.post('/guides', [
+  body('title').trim().notEmpty().withMessage('Title is required'),
+  body('short_description').trim().notEmpty().withMessage('Short description is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.render('content/guides/form', {
+      title: 'New E-Guide - WTS Admin',
+      guide: req.body,
+      currentPage: 'guides',
+      error: errors.array()[0].msg
+    });
+  }
+
+  try {
+    const { title, short_description, long_content, category, icon, image_url, pdf_url, video_url, status } = req.body;
+    const slug = createSlug(title);
+
+    await db.query(
+      `INSERT INTO guides (title, slug, short_description, long_content, category, icon, image_url, pdf_url, video_url, status, author_id, published_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [title, slug, short_description, long_content, category, icon, image_url, pdf_url, video_url, status || 'draft', req.user.id, status === 'published' ? new Date() : null]
+    );
+
+    req.session.successMessage = 'E-Guide created successfully';
+    res.redirect('/content/guides');
+  } catch (error) {
+    console.error('Create guide error:', error);
+    res.render('content/guides/form', {
+      title: 'New E-Guide - WTS Admin',
+      guide: req.body,
+      currentPage: 'guides',
+      error: 'Failed to create guide'
+    });
+  }
+});
+
+router.get('/guides/:id/edit', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM guides WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      req.session.errorMessage = 'Guide not found';
+      return res.redirect('/content/guides');
+    }
+    res.render('content/guides/form', {
+      title: 'Edit E-Guide - WTS Admin',
+      guide: result.rows[0],
+      currentPage: 'guides'
+    });
+  } catch (error) {
+    console.error('Edit guide error:', error);
+    res.redirect('/content/guides');
+  }
+});
+
+router.post('/guides/:id', async (req, res) => {
+  try {
+    const { title, short_description, long_content, category, icon, image_url, pdf_url, video_url, status } = req.body;
+
+    await db.query(
+      `UPDATE guides SET title = $1, short_description = $2, long_content = $3, category = $4, icon = $5, image_url = $6, pdf_url = $7, video_url = $8, status = $9, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9 = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
+       WHERE id = $10`,
+      [title, short_description, long_content, category, icon, image_url, pdf_url, video_url, status, req.params.id]
+    );
+
+    req.session.successMessage = 'E-Guide updated successfully';
+    res.redirect('/content/guides');
+  } catch (error) {
+    console.error('Update guide error:', error);
+    req.session.errorMessage = 'Failed to update guide';
+    res.redirect(`/content/guides/${req.params.id}/edit`);
+  }
+});
+
+router.post('/guides/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM guides WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'E-Guide deleted successfully';
+  } catch (error) {
+    console.error('Delete guide error:', error);
+    req.session.errorMessage = 'Failed to delete guide';
+  }
+  res.redirect('/content/guides');
+});
+
 module.exports = router;

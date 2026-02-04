@@ -1400,7 +1400,18 @@
     </a>
 
     <script>
-        const aiTools = [
+        // API Configuration - WTS Admin Backend
+        const API_BASE_URL = 'https://admin.wordsthatsells.website/api/public';
+        const AI_TOOLS_URL = `${API_BASE_URL}/ai-tools`;
+
+        // Global state
+        let aiTools = [];
+        let categories = [];
+        let isLoading = true;
+        let hasError = false;
+
+        // Fallback hardcoded data (used if API fails)
+        const fallbackTools = [
           {
             "name": "Superagent",
             "category": "AI Security",
@@ -1767,18 +1778,60 @@
           }
         ];
 
-        const categories = [...new Set(aiTools.map(tool => tool.category))].sort();
-
     </script>
-    
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchDataFromAPI();
             initAiTools();
             initSearch();
             initPills();
             initSlidePanel();
             initFloatingButtons();
         });
+
+        // Fetch data from API
+        async function fetchDataFromAPI() {
+            try {
+                isLoading = true;
+                showLoadingState();
+
+                const response = await fetch(AI_TOOLS_URL);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch AI tools: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    aiTools = data;
+                } else {
+                    // Use fallback data if API returns empty
+                    aiTools = fallbackTools;
+                }
+
+                // Extract unique categories
+                categories = [...new Set(aiTools.map(tool => tool.category))].filter(cat => cat && cat.trim()).sort();
+
+                isLoading = false;
+                hasError = false;
+            } catch (error) {
+                console.error('Error fetching AI tools:', error);
+                // Use fallback data on error
+                aiTools = fallbackTools;
+                categories = [...new Set(aiTools.map(tool => tool.category))].filter(cat => cat && cat.trim()).sort();
+                isLoading = false;
+                hasError = false; // Don't show error since we have fallback data
+            }
+        }
+
+        // Show loading state
+        function showLoadingState() {
+            const container = document.getElementById('ai-tools-container');
+            container.innerHTML = '<div style="text-align: center; padding: 4rem; color: var(--color-slate-500);"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i><p>Loading AI tools...</p></div>';
+        }
 
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {

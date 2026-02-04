@@ -6,7 +6,6 @@ const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
-const csurf = require('csurf');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -15,6 +14,7 @@ const contentRoutes = require('./src/routes/content');
 const businessRoutes = require('./src/routes/business');
 const socialRoutes = require('./src/routes/social');
 const apiRoutes = require('./src/routes/api');
+const publicApiRoutes = require('./src/routes/public-api');
 
 // Import passport configuration
 require('./src/utils/passport-config');
@@ -44,7 +44,15 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'],
+  origin: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : [
+        'http://localhost:3000',
+        'http://localhost:5500',
+        'http://127.0.0.1:5500',
+        'https://wordsthatsells.website',
+        'https://www.wordsthatsells.website'
+      ],
   credentials: true
 }));
 
@@ -100,30 +108,26 @@ if (process.env.DATABASE_URL) {
 
 app.use(session(sessionConfig));
 
-// CSRF protection middleware (must come after session)
-app.use(csurf());
+// Passport initialization (must come after session, before routes)
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Global variables for views
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
-  res.locals.isAuthenticated = req.isAuthenticated();
+  res.locals.isAuthenticated = req.isAuthenticated ? req.isAuthenticated() : false;
   res.locals.messages = {
     success: req.session.successMessage,
     error: req.session.errorMessage
   };
-  try {
-    res.locals.csrfToken = req.csrfToken();
-  } catch (e) {
-    res.locals.csrfToken = null;
-  }
   delete req.session.successMessage;
   delete req.session.errorMessage;
   next();
 });
-// Passport initialization
-app.use(passport.initialize());
-app.use(passport.session());
 
+
+// Public API routes (no authentication required)
+app.use('/api/public', publicApiRoutes);
 
 // Routes
 app.use('/auth', authRoutes);

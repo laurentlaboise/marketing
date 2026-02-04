@@ -20,16 +20,17 @@
 
       <!-- Content Management -->
       <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['articles', 'seo-terms', 'ai-tools', 'glossary'].includes(currentPage) ? 'active' : '' %>">
+        <a href="#" class="nav-link submenu-toggle <%= ['articles', 'seo-terms', 'ai-tools', 'glossary', 'guides'].includes(currentPage) ? 'active' : '' %>">
           <i class="fas fa-file-alt"></i>
           <span>Content Management</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['articles', 'seo-terms', 'ai-tools', 'glossary'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= ['articles', 'seo-terms', 'ai-tools', 'glossary', 'guides'].includes(currentPage) ? 'open' : '' %>">
           <li><a href="/content/articles" class="<%= currentPage === 'articles' ? 'active' : '' %>"><i class="fas fa-newspaper"></i> Articles</a></li>
           <li><a href="/content/seo-terms" class="<%= currentPage === 'seo-terms' ? 'active' : '' %>"><i class="fas fa-search"></i> SEO Terms</a></li>
           <li><a href="/content/ai-tools" class="<%= currentPage === 'ai-tools' ? 'active' : '' %>"><i class="fas fa-robot"></i> AI Tools</a></li>
           <li><a href="/content/glossary" class="<%= currentPage === 'glossary' ? 'active' : '' %>"><i class="fas fa-book"></i> Glossary</a></li>
+          <li><a href="/content/guides" class="<%= currentPage === 'guides' ? 'active' : '' %>"><i class="fas fa-book-reader"></i> E-Guides</a></li>
         </ul>
       </li>
 

@@ -311,6 +311,27 @@ const db = {
         )
       `);
 
+      // Guides (E-Guides) table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS guides (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          title VARCHAR(500) NOT NULL,
+          slug VARCHAR(500) UNIQUE NOT NULL,
+          short_description TEXT,
+          long_content TEXT,
+          category VARCHAR(100),
+          icon VARCHAR(100),
+          image_url TEXT,
+          pdf_url TEXT,
+          video_url TEXT,
+          status VARCHAR(50) DEFAULT 'draft',
+          author_id UUID REFERENCES users(id),
+          published_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       await client.query('COMMIT');
       console.log('Database tables initialized successfully');
     } catch (error) {
