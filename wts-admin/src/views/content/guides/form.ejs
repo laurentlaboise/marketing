@@ -1,0 +1,112 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= guide ? 'Edit E-Guide' : 'New E-Guide' %></h1>
+        <p class="page-subtitle">
+          <a href="/content/guides"><i class="fas fa-arrow-left"></i> Back to E-Guides</a>
+        </p>
+      </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-error">
+      <i class="fas fa-exclamation-circle"></i>
+      <span><%= error %></span>
+    </div>
+    <% } %>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= guide ? '/content/guides/' + guide.id : '/content/guides' %>" method="POST">
+          <div class="form-section">
+            <h3 class="form-section-title">Guide Content</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="title">Title *</label>
+              <input type="text" id="title" name="title" class="form-input" value="<%= guide ? guide.title : '' %>" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="short_description">Short Description *</label>
+              <textarea id="short_description" name="short_description" class="form-input" rows="2" placeholder="Brief summary of the guide" required><%= guide ? guide.short_description : '' %></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="long_content">Full Content (HTML)</label>
+              <textarea id="long_content" name="long_content" class="form-input" rows="15" placeholder="Full guide content in HTML format"><%= guide ? guide.long_content : '' %></textarea>
+              <p class="form-help">You can use HTML tags like &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;</p>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">Organization & Display</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="category">Category</label>
+                <select id="category" name="category" class="form-input">
+                  <option value="">Select category</option>
+                  <option value="Web Development" <%= guide && guide.category === 'Web Development' ? 'selected' : '' %>>Web Development</option>
+                  <option value="Content Creation" <%= guide && guide.category === 'Content Creation' ? 'selected' : '' %>>Content Creation</option>
+                  <option value="Social Media Management" <%= guide && guide.category === 'Social Media Management' ? 'selected' : '' %>>Social Media Management</option>
+                  <option value="Business Tools" <%= guide && guide.category === 'Business Tools' ? 'selected' : '' %>>Business Tools</option>
+                  <option value="SEO" <%= guide && guide.category === 'SEO' ? 'selected' : '' %>>SEO</option>
+                  <option value="Marketing" <%= guide && guide.category === 'Marketing' ? 'selected' : '' %>>Marketing</option>
+                  <option value="AI & Automation" <%= guide && guide.category === 'AI & Automation' ? 'selected' : '' %>>AI & Automation</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="status">Status</label>
+                <select id="status" name="status" class="form-input">
+                  <option value="draft" <%= !guide || guide.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                  <option value="published" <%= guide && guide.status === 'published' ? 'selected' : '' %>>Published</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="icon">Icon Class (FontAwesome)</label>
+              <input type="text" id="icon" name="icon" class="form-input" placeholder="fas fa-book" value="<%= guide ? guide.icon : '' %>">
+              <p class="form-help">FontAwesome icon class, e.g., fas fa-tachometer-alt, fas fa-funnel-dollar</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="image_url">Featured Image URL</label>
+              <input type="url" id="image_url" name="image_url" class="form-input" placeholder="https://example.com/image.jpg" value="<%= guide ? guide.image_url : '' %>">
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">Resource Links</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="pdf_url">PDF Download URL</label>
+              <input type="url" id="pdf_url" name="pdf_url" class="form-input" placeholder="https://example.com/guide.pdf" value="<%= guide ? guide.pdf_url : '' %>">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="video_url">Video URL</label>
+              <input type="url" id="video_url" name="video_url" class="form-input" placeholder="https://youtube.com/watch?v=..." value="<%= guide ? guide.video_url : '' %>">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="/content/guides" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> <%= guide ? 'Update E-Guide' : 'Create E-Guide' %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

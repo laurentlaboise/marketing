@@ -14,6 +14,7 @@ const contentRoutes = require('./src/routes/content');
 const businessRoutes = require('./src/routes/business');
 const socialRoutes = require('./src/routes/social');
 const apiRoutes = require('./src/routes/api');
+const publicApiRoutes = require('./src/routes/public-api');
 
 // Import passport configuration
 require('./src/utils/passport-config');
@@ -43,7 +44,15 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'],
+  origin: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : [
+        'http://localhost:3000',
+        'http://localhost:5500',
+        'http://127.0.0.1:5500',
+        'https://wordsthatsells.website',
+        'https://www.wordsthatsells.website'
+      ],
   credentials: true
 }));
 
@@ -116,6 +125,9 @@ app.use((req, res, next) => {
   next();
 });
 
+
+// Public API routes (no authentication required)
+app.use('/api/public', publicApiRoutes);
 
 // Routes
 app.use('/auth', authRoutes);
