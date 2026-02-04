@@ -117,11 +117,22 @@ const db = {
           seo_description TEXT,
           seo_keywords TEXT[],
           status VARCHAR(50) DEFAULT 'draft',
+          featured BOOLEAN DEFAULT FALSE,
           author_id UUID REFERENCES users(id),
           published_at TIMESTAMP,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+      `);
+
+      // Add featured column if it doesn't exist (for existing tables)
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='featured') THEN
+            ALTER TABLE articles ADD COLUMN featured BOOLEAN DEFAULT FALSE;
+          END IF;
+        END $$;
       `);
 
       // SEO Terms table

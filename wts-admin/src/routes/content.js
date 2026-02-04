@@ -104,15 +104,16 @@ router.post('/articles', [
   }
 
   try {
-    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image } = req.body;
+    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, featured } = req.body;
     const slug = createSlug(title);
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [];
     const keywordsArray = seo_keywords ? seo_keywords.split(',').map(k => k.trim()).filter(k => k) : [];
+    const isFeatured = featured === 'true' || featured === true;
 
     await db.query(
-      `INSERT INTO articles (title, slug, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, author_id, published_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-      [title, slug, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, req.user.id, status === 'published' ? new Date() : null]
+      `INSERT INTO articles (title, slug, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, featured, author_id, published_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [title, slug, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, isFeatured, req.user.id, status === 'published' ? new Date() : null]
     );
 
     req.session.successMessage = 'Article created successfully';
@@ -150,14 +151,15 @@ router.get('/articles/:id/edit', async (req, res) => {
 // Update article
 router.post('/articles/:id', async (req, res) => {
   try {
-    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image } = req.body;
+    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, featured } = req.body;
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [];
     const keywordsArray = seo_keywords ? seo_keywords.split(',').map(k => k.trim()).filter(k => k) : [];
+    const isFeatured = featured === 'true' || featured === true;
 
     await db.query(
-      `UPDATE articles SET title = $1, content = $2, excerpt = $3, category = $4, tags = $5, seo_title = $6, seo_description = $7, seo_keywords = $8, status = $9, featured_image = $10, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9 = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
-       WHERE id = $11`,
-      [title, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status, featured_image, req.params.id]
+      `UPDATE articles SET title = $1, content = $2, excerpt = $3, category = $4, tags = $5, seo_title = $6, seo_description = $7, seo_keywords = $8, status = $9, featured_image = $10, featured = $11, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9 = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
+       WHERE id = $12`,
+      [title, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status, featured_image, isFeatured, req.params.id]
     );
 
     req.session.successMessage = 'Article updated successfully';

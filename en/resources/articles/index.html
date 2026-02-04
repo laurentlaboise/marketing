@@ -177,32 +177,7 @@
             color: var(--color-accent-magenta);
         }
 
-        h1, h2, h3, h4 {
-            font-family: var(--font-family-heading);
-            font-weight: 700;
-            line-height: 1.2;
-            margin-bottom: var(--spacing-md);
-            color: var(--color-slate-900);
-        }
-        h1 { font-size: var(--font-size-5xl); }
-        h2 { font-size: var(--font-size-4xl); }
-        h3 { font-size: var(--font-size-3xl); }
-        h4 { font-size: var(--font-size-2xl); }
-        p {
-            margin-bottom: var(--spacing-md);
-            color: var(--color-slate-800);
-        }
-        a {
-            color: var(--color-primary-base);
-            text-decoration: none;
-            transition: var(--transition-medium);
-        }
-        a:hover {
-            color: var(--color-accent-magenta);
-        }
-        ul {
-            list-style-position: inside;
-        }
+        /* Duplicate CSS removed - styles already defined above */
 
         @media (min-width: 768px) {
             h1 { font-size: var(--font-size-6xl); }
@@ -480,13 +455,6 @@
             margin-bottom: 0;
             flex: 1;
             min-width: 0;
-        }
-
-        #slide-in-read-more {
-            flex-shrink: 0;
-            padding: var(--spacing-sm) var(--spacing-md);
-            font-size: var(--font-size-sm);
-            white-space: nowrap;
         }
 
         #slide-in-close {
@@ -886,9 +854,6 @@
     <div id="details-slide-in">
         <div class="slide-in-header">
             <h2 id="slide-in-title"></h2>
-            <a href="#" id="slide-in-read-more" class="btn btn-premium" target="_blank">
-                <i class="fas fa-external-link-alt"></i> Read Full Article
-            </a>
             <button id="slide-in-close"><i class="fas fa-times"></i></button>
         </div>
         <div class="slide-in-body">
@@ -913,7 +878,6 @@
         // API Configuration - WTS Admin Backend
         const API_BASE_URL = 'https://admin.wordsthatsells.website/api/public';
         const ARTICLES_URL = `${API_BASE_URL}/articles`;
-        const CATEGORIES_URL = `${API_BASE_URL}/articles/categories`;
         const SITE_BASE_URL = 'https://wordsthatsells.website';
 
         // Global state
@@ -949,15 +913,13 @@
                 const articlesData = await articlesResponse.json();
 
                 // Transform API data to match expected format
-                blogPosts = articlesData
-                    .filter(article => article.is_published)
-                    .map(article => transformArticle(article));
+                // Note: API already returns only published articles
+                blogPosts = articlesData.map(article => transformArticle(article));
 
                 // Extract unique categories from all articles
                 categories = [...new Set(blogPosts.flatMap(post => post.categories))].filter(cat => cat && cat.trim()).sort();
 
-                console.log('Categories extracted:', categories); // Debug log
-
+                // Get featured articles
                 featuredPosts = blogPosts.filter(post => post.featured);
 
                 isLoading = false;
@@ -984,7 +946,8 @@
                 featured: article.featured || false,
                 sidebar_content: article.sidebar_content || article.content || '<p>Preview not available.</p>',
                 full_article_content: article.full_article_content || article.content || '<p>Content not available.</p>',
-                read_more_link: `${SITE_BASE_URL}/en/articles/${article.slug}`
+                // Link opens in slide panel - no external page needed
+                read_more_link: '#'
             };
         }
 
@@ -1256,10 +1219,6 @@
             slideInImage.src = postData.image;
             slideInImage.alt = `${postData.title} image`;
 
-            // Update the top "Read Full Article" button href
-            const slideInReadMore = document.getElementById('slide-in-read-more');
-            slideInReadMore.href = postData.read_more_link;
-
             // Update share buttons in sidebar content to use dynamic slug
             let contentWithDynamicShares = postData.sidebar_content;
             const articleUrl = `${SITE_BASE_URL}/en/articles/${postData.slug}`;
@@ -1281,11 +1240,23 @@
                     <span><i class="far fa-book-open"></i> ${readingTime} min read</span>
                 </div>
                 <div class="blog-info-section">
-                    ${contentWithDynamicShares}
+                    ${postData.full_article_content || contentWithDynamicShares}
                 </div>
-                <div style="text-align: center; margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border);">
-                    <a href="${postData.read_more_link}" target="_blank" class="btn btn-premium">
-                        <i class="fas fa-external-link-alt"></i> Read Full Article
+                <div class="share-buttons" style="margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border);">
+                    <a href="#" class="share-x" onclick="sharePost('x', '${postData.title.replace(/'/g, "\\'")}', '${window.location.href}'); return false;" title="Share on X">
+                        <i class="fab fa-x-twitter"></i>
+                    </a>
+                    <a href="#" class="share-linkedin" onclick="sharePost('linkedin', '${postData.title.replace(/'/g, "\\'")}', '${window.location.href}'); return false;" title="Share on LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="#" class="share-facebook" onclick="sharePost('facebook', '${postData.title.replace(/'/g, "\\'")}', '${window.location.href}'); return false;" title="Share on Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', '${postData.title.replace(/'/g, "\\'")}', '${window.location.href}'); return false;" title="Share on WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="#" class="share-copy" onclick="copyLink('${window.location.href}'); return false;" title="Copy Link">
+                        <i class="fas fa-link"></i>
                     </a>
                 </div>
             `;

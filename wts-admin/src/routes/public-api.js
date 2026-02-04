@@ -46,7 +46,7 @@ router.get('/articles', async (req, res) => {
 
     let query = `
       SELECT id, title, slug, excerpt, content, featured_image, category, tags,
-             seo_title, seo_description, published_at, created_at, updated_at
+             seo_title, seo_description, featured, published_at, created_at, updated_at
       FROM articles
       WHERE status = 'published'
     `;
@@ -72,7 +72,7 @@ router.get('/articles', async (req, res) => {
       categories: article.category ? [article.category] : [],
       tags: article.tags || [],
       is_published: true,
-      featured: false, // You can add a featured field to the DB if needed
+      featured: article.featured || false,
       sidebar_content: article.excerpt || article.content?.substring(0, 500) || '',
       full_article_content: article.content,
       created_at: article.created_at,
