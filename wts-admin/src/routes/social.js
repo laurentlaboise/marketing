@@ -125,7 +125,7 @@ router.post('/posts/:id', async (req, res) => {
     const mediaArray = media_urls ? media_urls.split('\n').map(u => u.trim()).filter(u => u) : [];
 
     await db.query(
-      `UPDATE social_posts SET content = $1, platforms = $2, scheduled_at = $3, status = $4, media_urls = $5, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $4 = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END WHERE id = $6`,
+      `UPDATE social_posts SET content = $1, platforms = $2, scheduled_at = $3, status = $4::VARCHAR, media_urls = $5, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $4::VARCHAR = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END WHERE id = $6`,
       [content, platformsArray, scheduled_at || null, status, mediaArray, req.params.id]
     );
     req.session.successMessage = 'Social post updated successfully';

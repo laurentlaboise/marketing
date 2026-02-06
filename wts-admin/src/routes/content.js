@@ -168,7 +168,7 @@ router.post('/articles/:id', async (req, res) => {
     const isFeatured = featured === 'true' || featured === true;
 
     const result = await db.query(
-      `UPDATE articles SET title = $1, content = $2, excerpt = $3, category = $4, tags = $5, seo_title = $6, seo_description = $7, seo_keywords = $8, status = $9, featured_image = $10, featured = $11, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9 = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
+      `UPDATE articles SET title = $1, content = $2, excerpt = $3, category = $4, tags = $5, seo_title = $6, seo_description = $7, seo_keywords = $8, status = $9::VARCHAR, featured_image = $10, featured = $11, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9::VARCHAR = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
        WHERE id = $12 RETURNING id`,
       [title, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status, featured_image, isFeatured, req.params.id]
     );
@@ -618,7 +618,7 @@ router.post('/guides/:id', async (req, res) => {
     }
 
     const result = await db.query(
-      `UPDATE guides SET title = $1, short_description = $2, long_content = $3, category = $4, icon = $5, image_url = $6, pdf_url = $7, video_url = $8, status = $9, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9 = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
+      `UPDATE guides SET title = $1, short_description = $2, long_content = $3, category = $4, icon = $5, image_url = $6, pdf_url = $7, video_url = $8, status = $9::VARCHAR, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9::VARCHAR = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
        WHERE id = $10 RETURNING id`,
       [title, short_description, long_content, category, icon, image_url, pdf_url, video_url, status, req.params.id]
     );
