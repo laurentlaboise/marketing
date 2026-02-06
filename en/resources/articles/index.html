@@ -1224,9 +1224,17 @@
             const articleUrl = `${SITE_BASE_URL}/en/articles/${postData.slug}`;
 
             // Replace share button URLs and onclick handlers
+            function escapeJsString(str) {
+                return String(str)
+                    .replace(/\\/g, "\\\\")
+                    .replace(/'/g, "\\'");
+            }
+
+            const escapedTitleForJs = escapeJsString(postData.title || '');
+
             contentWithDynamicShares = contentWithDynamicShares.replace(
                 /onclick="sharePost\('(\w+)',\s*'[^']*',\s*'[^']*'\)/g,
-                `onclick="sharePost('$1', '${postData.title.replace(/'/g, "\\'")}', '${articleUrl}')`
+                `onclick="sharePost('$1', '${escapedTitleForJs}', '${articleUrl}')`
             );
             contentWithDynamicShares = contentWithDynamicShares.replace(
                 /onclick="copyLink\('[^']*'\)/g,
@@ -1243,16 +1251,16 @@
                     ${postData.full_article_content || contentWithDynamicShares}
                 </div>
                 <div class="share-buttons" style="margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border);">
-                    <a href="#" class="share-x" onclick="sharePost('x', '${postData.title.replace(/'/g, "\\'")}', '${window.location.href}'); return false;" title="Share on X">
+                    <a href="#" class="share-x" onclick="sharePost('x', '${escapedTitleForJs}', '${window.location.href}'); return false;" title="Share on X">
                         <i class="fab fa-x-twitter"></i>
                     </a>
-                    <a href="#" class="share-linkedin" onclick="sharePost('linkedin', '${postData.title.replace(/'/g, "\\'")}', '${window.location.href}'); return false;" title="Share on LinkedIn">
+                    <a href="#" class="share-linkedin" onclick="sharePost('linkedin', '${escapedTitleForJs}', '${window.location.href}'); return false;" title="Share on LinkedIn">
                         <i class="fab fa-linkedin-in"></i>
                     </a>
-                    <a href="#" class="share-facebook" onclick="sharePost('facebook', '${postData.title.replace(/'/g, "\\'")}', '${window.location.href}'); return false;" title="Share on Facebook">
+                    <a href="#" class="share-facebook" onclick="sharePost('facebook', '${escapedTitleForJs}', '${window.location.href}'); return false;" title="Share on Facebook">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', '${postData.title.replace(/'/g, "\\'")}', '${window.location.href}'); return false;" title="Share on WhatsApp">
+                    <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', '${escapedTitleForJs}', '${window.location.href}'); return false;" title="Share on WhatsApp">
                         <i class="fab fa-whatsapp"></i>
                     </a>
                     <a href="#" class="share-copy" onclick="copyLink('${window.location.href}'); return false;" title="Copy Link">
