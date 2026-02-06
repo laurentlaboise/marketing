@@ -75,6 +75,15 @@
             </div>
 
             <div class="form-group">
+              <label class="form-checkbox">
+                <input type="checkbox" name="featured" value="true" <%= article && article.featured ? 'checked' : '' %>>
+                <span class="checkmark"></span>
+                <span class="form-label">Featured Article</span>
+              </label>
+              <p class="form-help">Featured articles appear at the top of the articles page</p>
+            </div>
+
+            <div class="form-group">
               <label class="form-label" for="tags">Tags</label>
               <input type="text" id="tags" name="tags" class="form-input" placeholder="marketing, seo, tips" value="<%= article && article.tags ? article.tags.join(', ') : '' %>">
               <p class="form-help">Separate tags with commas</p>
