@@ -152,21 +152,37 @@ router.get('/articles/:id/edit', async (req, res) => {
 router.post('/articles/:id', async (req, res) => {
   try {
     const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, featured } = req.body;
+
+    // Validate required fields
+    if (!title || !title.trim()) {
+      req.session.errorMessage = 'Title is required';
+      return res.redirect(`/content/articles/${req.params.id}/edit`);
+    }
+    if (!content || !content.trim()) {
+      req.session.errorMessage = 'Content is required';
+      return res.redirect(`/content/articles/${req.params.id}/edit`);
+    }
+
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [];
     const keywordsArray = seo_keywords ? seo_keywords.split(',').map(k => k.trim()).filter(k => k) : [];
     const isFeatured = featured === 'true' || featured === true;
 
-    await db.query(
+    const result = await db.query(
       `UPDATE articles SET title = $1, content = $2, excerpt = $3, category = $4, tags = $5, seo_title = $6, seo_description = $7, seo_keywords = $8, status = $9, featured_image = $10, featured = $11, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9 = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
-       WHERE id = $12`,
+       WHERE id = $12 RETURNING id`,
       [title, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status, featured_image, isFeatured, req.params.id]
     );
+
+    if (result.rowCount === 0) {
+      req.session.errorMessage = 'Article not found';
+      return res.redirect('/content/articles');
+    }
 
     req.session.successMessage = 'Article updated successfully';
     res.redirect('/content/articles');
   } catch (error) {
-    console.error('Update article error:', error);
-    req.session.errorMessage = 'Failed to update article';
+    console.error('Update article error:', error.message, error.stack);
+    req.session.errorMessage = `Failed to update article: ${error.message}`;
     res.redirect(`/content/articles/${req.params.id}/edit`);
   }
 });
@@ -591,17 +607,32 @@ router.post('/guides/:id', async (req, res) => {
   try {
     const { title, short_description, long_content, category, icon, image_url, pdf_url, video_url, status } = req.body;
 
-    await db.query(
+    // Validate required fields
+    if (!title || !title.trim()) {
+      req.session.errorMessage = 'Title is required';
+      return res.redirect(`/content/guides/${req.params.id}/edit`);
+    }
+    if (!short_description || !short_description.trim()) {
+      req.session.errorMessage = 'Short description is required';
+      return res.redirect(`/content/guides/${req.params.id}/edit`);
+    }
+
+    const result = await db.query(
       `UPDATE guides SET title = $1, short_description = $2, long_content = $3, category = $4, icon = $5, image_url = $6, pdf_url = $7, video_url = $8, status = $9, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9 = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
-       WHERE id = $10`,
+       WHERE id = $10 RETURNING id`,
       [title, short_description, long_content, category, icon, image_url, pdf_url, video_url, status, req.params.id]
     );
+
+    if (result.rowCount === 0) {
+      req.session.errorMessage = 'Guide not found';
+      return res.redirect('/content/guides');
+    }
 
     req.session.successMessage = 'E-Guide updated successfully';
     res.redirect('/content/guides');
   } catch (error) {
-    console.error('Update guide error:', error);
-    req.session.errorMessage = 'Failed to update guide';
+    console.error('Update guide error:', error.message, error.stack);
+    req.session.errorMessage = `Failed to update guide: ${error.message}`;
     res.redirect(`/content/guides/${req.params.id}/edit`);
   }
 });
