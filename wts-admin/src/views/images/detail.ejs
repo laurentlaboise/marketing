@@ -1,0 +1,345 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= image.title || image.filename %></h1>
+        <p class="page-subtitle">
+          <a href="/images"><i class="fas fa-arrow-left"></i> Back to Image Library</a>
+        </p>
+      </div>
+      <div class="page-actions">
+        <a href="/images/<%= image.id %>/download" class="btn btn-secondary btn-sm">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <button class="btn btn-secondary btn-sm copy-cdn-url" data-url="<%= image.cdn_url %>">
+          <i class="fas fa-link"></i> Copy CDN URL
+        </button>
+        <a href="<%= image.web_url %>" target="_blank" class="btn btn-secondary btn-sm">
+          <i class="fas fa-external-link-alt"></i> View on Web
+        </a>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <!-- Left: Image Preview & Info -->
+      <div>
+        <div class="card">
+          <div class="card-body" style="text-align: center; background: var(--gray-50); padding: 20px;">
+            <img
+              src="/images-serve/<%= encodeURIComponent(image.filename) %>?path=<%= encodeURIComponent(image.file_path) %>"
+              alt="<%= image.alt_text || image.filename %>"
+              style="max-width: 100%; max-height: 500px; border-radius: var(--radius); object-fit: contain;">
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <div class="card-header">
+            <h2 class="card-title">File Information</h2>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <table class="table">
+              <tbody>
+                <tr><td style="font-weight: 600; width: 140px;">Filename</td><td><%= image.filename %></td></tr>
+                <tr><td style="font-weight: 600;">Original Name</td><td><%= image.original_filename %></td></tr>
+                <tr><td style="font-weight: 600;">File Size</td><td><%= image.file_size_formatted %></td></tr>
+                <tr><td style="font-weight: 600;">Format</td><td><%= image.mime_type %></td></tr>
+                <% if (image.width && image.height) { %>
+                <tr><td style="font-weight: 600;">Dimensions</td><td><%= image.width %> &times; <%= image.height %> px</td></tr>
+                <% } %>
+                <tr><td style="font-weight: 600;">Category</td><td><span class="status-badge <%= image.category %>"><%= image.category %></span></td></tr>
+                <tr><td style="font-weight: 600;">File Path</td><td style="word-break: break-all;"><code><%= image.file_path %></code></td></tr>
+                <tr><td style="font-weight: 600;">Uploaded</td><td><%= new Date(image.created_at).toLocaleDateString() %></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- URL Copy Section -->
+        <div class="card" style="margin-top: 20px;">
+          <div class="card-header">
+            <h2 class="card-title">URLs</h2>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">jsDelivr CDN URL</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" class="form-input" value="<%= image.cdn_url %>" readonly id="cdnUrlField">
+                <button class="btn btn-secondary btn-sm copy-cdn-url" data-url="<%= image.cdn_url %>" title="Copy">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Website URL</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" class="form-input" value="<%= image.web_url %>" readonly id="webUrlField">
+                <button class="btn btn-secondary btn-sm copy-cdn-url" data-url="<%= image.web_url %>" title="Copy">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">HTML Image Tag</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" class="form-input" value='<img src="<%= image.cdn_url %>" alt="<%= (image.alt_text || '').replace(/"/g, '&quot;') %>"<%= image.width ? ' width="' + image.width + '"' : '' %><%= image.height ? ' height="' + image.height + '"' : '' %> loading="lazy" decoding="async">' readonly id="htmlTagField">
+                <button class="btn btn-secondary btn-sm" id="copyHtmlBtn" title="Copy">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rename -->
+        <div class="card" style="margin-top: 20px;">
+          <div class="card-header">
+            <h2 class="card-title">Rename File</h2>
+          </div>
+          <div class="card-body">
+            <form action="/images/<%= image.id %>/rename" method="POST">
+              <div class="form-group">
+                <label class="form-label" for="new_filename">New Filename</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="new_filename" name="new_filename" class="form-input" value="<%= image.filename.replace(/\.[^.]+$/, '') %>" placeholder="seo-friendly-filename">
+                  <button type="submit" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-pen"></i> Rename
+                  </button>
+                </div>
+                <p class="form-help">Use lowercase, hyphens, no spaces. Extension is preserved automatically.</p>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Delete -->
+        <div class="card" style="margin-top: 20px; border: 1px solid var(--danger);">
+          <div class="card-body" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <p style="font-weight: 600; color: var(--danger);">Archive this image</p>
+              <p class="form-help">Removes from library. The file remains on disk.</p>
+            </div>
+            <form action="/images/<%= image.id %>/delete" method="POST">
+              <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete="Are you sure you want to archive this image?">
+                <i class="fas fa-trash"></i> Archive
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: SEO Metadata Form -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-search"></i> SEO Optimization</h2>
+          </div>
+          <div class="card-body">
+            <form action="/images/<%= image.id %>" method="POST">
+              <!-- SEO Score -->
+              <div class="seo-score-card" id="seoScoreCard">
+                <div class="seo-score-ring" id="seoScoreRing">
+                  <span id="seoScoreValue">0</span>
+                </div>
+                <div>
+                  <p style="font-weight: 600;" id="seoScoreLabel">Checking...</p>
+                  <p class="form-help" id="seoScoreHint"></p>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="alt_text">
+                  Alt Text *
+                  <span id="altCounter" style="float: right; font-weight: 400; color: var(--gray-500); font-size: 12px;">0/125</span>
+                </label>
+                <input type="text" id="alt_text" name="alt_text" class="form-input" value="<%= image.alt_text || '' %>" placeholder="Descriptive text with keywords" required maxlength="250">
+                <p class="form-help">Essential for SEO and accessibility. Describe what the image shows.</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="title">Title Attribute</label>
+                <input type="text" id="title" name="title" class="form-input" value="<%= image.title || '' %>" placeholder="Image title for tooltip and AI context">
+                <p class="form-help">Shown on hover. AI crawlers (GPTBot, PerplexityBot) use this for context.</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="description">Description (Schema.org)</label>
+                <textarea id="description" name="description" class="form-input" rows="4" placeholder="Detailed description for structured data. AI search engines parse this."><%= image.description || '' %></textarea>
+                <p class="form-help">Used in Schema.org ImageObject markup for rich results and AI indexing.</p>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="category">Category</label>
+                  <select id="category" name="category" class="form-input">
+                    <option value="general" <%= image.category === 'general' ? 'selected' : '' %>>General</option>
+                    <option value="hero" <%= image.category === 'hero' ? 'selected' : '' %>>Hero Images</option>
+                    <option value="portfolio" <%= image.category === 'portfolio' ? 'selected' : '' %>>Portfolio</option>
+                    <option value="logos" <%= image.category === 'logos' ? 'selected' : '' %>>Logos</option>
+                    <option value="articles" <%= image.category === 'articles' ? 'selected' : '' %>>Articles</option>
+                    <option value="og" <%= image.category === 'og' ? 'selected' : '' %>>Open Graph</option>
+                    <option value="icons" <%= image.category === 'icons' ? 'selected' : '' %>>Icons</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="tags">Tags</label>
+                  <input type="text" id="tags" name="tags" class="form-input" value="<%= image.tags ? image.tags.join(', ') : '' %>" placeholder="marketing, seo, laos">
+                  <p class="form-help">Comma-separated</p>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <a href="/images" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Save SEO Metadata
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Schema.org Preview -->
+        <div class="card" style="margin-top: 20px;">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-code"></i> Schema.org Preview</h2>
+          </div>
+          <div class="card-body">
+            <pre id="schemaPreview" style="background: var(--gray-50); padding: 16px; border-radius: var(--radius); font-size: 12px; overflow-x: auto; white-space: pre-wrap; color: var(--gray-700);"></pre>
+            <button class="btn btn-sm btn-secondary" id="copySchemaBtn" style="margin-top: 12px;">
+              <i class="fas fa-copy"></i> Copy Schema JSON
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Copy URL toast -->
+  <div id="copyToast" class="copy-toast">
+    <i class="fas fa-check-circle"></i> Copied to clipboard
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const image = {
+    cdn_url: '<%= image.cdn_url %>',
+    web_url: '<%= image.web_url %>',
+    width: <%= image.width || 'null' %>,
+    height: <%= image.height || 'null' %>,
+    mime_type: '<%= image.mime_type %>',
+  };
+
+  // Alt text counter
+  const altInput = document.getElementById('alt_text');
+  const altCounter = document.getElementById('altCounter');
+  function updateAltCounter() {
+    const len = altInput.value.length;
+    altCounter.textContent = len + '/125';
+    altCounter.style.color = len > 125 ? 'var(--danger)' : len > 0 ? 'var(--success)' : 'var(--gray-500)';
+    updateSeoScore();
+    updateSchemaPreview();
+  }
+  altInput.addEventListener('input', updateAltCounter);
+  updateAltCounter();
+
+  // SEO Score
+  function updateSeoScore() {
+    const alt = document.getElementById('alt_text').value.trim();
+    const title = document.getElementById('title').value.trim();
+    const desc = document.getElementById('description').value.trim();
+    const filename = '<%= image.filename %>';
+
+    let score = 0;
+    const tips = [];
+
+    // Alt text (40 points)
+    if (alt) {
+      score += 20;
+      if (alt.length >= 20 && alt.length <= 125) score += 20;
+      else tips.push('Alt text should be 20-125 characters');
+    } else {
+      tips.push('Add alt text (critical for SEO)');
+    }
+
+    // Title (15 points)
+    if (title) score += 15;
+    else tips.push('Add a title attribute');
+
+    // Description (20 points)
+    if (desc) {
+      score += 10;
+      if (desc.length >= 50) score += 10;
+      else tips.push('Description should be 50+ characters');
+    } else {
+      tips.push('Add a Schema.org description');
+    }
+
+    // Filename (15 points)
+    if (/^[a-z0-9-]+\.[a-z]+$/.test(filename)) score += 15;
+    else tips.push('Rename file to lowercase-hyphenated format');
+
+    // File format (10 points)
+    if (image.mime_type === 'image/webp' || image.mime_type === 'image/svg+xml') score += 10;
+    else tips.push('Convert to WebP for better performance');
+
+    const scoreEl = document.getElementById('seoScoreValue');
+    const labelEl = document.getElementById('seoScoreLabel');
+    const hintEl = document.getElementById('seoScoreHint');
+    const ringEl = document.getElementById('seoScoreRing');
+
+    scoreEl.textContent = score;
+    ringEl.className = 'seo-score-ring ' + (score >= 80 ? 'good' : score >= 50 ? 'ok' : 'poor');
+    labelEl.textContent = score >= 80 ? 'Well Optimized' : score >= 50 ? 'Needs Improvement' : 'Poorly Optimized';
+    hintEl.textContent = tips.length > 0 ? tips[0] : 'All checks passed!';
+  }
+
+  // Schema.org Preview
+  function updateSchemaPreview() {
+    const schema = {
+      '@type': 'ImageObject',
+      contentUrl: image.cdn_url,
+      url: image.web_url,
+      name: document.getElementById('title').value || '<%= image.filename %>',
+      description: document.getElementById('description').value || '',
+      creator: { '@type': 'Organization', name: 'WordsThatSells.website', url: 'https://wordsthatsells.website' },
+    };
+    if (image.width) schema.width = image.width;
+    if (image.height) schema.height = image.height;
+    if (image.mime_type) schema.encodingFormat = image.mime_type;
+
+    document.getElementById('schemaPreview').textContent = JSON.stringify(schema, null, 2);
+  }
+
+  document.getElementById('title').addEventListener('input', () => { updateSeoScore(); updateSchemaPreview(); });
+  document.getElementById('description').addEventListener('input', () => { updateSeoScore(); updateSchemaPreview(); });
+
+  updateSeoScore();
+  updateSchemaPreview();
+
+  // Copy HTML tag
+  document.getElementById('copyHtmlBtn').addEventListener('click', () => {
+    const text = document.getElementById('htmlTagField').value;
+    navigator.clipboard.writeText(text).then(() => showToast());
+  });
+
+  // Copy Schema
+  document.getElementById('copySchemaBtn').addEventListener('click', () => {
+    const text = document.getElementById('schemaPreview').textContent;
+    navigator.clipboard.writeText(text).then(() => showToast());
+  });
+
+  function showToast() {
+    const toast = document.getElementById('copyToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>

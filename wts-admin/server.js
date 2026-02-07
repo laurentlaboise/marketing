@@ -15,6 +15,7 @@ const businessRoutes = require('./src/routes/business');
 const socialRoutes = require('./src/routes/social');
 const apiRoutes = require('./src/routes/api');
 const publicApiRoutes = require('./src/routes/public-api');
+const imagesRoutes = require('./src/routes/images');
 
 // Import passport configuration
 require('./src/utils/passport-config');
@@ -136,6 +137,17 @@ app.use('/content', contentRoutes);
 app.use('/business', businessRoutes);
 app.use('/social', socialRoutes);
 app.use('/api', apiRoutes);
+app.use('/images', imagesRoutes);
+
+// Serve images from the main marketing repo for preview
+const imagesServePath = require('path').resolve(__dirname, '../images');
+app.use('/images-serve', (req, res, next) => {
+  const filePath = req.query.path;
+  if (!filePath || filePath.includes('..')) return res.status(400).send('Invalid path');
+  const fullPath = require('path').resolve(__dirname, '..', filePath);
+  if (!fullPath.startsWith(imagesServePath)) return res.status(403).send('Forbidden');
+  res.sendFile(fullPath);
+});
 
 // Home route - redirect to login or dashboard
 app.get('/', (req, res) => {

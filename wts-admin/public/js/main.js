@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSubmenuToggle();
   initFormValidation();
   initConfirmDelete();
+  initCopyCdnUrl();
 });
 
 // Sidebar functionality
@@ -287,6 +288,31 @@ function formatDate(dateString) {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
+  });
+}
+
+// Copy CDN URL buttons
+function initCopyCdnUrl() {
+  document.querySelectorAll('.copy-cdn-url').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = btn.dataset.url;
+      if (!url) return;
+      navigator.clipboard.writeText(url).then(() => {
+        const toast = document.getElementById('copyToast');
+        if (toast) {
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        // Brief button feedback
+        const icon = btn.querySelector('i');
+        if (icon) {
+          const orig = icon.className;
+          icon.className = 'fas fa-check';
+          setTimeout(() => { icon.className = orig; }, 1500);
+        }
+      });
+    });
   });
 }
 

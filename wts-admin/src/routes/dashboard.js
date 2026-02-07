@@ -25,7 +25,8 @@ router.get('/', async (req, res) => {
       db.query('SELECT COUNT(*) FROM social_posts'),
       db.query('SELECT COUNT(*) FROM products'),
       db.query('SELECT COUNT(*) FROM glossary'),
-      db.query('SELECT COUNT(*) FROM seo_terms')
+      db.query('SELECT COUNT(*) FROM seo_terms'),
+      db.query("SELECT COUNT(*) FROM images WHERE status = 'active'").catch(() => ({ rows: [{ count: 0 }] }))
     ]);
 
     // Get recent activity
@@ -53,7 +54,8 @@ router.get('/', async (req, res) => {
         socialPosts: parseInt(stats[2].rows[0].count),
         products: parseInt(stats[3].rows[0].count),
         glossary: parseInt(stats[4].rows[0].count),
-        seoTerms: parseInt(stats[5].rows[0].count)
+        seoTerms: parseInt(stats[5].rows[0].count),
+        images: parseInt(stats[6].rows[0].count)
       },
       recentActivity: recentActivity.rows,
       recentArticles: recentArticles.rows,
@@ -63,7 +65,7 @@ router.get('/', async (req, res) => {
     console.error('Dashboard error:', error);
     res.render('dashboard/index', {
       title: 'Dashboard - WTS Admin',
-      stats: { articles: 0, aiTools: 0, socialPosts: 0, products: 0, glossary: 0, seoTerms: 0 },
+      stats: { articles: 0, aiTools: 0, socialPosts: 0, products: 0, glossary: 0, seoTerms: 0, images: 0 },
       recentActivity: [],
       recentArticles: [],
       currentPage: 'dashboard',

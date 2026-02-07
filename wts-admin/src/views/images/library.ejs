@@ -1,0 +1,218 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Image Library</h1>
+        <p class="page-subtitle">Manage and optimize images for wordsthatsells.website</p>
+      </div>
+      <div class="page-actions">
+        <form action="/images/sync" method="POST" style="display: inline;">
+          <button type="submit" class="btn btn-secondary btn-sm">
+            <i class="fas fa-sync-alt"></i> Sync from Disk
+          </button>
+        </form>
+        <a href="/images/upload" class="btn btn-primary">
+          <i class="fas fa-cloud-upload-alt"></i> Upload Image
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <form action="/images" method="GET" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <input type="text" name="search" class="form-input" placeholder="Search images..." value="<%= pagination.search || '' %>" style="width: 200px;">
+          <select name="category" class="form-input" style="width: 150px;">
+            <option value="">All Categories</option>
+            <option value="hero" <%= pagination.category === 'hero' ? 'selected' : '' %>>Hero</option>
+            <option value="portfolio" <%= pagination.category === 'portfolio' ? 'selected' : '' %>>Portfolio</option>
+            <option value="logos" <%= pagination.category === 'logos' ? 'selected' : '' %>>Logos</option>
+            <option value="articles" <%= pagination.category === 'articles' ? 'selected' : '' %>>Articles</option>
+            <option value="og" <%= pagination.category === 'og' ? 'selected' : '' %>>Open Graph</option>
+            <option value="icons" <%= pagination.category === 'icons' ? 'selected' : '' %>>Icons</option>
+            <option value="general" <%= pagination.category === 'general' ? 'selected' : '' %>>General</option>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm">
+            <i class="fas fa-search"></i> Search
+          </button>
+          <div style="margin-left: auto; display: flex; gap: 4px;">
+            <a href="?view=grid&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>" class="btn btn-sm <%= view === 'grid' ? 'btn-primary' : 'btn-secondary' %>" title="Grid view">
+              <i class="fas fa-th"></i>
+            </a>
+            <a href="?view=list&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>" class="btn btn-sm <%= view === 'list' ? 'btn-primary' : 'btn-secondary' %>" title="List view">
+              <i class="fas fa-list"></i>
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <div class="card-body">
+        <% if (images.length > 0) { %>
+
+          <% if (view === 'grid') { %>
+          <!-- Grid View -->
+          <div class="image-grid">
+            <% images.forEach(image => { %>
+            <div class="image-card">
+              <a href="/images/<%= image.id %>" class="image-card-preview">
+                <% if (image.mime_type === 'image/svg+xml') { %>
+                  <img src="/images-serve/<%= encodeURIComponent(image.filename) %>?path=<%= encodeURIComponent(image.file_path) %>" alt="<%= image.alt_text || image.filename %>" loading="lazy">
+                <% } else { %>
+                  <img src="/images-serve/<%= encodeURIComponent(image.filename) %>?path=<%= encodeURIComponent(image.file_path) %>" alt="<%= image.alt_text || image.filename %>" loading="lazy">
+                <% } %>
+                <div class="image-card-overlay">
+                  <span class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> View</span>
+                </div>
+              </a>
+              <div class="image-card-info">
+                <p class="image-card-name" title="<%= image.filename %>"><%= image.filename %></p>
+                <div class="image-card-meta">
+                  <span><%= image.file_size_formatted %></span>
+                  <% if (image.width && image.height) { %>
+                  <span><%= image.width %>&times;<%= image.height %></span>
+                  <% } %>
+                </div>
+                <div class="image-card-actions">
+                  <button class="btn btn-sm btn-secondary copy-cdn-url" data-url="<%= image.cdn_url %>" title="Copy CDN URL">
+                    <i class="fas fa-link"></i>
+                  </button>
+                  <a href="/images/<%= image.id %>/download" class="btn btn-sm btn-secondary" title="Download">
+                    <i class="fas fa-download"></i>
+                  </a>
+                  <a href="/images/<%= image.id %>" class="btn btn-sm btn-secondary" title="Edit SEO">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                </div>
+              </div>
+              <% if (!image.alt_text) { %>
+              <div class="image-card-warning" title="Missing alt text - SEO issue">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <% } %>
+            </div>
+            <% }); %>
+          </div>
+
+          <% } else { %>
+          <!-- List View -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width: 60px;">Preview</th>
+                  <th>Filename</th>
+                  <th>Category</th>
+                  <th>Size</th>
+                  <th>Dimensions</th>
+                  <th>SEO</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% images.forEach(image => { %>
+                <tr>
+                  <td>
+                    <div class="image-table-thumb">
+                      <img src="/images-serve/<%= encodeURIComponent(image.filename) %>?path=<%= encodeURIComponent(image.file_path) %>" alt="<%= image.alt_text || image.filename %>" loading="lazy">
+                    </div>
+                  </td>
+                  <td>
+                    <strong><a href="/images/<%= image.id %>"><%= image.filename %></a></strong>
+                    <br>
+                    <small style="color: var(--gray-500);"><%= image.mime_type %></small>
+                  </td>
+                  <td><span class="status-badge <%= image.category %>"><%= image.category %></span></td>
+                  <td><%= image.file_size_formatted %></td>
+                  <td><%= image.width && image.height ? image.width + ' x ' + image.height : '-' %></td>
+                  <td>
+                    <% if (image.alt_text) { %>
+                    <span style="color: var(--success);" title="Alt text set"><i class="fas fa-check-circle"></i></span>
+                    <% } else { %>
+                    <span style="color: var(--warning);" title="Missing alt text"><i class="fas fa-exclamation-triangle"></i></span>
+                    <% } %>
+                    <% if (image.title) { %>
+                    <span style="color: var(--success);" title="Title set"><i class="fas fa-heading"></i></span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn btn-sm btn-secondary copy-cdn-url" data-url="<%= image.cdn_url %>" title="Copy CDN URL">
+                        <i class="fas fa-link"></i>
+                      </button>
+                      <a href="/images/<%= image.id %>/download" class="btn btn-sm btn-secondary" title="Download">
+                        <i class="fas fa-download"></i>
+                      </a>
+                      <a href="/images/<%= image.id %>" class="btn btn-sm btn-secondary" title="Edit">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <form action="/images/<%= image.id %>/delete" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Archive" data-confirm-delete="Archive this image?">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% } %>
+
+          <% if (pagination.totalPages > 1) { %>
+          <div class="card-footer">
+            <div class="pagination">
+              <% if (pagination.page > 1) { %>
+              <a href="?page=<%= pagination.page - 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&view=<%= view %>" class="pagination-btn">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+              <% } %>
+              <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+              <a href="?page=<%= i %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&view=<%= view %>" class="pagination-btn <%= i === pagination.page ? 'active' : '' %>">
+                <%= i %>
+              </a>
+              <% } %>
+              <% if (pagination.page < pagination.totalPages) { %>
+              <a href="?page=<%= pagination.page + 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&view=<%= view %>" class="pagination-btn">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+              <% } %>
+            </div>
+          </div>
+          <% } %>
+
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <i class="fas fa-images"></i>
+          </div>
+          <h3>No Images Found</h3>
+          <p>Upload your first image or sync existing images from the filesystem.</p>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <a href="/images/upload" class="btn btn-primary">
+              <i class="fas fa-cloud-upload-alt"></i> Upload Image
+            </a>
+            <form action="/images/sync" method="POST" style="display: inline;">
+              <button type="submit" class="btn btn-secondary">
+                <i class="fas fa-sync-alt"></i> Sync from Disk
+              </button>
+            </form>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Copy URL toast -->
+  <div id="copyToast" class="copy-toast">
+    <i class="fas fa-check-circle"></i> CDN URL copied to clipboard
+  </div>
+</main>
+
+<%- include('../partials/footer') %>
