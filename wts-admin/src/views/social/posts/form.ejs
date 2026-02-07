@@ -365,22 +365,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hashtags
     const tags = hashtagsEl.value.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
     hashtagCount.textContent = tags.length + ' tag' + (tags.length !== 1 ? 's' : '');
-    document.getElementById('previewHashtags').innerHTML = tags.map(t =>
-      '<span class="hashtag-chip">#' + t + '</span>'
-    ).join(' ');
+    const previewHashtagsEl = document.getElementById('previewHashtags');
+    previewHashtagsEl.textContent = '';
+    tags.forEach((t, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'hashtag-chip';
+      chip.textContent = '#' + t;
+      previewHashtagsEl.appendChild(chip);
+      if (i < tags.length - 1) previewHashtagsEl.appendChild(document.createTextNode(' '));
+    });
     document.getElementById('previewHashtagCount').textContent = tags.length;
 
     // Link
     const link = document.getElementById('link_url').value;
-    document.getElementById('previewLink').innerHTML = link ?
-      '<a href="#" style="font-size: 13px; color: var(--primary);"><i class="fas fa-link"></i> ' + link.substring(0, 40) + (link.length > 40 ? '...' : '') + '</a>' : '';
+    const previewLinkEl = document.getElementById('previewLink');
+    previewLinkEl.innerHTML = '';
+    if (link) {
+      const a = document.createElement('a');
+      a.href = '#';
+      a.style.cssText = 'font-size: 13px; color: var(--primary);';
+      const icon = document.createElement('i');
+      icon.className = 'fas fa-link';
+      a.appendChild(icon);
+      a.appendChild(document.createTextNode(' ' + link.substring(0, 40) + (link.length > 40 ? '...' : '')));
+      previewLinkEl.appendChild(a);
+    }
 
     // Platforms
     const selected = getSelectedPlatforms();
-    document.getElementById('previewPlatformIcons').innerHTML = selected.map(p => {
+    const previewPlatformIconsEl = document.getElementById('previewPlatformIcons');
+    previewPlatformIconsEl.innerHTML = '';
+    selected.forEach(p => {
       const m = platformMeta[p];
-      return m ? '<i class="' + m.icon + '" style="color: ' + m.color + '; font-size: 18px;" title="' + p + '"></i>' : '';
-    }).join('');
+      if (!m) return;
+      const iconEl = document.createElement('i');
+      iconEl.className = m.icon;
+      iconEl.style.cssText = 'color: ' + m.color + '; font-size: 18px;';
+      iconEl.title = p;
+      previewPlatformIconsEl.appendChild(iconEl);
+    });
     document.getElementById('previewPlatformCount').textContent = selected.length + ' selected';
 
     // Content type
@@ -392,17 +415,29 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('previewCampaign').textContent = campaignSelect.value ? campOpt.textContent.trim() : 'None';
 
     // Character limit warnings
-    const warnings = [];
+    const charWarningsEl = document.getElementById('charWarnings');
+    charWarningsEl.innerHTML = '';
     selected.forEach(p => {
       const m = platformMeta[p];
       if (m && len > m.charLimit) {
-        warnings.push('<div style="font-size: 12px; color: var(--danger); margin-bottom: 4px;"><i class="' + m.icon + '"></i> Over limit by ' + (len - m.charLimit) + ' chars (' + m.charLimit + ' max)</div>');
+        const warn = document.createElement('div');
+        warn.style.cssText = 'font-size: 12px; color: var(--danger); margin-bottom: 4px;';
+        const wIcon = document.createElement('i');
+        wIcon.className = m.icon;
+        warn.appendChild(wIcon);
+        warn.appendChild(document.createTextNode(' Over limit by ' + (len - m.charLimit) + ' chars (' + m.charLimit + ' max)'));
+        charWarningsEl.appendChild(warn);
       }
       if (m && m.hashtagLimit > 0 && tags.length > m.hashtagLimit) {
-        warnings.push('<div style="font-size: 12px; color: var(--warning); margin-bottom: 4px;"><i class="' + m.icon + '"></i> Too many hashtags: ' + tags.length + '/' + m.hashtagLimit + '</div>');
+        const warn = document.createElement('div');
+        warn.style.cssText = 'font-size: 12px; color: var(--warning); margin-bottom: 4px;';
+        const wIcon = document.createElement('i');
+        wIcon.className = m.icon;
+        warn.appendChild(wIcon);
+        warn.appendChild(document.createTextNode(' Too many hashtags: ' + tags.length + '/' + m.hashtagLimit));
+        charWarningsEl.appendChild(warn);
       }
     });
-    document.getElementById('charWarnings').innerHTML = warnings.join('');
   }
 
   contentEl.addEventListener('input', updatePreview);

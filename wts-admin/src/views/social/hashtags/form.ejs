@@ -83,7 +83,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function updatePreview() {
     const tags = textarea.value.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
     count.textContent = tags.length + ' tag' + (tags.length !== 1 ? 's' : '');
-    preview.innerHTML = tags.map(t => '<span class="hashtag-chip">#' + t + '</span>').join('');
+    preview.innerHTML = '';
+    tags.forEach(t => {
+      const chip = document.createElement('span');
+      chip.className = 'hashtag-chip';
+      chip.textContent = '#' + t;
+      preview.appendChild(chip);
+    });
   }
 
   textarea.addEventListener('input', updatePreview);
