@@ -27,7 +27,9 @@ const CDN_CONFIG = {
 
 function buildCdnUrl(filePath) {
   const clean = filePath.replace(/^\/+/, '');
-  return `${CDN_CONFIG.baseUrl}/${CDN_CONFIG.user}/${CDN_CONFIG.repo}@${CDN_CONFIG.branch}/${clean}`;
+  // Encode each path segment to handle spaces and special chars in filenames
+  const encoded = clean.split('/').map(segment => encodeURIComponent(segment)).join('/');
+  return `${CDN_CONFIG.baseUrl}/${CDN_CONFIG.user}/${CDN_CONFIG.repo}@${CDN_CONFIG.branch}/${encoded}`;
 }
 
 // Image directory in the main marketing repo
@@ -171,10 +173,19 @@ router.post('/sync', async (req, res) => {
 
     const imageFiles = scanDir(IMAGES_DIR, 'images');
 
+    let updated = 0;
     for (const file of imageFiles) {
       // Check if already tracked
-      const existing = await db.query('SELECT id FROM images WHERE file_path = $1', [file.relPath]);
-      if (existing.rows.length > 0) continue;
+      const existing = await db.query('SELECT id, cdn_url FROM images WHERE file_path = $1', [file.relPath]);
+      if (existing.rows.length > 0) {
+        // Update CDN URL if it has unencoded spaces or is missing
+        const correctCdnUrl = buildCdnUrl(file.relPath);
+        if (existing.rows[0].cdn_url !== correctCdnUrl) {
+          await db.query('UPDATE images SET cdn_url = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [correctCdnUrl, existing.rows[0].id]);
+          updated++;
+        }
+        continue;
+      }
 
       const stats = fs.statSync(file.fullPath);
       let width = null;
@@ -211,7 +222,7 @@ router.post('/sync', async (req, res) => {
       synced++;
     }
 
-    req.session.successMessage = `Synced ${synced} new image${synced !== 1 ? 's' : ''} from filesystem`;
+    req.session.successMessage = `Synced ${synced} new image${synced !== 1 ? 's' : ''}, updated ${updated} CDN URL${updated !== 1 ? 's' : ''}`;
     res.redirect('/images');
   } catch (error) {
     console.error('Image sync error:', error);
