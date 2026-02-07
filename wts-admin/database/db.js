@@ -322,6 +322,30 @@ const db = {
         )
       `);
 
+      // Images table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS images (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          original_filename VARCHAR(500) NOT NULL,
+          filename VARCHAR(500) NOT NULL,
+          file_path TEXT NOT NULL,
+          file_size INTEGER,
+          mime_type VARCHAR(100),
+          width INTEGER,
+          height INTEGER,
+          alt_text TEXT,
+          title VARCHAR(500),
+          description TEXT,
+          category VARCHAR(100) DEFAULT 'general',
+          tags TEXT[],
+          cdn_url TEXT,
+          status VARCHAR(50) DEFAULT 'active',
+          uploaded_by UUID REFERENCES users(id),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Guides (E-Guides) table
       await client.query(`
         CREATE TABLE IF NOT EXISTS guides (

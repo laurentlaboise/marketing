@@ -1,0 +1,183 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Upload Image</h1>
+        <p class="page-subtitle">
+          <a href="/images"><i class="fas fa-arrow-left"></i> Back to Image Library</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="card form-card" style="max-width: 900px;">
+      <div class="card-body">
+        <form action="/images/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+
+          <div class="form-section">
+            <h3 class="form-section-title">Image File</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="image">Select Image *</label>
+              <div class="upload-dropzone" id="dropzone">
+                <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,image/avif" required style="display: none;">
+                <div class="dropzone-content" id="dropzoneContent">
+                  <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: var(--gray-400); margin-bottom: 16px;"></i>
+                  <p style="font-size: 16px; font-weight: 600; color: var(--gray-700);">Drag & drop your image here</p>
+                  <p style="color: var(--gray-500); margin-top: 4px;">or <span style="color: var(--primary); cursor: pointer;" id="browseBtn">browse files</span></p>
+                  <p class="form-help" style="margin-top: 12px;">JPG, PNG, GIF, WebP, SVG, AVIF - Max 20MB</p>
+                </div>
+                <div class="dropzone-preview" id="dropzonePreview" style="display: none;">
+                  <img id="previewImg" src="" alt="Preview">
+                  <div class="dropzone-preview-info">
+                    <p id="previewName" style="font-weight: 600;"></p>
+                    <p id="previewSize" style="color: var(--gray-500); font-size: 13px;"></p>
+                    <button type="button" id="removeFile" class="btn btn-sm btn-danger" style="margin-top: 8px;">
+                      <i class="fas fa-times"></i> Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-checkbox">
+                <input type="checkbox" name="optimize" value="on" checked>
+                <span class="form-label" style="margin-bottom: 0;">Optimize image (convert to WebP, max 2400px)</span>
+              </label>
+              <p class="form-help">Reduces file size for faster CDN delivery. SVG files are kept as-is.</p>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">Organization</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="category">Category *</label>
+                <select id="category" name="category" class="form-input" required>
+                  <option value="general">General</option>
+                  <option value="hero">Hero Images</option>
+                  <option value="portfolio">Portfolio</option>
+                  <option value="logos">Logos</option>
+                  <option value="articles">Articles</option>
+                  <option value="og">Open Graph</option>
+                  <option value="icons">Icons</option>
+                </select>
+                <p class="form-help">Determines the subdirectory in the images folder</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="tags">Tags</label>
+                <input type="text" id="tags" name="tags" class="form-input" placeholder="marketing, seo, laos">
+                <p class="form-help">Comma-separated tags for organization</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">SEO Metadata</h3>
+            <p style="color: var(--gray-500); font-size: 13px; margin-bottom: 16px;">
+              <i class="fas fa-info-circle"></i> Setting these fields improves discoverability in Google, Bing, ChatGPT, and Perplexity search results.
+            </p>
+
+            <div class="form-group">
+              <label class="form-label" for="alt_text">Alt Text *</label>
+              <input type="text" id="alt_text" name="alt_text" class="form-input" placeholder="Descriptive text about the image content" required>
+              <p class="form-help">125 characters max recommended. Include relevant keywords naturally.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="title">Title</label>
+              <input type="text" id="title" name="title" class="form-input" placeholder="Image title for tooltips and SEO">
+              <p class="form-help">Shown on hover and used by AI search engines for context.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea id="description" name="description" class="form-input" rows="3" placeholder="Detailed description of the image for Schema.org structured data and AI crawlers"></textarea>
+              <p class="form-help">Used in Schema.org ImageObject markup. AI search engines use this to understand image context.</p>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="/images" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="uploadBtn">
+              <i class="fas fa-cloud-upload-alt"></i> Upload Image
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('image');
+  const browseBtn = document.getElementById('browseBtn');
+  const removeBtn = document.getElementById('removeFile');
+  const content = document.getElementById('dropzoneContent');
+  const preview = document.getElementById('dropzonePreview');
+  const previewImg = document.getElementById('previewImg');
+  const previewName = document.getElementById('previewName');
+  const previewSize = document.getElementById('previewSize');
+  const uploadBtn = document.getElementById('uploadBtn');
+
+  browseBtn.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('click', (e) => {
+    if (e.target === dropzone || e.target.closest('.dropzone-content')) fileInput.click();
+  });
+
+  // Drag and drop
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+      fileInput.files = e.dataTransfer.files;
+      showPreview(e.dataTransfer.files[0]);
+    }
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) showPreview(fileInput.files[0]);
+  });
+
+  removeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.value = '';
+    content.style.display = '';
+    preview.style.display = 'none';
+  });
+
+  function showPreview(file) {
+    const url = URL.createObjectURL(file);
+    previewImg.src = url;
+    previewName.textContent = file.name;
+    previewSize.textContent = formatSize(file.size);
+    content.style.display = 'none';
+    preview.style.display = 'flex';
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  // Show loading state on submit
+  document.getElementById('uploadForm').addEventListener('submit', () => {
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+  });
+});
+</script>
+
+<%- include('../partials/footer') %>
