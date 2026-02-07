@@ -1,0 +1,220 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <nav class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <i class="fas fa-chevron-right"></i>
+      <a href="/webdev/microsites">Microsites</a>
+      <i class="fas fa-chevron-right"></i>
+      <span><%= microsite ? 'Edit' : 'New Microsite' %></span>
+    </nav>
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= microsite ? 'Edit ' + microsite.name : 'Create New Microsite' %></h1>
+        <p class="page-subtitle"><%= microsite ? 'Update microsite configuration' : 'Set up a new web property' %></p>
+      </div>
+    </div>
+
+    <form action="<%= microsite ? '/webdev/microsites/' + microsite.id : '/webdev/microsites' %>" method="POST">
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+        <!-- Left Column: Main Settings -->
+        <div>
+          <!-- Basic Info -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-info-circle"></i> Basic Information</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="name">Site Name *</label>
+                <input type="text" id="name" name="name" class="form-input" value="<%= microsite ? microsite.name : '' %>" required placeholder="My Landing Page">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="description">Description</label>
+                <textarea id="description" name="description" class="form-input" rows="3" placeholder="Brief description of this microsite's purpose"><%= microsite ? microsite.description || '' : '' %></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="purpose">Purpose</label>
+                  <select id="purpose" name="purpose" class="form-input">
+                    <% purposes.forEach(p => { %>
+                    <option value="<%= p.value %>" <%= microsite && microsite.purpose === p.value ? 'selected' : '' %>><%= p.label %></option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="template">Template</label>
+                  <select id="template" name="template" class="form-input">
+                    <% templates.forEach(t => { %>
+                    <option value="<%= t.value %>" <%= microsite && microsite.template === t.value ? 'selected' : '' %>><%= t.label %></option>
+                    <% }); %>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Repository & Deployment -->
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fab fa-github"></i> Repository & Deployment</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="github_repo">GitHub Repository</label>
+                  <input type="text" id="github_repo" name="github_repo" class="form-input" value="<%= microsite ? microsite.github_repo || '' : '' %>" placeholder="owner/repo-name">
+                  <p class="form-help">Format: owner/repository</p>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="github_branch">Branch</label>
+                  <input type="text" id="github_branch" name="github_branch" class="form-input" value="<%= microsite ? microsite.github_branch || 'main' : 'main' %>" placeholder="main">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="deploy_platform">Deploy Platform</label>
+                  <select id="deploy_platform" name="deploy_platform" class="form-input">
+                    <option value="">Select platform...</option>
+                    <% Object.entries(platforms).forEach(([key, p]) => { %>
+                    <option value="<%= key %>" <%= microsite && microsite.deploy_platform === key ? 'selected' : '' %>><%= p.name %></option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="deploy_url">Deploy URL</label>
+                  <input type="url" id="deploy_url" name="deploy_url" class="form-input" value="<%= microsite ? microsite.deploy_url || '' : '' %>" placeholder="https://my-app.railway.app">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="deploy_webhook">Deploy Webhook URL</label>
+                <input type="url" id="deploy_webhook" name="deploy_webhook" class="form-input" value="<%= microsite ? microsite.deploy_webhook || '' : '' %>" placeholder="https://api.railway.app/deploy/...">
+                <p class="form-help">Webhook URL to trigger deployments</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEO Configuration -->
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-search"></i> SEO Configuration</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="seo_title">SEO Title</label>
+                <input type="text" id="seo_title" name="seo_title" class="form-input" value="<%= microsite ? microsite.seo_title || '' : '' %>" placeholder="Page Title | Brand Name" maxlength="70">
+                <p class="form-help">Recommended: 50-60 characters</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="seo_description">Meta Description</label>
+                <textarea id="seo_description" name="seo_description" class="form-input" rows="2" placeholder="A concise description for search results" maxlength="160"><%= microsite ? microsite.seo_description || '' : '' %></textarea>
+                <p class="form-help">Recommended: 150-160 characters</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="seo_keywords">Keywords</label>
+                <input type="text" id="seo_keywords" name="seo_keywords" class="form-input" value="<%= microsite && microsite.seo_keywords ? microsite.seo_keywords.join(', ') : '' %>" placeholder="keyword1, keyword2, keyword3">
+                <p class="form-help">Comma-separated</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Open Graph -->
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-share-square"></i> Open Graph / Social</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="og_title">OG Title</label>
+                <input type="text" id="og_title" name="og_title" class="form-input" value="<%= microsite ? microsite.og_title || '' : '' %>" placeholder="Social share title">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="og_description">OG Description</label>
+                <textarea id="og_description" name="og_description" class="form-input" rows="2" placeholder="Description for social shares"><%= microsite ? microsite.og_description || '' : '' %></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="og_image">OG Image URL</label>
+                <input type="url" id="og_image" name="og_image" class="form-input" value="<%= microsite ? microsite.og_image || '' : '' %>" placeholder="https://cdn.example.com/og-image.jpg">
+                <p class="form-help">Recommended: 1200x630px</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Settings -->
+        <div>
+          <!-- Domain -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-globe"></i> Domain</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="primary_domain">Primary Domain</label>
+                <input type="text" id="primary_domain" name="primary_domain" class="form-input" value="<%= microsite ? microsite.primary_domain || '' : '' %>" placeholder="mysite.com">
+                <p class="form-help">Without https://</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analytics -->
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-chart-bar"></i> Analytics</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="analytics_id">Google Analytics ID</label>
+                <input type="text" id="analytics_id" name="analytics_id" class="form-input" value="<%= microsite ? microsite.analytics_id || '' : '' %>" placeholder="G-XXXXXXXXXX">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="sitemap_url">Sitemap URL</label>
+                <input type="url" id="sitemap_url" name="sitemap_url" class="form-input" value="<%= microsite ? microsite.sitemap_url || '' : '' %>" placeholder="https://mysite.com/sitemap.xml">
+              </div>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-sliders-h"></i> Status</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="status">Site Status</label>
+                <select id="status" name="status" class="form-input">
+                  <option value="draft" <%= microsite && microsite.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                  <option value="active" <%= microsite && microsite.status === 'active' ? 'selected' : '' %>>Active</option>
+                  <option value="suspended" <%= microsite && microsite.status === 'suspended' ? 'selected' : '' %>>Suspended</option>
+                  <option value="archived" <%= microsite && microsite.status === 'archived' ? 'selected' : '' %>>Archived</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-body">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                  <i class="fas fa-save"></i> <%= microsite ? 'Update Microsite' : 'Create Microsite' %>
+                </button>
+                <a href="<%= microsite ? '/webdev/microsites/' + microsite.id : '/webdev/microsites' %>" class="btn btn-secondary" style="width: 100%; text-align: center;">
+                  Cancel
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

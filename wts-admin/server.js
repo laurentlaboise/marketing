@@ -16,6 +16,7 @@ const socialRoutes = require('./src/routes/social');
 const apiRoutes = require('./src/routes/api');
 const publicApiRoutes = require('./src/routes/public-api');
 const imagesRoutes = require('./src/routes/images');
+const webdevRoutes = require('./src/routes/webdev');
 
 // Import passport configuration
 require('./src/utils/passport-config');
@@ -138,6 +139,7 @@ app.use('/business', businessRoutes);
 app.use('/social', socialRoutes);
 app.use('/api', apiRoutes);
 app.use('/images', imagesRoutes);
+app.use('/webdev', webdevRoutes);
 
 // Serve images from the main marketing repo for preview
 const imagesServePath = require('path').resolve(__dirname, '../images');

@@ -66,6 +66,18 @@
         </ul>
       </li>
 
+      <!-- Web Development -->
+      <li class="nav-item has-submenu">
+        <a href="#" class="nav-link submenu-toggle <%= ['microsites'].includes(currentPage) ? 'active' : '' %>">
+          <i class="fas fa-code"></i>
+          <span>Web Development</span>
+          <i class="fas fa-chevron-down submenu-arrow"></i>
+        </a>
+        <ul class="submenu <%= ['microsites'].includes(currentPage) ? 'open' : '' %>">
+          <li><a href="/webdev/microsites" class="<%= currentPage === 'microsites' ? 'active' : '' %>"><i class="fas fa-globe"></i> Microsites</a></li>
+        </ul>
+      </li>
+
       <!-- Image Library -->
       <li class="nav-item">
         <a href="/images" class="nav-link <%= currentPage === 'images' ? 'active' : '' %>">

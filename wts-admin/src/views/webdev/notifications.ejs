@@ -1,0 +1,68 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <nav class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>Notifications</span>
+    </nav>
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Notifications</h1>
+        <p class="page-subtitle"><%= notifications.filter(n => !n.read).length %> unread notification<%= notifications.filter(n => !n.read).length !== 1 ? 's' : '' %></p>
+      </div>
+      <div class="page-actions">
+        <% if (notifications.some(n => !n.read)) { %>
+        <form action="/webdev/notifications/read-all" method="POST">
+          <button type="submit" class="btn btn-secondary btn-sm">
+            <i class="fas fa-check-double"></i> Mark All Read
+          </button>
+        </form>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (notifications.length > 0) { %>
+    <div class="notifications-list">
+      <% notifications.forEach(n => { %>
+      <div class="notification-item <%= n.read ? 'read' : 'unread' %>">
+        <div class="notification-icon <%= n.type %>">
+          <i class="fas fa-<%= n.type === 'success' ? 'check-circle' : n.type === 'warning' ? 'exclamation-triangle' : n.type === 'error' ? 'times-circle' : 'info-circle' %>"></i>
+        </div>
+        <div class="notification-content">
+          <p class="notification-title"><%= n.title %></p>
+          <% if (n.message) { %>
+          <p class="notification-message"><%= n.message %></p>
+          <% } %>
+          <span class="notification-time"><%= new Date(n.created_at).toLocaleString() %></span>
+        </div>
+        <div class="notification-actions">
+          <% if (n.link) { %>
+          <a href="<%= n.link %>" class="btn btn-sm btn-secondary"><i class="fas fa-arrow-right"></i></a>
+          <% } %>
+          <% if (!n.read) { %>
+          <form action="/webdev/notifications/<%= n.id %>/read" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-sm btn-secondary" title="Mark as read"><i class="fas fa-check"></i></button>
+          </form>
+          <% } %>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } else { %>
+    <div class="empty-state">
+      <i class="fas fa-bell-slash"></i>
+      <h3>No notifications</h3>
+      <p>You're all caught up!</p>
+    </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>
