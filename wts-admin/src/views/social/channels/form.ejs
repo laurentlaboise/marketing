@@ -8,7 +8,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title"><%= channel ? 'Edit Channel' : 'Add Channel' %></h1>
-        <p class="page-subtitle"><a href="/social/channels"><i class="fas fa-arrow-left"></i> Back</a></p>
+        <p class="page-subtitle"><a href="/social/channels"><i class="fas fa-arrow-left"></i> Back to Channels</a></p>
       </div>
     </div>
 
@@ -21,7 +21,7 @@
               <select id="platform" name="platform" class="form-input" required>
                 <option value="">Select platform</option>
                 <% platformOptions.forEach(opt => { %>
-                <option value="<%= opt %>" <%= channel && channel.platform === opt ? 'selected' : '' %>><%= opt %></option>
+                <option value="<%= opt.id %>" <%= channel && channel.platform === opt.id ? 'selected' : '' %>><%= opt.id %></option>
                 <% }); %>
               </select>
             </div>

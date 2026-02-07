@@ -1506,3 +1506,360 @@ select.form-input {
     height: 140px;
   }
 }
+
+/* ===================================
+   Social Media Enhancements
+   =================================== */
+
+/* Campaign Grid */
+.campaign-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.campaign-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.campaign-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.campaign-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 20px 12px;
+  border-left: 4px solid var(--primary);
+}
+
+.campaign-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.campaign-objective {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.campaign-card-body {
+  padding: 0 20px 16px;
+}
+
+.campaign-desc {
+  font-size: 13px;
+  color: var(--gray-600);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.campaign-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.campaign-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+.campaign-meta-item i {
+  font-size: 12px;
+  width: 14px;
+  text-align: center;
+}
+
+.campaign-labels {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.campaign-label {
+  font-size: 11px;
+  padding: 2px 10px;
+  background: rgba(102, 126, 234, 0.1);
+  color: var(--primary);
+  border-radius: 12px;
+}
+
+.campaign-card-footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--gray-100);
+  background: var(--gray-50);
+}
+
+/* Hashtag Styles */
+.hashtag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.hashtag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hashtag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+  color: var(--primary-dark);
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Platform Selector */
+.platform-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.platform-check {
+  cursor: pointer;
+}
+
+.platform-check input {
+  display: none;
+}
+
+.platform-check-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius);
+  text-align: center;
+  transition: var(--transition-fast);
+  font-size: 12px;
+  color: var(--gray-600);
+}
+
+.platform-check-label:hover {
+  border-color: var(--gray-300);
+  background: var(--gray-50);
+}
+
+.platform-check input:checked + .platform-check-label {
+  border-color: var(--platform-color, var(--primary));
+  background: rgba(102, 126, 234, 0.04);
+  color: var(--gray-900);
+}
+
+.platform-char-limit {
+  font-size: 10px;
+  color: var(--gray-400);
+}
+
+/* Calendar Grid */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.cal-header {
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.cal-cell {
+  min-height: 120px;
+  border-right: 1px solid var(--gray-100);
+  border-bottom: 1px solid var(--gray-100);
+  padding: 4px;
+  transition: background 0.15s;
+}
+
+.cal-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.cal-cell:hover {
+  background: rgba(102, 126, 234, 0.02);
+}
+
+.cal-empty {
+  background: var(--gray-50);
+}
+
+.cal-today {
+  background: rgba(102, 126, 234, 0.04);
+}
+
+.cal-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+}
+
+.cal-day-num {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.today-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--white);
+  font-weight: 600;
+}
+
+.cal-add-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-400);
+  font-size: 10px;
+  opacity: 0;
+  transition: var(--transition-fast);
+}
+
+.cal-cell:hover .cal-add-btn {
+  opacity: 1;
+}
+
+.cal-add-btn:hover {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.cal-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.cal-post {
+  display: block;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--primary);
+  background: var(--white);
+  font-size: 11px;
+  line-height: 1.4;
+  transition: var(--transition-fast);
+  text-decoration: none;
+  color: inherit;
+}
+
+.cal-post:hover {
+  background: var(--gray-50);
+  color: inherit;
+}
+
+.cal-post-time {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+.cal-post-content {
+  color: var(--gray-700);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.cal-post-platforms {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--gray-400);
+}
+
+.cal-post-platforms i {
+  font-size: 10px;
+}
+
+/* Chevron rotation for collapsible sections */
+.fa-chevron-down.rotated {
+  transform: rotate(180deg);
+}
+
+/* Responsive calendar */
+@media (max-width: 1024px) {
+  .cal-cell {
+    min-height: 90px;
+  }
+
+  .cal-post-content {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .campaign-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hashtag-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-selector {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  }
+
+  .cal-cell {
+    min-height: 60px;
+  }
+
+  .cal-header {
+    font-size: 10px;
+    padding: 8px 4px;
+  }
+
+  .cal-post {
+    padding: 2px 4px;
+  }
+
+  .cal-post-time,
+  .cal-post-platforms {
+    display: none;
+  }
+}

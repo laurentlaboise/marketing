@@ -307,6 +307,81 @@ const db = {
         )
       `);
 
+      // Social Campaigns table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS social_campaigns (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          objective VARCHAR(100),
+          status VARCHAR(50) DEFAULT 'draft',
+          labels TEXT[],
+          color VARCHAR(20) DEFAULT '#667eea',
+          budget DECIMAL(10,2),
+          budget_currency VARCHAR(10) DEFAULT 'USD',
+          start_date DATE,
+          end_date DATE,
+          targeting JSONB DEFAULT '{}',
+          utm_source VARCHAR(255),
+          utm_medium VARCHAR(255),
+          utm_campaign VARCHAR(255),
+          utm_term VARCHAR(255),
+          utm_content VARCHAR(255),
+          author_id UUID REFERENCES users(id),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Hashtag Sets table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS hashtag_sets (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          hashtags TEXT[] NOT NULL DEFAULT '{}',
+          category VARCHAR(100),
+          platforms TEXT[],
+          usage_count INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Add new columns to social_posts if missing
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='campaign_id') THEN
+            ALTER TABLE social_posts ADD COLUMN campaign_id UUID REFERENCES social_campaigns(id);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='content_type') THEN
+            ALTER TABLE social_posts ADD COLUMN content_type VARCHAR(50) DEFAULT 'text';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='hashtags') THEN
+            ALTER TABLE social_posts ADD COLUMN hashtags TEXT[];
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='targeting') THEN
+            ALTER TABLE social_posts ADD COLUMN targeting JSONB DEFAULT '{}';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='utm_params') THEN
+            ALTER TABLE social_posts ADD COLUMN utm_params JSONB DEFAULT '{}';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='labels') THEN
+            ALTER TABLE social_posts ADD COLUMN labels TEXT[];
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='approval_status') THEN
+            ALTER TABLE social_posts ADD COLUMN approval_status VARCHAR(50) DEFAULT 'none';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='notes') THEN
+            ALTER TABLE social_posts ADD COLUMN notes TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='link_url') THEN
+            ALTER TABLE social_posts ADD COLUMN link_url TEXT;
+          END IF;
+        END $$;
+      `);
+
       // Activity Logs table
       await client.query(`
         CREATE TABLE IF NOT EXISTS activity_logs (
