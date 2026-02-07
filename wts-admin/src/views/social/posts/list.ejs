@@ -8,25 +8,45 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Social Posts</h1>
-        <p class="page-subtitle">Manage your social media content</p>
+        <p class="page-subtitle">Manage your social media content across all platforms</p>
       </div>
       <div class="page-actions">
+        <a href="/social/calendar" class="btn btn-secondary"><i class="fas fa-calendar"></i> Calendar</a>
         <a href="/social/posts/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Post</a>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <form action="/social/posts" method="GET" style="display: flex; gap: 12px;">
-          <select name="status" class="form-input" style="width: 150px;">
+    <!-- Filters -->
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-body" style="padding: 16px 24px;">
+        <form action="/social/posts" method="GET" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <select name="status" class="form-input" style="width: 140px;">
             <option value="">All Status</option>
             <option value="draft" <%= filter.status === 'draft' ? 'selected' : '' %>>Draft</option>
             <option value="scheduled" <%= filter.status === 'scheduled' ? 'selected' : '' %>>Scheduled</option>
             <option value="published" <%= filter.status === 'published' ? 'selected' : '' %>>Published</option>
           </select>
+          <select name="campaign" class="form-input" style="width: 180px;">
+            <option value="">All Campaigns</option>
+            <% campaigns.forEach(c => { %>
+            <option value="<%= c.id %>" <%= filter.campaign == c.id ? 'selected' : '' %>><%= c.name %></option>
+            <% }); %>
+          </select>
+          <select name="content_type" class="form-input" style="width: 150px;">
+            <option value="">All Types</option>
+            <% contentTypes.forEach(ct => { %>
+            <option value="<%= ct.id %>" <%= filter.content_type === ct.id ? 'selected' : '' %>><%= ct.label %></option>
+            <% }); %>
+          </select>
           <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+          <% if (filter.status || filter.campaign || filter.content_type) { %>
+          <a href="/social/posts" class="btn btn-sm" style="color: var(--gray-500);"><i class="fas fa-times"></i> Clear</a>
+          <% } %>
         </form>
       </div>
+    </div>
+
+    <div class="card">
       <div class="card-body" style="padding: 0;">
         <% if (posts.length > 0) { %>
         <div class="table-container">
@@ -34,7 +54,9 @@
             <thead>
               <tr>
                 <th>Content</th>
+                <th>Campaign</th>
                 <th>Platforms</th>
+                <th>Type</th>
                 <th>Scheduled</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -43,19 +65,72 @@
             <tbody>
               <% posts.forEach(post => { %>
               <tr>
-                <td style="max-width: 300px;">
-                  <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    <%= post.content ? post.content.substring(0, 100) : '' %><%= post.content && post.content.length > 100 ? '...' : '' %>
+                <td style="max-width: 280px;">
+                  <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px;">
+                    <%= post.content ? post.content.substring(0, 80) : '' %><%= post.content && post.content.length > 80 ? '...' : '' %>
+                  </div>
+                  <% if (post.hashtags && post.hashtags.length > 0) { %>
+                  <div style="margin-top: 4px;">
+                    <% post.hashtags.slice(0, 3).forEach(h => { %>
+                    <span style="font-size: 11px; color: var(--primary); margin-right: 4px;"><%= h %></span>
+                    <% }); %>
+                    <% if (post.hashtags.length > 3) { %>
+                    <span style="font-size: 11px; color: var(--gray-400);">+<%= post.hashtags.length - 3 %></span>
+                    <% } %>
+                  </div>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (post.campaign_name) { %>
+                  <span class="campaign-badge" style="border-left: 3px solid <%= post.campaign_color || '#667eea' %>; padding-left: 8px; font-size: 13px;">
+                    <%= post.campaign_name %>
+                  </span>
+                  <% } else { %>
+                  <span style="color: var(--gray-400); font-size: 13px;">-</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                    <%
+                    const platformIcons = {
+                      'Facebook': 'fab fa-facebook', 'Instagram': 'fab fa-instagram', 'Twitter/X': 'fab fa-x-twitter',
+                      'LinkedIn': 'fab fa-linkedin', 'TikTok': 'fab fa-tiktok', 'YouTube': 'fab fa-youtube',
+                      'Pinterest': 'fab fa-pinterest', 'Google Business': 'fab fa-google', 'Threads': 'fas fa-at', 'Snapchat': 'fab fa-snapchat'
+                    };
+                    const platformColors = {
+                      'Facebook': '#1877f2', 'Instagram': '#e4405f', 'Twitter/X': '#000', 'LinkedIn': '#0a66c2',
+                      'TikTok': '#000', 'YouTube': '#ff0000', 'Pinterest': '#e60023', 'Google Business': '#4285f4', 'Threads': '#000', 'Snapchat': '#fffc00'
+                    };
+                    %>
+                    <% if (post.platforms) { post.platforms.forEach(p => { %>
+                    <i class="<%= platformIcons[p] || 'fas fa-globe' %>" style="color: <%= platformColors[p] || 'var(--gray-500)' %>; font-size: 16px;" title="<%= p %>"></i>
+                    <% }); } %>
                   </div>
                 </td>
-                <td><%= post.platforms ? post.platforms.join(', ') : '-' %></td>
-                <td><%= post.scheduled_at ? new Date(post.scheduled_at).toLocaleString() : '-' %></td>
+                <td>
+                  <% if (post.content_type && post.content_type !== 'text') { %>
+                  <span style="font-size: 12px; padding: 2px 8px; background: var(--gray-100); border-radius: 12px; color: var(--gray-600);"><%= post.content_type %></span>
+                  <% } else { %>
+                  <span style="color: var(--gray-400); font-size: 13px;">text</span>
+                  <% } %>
+                </td>
+                <td style="font-size: 13px; white-space: nowrap;">
+                  <% if (post.scheduled_at) { %>
+                  <div><%= new Date(post.scheduled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></div>
+                  <div style="color: var(--gray-500); font-size: 12px;"><%= new Date(post.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></div>
+                  <% } else { %>
+                  <span style="color: var(--gray-400);">-</span>
+                  <% } %>
+                </td>
                 <td><span class="status-badge <%= post.status %>"><%= post.status %></span></td>
                 <td>
                   <div class="table-actions">
-                    <a href="/social/posts/<%= post.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <a href="/social/posts/<%= post.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                    <form action="/social/posts/<%= post.id %>/clone" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-secondary" title="Clone"><i class="fas fa-copy"></i></button>
+                    </form>
                     <form action="/social/posts/<%= post.id %>/delete" method="POST" style="display: inline;">
-                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete title="Delete"><i class="fas fa-trash"></i></button>
                     </form>
                   </div>
                 </td>
@@ -68,12 +143,18 @@
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-share-alt"></i></div>
           <h3>No Social Posts</h3>
-          <p>Create your first social media post.</p>
+          <p>Create your first social media post to get started.</p>
           <a href="/social/posts/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Post</a>
         </div>
         <% } %>
       </div>
     </div>
+
+    <% if (posts.length > 0) { %>
+    <div style="margin-top: 16px; text-align: center; color: var(--gray-500); font-size: 13px;">
+      Showing <%= posts.length %> post<%= posts.length !== 1 ? 's' : '' %>
+    </div>
+    <% } %>
   </div>
 </main>
 

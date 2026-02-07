@@ -1,0 +1,226 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= campaign ? 'Edit Campaign' : 'New Campaign' %></h1>
+        <p class="page-subtitle"><a href="/social/campaigns"><i class="fas fa-arrow-left"></i> Back to Campaigns</a></p>
+      </div>
+    </div>
+
+    <div class="card" style="max-width: 900px;">
+      <div class="card-body">
+        <form action="<%= campaign ? '/social/campaigns/' + campaign.id : '/social/campaigns' %>" method="POST">
+
+          <!-- Basic Info -->
+          <div class="form-section">
+            <h3 class="form-section-title">Campaign Details</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="name">Campaign Name *</label>
+              <input type="text" id="name" name="name" class="form-input" required
+                value="<%= campaign ? campaign.name : '' %>" placeholder="e.g. Q1 Brand Awareness Push">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea id="description" name="description" class="form-input" rows="3"
+                placeholder="Brief description of campaign goals and strategy"><%= campaign ? campaign.description || '' : '' %></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="objective">Objective</label>
+                <select id="objective" name="objective" class="form-input">
+                  <option value="">Select objective</option>
+                  <% objectives.forEach(obj => { %>
+                  <option value="<%= obj %>" <%= campaign && campaign.objective === obj ? 'selected' : '' %>><%= obj %></option>
+                  <% }); %>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="status">Status</label>
+                <select id="status" name="status" class="form-input">
+                  <option value="draft" <%= !campaign || campaign.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                  <option value="active" <%= campaign && campaign.status === 'active' ? 'selected' : '' %>>Active</option>
+                  <option value="paused" <%= campaign && campaign.status === 'paused' ? 'selected' : '' %>>Paused</option>
+                  <option value="completed" <%= campaign && campaign.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="color">Color</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="color" id="color" name="color" value="<%= campaign ? campaign.color || '#667eea' : '#667eea' %>" style="width: 48px; height: 40px; border: 2px solid var(--gray-200); border-radius: var(--radius); cursor: pointer; padding: 2px;">
+                  <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                    <% labelColors.forEach(c => { %>
+                    <button type="button" class="color-swatch" data-color="<%= c.value %>" style="width: 28px; height: 28px; border-radius: 50%; background: <%= c.value %>; border: 2px solid transparent; cursor: pointer;" title="<%= c.name %>"></button>
+                    <% }); %>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="labels">Labels</label>
+                <input type="text" id="labels" name="labels" class="form-input"
+                  value="<%= campaign && campaign.labels ? campaign.labels.join(', ') : '' %>" placeholder="promotion, launch, seasonal">
+                <p class="form-help">Comma-separated labels for categorization</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Schedule & Budget -->
+          <div class="form-section">
+            <h3 class="form-section-title">Schedule & Budget</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="start_date">Start Date</label>
+                <input type="date" id="start_date" name="start_date" class="form-input"
+                  value="<%= campaign && campaign.start_date ? new Date(campaign.start_date).toISOString().split('T')[0] : '' %>">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="end_date">End Date</label>
+                <input type="date" id="end_date" name="end_date" class="form-input"
+                  value="<%= campaign && campaign.end_date ? new Date(campaign.end_date).toISOString().split('T')[0] : '' %>">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="budget">Budget</label>
+                <input type="number" id="budget" name="budget" class="form-input" step="0.01" min="0"
+                  value="<%= campaign ? campaign.budget || '' : '' %>" placeholder="0.00">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="budget_currency">Currency</label>
+                <select id="budget_currency" name="budget_currency" class="form-input">
+                  <option value="USD" <%= !campaign || campaign.budget_currency === 'USD' ? 'selected' : '' %>>USD</option>
+                  <option value="EUR" <%= campaign && campaign.budget_currency === 'EUR' ? 'selected' : '' %>>EUR</option>
+                  <option value="GBP" <%= campaign && campaign.budget_currency === 'GBP' ? 'selected' : '' %>>GBP</option>
+                  <option value="LAK" <%= campaign && campaign.budget_currency === 'LAK' ? 'selected' : '' %>>LAK</option>
+                  <option value="THB" <%= campaign && campaign.budget_currency === 'THB' ? 'selected' : '' %>>THB</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- UTM Parameters -->
+          <div class="form-section">
+            <h3 class="form-section-title">UTM Parameters</h3>
+            <p style="color: var(--gray-500); font-size: 13px; margin-bottom: 16px;">
+              <i class="fas fa-info-circle"></i> UTM params are inherited by posts linked to this campaign.
+            </p>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="utm_source">Source</label>
+                <input type="text" id="utm_source" name="utm_source" class="form-input"
+                  value="<%= campaign ? campaign.utm_source || '' : '' %>" placeholder="facebook, instagram">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="utm_medium">Medium</label>
+                <input type="text" id="utm_medium" name="utm_medium" class="form-input"
+                  value="<%= campaign ? campaign.utm_medium || '' : '' %>" placeholder="social, paid_social">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="utm_campaign">Campaign</label>
+                <input type="text" id="utm_campaign" name="utm_campaign" class="form-input"
+                  value="<%= campaign ? campaign.utm_campaign || '' : '' %>" placeholder="q1-awareness">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="utm_term">Term</label>
+                <input type="text" id="utm_term" name="utm_term" class="form-input"
+                  value="<%= campaign ? campaign.utm_term || '' : '' %>" placeholder="brand+keywords">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="utm_content">Content</label>
+              <input type="text" id="utm_content" name="utm_content" class="form-input"
+                value="<%= campaign ? campaign.utm_content || '' : '' %>" placeholder="banner-v1, video-ad">
+            </div>
+          </div>
+
+          <!-- Targeting -->
+          <div class="form-section">
+            <h3 class="form-section-title">Audience Targeting</h3>
+            <% const t = campaign && campaign.targeting ? campaign.targeting : {}; %>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="targeting_age_min">Min Age</label>
+                <input type="number" id="targeting_age_min" name="targeting_age_min" class="form-input" min="13" max="65"
+                  value="<%= t.age_min || '' %>" placeholder="18">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="targeting_age_max">Max Age</label>
+                <input type="number" id="targeting_age_max" name="targeting_age_max" class="form-input" min="13" max="65"
+                  value="<%= t.age_max || '' %>" placeholder="65">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="targeting_gender">Gender</label>
+                <select id="targeting_gender" name="targeting_gender" class="form-input">
+                  <option value="all" <%= !t.gender || t.gender === 'all' ? 'selected' : '' %>>All</option>
+                  <option value="male" <%= t.gender === 'male' ? 'selected' : '' %>>Male</option>
+                  <option value="female" <%= t.gender === 'female' ? 'selected' : '' %>>Female</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="targeting_locations">Locations</label>
+                <input type="text" id="targeting_locations" name="targeting_locations" class="form-input"
+                  value="<%= t.locations ? t.locations.join(', ') : '' %>" placeholder="Laos, Thailand, Vietnam">
+                <p class="form-help">Comma-separated</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="targeting_languages">Languages</label>
+                <input type="text" id="targeting_languages" name="targeting_languages" class="form-input"
+                  value="<%= t.languages ? t.languages.join(', ') : '' %>" placeholder="en, lo, th">
+                <p class="form-help">Comma-separated ISO codes</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="targeting_interests">Interests</label>
+                <input type="text" id="targeting_interests" name="targeting_interests" class="form-input"
+                  value="<%= t.interests ? t.interests.join(', ') : '' %>" placeholder="marketing, seo, business">
+                <p class="form-help">Comma-separated</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="/social/campaigns" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <%= campaign ? 'Update Campaign' : 'Create Campaign' %></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Color swatch picker
+  document.querySelectorAll('.color-swatch').forEach(swatch => {
+    swatch.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('color').value = swatch.dataset.color;
+    });
+  });
+});
+</script>
+
+<%- include('../../partials/footer') %>

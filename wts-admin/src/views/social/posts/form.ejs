@@ -8,63 +8,440 @@
     <div class="page-header">
       <div>
         <h1 class="page-title"><%= post ? 'Edit Post' : 'New Post' %></h1>
-        <p class="page-subtitle"><a href="/social/posts"><i class="fas fa-arrow-left"></i> Back</a></p>
+        <p class="page-subtitle"><a href="/social/posts"><i class="fas fa-arrow-left"></i> Back to Posts</a></p>
       </div>
     </div>
 
-    <div class="card form-card">
-      <div class="card-body">
-        <form action="<%= post ? '/social/posts/' + post.id : '/social/posts' %>" method="POST">
-          <div class="form-group">
-            <label class="form-label" for="content">Post Content *</label>
-            <textarea id="content" name="content" class="form-input" rows="6" required><%= post ? post.content : '' %></textarea>
-            <p class="form-help">Write your social media post content</p>
-          </div>
+    <div style="display: grid; grid-template-columns: 1fr 340px; gap: 24px; max-width: 1200px;">
+      <!-- Main Form -->
+      <div>
+        <form id="postForm" action="<%= post ? '/social/posts/' + post.id : '/social/posts' %>" method="POST">
 
-          <div class="form-group">
-            <label class="form-label">Platforms</label>
-            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 8px;">
-              <% const platformList = ['Facebook', 'Twitter/X', 'Instagram', 'LinkedIn', 'TikTok']; %>
-              <% platformList.forEach(platform => { %>
-              <div class="form-checkbox">
-                <input type="checkbox" id="platform_<%= platform %>" name="platforms" value="<%= platform %>"
-                  <%= post && post.platforms && post.platforms.includes(platform) ? 'checked' : '' %>>
-                <label for="platform_<%= platform %>"><%= platform %></label>
+          <!-- Content -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-pen"></i> Content</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="content">
+                  Post Content *
+                  <span id="charCounter" style="float: right; font-weight: 400; font-size: 12px; color: var(--gray-500);">0</span>
+                </label>
+                <textarea id="content" name="content" class="form-input" rows="6" required
+                  placeholder="Write your social media post content..."><%= post ? post.content : '' %></textarea>
               </div>
-              <% }); %>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="content_type">Content Type</label>
+                  <select id="content_type" name="content_type" class="form-input">
+                    <% contentTypes.forEach(ct => { %>
+                    <option value="<%= ct.id %>" <%= post && post.content_type === ct.id ? 'selected' : '' %>>
+                      <%= ct.label %>
+                    </option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="link_url">Link URL</label>
+                  <input type="url" id="link_url" name="link_url" class="form-input"
+                    value="<%= post ? post.link_url || '' : '' %>" placeholder="https://wordsthatsells.website/...">
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="media_urls">Media URLs (one per line)</label>
-            <textarea id="media_urls" name="media_urls" class="form-input" rows="3"><%= post && post.media_urls ? post.media_urls.join('\n') : '' %></textarea>
-            <p class="form-help">Add image or video URLs to include in your post</p>
+          <!-- Platforms -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-share-alt"></i> Platforms</h2>
+            </div>
+            <div class="card-body">
+              <div class="platform-selector">
+                <% platforms.forEach(p => { %>
+                <label class="platform-check" style="--platform-color: <%= p.color %>;">
+                  <input type="checkbox" name="platforms" value="<%= p.id %>"
+                    <%= post && post.platforms && post.platforms.includes(p.id) ? 'checked' : '' %>
+                    data-char-limit="<%= p.charLimit %>" data-hashtag-limit="<%= p.hashtagLimit %>">
+                  <span class="platform-check-label">
+                    <i class="<%= p.icon %>" style="font-size: 18px;"></i>
+                    <span><%= p.id %></span>
+                    <span class="platform-char-limit"><%= p.charLimit %> chars</span>
+                  </span>
+                </label>
+                <% }); %>
+              </div>
+            </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="scheduled_at">Schedule For</label>
-              <input type="datetime-local" id="scheduled_at" name="scheduled_at" class="form-input"
-                value="<%= post && post.scheduled_at ? new Date(post.scheduled_at).toISOString().slice(0, 16) : '' %>">
+          <!-- Hashtags -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-hashtag"></i> Hashtags</h2>
             </div>
-            <div class="form-group">
-              <label class="form-label" for="status">Status</label>
-              <select id="status" name="status" class="form-input">
-                <option value="draft" <%= !post || post.status === 'draft' ? 'selected' : '' %>>Draft</option>
-                <option value="scheduled" <%= post && post.status === 'scheduled' ? 'selected' : '' %>>Scheduled</option>
-                <option value="published" <%= post && post.status === 'published' ? 'selected' : '' %>>Published</option>
-              </select>
+            <div class="card-body">
+              <% if (hashtagSets.length > 0) { %>
+              <div class="form-group">
+                <label class="form-label">Quick Insert from Sets</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <% hashtagSets.forEach(set => { %>
+                  <button type="button" class="btn btn-sm btn-secondary insert-hashtag-set"
+                    data-hashtags="<%= set.hashtags ? set.hashtags.join(', ') : '' %>">
+                    <i class="fas fa-plus"></i> <%= set.name %> (<%= set.hashtags ? set.hashtags.length : 0 %>)
+                  </button>
+                  <% }); %>
+                </div>
+              </div>
+              <% } %>
+
+              <div class="form-group">
+                <label class="form-label" for="hashtags">
+                  Hashtags
+                  <span id="hashtagCount" style="float: right; font-weight: 400; font-size: 12px; color: var(--gray-500);">0 tags</span>
+                </label>
+                <input type="text" id="hashtags" name="hashtags" class="form-input"
+                  value="<%= post && post.hashtags ? post.hashtags.map(h => h.replace(/^#/, '')).join(', ') : '' %>"
+                  placeholder="marketing, seo, digital (# added automatically)">
+                <p class="form-help">Comma-separated. The # symbol is added automatically.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campaign & Scheduling -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-calendar-check"></i> Campaign & Scheduling</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="campaign_id">Campaign</label>
+                  <select id="campaign_id" name="campaign_id" class="form-input">
+                    <option value="">No campaign</option>
+                    <% campaigns.forEach(c => { %>
+                    <option value="<%= c.id %>"
+                      data-utm-source="<%= c.utm_source || '' %>"
+                      data-utm-medium="<%= c.utm_medium || '' %>"
+                      data-utm-campaign="<%= c.utm_campaign || '' %>"
+                      data-utm-term="<%= c.utm_term || '' %>"
+                      data-utm-content="<%= c.utm_content || '' %>"
+                      <%= (post && post.campaign_id == c.id) || (preselectedCampaign == c.id) ? 'selected' : '' %>>
+                      <span style="color: <%= c.color %>;">&#9679;</span> <%= c.name %>
+                    </option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="status">Status</label>
+                  <select id="status" name="status" class="form-input">
+                    <option value="draft" <%= !post || post.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                    <option value="scheduled" <%= post && post.status === 'scheduled' ? 'selected' : '' %>>Scheduled</option>
+                    <option value="published" <%= post && post.status === 'published' ? 'selected' : '' %>>Published</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="scheduled_at">Schedule For</label>
+                  <input type="datetime-local" id="scheduled_at" name="scheduled_at" class="form-input"
+                    value="<%= post && post.scheduled_at ? new Date(post.scheduled_at).toISOString().slice(0, 16) : '' %>">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="approval_status">Approval</label>
+                  <select id="approval_status" name="approval_status" class="form-input">
+                    <option value="pending" <%= !post || post.approval_status === 'pending' ? 'selected' : '' %>>Pending Review</option>
+                    <option value="approved" <%= post && post.approval_status === 'approved' ? 'selected' : '' %>>Approved</option>
+                    <option value="rejected" <%= post && post.approval_status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Media & Links -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-photo-video"></i> Media</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="media_urls">Media URLs (one per line)</label>
+                <textarea id="media_urls" name="media_urls" class="form-input" rows="3"
+                  placeholder="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/..."><%= post && post.media_urls ? post.media_urls.join('\n') : '' %></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- UTM Parameters -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-chart-line"></i> UTM Tracking</h2>
+              <button type="button" id="inheritUtmBtn" class="btn btn-sm btn-secondary" style="display: none;">
+                <i class="fas fa-download"></i> Inherit from Campaign
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="utm_source">Source</label>
+                  <input type="text" id="utm_source" name="utm_source" class="form-input"
+                    value="<%= post && post.utm_params ? post.utm_params.source || '' : '' %>" placeholder="facebook">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="utm_medium">Medium</label>
+                  <input type="text" id="utm_medium" name="utm_medium" class="form-input"
+                    value="<%= post && post.utm_params ? post.utm_params.medium || '' : '' %>" placeholder="social">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="utm_campaign">Campaign</label>
+                  <input type="text" id="utm_campaign" name="utm_campaign" class="form-input"
+                    value="<%= post && post.utm_params ? post.utm_params.campaign || '' : '' %>" placeholder="q1-awareness">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="utm_term">Term</label>
+                  <input type="text" id="utm_term" name="utm_term" class="form-input"
+                    value="<%= post && post.utm_params ? post.utm_params.term || '' : '' %>">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="utm_content">Content</label>
+                <input type="text" id="utm_content" name="utm_content" class="form-input"
+                  value="<%= post && post.utm_params ? post.utm_params.content || '' : '' %>">
+              </div>
+            </div>
+          </div>
+
+          <!-- Targeting (collapsed by default) -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header" style="cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? '' : 'none'; this.querySelector('.fa-chevron-down').classList.toggle('rotated');">
+              <h2 class="card-title"><i class="fas fa-crosshairs"></i> Audience Targeting</h2>
+              <i class="fas fa-chevron-down" style="color: var(--gray-400); transition: transform 0.2s;"></i>
+            </div>
+            <div class="card-body" style="display: none;">
+              <% const t = post && post.targeting ? post.targeting : {}; %>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="targeting_age_min">Min Age</label>
+                  <input type="number" id="targeting_age_min" name="targeting_age_min" class="form-input" min="13" max="65"
+                    value="<%= t.age_min || '' %>">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="targeting_age_max">Max Age</label>
+                  <input type="number" id="targeting_age_max" name="targeting_age_max" class="form-input" min="13" max="65"
+                    value="<%= t.age_max || '' %>">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="targeting_gender">Gender</label>
+                  <select id="targeting_gender" name="targeting_gender" class="form-input">
+                    <option value="all" <%= !t.gender || t.gender === 'all' ? 'selected' : '' %>>All</option>
+                    <option value="male" <%= t.gender === 'male' ? 'selected' : '' %>>Male</option>
+                    <option value="female" <%= t.gender === 'female' ? 'selected' : '' %>>Female</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="targeting_locations">Locations</label>
+                  <input type="text" id="targeting_locations" name="targeting_locations" class="form-input"
+                    value="<%= t.locations ? t.locations.join(', ') : '' %>" placeholder="Laos, Thailand">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="targeting_interests">Interests</label>
+                <input type="text" id="targeting_interests" name="targeting_interests" class="form-input"
+                  value="<%= t.interests ? t.interests.join(', ') : '' %>" placeholder="marketing, seo">
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes & Labels -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-sticky-note"></i> Notes & Labels</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="labels">Labels</label>
+                <input type="text" id="labels" name="labels" class="form-input"
+                  value="<%= post && post.labels ? post.labels.join(', ') : '' %>" placeholder="urgent, needs-review, approved">
+                <p class="form-help">Comma-separated labels</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="notes">Internal Notes</label>
+                <textarea id="notes" name="notes" class="form-input" rows="3"
+                  placeholder="Notes visible only to team members"><%= post ? post.notes || '' : '' %></textarea>
+              </div>
             </div>
           </div>
 
           <div class="form-actions">
             <a href="/social/posts" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <%= post ? 'Update Post' : 'Create Post' %></button>
           </div>
         </form>
+      </div>
+
+      <!-- Right Sidebar: Preview -->
+      <div>
+        <div class="card" style="position: sticky; top: 80px;">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-eye"></i> Preview</h2>
+          </div>
+          <div class="card-body">
+            <div id="previewPlatformIcons" style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;"></div>
+            <div id="previewContent" style="font-size: 14px; color: var(--gray-700); line-height: 1.6; white-space: pre-wrap; word-break: break-word; min-height: 60px; padding: 12px; background: var(--gray-50); border-radius: var(--radius);">
+              Your post preview will appear here...
+            </div>
+            <div id="previewHashtags" style="margin-top: 10px;"></div>
+            <div id="previewLink" style="margin-top: 10px;"></div>
+
+            <!-- Character limit warnings -->
+            <div id="charWarnings" style="margin-top: 16px;"></div>
+
+            <!-- Post Summary -->
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
+              <div style="display: grid; gap: 8px; font-size: 13px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--gray-500);">Content type</span>
+                  <span id="previewContentType" style="font-weight: 500;">Text Post</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--gray-500);">Campaign</span>
+                  <span id="previewCampaign" style="font-weight: 500;">None</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--gray-500);">Platforms</span>
+                  <span id="previewPlatformCount" style="font-weight: 500;">0 selected</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--gray-500);">Hashtags</span>
+                  <span id="previewHashtagCount" style="font-weight: 500;">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const contentEl = document.getElementById('content');
+  const charCounter = document.getElementById('charCounter');
+  const hashtagsEl = document.getElementById('hashtags');
+  const hashtagCount = document.getElementById('hashtagCount');
+  const campaignSelect = document.getElementById('campaign_id');
+  const inheritBtn = document.getElementById('inheritUtmBtn');
+
+  // Platform metadata
+  const platformMeta = {};
+  <% platforms.forEach(p => { %>
+  platformMeta['<%= p.id %>'] = { icon: '<%= p.icon %>', color: '<%= p.color %>', charLimit: <%= p.charLimit %>, hashtagLimit: <%= p.hashtagLimit %> };
+  <% }); %>
+
+  const contentTypeMeta = {};
+  <% contentTypes.forEach(ct => { %>
+  contentTypeMeta['<%= ct.id %>'] = '<%= ct.label %>';
+  <% }); %>
+
+  function getSelectedPlatforms() {
+    return Array.from(document.querySelectorAll('input[name="platforms"]:checked')).map(c => c.value);
+  }
+
+  function updatePreview() {
+    const text = contentEl.value;
+    const len = text.length;
+    charCounter.textContent = len + ' chars';
+
+    // Preview content
+    document.getElementById('previewContent').textContent = text || 'Your post preview will appear here...';
+
+    // Hashtags
+    const tags = hashtagsEl.value.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+    hashtagCount.textContent = tags.length + ' tag' + (tags.length !== 1 ? 's' : '');
+    document.getElementById('previewHashtags').innerHTML = tags.map(t =>
+      '<span class="hashtag-chip">#' + t + '</span>'
+    ).join(' ');
+    document.getElementById('previewHashtagCount').textContent = tags.length;
+
+    // Link
+    const link = document.getElementById('link_url').value;
+    document.getElementById('previewLink').innerHTML = link ?
+      '<a href="#" style="font-size: 13px; color: var(--primary);"><i class="fas fa-link"></i> ' + link.substring(0, 40) + (link.length > 40 ? '...' : '') + '</a>' : '';
+
+    // Platforms
+    const selected = getSelectedPlatforms();
+    document.getElementById('previewPlatformIcons').innerHTML = selected.map(p => {
+      const m = platformMeta[p];
+      return m ? '<i class="' + m.icon + '" style="color: ' + m.color + '; font-size: 18px;" title="' + p + '"></i>' : '';
+    }).join('');
+    document.getElementById('previewPlatformCount').textContent = selected.length + ' selected';
+
+    // Content type
+    const ct = document.getElementById('content_type').value;
+    document.getElementById('previewContentType').textContent = contentTypeMeta[ct] || ct;
+
+    // Campaign
+    const campOpt = campaignSelect.options[campaignSelect.selectedIndex];
+    document.getElementById('previewCampaign').textContent = campaignSelect.value ? campOpt.textContent.trim() : 'None';
+
+    // Character limit warnings
+    const warnings = [];
+    selected.forEach(p => {
+      const m = platformMeta[p];
+      if (m && len > m.charLimit) {
+        warnings.push('<div style="font-size: 12px; color: var(--danger); margin-bottom: 4px;"><i class="' + m.icon + '"></i> Over limit by ' + (len - m.charLimit) + ' chars (' + m.charLimit + ' max)</div>');
+      }
+      if (m && m.hashtagLimit > 0 && tags.length > m.hashtagLimit) {
+        warnings.push('<div style="font-size: 12px; color: var(--warning); margin-bottom: 4px;"><i class="' + m.icon + '"></i> Too many hashtags: ' + tags.length + '/' + m.hashtagLimit + '</div>');
+      }
+    });
+    document.getElementById('charWarnings').innerHTML = warnings.join('');
+  }
+
+  contentEl.addEventListener('input', updatePreview);
+  hashtagsEl.addEventListener('input', updatePreview);
+  document.getElementById('link_url').addEventListener('input', updatePreview);
+  document.getElementById('content_type').addEventListener('change', updatePreview);
+  campaignSelect.addEventListener('change', updatePreview);
+  document.querySelectorAll('input[name="platforms"]').forEach(cb => cb.addEventListener('change', updatePreview));
+
+  // Insert hashtag sets
+  document.querySelectorAll('.insert-hashtag-set').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const existing = hashtagsEl.value.trim();
+      const newTags = btn.dataset.hashtags;
+      hashtagsEl.value = existing ? existing + ', ' + newTags : newTags;
+      updatePreview();
+    });
+  });
+
+  // Inherit UTM from campaign
+  campaignSelect.addEventListener('change', () => {
+    const opt = campaignSelect.options[campaignSelect.selectedIndex];
+    inheritBtn.style.display = campaignSelect.value ? '' : 'none';
+  });
+
+  inheritBtn.addEventListener('click', () => {
+    const opt = campaignSelect.options[campaignSelect.selectedIndex];
+    if (opt.dataset.utmSource) document.getElementById('utm_source').value = opt.dataset.utmSource;
+    if (opt.dataset.utmMedium) document.getElementById('utm_medium').value = opt.dataset.utmMedium;
+    if (opt.dataset.utmCampaign) document.getElementById('utm_campaign').value = opt.dataset.utmCampaign;
+    if (opt.dataset.utmTerm) document.getElementById('utm_term').value = opt.dataset.utmTerm;
+    if (opt.dataset.utmContent) document.getElementById('utm_content').value = opt.dataset.utmContent;
+  });
+
+  // Show inherit button if campaign is preselected
+  if (campaignSelect.value) inheritBtn.style.display = '';
+
+  updatePreview();
+});
+</script>
 
 <%- include('../../partials/footer') %>
