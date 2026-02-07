@@ -401,7 +401,18 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function showReuploadPreview(file) {
-    rePreviewImg.src = URL.createObjectURL(file);
+    // Validate MIME type before rendering preview to prevent rendering non-image content
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/avif'];
+    if (!allowedTypes.includes(file.type)) return;
+    // Use FileReader to generate a validated data URL for the preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
+        rePreviewImg.src = dataUrl;
+      }
+    };
+    reader.readAsDataURL(file);
     document.getElementById('reuploadPreviewName').textContent = file.name;
     const size = file.size < 1024*1024 ? (file.size/1024).toFixed(1)+' KB' : (file.size/(1024*1024)).toFixed(1)+' MB';
     document.getElementById('reuploadPreviewSize').textContent = size;

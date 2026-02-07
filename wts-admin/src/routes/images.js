@@ -35,6 +35,25 @@ function buildCdnUrl(filePath) {
 
 // Image directory in the main marketing repo
 const IMAGES_DIR = path.resolve(__dirname, '../../../images');
+const UPLOAD_TEMP_DIR = path.resolve(__dirname, '../../uploads/temp');
+
+// Validate a resolved path stays within an allowed parent directory (prevents path traversal)
+function assertPathWithin(filePath, parentDir) {
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(parentDir + path.sep) && resolved !== parentDir) {
+    throw new Error('Invalid file path');
+  }
+  return resolved;
+}
+
+// Safely remove a temp upload file after validating its path
+function cleanupTempFile(filePath) {
+  if (!filePath) return;
+  const resolved = path.resolve(filePath);
+  if (resolved.startsWith(UPLOAD_TEMP_DIR + path.sep) && fs.existsSync(resolved)) {
+    fs.unlinkSync(resolved);
+  }
+}
 
 // Multer config for temp uploads
 const upload = multer({
@@ -393,8 +412,8 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       mimeType = 'image/webp';
     }
 
-    // Clean up temp file
-    fs.unlinkSync(req.file.path);
+    // Clean up temp file (validated path)
+    cleanupTempFile(req.file.path);
 
     // Build paths
     const relPath = catDir ? `images/${catDir}/${finalFilename}` : `images/${finalFilename}`;
@@ -425,10 +444,8 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     res.redirect('/images/' + result.rows[0].id);
   } catch (error) {
     console.error('Upload error:', error);
-    // Clean up temp file on error
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
+    // Clean up temp file on error (validated path)
+    if (req.file) cleanupTempFile(req.file.path);
     req.session.errorMessage = 'Upload failed: ' + error.message;
     res.redirect('/images/upload');
   }
@@ -549,8 +566,9 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
     const ext = path.extname(image.filename);
     let finalPath, fileSize, width, height, mimeType;
 
-    // Determine where the file should go
-    const fullPath = path.resolve(__dirname, '../../../', image.file_path);
+    // Determine where the file should go (validate paths to prevent traversal)
+    const fullPath = assertPathWithin(path.resolve(__dirname, '../../../', image.file_path), IMAGES_DIR);
+    assertPathWithin(req.file.path, UPLOAD_TEMP_DIR);
     const destDir = path.dirname(fullPath);
     if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 
@@ -592,7 +610,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
         const newFilename = baseName + '.webp';
         const dir = path.dirname(image.file_path);
         const newRelPath = path.join(dir, newFilename);
-        const newFullPath = path.resolve(__dirname, '../../../', newRelPath);
+        const newFullPath = assertPathWithin(path.resolve(__dirname, '../../../', newRelPath), IMAGES_DIR);
 
         const sharpInstance = sharp(req.file.path);
         const meta = await sharpInstance.metadata();
@@ -618,8 +636,8 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
         const fileBuffer = fs.readFileSync(newFullPath);
         const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Re-upload image: ${newFilename}`);
 
-        // Clean up temp file
-        fs.unlinkSync(req.file.path);
+        // Clean up temp file (validated path)
+        cleanupTempFile(req.file.path);
 
         // Update file metadata in DB
         await db.query(
@@ -635,8 +653,8 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
       }
     }
 
-    // Clean up temp file
-    fs.unlinkSync(req.file.path);
+    // Clean up temp file (validated path)
+    cleanupTempFile(req.file.path);
 
     // Push to GitHub (get existing SHA first for update)
     const sha = await getGitHubFileSha(image.file_path);
@@ -657,9 +675,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
     res.redirect('/images/' + req.params.id);
   } catch (error) {
     console.error('Re-upload error:', error);
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
+    if (req.file) cleanupTempFile(req.file.path);
     req.session.errorMessage = 'Re-upload failed: ' + error.message;
     res.redirect('/images/' + req.params.id);
   }
