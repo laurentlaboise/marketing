@@ -382,6 +382,86 @@ const db = {
         END $$;
       `);
 
+      // Microsites table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS microsites (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          slug VARCHAR(255) UNIQUE NOT NULL,
+          description TEXT,
+          purpose VARCHAR(100) DEFAULT 'landing',
+          status VARCHAR(50) DEFAULT 'draft',
+          primary_domain VARCHAR(255),
+          github_repo VARCHAR(255),
+          github_branch VARCHAR(100) DEFAULT 'main',
+          deploy_platform VARCHAR(50),
+          deploy_url TEXT,
+          deploy_webhook TEXT,
+          env_vars JSONB DEFAULT '{}',
+          seo_title VARCHAR(255),
+          seo_description TEXT,
+          seo_keywords TEXT[],
+          og_title VARCHAR(255),
+          og_description TEXT,
+          og_image TEXT,
+          schema_markup JSONB,
+          robots_txt TEXT,
+          sitemap_url TEXT,
+          analytics_id VARCHAR(100),
+          template VARCHAR(100),
+          settings JSONB DEFAULT '{}',
+          ssl_status VARCHAR(50) DEFAULT 'unknown',
+          last_deployed_at TIMESTAMP,
+          author_id UUID REFERENCES users(id),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Microsite Domains table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS microsite_domains (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          microsite_id UUID REFERENCES microsites(id) ON DELETE CASCADE,
+          domain VARCHAR(255) NOT NULL,
+          type VARCHAR(50) DEFAULT 'primary',
+          ssl_status VARCHAR(50) DEFAULT 'pending',
+          dns_verified BOOLEAN DEFAULT FALSE,
+          expires_at DATE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Microsite Deployments table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS microsite_deployments (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          microsite_id UUID REFERENCES microsites(id) ON DELETE CASCADE,
+          status VARCHAR(50) DEFAULT 'pending',
+          trigger VARCHAR(50) DEFAULT 'manual',
+          commit_sha VARCHAR(100),
+          commit_message TEXT,
+          build_log TEXT,
+          duration_seconds INTEGER,
+          deployed_by UUID REFERENCES users(id),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Notifications table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID REFERENCES users(id),
+          type VARCHAR(50) DEFAULT 'info',
+          title VARCHAR(255) NOT NULL,
+          message TEXT,
+          link TEXT,
+          read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Activity Logs table
       await client.query(`
         CREATE TABLE IF NOT EXISTS activity_logs (

@@ -18,7 +18,43 @@
       </div>
     </div>
 
-    <!-- Stats Grid -->
+    <!-- Attention Needed Row -->
+    <% if (stats.drafts > 0 || stats.scheduledPosts > 0 || stats.unreadNotifications > 0) { %>
+    <div class="attention-row">
+      <% if (stats.drafts > 0) { %>
+      <a href="/content/articles?status=draft" class="attention-card">
+        <div class="attention-icon" style="background: var(--warning);">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <div>
+          <strong><%= stats.drafts %></strong> pending draft<%= stats.drafts !== 1 ? 's' : '' %>
+        </div>
+      </a>
+      <% } %>
+      <% if (stats.scheduledPosts > 0) { %>
+      <a href="/social/calendar" class="attention-card">
+        <div class="attention-icon" style="background: var(--info);">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div>
+          <strong><%= stats.scheduledPosts %></strong> scheduled post<%= stats.scheduledPosts !== 1 ? 's' : '' %>
+        </div>
+      </a>
+      <% } %>
+      <% if (stats.unreadNotifications > 0) { %>
+      <a href="/webdev/notifications" class="attention-card">
+        <div class="attention-icon" style="background: var(--danger);">
+          <i class="fas fa-bell"></i>
+        </div>
+        <div>
+          <strong><%= stats.unreadNotifications %></strong> unread notification<%= stats.unreadNotifications !== 1 ? 's' : '' %>
+        </div>
+      </a>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Main Stats Grid -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon purple">
@@ -52,6 +88,36 @@
 
       <div class="stat-card">
         <div class="stat-icon orange">
+          <i class="fas fa-bullhorn"></i>
+        </div>
+        <div class="stat-content">
+          <h3><%= stats.campaigns %></h3>
+          <p>Campaigns</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <i class="fas fa-globe"></i>
+        </div>
+        <div class="stat-content">
+          <h3><%= stats.microsites %></h3>
+          <p>Microsites</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="fas fa-images"></i>
+        </div>
+        <div class="stat-content">
+          <h3><%= stats.images %></h3>
+          <p>Images</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon blue">
           <i class="fas fa-box"></i>
         </div>
         <div class="stat-content">
@@ -61,17 +127,7 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon purple">
-          <i class="fas fa-book"></i>
-        </div>
-        <div class="stat-content">
-          <h3><%= stats.glossary %></h3>
-          <p>Glossary Terms</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon green">
+        <div class="stat-icon orange">
           <i class="fas fa-search"></i>
         </div>
         <div class="stat-content">
@@ -79,19 +135,10 @@
           <p>SEO Terms</p>
         </div>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon blue">
-          <i class="fas fa-images"></i>
-        </div>
-        <div class="stat-content">
-          <h3><%= stats.images %></h3>
-          <p>Images</p>
-        </div>
-      </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+    <!-- Three Column Grid: Articles, Microsites, Quick Actions -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
       <!-- Recent Articles -->
       <div class="card">
         <div class="card-header">
@@ -125,38 +172,145 @@
         </div>
       </div>
 
+      <!-- Microsites Overview -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Microsites</h2>
+          <a href="/webdev/microsites" class="btn btn-sm btn-secondary">View All</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <% if (activeMicrosites.length > 0) { %>
+          <table class="table">
+            <tbody>
+              <% activeMicrosites.forEach(site => { %>
+              <tr>
+                <td>
+                  <a href="/webdev/microsites/<%= site.id %>" style="font-weight: 500;"><%= site.name %></a>
+                  <br>
+                  <small style="color: var(--gray-500);"><%= site.primary_domain || 'No domain' %></small>
+                </td>
+                <td style="text-align: right;">
+                  <span class="status-badge <%= site.status %>"><%= site.status %></span>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <% } else { %>
+          <div class="empty-state" style="padding: 40px;">
+            <i class="fas fa-globe" style="font-size: 32px; color: var(--gray-300); margin-bottom: 10px;"></i>
+            <p>No microsites yet</p>
+            <a href="/webdev/microsites/new" class="btn btn-sm btn-primary" style="margin-top: 8px;">Create one</a>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
       <!-- Quick Actions -->
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">Quick Actions</h2>
         </div>
         <div class="card-body">
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-            <a href="/content/articles/new" class="btn btn-secondary">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            <a href="/content/articles/new" class="btn btn-secondary btn-sm">
               <i class="fas fa-newspaper"></i> New Article
             </a>
-            <a href="/content/ai-tools/new" class="btn btn-secondary">
-              <i class="fas fa-robot"></i> Add AI Tool
+            <a href="/social/posts/new" class="btn btn-secondary btn-sm">
+              <i class="fas fa-pen"></i> New Post
             </a>
-            <a href="/content/glossary/new" class="btn btn-secondary">
-              <i class="fas fa-book"></i> Add Glossary
+            <a href="/social/campaigns/new" class="btn btn-secondary btn-sm">
+              <i class="fas fa-bullhorn"></i> New Campaign
             </a>
-            <a href="/social/posts/new" class="btn btn-secondary">
-              <i class="fas fa-share-alt"></i> New Post
+            <a href="/webdev/microsites/new" class="btn btn-secondary btn-sm">
+              <i class="fas fa-globe"></i> New Microsite
             </a>
-            <a href="/business/products/new" class="btn btn-secondary">
+            <a href="/images/upload" class="btn btn-secondary btn-sm">
+              <i class="fas fa-images"></i> Upload Image
+            </a>
+            <a href="/business/products/new" class="btn btn-secondary btn-sm">
               <i class="fas fa-box"></i> Add Product
             </a>
-            <a href="/business/affiliates/new" class="btn btn-secondary">
-              <i class="fas fa-handshake"></i> Add Affiliate
+            <a href="/content/ai-tools/new" class="btn btn-secondary btn-sm">
+              <i class="fas fa-robot"></i> Add AI Tool
             </a>
-            <a href="/images/upload" class="btn btn-secondary">
-              <i class="fas fa-images"></i> Upload Image
+            <a href="/business/affiliates/new" class="btn btn-secondary btn-sm">
+              <i class="fas fa-handshake"></i> Add Affiliate
             </a>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Scheduled Posts Row -->
+    <% if (scheduledPosts.length > 0) { %>
+    <div class="card" style="margin-top: 24px;">
+      <div class="card-header">
+        <h2 class="card-title"><i class="fas fa-clock" style="color: var(--info);"></i> Upcoming Scheduled Posts</h2>
+        <a href="/social/calendar" class="btn btn-sm btn-secondary">View Calendar</a>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Content</th>
+              <th>Platforms</th>
+              <th>Scheduled For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% scheduledPosts.forEach(post => { %>
+            <tr>
+              <td>
+                <a href="/social/posts/<%= post.id %>/edit"><%= post.content ? post.content.substring(0, 60) + (post.content.length > 60 ? '...' : '') : 'Untitled' %></a>
+              </td>
+              <td>
+                <% if (post.platforms && post.platforms.length) { %>
+                <% post.platforms.forEach(p => { %>
+                <span class="status-badge" style="font-size: 11px;"><%= p %></span>
+                <% }); %>
+                <% } %>
+              </td>
+              <td style="white-space: nowrap;"><%= new Date(post.scheduled_at).toLocaleString() %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Recent Activity -->
+    <% if (recentActivity.length > 0) { %>
+    <div class="card" style="margin-top: 24px;">
+      <div class="card-header">
+        <h2 class="card-title"><i class="fas fa-history" style="color: var(--gray-500);"></i> Recent Activity</h2>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <table class="table">
+          <tbody>
+            <% recentActivity.forEach(log => { %>
+            <tr>
+              <td style="width: 36px;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center;">
+                  <i class="fas fa-<%= log.action === 'create' ? 'plus' : log.action === 'update' ? 'pen' : log.action === 'delete' ? 'trash' : 'circle' %>" style="font-size: 12px; color: var(--gray-500);"></i>
+                </div>
+              </td>
+              <td>
+                <strong><%= log.first_name || 'System' %></strong>
+                <span style="color: var(--gray-500);"><%= log.action %></span>
+                <span><%= log.entity_type %></span>
+              </td>
+              <td style="text-align: right; white-space: nowrap;">
+                <small style="color: var(--gray-500);"><%= new Date(log.created_at).toLocaleString() %></small>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
   </div>
 </main>
 

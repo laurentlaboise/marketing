@@ -1,0 +1,109 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <nav class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>Microsites</span>
+    </nav>
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Microsites</h1>
+        <p class="page-subtitle">Manage your web properties and landing pages</p>
+      </div>
+      <div class="page-actions">
+        <a href="/webdev/microsites/new" class="btn btn-primary">
+          <i class="fas fa-plus"></i> New Microsite
+        </a>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-body" style="padding: 16px;">
+        <form method="GET" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <div class="filter-group">
+            <select name="status" class="form-input" style="width: auto;" onchange="this.form.submit()">
+              <option value="all" <%= filter.status === 'all' ? 'selected' : '' %>>All Status</option>
+              <option value="draft" <%= filter.status === 'draft' ? 'selected' : '' %>>Draft</option>
+              <option value="active" <%= filter.status === 'active' ? 'selected' : '' %>>Active</option>
+              <option value="suspended" <%= filter.status === 'suspended' ? 'selected' : '' %>>Suspended</option>
+              <option value="archived" <%= filter.status === 'archived' ? 'selected' : '' %>>Archived</option>
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <input type="text" name="search" class="form-input" placeholder="Search microsites..." value="<%= filter.search %>" style="margin: 0;">
+          </div>
+          <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-search"></i> Search</button>
+        </form>
+      </div>
+    </div>
+
+    <% if (microsites.length > 0) { %>
+    <div class="microsite-grid">
+      <% microsites.forEach(site => { %>
+      <div class="microsite-card">
+        <div class="microsite-card-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="microsite-icon" style="background: <%= site.deploy_platform && platforms[site.deploy_platform] ? platforms[site.deploy_platform].color : 'var(--primary)' %>;">
+              <i class="fas <%= site.deploy_platform && platforms[site.deploy_platform] ? platforms[site.deploy_platform].icon : 'fa-globe' %>"></i>
+            </div>
+            <div>
+              <h3 class="microsite-name"><a href="/webdev/microsites/<%= site.id %>"><%= site.name %></a></h3>
+              <% if (site.primary_domain) { %>
+              <a href="https://<%= site.primary_domain %>" target="_blank" class="microsite-domain"><%= site.primary_domain %> <i class="fas fa-external-link-alt" style="font-size: 10px;"></i></a>
+              <% } else { %>
+              <span class="microsite-domain" style="color: var(--gray-400);">No domain set</span>
+              <% } %>
+            </div>
+          </div>
+          <span class="status-badge <%= site.status %>"><%= site.status %></span>
+        </div>
+
+        <% if (site.description) { %>
+        <p class="microsite-desc"><%= site.description.substring(0, 120) %><%= site.description.length > 120 ? '...' : '' %></p>
+        <% } %>
+
+        <div class="microsite-meta">
+          <span><i class="fas fa-globe"></i> <%= site.domain_count || 0 %> domain<%= (site.domain_count || 0) !== 1 ? 's' : '' %></span>
+          <span><i class="fas fa-rocket"></i> <%= site.deployment_count || 0 %> deploy<%= (site.deployment_count || 0) !== 1 ? 's' : '' %></span>
+          <% if (site.purpose) { %>
+          <span><i class="fas fa-tag"></i> <%= site.purpose %></span>
+          <% } %>
+        </div>
+
+        <div class="microsite-footer">
+          <% if (site.last_deployed_at) { %>
+          <span class="deploy-status <%= site.last_deploy_status || 'pending' %>">
+            <i class="fas fa-<%= site.last_deploy_status === 'success' ? 'check-circle' : site.last_deploy_status === 'failed' ? 'times-circle' : 'clock' %>"></i>
+            Last deployed <%= new Date(site.last_deployed_at).toLocaleDateString() %>
+          </span>
+          <% } else { %>
+          <span style="font-size: 12px; color: var(--gray-400);">Never deployed</span>
+          <% } %>
+          <div class="microsite-actions">
+            <a href="/webdev/microsites/<%= site.id %>" class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i></a>
+            <a href="/webdev/microsites/<%= site.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-pen"></i></a>
+          </div>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } else { %>
+    <div class="empty-state">
+      <i class="fas fa-globe"></i>
+      <h3>No microsites yet</h3>
+      <p>Create your first microsite to start managing web properties</p>
+      <a href="/webdev/microsites/new" class="btn btn-primary"><i class="fas fa-plus"></i> Create Microsite</a>
+    </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

@@ -1,0 +1,484 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <nav class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <i class="fas fa-chevron-right"></i>
+      <a href="/webdev/microsites">Microsites</a>
+      <i class="fas fa-chevron-right"></i>
+      <span><%= microsite.name %></span>
+    </nav>
+
+    <div class="page-header">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div class="microsite-icon-lg" style="background: <%= microsite.deploy_platform && platforms[microsite.deploy_platform] ? platforms[microsite.deploy_platform].color : 'var(--primary)' %>;">
+          <i class="fas <%= microsite.deploy_platform && platforms[microsite.deploy_platform] ? platforms[microsite.deploy_platform].icon : 'fa-globe' %>"></i>
+        </div>
+        <div>
+          <h1 class="page-title"><%= microsite.name %></h1>
+          <p class="page-subtitle">
+            <% if (microsite.primary_domain) { %>
+            <a href="https://<%= microsite.primary_domain %>" target="_blank" style="color: var(--primary);"><%= microsite.primary_domain %> <i class="fas fa-external-link-alt" style="font-size: 11px;"></i></a>
+            <% } %>
+            <span class="status-badge <%= microsite.status %>" style="margin-left: 8px;"><%= microsite.status %></span>
+          </p>
+        </div>
+      </div>
+      <div class="page-actions">
+        <a href="/webdev/microsites/<%= microsite.id %>/edit" class="btn btn-secondary">
+          <i class="fas fa-pen"></i> Edit
+        </a>
+        <% if (microsite.deploy_url) { %>
+        <a href="<%= microsite.deploy_url %>" target="_blank" class="btn btn-secondary">
+          <i class="fas fa-external-link-alt"></i> Visit
+        </a>
+        <% } %>
+        <form action="/webdev/microsites/<%= microsite.id %>/deploy" method="POST" style="display: inline;">
+          <input type="hidden" name="commit_message" value="Manual deploy from admin">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-rocket"></i> Deploy
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="detail-tabs">
+      <a href="?tab=overview" class="detail-tab <%= tab === 'overview' ? 'active' : '' %>">
+        <i class="fas fa-home"></i> Overview
+      </a>
+      <a href="?tab=domains" class="detail-tab <%= tab === 'domains' ? 'active' : '' %>">
+        <i class="fas fa-globe"></i> Domains <span class="tab-count"><%= domains.length %></span>
+      </a>
+      <a href="?tab=seo" class="detail-tab <%= tab === 'seo' ? 'active' : '' %>">
+        <i class="fas fa-search"></i> SEO
+      </a>
+      <a href="?tab=deployments" class="detail-tab <%= tab === 'deployments' ? 'active' : '' %>">
+        <i class="fas fa-rocket"></i> Deployments <span class="tab-count"><%= deployments.length %></span>
+      </a>
+      <a href="?tab=settings" class="detail-tab <%= tab === 'settings' ? 'active' : '' %>">
+        <i class="fas fa-cog"></i> Settings
+      </a>
+    </div>
+
+    <!-- Tab Content -->
+
+    <% if (tab === 'overview') { %>
+    <!-- OVERVIEW TAB -->
+    <div class="detail-stats">
+      <div class="detail-stat-card">
+        <div class="detail-stat-icon" style="background: var(--primary);">
+          <i class="fas fa-globe"></i>
+        </div>
+        <div>
+          <h4><%= domains.length %></h4>
+          <p>Domains</p>
+        </div>
+      </div>
+      <div class="detail-stat-card">
+        <div class="detail-stat-icon" style="background: var(--success);">
+          <i class="fas fa-rocket"></i>
+        </div>
+        <div>
+          <h4><%= deployments.length %></h4>
+          <p>Deployments</p>
+        </div>
+      </div>
+      <div class="detail-stat-card">
+        <div class="detail-stat-icon" style="background: var(--info);">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <div>
+          <h4><%= microsite.ssl_status || 'Unknown' %></h4>
+          <p>SSL Status</p>
+        </div>
+      </div>
+      <div class="detail-stat-card">
+        <div class="detail-stat-icon" style="background: var(--warning);">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div>
+          <h4><%= microsite.last_deployed_at ? new Date(microsite.last_deployed_at).toLocaleDateString() : 'Never' %></h4>
+          <p>Last Deploy</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Site Details</h2>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <table class="table">
+            <tbody>
+              <tr><td style="font-weight: 600; width: 160px;">Purpose</td><td><span class="status-badge"><%= microsite.purpose || 'N/A' %></span></td></tr>
+              <tr><td style="font-weight: 600;">Template</td><td><%= microsite.template || 'N/A' %></td></tr>
+              <tr><td style="font-weight: 600;">Primary Domain</td><td><%= microsite.primary_domain || 'Not set' %></td></tr>
+              <tr><td style="font-weight: 600;">Platform</td><td><%= microsite.deploy_platform && platforms[microsite.deploy_platform] ? platforms[microsite.deploy_platform].name : 'Not set' %></td></tr>
+              <tr><td style="font-weight: 600;">GitHub Repo</td><td><% if (microsite.github_repo) { %><a href="https://github.com/<%= microsite.github_repo %>" target="_blank"><%= microsite.github_repo %></a><% } else { %>Not connected<% } %></td></tr>
+              <tr><td style="font-weight: 600;">Branch</td><td><code><%= microsite.github_branch || 'main' %></code></td></tr>
+              <tr><td style="font-weight: 600;">Analytics</td><td><%= microsite.analytics_id || 'Not configured' %></td></tr>
+              <tr><td style="font-weight: 600;">Created</td><td><%= new Date(microsite.created_at).toLocaleDateString() %></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Recent Deployments</h2>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <% if (deployments.length > 0) { %>
+            <table class="table">
+              <tbody>
+                <% deployments.slice(0, 5).forEach(d => { %>
+                <tr>
+                  <td>
+                    <span class="deploy-dot <%= d.status %>"></span>
+                    <%= d.commit_message ? d.commit_message.substring(0, 40) : 'Deployment' %>
+                  </td>
+                  <td style="text-align: right; white-space: nowrap;">
+                    <small style="color: var(--gray-500);"><%= new Date(d.created_at).toLocaleDateString() %></small>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            <% } else { %>
+            <div style="padding: 24px; text-align: center; color: var(--gray-400);">
+              <i class="fas fa-rocket" style="font-size: 24px; margin-bottom: 8px;"></i>
+              <p>No deployments yet</p>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+        <% if (microsite.description) { %>
+        <div class="card" style="margin-top: 20px;">
+          <div class="card-header">
+            <h2 class="card-title">Description</h2>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--gray-600); line-height: 1.6;"><%= microsite.description %></p>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <% } else if (tab === 'domains') { %>
+    <!-- DOMAINS TAB -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Add Domain</h2>
+      </div>
+      <div class="card-body">
+        <form action="/webdev/microsites/<%= microsite.id %>/domains" method="POST" style="display: flex; gap: 12px; align-items: flex-end;">
+          <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label class="form-label">Domain</label>
+            <input type="text" name="domain" class="form-input" placeholder="subdomain.example.com" required>
+          </div>
+          <div class="form-group" style="width: 160px; margin-bottom: 0;">
+            <label class="form-label">Type</label>
+            <select name="type" class="form-input">
+              <option value="secondary">Secondary</option>
+              <option value="redirect">Redirect</option>
+              <option value="staging">Staging</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="height: 42px;">
+            <i class="fas fa-plus"></i> Add
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-header">
+        <h2 class="card-title">Connected Domains</h2>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <% if (domains.length > 0) { %>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Domain</th>
+              <th>Type</th>
+              <th>DNS</th>
+              <th>SSL</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% domains.forEach(d => { %>
+            <tr>
+              <td>
+                <a href="https://<%= d.domain %>" target="_blank" style="font-weight: 500;">
+                  <%= d.domain %> <i class="fas fa-external-link-alt" style="font-size: 10px;"></i>
+                </a>
+              </td>
+              <td><span class="status-badge"><%= d.type %></span></td>
+              <td>
+                <span style="color: var(<%= d.dns_verified ? '--success' : '--warning' %>);">
+                  <i class="fas fa-<%= d.dns_verified ? 'check-circle' : 'exclamation-triangle' %>"></i>
+                  <%= d.dns_verified ? 'Verified' : 'Pending' %>
+                </span>
+              </td>
+              <td>
+                <span class="status-badge <%= d.ssl_status %>"><%= d.ssl_status %></span>
+              </td>
+              <td style="text-align: right;">
+                <form action="/webdev/microsites/<%= microsite.id %>/domains/<%= d.id %>/verify" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-sm btn-secondary" title="Toggle DNS verification">
+                    <i class="fas fa-check"></i>
+                  </button>
+                </form>
+                <form action="/webdev/microsites/<%= microsite.id %>/domains/<%= d.id %>/delete" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-sm btn-danger" title="Remove domain">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <div style="padding: 40px; text-align: center; color: var(--gray-400);">
+          <i class="fas fa-globe" style="font-size: 32px; margin-bottom: 12px;"></i>
+          <p>No domains connected yet</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <% } else if (tab === 'seo') { %>
+    <!-- SEO TAB -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-search"></i> Meta Tags</h2>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <td style="font-weight: 600; width: 140px;">Title</td>
+                  <td><%= microsite.seo_title || '<span style="color: var(--gray-400);">Not set</span>' %></td>
+                </tr>
+                <tr>
+                  <td style="font-weight: 600;">Description</td>
+                  <td><%= microsite.seo_description || '<span style="color: var(--gray-400);">Not set</span>' %></td>
+                </tr>
+                <tr>
+                  <td style="font-weight: 600;">Keywords</td>
+                  <td>
+                    <% if (microsite.seo_keywords && microsite.seo_keywords.length > 0) { %>
+                    <% microsite.seo_keywords.forEach(k => { %>
+                    <span class="keyword-chip"><%= k %></span>
+                    <% }); %>
+                    <% } else { %>
+                    <span style="color: var(--gray-400);">Not set</span>
+                    <% } %>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-share-square"></i> Open Graph</h2>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <table class="table">
+              <tbody>
+                <tr><td style="font-weight: 600; width: 140px;">OG Title</td><td><%= microsite.og_title || 'Not set' %></td></tr>
+                <tr><td style="font-weight: 600;">OG Description</td><td><%= microsite.og_description || 'Not set' %></td></tr>
+                <tr><td style="font-weight: 600;">OG Image</td><td><%= microsite.og_image ? '<a href="' + microsite.og_image + '" target="_blank">View image</a>' : 'Not set' %></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <!-- SEO Score Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-tachometer-alt"></i> SEO Health</h2>
+          </div>
+          <div class="card-body">
+            <%
+              let seoScore = 0;
+              const seoChecks = [];
+              if (microsite.seo_title) { seoScore += 20; seoChecks.push({pass: true, label: 'SEO title set'}); } else { seoChecks.push({pass: false, label: 'Missing SEO title'}); }
+              if (microsite.seo_description) { seoScore += 20; seoChecks.push({pass: true, label: 'Meta description set'}); } else { seoChecks.push({pass: false, label: 'Missing meta description'}); }
+              if (microsite.seo_keywords && microsite.seo_keywords.length > 0) { seoScore += 15; seoChecks.push({pass: true, label: 'Keywords defined'}); } else { seoChecks.push({pass: false, label: 'No keywords'}); }
+              if (microsite.og_title && microsite.og_image) { seoScore += 15; seoChecks.push({pass: true, label: 'Open Graph configured'}); } else { seoChecks.push({pass: false, label: 'Incomplete Open Graph'}); }
+              if (microsite.analytics_id) { seoScore += 15; seoChecks.push({pass: true, label: 'Analytics connected'}); } else { seoChecks.push({pass: false, label: 'No analytics'}); }
+              if (microsite.sitemap_url) { seoScore += 15; seoChecks.push({pass: true, label: 'Sitemap configured'}); } else { seoChecks.push({pass: false, label: 'No sitemap'}); }
+            %>
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div class="seo-score-ring <%= seoScore >= 80 ? 'good' : seoScore >= 50 ? 'ok' : 'poor' %>" style="width: 80px; height: 80px; margin: 0 auto 12px;">
+                <span style="font-size: 24px;"><%= seoScore %></span>
+              </div>
+              <p style="font-weight: 600; color: var(<%= seoScore >= 80 ? '--success' : seoScore >= 50 ? '--warning' : '--danger' %>);">
+                <%= seoScore >= 80 ? 'Good' : seoScore >= 50 ? 'Needs Work' : 'Poor' %>
+              </p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <% seoChecks.forEach(c => { %>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                <i class="fas fa-<%= c.pass ? 'check-circle' : 'times-circle' %>" style="color: var(<%= c.pass ? '--success' : '--danger' %>);"></i>
+                <span><%= c.label %></span>
+              </div>
+              <% }); %>
+            </div>
+            <a href="/webdev/microsites/<%= microsite.id %>/edit" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 16px;">
+              <i class="fas fa-pen"></i> Edit SEO Settings
+            </a>
+          </div>
+        </div>
+
+        <% if (microsite.og_image) { %>
+        <div class="card" style="margin-top: 20px;">
+          <div class="card-header">
+            <h2 class="card-title">OG Image Preview</h2>
+          </div>
+          <div class="card-body" style="text-align: center; background: var(--gray-50);">
+            <img src="<%= microsite.og_image %>" alt="OG Preview" style="max-width: 100%; border-radius: var(--radius);">
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <% } else if (tab === 'deployments') { %>
+    <!-- DEPLOYMENTS TAB -->
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-body">
+        <form action="/webdev/microsites/<%= microsite.id %>/deploy" method="POST" style="display: flex; gap: 12px; align-items: flex-end;">
+          <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label class="form-label">Deployment Note</label>
+            <input type="text" name="commit_message" class="form-input" placeholder="What's being deployed?" value="">
+          </div>
+          <button type="submit" class="btn btn-primary" style="height: 42px;">
+            <i class="fas fa-rocket"></i> Log Deployment
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Deployment History</h2>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <% if (deployments.length > 0) { %>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Message</th>
+              <th>Trigger</th>
+              <th>Deployed By</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% deployments.forEach(d => { %>
+            <tr>
+              <td>
+                <span class="status-badge <%= d.status %>">
+                  <i class="fas fa-<%= d.status === 'success' ? 'check' : d.status === 'failed' ? 'times' : d.status === 'building' ? 'spinner fa-spin' : 'clock' %>"></i>
+                  <%= d.status %>
+                </span>
+              </td>
+              <td><%= d.commit_message || 'No message' %></td>
+              <td><span class="status-badge"><%= d.trigger %></span></td>
+              <td><%= d.first_name ? d.first_name + ' ' + (d.last_name || '') : 'System' %></td>
+              <td style="white-space: nowrap;"><%= new Date(d.created_at).toLocaleString() %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <div style="padding: 40px; text-align: center; color: var(--gray-400);">
+          <i class="fas fa-rocket" style="font-size: 32px; margin-bottom: 12px;"></i>
+          <p>No deployment history</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <% } else if (tab === 'settings') { %>
+    <!-- SETTINGS TAB -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><i class="fas fa-robot"></i> robots.txt</h2>
+        </div>
+        <div class="card-body">
+          <form action="/webdev/microsites/<%= microsite.id %>" method="POST">
+            <input type="hidden" name="name" value="<%= microsite.name %>">
+            <input type="hidden" name="status" value="<%= microsite.status %>">
+            <div class="form-group">
+              <textarea name="robots_txt" class="form-input" rows="8" style="font-family: monospace; font-size: 13px;" placeholder="User-agent: *
+Allow: /
+Sitemap: https://example.com/sitemap.xml"><%= microsite.robots_txt || '' %></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="fas fa-save"></i> Save
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-info-circle"></i> Site Info</h2>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <table class="table">
+              <tbody>
+                <tr><td style="font-weight: 600;">ID</td><td><code style="font-size: 11px;"><%= microsite.id %></code></td></tr>
+                <tr><td style="font-weight: 600;">Slug</td><td><%= microsite.slug %></td></tr>
+                <tr><td style="font-weight: 600;">Created</td><td><%= new Date(microsite.created_at).toLocaleString() %></td></tr>
+                <tr><td style="font-weight: 600;">Updated</td><td><%= new Date(microsite.updated_at).toLocaleString() %></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px; border: 1px solid var(--danger);">
+          <div class="card-body" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <p style="font-weight: 600; color: var(--danger);">Delete Microsite</p>
+              <p class="form-help">This will permanently remove the microsite and all associated data.</p>
+            </div>
+            <form action="/webdev/microsites/<%= microsite.id %>/delete" method="POST">
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure? This cannot be undone.')">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>
