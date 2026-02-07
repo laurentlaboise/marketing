@@ -7,6 +7,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
 
 const router = express.Router();
 router.use(ensureAuthenticated);
@@ -27,11 +28,32 @@ const CDN_CONFIG = {
 
 function buildCdnUrl(filePath) {
   const clean = filePath.replace(/^\/+/, '');
-  return `${CDN_CONFIG.baseUrl}/${CDN_CONFIG.user}/${CDN_CONFIG.repo}@${CDN_CONFIG.branch}/${clean}`;
+  // Encode each path segment to handle spaces and special chars in filenames
+  const encoded = clean.split('/').map(segment => encodeURIComponent(segment)).join('/');
+  return `${CDN_CONFIG.baseUrl}/${CDN_CONFIG.user}/${CDN_CONFIG.repo}@${CDN_CONFIG.branch}/${encoded}`;
 }
 
 // Image directory in the main marketing repo
 const IMAGES_DIR = path.resolve(__dirname, '../../../images');
+const UPLOAD_TEMP_DIR = path.resolve(__dirname, '../../uploads/temp');
+
+// Validate a resolved path stays within an allowed parent directory (prevents path traversal)
+function assertPathWithin(filePath, parentDir) {
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(parentDir + path.sep) && resolved !== parentDir) {
+    throw new Error('Invalid file path');
+  }
+  return resolved;
+}
+
+// Safely remove a temp upload file after validating its path
+function cleanupTempFile(filePath) {
+  if (!filePath) return;
+  const resolved = path.resolve(filePath);
+  if (resolved.startsWith(UPLOAD_TEMP_DIR + path.sep) && fs.existsSync(resolved)) {
+    fs.unlinkSync(resolved);
+  }
+}
 
 // Multer config for temp uploads
 const upload = multer({
@@ -76,6 +98,96 @@ function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// ==================== GITHUB API ====================
+
+// Get the SHA of an existing file in the repo (needed to update/replace it)
+function getGitHubFileSha(repoPath) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return Promise.resolve(null);
+
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/contents/${repoPath}?ref=${CDN_CONFIG.branch}`,
+      method: 'GET',
+      headers: {
+        'Authorization': `token ${token}`,
+        'User-Agent': 'WTS-Admin-ImageLibrary',
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          try {
+            resolve(JSON.parse(data).sha);
+          } catch (e) { resolve(null); }
+        } else {
+          resolve(null);
+        }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.end();
+  });
+}
+
+// Push a file to the GitHub repo so it's available on the CDN
+// Pass sha to update an existing file (required by GitHub API for replacements)
+async function pushToGitHub(repoPath, fileBuffer, commitMessage, sha) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.warn('GITHUB_TOKEN not set - image will not be pushed to repo/CDN');
+    return { pushed: false, reason: 'no_token' };
+  }
+
+  const content = fileBuffer.toString('base64');
+
+  const payload = {
+    message: commitMessage,
+    content,
+    branch: CDN_CONFIG.branch,
+  };
+  if (sha) payload.sha = sha;
+
+  const body = JSON.stringify(payload);
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/contents/${repoPath}`,
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'User-Agent': 'WTS-Admin-ImageLibrary',
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 201 || res.statusCode === 200) {
+          resolve({ pushed: true });
+        } else {
+          console.error('GitHub API error:', res.statusCode, data.substring(0, 500));
+          resolve({ pushed: false, reason: `github_${res.statusCode}`, details: data.substring(0, 200) });
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      console.error('GitHub API request error:', err.message);
+      resolve({ pushed: false, reason: 'network_error', details: err.message });
+    });
+
+    req.write(body);
+    req.end();
+  });
 }
 
 // ==================== IMAGE LIBRARY ====================
@@ -171,10 +283,19 @@ router.post('/sync', async (req, res) => {
 
     const imageFiles = scanDir(IMAGES_DIR, 'images');
 
+    let updated = 0;
     for (const file of imageFiles) {
       // Check if already tracked
-      const existing = await db.query('SELECT id FROM images WHERE file_path = $1', [file.relPath]);
-      if (existing.rows.length > 0) continue;
+      const existing = await db.query('SELECT id, cdn_url FROM images WHERE file_path = $1', [file.relPath]);
+      if (existing.rows.length > 0) {
+        // Update CDN URL if it has unencoded spaces or is missing
+        const correctCdnUrl = buildCdnUrl(file.relPath);
+        if (existing.rows[0].cdn_url !== correctCdnUrl) {
+          await db.query('UPDATE images SET cdn_url = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [correctCdnUrl, existing.rows[0].id]);
+          updated++;
+        }
+        continue;
+      }
 
       const stats = fs.statSync(file.fullPath);
       let width = null;
@@ -211,7 +332,7 @@ router.post('/sync', async (req, res) => {
       synced++;
     }
 
-    req.session.successMessage = `Synced ${synced} new image${synced !== 1 ? 's' : ''} from filesystem`;
+    req.session.successMessage = `Synced ${synced} new image${synced !== 1 ? 's' : ''}, updated ${updated} CDN URL${updated !== 1 ? 's' : ''}`;
     res.redirect('/images');
   } catch (error) {
     console.error('Image sync error:', error);
@@ -225,6 +346,7 @@ router.get('/upload', (req, res) => {
   res.render('images/upload', {
     title: 'Upload Image - WTS Admin',
     currentPage: 'images',
+    githubConfigured: !!process.env.GITHUB_TOKEN,
   });
 });
 
@@ -290,13 +412,17 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       mimeType = 'image/webp';
     }
 
-    // Clean up temp file
-    fs.unlinkSync(req.file.path);
+    // Clean up temp file (validated path)
+    cleanupTempFile(req.file.path);
 
     // Build paths
     const relPath = catDir ? `images/${catDir}/${finalFilename}` : `images/${finalFilename}`;
     const cdnUrl = buildCdnUrl(relPath);
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+    // Push to GitHub so the image is available on the CDN
+    const fileBuffer = fs.readFileSync(finalPath);
+    const ghResult = await pushToGitHub(relPath, fileBuffer, `Upload image: ${finalFilename}`);
 
     // Save to database
     const result = await db.query(
@@ -306,14 +432,20 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       [req.file.originalname, finalFilename, relPath, fileSize, mimeType, width, height, alt_text || '', title || '', description || '', category || 'general', tagsArray, cdnUrl, req.user.id]
     );
 
-    req.session.successMessage = `Image uploaded successfully${optimize === 'on' && !isSvg ? ' (optimized to WebP)' : ''}`;
+    let msg = `Image uploaded successfully${optimize === 'on' && !isSvg ? ' (optimized to WebP)' : ''}`;
+    if (ghResult.pushed) {
+      msg += ' and pushed to GitHub CDN';
+    } else if (ghResult.reason === 'no_token') {
+      msg += '. Warning: GITHUB_TOKEN not configured - image is stored locally only and will not appear on CDN.';
+    } else {
+      msg += `. Warning: Failed to push to GitHub (${ghResult.reason}) - image may not appear on CDN.`;
+    }
+    req.session.successMessage = msg;
     res.redirect('/images/' + result.rows[0].id);
   } catch (error) {
     console.error('Upload error:', error);
-    // Clean up temp file on error
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
+    // Clean up temp file on error (validated path)
+    if (req.file) cleanupTempFile(req.file.path);
     req.session.errorMessage = 'Upload failed: ' + error.message;
     res.redirect('/images/upload');
   }
@@ -412,6 +544,143 @@ router.post('/:id/rename', async (req, res) => {
   }
 });
 
+// Re-upload / replace image file
+router.post('/:id/reupload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      req.session.errorMessage = 'No image file selected';
+      return res.redirect('/images/' + req.params.id);
+    }
+
+    const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      req.session.errorMessage = 'Image not found';
+      return res.redirect('/images');
+    }
+
+    const image = result.rows[0];
+    const optimize = req.body.optimize === 'on';
+    const isSvg = /\.svg$/i.test(req.file.originalname);
+
+    // Keep the same filename and path - just replace the file content
+    const ext = path.extname(image.filename);
+    let finalPath, fileSize, width, height, mimeType;
+
+    // Determine where the file should go (validate paths to prevent traversal)
+    const fullPath = assertPathWithin(path.resolve(__dirname, '../../../', image.file_path), IMAGES_DIR);
+    assertPathWithin(req.file.path, UPLOAD_TEMP_DIR);
+    const destDir = path.dirname(fullPath);
+    if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+
+    if (isSvg || !optimize) {
+      // Save as-is
+      fs.copyFileSync(req.file.path, fullPath);
+      fileSize = fs.statSync(fullPath).size;
+      mimeType = req.file.mimetype;
+
+      if (!isSvg) {
+        try {
+          const meta = await sharp(fullPath).metadata();
+          width = meta.width;
+          height = meta.height;
+        } catch (e) { /* ignore */ }
+      }
+    } else {
+      // If the existing file is WebP, optimize to WebP
+      // If it's a different format, convert to WebP and update the filename/path
+      const isWebp = ext.toLowerCase() === '.webp';
+
+      if (isWebp) {
+        // Replace in-place as WebP
+        const sharpInstance = sharp(req.file.path);
+        const meta = await sharpInstance.metadata();
+        let resizeOpts = {};
+        if (meta.width > 2400 || meta.height > 2400) {
+          resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
+        }
+        await sharpInstance.resize(resizeOpts).webp({ quality: 82 }).toFile(fullPath);
+        const optimizedMeta = await sharp(fullPath).metadata();
+        width = optimizedMeta.width;
+        height = optimizedMeta.height;
+        fileSize = fs.statSync(fullPath).size;
+        mimeType = 'image/webp';
+      } else {
+        // Convert to WebP - update filename and path
+        const baseName = path.basename(image.filename, ext);
+        const newFilename = baseName + '.webp';
+        const dir = path.dirname(image.file_path);
+        const newRelPath = path.join(dir, newFilename);
+        const newFullPath = assertPathWithin(path.resolve(__dirname, '../../../', newRelPath), IMAGES_DIR);
+
+        const sharpInstance = sharp(req.file.path);
+        const meta = await sharpInstance.metadata();
+        let resizeOpts = {};
+        if (meta.width > 2400 || meta.height > 2400) {
+          resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
+        }
+        await sharpInstance.resize(resizeOpts).webp({ quality: 82 }).toFile(newFullPath);
+        const optimizedMeta = await sharp(newFullPath).metadata();
+        width = optimizedMeta.width;
+        height = optimizedMeta.height;
+        fileSize = fs.statSync(newFullPath).size;
+        mimeType = 'image/webp';
+
+        // Update DB with new filename/path
+        const newCdnUrl = buildCdnUrl(newRelPath);
+        await db.query(
+          `UPDATE images SET filename = $1, file_path = $2, cdn_url = $3 WHERE id = $4`,
+          [newFilename, newRelPath, newCdnUrl, req.params.id]
+        );
+
+        // Push new file to GitHub
+        const fileBuffer = fs.readFileSync(newFullPath);
+        const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Re-upload image: ${newFilename}`);
+
+        // Clean up temp file (validated path)
+        cleanupTempFile(req.file.path);
+
+        // Update file metadata in DB
+        await db.query(
+          `UPDATE images SET file_size = $1, mime_type = $2, width = $3, height = $4, original_filename = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6`,
+          [fileSize, mimeType, width, height, req.file.originalname, req.params.id]
+        );
+
+        let msg = 'Image replaced successfully (converted to WebP)';
+        if (ghResult.pushed) msg += ' and pushed to CDN';
+        else if (ghResult.reason === 'no_token') msg += '. Warning: not pushed to CDN (no GITHUB_TOKEN)';
+        req.session.successMessage = msg;
+        return res.redirect('/images/' + req.params.id);
+      }
+    }
+
+    // Clean up temp file (validated path)
+    cleanupTempFile(req.file.path);
+
+    // Push to GitHub (get existing SHA first for update)
+    const sha = await getGitHubFileSha(image.file_path);
+    const fileBuffer = fs.readFileSync(fullPath);
+    const ghResult = await pushToGitHub(image.file_path, fileBuffer, `Re-upload image: ${image.filename}`, sha);
+
+    // Update file metadata in DB (keep all SEO fields)
+    await db.query(
+      `UPDATE images SET file_size = $1, mime_type = $2, width = $3, height = $4, original_filename = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6`,
+      [fileSize, mimeType, width, height, req.file.originalname, req.params.id]
+    );
+
+    let msg = 'Image replaced successfully';
+    if (ghResult.pushed) msg += ' and pushed to CDN';
+    else if (ghResult.reason === 'no_token') msg += '. Warning: not pushed to CDN (no GITHUB_TOKEN)';
+    else msg += `. Warning: CDN push failed (${ghResult.reason})`;
+    req.session.successMessage = msg;
+    res.redirect('/images/' + req.params.id);
+  } catch (error) {
+    console.error('Re-upload error:', error);
+    if (req.file) cleanupTempFile(req.file.path);
+    req.session.errorMessage = 'Re-upload failed: ' + error.message;
+    res.redirect('/images/' + req.params.id);
+  }
+});
+
 // Download image
 router.get('/:id/download', async (req, res) => {
   try {
@@ -423,11 +692,17 @@ router.get('/:id/download', async (req, res) => {
     const image = result.rows[0];
     const fullPath = path.resolve(__dirname, '../../../', image.file_path);
 
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).send('File not found on disk');
+    // Try local file first, fall back to CDN redirect
+    if (fs.existsSync(fullPath)) {
+      return res.download(fullPath, image.filename);
     }
 
-    res.download(fullPath, image.filename);
+    // Local file missing (Railway ephemeral storage) - redirect to CDN
+    if (image.cdn_url) {
+      return res.redirect(image.cdn_url);
+    }
+
+    res.status(404).send('File not found on disk and no CDN URL available');
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).send('Download failed');
