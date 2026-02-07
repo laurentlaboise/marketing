@@ -1,0 +1,195 @@
+<!--
+  jsDelivr CDN Image SEO Templates for wordsthatsells.website
+  ============================================================
+  Copy and adapt these patterns when adding images to any page.
+  All examples use the jsDelivr CDN base URL for laurentlaboise/marketing.
+
+  CDN Base: https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/
+-->
+
+<!-- ============================================================
+     TEMPLATE 1: Hero Image (Above the Fold - No Lazy Load)
+     Place in <head> for preload, then use <img> in <body>
+     ============================================================ -->
+
+<!-- In <head>: preconnect + preload -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="preload"
+      fetchpriority="high"
+      as="image"
+      type="image/webp"
+      href="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/hero/YOUR-IMAGE.webp">
+
+<!-- In <body>: hero image -->
+<img
+    src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/hero/YOUR-IMAGE.webp"
+    alt="[Descriptive text with target keywords - 125 chars max recommended]"
+    title="[Short title for tooltip and additional SEO signal]"
+    width="2070"
+    height="1380"
+    fetchpriority="high"
+    decoding="async">
+
+
+<!-- ============================================================
+     TEMPLATE 2: Content Image (Below the Fold - Lazy Loaded)
+     ============================================================ -->
+
+<img
+    src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/portfolio/YOUR-IMAGE.webp"
+    alt="[Descriptive alt text with keywords relevant to surrounding content]"
+    title="[Service Name] - [Brief Description] by WordsThatSells"
+    width="2070"
+    height="1380"
+    loading="lazy"
+    decoding="async"
+    onerror="this.onerror=null;this.src='https://placehold.co/2070x1380/eeeeee/333333?text=Image+Loading';">
+
+
+<!-- ============================================================
+     TEMPLATE 3: Semantic Figure with Microdata (AI Search Optimized)
+     Use this for portfolio items, case studies, and feature images.
+     AI crawlers (GPTBot, PerplexityBot) extract meaning from
+     structured microdata and surrounding semantic HTML.
+     ============================================================ -->
+
+<figure itemscope itemtype="https://schema.org/ImageObject">
+    <img
+        itemprop="contentUrl"
+        src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/portfolio/YOUR-IMAGE.webp"
+        alt="[Detailed description including: what the image shows, the service it represents, and the business context]"
+        title="[Service Category] - [Client Type] Digital Marketing Campaign"
+        width="2070"
+        height="1380"
+        loading="lazy"
+        decoding="async">
+    <figcaption itemprop="description">
+        [Human-readable caption that provides context about the image.
+         AI search engines use this text to understand what the image represents
+         and how it relates to the page content.]
+    </figcaption>
+    <meta itemprop="name" content="[Image Title for Structured Data]">
+    <meta itemprop="width" content="2070">
+    <meta itemprop="height" content="1381">
+    <meta itemprop="encodingFormat" content="image/webp">
+</figure>
+
+
+<!-- ============================================================
+     TEMPLATE 4: Logo with Organization Microdata
+     ============================================================ -->
+
+<div itemscope itemtype="https://schema.org/Organization">
+    <img
+        itemprop="logo"
+        src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/logos/wts-logo-with-words-full-colour.svg"
+        alt="WordsThatSells.website - AI Digital Marketing Agency in Laos"
+        title="WordsThatSells.website Logo"
+        width="200"
+        height="50"
+        loading="lazy"
+        decoding="async">
+    <meta itemprop="name" content="WordsThatSells.website">
+    <meta itemprop="url" content="https://wordsthatsells.website">
+</div>
+
+
+<!-- ============================================================
+     TEMPLATE 5: Open Graph + Twitter Card Meta Tags
+     Place in <head> for social sharing and AI indexing
+     ============================================================ -->
+
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/og/YOUR-OG-IMAGE.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="[Same descriptive alt text as the img tag]">
+
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/og/YOUR-OG-IMAGE.jpg">
+<meta name="twitter:image:alt" content="[Same descriptive alt text as the img tag]">
+
+
+<!-- ============================================================
+     TEMPLATE 6: JSON-LD ImageObject for Structured Data
+     Add to the @graph array in existing <script type="application/ld+json">
+     This is what AI search engines (ChatGPT, Perplexity, SearchGPT) parse.
+     ============================================================ -->
+
+<!--
+Add this object inside your existing @graph array:
+
+{
+  "@type": "ImageObject",
+  "contentUrl": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/portfolio/YOUR-IMAGE.webp",
+  "url": "https://wordsthatsells.website/en/PAGE-URL",
+  "name": "[Descriptive image title with target keywords]",
+  "description": "[Detailed description of the image content, 1-2 sentences, including relevant business context and keywords]",
+  "width": 2070,
+  "height": 1380,
+  "encodingFormat": "image/webp",
+  "creator": {
+    "@type": "Organization",
+    "name": "WordsThatSells.website",
+    "url": "https://wordsthatsells.website"
+  },
+  "copyrightHolder": {
+    "@type": "Organization",
+    "name": "WordsThatSells.website"
+  },
+  "license": "https://wordsthatsells.website/en/company/legal/"
+}
+-->
+
+
+<!-- ============================================================
+     TEMPLATE 7: Article Featured Image with Full AI Optimization
+     For blog posts and articles loaded via the blog-backend API.
+     Combines microdata, semantic HTML, and contextual content.
+     ============================================================ -->
+
+<article itemscope itemtype="https://schema.org/Article">
+    <meta itemprop="headline" content="[Article Title]">
+    <meta itemprop="author" content="WordsThatSells.website">
+    <meta itemprop="datePublished" content="2026-01-15">
+
+    <figure itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+        <img
+            itemprop="contentUrl"
+            src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/articles/ARTICLE-SLUG.webp"
+            alt="[Article-specific descriptive alt text that includes the article topic and key visual elements]"
+            title="[Article Title] - Featured Image"
+            width="1200"
+            height="630"
+            loading="lazy"
+            decoding="async">
+        <figcaption itemprop="description">
+            [Caption that describes the image in context of the article.
+             This helps AI search engines connect the image to the article topic.]
+        </figcaption>
+        <meta itemprop="width" content="1200">
+        <meta itemprop="height" content="630">
+    </figure>
+
+    <div itemprop="articleBody">
+        <!-- Article content here -->
+    </div>
+</article>
+
+
+<!-- ============================================================
+     TEMPLATE 8: Versioned CDN URL Examples
+     Use tags for production, main for development
+     ============================================================ -->
+
+<!-- Development (updates within ~24 hours): -->
+<img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/portfolio/example.webp"
+     alt="Example image" width="800" height="600" loading="lazy" decoding="async">
+
+<!-- Production with tag (permanent cache, immutable): -->
+<img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@v1.0.0/images/portfolio/example.webp"
+     alt="Example image" width="800" height="600" loading="lazy" decoding="async">
+
+<!-- Pinned to commit (maximum cache reliability): -->
+<img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@81e625c/images/portfolio/example.webp"
+     alt="Example image" width="800" height="600" loading="lazy" decoding="async">
