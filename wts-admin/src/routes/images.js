@@ -7,6 +7,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
 
 const router = express.Router();
 router.use(ensureAuthenticated);
@@ -78,6 +79,59 @@ function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// ==================== GITHUB API ====================
+
+// Push a file to the GitHub repo so it's available on the CDN
+async function pushToGitHub(repoPath, fileBuffer, commitMessage) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.warn('GITHUB_TOKEN not set - image will not be pushed to repo/CDN');
+    return { pushed: false, reason: 'no_token' };
+  }
+
+  const content = fileBuffer.toString('base64');
+
+  const body = JSON.stringify({
+    message: commitMessage,
+    content,
+    branch: CDN_CONFIG.branch,
+  });
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/contents/${repoPath}`,
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'User-Agent': 'WTS-Admin-ImageLibrary',
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 201 || res.statusCode === 200) {
+          resolve({ pushed: true });
+        } else {
+          console.error('GitHub API error:', res.statusCode, data.substring(0, 500));
+          resolve({ pushed: false, reason: `github_${res.statusCode}`, details: data.substring(0, 200) });
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      console.error('GitHub API request error:', err.message);
+      resolve({ pushed: false, reason: 'network_error', details: err.message });
+    });
+
+    req.write(body);
+    req.end();
+  });
 }
 
 // ==================== IMAGE LIBRARY ====================
@@ -236,6 +290,7 @@ router.get('/upload', (req, res) => {
   res.render('images/upload', {
     title: 'Upload Image - WTS Admin',
     currentPage: 'images',
+    githubConfigured: !!process.env.GITHUB_TOKEN,
   });
 });
 
@@ -309,6 +364,10 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     const cdnUrl = buildCdnUrl(relPath);
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
 
+    // Push to GitHub so the image is available on the CDN
+    const fileBuffer = fs.readFileSync(finalPath);
+    const ghResult = await pushToGitHub(relPath, fileBuffer, `Upload image: ${finalFilename}`);
+
     // Save to database
     const result = await db.query(
       `INSERT INTO images (original_filename, filename, file_path, file_size, mime_type, width, height, alt_text, title, description, category, tags, cdn_url, uploaded_by)
@@ -317,7 +376,15 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       [req.file.originalname, finalFilename, relPath, fileSize, mimeType, width, height, alt_text || '', title || '', description || '', category || 'general', tagsArray, cdnUrl, req.user.id]
     );
 
-    req.session.successMessage = `Image uploaded successfully${optimize === 'on' && !isSvg ? ' (optimized to WebP)' : ''}`;
+    let msg = `Image uploaded successfully${optimize === 'on' && !isSvg ? ' (optimized to WebP)' : ''}`;
+    if (ghResult.pushed) {
+      msg += ' and pushed to GitHub CDN';
+    } else if (ghResult.reason === 'no_token') {
+      msg += '. Warning: GITHUB_TOKEN not configured - image is stored locally only and will not appear on CDN.';
+    } else {
+      msg += `. Warning: Failed to push to GitHub (${ghResult.reason}) - image may not appear on CDN.`;
+    }
+    req.session.successMessage = msg;
     res.redirect('/images/' + result.rows[0].id);
   } catch (error) {
     console.error('Upload error:', error);
@@ -434,11 +501,17 @@ router.get('/:id/download', async (req, res) => {
     const image = result.rows[0];
     const fullPath = path.resolve(__dirname, '../../../', image.file_path);
 
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).send('File not found on disk');
+    // Try local file first, fall back to CDN redirect
+    if (fs.existsSync(fullPath)) {
+      return res.download(fullPath, image.filename);
     }
 
-    res.download(fullPath, image.filename);
+    // Local file missing (Railway ephemeral storage) - redirect to CDN
+    if (image.cdn_url) {
+      return res.redirect(image.cdn_url);
+    }
+
+    res.status(404).send('File not found on disk and no CDN URL available');
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).send('Download failed');
