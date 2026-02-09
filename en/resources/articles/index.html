@@ -445,9 +445,38 @@
             padding: var(--spacing-md) var(--spacing-lg);
             border-bottom: 1px solid var(--color-border);
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: var(--spacing-md);
+            gap: var(--spacing-sm) var(--spacing-md);
+        }
+
+        .slide-in-published-btn {
+            order: -1;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs, 0.25rem);
+            padding: var(--spacing-xs, 0.25rem) var(--spacing-sm, 0.5rem);
+            font-size: var(--font-size-sm, 0.875rem);
+            font-weight: 600;
+            color: #ffffff;
+            background-color: var(--color-primary, #122a3f);
+            border: none;
+            border-radius: var(--border-radius, 0.375rem);
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            width: auto;
+            align-self: flex-start;
+        }
+
+        .slide-in-published-btn:hover {
+            background-color: var(--color-primary-dark, #0d1f2e);
+            transform: translateY(-1px);
+        }
+
+        .slide-in-published-btn i {
+            font-size: 0.75rem;
         }
 
         #slide-in-title {
@@ -853,6 +882,9 @@
     <div id="details-overlay"></div>
     <div id="details-slide-in">
         <div class="slide-in-header">
+            <a id="slide-in-published-link" target="_blank" rel="noopener noreferrer" class="slide-in-published-btn" style="display:none;" title="View Published Article">
+                <i class="fas fa-external-link-alt"></i> Read Full Article
+            </a>
             <h2 id="slide-in-title"></h2>
             <button id="slide-in-close"><i class="fas fa-times"></i></button>
         </div>
@@ -946,6 +978,7 @@
                 featured: article.featured || false,
                 sidebar_content: article.sidebar_content || article.content || '<p>Preview not available.</p>',
                 full_article_content: article.full_article_content || article.content || '<p>Content not available.</p>',
+                published_url: article.published_url || '',
                 // Link opens in slide panel - no external page needed
                 read_more_link: '#'
             };
@@ -1188,6 +1221,7 @@
         const slideInTitle = document.getElementById('slide-in-title');
         const slideInImage = document.getElementById('slide-in-image');
         const slideInContent = document.getElementById('slide-in-content');
+        const slideInPublishedLink = document.getElementById('slide-in-published-link');
 
         function initSlidePanel() {
             if (!slideInPanel || !overlay || !slideInTitle || !slideInContent) return;
@@ -1218,6 +1252,14 @@
             slideInTitle.textContent = postData.title;
             slideInImage.src = postData.image;
             slideInImage.alt = `${postData.title} image`;
+
+            // Show/hide published URL button
+            if (postData.published_url && slideInPublishedLink) {
+                slideInPublishedLink.href = postData.published_url;
+                slideInPublishedLink.style.display = 'inline-flex';
+            } else if (slideInPublishedLink) {
+                slideInPublishedLink.style.display = 'none';
+            }
 
             // Update share buttons in sidebar content to use dynamic slug
             let contentWithDynamicShares = postData.sidebar_content;
