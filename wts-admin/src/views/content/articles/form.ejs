@@ -65,7 +65,7 @@
               <button type="button" id="addArticleImageBtn" class="btn btn-secondary">
                 <i class="fas fa-plus"></i> Add Article Image
               </button>
-              <input type="hidden" id="article_images" name="article_images" value="<%= article && article.article_images ? JSON.stringify(article.article_images) : '[]' %>">
+              <input type="hidden" id="article_images" name="article_images" value="<%= article && article.article_images ? (typeof article.article_images === 'string' ? article.article_images : JSON.stringify(article.article_images)) : '[]' %>">
               <div id="articleImagesList" class="article-images-list"></div>
             </div>
           </div>
