@@ -111,6 +111,7 @@ const db = {
           content TEXT,
           excerpt TEXT,
           featured_image TEXT,
+          published_url TEXT,
           category VARCHAR(100),
           tags TEXT[],
           seo_title VARCHAR(255),
@@ -131,6 +132,16 @@ const db = {
         BEGIN
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='featured') THEN
             ALTER TABLE articles ADD COLUMN featured BOOLEAN DEFAULT FALSE;
+          END IF;
+        END $$;
+      `);
+
+      // Add published_url column if it doesn't exist (for existing tables)
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='published_url') THEN
+            ALTER TABLE articles ADD COLUMN published_url TEXT;
           END IF;
         END $$;
       `);
