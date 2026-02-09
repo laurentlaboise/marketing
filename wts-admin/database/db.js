@@ -166,6 +166,16 @@ const db = {
         END $$;
       `);
 
+      // Add article_images column if it doesn't exist (for existing tables)
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='article_images') THEN
+            ALTER TABLE articles ADD COLUMN article_images JSONB DEFAULT '[]'::jsonb;
+          END IF;
+        END $$;
+      `);
+
       // SEO Terms table
       await client.query(`
         CREATE TABLE IF NOT EXISTS seo_terms (

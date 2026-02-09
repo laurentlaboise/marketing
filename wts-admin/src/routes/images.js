@@ -756,4 +756,67 @@ router.get('/:id/json', async (req, res) => {
   }
 });
 
+// API: List images as JSON for image selector
+router.get('/api/list', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 12;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const category = req.query.category || '';
+
+    let query = 'SELECT * FROM images';
+    let countQuery = 'SELECT COUNT(*) FROM images';
+    const params = [];
+    const conditions = [];
+
+    if (search) {
+      conditions.push(`(filename ILIKE $${params.length + 1} OR alt_text ILIKE $${params.length + 1})`);
+      params.push(`%${search}%`);
+    }
+
+    if (category) {
+      conditions.push(`category = $${params.length + 1}`);
+      params.push(category);
+    }
+
+    conditions.push("status = 'active'");
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+      countQuery += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+
+    const [images, count] = await Promise.all([
+      db.query(query, params),
+      db.query(countQuery, params),
+    ]);
+
+    const totalPages = Math.ceil(count.rows[0].count / limit);
+
+    res.json({
+      images: images.rows.map(img => ({
+        id: img.id,
+        filename: img.filename,
+        cdn_url: img.cdn_url,
+        alt_text: img.alt_text,
+        title: img.title,
+        width: img.width,
+        height: img.height,
+        category: img.category,
+      })),
+      pagination: {
+        page,
+        totalPages,
+        total: parseInt(count.rows[0].count),
+      }
+    });
+  } catch (error) {
+    console.error('Image list API error:', error);
+    res.status(500).json({ error: 'Failed to load images' });
+  }
+});
+
 module.exports = router;
