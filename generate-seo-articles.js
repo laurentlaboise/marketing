@@ -160,7 +160,7 @@ function generateArticleHTML(article) {
   const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
   const defaultImage = 'https://wordsthatsells.website/images/default-blog.jpg';
   const shareImage = article.featured_image_url || defaultImage;
-  const readingTime = calculateReadingTime(article.full_article_content || article.content || '');
+  const readingTime = article.time_to_read || calculateReadingTime(article.full_article_content || article.content || '');
   const publishedDate = formatDate(article.created_at);
   const updatedDate = article.updated_at ? formatDate(article.updated_at) : null;
   const schemaMarkup = generateSchemaMarkup(article);
@@ -475,9 +475,9 @@ ${JSON.stringify(breadcrumbSchema, null, 2)}
                 <h1>${escapeHtml(article.title)}</h1>
 
                 <div class="article-meta">
-                    <span><i class="far fa-calendar"></i> <time datetime="${formatSchemaDate(article.created_at)}">${publishedDate}</time></span>
-                    ${updatedDate ? `<span><i class="far fa-clock"></i> Updated: <time datetime="${formatSchemaDate(article.updated_at)}">${updatedDate}</time></span>` : ''}
-                    <span><i class="far fa-book-open"></i> ${readingTime} min read</span>
+                    <span><i class="fas fa-calendar"></i> <time datetime="${formatSchemaDate(article.created_at)}">${publishedDate}</time></span>
+                    ${updatedDate ? `<span><i class="fas fa-clock"></i> Updated: <time datetime="${formatSchemaDate(article.updated_at)}">${updatedDate}</time></span>` : ''}
+                    <span><i class="fas fa-book-open"></i> ${readingTime} min read</span>
                 </div>
 
                 ${article.categories && article.categories.length > 0 ? `

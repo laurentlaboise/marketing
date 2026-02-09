@@ -55,6 +55,29 @@
           </div>
 
           <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-calendar-alt"></i> Article Metadata</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="published_at"><i class="fas fa-calendar"></i> Published Date</label>
+                <input type="datetime-local" id="published_at" name="published_at" class="form-input" value="<%= article && article.published_at ? new Date(article.published_at).toISOString().slice(0, 16) : '' %>">
+                <p class="form-help">When the article was first published. Auto-set when status changes to Published.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="updated_at"><i class="fas fa-clock"></i> Updated Date</label>
+                <input type="datetime-local" id="updated_at" name="updated_at" class="form-input" value="<%= article && article.updated_at ? new Date(article.updated_at).toISOString().slice(0, 16) : '' %>">
+                <p class="form-help">When the article was last updated. Auto-set on save if left empty.</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="time_to_read"><i class="fas fa-book-open"></i> Time to Read (minutes)</label>
+              <input type="number" id="time_to_read" name="time_to_read" class="form-input" min="1" placeholder="e.g. 5" value="<%= article && article.time_to_read ? article.time_to_read : '' %>">
+              <p class="form-help">Estimated reading time in minutes. If left empty, it will be auto-calculated from content.</p>
+            </div>
+          </div>
+
+          <div class="form-section">
             <h3 class="form-section-title">Organization</h3>
 
             <div class="form-row">

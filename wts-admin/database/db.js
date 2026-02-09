@@ -146,6 +146,16 @@ const db = {
         END $$;
       `);
 
+      // Add time_to_read column if it doesn't exist (for existing tables)
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='time_to_read') THEN
+            ALTER TABLE articles ADD COLUMN time_to_read INTEGER;
+          END IF;
+        END $$;
+      `);
+
       // SEO Terms table
       await client.query(`
         CREATE TABLE IF NOT EXISTS seo_terms (

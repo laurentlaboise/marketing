@@ -527,8 +527,8 @@
                 const schema = generateSchema(article);
                 addSchemaScript(schema);
 
-                // Calculate reading time
-                const readingTime = calculateReadingTime(article.full_article_content || article.content || '');
+                // Calculate reading time or use stored value
+                const readingTime = article.time_to_read || calculateReadingTime(article.full_article_content || article.content || '');
 
                 // Format dates
                 const publishedDate = formatDate(article.created_at);
@@ -544,9 +544,9 @@
                             <h1>${article.title}</h1>
 
                             <div class="article-meta">
-                                <span><i class="far fa-calendar"></i> ${publishedDate}</span>
-                                ${updatedDate ? `<span><i class="far fa-clock"></i> Updated: ${updatedDate}</span>` : ''}
-                                <span><i class="far fa-book-open"></i> ${readingTime} min read</span>
+                                <span><i class="fas fa-calendar"></i> ${publishedDate}</span>
+                                ${updatedDate ? `<span><i class="fas fa-clock"></i> Updated: ${updatedDate}</span>` : ''}
+                                <span><i class="fas fa-book-open"></i> ${readingTime} min read</span>
                             </div>
 
                             ${article.categories && article.categories.length > 0 ? `
