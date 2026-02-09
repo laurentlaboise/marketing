@@ -46,7 +46,7 @@ router.get('/articles', async (req, res) => {
 
     let query = `
       SELECT id, title, slug, excerpt, content, featured_image, category, tags,
-             seo_title, seo_description, featured, published_at, created_at, updated_at
+             seo_title, seo_description, featured, published_url, published_at, created_at, updated_at
       FROM articles
       WHERE status = 'published'
     `;
@@ -111,6 +111,7 @@ router.get('/articles/:slug', async (req, res) => {
       categories: article.category ? [article.category] : [],
       tags: article.tags || [],
       is_published: true,
+      published_url: article.published_url || '',
       created_at: article.created_at,
       updated_at: article.updated_at
     });
