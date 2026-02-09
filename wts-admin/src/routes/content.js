@@ -104,16 +104,19 @@ router.post('/articles', [
   }
 
   try {
-    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, featured } = req.body;
+    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, featured, published_at, updated_at, time_to_read } = req.body;
     const slug = createSlug(title);
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [];
     const keywordsArray = seo_keywords ? seo_keywords.split(',').map(k => k.trim()).filter(k => k) : [];
     const isFeatured = featured === 'true' || featured === true;
+    const timeToRead = time_to_read ? parseInt(time_to_read, 10) : null;
+    const publishedAtValue = published_at ? new Date(published_at) : (status === 'published' ? new Date() : null);
+    const updatedAtValue = updated_at ? new Date(updated_at) : new Date();
 
     await db.query(
-      `INSERT INTO articles (title, slug, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, featured, author_id, published_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
-      [title, slug, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, published_url, isFeatured, req.user.id, status === 'published' ? new Date() : null]
+      `INSERT INTO articles (title, slug, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, featured, author_id, published_at, updated_at, time_to_read)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+      [title, slug, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, published_url, isFeatured, req.user.id, publishedAtValue, updatedAtValue, timeToRead]
     );
 
     req.session.successMessage = 'Article created successfully';
@@ -151,7 +154,7 @@ router.get('/articles/:id/edit', async (req, res) => {
 // Update article
 router.post('/articles/:id', async (req, res) => {
   try {
-    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, featured } = req.body;
+    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, featured, published_at, updated_at, time_to_read } = req.body;
 
     // Validate required fields
     if (!title || !title.trim()) {
@@ -166,11 +169,22 @@ router.post('/articles/:id', async (req, res) => {
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [];
     const keywordsArray = seo_keywords ? seo_keywords.split(',').map(k => k.trim()).filter(k => k) : [];
     const isFeatured = featured === 'true' || featured === true;
+    const timeToRead = time_to_read ? parseInt(time_to_read, 10) : null;
+    const updatedAtValue = updated_at ? new Date(updated_at) : new Date();
+    const publishedAtValue = published_at ? new Date(published_at) : null;
 
     const result = await db.query(
-      `UPDATE articles SET title = $1, content = $2, excerpt = $3, category = $4, tags = $5, seo_title = $6, seo_description = $7, seo_keywords = $8, status = $9::VARCHAR, featured_image = $10, published_url = $11, featured = $12, updated_at = CURRENT_TIMESTAMP, published_at = CASE WHEN $9::VARCHAR = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
-       WHERE id = $13 RETURNING id`,
-      [title, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status, featured_image, published_url, isFeatured, req.params.id]
+      `UPDATE articles
+       SET title = $1, content = $2, excerpt = $3, category = $4, tags = $5,
+           seo_title = $6, seo_description = $7, seo_keywords = $8,
+           status = $9::VARCHAR, featured_image = $10, published_url = $11,
+           featured = $12, updated_at = $13,
+           published_at = CASE WHEN $14::TIMESTAMP IS NOT NULL THEN $14::TIMESTAMP
+                               WHEN $9::VARCHAR = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP
+                               ELSE published_at END,
+           time_to_read = $15
+       WHERE id = $16 RETURNING id`,
+      [title, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status, featured_image, published_url, isFeatured, updatedAtValue, publishedAtValue, timeToRead, req.params.id]
     );
 
     if (result.rowCount === 0) {

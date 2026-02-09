@@ -1274,8 +1274,8 @@
             const schema = generateBlogPostingSchema(postData);
             updateSchemaScript(schema);
 
-            // Calculate reading time based on full article content
-            const readingTime = calculateReadingTime(postData.full_article_content);
+            // Calculate reading time based on full article content or use stored value
+            const readingTime = postData.time_to_read || calculateReadingTime(postData.full_article_content);
 
             // Format dates
             const publishedDate = formatDate(postData.date);
@@ -1317,9 +1317,9 @@
 
             let contentHTML = `
                 <div class="article-meta-info">
-                    <span><i class="far fa-calendar"></i> ${publishedDate}</span>
-                    ${updatedDate ? `<span><i class="far fa-clock"></i> Updated: ${updatedDate}</span>` : ''}
-                    <span><i class="far fa-book-open"></i> ${readingTime} min read</span>
+                    <span><i class="fas fa-calendar"></i> ${publishedDate}</span>
+                    ${updatedDate ? `<span><i class="fas fa-clock"></i> Updated: ${updatedDate}</span>` : ''}
+                    <span><i class="fas fa-book-open"></i> ${readingTime} min read</span>
                 </div>
                 <div class="blog-info-section">
                     ${postData.full_article_content || contentWithDynamicShares}

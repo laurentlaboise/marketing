@@ -141,7 +141,7 @@ app.get('/api/articles/:slug', async (req, res) => {
 // POST: Create new article (Admin)
 app.post('/api/articles', async (req, res) => {
   try {
-    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, content } = req.body;
+    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, content, time_to_read } = req.body;
 
     // Handle both old (content) and new (sidebar_content/full_article_content) field names for backwards compatibility
     const sidebarContentValue = sidebar_content || content;
@@ -154,12 +154,13 @@ app.post('/api/articles', async (req, res) => {
 
     const slug = titleToSlug(title);
     const categoriesArray = Array.isArray(categories) ? categories : [];
+    const timeToRead = time_to_read ? parseInt(time_to_read, 10) : null;
 
     const result = await pool.query(
-      `INSERT INTO articles (title, slug, description, sidebar_content, full_article_content, featured_image_url, categories, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO articles (title, slug, description, sidebar_content, full_article_content, featured_image_url, categories, is_published, time_to_read)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [title, slug, description, sidebarContentValue, fullArticleContentValue, featured_image_url || null, categoriesArray, true]
+      [title, slug, description, sidebarContentValue, fullArticleContentValue, featured_image_url || null, categoriesArray, true, timeToRead]
     );
 
     res.status(201).json({
@@ -180,11 +181,12 @@ app.post('/api/articles', async (req, res) => {
 app.put('/api/articles/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, is_published, content } = req.body;
+    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, is_published, content, time_to_read } = req.body;
 
     // Handle both old (content) and new (sidebar_content/full_article_content) field names for backwards compatibility
     const sidebarContentValue = sidebar_content || content;
     const fullArticleContentValue = full_article_content || content;
+    const timeToRead = time_to_read !== undefined ? (time_to_read ? parseInt(time_to_read, 10) : null) : undefined;
 
     const result = await pool.query(
       `UPDATE articles
@@ -195,10 +197,11 @@ app.put('/api/articles/:id', async (req, res) => {
            featured_image_url = COALESCE($5, featured_image_url),
            categories = COALESCE($6, categories),
            is_published = COALESCE($7, is_published),
-           updated_at = CURRENT_TIMESTAMP
+           updated_at = CURRENT_TIMESTAMP,
+           time_to_read = COALESCE($9, time_to_read)
        WHERE id = $8
        RETURNING *`,
-      [title, description, sidebarContentValue, fullArticleContentValue, featured_image_url, categories, is_published, id]
+      [title, description, sidebarContentValue, fullArticleContentValue, featured_image_url, categories, is_published, id, timeToRead]
     );
 
     if (result.rows.length === 0) {

@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS articles (
   categories TEXT[] DEFAULT ARRAY[]::TEXT[],
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  is_published BOOLEAN DEFAULT FALSE
+  is_published BOOLEAN DEFAULT FALSE,
+  time_to_read INTEGER
 );
 
 -- Create indexes for faster lookups
