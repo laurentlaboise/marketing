@@ -75,6 +75,7 @@ router.get('/articles', async (req, res) => {
       featured: article.featured || false,
       sidebar_content: article.excerpt || article.content?.substring(0, 500) || '',
       full_article_content: article.content,
+      published_url: article.published_url || '',
       created_at: article.created_at,
       updated_at: article.updated_at,
       published_at: article.published_at
