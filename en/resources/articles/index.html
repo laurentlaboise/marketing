@@ -455,28 +455,31 @@
             order: -1;
             display: inline-flex;
             align-items: center;
-            gap: var(--spacing-xs, 0.25rem);
-            padding: var(--spacing-xs, 0.25rem) var(--spacing-sm, 0.5rem);
-            font-size: var(--font-size-sm, 0.875rem);
+            justify-content: center;
+            padding: 10px;
+            font-size: 1.1rem;
             font-weight: 600;
             color: #ffffff;
-            background-color: var(--color-primary, #122a3f);
-            border: none;
-            border-radius: var(--border-radius, 0.375rem);
+            background-color: var(--color-primary-base);
+            border: 2px solid var(--color-primary-base);
+            border-radius: var(--border-radius-md);
             text-decoration: none;
             cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 10px rgba(41, 128, 185, 0.2);
             width: auto;
             align-self: flex-start;
         }
 
         .slide-in-published-btn:hover {
-            background-color: var(--color-primary-dark, #0d1f2e);
-            transform: translateY(-1px);
+            background-color: transparent;
+            color: var(--color-primary-base);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(41, 128, 185, 0.3);
         }
 
         .slide-in-published-btn i {
-            font-size: 0.75rem;
+            font-size: 1rem;
         }
 
         #slide-in-title {
@@ -914,8 +917,8 @@
     <div id="details-overlay"></div>
     <div id="details-slide-in">
         <div class="slide-in-header">
-            <a id="slide-in-published-link" target="_blank" rel="noopener noreferrer" class="slide-in-published-btn" style="display:none;" title="View Published Article">
-                <i class="fas fa-external-link-alt"></i> Read Full Article
+            <a id="slide-in-published-link" target="_blank" rel="noopener noreferrer" class="slide-in-published-btn" style="display:none;" title="Read Full Article" aria-label="Read Full Article">
+                <i class="fas fa-book-open"></i>
             </a>
             <h2 id="slide-in-title"></h2>
             <button id="slide-in-close"><i class="fas fa-times"></i></button>
