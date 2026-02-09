@@ -174,7 +174,15 @@ router.post('/articles/:id', async (req, res) => {
     const publishedAtValue = published_at ? new Date(published_at) : null;
 
     const result = await db.query(
-      `UPDATE articles SET title = $1, content = $2, excerpt = $3, category = $4, tags = $5, seo_title = $6, seo_description = $7, seo_keywords = $8, status = $9::VARCHAR, featured_image = $10, published_url = $11, featured = $12, updated_at = $13, published_at = CASE WHEN $14::TIMESTAMP IS NOT NULL THEN $14::TIMESTAMP WHEN $9::VARCHAR = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END, time_to_read = $15
+      `UPDATE articles
+       SET title = $1, content = $2, excerpt = $3, category = $4, tags = $5,
+           seo_title = $6, seo_description = $7, seo_keywords = $8,
+           status = $9::VARCHAR, featured_image = $10, published_url = $11,
+           featured = $12, updated_at = $13,
+           published_at = CASE WHEN $14::TIMESTAMP IS NOT NULL THEN $14::TIMESTAMP
+                               WHEN $9::VARCHAR = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP
+                               ELSE published_at END,
+           time_to_read = $15
        WHERE id = $16 RETURNING id`,
       [title, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status, featured_image, published_url, isFeatured, updatedAtValue, publishedAtValue, timeToRead, req.params.id]
     );
