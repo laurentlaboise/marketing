@@ -461,24 +461,63 @@ function updateArticleImagesField() {
 
 function renderArticleImages() {
   const container = document.getElementById('articleImagesList');
-  
+
+  // Clear existing content
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+
   if (articleImages.length === 0) {
-    container.innerHTML = '<p style="color: var(--gray-500); font-size: 14px; margin-top: 8px;">No images added yet</p>';
+    const p = document.createElement('p');
+    p.textContent = 'No images added yet';
+    p.style.color = 'var(--gray-500)';
+    p.style.fontSize = '14px';
+    p.style.marginTop = '8px';
+    container.appendChild(p);
     return;
   }
-  
-  container.innerHTML = articleImages.map((image, index) => `
-    <div class="article-image-item">
-      <img src="${image.cdn_url}" alt="${image.alt_text || image.filename}">
-      <div class="article-image-info">
-        <strong>${image.filename}</strong>
-        <small>ID: ${image.id}</small>
-      </div>
-      <button type="button" class="btn btn-sm btn-danger" onclick="removeArticleImage(${index})" title="Remove">
-        <i class="fas fa-trash"></i>
-      </button>
-    </div>
-  `).join('');
+
+  articleImages.forEach((image, index) => {
+    const item = document.createElement('div');
+    item.className = 'article-image-item';
+
+    const img = document.createElement('img');
+    if (image.cdn_url) {
+      img.setAttribute('src', image.cdn_url);
+    }
+    const altText = image.alt_text || image.filename || '';
+    img.setAttribute('alt', altText);
+    item.appendChild(img);
+
+    const info = document.createElement('div');
+    info.className = 'article-image-info';
+
+    const strong = document.createElement('strong');
+    strong.textContent = image.filename || '';
+    info.appendChild(strong);
+
+    const small = document.createElement('small');
+    small.textContent = 'ID: ' + (image.id != null ? image.id : '');
+    info.appendChild(small);
+
+    item.appendChild(info);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn btn-sm btn-danger';
+    button.title = 'Remove';
+    button.addEventListener('click', function() {
+      removeArticleImage(index);
+    });
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-trash';
+    button.appendChild(icon);
+
+    item.appendChild(button);
+
+    container.appendChild(item);
+  });
 }
 
 // Button event listener
