@@ -52,6 +52,12 @@
               <label class="form-label" for="published_url">Article Published URL</label>
               <input type="url" id="published_url" name="published_url" class="form-input" placeholder="https://example.com/article-slug" value="<%= article ? article.published_url : '' %>">
             </div>
+
+            <div class="form-group">
+              <label class="form-label" for="article_code">Article Code</label>
+              <textarea id="article_code" name="article_code" class="form-input" rows="10" placeholder="Enter HTML5 code here"><%= article ? article.article_code : '' %></textarea>
+              <p class="form-help">HTML5 code for the article</p>
+            </div>
           </div>
 
           <div class="form-section">

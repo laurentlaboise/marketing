@@ -104,7 +104,7 @@ router.post('/articles', [
   }
 
   try {
-    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, featured, published_at, updated_at, time_to_read } = req.body;
+    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, article_code, featured, published_at, updated_at, time_to_read } = req.body;
     const slug = createSlug(title);
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [];
     const keywordsArray = seo_keywords ? seo_keywords.split(',').map(k => k.trim()).filter(k => k) : [];
@@ -114,9 +114,9 @@ router.post('/articles', [
     const updatedAtValue = updated_at ? new Date(updated_at) : new Date();
 
     await db.query(
-      `INSERT INTO articles (title, slug, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, featured, author_id, published_at, updated_at, time_to_read)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
-      [title, slug, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, published_url, isFeatured, req.user.id, publishedAtValue, updatedAtValue, timeToRead]
+      `INSERT INTO articles (title, slug, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, article_code, featured, author_id, published_at, updated_at, time_to_read)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+      [title, slug, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, published_url, article_code, isFeatured, req.user.id, publishedAtValue, updatedAtValue, timeToRead]
     );
 
     req.session.successMessage = 'Article created successfully';
@@ -154,7 +154,7 @@ router.get('/articles/:id/edit', async (req, res) => {
 // Update article
 router.post('/articles/:id', async (req, res) => {
   try {
-    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, featured, published_at, updated_at, time_to_read } = req.body;
+    const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, article_code, featured, published_at, updated_at, time_to_read } = req.body;
 
     // Validate required fields
     if (!title || !title.trim()) {
@@ -182,9 +182,9 @@ router.post('/articles/:id', async (req, res) => {
            published_at = CASE WHEN $14::TIMESTAMP IS NOT NULL THEN $14::TIMESTAMP
                                WHEN $9::VARCHAR = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP
                                ELSE published_at END,
-           time_to_read = $15
-       WHERE id = $16 RETURNING id`,
-      [title, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status, featured_image, published_url, isFeatured, updatedAtValue, publishedAtValue, timeToRead, req.params.id]
+           time_to_read = $15, article_code = $16
+       WHERE id = $17 RETURNING id`,
+      [title, content, excerpt, category, tagsArray, seo_title, seo_description, keywordsArray, status, featured_image, published_url, isFeatured, updatedAtValue, publishedAtValue, timeToRead, article_code, req.params.id]
     );
 
     if (result.rowCount === 0) {
