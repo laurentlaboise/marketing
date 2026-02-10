@@ -122,12 +122,22 @@ function generateSchemaMarkup(article) {
     return social.schemaMarkup;
   }
 
+  // Collect all article images (featured/OG + article_images)
+  const images = [];
+  if (social.ogImage) images.push(social.ogImage);
+  if (Array.isArray(article.article_images)) {
+    article.article_images.forEach(img => {
+      const url = img.cdn_url || img.url || '';
+      if (url && !images.includes(url)) images.push(url);
+    });
+  }
+
   return {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": article.title,
     "description": social.ogDescription,
-    "image": social.ogImage ? [social.ogImage] : [],
+    "image": images,
     "datePublished": formatSchemaDate(article.published_at || article.created_at),
     "dateModified": formatSchemaDate(article.updated_at || article.created_at),
     "author": {
