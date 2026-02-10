@@ -87,29 +87,57 @@ function formatSchemaDate(dateString) {
 }
 
 /**
+ * Resolve social metadata with fallback chain
+ */
+function resolveSocialMeta(article) {
+  const sm = article.social_meta || {};
+  const defaultImage = 'https://wordsthatsells.website/images/default-blog.jpg';
+
+  return {
+    ogTitle: sm.og_title || article.title,
+    ogDescription: sm.og_description || article.description || article.title,
+    ogImage: sm.og_image || article.featured_image_url || defaultImage,
+    ogType: sm.og_type || 'article',
+    twitterCard: sm.twitter_card || 'summary_large_image',
+    twitterTitle: sm.twitter_title || sm.og_title || article.title,
+    twitterDescription: sm.twitter_description || sm.og_description || article.description || article.title,
+    twitterImage: sm.twitter_image || sm.og_image || article.featured_image_url || defaultImage,
+    twitterSite: sm.twitter_site || '',
+    twitterCreator: sm.twitter_creator || '',
+    canonicalUrl: sm.canonical_url || '',
+    robotsMeta: sm.robots_meta || 'index, follow',
+    schemaMarkup: sm.schema_markup || null
+  };
+}
+
+/**
  * Generate Schema.org JSON-LD for Article
  */
 function generateSchemaMarkup(article) {
   const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
-  const defaultImage = 'https://wordsthatsells.website/images/default-blog.jpg';
-  const imageUrl = article.featured_image_url || defaultImage;
+  const social = resolveSocialMeta(article);
+
+  // Use custom schema markup from CMS if available
+  if (social.schemaMarkup && typeof social.schemaMarkup === 'object') {
+    return social.schemaMarkup;
+  }
 
   return {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": article.title,
-    "description": article.description || article.title,
-    "image": imageUrl,
-    "datePublished": formatSchemaDate(article.created_at),
+    "description": social.ogDescription,
+    "image": social.ogImage ? [social.ogImage] : [],
+    "datePublished": formatSchemaDate(article.published_at || article.created_at),
     "dateModified": formatSchemaDate(article.updated_at || article.created_at),
     "author": {
       "@type": "Organization",
-      "name": "WordsThatSells.Website",
+      "name": "Words That Sells",
       "url": "https://wordsthatsells.website"
     },
     "publisher": {
       "@type": "Organization",
-      "name": "WordsThatSells.Website",
+      "name": "Words That Sells",
       "url": "https://wordsthatsells.website",
       "logo": {
         "@type": "ImageObject",
@@ -158,11 +186,11 @@ function generateBreadcrumbSchema(article) {
  */
 function generateArticleHTML(article) {
   const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
-  const defaultImage = 'https://wordsthatsells.website/images/default-blog.jpg';
-  const shareImage = article.featured_image_url || defaultImage;
+  const social = resolveSocialMeta(article);
   const readingTime = article.time_to_read || calculateReadingTime(article.full_article_content || article.content || '');
-  const publishedDate = formatDate(article.created_at);
+  const publishedDate = formatDate(article.published_at || article.created_at);
   const updatedDate = article.updated_at ? formatDate(article.updated_at) : null;
+  const canonicalUrl = social.canonicalUrl || articleUrl;
   const schemaMarkup = generateSchemaMarkup(article);
   const breadcrumbSchema = generateBreadcrumbSchema(article);
 
@@ -174,25 +202,32 @@ function generateArticleHTML(article) {
     <title>${escapeHtml(article.title)} | WordsThatSells.Website</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="${escapeHtml(article.description || article.title)}">
-    <link rel="canonical" href="${articleUrl}">
+    <meta name="description" content="${escapeHtml(social.ogDescription)}">
+    <meta name="robots" content="${social.robotsMeta}">
+    <link rel="canonical" href="${canonicalUrl}">
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="${escapeHtml(article.title)}">
-    <meta property="og:description" content="${escapeHtml(article.description || article.title)}">
-    <meta property="og:image" content="${shareImage}">
+    <!-- Open Graph / Facebook / LinkedIn / WhatsApp / Pinterest / Slack / Discord -->
+    <meta property="og:site_name" content="WordsThatSells.Website">
+    <meta property="og:type" content="${social.ogType}">
+    <meta property="og:title" content="${escapeHtml(social.ogTitle)}">
+    <meta property="og:description" content="${escapeHtml(social.ogDescription)}">
+    <meta property="og:image" content="${social.ogImage}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:url" content="${articleUrl}">
-    <meta property="article:published_time" content="${formatSchemaDate(article.created_at)}">
+    <meta property="article:published_time" content="${formatSchemaDate(article.published_at || article.created_at)}">
     ${article.updated_at ? `<meta property="article:modified_time" content="${formatSchemaDate(article.updated_at)}">` : ''}
     <meta property="article:author" content="WordsThatSells.Website">
     ${article.categories && article.categories.length > 0 ? article.categories.map(cat => `<meta property="article:tag" content="${escapeHtml(cat)}">`).join('\n    ') : ''}
+    ${article.tags && article.tags.length > 0 ? article.tags.map(tag => `<meta property="article:tag" content="${escapeHtml(tag)}">`).join('\n    ') : ''}
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${escapeHtml(article.title)}">
-    <meta name="twitter:description" content="${escapeHtml(article.description || article.title)}">
-    <meta name="twitter:image" content="${shareImage}">
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="${social.twitterCard}">
+    ${social.twitterSite ? `<meta name="twitter:site" content="${escapeHtml(social.twitterSite)}">` : ''}
+    ${social.twitterCreator ? `<meta name="twitter:creator" content="${escapeHtml(social.twitterCreator)}">` : ''}
+    <meta name="twitter:title" content="${escapeHtml(social.twitterTitle)}">
+    <meta name="twitter:description" content="${escapeHtml(social.twitterDescription)}">
+    <meta name="twitter:image" content="${social.twitterImage}">
 
     <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
@@ -521,11 +556,13 @@ ${JSON.stringify(breadcrumbSchema, null, 2)}
     </a>
 
     <script>
-        // Article data for sharing
-        const ARTICLE_URL = '${articleUrl}';
-        const ARTICLE_TITLE = ${JSON.stringify(article.title)};
-        const ARTICLE_DESCRIPTION = ${JSON.stringify(article.description || article.title)};
-        const ARTICLE_IMAGE = '${shareImage}';
+        // Article data for sharing (uses social preview metadata from CMS)
+        const ARTICLE_URL = '${canonicalUrl}';
+        const ARTICLE_TITLE = ${JSON.stringify(social.ogTitle)};
+        const ARTICLE_DESCRIPTION = ${JSON.stringify(social.ogDescription)};
+        const ARTICLE_IMAGE = '${social.ogImage}';
+        const TWITTER_TITLE = ${JSON.stringify(social.twitterTitle)};
+        const TWITTER_DESCRIPTION = ${JSON.stringify(social.twitterDescription)};
 
         // Share functions
         function sharePost(platform, title, url, description, imageUrl) {
@@ -585,14 +622,19 @@ ${JSON.stringify(breadcrumbSchema, null, 2)}
             document.body.removeChild(tempInput);
         }
 
-        // Initialize share buttons
+        // Initialize share buttons with platform-specific social metadata
         document.addEventListener('DOMContentLoaded', function() {
             const shareButtons = document.querySelectorAll('.share-btn');
             shareButtons.forEach(function(btn) {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     const platform = btn.dataset.platform;
-                    sharePost(platform, ARTICLE_TITLE, ARTICLE_URL, ARTICLE_DESCRIPTION, ARTICLE_IMAGE);
+                    if (platform === 'x') {
+                        // Use Twitter-specific title/desc
+                        sharePost(platform, TWITTER_TITLE, ARTICLE_URL, TWITTER_DESCRIPTION, ARTICLE_IMAGE);
+                    } else {
+                        sharePost(platform, ARTICLE_TITLE, ARTICLE_URL, ARTICLE_DESCRIPTION, ARTICLE_IMAGE);
+                    }
                 });
             });
         });

@@ -13,16 +13,30 @@
 
     <!-- Dynamic SEO Meta Tags -->
     <meta name="description" content="" id="meta-description">
+    <meta name="robots" content="index, follow" id="meta-robots">
+    <link rel="canonical" href="" id="canonical-url">
+
+    <!-- Open Graph / Facebook / LinkedIn / WhatsApp / Pinterest / Slack / Discord -->
+    <meta property="og:site_name" content="WordsThatSells.Website">
+    <meta property="og:type" content="article" id="meta-og-type">
     <meta property="og:title" content="" id="meta-og-title">
     <meta property="og:description" content="" id="meta-og-description">
     <meta property="og:image" content="" id="meta-og-image">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:url" content="" id="meta-og-url">
-    <meta property="og:type" content="article">
-    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="" id="meta-article-published">
+    <meta property="article:modified_time" content="" id="meta-article-modified">
+    <meta property="article:author" content="WordsThatSells.Website">
+    <meta property="article:section" content="" id="meta-article-section">
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" id="meta-twitter-card">
+    <meta name="twitter:site" content="" id="meta-twitter-site">
+    <meta name="twitter:creator" content="" id="meta-twitter-creator">
     <meta name="twitter:title" content="" id="meta-twitter-title">
     <meta name="twitter:description" content="" id="meta-twitter-description">
     <meta name="twitter:image" content="" id="meta-twitter-image">
-    <link rel="canonical" href="" id="canonical-url">
 
     <script src="https://kit.fontawesome.com/a521ce00f6.js" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -375,41 +389,93 @@
             return new Date(dateString).toLocaleDateString('en-US', options);
         }
 
-        // Update SEO meta tags
+        // Update SEO meta tags using social_meta from API (with fallbacks)
         function updateMetaTags(article) {
             const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
             const defaultImage = 'https://wordsthatsells.website/images/default-blog.jpg';
-            const shareImage = article.featured_image_url || defaultImage;
+            const sm = article.social_meta || {};
 
+            // Resolve values with fallback chain
+            const ogTitle = sm.og_title || article.title;
+            const ogDesc = sm.og_description || article.description || article.title;
+            const ogImage = sm.og_image || article.featured_image_url || defaultImage;
+            const ogType = sm.og_type || 'article';
+            const twitterCard = sm.twitter_card || 'summary_large_image';
+            const twitterTitle = sm.twitter_title || ogTitle;
+            const twitterDesc = sm.twitter_description || ogDesc;
+            const twitterImage = sm.twitter_image || ogImage;
+            const twitterSite = sm.twitter_site || '';
+            const twitterCreator = sm.twitter_creator || '';
+            const canonicalUrl = sm.canonical_url || articleUrl;
+            const robotsMeta = sm.robots_meta || 'index, follow';
+
+            // Page title
             document.getElementById('page-title').textContent = `${article.title} | WordsThatSells.Website`;
-            document.getElementById('meta-description').setAttribute('content', article.description || article.title);
-            document.getElementById('meta-og-title').setAttribute('content', article.title);
-            document.getElementById('meta-og-description').setAttribute('content', article.description || article.title);
-            document.getElementById('meta-og-image').setAttribute('content', shareImage);
+
+            // SEO
+            document.getElementById('meta-description').setAttribute('content', ogDesc);
+            document.getElementById('meta-robots').setAttribute('content', robotsMeta);
+            document.getElementById('canonical-url').setAttribute('href', canonicalUrl);
+
+            // Open Graph (Facebook, LinkedIn, WhatsApp, Pinterest, Slack, Discord)
+            document.getElementById('meta-og-type').setAttribute('content', ogType);
+            document.getElementById('meta-og-title').setAttribute('content', ogTitle);
+            document.getElementById('meta-og-description').setAttribute('content', ogDesc);
+            document.getElementById('meta-og-image').setAttribute('content', ogImage);
             document.getElementById('meta-og-url').setAttribute('content', articleUrl);
-            document.getElementById('meta-twitter-title').setAttribute('content', article.title);
-            document.getElementById('meta-twitter-description').setAttribute('content', article.description || article.title);
-            document.getElementById('meta-twitter-image').setAttribute('content', shareImage);
-            document.getElementById('canonical-url').setAttribute('href', articleUrl);
+
+            // Article timestamps
+            if (article.published_at || article.created_at) {
+                document.getElementById('meta-article-published').setAttribute('content', new Date(article.published_at || article.created_at).toISOString());
+            }
+            if (article.updated_at) {
+                document.getElementById('meta-article-modified').setAttribute('content', new Date(article.updated_at).toISOString());
+            }
+            if (article.categories && article.categories.length > 0) {
+                document.getElementById('meta-article-section').setAttribute('content', article.categories[0]);
+            }
+
+            // Twitter / X Card
+            document.getElementById('meta-twitter-card').setAttribute('content', twitterCard);
+            document.getElementById('meta-twitter-title').setAttribute('content', twitterTitle);
+            document.getElementById('meta-twitter-description').setAttribute('content', twitterDesc);
+            document.getElementById('meta-twitter-image').setAttribute('content', twitterImage);
+            if (twitterSite) {
+                document.getElementById('meta-twitter-site').setAttribute('content', twitterSite);
+            }
+            if (twitterCreator) {
+                document.getElementById('meta-twitter-creator').setAttribute('content', twitterCreator);
+            }
         }
 
-        // Generate Schema.org JSON-LD
+        // Generate Schema.org JSON-LD (uses CMS schema_markup if available)
         function generateSchema(article) {
+            const sm = article.social_meta || {};
+
+            // If custom schema markup was set in the CMS, use it
+            if (sm.schema_markup && typeof sm.schema_markup === 'object') {
+                return sm.schema_markup;
+            }
+
+            // Otherwise generate from article data
+            const ogImage = sm.og_image || article.featured_image_url || '';
             return {
                 "@context": "https://schema.org",
-                "@type": "BlogPosting",
+                "@type": "Article",
                 "headline": article.title,
-                "description": article.description,
-                "image": article.featured_image_url || '',
-                "datePublished": article.created_at,
+                "description": sm.og_description || article.description || '',
+                "image": ogImage ? [ogImage] : [],
+                "datePublished": article.published_at || article.created_at,
                 "dateModified": article.updated_at || article.created_at,
                 "author": {
                     "@type": "Organization",
-                    "name": "WordsThatSells.Website"
+                    "name": "Words That Sells",
+                    "url": "https://wordsthatsells.website"
                 },
                 "publisher": {
                     "@type": "Organization",
-                    "name": "WordsThatSells.Website",
+                    "name": "Words That Sells",
+                    "url": "https://wordsthatsells.website",
                     "logo": {
                         "@type": "ImageObject",
                         "url": "https://wordsthatsells.website/logo.png"
@@ -584,8 +650,9 @@
                     </article>
                 `;
 
-                // Add event listeners to share buttons
+                // Add event listeners to share buttons (use social_meta for per-platform text)
                 setTimeout(() => {
+                    const sm = article.social_meta || {};
                     const shareButtons = container.querySelectorAll('.share-btn');
                     shareButtons.forEach(btn => {
                         btn.addEventListener('click', (e) => {
@@ -593,8 +660,16 @@
                             const platform = btn.dataset.platform;
                             if (platform === 'copy') {
                                 copyLink(articleUrl);
+                            } else if (platform === 'x') {
+                                // Use Twitter-specific title/desc if available
+                                const xTitle = sm.twitter_title || sm.og_title || article.title;
+                                const xDesc = sm.twitter_description || sm.og_description || article.description || '';
+                                sharePost(platform, xTitle, articleUrl, xDesc, sm.twitter_image || sm.og_image || article.featured_image_url || '');
                             } else {
-                                sharePost(platform, article.title, articleUrl, article.description || '', article.featured_image_url || '');
+                                // Facebook/LinkedIn/WhatsApp use OG tags (auto-scraped), pass OG-optimized text for WhatsApp
+                                const ogTitle = sm.og_title || article.title;
+                                const ogDesc = sm.og_description || article.description || '';
+                                sharePost(platform, ogTitle, articleUrl, ogDesc, sm.og_image || article.featured_image_url || '');
                             }
                         });
                     });
