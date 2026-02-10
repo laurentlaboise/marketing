@@ -412,9 +412,12 @@
             <h3 class="form-section-title"><i class="fas fa-code"></i> Structured Data (Schema.org / JSON-LD)</h3>
             <p class="form-help" style="margin-bottom: 12px;">Structured data helps search engines and AI systems understand your content. Auto-generated from article fields.</p>
 
-            <div class="form-group">
+            <div class="form-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button type="button" class="btn btn-secondary" onclick="generateSchemaMarkup()">
                 <i class="fas fa-cogs"></i> Auto-Generate Schema Markup
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="generateOgMetaPreview()">
+                <i class="fas fa-share-alt"></i> Preview OG &amp; Meta Tags
               </button>
             </div>
 
@@ -422,6 +425,12 @@
               <label class="form-label" for="schema_markup">JSON-LD Schema Markup</label>
               <textarea id="schema_markup" name="schema_markup" class="form-input code-textarea" rows="12" placeholder='Click "Auto-Generate" to create schema markup from your article data'><%= article && article.schema_markup ? JSON.stringify(article.schema_markup, null, 2) : '' %></textarea>
               <p class="form-help">This will be embedded as &lt;script type="application/ld+json"&gt; in the article page. Improves rich snippets and AI comprehension.</p>
+            </div>
+
+            <div id="ogMetaPreviewSection" class="form-group" style="display: none;">
+              <label class="form-label">Open Graph &amp; Meta Tags Preview</label>
+              <textarea id="og_meta_preview" class="form-input code-textarea" rows="18" readonly style="background: #f8f9fa; font-size: 12px; line-height: 1.5;"></textarea>
+              <p class="form-help">Read-only preview of all meta tags that will be rendered on the article page. Copy if needed for manual use.</p>
             </div>
           </div>
 
@@ -1089,7 +1098,10 @@ function selectImage(image) {
     id: image.id,
     cdn_url: image.cdn_url,
     filename: image.filename,
-    alt_text: image.alt_text || ''
+    alt_text: image.alt_text || '',
+    title: image.title || '',
+    width: image.width || null,
+    height: image.height || null
   });
   
   updateArticleImagesField();
@@ -1450,22 +1462,12 @@ function autoPopulateSocial() {
 }
 
 // ==================== Schema.org Markup Generator ====================
-function generateSchemaMarkup() {
-  var title = document.getElementById('title').value || '';
-  var excerpt = document.getElementById('excerpt').value || '';
-  var seoDesc = document.getElementById('seo_description').value || '';
-  var image = document.getElementById('og_image').value || document.getElementById('featured_image').value || '';
-  var publishedAt = document.getElementById('published_at').value || '';
-  var updatedAt = document.getElementById('updated_at').value || '';
-  var category = document.getElementById('category').value || '';
-  var tags = document.getElementById('tags').value || '';
-  var publishedUrl = document.getElementById('published_url').value || document.getElementById('canonical_url').value || '';
-  var timeToRead = document.getElementById('time_to_read').value || '';
-  var seoKeywords = document.getElementById('seo_keywords').value || '';
+function getArticleSlug(title) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
 
-  // Collect all article images
+function getArticleImages() {
   var images = [];
-  if (image) images.push(image);
   try {
     var articleImagesJson = document.getElementById('article_images').value;
     if (articleImagesJson) {
@@ -1480,49 +1482,169 @@ function generateSchemaMarkup() {
       }
     }
   } catch(e) { /* ignore parse errors */ }
+  return images;
+}
 
-  var schema = {
-    "@context": "https://schema.org",
+function getWordCount() {
+  var content = document.getElementById('content').value || '';
+  var text = content.replace(/<[^>]*>/g, '');
+  var words = text.split(/\s+/).filter(function(w) { return w.length > 0; });
+  return words.length;
+}
+
+function generateSchemaMarkup() {
+  var title = document.getElementById('title').value || '';
+  var excerpt = document.getElementById('excerpt').value || '';
+  var seoDesc = document.getElementById('seo_description').value || '';
+  var publishedAt = document.getElementById('published_at').value || '';
+  var updatedAt = document.getElementById('updated_at').value || '';
+  var category = document.getElementById('category').value || '';
+  var tags = document.getElementById('tags').value || '';
+  var publishedUrl = document.getElementById('published_url').value || document.getElementById('canonical_url').value || '';
+  var timeToRead = document.getElementById('time_to_read').value || '';
+  var slug = getArticleSlug(title);
+  var articleUrl = publishedUrl || ('https://wordsthatsells.website/en/articles/' + slug + '/');
+  var images = getArticleImages();
+  var wordCount = getWordCount();
+
+  // Build Article object
+  var articleObj = {
     "@type": "Article",
+    "@id": articleUrl + '#article',
     "headline": title,
-    "description": seoDesc || excerpt,
-    "image": images,
-    "author": {
-      "@type": "Organization",
-      "name": "Words That Sells",
-      "url": "https://wordsthatsells.website"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "Words That Sells",
-      "url": "https://wordsthatsells.website",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://wordsthatsells.website/assets/images/logo.png"
-      }
-    },
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": publishedUrl || "https://wordsthatsells.website"
+    "description": seoDesc || excerpt
+  };
+
+  if (images.length > 0) articleObj.image = images;
+  if (publishedAt) articleObj.datePublished = new Date(publishedAt).toISOString();
+  if (updatedAt) articleObj.dateModified = new Date(updatedAt).toISOString();
+
+  articleObj.author = {
+    "@type": "Organization",
+    "name": "Words That Sells",
+    "url": "https://wordsthatsells.website"
+  };
+
+  articleObj.publisher = {
+    "@type": "Organization",
+    "name": "Words That Sells",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://wordsthatsells.website/assets/images/logo.png"
     }
   };
 
-  if (publishedAt) schema.datePublished = new Date(publishedAt).toISOString();
-  if (updatedAt) schema.dateModified = new Date(updatedAt).toISOString();
-  if (category) schema.articleSection = category;
-  if (seoKeywords) schema.keywords = seoKeywords;
-  if (timeToRead) schema.timeRequired = 'PT' + timeToRead + 'M';
+  articleObj.mainEntityOfPage = {
+    "@type": "WebPage",
+    "@id": articleUrl
+  };
+
+  if (category) articleObj.articleSection = category;
+  if (timeToRead) articleObj.timeRequired = 'PT' + timeToRead + 'M';
+  if (wordCount > 0) articleObj.wordCount = String(wordCount);
 
   if (tags) {
     var tagArray = tags.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
     if (tagArray.length > 0) {
-      schema.about = tagArray.map(function(tag) {
+      articleObj.about = tagArray.map(function(tag) {
         return { "@type": "Thing", "name": tag };
       });
     }
   }
 
+  // Build BreadcrumbList
+  var breadcrumb = {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://wordsthatsells.website" },
+      { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://wordsthatsells.website/en/articles/" },
+      { "@type": "ListItem", "position": 3, "name": title }
+    ]
+  };
+
+  // Build @graph wrapper
+  var schema = {
+    "@context": "https://schema.org",
+    "@graph": [articleObj, breadcrumb]
+  };
+
   document.getElementById('schema_markup').value = JSON.stringify(schema, null, 2);
+}
+
+// ==================== OG & Meta Tags Preview ====================
+function generateOgMetaPreview() {
+  var title = document.getElementById('title').value || '';
+  var seoTitle = document.getElementById('seo_title').value || '';
+  var excerpt = document.getElementById('excerpt').value || '';
+  var seoDesc = document.getElementById('seo_description').value || '';
+  var ogTitle = document.getElementById('og_title').value || '';
+  var ogDesc = document.getElementById('og_description').value || '';
+  var ogImage = document.getElementById('og_image').value || '';
+  var ogType = document.getElementById('og_type').value || 'article';
+  var twCard = document.getElementById('twitter_card').value || 'summary_large_image';
+  var twTitle = document.getElementById('twitter_title').value || '';
+  var twDesc = document.getElementById('twitter_description').value || '';
+  var twImage = document.getElementById('twitter_image').value || '';
+  var twSite = document.getElementById('twitter_site').value || '';
+  var twCreator = document.getElementById('twitter_creator').value || '';
+  var canonical = document.getElementById('canonical_url').value || '';
+  var publishedUrl = document.getElementById('published_url').value || '';
+  var robotsMeta = document.getElementById('robots_meta').value || 'index, follow';
+  var featuredImage = document.getElementById('featured_image').value || '';
+  var publishedAt = document.getElementById('published_at').value || '';
+  var updatedAt = document.getElementById('updated_at').value || '';
+  var category = document.getElementById('category').value || '';
+  var tags = document.getElementById('tags').value || '';
+
+  // Resolve with fallbacks
+  var resolvedOgTitle = ogTitle || seoTitle || title;
+  var resolvedOgDesc = ogDesc || seoDesc || excerpt;
+  var resolvedOgImage = ogImage || featuredImage;
+  var resolvedTwTitle = twTitle || ogTitle || seoTitle || title;
+  var resolvedTwDesc = twDesc || ogDesc || seoDesc || excerpt;
+  var resolvedTwImage = twImage || ogImage || featuredImage;
+  var resolvedCanonical = canonical || publishedUrl;
+
+  var slug = getArticleSlug(title);
+  var articleUrl = resolvedCanonical || ('https://wordsthatsells.website/en/articles/' + slug + '/');
+
+  var lines = [];
+  lines.push('<!-- SEO Meta Tags -->');
+  lines.push('<meta name="description" content="' + resolvedOgDesc + '">');
+  lines.push('<meta name="robots" content="' + robotsMeta + '">');
+  lines.push('<link rel="canonical" href="' + articleUrl + '">');
+  lines.push('');
+  lines.push('<!-- Open Graph / Facebook / LinkedIn / WhatsApp -->');
+  lines.push('<meta property="og:site_name" content="WordsThatSells.Website">');
+  lines.push('<meta property="og:type" content="' + ogType + '">');
+  lines.push('<meta property="og:title" content="' + resolvedOgTitle + '">');
+  lines.push('<meta property="og:description" content="' + resolvedOgDesc + '">');
+  if (resolvedOgImage) {
+    lines.push('<meta property="og:image" content="' + resolvedOgImage + '">');
+    lines.push('<meta property="og:image:width" content="1200">');
+    lines.push('<meta property="og:image:height" content="630">');
+  }
+  lines.push('<meta property="og:url" content="' + articleUrl + '">');
+  if (publishedAt) lines.push('<meta property="article:published_time" content="' + new Date(publishedAt).toISOString() + '">');
+  if (updatedAt) lines.push('<meta property="article:modified_time" content="' + new Date(updatedAt).toISOString() + '">');
+  lines.push('<meta property="article:author" content="WordsThatSells.Website">');
+  if (category) lines.push('<meta property="article:section" content="' + category + '">');
+  if (tags) {
+    tags.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; }).forEach(function(tag) {
+      lines.push('<meta property="article:tag" content="' + tag + '">');
+    });
+  }
+  lines.push('');
+  lines.push('<!-- Twitter / X Card -->');
+  lines.push('<meta name="twitter:card" content="' + twCard + '">');
+  if (twSite) lines.push('<meta name="twitter:site" content="' + twSite + '">');
+  if (twCreator) lines.push('<meta name="twitter:creator" content="' + twCreator + '">');
+  lines.push('<meta name="twitter:title" content="' + resolvedTwTitle + '">');
+  lines.push('<meta name="twitter:description" content="' + resolvedTwDesc + '">');
+  if (resolvedTwImage) lines.push('<meta name="twitter:image" content="' + resolvedTwImage + '">');
+
+  document.getElementById('og_meta_preview').value = lines.join('\n');
+  document.getElementById('ogMetaPreviewSection').style.display = 'block';
 }
 
 // ==================== Image Selector for Social Fields ====================

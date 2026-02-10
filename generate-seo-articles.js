@@ -111,7 +111,7 @@ function resolveSocialMeta(article) {
 }
 
 /**
- * Generate Schema.org JSON-LD for Article
+ * Generate unified Schema.org JSON-LD with @graph (Article + BreadcrumbList)
  */
 function generateSchemaMarkup(article) {
   const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
@@ -122,9 +122,8 @@ function generateSchemaMarkup(article) {
     return social.schemaMarkup;
   }
 
-  // Collect all article images (featured/OG + article_images)
+  // Collect all images from the image library
   const images = [];
-  if (social.ogImage) images.push(social.ogImage);
   if (Array.isArray(article.article_images)) {
     article.article_images.forEach(img => {
       const url = img.cdn_url || img.url || '';
@@ -132,62 +131,63 @@ function generateSchemaMarkup(article) {
     });
   }
 
-  return {
-    "@context": "https://schema.org",
+  // Word count from content
+  const content = article.full_article_content || article.content || '';
+  const textContent = content.replace(/<[^>]*>/g, '');
+  const wordCount = textContent.split(/\s+/).filter(w => w.length > 0).length;
+  const readTime = article.time_to_read || calculateReadingTime(content);
+
+  // Build Article object
+  const articleObj = {
     "@type": "Article",
+    "@id": `${articleUrl}#article`,
     "headline": article.title,
-    "description": social.ogDescription,
-    "image": images,
-    "datePublished": formatSchemaDate(article.published_at || article.created_at),
-    "dateModified": formatSchemaDate(article.updated_at || article.created_at),
-    "author": {
-      "@type": "Organization",
-      "name": "Words That Sells",
-      "url": "https://wordsthatsells.website"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "Words That Sells",
-      "url": "https://wordsthatsells.website",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://wordsthatsells.website/logo.png"
-      }
-    },
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": articleUrl
+    "description": social.ogDescription
+  };
+
+  if (images.length > 0) articleObj.image = images;
+  articleObj.datePublished = formatSchemaDate(article.published_at || article.created_at);
+  articleObj.dateModified = formatSchemaDate(article.updated_at || article.created_at);
+
+  articleObj.author = {
+    "@type": "Organization",
+    "name": "Words That Sells",
+    "url": "https://wordsthatsells.website"
+  };
+  articleObj.publisher = {
+    "@type": "Organization",
+    "name": "Words That Sells",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://wordsthatsells.website/assets/images/logo.png"
     }
   };
-}
+  articleObj.mainEntityOfPage = {
+    "@type": "WebPage",
+    "@id": articleUrl
+  };
 
-/**
- * Generate breadcrumb Schema.org JSON-LD
- */
-function generateBreadcrumbSchema(article) {
-  return {
-    "@context": "https://schema.org",
+  if (article.categories && article.categories.length > 0) articleObj.articleSection = article.categories[0];
+  if (readTime) articleObj.timeRequired = `PT${readTime}M`;
+  if (wordCount > 0) articleObj.wordCount = String(wordCount);
+
+  if (article.tags && article.tags.length > 0) {
+    articleObj.about = article.tags.map(tag => ({ "@type": "Thing", "name": tag }));
+  }
+
+  // Build BreadcrumbList
+  const breadcrumb = {
     "@type": "BreadcrumbList",
     "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://wordsthatsells.website"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Articles",
-        "item": "https://wordsthatsells.website/en/resources/articles/"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": article.title,
-        "item": `${SITE_BASE_URL}/en/articles/${article.slug}.html`
-      }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://wordsthatsells.website" },
+      { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://wordsthatsells.website/en/articles/" },
+      { "@type": "ListItem", "position": 3, "name": article.title }
     ]
+  };
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [articleObj, breadcrumb]
   };
 }
 
@@ -202,7 +202,6 @@ function generateArticleHTML(article) {
   const updatedDate = article.updated_at ? formatDate(article.updated_at) : null;
   const canonicalUrl = social.canonicalUrl || articleUrl;
   const schemaMarkup = generateSchemaMarkup(article);
-  const breadcrumbSchema = generateBreadcrumbSchema(article);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -239,14 +238,9 @@ function generateArticleHTML(article) {
     <meta name="twitter:description" content="${escapeHtml(social.twitterDescription)}">
     <meta name="twitter:image" content="${social.twitterImage}">
 
-    <!-- Schema.org JSON-LD -->
+    <!-- Schema.org JSON-LD (@graph: Article + BreadcrumbList) -->
     <script type="application/ld+json">
 ${JSON.stringify(schemaMarkup, null, 2)}
-    </script>
-
-    <!-- Breadcrumb Schema -->
-    <script type="application/ld+json">
-${JSON.stringify(breadcrumbSchema, null, 2)}
     </script>
 
     <!-- Fonts and Icons -->

@@ -457,43 +457,73 @@
                 return sm.schema_markup;
             }
 
-            // Otherwise generate from article data
-            const ogImage = sm.og_image || article.featured_image_url || '';
-            // Collect all article images (featured/OG + article_images)
+            // Collect all images from the image library
             const images = [];
-            if (ogImage) images.push(ogImage);
             if (Array.isArray(article.article_images)) {
                 article.article_images.forEach(img => {
                     const url = img.cdn_url || img.url || '';
                     if (url && !images.includes(url)) images.push(url);
                 });
             }
+
+            const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
+            const description = sm.og_description || article.description || '';
+            const content = article.full_article_content || article.content || '';
+            const textContent = content.replace(/<[^>]*>/g, '');
+            const wordCount = textContent.split(/\s+/).filter(w => w.length > 0).length;
+            const readTime = article.time_to_read || calculateReadingTime(content);
+
+            // Build Article object
+            const articleObj = {
+                "@type": "Article",
+                "@id": `${articleUrl}#article`,
+                "headline": article.title,
+                "description": description
+            };
+
+            if (images.length > 0) articleObj.image = images;
+            if (article.published_at || article.created_at) articleObj.datePublished = article.published_at || article.created_at;
+            if (article.updated_at || article.created_at) articleObj.dateModified = article.updated_at || article.created_at;
+
+            articleObj.author = {
+                "@type": "Organization",
+                "name": "Words That Sells",
+                "url": "https://wordsthatsells.website"
+            };
+            articleObj.publisher = {
+                "@type": "Organization",
+                "name": "Words That Sells",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://wordsthatsells.website/assets/images/logo.png"
+                }
+            };
+            articleObj.mainEntityOfPage = {
+                "@type": "WebPage",
+                "@id": articleUrl
+            };
+
+            if (article.categories && article.categories.length > 0) articleObj.articleSection = article.categories[0];
+            if (readTime) articleObj.timeRequired = `PT${readTime}M`;
+            if (wordCount > 0) articleObj.wordCount = String(wordCount);
+
+            if (article.tags && article.tags.length > 0) {
+                articleObj.about = article.tags.map(tag => ({ "@type": "Thing", "name": tag }));
+            }
+
+            // Build BreadcrumbList
+            const breadcrumb = {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://wordsthatsells.website" },
+                    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://wordsthatsells.website/en/articles/" },
+                    { "@type": "ListItem", "position": 3, "name": article.title }
+                ]
+            };
+
             return {
                 "@context": "https://schema.org",
-                "@type": "Article",
-                "headline": article.title,
-                "description": sm.og_description || article.description || '',
-                "image": images,
-                "datePublished": article.published_at || article.created_at,
-                "dateModified": article.updated_at || article.created_at,
-                "author": {
-                    "@type": "Organization",
-                    "name": "Words That Sells",
-                    "url": "https://wordsthatsells.website"
-                },
-                "publisher": {
-                    "@type": "Organization",
-                    "name": "Words That Sells",
-                    "url": "https://wordsthatsells.website",
-                    "logo": {
-                        "@type": "ImageObject",
-                        "url": "https://wordsthatsells.website/logo.png"
-                    }
-                },
-                "mainEntityOfPage": {
-                    "@type": "WebPage",
-                    "@id": `${SITE_BASE_URL}/en/articles/${article.slug}`
-                }
+                "@graph": [articleObj, breadcrumb]
             };
         }
 
