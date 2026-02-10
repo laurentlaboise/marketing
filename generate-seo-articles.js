@@ -110,6 +110,13 @@ function resolveSocialMeta(article) {
   };
 }
 
+// Social links for sameAs
+const SOCIAL_LINKS = [
+  "https://www.linkedin.com/company/wordsthatsells",
+  "https://www.instagram.com/wordsthatsells",
+  "https://github.com/laurentlaboise"
+];
+
 /**
  * Generate unified Schema.org JSON-LD with @graph (Article + BreadcrumbList)
  */
@@ -122,12 +129,22 @@ function generateSchemaMarkup(article) {
     return social.schemaMarkup;
   }
 
-  // Collect all images from the image library
-  const images = [];
+  // 1. Nested ImageObject array from image library
+  const imageObjects = [];
   if (Array.isArray(article.article_images)) {
-    article.article_images.forEach(img => {
+    article.article_images.forEach((img, idx) => {
       const url = img.cdn_url || img.url || '';
-      if (url && !images.includes(url)) images.push(url);
+      if (!url) return;
+      const obj = {
+        "@type": "ImageObject",
+        "url": url,
+        "name": img.title || img.filename || ''
+      };
+      if (img.alt_text) obj.caption = img.alt_text;
+      if (img.width) obj.width = { "@type": "QuantitativeValue", "value": img.width, "unitCode": "E37" };
+      if (img.height) obj.height = { "@type": "QuantitativeValue", "value": img.height, "unitCode": "E37" };
+      if (idx === 0) obj.representativeOfPage = true;
+      imageObjects.push(obj);
     });
   }
 
@@ -145,14 +162,16 @@ function generateSchemaMarkup(article) {
     "description": social.ogDescription
   };
 
-  if (images.length > 0) articleObj.image = images;
+  if (imageObjects.length > 0) articleObj.image = imageObjects;
   articleObj.datePublished = formatSchemaDate(article.published_at || article.created_at);
   articleObj.dateModified = formatSchemaDate(article.updated_at || article.created_at);
 
+  // 4. Author + Publisher with sameAs social linking
   articleObj.author = {
     "@type": "Organization",
     "name": "Words That Sells",
-    "url": "https://wordsthatsells.website"
+    "url": "https://wordsthatsells.website",
+    "sameAs": SOCIAL_LINKS
   };
   articleObj.publisher = {
     "@type": "Organization",
@@ -160,7 +179,8 @@ function generateSchemaMarkup(article) {
     "logo": {
       "@type": "ImageObject",
       "url": "https://wordsthatsells.website/assets/images/logo.png"
-    }
+    },
+    "sameAs": SOCIAL_LINKS
   };
   articleObj.mainEntityOfPage = {
     "@type": "WebPage",
@@ -171,8 +191,27 @@ function generateSchemaMarkup(article) {
   if (readTime) articleObj.timeRequired = `PT${readTime}M`;
   if (wordCount > 0) articleObj.wordCount = String(wordCount);
 
+  // About (entity linking from tags)
   if (article.tags && article.tags.length > 0) {
     articleObj.about = article.tags.map(tag => ({ "@type": "Thing", "name": tag }));
+  }
+
+  // 2. Speakable property (voice assistants: Gemini Live, Siri, Alexa)
+  articleObj.speakable = {
+    "@type": "SpeakableSpecification",
+    "cssSelector": [".article-summary", ".article-key-insights", ".article-header h1", ".article-excerpt"]
+  };
+
+  // 3. Citations (entity linking for AI search engines)
+  if (Array.isArray(article.citations) && article.citations.length > 0) {
+    const validCitations = article.citations.filter(c => c.url);
+    if (validCitations.length > 0) {
+      articleObj.citation = validCitations.map(c => {
+        const citObj = { "@type": "CreativeWork", "url": c.url };
+        if (c.name) citObj.name = c.name;
+        return citObj;
+      });
+    }
   }
 
   // Build BreadcrumbList

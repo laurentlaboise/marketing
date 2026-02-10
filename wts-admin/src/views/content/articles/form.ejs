@@ -155,10 +155,11 @@
               </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="position: relative;">
               <label class="form-label" for="seo_keywords">SEO Keywords</label>
-              <input type="text" id="seo_keywords" name="seo_keywords" class="form-input" placeholder="keyword1, keyword2" value="<%= article && article.seo_keywords ? article.seo_keywords.join(', ') : '' %>">
-              <p class="form-help">Separate keywords with commas</p>
+              <input type="text" id="seo_keywords" name="seo_keywords" class="form-input" placeholder="Type to search SEO terms..." value="<%= article && article.seo_keywords ? article.seo_keywords.join(', ') : '' %>" autocomplete="off">
+              <div id="seoKeywordsSuggestions" class="keyword-suggestions" style="display:none;"></div>
+              <p class="form-help">Select from the SEO terms database or type custom keywords (comma-separated)</p>
             </div>
 
             <div class="form-row">
@@ -407,6 +408,18 @@
             </div>
           </div>
 
+          <!-- Citations / Sources Section -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-quote-right"></i> Citations &amp; Sources</h3>
+            <p class="form-help" style="margin-bottom: 12px;">Link to official sources, government sites, and data origins. Improves AI search engine trust (Perplexity, SearchGPT).</p>
+            <input type="hidden" id="citations" name="citations" value="<%= article && article.citations ? (typeof article.citations === 'string' ? article.citations : JSON.stringify(article.citations)) : '[]' %>">
+
+            <div id="citationsList" class="citation-list"></div>
+            <button type="button" class="btn btn-secondary" onclick="addCitation()" style="margin-top: 8px;">
+              <i class="fas fa-plus"></i> Add Citation
+            </button>
+          </div>
+
           <!-- Schema.org / Structured Data Section -->
           <div class="form-section">
             <h3 class="form-section-title"><i class="fas fa-code"></i> Structured Data (Schema.org / JSON-LD)</h3>
@@ -429,7 +442,7 @@
 
             <div id="ogMetaPreviewSection" class="form-group" style="display: none;">
               <label class="form-label">Open Graph &amp; Meta Tags Preview</label>
-              <textarea id="og_meta_preview" class="form-input code-textarea" rows="18" readonly style="background: #f8f9fa; font-size: 12px; line-height: 1.5;"></textarea>
+              <textarea id="og_meta_preview" class="form-input code-textarea" rows="18" readonly></textarea>
               <p class="form-help">Read-only preview of all meta tags that will be rendered on the article page. Copy if needed for manual use.</p>
             </div>
           </div>
@@ -975,15 +988,79 @@
   color: #8c8c8c;
 }
 
-/* Code textarea for JSON-LD */
+/* Code textarea for JSON-LD and meta previews */
 .code-textarea {
   font-family: 'Courier New', Courier, monospace;
   font-size: 13px;
   line-height: 1.5;
   background: #1e1e1e;
   color: #d4d4d4;
-  border: 1px solid var(--gray-300);
+  border: 1px solid #3c3c3c;
   border-radius: 4px;
+  padding: 12px;
+}
+.code-textarea::placeholder {
+  color: #6a6a6a;
+}
+
+/* Keyword autocomplete suggestions */
+.keyword-suggestions {
+  position: absolute;
+  z-index: 100;
+  background: var(--white);
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.keyword-suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.keyword-suggestion-item:hover {
+  background: var(--primary);
+  color: #fff;
+}
+.keyword-suggestion-item .category-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+.keyword-suggestion-item:hover .category-badge {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+/* Citations list */
+.citation-list { margin-top: 8px; }
+.citation-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+.citation-item input {
+  flex: 1;
+}
+.citation-item .btn-remove {
+  padding: 4px 8px;
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.citation-item .btn-remove:hover {
+  background: #c82333;
 }
 </style>
 
@@ -1461,28 +1538,147 @@ function autoPopulateSocial() {
   updateSocialScore();
 }
 
+// ==================== Citations Management ====================
+var citationsData = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    var citVal = document.getElementById('citations').value;
+    citationsData = citVal ? JSON.parse(citVal) : [];
+  } catch(e) { citationsData = []; }
+  renderCitations();
+});
+
+function addCitation() {
+  citationsData.push({ name: '', url: '' });
+  updateCitationsField();
+  renderCitations();
+}
+
+function removeCitation(index) {
+  citationsData.splice(index, 1);
+  updateCitationsField();
+  renderCitations();
+}
+
+function updateCitationField(index, field, value) {
+  citationsData[index][field] = value;
+  updateCitationsField();
+}
+
+function updateCitationsField() {
+  document.getElementById('citations').value = JSON.stringify(citationsData);
+}
+
+function renderCitations() {
+  var container = document.getElementById('citationsList');
+  container.innerHTML = '';
+  if (citationsData.length === 0) {
+    container.innerHTML = '<p style="color: var(--gray-500); font-size: 14px; margin: 4px 0;">No citations added yet</p>';
+    return;
+  }
+  citationsData.forEach(function(cit, i) {
+    var div = document.createElement('div');
+    div.className = 'citation-item';
+    div.innerHTML =
+      '<input type="text" class="form-input" placeholder="Source name (e.g. AI Basic Act)" value="' + (cit.name || '').replace(/"/g, '&quot;') + '" oninput="updateCitationField(' + i + ', \'name\', this.value)" style="flex:0.4">' +
+      '<input type="url" class="form-input" placeholder="https://official-source-url.com" value="' + (cit.url || '').replace(/"/g, '&quot;') + '" oninput="updateCitationField(' + i + ', \'url\', this.value)" style="flex:0.6">' +
+      '<button type="button" class="btn-remove" onclick="removeCitation(' + i + ')"><i class="fas fa-times"></i></button>';
+    container.appendChild(div);
+  });
+}
+
+// ==================== SEO Keywords Autocomplete ====================
+var seoTermsCache = null;
+
+function loadSeoTerms(callback) {
+  if (seoTermsCache) return callback(seoTermsCache);
+  fetch('/content/seo-terms/api/list')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      seoTermsCache = data.terms || [];
+      callback(seoTermsCache);
+    })
+    .catch(function() { callback([]); });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var input = document.getElementById('seo_keywords');
+  var dropdown = document.getElementById('seoKeywordsSuggestions');
+
+  input.addEventListener('input', function() {
+    var val = this.value;
+    var parts = val.split(',');
+    var current = parts[parts.length - 1].trim().toLowerCase();
+    if (current.length < 1) { dropdown.style.display = 'none'; return; }
+
+    loadSeoTerms(function(terms) {
+      var existing = parts.slice(0, -1).map(function(p) { return p.trim().toLowerCase(); });
+      var matches = terms.filter(function(t) {
+        return t.term.toLowerCase().indexOf(current) !== -1 && existing.indexOf(t.term.toLowerCase()) === -1;
+      }).slice(0, 8);
+
+      if (matches.length === 0) { dropdown.style.display = 'none'; return; }
+      dropdown.innerHTML = '';
+      matches.forEach(function(t) {
+        var item = document.createElement('div');
+        item.className = 'keyword-suggestion-item';
+        item.innerHTML = '<span>' + t.term + '</span>' + (t.category ? '<span class="category-badge">' + t.category + '</span>' : '');
+        item.addEventListener('click', function() {
+          parts[parts.length - 1] = ' ' + t.term;
+          input.value = parts.join(',') + ', ';
+          dropdown.style.display = 'none';
+          input.focus();
+        });
+        dropdown.appendChild(item);
+      });
+      dropdown.style.display = 'block';
+    });
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+});
+
 // ==================== Schema.org Markup Generator ====================
+var SOCIAL_LINKS = [
+  "https://www.linkedin.com/company/wordsthatsells",
+  "https://www.instagram.com/wordsthatsells",
+  "https://github.com/laurentlaboise"
+];
+
 function getArticleSlug(title) {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-function getArticleImages() {
-  var images = [];
+function getArticleImageObjects() {
+  var imageObjects = [];
   try {
     var articleImagesJson = document.getElementById('article_images').value;
     if (articleImagesJson) {
       var articleImgs = JSON.parse(articleImagesJson);
       if (Array.isArray(articleImgs)) {
-        articleImgs.forEach(function(img) {
+        articleImgs.forEach(function(img, idx) {
           var url = img.cdn_url || img.url || '';
-          if (url && images.indexOf(url) === -1) {
-            images.push(url);
-          }
+          if (!url) return;
+          var obj = {
+            "@type": "ImageObject",
+            "url": url,
+            "name": img.title || img.filename || ''
+          };
+          if (img.alt_text) obj.caption = img.alt_text;
+          if (img.width) obj.width = { "@type": "QuantitativeValue", "value": img.width, "unitCode": "E37" };
+          if (img.height) obj.height = { "@type": "QuantitativeValue", "value": img.height, "unitCode": "E37" };
+          if (idx === 0) obj.representativeOfPage = true;
+          imageObjects.push(obj);
         });
       }
     }
   } catch(e) { /* ignore parse errors */ }
-  return images;
+  return imageObjects;
 }
 
 function getWordCount() {
@@ -1494,6 +1690,13 @@ function getWordCount() {
   // Split on whitespace and count non-empty words
   var words = text.split(/\s+/).filter(function(w) { return w.length > 0; });
   return words.length;
+}
+
+function getCitations() {
+  try {
+    var val = document.getElementById('citations').value;
+    return val ? JSON.parse(val) : [];
+  } catch(e) { return []; }
 }
 
 function generateSchemaMarkup() {
@@ -1508,8 +1711,9 @@ function generateSchemaMarkup() {
   var timeToRead = document.getElementById('time_to_read').value || '';
   var slug = getArticleSlug(title);
   var articleUrl = publishedUrl || ('https://wordsthatsells.website/en/articles/' + slug + '/');
-  var images = getArticleImages();
+  var imageObjects = getArticleImageObjects();
   var wordCount = getWordCount();
+  var citations = getCitations();
 
   // Build Article object
   var articleObj = {
@@ -1519,14 +1723,18 @@ function generateSchemaMarkup() {
     "description": seoDesc || excerpt
   };
 
-  if (images.length > 0) articleObj.image = images;
+  // 1. Nested ImageObject array
+  if (imageObjects.length > 0) articleObj.image = imageObjects;
+
   if (publishedAt) articleObj.datePublished = new Date(publishedAt).toISOString();
   if (updatedAt) articleObj.dateModified = new Date(updatedAt).toISOString();
 
+  // 4. Author + Publisher with sameAs social linking
   articleObj.author = {
     "@type": "Organization",
     "name": "Words That Sells",
-    "url": "https://wordsthatsells.website"
+    "url": "https://wordsthatsells.website",
+    "sameAs": SOCIAL_LINKS
   };
 
   articleObj.publisher = {
@@ -1535,7 +1743,8 @@ function generateSchemaMarkup() {
     "logo": {
       "@type": "ImageObject",
       "url": "https://wordsthatsells.website/assets/images/logo.png"
-    }
+    },
+    "sameAs": SOCIAL_LINKS
   };
 
   articleObj.mainEntityOfPage = {
@@ -1547,6 +1756,7 @@ function generateSchemaMarkup() {
   if (timeToRead) articleObj.timeRequired = 'PT' + timeToRead + 'M';
   if (wordCount > 0) articleObj.wordCount = String(wordCount);
 
+  // 3. About with entity linking (from tags)
   if (tags) {
     var tagArray = tags.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
     if (tagArray.length > 0) {
@@ -1554,6 +1764,22 @@ function generateSchemaMarkup() {
         return { "@type": "Thing", "name": tag };
       });
     }
+  }
+
+  // 2. Speakable property (voice assistants: Gemini Live, Siri, Alexa)
+  articleObj.speakable = {
+    "@type": "SpeakableSpecification",
+    "cssSelector": [".article-summary", ".article-key-insights", ".article-header h1", ".article-excerpt"]
+  };
+
+  // 3. Citation / sources (entity linking for AI search engines)
+  var validCitations = citations.filter(function(c) { return c.url; });
+  if (validCitations.length > 0) {
+    articleObj.citation = validCitations.map(function(c) {
+      var citObj = { "@type": "CreativeWork", "url": c.url };
+      if (c.name) citObj.name = c.name;
+      return citObj;
+    });
   }
 
   // Build BreadcrumbList
@@ -1600,7 +1826,6 @@ function generateOgMetaPreview() {
   var category = document.getElementById('category').value || '';
   var tags = document.getElementById('tags').value || '';
 
-  // Resolve with fallbacks
   var resolvedOgTitle = ogTitle || seoTitle || title;
   var resolvedOgDesc = ogDesc || seoDesc || excerpt;
   var resolvedOgImage = ogImage || featuredImage;
