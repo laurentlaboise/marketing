@@ -469,9 +469,9 @@
             const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
             const description = sm.og_description || article.description || '';
             const content = article.full_article_content || article.content || '';
-            const textContent = content
-                .replace(/[<>]/g, '')
-                .replace(/<[^>]*>/g, '');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            const textContent = (tempDiv.textContent || tempDiv.innerText || '').trim();
             const wordCount = textContent.split(/\s+/).filter(w => w.length > 0).length;
             const readTime = article.time_to_read || calculateReadingTime(content);
 
