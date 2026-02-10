@@ -49,7 +49,7 @@ router.get('/articles', async (req, res) => {
              seo_title, seo_description, featured, published_url, published_at, created_at, updated_at,
              og_title, og_description, og_image, og_type,
              twitter_card, twitter_title, twitter_description, twitter_image, twitter_site, twitter_creator,
-             canonical_url, robots_meta, schema_markup
+             canonical_url, robots_meta, schema_markup, article_images
       FROM articles
       WHERE status = 'published'
     `;
@@ -79,6 +79,7 @@ router.get('/articles', async (req, res) => {
       sidebar_content: article.excerpt || article.content?.substring(0, 500) || '',
       full_article_content: article.content,
       published_url: article.published_url || '',
+      article_images: article.article_images || [],
       created_at: article.created_at,
       updated_at: article.updated_at,
       published_at: article.published_at,
@@ -133,6 +134,7 @@ router.get('/articles/:slug', async (req, res) => {
       published_url: article.published_url || '',
       full_article_content: article.content,
       time_to_read: article.time_to_read || null,
+      article_images: article.article_images || [],
       created_at: article.created_at,
       updated_at: article.updated_at,
       published_at: article.published_at,

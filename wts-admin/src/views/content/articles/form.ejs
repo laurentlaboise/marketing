@@ -1463,12 +1463,30 @@ function generateSchemaMarkup() {
   var timeToRead = document.getElementById('time_to_read').value || '';
   var seoKeywords = document.getElementById('seo_keywords').value || '';
 
+  // Collect all article images
+  var images = [];
+  if (image) images.push(image);
+  try {
+    var articleImagesJson = document.getElementById('article_images').value;
+    if (articleImagesJson) {
+      var articleImgs = JSON.parse(articleImagesJson);
+      if (Array.isArray(articleImgs)) {
+        articleImgs.forEach(function(img) {
+          var url = img.cdn_url || img.url || '';
+          if (url && images.indexOf(url) === -1) {
+            images.push(url);
+          }
+        });
+      }
+    }
+  } catch(e) { /* ignore parse errors */ }
+
   var schema = {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": title,
     "description": seoDesc || excerpt,
-    "image": image ? [image] : [],
+    "image": images,
     "author": {
       "@type": "Organization",
       "name": "Words That Sells",

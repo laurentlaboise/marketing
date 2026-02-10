@@ -459,12 +459,21 @@
 
             // Otherwise generate from article data
             const ogImage = sm.og_image || article.featured_image_url || '';
+            // Collect all article images (featured/OG + article_images)
+            const images = [];
+            if (ogImage) images.push(ogImage);
+            if (Array.isArray(article.article_images)) {
+                article.article_images.forEach(img => {
+                    const url = img.cdn_url || img.url || '';
+                    if (url && !images.includes(url)) images.push(url);
+                });
+            }
             return {
                 "@context": "https://schema.org",
                 "@type": "Article",
                 "headline": article.title,
                 "description": sm.og_description || article.description || '',
-                "image": ogImage ? [ogImage] : [],
+                "image": images,
                 "datePublished": article.published_at || article.created_at,
                 "dateModified": article.updated_at || article.created_at,
                 "author": {
