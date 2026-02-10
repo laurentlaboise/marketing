@@ -135,22 +135,293 @@
           </div>
 
           <div class="form-section">
-            <h3 class="form-section-title">SEO Settings</h3>
+            <h3 class="form-section-title"><i class="fas fa-search"></i> SEO Settings</h3>
 
             <div class="form-group">
               <label class="form-label" for="seo_title">SEO Title</label>
-              <input type="text" id="seo_title" name="seo_title" class="form-input" value="<%= article ? article.seo_title : '' %>">
+              <input type="text" id="seo_title" name="seo_title" class="form-input" maxlength="70" placeholder="Optimized title for search results (50-60 chars ideal)" value="<%= article ? article.seo_title : '' %>" oninput="updateCharCount(this, 'seoTitleCount', 60)">
+              <div class="char-counter-row">
+                <p class="form-help">Appears as the clickable headline in search results</p>
+                <span id="seoTitleCount" class="char-counter"></span>
+              </div>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="seo_description">SEO Description</label>
-              <textarea id="seo_description" name="seo_description" class="form-input" rows="2"><%= article ? article.seo_description : '' %></textarea>
+              <textarea id="seo_description" name="seo_description" class="form-input" rows="2" maxlength="320" placeholder="Meta description for search results (150-160 chars ideal)" oninput="updateCharCount(this, 'seoDescCount', 160)"><%= article ? article.seo_description : '' %></textarea>
+              <div class="char-counter-row">
+                <p class="form-help">Appears below the title in search results</p>
+                <span id="seoDescCount" class="char-counter"></span>
+              </div>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="seo_keywords">SEO Keywords</label>
               <input type="text" id="seo_keywords" name="seo_keywords" class="form-input" placeholder="keyword1, keyword2" value="<%= article && article.seo_keywords ? article.seo_keywords.join(', ') : '' %>">
               <p class="form-help">Separate keywords with commas</p>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="canonical_url"><i class="fas fa-link"></i> Canonical URL</label>
+                <input type="url" id="canonical_url" name="canonical_url" class="form-input" placeholder="https://wordsthatsells.website/articles/your-article" value="<%= article && article.canonical_url ? article.canonical_url : '' %>">
+                <p class="form-help">Prevents duplicate content issues. Leave empty to use default URL.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="robots_meta"><i class="fas fa-robot"></i> Robots Meta</label>
+                <select id="robots_meta" name="robots_meta" class="form-input">
+                  <option value="index, follow" <%= (!article || !article.robots_meta || article.robots_meta === 'index, follow') ? 'selected' : '' %>>Index, Follow (default)</option>
+                  <option value="noindex, follow" <%= (article && article.robots_meta === 'noindex, follow') ? 'selected' : '' %>>No Index, Follow</option>
+                  <option value="index, nofollow" <%= (article && article.robots_meta === 'index, nofollow') ? 'selected' : '' %>>Index, No Follow</option>
+                  <option value="noindex, nofollow" <%= (article && article.robots_meta === 'noindex, nofollow') ? 'selected' : '' %>>No Index, No Follow</option>
+                </select>
+                <p class="form-help">Controls how search engines index and follow links</p>
+              </div>
+            </div>
+
+            <!-- Google SERP Preview -->
+            <div class="form-group">
+              <label class="form-label"><i class="fab fa-google"></i> Google Search Preview</label>
+              <div class="serp-preview" id="serpPreview">
+                <div class="serp-url" id="serpUrl">wordsthatsells.website > articles > ...</div>
+                <div class="serp-title" id="serpTitle">Article Title</div>
+                <div class="serp-description" id="serpDescription">Article description will appear here...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Preview Section -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-share-alt"></i> Social Preview (Open Graph / Twitter Cards)</h3>
+            <p class="form-help" style="margin-bottom: 16px;">Control how your article appears when shared on social platforms. These tags are essential for CTR and engagement.</p>
+
+            <!-- Social Metadata Completeness Score -->
+            <div class="social-score-card" id="socialScoreCard">
+              <div class="social-score-header">
+                <span class="social-score-label"><i class="fas fa-chart-line"></i> Social Metadata Score</span>
+                <span class="social-score-value" id="socialScoreValue">0%</span>
+              </div>
+              <div class="social-score-bar">
+                <div class="social-score-fill" id="socialScoreFill" style="width: 0%;"></div>
+              </div>
+              <div class="social-score-checklist" id="socialChecklist"></div>
+            </div>
+
+            <!-- Auto-populate button -->
+            <div class="form-group" style="margin-bottom: 20px;">
+              <button type="button" class="btn btn-secondary" onclick="autoPopulateSocial()">
+                <i class="fas fa-magic"></i> Auto-fill from Article Data
+              </button>
+              <p class="form-help" style="margin-top: 4px;">Populates OG & Twitter fields from your article title, excerpt, and featured image</p>
+            </div>
+
+            <!-- Platform Tabs -->
+            <div class="social-tabs">
+              <button type="button" class="social-tab active" data-tab="og" onclick="switchSocialTab('og')">
+                <i class="fab fa-facebook"></i> Facebook / Meta / LinkedIn
+              </button>
+              <button type="button" class="social-tab" data-tab="twitter" onclick="switchSocialTab('twitter')">
+                <i class="fab fa-x-twitter"></i> X (Twitter)
+              </button>
+              <button type="button" class="social-tab" data-tab="previews" onclick="switchSocialTab('previews')">
+                <i class="fas fa-eye"></i> Live Previews
+              </button>
+            </div>
+
+            <!-- Open Graph Tab -->
+            <div class="social-tab-content active" id="tab-og">
+              <div class="form-group">
+                <label class="form-label" for="og_title"><i class="fab fa-facebook-square" style="color: #1877F2;"></i> OG Title</label>
+                <input type="text" id="og_title" name="og_title" class="form-input" maxlength="95" placeholder="Title as it appears on Facebook, LinkedIn, WhatsApp, Pinterest (40-60 chars)" value="<%= article && article.og_title ? article.og_title : '' %>" oninput="updateCharCount(this, 'ogTitleCount', 60); updateSocialPreviews(); updateSocialScore();">
+                <div class="char-counter-row">
+                  <p class="form-help">Best practice: 40-60 characters. Used by Facebook, LinkedIn, WhatsApp, Slack, Discord, Pinterest.</p>
+                  <span id="ogTitleCount" class="char-counter"></span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="og_description"><i class="fab fa-facebook-square" style="color: #1877F2;"></i> OG Description</label>
+                <textarea id="og_description" name="og_description" class="form-input" rows="2" maxlength="300" placeholder="Description for social sharing (100-200 chars ideal)" oninput="updateCharCount(this, 'ogDescCount', 200); updateSocialPreviews(); updateSocialScore();"><%= article && article.og_description ? article.og_description : '' %></textarea>
+                <div class="char-counter-row">
+                  <p class="form-help">Best practice: 100-200 characters. Keep it compelling and actionable.</p>
+                  <span id="ogDescCount" class="char-counter"></span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="og_image"><i class="fas fa-image" style="color: #1877F2;"></i> OG Image URL</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="url" id="og_image" name="og_image" class="form-input" placeholder="https://example.com/image.jpg (1200x630px recommended)" value="<%= article && article.og_image ? article.og_image : '' %>" oninput="updateSocialPreviews(); updateSocialScore();" style="flex: 1;">
+                  <button type="button" class="btn btn-secondary" onclick="openOgImageSelector()">
+                    <i class="fas fa-photo-video"></i> Library
+                  </button>
+                </div>
+                <p class="form-help">Recommended: 1200x630px (1.91:1 ratio). Min 600x315px. Max 8MB. Formats: JPG, PNG, WebP.</p>
+                <div id="ogImagePreview" class="og-image-preview" style="display: none;">
+                  <img id="ogImagePreviewImg" src="" alt="OG Image Preview">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="og_type">OG Type</label>
+                  <select id="og_type" name="og_type" class="form-input" onchange="updateSocialScore();">
+                    <option value="article" <%= (!article || !article.og_type || article.og_type === 'article') ? 'selected' : '' %>>Article</option>
+                    <option value="website" <%= (article && article.og_type === 'website') ? 'selected' : '' %>>Website</option>
+                    <option value="blog" <%= (article && article.og_type === 'blog') ? 'selected' : '' %>>Blog</option>
+                    <option value="product" <%= (article && article.og_type === 'product') ? 'selected' : '' %>>Product</option>
+                  </select>
+                  <p class="form-help">Usually "article" for blog posts</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Twitter Tab -->
+            <div class="social-tab-content" id="tab-twitter">
+              <div class="form-group">
+                <label class="form-label" for="twitter_card"><i class="fab fa-x-twitter"></i> Card Type</label>
+                <select id="twitter_card" name="twitter_card" class="form-input" onchange="updateSocialPreviews(); updateSocialScore();">
+                  <option value="summary_large_image" <%= (!article || !article.twitter_card || article.twitter_card === 'summary_large_image') ? 'selected' : '' %>>Summary with Large Image (recommended)</option>
+                  <option value="summary" <%= (article && article.twitter_card === 'summary') ? 'selected' : '' %>>Summary (small thumbnail)</option>
+                </select>
+                <p class="form-help">"Summary with Large Image" gets 2x higher engagement on average</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="twitter_title"><i class="fab fa-x-twitter"></i> X Title</label>
+                <input type="text" id="twitter_title" name="twitter_title" class="form-input" maxlength="70" placeholder="Title for X/Twitter cards (max 70 chars)" value="<%= article && article.twitter_title ? article.twitter_title : '' %>" oninput="updateCharCount(this, 'twitterTitleCount', 70); updateSocialPreviews(); updateSocialScore();">
+                <div class="char-counter-row">
+                  <p class="form-help">Falls back to OG Title if empty. Max 70 characters.</p>
+                  <span id="twitterTitleCount" class="char-counter"></span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="twitter_description"><i class="fab fa-x-twitter"></i> X Description</label>
+                <textarea id="twitter_description" name="twitter_description" class="form-input" rows="2" maxlength="200" placeholder="Description for X/Twitter (max 200 chars)" oninput="updateCharCount(this, 'twitterDescCount', 200); updateSocialPreviews(); updateSocialScore();"><%= article && article.twitter_description ? article.twitter_description : '' %></textarea>
+                <div class="char-counter-row">
+                  <p class="form-help">Falls back to OG Description if empty. Keep it concise.</p>
+                  <span id="twitterDescCount" class="char-counter"></span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="twitter_image"><i class="fas fa-image"></i> X Image URL</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="url" id="twitter_image" name="twitter_image" class="form-input" placeholder="https://example.com/image.jpg (leave empty to use OG image)" value="<%= article && article.twitter_image ? article.twitter_image : '' %>" oninput="updateSocialPreviews(); updateSocialScore();" style="flex: 1;">
+                  <button type="button" class="btn btn-secondary" onclick="openTwitterImageSelector()">
+                    <i class="fas fa-photo-video"></i> Library
+                  </button>
+                </div>
+                <p class="form-help">Recommended: 1200x675px (16:9) for large image, 144x144px for summary. Falls back to OG Image.</p>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="twitter_site">@Site Handle</label>
+                  <input type="text" id="twitter_site" name="twitter_site" class="form-input" placeholder="@wordsthatsells" value="<%= article && article.twitter_site ? article.twitter_site : '' %>" oninput="updateSocialPreviews(); updateSocialScore();">
+                  <p class="form-help">Your brand's X handle (e.g. @wordsthatsells)</p>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="twitter_creator">@Author Handle</label>
+                  <input type="text" id="twitter_creator" name="twitter_creator" class="form-input" placeholder="@authorname" value="<%= article && article.twitter_creator ? article.twitter_creator : '' %>" oninput="updateSocialScore();">
+                  <p class="form-help">The content creator's X handle</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Previews Tab -->
+            <div class="social-tab-content" id="tab-previews">
+              <div class="preview-grid">
+                <!-- Facebook Preview -->
+                <div class="preview-card">
+                  <div class="preview-card-header">
+                    <i class="fab fa-facebook" style="color: #1877F2;"></i> Facebook / Meta Preview
+                  </div>
+                  <div class="facebook-preview">
+                    <div class="fb-preview-image" id="fbPreviewImage">
+                      <i class="fas fa-image"></i>
+                      <span>1200 x 630px</span>
+                    </div>
+                    <div class="fb-preview-content">
+                      <div class="fb-preview-domain" id="fbPreviewDomain">wordsthatsells.website</div>
+                      <div class="fb-preview-title" id="fbPreviewTitle">Your Article Title</div>
+                      <div class="fb-preview-desc" id="fbPreviewDesc">Your article description will appear here...</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Twitter Preview -->
+                <div class="preview-card">
+                  <div class="preview-card-header">
+                    <i class="fab fa-x-twitter"></i> X (Twitter) Preview
+                  </div>
+                  <div class="twitter-preview" id="twitterPreviewCard">
+                    <div class="tw-preview-image" id="twPreviewImage">
+                      <i class="fas fa-image"></i>
+                      <span>1200 x 675px</span>
+                    </div>
+                    <div class="tw-preview-content">
+                      <div class="tw-preview-title" id="twPreviewTitle">Your Article Title</div>
+                      <div class="tw-preview-desc" id="twPreviewDesc">Your article description will appear here...</div>
+                      <div class="tw-preview-domain" id="twPreviewDomain"><i class="fas fa-link"></i> wordsthatsells.website</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- LinkedIn Preview -->
+                <div class="preview-card">
+                  <div class="preview-card-header">
+                    <i class="fab fa-linkedin" style="color: #0A66C2;"></i> LinkedIn Preview
+                  </div>
+                  <div class="linkedin-preview">
+                    <div class="li-preview-image" id="liPreviewImage">
+                      <i class="fas fa-image"></i>
+                      <span>1200 x 627px</span>
+                    </div>
+                    <div class="li-preview-content">
+                      <div class="li-preview-title" id="liPreviewTitle">Your Article Title</div>
+                      <div class="li-preview-domain" id="liPreviewDomain">wordsthatsells.website</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- WhatsApp Preview -->
+                <div class="preview-card">
+                  <div class="preview-card-header">
+                    <i class="fab fa-whatsapp" style="color: #25D366;"></i> WhatsApp / Slack / Discord Preview
+                  </div>
+                  <div class="whatsapp-preview">
+                    <div class="wa-preview-bar"></div>
+                    <div class="wa-preview-body">
+                      <div class="wa-preview-image" id="waPreviewImage">
+                        <i class="fas fa-image"></i>
+                      </div>
+                      <div class="wa-preview-title" id="waPreviewTitle">Your Article Title</div>
+                      <div class="wa-preview-desc" id="waPreviewDesc">Your article description...</div>
+                      <div class="wa-preview-domain" id="waPreviewDomain">wordsthatsells.website</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Schema.org / Structured Data Section -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-code"></i> Structured Data (Schema.org / JSON-LD)</h3>
+            <p class="form-help" style="margin-bottom: 12px;">Structured data helps search engines and AI systems understand your content. Auto-generated from article fields.</p>
+
+            <div class="form-group">
+              <button type="button" class="btn btn-secondary" onclick="generateSchemaMarkup()">
+                <i class="fas fa-cogs"></i> Auto-Generate Schema Markup
+              </button>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="schema_markup">JSON-LD Schema Markup</label>
+              <textarea id="schema_markup" name="schema_markup" class="form-input code-textarea" rows="12" placeholder='Click "Auto-Generate" to create schema markup from your article data'><%= article && article.schema_markup ? JSON.stringify(article.schema_markup, null, 2) : '' %></textarea>
+              <p class="form-help">This will be embedded as &lt;script type="application/ld+json"&gt; in the article page. Improves rich snippets and AI comprehension.</p>
             </div>
           </div>
 
@@ -325,6 +596,385 @@
 .image-selector-item.selected {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* Character counter */
+.char-counter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+.char-counter {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.char-counter.good { color: #059669; background: #d1fae5; }
+.char-counter.warn { color: #d97706; background: #fef3c7; }
+.char-counter.over { color: #dc2626; background: #fee2e2; }
+
+/* SERP Preview */
+.serp-preview {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 600px;
+  font-family: Arial, sans-serif;
+}
+.serp-url {
+  font-size: 12px;
+  color: #202124;
+  margin-bottom: 4px;
+}
+.serp-title {
+  font-size: 20px;
+  color: #1a0dab;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.serp-title:hover { text-decoration: underline; }
+.serp-description {
+  font-size: 14px;
+  color: #4d5156;
+  line-height: 1.58;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Social tabs */
+.social-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--gray-200);
+  margin-bottom: 20px;
+}
+.social-tab {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-600);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.social-tab:hover { color: var(--gray-900); background: var(--gray-50); }
+.social-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.social-tab-content { display: none; }
+.social-tab-content.active { display: block; }
+
+/* Social score card */
+.social-score-card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.social-score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.social-score-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--gray-700);
+}
+.social-score-value {
+  font-weight: 700;
+  font-size: 18px;
+}
+.social-score-bar {
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.social-score-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease, background-color 0.4s ease;
+}
+.social-score-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 4px;
+  font-size: 12px;
+}
+.score-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gray-600);
+}
+.score-item.done { color: #059669; }
+.score-item.missing { color: #dc2626; }
+
+/* OG Image Preview */
+.og-image-preview {
+  margin-top: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 300px;
+}
+.og-image-preview img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid var(--gray-200);
+}
+
+/* Preview Grid */
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+}
+.preview-card {
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.preview-card-header {
+  padding: 10px 14px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--gray-700);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Facebook Preview */
+.facebook-preview {
+  background: #fff;
+  border: 1px solid #dadde1;
+  margin: 12px;
+  border-radius: 0;
+}
+.fb-preview-image {
+  width: 100%;
+  height: 170px;
+  background: #f0f2f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #65676b;
+  font-size: 12px;
+  gap: 6px;
+  background-size: cover;
+  background-position: center;
+}
+.fb-preview-image i { font-size: 32px; }
+.fb-preview-image.has-image { color: transparent; }
+.fb-preview-content {
+  padding: 10px 12px;
+  border-top: 1px solid #dadde1;
+  background: #f2f3f5;
+}
+.fb-preview-domain {
+  font-size: 12px;
+  color: #606770;
+  text-transform: uppercase;
+}
+.fb-preview-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d2129;
+  line-height: 1.38;
+  margin: 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fb-preview-desc {
+  font-size: 14px;
+  color: #606770;
+  line-height: 1.34;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Twitter Preview */
+.twitter-preview {
+  background: #fff;
+  border: 1px solid #cfd9de;
+  border-radius: 16px;
+  margin: 12px;
+  overflow: hidden;
+}
+.tw-preview-image {
+  width: 100%;
+  height: 160px;
+  background: #eff3f4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #536471;
+  font-size: 12px;
+  gap: 6px;
+  background-size: cover;
+  background-position: center;
+}
+.tw-preview-image i { font-size: 28px; }
+.tw-preview-image.has-image { color: transparent; }
+.tw-preview-content {
+  padding: 10px 12px;
+}
+.tw-preview-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f1419;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tw-preview-desc {
+  font-size: 15px;
+  color: #536471;
+  line-height: 1.3;
+  margin: 2px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tw-preview-domain {
+  font-size: 15px;
+  color: #536471;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* LinkedIn Preview */
+.linkedin-preview {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  margin: 12px;
+}
+.li-preview-image {
+  width: 100%;
+  height: 160px;
+  background: #f3f2ef;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 12px;
+  gap: 6px;
+  background-size: cover;
+  background-position: center;
+}
+.li-preview-image i { font-size: 28px; }
+.li-preview-image.has-image { color: transparent; }
+.li-preview-content {
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-top: 1px solid #e0e0e0;
+}
+.li-preview-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0,0,0,0.9);
+  line-height: 1.42;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.li-preview-domain {
+  font-size: 12px;
+  color: rgba(0,0,0,0.6);
+}
+
+/* WhatsApp Preview */
+.whatsapp-preview {
+  background: #e5ddd5;
+  padding: 12px;
+  margin: 12px;
+  border-radius: 8px;
+}
+.wa-preview-body {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  border-left: 4px solid #25D366;
+}
+.wa-preview-bar { display: none; }
+.wa-preview-image {
+  width: 100%;
+  height: 120px;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  background-size: cover;
+  background-position: center;
+}
+.wa-preview-image i { font-size: 24px; }
+.wa-preview-image.has-image { color: transparent; }
+.wa-preview-title {
+  padding: 8px 10px 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1d1d1d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wa-preview-desc {
+  padding: 0 10px;
+  font-size: 12px;
+  color: #8c8c8c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wa-preview-domain {
+  padding: 2px 10px 8px;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+/* Code textarea for JSON-LD */
+.code-textarea {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
 }
 </style>
 
@@ -529,6 +1179,397 @@ window.addEventListener('click', function(event) {
   if (event.target === modal) {
     closeImageSelector();
   }
+});
+
+// ==================== Character Counter ====================
+function updateCharCount(input, counterId, optimal) {
+  const counter = document.getElementById(counterId);
+  if (!counter) return;
+  const len = input.value.length;
+  const max = parseInt(input.getAttribute('maxlength')) || optimal * 1.5;
+  counter.textContent = len + ' / ' + optimal;
+
+  counter.className = 'char-counter';
+  if (len === 0) {
+    counter.textContent = '0 / ' + optimal;
+    counter.classList.add('warn');
+  } else if (len <= optimal) {
+    counter.classList.add('good');
+  } else if (len <= max) {
+    counter.classList.add('warn');
+  } else {
+    counter.classList.add('over');
+  }
+}
+
+// ==================== SERP Preview ====================
+function updateSerpPreview() {
+  var title = document.getElementById('seo_title').value || document.getElementById('title').value || 'Article Title';
+  var desc = document.getElementById('seo_description').value || document.getElementById('excerpt').value || 'Article description will appear here...';
+  var url = document.getElementById('published_url').value || document.getElementById('canonical_url').value || 'wordsthatsells.website/articles/...';
+
+  var serpTitle = document.getElementById('serpTitle');
+  var serpDesc = document.getElementById('serpDescription');
+  var serpUrl = document.getElementById('serpUrl');
+
+  if (serpTitle) serpTitle.textContent = title.substring(0, 70);
+  if (serpDesc) serpDesc.textContent = desc.substring(0, 160);
+  if (serpUrl) {
+    try {
+      var parsed = new URL(url);
+      serpUrl.textContent = parsed.hostname + ' > ' + parsed.pathname.split('/').filter(Boolean).join(' > ');
+    } catch(e) {
+      serpUrl.textContent = 'wordsthatsells.website > articles > ...';
+    }
+  }
+}
+
+// ==================== Social Tabs ====================
+function switchSocialTab(tabName) {
+  // Deactivate all tabs and content
+  var tabs = document.querySelectorAll('.social-tab');
+  var contents = document.querySelectorAll('.social-tab-content');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.remove('active');
+  }
+  for (var i = 0; i < contents.length; i++) {
+    contents[i].classList.remove('active');
+  }
+
+  // Activate clicked tab
+  var clickedTab = document.querySelector('.social-tab[data-tab="' + tabName + '"]');
+  var tabContent = document.getElementById('tab-' + tabName);
+  if (clickedTab) clickedTab.classList.add('active');
+  if (tabContent) tabContent.classList.add('active');
+
+  // Update previews when switching to previews tab
+  if (tabName === 'previews') {
+    updateSocialPreviews();
+  }
+}
+
+// ==================== Social Previews ====================
+function updateSocialPreviews() {
+  var articleTitle = document.getElementById('title').value || 'Your Article Title';
+  var articleExcerpt = document.getElementById('excerpt').value || '';
+  var articleImage = document.getElementById('featured_image').value || '';
+
+  var ogTitle = document.getElementById('og_title').value || articleTitle;
+  var ogDesc = document.getElementById('og_description').value || articleExcerpt || 'Your article description will appear here...';
+  var ogImage = document.getElementById('og_image').value || articleImage;
+  var twitterTitle = document.getElementById('twitter_title').value || ogTitle;
+  var twitterDesc = document.getElementById('twitter_description').value || ogDesc;
+  var twitterImage = document.getElementById('twitter_image').value || ogImage;
+
+  // Facebook preview
+  var fbTitle = document.getElementById('fbPreviewTitle');
+  var fbDesc = document.getElementById('fbPreviewDesc');
+  var fbImage = document.getElementById('fbPreviewImage');
+  if (fbTitle) fbTitle.textContent = ogTitle.substring(0, 60);
+  if (fbDesc) fbDesc.textContent = ogDesc.substring(0, 200);
+  if (fbImage) {
+    if (ogImage) {
+      fbImage.style.backgroundImage = 'url(' + ogImage + ')';
+      fbImage.className = 'fb-preview-image has-image';
+    } else {
+      fbImage.style.backgroundImage = '';
+      fbImage.className = 'fb-preview-image';
+    }
+  }
+
+  // Twitter preview
+  var twTitle = document.getElementById('twPreviewTitle');
+  var twDesc = document.getElementById('twPreviewDesc');
+  var twImage = document.getElementById('twPreviewImage');
+  var twDomain = document.getElementById('twPreviewDomain');
+  if (twTitle) twTitle.textContent = twitterTitle.substring(0, 70);
+  if (twDesc) twDesc.textContent = twitterDesc.substring(0, 200);
+  if (twImage) {
+    if (twitterImage) {
+      twImage.style.backgroundImage = 'url(' + twitterImage + ')';
+      twImage.className = 'tw-preview-image has-image';
+    } else {
+      twImage.style.backgroundImage = '';
+      twImage.className = 'tw-preview-image';
+    }
+  }
+  var twitterSite = document.getElementById('twitter_site').value;
+  if (twDomain && twitterSite) {
+    twDomain.innerHTML = '<i class="fas fa-link"></i> wordsthatsells.website';
+  }
+
+  // LinkedIn preview (uses OG tags)
+  var liTitle = document.getElementById('liPreviewTitle');
+  var liImage = document.getElementById('liPreviewImage');
+  if (liTitle) liTitle.textContent = ogTitle.substring(0, 60);
+  if (liImage) {
+    if (ogImage) {
+      liImage.style.backgroundImage = 'url(' + ogImage + ')';
+      liImage.className = 'li-preview-image has-image';
+    } else {
+      liImage.style.backgroundImage = '';
+      liImage.className = 'li-preview-image';
+    }
+  }
+
+  // WhatsApp preview (uses OG tags)
+  var waTitle = document.getElementById('waPreviewTitle');
+  var waDesc = document.getElementById('waPreviewDesc');
+  var waImage = document.getElementById('waPreviewImage');
+  if (waTitle) waTitle.textContent = ogTitle.substring(0, 60);
+  if (waDesc) waDesc.textContent = ogDesc.substring(0, 100);
+  if (waImage) {
+    if (ogImage) {
+      waImage.style.backgroundImage = 'url(' + ogImage + ')';
+      waImage.className = 'wa-preview-image has-image';
+    } else {
+      waImage.style.backgroundImage = '';
+      waImage.className = 'wa-preview-image';
+    }
+  }
+
+  // OG image preview thumbnail
+  var ogImagePreview = document.getElementById('ogImagePreview');
+  var ogImagePreviewImg = document.getElementById('ogImagePreviewImg');
+  if (ogImagePreview && ogImagePreviewImg) {
+    if (document.getElementById('og_image').value) {
+      ogImagePreviewImg.src = document.getElementById('og_image').value;
+      ogImagePreview.style.display = 'block';
+    } else {
+      ogImagePreview.style.display = 'none';
+    }
+  }
+
+  // Update SERP preview too
+  updateSerpPreview();
+}
+
+// ==================== Social Score ====================
+function updateSocialScore() {
+  var checks = [
+    { id: 'og_title', label: 'OG Title', done: false },
+    { id: 'og_description', label: 'OG Description', done: false },
+    { id: 'og_image', label: 'OG Image', done: false },
+    { id: 'twitter_card', label: 'Twitter Card Type', done: false },
+    { id: 'twitter_title', label: 'X Title (or OG fallback)', done: false },
+    { id: 'twitter_description', label: 'X Description (or OG fallback)', done: false },
+    { id: 'twitter_image', label: 'X Image (or OG fallback)', done: false },
+    { id: 'twitter_site', label: 'X @Site Handle', done: false },
+    { id: 'seo_title', label: 'SEO Title', done: false },
+    { id: 'seo_description', label: 'SEO Description', done: false }
+  ];
+
+  var filled = 0;
+  for (var i = 0; i < checks.length; i++) {
+    var el = document.getElementById(checks[i].id);
+    if (el && el.value && el.value.trim()) {
+      checks[i].done = true;
+      filled++;
+    } else if (checks[i].id === 'twitter_title' && document.getElementById('og_title').value.trim()) {
+      checks[i].done = true;
+      filled++;
+    } else if (checks[i].id === 'twitter_description' && document.getElementById('og_description').value.trim()) {
+      checks[i].done = true;
+      filled++;
+    } else if (checks[i].id === 'twitter_image' && document.getElementById('og_image').value.trim()) {
+      checks[i].done = true;
+      filled++;
+    }
+  }
+
+  var score = Math.round((filled / checks.length) * 100);
+  var scoreValue = document.getElementById('socialScoreValue');
+  var scoreFill = document.getElementById('socialScoreFill');
+  var checklist = document.getElementById('socialChecklist');
+
+  if (scoreValue) {
+    scoreValue.textContent = score + '%';
+    if (score >= 80) { scoreValue.style.color = '#059669'; }
+    else if (score >= 50) { scoreValue.style.color = '#d97706'; }
+    else { scoreValue.style.color = '#dc2626'; }
+  }
+
+  if (scoreFill) {
+    scoreFill.style.width = score + '%';
+    if (score >= 80) { scoreFill.style.backgroundColor = '#059669'; }
+    else if (score >= 50) { scoreFill.style.backgroundColor = '#d97706'; }
+    else { scoreFill.style.backgroundColor = '#dc2626'; }
+  }
+
+  if (checklist) {
+    var html = '';
+    for (var j = 0; j < checks.length; j++) {
+      var cls = checks[j].done ? 'score-item done' : 'score-item missing';
+      var icon = checks[j].done ? 'fa-check-circle' : 'fa-times-circle';
+      html += '<div class="' + cls + '"><i class="fas ' + icon + '"></i> ' + checks[j].label + '</div>';
+    }
+    checklist.innerHTML = html;
+  }
+}
+
+// ==================== Auto-populate Social Fields ====================
+function autoPopulateSocial() {
+  var title = document.getElementById('title').value || '';
+  var excerpt = document.getElementById('excerpt').value || '';
+  var image = document.getElementById('featured_image').value || '';
+  var seoTitle = document.getElementById('seo_title').value || '';
+  var seoDesc = document.getElementById('seo_description').value || '';
+
+  // Use SEO title if available, otherwise article title
+  var socialTitle = seoTitle || title;
+  var socialDesc = seoDesc || excerpt;
+
+  // Populate OG fields
+  if (!document.getElementById('og_title').value) {
+    document.getElementById('og_title').value = socialTitle.substring(0, 90);
+    updateCharCount(document.getElementById('og_title'), 'ogTitleCount', 60);
+  }
+  if (!document.getElementById('og_description').value) {
+    document.getElementById('og_description').value = socialDesc.substring(0, 200);
+    updateCharCount(document.getElementById('og_description'), 'ogDescCount', 200);
+  }
+  if (!document.getElementById('og_image').value && image) {
+    document.getElementById('og_image').value = image;
+  }
+
+  // Populate Twitter fields (can be customized separately)
+  if (!document.getElementById('twitter_title').value) {
+    document.getElementById('twitter_title').value = socialTitle.substring(0, 70);
+    updateCharCount(document.getElementById('twitter_title'), 'twitterTitleCount', 70);
+  }
+  if (!document.getElementById('twitter_description').value) {
+    document.getElementById('twitter_description').value = socialDesc.substring(0, 200);
+    updateCharCount(document.getElementById('twitter_description'), 'twitterDescCount', 200);
+  }
+  if (!document.getElementById('twitter_image').value && image) {
+    document.getElementById('twitter_image').value = image;
+  }
+
+  updateSocialPreviews();
+  updateSocialScore();
+}
+
+// ==================== Schema.org Markup Generator ====================
+function generateSchemaMarkup() {
+  var title = document.getElementById('title').value || '';
+  var excerpt = document.getElementById('excerpt').value || '';
+  var seoDesc = document.getElementById('seo_description').value || '';
+  var image = document.getElementById('og_image').value || document.getElementById('featured_image').value || '';
+  var publishedAt = document.getElementById('published_at').value || '';
+  var updatedAt = document.getElementById('updated_at').value || '';
+  var category = document.getElementById('category').value || '';
+  var tags = document.getElementById('tags').value || '';
+  var publishedUrl = document.getElementById('published_url').value || document.getElementById('canonical_url').value || '';
+  var timeToRead = document.getElementById('time_to_read').value || '';
+  var seoKeywords = document.getElementById('seo_keywords').value || '';
+
+  var schema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": title,
+    "description": seoDesc || excerpt,
+    "image": image ? [image] : [],
+    "author": {
+      "@type": "Organization",
+      "name": "Words That Sells",
+      "url": "https://wordsthatsells.website"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Words That Sells",
+      "url": "https://wordsthatsells.website",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://wordsthatsells.website/assets/images/logo.png"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": publishedUrl || "https://wordsthatsells.website"
+    }
+  };
+
+  if (publishedAt) schema.datePublished = new Date(publishedAt).toISOString();
+  if (updatedAt) schema.dateModified = new Date(updatedAt).toISOString();
+  if (category) schema.articleSection = category;
+  if (seoKeywords) schema.keywords = seoKeywords;
+  if (timeToRead) schema.timeRequired = 'PT' + timeToRead + 'M';
+
+  if (tags) {
+    var tagArray = tags.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
+    if (tagArray.length > 0) {
+      schema.about = tagArray.map(function(tag) {
+        return { "@type": "Thing", "name": tag };
+      });
+    }
+  }
+
+  document.getElementById('schema_markup').value = JSON.stringify(schema, null, 2);
+}
+
+// ==================== Image Selector for Social Fields ====================
+var socialImageTarget = null;
+
+function openOgImageSelector() {
+  socialImageTarget = 'og_image';
+  openSocialImageModal();
+}
+
+function openTwitterImageSelector() {
+  socialImageTarget = 'twitter_image';
+  openSocialImageModal();
+}
+
+function openSocialImageModal() {
+  document.getElementById('imageSelectorModal').style.display = 'block';
+  // Override the selectImage function temporarily
+  window._originalSelectImage = window.selectImage;
+  window.selectImage = function(image) {
+    if (socialImageTarget) {
+      var url = image.cdn_url || '/images-serve/' + encodeURIComponent(image.filename);
+      document.getElementById(socialImageTarget).value = url;
+      socialImageTarget = null;
+      window.selectImage = window._originalSelectImage;
+      closeImageSelector();
+      updateSocialPreviews();
+      updateSocialScore();
+    } else {
+      window._originalSelectImage(image);
+    }
+  };
+  loadImages(1);
+}
+
+// ==================== Initialize on Page Load ====================
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize character counters
+  var seoTitleEl = document.getElementById('seo_title');
+  var seoDescEl = document.getElementById('seo_description');
+  var ogTitleEl = document.getElementById('og_title');
+  var ogDescEl = document.getElementById('og_description');
+  var twTitleEl = document.getElementById('twitter_title');
+  var twDescEl = document.getElementById('twitter_description');
+
+  if (seoTitleEl) updateCharCount(seoTitleEl, 'seoTitleCount', 60);
+  if (seoDescEl) updateCharCount(seoDescEl, 'seoDescCount', 160);
+  if (ogTitleEl) updateCharCount(ogTitleEl, 'ogTitleCount', 60);
+  if (ogDescEl) updateCharCount(ogDescEl, 'ogDescCount', 200);
+  if (twTitleEl) updateCharCount(twTitleEl, 'twitterTitleCount', 70);
+  if (twDescEl) updateCharCount(twDescEl, 'twitterDescCount', 200);
+
+  // Initialize social score
+  updateSocialScore();
+
+  // Initialize previews
+  updateSocialPreviews();
+
+  // Listen for changes on main article fields to update SERP preview
+  var titleEl = document.getElementById('title');
+  var excerptEl = document.getElementById('excerpt');
+  if (titleEl) titleEl.addEventListener('input', function() { updateSerpPreview(); updateSocialPreviews(); });
+  if (excerptEl) excerptEl.addEventListener('input', function() { updateSerpPreview(); updateSocialPreviews(); });
+  if (seoTitleEl) seoTitleEl.addEventListener('input', function() { updateSerpPreview(); updateSocialScore(); });
+  if (seoDescEl) seoDescEl.addEventListener('input', function() { updateSerpPreview(); updateSocialScore(); });
 });
 </script>
 

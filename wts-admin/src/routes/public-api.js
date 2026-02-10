@@ -46,7 +46,10 @@ router.get('/articles', async (req, res) => {
 
     let query = `
       SELECT id, title, slug, excerpt, content, featured_image, category, tags,
-             seo_title, seo_description, featured, published_url, published_at, created_at, updated_at
+             seo_title, seo_description, featured, published_url, published_at, created_at, updated_at,
+             og_title, og_description, og_image, og_type,
+             twitter_card, twitter_title, twitter_description, twitter_image, twitter_site, twitter_creator,
+             canonical_url, robots_meta, schema_markup
       FROM articles
       WHERE status = 'published'
     `;
@@ -78,7 +81,22 @@ router.get('/articles', async (req, res) => {
       published_url: article.published_url || '',
       created_at: article.created_at,
       updated_at: article.updated_at,
-      published_at: article.published_at
+      published_at: article.published_at,
+      social_meta: {
+        og_title: article.og_title || article.seo_title || article.title,
+        og_description: article.og_description || article.seo_description || article.excerpt || '',
+        og_image: article.og_image || article.featured_image || '',
+        og_type: article.og_type || 'article',
+        twitter_card: article.twitter_card || 'summary_large_image',
+        twitter_title: article.twitter_title || article.og_title || article.seo_title || article.title,
+        twitter_description: article.twitter_description || article.og_description || article.seo_description || article.excerpt || '',
+        twitter_image: article.twitter_image || article.og_image || article.featured_image || '',
+        twitter_site: article.twitter_site || '',
+        twitter_creator: article.twitter_creator || '',
+        canonical_url: article.canonical_url || article.published_url || '',
+        robots_meta: article.robots_meta || 'index, follow',
+        schema_markup: article.schema_markup || null
+      }
     }));
 
     respond(res, articles);
@@ -113,7 +131,22 @@ router.get('/articles/:slug', async (req, res) => {
       is_published: true,
       published_url: article.published_url || '',
       created_at: article.created_at,
-      updated_at: article.updated_at
+      updated_at: article.updated_at,
+      social_meta: {
+        og_title: article.og_title || article.seo_title || article.title,
+        og_description: article.og_description || article.seo_description || article.excerpt || '',
+        og_image: article.og_image || article.featured_image || '',
+        og_type: article.og_type || 'article',
+        twitter_card: article.twitter_card || 'summary_large_image',
+        twitter_title: article.twitter_title || article.og_title || article.seo_title || article.title,
+        twitter_description: article.twitter_description || article.og_description || article.seo_description || article.excerpt || '',
+        twitter_image: article.twitter_image || article.og_image || article.featured_image || '',
+        twitter_site: article.twitter_site || '',
+        twitter_creator: article.twitter_creator || '',
+        canonical_url: article.canonical_url || article.published_url || '',
+        robots_meta: article.robots_meta || 'index, follow',
+        schema_markup: article.schema_markup || null
+      }
     });
   } catch (error) {
     console.error('Public API - Single article error:', error);
