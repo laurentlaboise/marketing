@@ -176,6 +176,55 @@ const db = {
         END $$;
       `);
 
+      // Add social preview / Open Graph / Twitter Card columns to articles
+      await client.query(`
+        DO $$
+        BEGIN
+          -- Open Graph fields
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='og_title') THEN
+            ALTER TABLE articles ADD COLUMN og_title VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='og_description') THEN
+            ALTER TABLE articles ADD COLUMN og_description TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='og_image') THEN
+            ALTER TABLE articles ADD COLUMN og_image TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='og_type') THEN
+            ALTER TABLE articles ADD COLUMN og_type VARCHAR(50) DEFAULT 'article';
+          END IF;
+          -- Twitter Card fields
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='twitter_card') THEN
+            ALTER TABLE articles ADD COLUMN twitter_card VARCHAR(50) DEFAULT 'summary_large_image';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='twitter_title') THEN
+            ALTER TABLE articles ADD COLUMN twitter_title VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='twitter_description') THEN
+            ALTER TABLE articles ADD COLUMN twitter_description VARCHAR(500);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='twitter_image') THEN
+            ALTER TABLE articles ADD COLUMN twitter_image TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='twitter_site') THEN
+            ALTER TABLE articles ADD COLUMN twitter_site VARCHAR(100);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='twitter_creator') THEN
+            ALTER TABLE articles ADD COLUMN twitter_creator VARCHAR(100);
+          END IF;
+          -- Additional SEO/social fields
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='canonical_url') THEN
+            ALTER TABLE articles ADD COLUMN canonical_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='robots_meta') THEN
+            ALTER TABLE articles ADD COLUMN robots_meta VARCHAR(255) DEFAULT 'index, follow';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='schema_markup') THEN
+            ALTER TABLE articles ADD COLUMN schema_markup JSONB;
+          END IF;
+        END $$;
+      `);
+
       // SEO Terms table
       await client.query(`
         CREATE TABLE IF NOT EXISTS seo_terms (
