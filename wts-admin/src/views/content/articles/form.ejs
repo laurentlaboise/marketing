@@ -1487,7 +1487,9 @@ function getArticleImages() {
 
 function getWordCount() {
   var content = document.getElementById('content').value || '';
-  var text = content.replace(/<[^>]*>/g, '');
+  var div = document.createElement('div');
+  div.innerHTML = content;
+  var text = (div.textContent || div.innerText || '');
   var words = text.split(/\s+/).filter(function(w) { return w.length > 0; });
   return words.length;
 }
