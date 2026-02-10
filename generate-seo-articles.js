@@ -16,7 +16,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-
+const striptags = require('striptags');
 const API_BASE_URL = 'https://marketing-production-a3ee.up.railway.app/api';
 const SITE_BASE_URL = 'https://wordsthatsells.website';
 const OUTPUT_DIR = path.join(__dirname, 'en', 'articles');
@@ -133,7 +133,7 @@ function generateSchemaMarkup(article) {
 
   // Word count from content
   const content = article.full_article_content || article.content || '';
-  const textContent = content.replace(/<[^>]*>/g, '');
+  const textContent = striptags(content);
   const wordCount = textContent.split(/\s+/).filter(w => w.length > 0).length;
   const readTime = article.time_to_read || calculateReadingTime(content);
 
