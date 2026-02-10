@@ -129,9 +129,13 @@ router.get('/articles/:slug', async (req, res) => {
       categories: article.category ? [article.category] : [],
       tags: article.tags || [],
       is_published: true,
+      featured: article.featured || false,
       published_url: article.published_url || '',
+      full_article_content: article.content,
+      time_to_read: article.time_to_read || null,
       created_at: article.created_at,
       updated_at: article.updated_at,
+      published_at: article.published_at,
       social_meta: {
         og_title: article.og_title || article.seo_title || article.title,
         og_description: article.og_description || article.seo_description || article.excerpt || '',
