@@ -6,3 +6,10 @@
   to = "/en/articles/index.html"
   status = 200
   force = false
+
+# Ensure sitemap.xml is served with the correct Content-Type header
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml; charset=utf-8"
+    X-Content-Type-Options = "nosniff"

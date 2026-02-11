@@ -3,6 +3,11 @@
 
 permalink: pretty
 
+# Ensure critical files are included in the build output
+include:
+  - sitemap.xml
+  - robots.txt
+
 # Exclude files from processing
 exclude:
   - node_modules
