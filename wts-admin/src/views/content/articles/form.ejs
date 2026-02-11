@@ -2048,10 +2048,39 @@ function renderKeyPoints() {
   keyPointsData.forEach(function(kp, i) {
     var div = document.createElement('div');
     div.className = 'key-point-item';
-    div.innerHTML =
-      '<input type="text" class="form-input" placeholder="Point title (bold)" value="' + (kp.title || '').replace(/"/g, '&quot;') + '" oninput="updateKeyPointField(' + i + ', \'title\', this.value)">' +
-      '<textarea class="form-input" placeholder="Point description" oninput="updateKeyPointField(' + i + ', \'description\', this.value)">' + (kp.description || '') + '</textarea>' +
-      '<button type="button" class="btn-remove" onclick="removeKeyPoint(' + i + ')"><i class="fas fa-times"></i></button>';
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'form-input';
+    input.placeholder = 'Point title (bold)';
+    input.value = kp.title || '';
+    input.oninput = function() {
+      updateKeyPointField(i, 'title', this.value);
+    };
+
+    var textarea = document.createElement('textarea');
+    textarea.className = 'form-input';
+    textarea.placeholder = 'Point description';
+    textarea.value = kp.description || '';
+    textarea.oninput = function() {
+      updateKeyPointField(i, 'description', this.value);
+    };
+
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn-remove';
+    button.onclick = function() {
+      removeKeyPoint(i);
+    };
+
+    var icon = document.createElement('i');
+    icon.className = 'fas fa-times';
+    button.appendChild(icon);
+
+    div.appendChild(input);
+    div.appendChild(textarea);
+    div.appendChild(button);
+
     container.appendChild(div);
   });
 }
