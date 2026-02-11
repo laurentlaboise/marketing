@@ -3,6 +3,10 @@ const { ensureAuthenticated, logActivity } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { parse } = require('csv-parse/sync');
 
 const router = express.Router();
 router.use(ensureAuthenticated);
@@ -21,6 +25,25 @@ const createSlug = (title) => {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 };
+
+// Multer config for CSV/XLSX file uploads
+const UPLOAD_TEMP_DIR = path.join(__dirname, '../../uploads/temp');
+if (!fs.existsSync(UPLOAD_TEMP_DIR)) {
+  fs.mkdirSync(UPLOAD_TEMP_DIR, { recursive: true });
+}
+
+const csvUpload = multer({
+  dest: UPLOAD_TEMP_DIR,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    const allowed = /\.(csv)$/i;
+    if (allowed.test(path.extname(file.originalname))) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed'));
+    }
+  },
+});
 
 // ==================== ARTICLES ====================
 
@@ -502,6 +525,121 @@ router.post('/glossary', async (req, res) => {
       currentPage: 'glossary',
       error: 'Failed to create glossary term'
     });
+  }
+});
+
+// Glossary bulk import from CSV (Google Sheets export)
+router.post('/glossary/import', csvUpload.single('file'), async (req, res) => {
+  let tempFilePath = null;
+  try {
+    if (!req.file) {
+      req.session.errorMessage = 'Please select a CSV file to import';
+      return res.redirect('/content/glossary');
+    }
+
+    tempFilePath = req.file.path;
+    const fileContent = fs.readFileSync(tempFilePath, 'utf-8');
+
+    // Parse CSV with flexible column detection
+    const records = parse(fileContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+      bom: true,
+      relax_column_count: true,
+    });
+
+    if (records.length === 0) {
+      req.session.errorMessage = 'The CSV file is empty or has no data rows';
+      return res.redirect('/content/glossary');
+    }
+
+    // Normalize column headers (case-insensitive matching)
+    const normalizeHeader = (header) => header.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+    const mapRow = (row) => {
+      const mapped = {};
+      for (const [key, value] of Object.entries(row)) {
+        mapped[normalizeHeader(key)] = value;
+      }
+      return mapped;
+    };
+
+    // Fetch existing terms for duplicate checking
+    const existingResult = await db.query('SELECT term FROM glossary');
+    const existingTerms = new Set(existingResult.rows.map(r => r.term.toLowerCase().trim()));
+
+    let imported = 0;
+    let skippedDuplicates = 0;
+    let skippedInvalid = 0;
+
+    for (const rawRow of records) {
+      const row = mapRow(rawRow);
+
+      // Map columns (support multiple common header names)
+      const term = (row.term || row.name || row.title || '').trim();
+      const definition = (row.definition || row.description || row.meaning || '').trim();
+      const category = (row.category || row.primary_category || '').trim();
+      const categories = (row.categories || row.all_categories || row.tags || '').trim();
+      const relatedTerms = (row.related_terms || row.related || '').trim();
+      const example = (row.example || row.examples || '').trim();
+      const videoUrl = (row.video_url || row.video || '').trim();
+      const featuredImage = (row.featured_image || row.image || row.image_url || '').trim();
+      const articleLink = (row.article_link || row.article || row.article_url || '').trim();
+      const bulletsRaw = (row.bullets || row.key_concepts || row.key_points || '').trim();
+
+      // Validate required fields
+      if (!term || !definition) {
+        skippedInvalid++;
+        continue;
+      }
+
+      // Check for duplicates
+      if (existingTerms.has(term.toLowerCase())) {
+        skippedDuplicates++;
+        continue;
+      }
+
+      // Process fields
+      const letter = term.charAt(0).toUpperCase();
+      const slug = createSlug(term);
+      const relatedArray = relatedTerms ? relatedTerms.split(',').map(t => t.trim()).filter(t => t) : [];
+      const categoriesArray = categories ? categories.split(',').map(c => c.trim()).filter(c => c) : (category ? [category] : []);
+      let bulletsArray = [];
+      if (bulletsRaw) {
+        // Support semicolon-separated or newline-separated bullets
+        bulletsArray = bulletsRaw.split(/[;\n]/).map(b => b.trim()).filter(b => b);
+      }
+
+      await db.query(
+        `INSERT INTO glossary (term, definition, category, related_terms, letter, slug, video_url, featured_image, article_link, bullets, example, categories)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [term, definition, category || null, relatedArray, letter, slug, videoUrl || null, featuredImage || null, articleLink || null, JSON.stringify(bulletsArray), example || null, categoriesArray]
+      );
+
+      // Track the new term to prevent duplicates within the same import
+      existingTerms.add(term.toLowerCase());
+      imported++;
+    }
+
+    // Build result message
+    const parts = [`${imported} term${imported !== 1 ? 's' : ''} imported successfully`];
+    if (skippedDuplicates > 0) {
+      parts.push(`${skippedDuplicates} duplicate${skippedDuplicates !== 1 ? 's' : ''} skipped`);
+    }
+    if (skippedInvalid > 0) {
+      parts.push(`${skippedInvalid} invalid row${skippedInvalid !== 1 ? 's' : ''} skipped`);
+    }
+    req.session.successMessage = parts.join(', ');
+    res.redirect('/content/glossary');
+  } catch (error) {
+    console.error('Glossary import error:', error);
+    req.session.errorMessage = 'Failed to import glossary: ' + error.message;
+    res.redirect('/content/glossary');
+  } finally {
+    // Clean up temp file
+    if (tempFilePath) {
+      try { fs.unlinkSync(tempFilePath); } catch (e) { /* ignore cleanup errors */ }
+    }
   }
 });
 
