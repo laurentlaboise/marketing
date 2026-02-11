@@ -35,3 +35,6 @@ build/
 # Coverage
 coverage/
 .nyc_output/
+
+# Uploads
+uploads/

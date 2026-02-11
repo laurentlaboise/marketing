@@ -11,6 +11,7 @@
         <p class="page-subtitle">Manage marketing glossary terms</p>
       </div>
       <div class="page-actions">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('importModal').style.display='flex'" title="Import from CSV"><i class="fas fa-upload"></i> Import</button>
         <a href="/content/glossary/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Term</a>
       </div>
     </div>
@@ -59,5 +60,45 @@
     </div>
   </div>
 </main>
+
+<!-- Import Modal -->
+<div id="importModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div class="card" style="max-width:500px; width:90%; margin:auto;">
+    <div class="card-body">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h3 style="margin:0;"><i class="fas fa-upload"></i> Import Glossary Terms</h3>
+        <button type="button" onclick="document.getElementById('importModal').style.display='none'" aria-label="Close import dialog" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--gray-500);">&times;</button>
+      </div>
+      <form action="/content/glossary/import" method="POST" enctype="multipart/form-data" id="importForm">
+        <div class="form-group">
+          <label class="form-label" for="importFile">CSV File</label>
+          <input type="file" id="importFile" name="file" class="form-input" accept=".csv" required>
+          <p class="form-help">Upload a CSV file exported from Google Sheets. Required columns: <strong>Term</strong>, <strong>Definition</strong>. Optional: Category, Categories, Related Terms, Example, Bullets, Video URL, Featured Image, Article Link.</p>
+        </div>
+        <div class="form-actions" style="margin-top:1rem;">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('importModal').style.display='none'">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="importBtn"><i class="fas fa-upload"></i> Upload & Import</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Close modal on background click
+  document.getElementById('importModal').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+  });
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') document.getElementById('importModal').style.display = 'none';
+  });
+  // Show loading state on submit
+  document.getElementById('importForm').addEventListener('submit', function() {
+    var btn = document.getElementById('importBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+  });
+</script>
 
 <%- include('../../partials/footer') %>
