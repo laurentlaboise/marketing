@@ -315,6 +315,119 @@ router.post('/seo-terms', async (req, res) => {
   }
 });
 
+// SEO Terms bulk import from CSV (Google Sheets export)
+router.post('/seo-terms/import', csvUpload.single('file'), async (req, res) => {
+  let tempFilePath = null;
+  try {
+    if (!req.file) {
+      req.session.errorMessage = 'Please select a CSV file to import';
+      return res.redirect('/content/seo-terms');
+    }
+
+    tempFilePath = req.file.path;
+    const fileContent = fs.readFileSync(tempFilePath, 'utf-8');
+
+    // Parse CSV with flexible column detection
+    const records = parse(fileContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+      bom: true,
+      relax_column_count: true,
+    });
+
+    if (records.length === 0) {
+      req.session.errorMessage = 'The CSV file is empty or has no data rows';
+      return res.redirect('/content/seo-terms');
+    }
+
+    // Normalize column headers (case-insensitive matching)
+    const normalizeHeader = (header) => header.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+    const mapRow = (row) => {
+      const mapped = {};
+      for (const [key, value] of Object.entries(row)) {
+        mapped[normalizeHeader(key)] = value;
+      }
+      return mapped;
+    };
+
+    // Fetch existing terms for duplicate checking
+    const existingResult = await db.query('SELECT term FROM seo_terms');
+    const existingTerms = new Set(existingResult.rows.map(r => r.term.toLowerCase().trim()));
+
+    let imported = 0;
+    let skippedDuplicates = 0;
+    let skippedInvalid = 0;
+
+    for (const rawRow of records) {
+      const row = mapRow(rawRow);
+
+      // Map columns (support multiple common header names)
+      const term = (row.term || row.name || row.title || '').trim();
+      const definition = (row.definition || row.description || row.meaning || '').trim();
+      const shortDefinition = (row.short_definition || row.tooltip || row.summary || '').trim();
+      const category = (row.category || row.primary_category || '').trim();
+      const relatedTerms = (row.related_terms || row.related || row.tags || '').trim();
+      const examples = (row.examples || row.example || '').trim();
+      const videoUrl = (row.video_url || row.video || '').trim();
+      const featuredImage = (row.featured_image || row.image || row.image_url || '').trim();
+      const articleLink = (row.article_link || row.article || row.article_url || '').trim();
+      const glossaryLink = (row.glossary_link || row.glossary || row.glossary_url || '').trim();
+      const bulletsRaw = (row.bullets || row.key_concepts || row.key_points || '').trim();
+
+      // Validate required fields
+      if (!term || !definition) {
+        skippedInvalid++;
+        continue;
+      }
+
+      // Check for duplicates
+      if (existingTerms.has(term.toLowerCase())) {
+        skippedDuplicates++;
+        continue;
+      }
+
+      // Process fields
+      const slug = createSlug(term);
+      const relatedArray = relatedTerms ? relatedTerms.split(',').map(t => t.trim()).filter(t => t) : [];
+      let bulletsArray = [];
+      if (bulletsRaw) {
+        bulletsArray = bulletsRaw.split(/[;\n]/).map(b => b.trim()).filter(b => b);
+      }
+
+      await db.query(
+        `INSERT INTO seo_terms (term, definition, short_definition, category, related_terms, examples, slug, bullets, video_url, featured_image, article_link, glossary_link)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [term, definition, shortDefinition || null, category || null, relatedArray, examples || null, slug, JSON.stringify(bulletsArray), videoUrl || null, featuredImage || null, articleLink || null, glossaryLink || null]
+      );
+
+      // Track the new term to prevent duplicates within the same import
+      existingTerms.add(term.toLowerCase());
+      imported++;
+    }
+
+    // Build result message
+    const parts = [`${imported} term${imported !== 1 ? 's' : ''} imported successfully`];
+    if (skippedDuplicates > 0) {
+      parts.push(`${skippedDuplicates} duplicate${skippedDuplicates !== 1 ? 's' : ''} skipped`);
+    }
+    if (skippedInvalid > 0) {
+      parts.push(`${skippedInvalid} invalid row${skippedInvalid !== 1 ? 's' : ''} skipped`);
+    }
+    req.session.successMessage = parts.join(', ');
+    res.redirect('/content/seo-terms');
+  } catch (error) {
+    console.error('SEO terms import error:', error);
+    req.session.errorMessage = 'Failed to import SEO terms: ' + error.message;
+    res.redirect('/content/seo-terms');
+  } finally {
+    // Clean up temp file
+    if (tempFilePath) {
+      try { fs.unlinkSync(tempFilePath); } catch (e) { console.error('Temp file cleanup error:', e.message); }
+    }
+  }
+});
+
 router.get('/seo-terms/:id/edit', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM seo_terms WHERE id = $1', [req.params.id]);
