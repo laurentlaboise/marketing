@@ -8,7 +8,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">SEO Terms</h1>
-        <p class="page-subtitle">Manage SEO terminology definitions</p>
+        <p class="page-subtitle">Manage SEO terminology definitions. These terms are automatically detected and highlighted as clickable tooltips within articles.</p>
       </div>
       <div class="page-actions">
         <a href="/content/seo-terms/new" class="btn btn-primary">
@@ -25,7 +25,9 @@
             <thead>
               <tr>
                 <th>Term</th>
+                <th>Tooltip</th>
                 <th>Category</th>
+                <th>Links</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -34,7 +36,14 @@
               <% terms.forEach(term => { %>
               <tr>
                 <td><strong><%= term.term %></strong></td>
+                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 0.85rem;"><%= term.short_definition || '-' %></td>
                 <td><%= term.category || '-' %></td>
+                <td>
+                  <% if (term.article_link) { %><i class="fas fa-newspaper" title="Has article link" style="color: #1f85c9; margin-right: 4px;"></i><% } %>
+                  <% if (term.glossary_link) { %><i class="fas fa-book-open" title="Has glossary link" style="color: #d62b83; margin-right: 4px;"></i><% } %>
+                  <% if (term.video_url) { %><i class="fas fa-video" title="Has video" style="color: #25d366;"></i><% } %>
+                  <% if (!term.article_link && !term.glossary_link && !term.video_url) { %>-<% } %>
+                </td>
                 <td><%= new Date(term.created_at).toLocaleDateString() %></td>
                 <td>
                   <div class="table-actions">
@@ -53,7 +62,7 @@
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-search"></i></div>
           <h3>No SEO Terms Found</h3>
-          <p>Start building your SEO terminology database.</p>
+          <p>Start building your SEO terminology database. Terms you add here will be automatically detected in articles and displayed as clickable tooltips for readers.</p>
           <a href="/content/seo-terms/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Term</a>
         </div>
         <% } %>

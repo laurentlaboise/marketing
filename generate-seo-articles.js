@@ -110,6 +110,60 @@ function resolveSocialMeta(article) {
   };
 }
 
+// SEO terms cache (fetched once at build time)
+let seoTermsCache = [];
+const ADMIN_API_BASE = 'https://admin.wordsthatsells.website/api/public';
+
+/**
+ * Fetch SEO terms from admin backend for build-time highlighting
+ */
+async function fetchSeoTerms() {
+  try {
+    const url = `${ADMIN_API_BASE}/seo-terms`;
+    console.log('   Fetching SEO terms for article highlighting...');
+    const terms = await fetchData(url);
+    console.log(`   Found ${terms.length} SEO terms`);
+    return terms;
+  } catch (err) {
+    console.warn('   Warning: Could not fetch SEO terms:', err.message);
+    return [];
+  }
+}
+
+/**
+ * Highlight SEO terms in HTML content at build time.
+ * Wraps first occurrence of each term with <span class="seo-term-link"> and data attributes.
+ * Skips terms inside existing links, code blocks, and headings.
+ */
+function highlightTermsInHTML(htmlContent, terms) {
+  if (!terms || terms.length === 0 || !htmlContent) return htmlContent;
+
+  // Sort terms by length (longest first) for greedy matching
+  const sorted = [...terms].sort((a, b) => b.term.length - a.term.length);
+
+  const linked = new Set();
+  let result = htmlContent;
+
+  for (const termData of sorted) {
+    const termKey = termData.term.toLowerCase();
+    if (linked.has(termKey)) continue;
+
+    // Build regex: word-boundary match, case-insensitive, first occurrence only
+    const escaped = termData.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp('(?<![<\\/\\w])\\b(' + escaped + ')\\b(?![^<]*>)', 'i');
+
+    const match = result.match(regex);
+    if (match) {
+      const shortDef = escapeHtml(termData.short_definition || termData.definition || '').substring(0, 200);
+      const replacement = `<span class="seo-term-link" data-term-id="${termData.id}" data-term="${escapeHtml(termData.term.toLowerCase())}" data-def="${shortDef}" data-category="${escapeHtml(termData.category || '')}" data-article-link="${termData.article_link || ''}" data-glossary-link="${termData.glossary_link || ''}" role="button" tabindex="0">${match[1]}</span>`;
+      result = result.replace(regex, replacement);
+      linked.add(termKey);
+    }
+  }
+
+  return result;
+}
+
 // Social links for sameAs
 const SOCIAL_LINKS = [
   "https://www.linkedin.com/company/wordsthatsells",
@@ -526,6 +580,70 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             color: white;
         }
 
+        /* --- SEO Term Tooltip Styles --- */
+        .seo-term-link {
+            color: var(--color-primary-base);
+            text-decoration: none;
+            border-bottom: 1px dashed var(--color-primary-base);
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .seo-term-link:hover {
+            color: var(--color-accent-magenta);
+            border-bottom-color: var(--color-accent-magenta);
+        }
+        .seo-term-tooltip {
+            position: absolute;
+            z-index: 1000;
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            padding: 16px 20px;
+            max-width: 360px;
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px);
+            transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+            pointer-events: none;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .seo-term-tooltip.visible {
+            opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
+        }
+        .seo-term-tooltip-header {
+            display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;
+        }
+        .seo-term-tooltip-title {
+            font-family: var(--font-family-heading); font-weight: 700; font-size: 1rem; color: var(--color-slate-900); margin: 0;
+        }
+        .seo-term-tooltip-category {
+            font-size: 0.7rem; background: var(--color-primary-base); color: var(--color-white); padding: 2px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; margin-left: 8px;
+        }
+        .seo-term-tooltip-def {
+            color: var(--color-slate-500); margin: 0 0 10px; font-size: 0.85rem;
+        }
+        .seo-term-tooltip-links {
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .seo-term-tooltip-links a {
+            font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; text-decoration: none; transition: background 0.2s;
+        }
+        .seo-term-tooltip-links .tt-read-more {
+            background: var(--color-primary-base); color: var(--color-white);
+        }
+        .seo-term-tooltip-links .tt-read-more:hover {
+            background: #185a8d; color: var(--color-white);
+        }
+        .seo-term-tooltip-links .tt-glossary {
+            background: var(--color-light); color: var(--color-primary-base); border: 1px solid var(--color-border);
+        }
+        .seo-term-tooltip-links .tt-glossary:hover {
+            background: var(--color-primary-base); color: var(--color-white);
+        }
+
         @media (max-width: 768px) {
             .container {
                 width: 95%;
@@ -538,6 +656,10 @@ ${JSON.stringify(schemaMarkup, null, 2)}
 
             .article-content {
                 font-size: 1rem;
+            }
+
+            .seo-term-tooltip {
+                max-width: 300px; min-width: 240px;
             }
         }
     </style>
@@ -570,7 +692,7 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             ` : ''}
 
             <div class="article-content">
-                ${article.full_article_content || article.content || '<p>Content not available.</p>'}
+                ${highlightTermsInHTML(article.full_article_content || article.content || '<p>Content not available.</p>', seoTermsCache)}
             </div>
 
             <div class="share-buttons">
@@ -709,6 +831,56 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             handleScroll();
         }
 
+        // SEO Term Tooltip Interaction
+        var activeTooltip = null;
+        function showTermTooltip(el) {
+            closeTooltip();
+            var t = document.createElement('div');
+            t.className = 'seo-term-tooltip';
+            t.setAttribute('role', 'dialog');
+            var hdr = document.createElement('div');
+            hdr.className = 'seo-term-tooltip-header';
+            var title = document.createElement('span');
+            title.className = 'seo-term-tooltip-title';
+            title.textContent = el.textContent;
+            hdr.appendChild(title);
+            var cat = el.getAttribute('data-category');
+            if (cat) { var catEl = document.createElement('span'); catEl.className = 'seo-term-tooltip-category'; catEl.textContent = cat; hdr.appendChild(catEl); }
+            t.appendChild(hdr);
+            var def = document.createElement('p');
+            def.className = 'seo-term-tooltip-def';
+            def.textContent = el.getAttribute('data-def') || '';
+            t.appendChild(def);
+            var links = document.createElement('div');
+            links.className = 'seo-term-tooltip-links';
+            var artLink = el.getAttribute('data-article-link');
+            if (artLink) { var a = document.createElement('a'); a.href = artLink; a.className = 'tt-read-more'; a.target = '_blank'; a.textContent = 'Read Article'; links.appendChild(a); }
+            var glLink = el.getAttribute('data-glossary-link');
+            if (glLink) { var g = document.createElement('a'); g.href = glLink; g.className = 'tt-glossary'; g.target = '_blank'; g.textContent = 'Glossary'; links.appendChild(g); }
+            if (links.children.length > 0) t.appendChild(links);
+            document.body.appendChild(t);
+            activeTooltip = t;
+            var r = el.getBoundingClientRect();
+            var tr = t.getBoundingClientRect();
+            var top = r.bottom + window.scrollY + 8;
+            var left = r.left + window.scrollX + (r.width / 2) - (tr.width / 2);
+            if (left < 8) left = 8;
+            if (left + tr.width > window.innerWidth - 8) left = window.innerWidth - tr.width - 8;
+            t.style.position = 'absolute';
+            t.style.top = top + 'px';
+            t.style.left = left + 'px';
+            requestAnimationFrame(function() { t.classList.add('visible'); });
+        }
+        function closeTooltip() {
+            if (activeTooltip) { activeTooltip.classList.remove('visible'); var ref = activeTooltip; setTimeout(function() { if (ref.parentNode) ref.parentNode.removeChild(ref); }, 250); activeTooltip = null; }
+        }
+        document.addEventListener('click', function(e) {
+            var link = e.target.closest('.seo-term-link');
+            if (link) { e.preventDefault(); e.stopPropagation(); showTermTooltip(link); return; }
+            if (activeTooltip && !e.target.closest('.seo-term-tooltip')) closeTooltip();
+        });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeTooltip(); });
+
         document.addEventListener('DOMContentLoaded', initBackToTop);
     </script>
 </body>
@@ -753,6 +925,9 @@ async function main() {
   console.log(`📂 Output directory: ${OUTPUT_DIR}\n`);
 
   try {
+    // Fetch SEO terms for article content highlighting
+    seoTermsCache = await fetchSeoTerms();
+
     if (targetSlug) {
       // Generate single article by slug
       console.log(`🔍 Fetching article: ${targetSlug}`);

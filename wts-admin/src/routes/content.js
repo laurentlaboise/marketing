@@ -266,12 +266,18 @@ router.get('/seo-terms/new', (req, res) => {
 
 router.post('/seo-terms', async (req, res) => {
   try {
-    const { term, definition, category, related_terms, examples } = req.body;
+    const { term, definition, short_definition, category, related_terms, examples, bullets, video_url, featured_image, article_link, glossary_link } = req.body;
     const relatedArray = related_terms ? related_terms.split(',').map(t => t.trim()).filter(t => t) : [];
+    const slug = term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    let bulletsArray = [];
+    if (bullets && bullets.trim()) {
+      try { bulletsArray = JSON.parse(bullets); } catch(e) { bulletsArray = bullets.split('\n').map(b => b.trim()).filter(b => b); }
+    }
 
     await db.query(
-      'INSERT INTO seo_terms (term, definition, category, related_terms, examples) VALUES ($1, $2, $3, $4, $5)',
-      [term, definition, category, relatedArray, examples]
+      `INSERT INTO seo_terms (term, definition, short_definition, category, related_terms, examples, slug, bullets, video_url, featured_image, article_link, glossary_link)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [term, definition, short_definition || null, category, relatedArray, examples, slug, JSON.stringify(bulletsArray), video_url || null, featured_image || null, article_link || null, glossary_link || null]
     );
     req.session.successMessage = 'SEO term created successfully';
     res.redirect('/content/seo-terms');
@@ -304,12 +310,17 @@ router.get('/seo-terms/:id/edit', async (req, res) => {
 
 router.post('/seo-terms/:id', async (req, res) => {
   try {
-    const { term, definition, category, related_terms, examples } = req.body;
+    const { term, definition, short_definition, category, related_terms, examples, bullets, video_url, featured_image, article_link, glossary_link } = req.body;
     const relatedArray = related_terms ? related_terms.split(',').map(t => t.trim()).filter(t => t) : [];
+    const slug = term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    let bulletsArray = [];
+    if (bullets && bullets.trim()) {
+      try { bulletsArray = JSON.parse(bullets); } catch(e) { bulletsArray = bullets.split('\n').map(b => b.trim()).filter(b => b); }
+    }
 
     await db.query(
-      'UPDATE seo_terms SET term = $1, definition = $2, category = $3, related_terms = $4, examples = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6',
-      [term, definition, category, relatedArray, examples, req.params.id]
+      `UPDATE seo_terms SET term = $1, definition = $2, short_definition = $3, category = $4, related_terms = $5, examples = $6, slug = $7, bullets = $8, video_url = $9, featured_image = $10, article_link = $11, glossary_link = $12, updated_at = CURRENT_TIMESTAMP WHERE id = $13`,
+      [term, definition, short_definition || null, category, relatedArray, examples, slug, JSON.stringify(bulletsArray), video_url || null, featured_image || null, article_link || null, glossary_link || null, req.params.id]
     );
     req.session.successMessage = 'SEO term updated successfully';
     res.redirect('/content/seo-terms');
@@ -332,7 +343,7 @@ router.post('/seo-terms/:id/delete', async (req, res) => {
 // SEO Terms JSON API (for autocomplete in article form)
 router.get('/seo-terms/api/list', async (req, res) => {
   try {
-    const result = await db.query('SELECT id, term, category FROM seo_terms ORDER BY term ASC');
+    const result = await db.query('SELECT id, term, category, short_definition FROM seo_terms ORDER BY term ASC');
     res.json({ terms: result.rows });
   } catch (error) {
     res.status(500).json({ error: 'Failed to load SEO terms' });
