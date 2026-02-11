@@ -30,25 +30,23 @@
         <form action="/images/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
 
           <div class="form-section">
-            <h3 class="form-section-title">Image File</h3>
+            <h3 class="form-section-title">Image File(s)</h3>
 
             <div class="form-group">
-              <label class="form-label" for="image">Select Image *</label>
+              <label class="form-label" for="images">Select Image(s) *</label>
               <div class="upload-dropzone" id="dropzone">
-                <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,image/avif" required style="display: none;">
+                <input type="file" id="images" name="images" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,image/avif" multiple required style="display: none;">
                 <div class="dropzone-content" id="dropzoneContent">
                   <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: var(--gray-400); margin-bottom: 16px;"></i>
-                  <p style="font-size: 16px; font-weight: 600; color: var(--gray-700);">Drag & drop your image here</p>
+                  <p style="font-size: 16px; font-weight: 600; color: var(--gray-700);">Drag & drop your image(s) here</p>
                   <p style="color: var(--gray-500); margin-top: 4px;">or <span style="color: var(--primary); cursor: pointer;" id="browseBtn">browse files</span></p>
-                  <p class="form-help" style="margin-top: 12px;">JPG, PNG, GIF, WebP, SVG, AVIF - Max 20MB</p>
+                  <p class="form-help" style="margin-top: 12px;">JPG, PNG, GIF, WebP, SVG, AVIF - Max 20MB each. You can select multiple files.</p>
                 </div>
                 <div class="dropzone-preview" id="dropzonePreview" style="display: none;">
-                  <img id="previewImg" src="" alt="Preview">
-                  <div class="dropzone-preview-info">
-                    <p id="previewName" style="font-weight: 600;"></p>
-                    <p id="previewSize" style="color: var(--gray-500); font-size: 13px;"></p>
-                    <button type="button" id="removeFile" class="btn btn-sm btn-danger" style="margin-top: 8px;">
-                      <i class="fas fa-times"></i> Remove
+                  <div id="previewList" style="display: flex; flex-wrap: wrap; gap: 12px; width: 100%;"></div>
+                  <div style="margin-top: 12px;">
+                    <button type="button" id="removeFile" class="btn btn-sm btn-danger">
+                      <i class="fas fa-times"></i> Remove all
                     </button>
                   </div>
                 </div>
@@ -96,9 +94,9 @@
             </p>
 
             <div class="form-group">
-              <label class="form-label" for="alt_text">Alt Text *</label>
-              <input type="text" id="alt_text" name="alt_text" class="form-input" placeholder="Descriptive text about the image content" required>
-              <p class="form-help">125 characters max recommended. Include relevant keywords naturally.</p>
+              <label class="form-label" for="alt_text">Alt Text</label>
+              <input type="text" id="alt_text" name="alt_text" class="form-input" placeholder="Descriptive text about the image content (auto-fills from filename if empty)">
+              <p class="form-help">125 characters max recommended. Include relevant keywords naturally. If left empty, the filename will be used.</p>
             </div>
 
             <div class="form-group">
@@ -117,7 +115,7 @@
           <div class="form-actions">
             <a href="/images" class="btn btn-secondary">Cancel</a>
             <button type="submit" class="btn btn-primary" id="uploadBtn">
-              <i class="fas fa-cloud-upload-alt"></i> Upload Image
+              <i class="fas fa-cloud-upload-alt"></i> Upload Image(s)
             </button>
           </div>
         </form>
@@ -129,14 +127,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const dropzone = document.getElementById('dropzone');
-  const fileInput = document.getElementById('image');
+  const fileInput = document.getElementById('images');
   const browseBtn = document.getElementById('browseBtn');
   const removeBtn = document.getElementById('removeFile');
   const content = document.getElementById('dropzoneContent');
   const preview = document.getElementById('dropzonePreview');
-  const previewImg = document.getElementById('previewImg');
-  const previewName = document.getElementById('previewName');
-  const previewSize = document.getElementById('previewSize');
+  const previewList = document.getElementById('previewList');
   const uploadBtn = document.getElementById('uploadBtn');
 
   browseBtn.addEventListener('click', () => fileInput.click());
@@ -152,12 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
     dropzone.classList.remove('dragover');
     if (e.dataTransfer.files.length > 0) {
       fileInput.files = e.dataTransfer.files;
-      showPreview(e.dataTransfer.files[0]);
+      showPreviews(e.dataTransfer.files);
     }
   });
 
   fileInput.addEventListener('change', () => {
-    if (fileInput.files.length > 0) showPreview(fileInput.files[0]);
+    if (fileInput.files.length > 0) showPreviews(fileInput.files);
   });
 
   removeBtn.addEventListener('click', (e) => {
@@ -165,15 +161,39 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.value = '';
     content.style.display = '';
     preview.style.display = 'none';
+    previewList.innerHTML = '';
   });
 
-  function showPreview(file) {
-    const url = URL.createObjectURL(file);
-    previewImg.src = url;
-    previewName.textContent = file.name;
-    previewSize.textContent = formatSize(file.size);
+  function showPreviews(files) {
+    previewList.innerHTML = '';
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const item = document.createElement('div');
+      item.style.cssText = 'display: flex; align-items: center; gap: 10px; background: var(--gray-50); border-radius: var(--radius); padding: 8px 12px; min-width: 200px;';
+
+      const img = document.createElement('img');
+      img.style.cssText = 'width: 48px; height: 48px; object-fit: cover; border-radius: 4px;';
+      img.alt = 'Preview';
+      img.src = URL.createObjectURL(file);
+
+      const info = document.createElement('div');
+      const nameEl = document.createElement('p');
+      nameEl.style.cssText = 'font-weight: 600; font-size: 13px; margin: 0;';
+      nameEl.textContent = file.name;
+      const sizeEl = document.createElement('p');
+      sizeEl.style.cssText = 'color: var(--gray-500); font-size: 12px; margin: 0;';
+      sizeEl.textContent = formatSize(file.size);
+      info.appendChild(nameEl);
+      info.appendChild(sizeEl);
+
+      item.appendChild(img);
+      item.appendChild(info);
+      previewList.appendChild(item);
+    }
     content.style.display = 'none';
     preview.style.display = 'flex';
+    preview.style.flexDirection = 'column';
+    preview.style.alignItems = 'center';
   }
 
   function formatSize(bytes) {
@@ -185,7 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Show loading state on submit
   document.getElementById('uploadForm').addEventListener('submit', () => {
     uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading & publishing to CDN...';
+    const count = fileInput.files.length;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading ' + count + ' image' + (count !== 1 ? 's' : '') + '...';
   });
 });
 </script>
