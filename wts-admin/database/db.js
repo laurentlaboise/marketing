@@ -225,6 +225,9 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='citations') THEN
             ALTER TABLE articles ADD COLUMN citations JSONB DEFAULT '[]'::jsonb;
           END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='content_labels') THEN
+            ALTER TABLE articles ADD COLUMN content_labels JSONB DEFAULT '{}'::jsonb;
+          END IF;
         END $$;
       `);
 

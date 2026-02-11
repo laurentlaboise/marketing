@@ -447,6 +447,56 @@
             </div>
           </div>
 
+          <!-- Content Labels / Sidebar Card Section -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-id-card"></i> Content Labels (Article Sidebar Card)</h3>
+            <p class="form-help" style="margin-bottom: 12px;">Configure the sidebar preview card shown alongside the article. This standardized card helps readers understand the article at a glance.</p>
+            <input type="hidden" id="content_labels" name="content_labels" value="<%= article && article.content_labels ? (typeof article.content_labels === 'string' ? article.content_labels : JSON.stringify(article.content_labels)) : '{}' %>">
+
+            <div class="form-group">
+              <label class="form-label" for="cl_description"><i class="fas fa-align-left"></i> Card Description</label>
+              <textarea id="cl_description" name="cl_description" class="form-input" rows="3" placeholder="A short description that appears on the sidebar card..." oninput="updateContentLabels()"></textarea>
+              <p class="form-help">Shown at the top of the sidebar card below the title.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="cl_who_should_read"><i class="fas fa-users"></i> Who Should Read This</label>
+              <textarea id="cl_who_should_read" name="cl_who_should_read" class="form-input" rows="4" placeholder="Marketing professionals&#10;Business owners&#10;SEO specialists" oninput="updateContentLabels()"></textarea>
+              <p class="form-help">One audience type per line. Displayed as a bullet list.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label"><i class="fas fa-lightbulb"></i> What You'll Learn (Key Points)</label>
+              <p class="form-help" style="margin-bottom: 8px;">Add key points with a bold title and description.</p>
+              <div id="keyPointsList" class="key-points-list"></div>
+              <button type="button" class="btn btn-secondary" onclick="addKeyPoint()" style="margin-top: 8px;">
+                <i class="fas fa-plus"></i> Add Key Point
+              </button>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label"><i class="fas fa-book-open"></i> Sources Referenced</label>
+              <p class="form-help" style="margin-bottom: 8px;">Add source badges and links shown on the sidebar card.</p>
+              <div id="sidebarSourcesList" class="sidebar-sources-list"></div>
+              <button type="button" class="btn btn-secondary" onclick="addSidebarSource()" style="margin-top: 8px;">
+                <i class="fas fa-plus"></i> Add Source
+              </button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="cl_faqs_count"><i class="fas fa-question-circle"></i> FAQs Count</label>
+                <input type="number" id="cl_faqs_count" name="cl_faqs_count" class="form-input" min="0" placeholder="e.g. 5" oninput="updateContentLabels()">
+                <p class="form-help">Number of FAQs in the article</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="cl_cta_text"><i class="fas fa-mouse-pointer"></i> CTA Button Text</label>
+                <input type="text" id="cl_cta_text" name="cl_cta_text" class="form-input" placeholder="Read Full Article" oninput="updateContentLabels()">
+                <p class="form-help">Custom text for the call-to-action button (default: "Read Full Article")</p>
+              </div>
+            </div>
+          </div>
+
           <div class="form-actions">
             <a href="/content/articles" class="btn btn-secondary">Cancel</a>
             <button type="submit" class="btn btn-primary">
@@ -1038,6 +1088,27 @@
   background: rgba(255,255,255,0.2);
   color: #fff;
 }
+
+/* Key points list */
+.key-points-list { margin-top: 8px; }
+.key-point-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  align-items: flex-start;
+}
+.key-point-item input { flex: 0.35; }
+.key-point-item textarea { flex: 0.65; min-height: 36px; }
+
+/* Sidebar sources list */
+.sidebar-sources-list { margin-top: 8px; }
+.sidebar-source-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+.sidebar-source-item input { flex: 1; }
 
 /* Citations list */
 .citation-list { margin-top: 8px; }
@@ -1907,6 +1978,117 @@ function openSocialImageModal() {
     }
   };
   loadImages(1);
+}
+
+// ==================== Content Labels Management ====================
+var contentLabelsData = {};
+var keyPointsData = [];
+var sidebarSourcesData = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    var clVal = document.getElementById('content_labels').value;
+    contentLabelsData = clVal ? JSON.parse(clVal) : {};
+  } catch(e) { contentLabelsData = {}; }
+
+  // Populate form fields from stored data
+  if (contentLabelsData.description) document.getElementById('cl_description').value = contentLabelsData.description;
+  if (contentLabelsData.who_should_read && Array.isArray(contentLabelsData.who_should_read)) {
+    document.getElementById('cl_who_should_read').value = contentLabelsData.who_should_read.join('\n');
+  }
+  if (contentLabelsData.faqs_count) document.getElementById('cl_faqs_count').value = contentLabelsData.faqs_count;
+  if (contentLabelsData.cta_text) document.getElementById('cl_cta_text').value = contentLabelsData.cta_text;
+
+  keyPointsData = contentLabelsData.key_points || [];
+  sidebarSourcesData = contentLabelsData.sources || [];
+  renderKeyPoints();
+  renderSidebarSources();
+});
+
+function updateContentLabels() {
+  var desc = document.getElementById('cl_description').value.trim();
+  var whoLines = document.getElementById('cl_who_should_read').value.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l; });
+  var faqsCount = parseInt(document.getElementById('cl_faqs_count').value) || 0;
+  var ctaText = document.getElementById('cl_cta_text').value.trim();
+
+  contentLabelsData.description = desc;
+  contentLabelsData.who_should_read = whoLines;
+  contentLabelsData.key_points = keyPointsData;
+  contentLabelsData.sources = sidebarSourcesData;
+  contentLabelsData.faqs_count = faqsCount;
+  contentLabelsData.cta_text = ctaText;
+
+  document.getElementById('content_labels').value = JSON.stringify(contentLabelsData);
+}
+
+function addKeyPoint() {
+  keyPointsData.push({ title: '', description: '' });
+  updateContentLabels();
+  renderKeyPoints();
+}
+
+function removeKeyPoint(index) {
+  keyPointsData.splice(index, 1);
+  updateContentLabels();
+  renderKeyPoints();
+}
+
+function updateKeyPointField(index, field, value) {
+  keyPointsData[index][field] = value;
+  updateContentLabels();
+}
+
+function renderKeyPoints() {
+  var container = document.getElementById('keyPointsList');
+  container.innerHTML = '';
+  if (keyPointsData.length === 0) {
+    container.innerHTML = '<p style="color: var(--gray-500); font-size: 14px; margin: 4px 0;">No key points added yet</p>';
+    return;
+  }
+  keyPointsData.forEach(function(kp, i) {
+    var div = document.createElement('div');
+    div.className = 'key-point-item';
+    div.innerHTML =
+      '<input type="text" class="form-input" placeholder="Point title (bold)" value="' + (kp.title || '').replace(/"/g, '&quot;') + '" oninput="updateKeyPointField(' + i + ', \'title\', this.value)">' +
+      '<textarea class="form-input" placeholder="Point description" oninput="updateKeyPointField(' + i + ', \'description\', this.value)">' + (kp.description || '') + '</textarea>' +
+      '<button type="button" class="btn-remove" onclick="removeKeyPoint(' + i + ')"><i class="fas fa-times"></i></button>';
+    container.appendChild(div);
+  });
+}
+
+function addSidebarSource() {
+  sidebarSourcesData.push({ name: '', url: '' });
+  updateContentLabels();
+  renderSidebarSources();
+}
+
+function removeSidebarSource(index) {
+  sidebarSourcesData.splice(index, 1);
+  updateContentLabels();
+  renderSidebarSources();
+}
+
+function updateSidebarSourceField(index, field, value) {
+  sidebarSourcesData[index][field] = value;
+  updateContentLabels();
+}
+
+function renderSidebarSources() {
+  var container = document.getElementById('sidebarSourcesList');
+  container.innerHTML = '';
+  if (sidebarSourcesData.length === 0) {
+    container.innerHTML = '<p style="color: var(--gray-500); font-size: 14px; margin: 4px 0;">No sources added yet</p>';
+    return;
+  }
+  sidebarSourcesData.forEach(function(src, i) {
+    var div = document.createElement('div');
+    div.className = 'sidebar-source-item';
+    div.innerHTML =
+      '<input type="text" class="form-input" placeholder="Source name" value="' + (src.name || '').replace(/"/g, '&quot;') + '" oninput="updateSidebarSourceField(' + i + ', \'name\', this.value)" style="flex:0.4">' +
+      '<input type="url" class="form-input" placeholder="https://source-url.com" value="' + (src.url || '').replace(/"/g, '&quot;') + '" oninput="updateSidebarSourceField(' + i + ', \'url\', this.value)" style="flex:0.6">' +
+      '<button type="button" class="btn-remove" onclick="removeSidebarSource(' + i + ')"><i class="fas fa-times"></i></button>';
+    container.appendChild(div);
+  });
 }
 
 // ==================== Initialize on Page Load ====================

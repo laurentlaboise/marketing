@@ -285,6 +285,107 @@ function generateSchemaMarkup(article) {
 }
 
 /**
+ * Generate sidebar card HTML from content_labels
+ */
+function generateSidebarHTML(article) {
+  const cl = article.content_labels || {};
+  const hasDescription = cl.description && cl.description.trim();
+  const hasWhoShouldRead = cl.who_should_read && cl.who_should_read.length > 0;
+  const hasKeyPoints = cl.key_points && cl.key_points.length > 0;
+  const hasSources = cl.sources && cl.sources.length > 0;
+
+  if (!hasDescription && !hasWhoShouldRead && !hasKeyPoints && !hasSources) {
+    return '';
+  }
+
+  const readingTime = article.time_to_read || calculateReadingTime(article.full_article_content || article.content || '');
+  const content = article.full_article_content || article.content || '';
+  const textContent = striptags(content);
+  const wordCount = textContent.split(/\s+/).filter(w => w.length > 0).length;
+  const publishedDate = formatDate(article.published_at || article.created_at);
+  const sourcesCount = (cl.sources || []).length + (article.citations || []).length;
+  const faqsCount = cl.faqs_count || 0;
+  const ctaText = cl.cta_text || 'Read Full Article';
+
+  let html = '<aside class="article-sidebar"><div class="sidebar-card">';
+
+  if (article.featured_image_url) {
+    html += `<img src="${article.featured_image_url}" alt="${escapeHtml(article.title)}" class="sidebar-card-image" onerror="this.style.display='none'">`;
+  }
+
+  html += '<div class="sidebar-card-body">';
+
+  if (article.categories && article.categories.length > 0) {
+    html += `<span class="sidebar-card-category">${escapeHtml(article.categories[0])}</span>`;
+  }
+
+  html += `<h3 class="sidebar-card-title">${escapeHtml(article.title)}</h3>`;
+
+  html += '<div class="sidebar-card-meta">';
+  html += `<span><i class="fas fa-calendar"></i> ${publishedDate}</span>`;
+  html += `<span><i class="fas fa-clock"></i> ${readingTime} min read</span>`;
+  if (sourcesCount > 0) {
+    html += `<span><i class="fas fa-book"></i> ${sourcesCount} sources</span>`;
+  }
+  html += '</div>';
+
+  if (hasDescription) {
+    html += `<p class="sidebar-card-desc">${escapeHtml(cl.description)}</p>`;
+  }
+
+  if (hasWhoShouldRead) {
+    html += '<div class="sidebar-section">';
+    html += '<h4 class="sidebar-section-title"><i class="fas fa-users" style="color: var(--color-primary-base); margin-right: 4px;"></i> Who Should Read This</h4>';
+    html += '<ul>';
+    cl.who_should_read.forEach(item => { html += `<li>${escapeHtml(item)}</li>`; });
+    html += '</ul></div>';
+  }
+
+  if (hasKeyPoints) {
+    html += '<div class="sidebar-section">';
+    html += '<h4 class="sidebar-section-title"><i class="fas fa-lightbulb" style="color: var(--color-primary-base); margin-right: 4px;"></i> What You\'ll Learn</h4>';
+    cl.key_points.forEach(kp => {
+      html += '<div class="sidebar-key-point">';
+      if (kp.title) html += `<div class="sidebar-key-point-title">${escapeHtml(kp.title)}</div>`;
+      if (kp.description) html += `<div class="sidebar-key-point-desc">${escapeHtml(kp.description)}</div>`;
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (hasSources) {
+    html += '<div class="sidebar-section">';
+    html += '<h4 class="sidebar-section-title"><i class="fas fa-book-open" style="color: var(--color-primary-base); margin-right: 4px;"></i> Sources Referenced</h4>';
+    html += '<div class="sidebar-sources-badges">';
+    cl.sources.forEach(src => {
+      if (src.url) {
+        html += `<a href="${src.url}" target="_blank" rel="noopener" class="sidebar-source-badge">${escapeHtml(src.name || 'Source')}</a>`;
+      } else {
+        html += `<span class="sidebar-source-badge">${escapeHtml(src.name || 'Source')}</span>`;
+      }
+    });
+    html += '</div></div>';
+  }
+
+  html += '</div>'; // end sidebar-card-body
+
+  // Read stats bar
+  html += '<div class="sidebar-read-bar">';
+  html += '<div class="sidebar-read-stats">';
+  html += `<span><i class="fas fa-file-alt"></i> ${wordCount.toLocaleString()} words</span>`;
+  if (faqsCount > 0) {
+    html += `<span><i class="fas fa-question-circle"></i> ${faqsCount} FAQs</span>`;
+  }
+  html += '</div>';
+  html += `<a href="#" class="sidebar-cta-btn" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">${escapeHtml(ctaText)} <i class="fas fa-arrow-right"></i></a>`;
+  html += '</div>';
+
+  html += '</div></aside>'; // end sidebar-card and aside
+
+  return html;
+}
+
+/**
  * Generate complete HTML for an article
  */
 function generateArticleHTML(article) {
@@ -295,6 +396,8 @@ function generateArticleHTML(article) {
   const updatedDate = article.updated_at ? formatDate(article.updated_at) : null;
   const canonicalUrl = social.canonicalUrl || articleUrl;
   const schemaMarkup = generateSchemaMarkup(article);
+
+  const sidebarHTML = generateSidebarHTML(article);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -380,9 +483,16 @@ ${JSON.stringify(schemaMarkup, null, 2)}
 
         .container {
             width: 90%;
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: var(--spacing-3xl) 0;
+        }
+
+        .article-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: var(--spacing-2xl);
+            align-items: start;
         }
 
         .article-header {
@@ -644,6 +754,40 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             background: var(--color-primary-base); color: var(--color-white);
         }
 
+        /* --- Article Sidebar Card --- */
+        .article-sidebar { position: sticky; top: 24px; }
+        .sidebar-card { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-md); overflow: hidden; }
+        .sidebar-card-image { width: 100%; height: 180px; object-fit: cover; }
+        .sidebar-card-body { padding: 20px; }
+        .sidebar-card-category { display: inline-block; background: var(--color-primary-base); color: var(--color-white); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
+        .sidebar-card-title { font-family: var(--font-family-heading); font-size: 1.1rem; font-weight: 700; color: var(--color-slate-900); line-height: 1.3; margin-bottom: 8px; }
+        .sidebar-card-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; color: var(--color-slate-500); margin-bottom: 12px; }
+        .sidebar-card-meta span { display: flex; align-items: center; gap: 4px; }
+        .sidebar-card-meta i { color: var(--color-primary-base); font-size: 0.7rem; }
+        .sidebar-card-desc { font-size: 0.85rem; color: var(--color-slate-500); line-height: 1.6; margin-bottom: 16px; }
+        .sidebar-section { border-top: 1px solid var(--color-border); padding-top: 14px; margin-top: 14px; }
+        .sidebar-section-title { font-family: var(--font-family-heading); font-size: 0.8rem; font-weight: 700; color: var(--color-slate-900); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .sidebar-section ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-section ul li { font-size: 0.82rem; color: var(--color-slate-800); padding: 3px 0 3px 16px; position: relative; line-height: 1.5; }
+        .sidebar-section ul li::before { content: ''; position: absolute; left: 0; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--color-primary-base); }
+        .sidebar-key-point { margin-bottom: 8px; }
+        .sidebar-key-point-title { font-weight: 700; font-size: 0.82rem; color: var(--color-slate-900); }
+        .sidebar-key-point-desc { font-size: 0.8rem; color: var(--color-slate-500); line-height: 1.5; }
+        .sidebar-sources-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .sidebar-source-badge { font-size: 0.7rem; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: #f0f4f8; color: var(--color-slate-800); text-decoration: none; transition: background 0.2s; }
+        .sidebar-source-badge:hover { background: var(--color-primary-base); color: var(--color-white); }
+        .sidebar-read-bar { border-top: 1px solid var(--color-border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #f8fafc; }
+        .sidebar-read-stats { display: flex; gap: 14px; font-size: 0.72rem; color: var(--color-slate-500); }
+        .sidebar-read-stats span { display: flex; align-items: center; gap: 4px; }
+        .sidebar-read-stats i { color: var(--color-primary-base); font-size: 0.7rem; }
+        .sidebar-cta-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--color-accent-magenta); color: var(--color-white); font-size: 0.78rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; transition: background 0.2s; white-space: nowrap; }
+        .sidebar-cta-btn:hover { background: #b8236f; color: var(--color-white); }
+
+        @media (max-width: 960px) {
+            .article-layout { grid-template-columns: 1fr; }
+            .article-sidebar { position: static; order: -1; }
+        }
+
         @media (max-width: 768px) {
             .container {
                 width: 95%;
@@ -670,6 +814,7 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             <i class="fas fa-arrow-left"></i> Back to All Articles
         </a>
 
+        <div class="article-layout">
         <article>
             <header class="article-header">
                 <h1>${escapeHtml(article.title)}</h1>
@@ -713,6 +858,8 @@ ${JSON.stringify(schemaMarkup, null, 2)}
                 </a>
             </div>
         </article>
+        ${sidebarHTML}
+        </div>
     </div>
 
     <!-- Back to Top Button -->
