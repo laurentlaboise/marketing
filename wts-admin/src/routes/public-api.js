@@ -50,7 +50,7 @@ router.get('/articles', async (req, res) => {
              og_title, og_description, og_image, og_type,
              twitter_card, twitter_title, twitter_description, twitter_image, twitter_site, twitter_creator,
              canonical_url, robots_meta, schema_markup, article_images, citations,
-             time_to_read, seo_keywords
+             time_to_read, seo_keywords, content_labels
       FROM articles
       WHERE status = 'published'
     `;
@@ -84,6 +84,7 @@ router.get('/articles', async (req, res) => {
       citations: article.citations || [],
       time_to_read: article.time_to_read || null,
       seo_keywords: article.seo_keywords || [],
+      content_labels: article.content_labels || {},
       created_at: article.created_at,
       updated_at: article.updated_at,
       published_at: article.published_at,
@@ -141,6 +142,7 @@ router.get('/articles/:slug', async (req, res) => {
       article_images: article.article_images || [],
       citations: article.citations || [],
       seo_keywords: article.seo_keywords || [],
+      content_labels: article.content_labels || {},
       created_at: article.created_at,
       updated_at: article.updated_at,
       published_at: article.published_at,
