@@ -189,10 +189,17 @@ router.get('/glossary', async (req, res) => {
     const terms = result.rows.map(item => ({
       id: item.id,
       term: item.term,
+      slug: item.slug || '',
       definition: item.definition,
       category: item.category,
+      categories: item.categories || [],
       related_terms: item.related_terms || [],
-      letter: item.letter
+      letter: item.letter,
+      bullets: item.bullets || [],
+      example: item.example || '',
+      video_url: item.video_url || '',
+      featured_image: item.featured_image || '',
+      article_link: item.article_link || ''
     }));
 
     respond(res, terms);

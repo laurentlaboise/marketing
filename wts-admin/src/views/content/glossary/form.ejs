@@ -15,33 +15,86 @@
     <div class="card form-card">
       <div class="card-body">
         <form action="<%= item ? '/content/glossary/' + item.id : '/content/glossary' %>" method="POST">
-          <div class="form-group">
-            <label class="form-label" for="term">Term *</label>
-            <input type="text" id="term" name="term" class="form-input" value="<%= item ? item.term : '' %>" required>
+
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-book"></i> Term Details</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="term">Term *</label>
+              <input type="text" id="term" name="term" class="form-input" value="<%= item ? item.term : '' %>" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="definition">Definition *</label>
+              <textarea id="definition" name="definition" class="form-input" rows="5" required><%= item ? item.definition : '' %></textarea>
+              <p class="form-help">Main definition paragraph displayed in the glossary sidebar</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="bullets">Key Concepts</label>
+              <textarea id="bullets" name="bullets" class="form-input" rows="4" placeholder="One bullet point per line"><%= item && item.bullets ? (Array.isArray(item.bullets) ? item.bullets.join('\n') : item.bullets) : '' %></textarea>
+              <p class="form-help">Enter one key concept per line. Displayed as bullet points in the sidebar.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="example">Example</label>
+              <textarea id="example" name="example" class="form-input" rows="3" placeholder="A real-world example of this term in action"><%= item && item.example ? item.example : '' %></textarea>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="definition">Definition *</label>
-            <textarea id="definition" name="definition" class="form-input" rows="5" required><%= item ? item.definition : '' %></textarea>
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-tags"></i> Classification</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="category">Primary Category</label>
+                <select id="category" name="category" class="form-input">
+                  <option value="">Select category</option>
+                  <option value="marketing" <%= item && item.category === 'marketing' ? 'selected' : '' %>>Marketing</option>
+                  <option value="seo" <%= item && item.category === 'seo' ? 'selected' : '' %>>SEO</option>
+                  <option value="social" <%= item && item.category === 'social' ? 'selected' : '' %>>Social Media</option>
+                  <option value="analytics" <%= item && item.category === 'analytics' ? 'selected' : '' %>>Analytics</option>
+                  <option value="content" <%= item && item.category === 'content' ? 'selected' : '' %>>Content</option>
+                  <option value="advertising" <%= item && item.category === 'advertising' ? 'selected' : '' %>>Advertising</option>
+                  <option value="ai" <%= item && item.category === 'ai' ? 'selected' : '' %>>AI</option>
+                  <option value="web-development" <%= item && item.category === 'web-development' ? 'selected' : '' %>>Web Development</option>
+                  <option value="privacy-security" <%= item && item.category === 'privacy-security' ? 'selected' : '' %>>Privacy & Security</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="categories">All Categories</label>
+                <input type="text" id="categories" name="categories" class="form-input" placeholder="SEO, Web Development, AI" value="<%= item && item.categories ? item.categories.join(', ') : '' %>">
+                <p class="form-help">Comma-separated list of all categories</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="related_terms">Related Terms</label>
+              <input type="text" id="related_terms" name="related_terms" class="form-input" placeholder="term1, term2" value="<%= item && item.related_terms ? item.related_terms.join(', ') : '' %>">
+              <p class="form-help">Separate with commas. These link to other glossary entries.</p>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="category">Category</label>
-            <select id="category" name="category" class="form-input">
-              <option value="">Select category</option>
-              <option value="marketing" <%= item && item.category === 'marketing' ? 'selected' : '' %>>Marketing</option>
-              <option value="seo" <%= item && item.category === 'seo' ? 'selected' : '' %>>SEO</option>
-              <option value="social" <%= item && item.category === 'social' ? 'selected' : '' %>>Social Media</option>
-              <option value="analytics" <%= item && item.category === 'analytics' ? 'selected' : '' %>>Analytics</option>
-              <option value="content" <%= item && item.category === 'content' ? 'selected' : '' %>>Content</option>
-              <option value="advertising" <%= item && item.category === 'advertising' ? 'selected' : '' %>>Advertising</option>
-            </select>
-          </div>
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-link"></i> Media & Links</h3>
 
-          <div class="form-group">
-            <label class="form-label" for="related_terms">Related Terms</label>
-            <input type="text" id="related_terms" name="related_terms" class="form-input" placeholder="term1, term2" value="<%= item && item.related_terms ? item.related_terms.join(', ') : '' %>">
-            <p class="form-help">Separate with commas</p>
+            <div class="form-group">
+              <label class="form-label" for="featured_image"><i class="fas fa-image"></i> Featured Image</label>
+              <input type="text" id="featured_image" name="featured_image" class="form-input" placeholder="https://cdn.jsdelivr.net/..." value="<%= item && item.featured_image ? item.featured_image : '' %>">
+              <p class="form-help">Image displayed at the top of the glossary sidebar panel</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="video_url"><i class="fas fa-video"></i> Video URL</label>
+              <input type="url" id="video_url" name="video_url" class="form-input" placeholder="https://www.youtube.com/watch?v=..." value="<%= item && item.video_url ? item.video_url : '' %>">
+              <p class="form-help">YouTube or video URL. Embedded in the sidebar panel.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="article_link"><i class="fas fa-newspaper"></i> Read More Article Link</label>
+              <input type="url" id="article_link" name="article_link" class="form-input" placeholder="https://wordsthatsells.website/en/articles/..." value="<%= item && item.article_link ? item.article_link : '' %>">
+              <p class="form-help">Link to a full article about this topic. Shown as a "Read More" button.</p>
+            </div>
           </div>
 
           <div class="form-actions">

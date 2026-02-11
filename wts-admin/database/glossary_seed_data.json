@@ -1,0 +1,1171 @@
+[
+  {
+    "term": "Accelerated Mobile Pages (AMP)",
+    "definition": "AMP is an open-source framework designed by Google to help publishers create fast-loading web pages on mobile devices. It achieves this by using a restricted set of HTML, CSS, and JavaScript to prioritize user experience and speed.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "A",
+    "slug": "accelerated-mobile-pages-amp",
+    "bullets": [
+      "Significantly speeds up load times on mobile devices.",
+      "Helps websites rank higher on Google's mobile-first index.",
+      "Uses a simplified version of web code to ensure performance."
+    ],
+    "example": "A publisher uses AMP to create a lightweight version of their news articles, which load instantly when a user clicks on them from a Google search on their phone.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Accessibility",
+    "definition": "Accessibility refers to the design of products, devices, services, or environments so that people with disabilities can use them. In the digital world, this means ensuring websites and apps can be navigated and understood by everyone, regardless of physical or cognitive abilities.",
+    "category": "Web Development",
+    "categories": [
+      "Web Development",
+      "Digital Skills"
+    ],
+    "related_terms": [],
+    "letter": "A",
+    "slug": "accessibility",
+    "bullets": [
+      "Ensures websites are usable for people with visual, hearing, motor, or cognitive impairments.",
+      "Includes features like proper alt-text for images and keyboard navigation.",
+      "An important ranking factor for modern SEO and a legal requirement in many regions."
+    ],
+    "example": "A web developer adds descriptive alt attributes to all images, so a screen reader can explain the image to a visually impaired user. They also make sure all forms can be completed using a keyboard alone.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Adware",
+    "definition": "Adware is software that automatically displays or downloads advertising material such as pop-ups or banners when a user is online. While some forms are relatively harmless, others can be malicious and contain spyware.",
+    "category": "Privacy & Security",
+    "categories": [
+      "Privacy & Security"
+    ],
+    "related_terms": [],
+    "letter": "A",
+    "slug": "adware",
+    "bullets": [
+      "Software that generates revenue for its developer by automatically displaying online advertisements.",
+      "Can sometimes be malicious, tracking user data or introducing viruses.",
+      "Often installed without the user's knowledge alongside other software."
+    ],
+    "example": "A user downloads a free game, and suddenly their web browser is flooded with pop-up advertisements. The game secretly installed adware to display these ads.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Affiliate Marketing",
+    "definition": "Affiliate marketing is a type of performance-based marketing where a business rewards one or more affiliates for each visitor or customer brought by the affiliate's own marketing efforts. The affiliate earns a commission for every sale or lead generated.",
+    "category": "Digital Marketing",
+    "categories": [
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "A",
+    "slug": "affiliate-marketing",
+    "bullets": [
+      "Performance-based model where affiliates get a commission.",
+      "Involves a merchant, an affiliate, and a customer.",
+      "Commonly used by bloggers and influencers to monetize their content."
+    ],
+    "example": "A travel blogger writes an article about the best luggage. They include an affiliate link to a luggage brand's website. When a reader clicks the link and buys a suitcase, the blogger earns a percentage of the sale.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Algorithm",
+    "definition": "In a digital context, an algorithm is a set of rules or instructions that a computer follows to solve a problem or complete a task. Search engine algorithms, like Google's, use complex sets of rules to rank websites based on a variety of factors to provide the most relevant results for a user's search query.",
+    "category": "AI",
+    "categories": [
+      "AI",
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "A",
+    "slug": "algorithm",
+    "bullets": [
+      "A set of computational instructions used to solve a problem.",
+      "Search engines use algorithms to rank web pages.",
+      "Algorithm updates can dramatically change search engine results."
+    ],
+    "example": "Google's algorithm uses signals like a website's loading speed, content quality, and backlinks to decide where it should rank in the search results for a given query.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Alt Attributes",
+    "definition": "An alt attribute (also known as alt text) is a short text description of an image on a web page. This text serves two main purposes: it provides a description for screen readers used by visually impaired users, and it is displayed if the image fails to load. It also provides context to search engines.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "A",
+    "slug": "alt-attributes",
+    "bullets": [
+      "Provides a text alternative to an image.",
+      "Essential for website accessibility.",
+      "Helps search engines understand the image content."
+    ],
+    "example": "A photo of a cat on a blog post about pets should have an alt attribute like: `alt=\"a small orange cat sleeping in a sunbeam on a rug\"`.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Anchor Text",
+    "definition": "Anchor text is the visible, clickable text in a hyperlink. Search engines use anchor text to determine what the linked page is about. High-quality and relevant anchor text is a key signal for search engines.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "A",
+    "slug": "anchor-text",
+    "bullets": [
+      "The clickable text of a link.",
+      "Provides context for both users and search engines.",
+      "Can be used as an SEO signal to indicate the relevance of a linked page."
+    ],
+    "example": "In the sentence, 'To learn more, check out our digital marketing guide,' the words 'digital marketing guide' would be the anchor text.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Application (App)",
+    "definition": "An application is a program or software designed to carry out a specific task or operation for a user. Applications run on a device's operating system and can range from word processors to video games and mobile apps.",
+    "category": "Digital Skills",
+    "categories": [
+      "Digital Skills"
+    ],
+    "related_terms": [],
+    "letter": "A",
+    "slug": "application-app",
+    "bullets": [
+      "Software designed for a specific purpose.",
+      "Runs on an operating system (like Windows, macOS, Android, or iOS).",
+      "Includes a wide range of programs, from productivity tools to entertainment."
+    ],
+    "example": "The browser you are using to view this page is an application. Microsoft Word is an application. Instagram on your phone is a mobile application.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Authentication Process",
+    "definition": "The authentication process is a security measure that verifies the identity of an individual or process. It is the process of confirming that a user is who they claim to be, typically by requiring a username and password.",
+    "category": "Privacy & Security",
+    "categories": [
+      "Privacy & Security"
+    ],
+    "related_terms": [],
+    "letter": "A",
+    "slug": "authentication-process",
+    "bullets": [
+      "Verifies a user's identity.",
+      "Commonly relies on a username and password.",
+      "Crucial for protecting sensitive information and user accounts."
+    ],
+    "example": "When you log in to your email account, the system uses your username and password to authenticate you before granting access.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Backlinks",
+    "definition": "Backlinks are incoming hyperlinks from one web page to another website. When a website links to your page, it's considered a backlink. Search engines like Google see backlinks as 'votes' of confidence. A large number of high-quality backlinks can significantly improve a website's ranking.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "B",
+    "slug": "backlinks",
+    "bullets": [
+      "A link from an external domain pointing to your website.",
+      "Considered a 'vote of confidence' by search engines.",
+      "A primary factor in SEO for increasing domain authority."
+    ],
+    "example": "A reputable online newspaper writes an article about your business and includes a link to your website. This is a high-quality backlink.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Bad Neighborhood",
+    "definition": "In SEO, a 'bad neighborhood' refers to a collection of websites that have been severely downgraded or penalized by search engines. Linking to or from sites in a bad neighborhood can negatively impact your own website's ranking.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "B",
+    "slug": "bad-neighborhood",
+    "bullets": [
+      "A group of websites that have been penalized by search engines.",
+      "Includes spam sites, malicious content, or low-quality link farms.",
+      "Linking to these sites can harm your own SEO."
+    ],
+    "example": "A website owner buys a large number of backlinks from a network of low-quality, spam-filled sites. As a result, Google's algorithm identifies this as a 'bad neighborhood' and penalizes the website.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Black Hat SEO",
+    "definition": "Black hat SEO refers to a set of practices that violate search engine guidelines to improve a site's ranking in search results. These tactics are often manipulative and can lead to a website being penalized or banned from search engines.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "B",
+    "slug": "black-hat-seo",
+    "bullets": [
+      "Tactics that violate search engine guidelines.",
+      "Examples include keyword stuffing, cloaking, and hidden text.",
+      "Risky and often leads to penalties from Google."
+    ],
+    "example": "A webmaster adds an excessive number of keywords to a page in a tiny, white font on a white background, making the text invisible to human users but visible to search engine bots. This is a classic black hat tactic.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Blocker",
+    "definition": "In an SEO context, a blocker is a technical or content-related impediment that prevents search engines from effectively crawling, indexing, or ranking a website's pages. This can be caused by server issues, misconfigured `robots.txt` files, or incorrect use of meta tags.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "B",
+    "slug": "blocker",
+    "bullets": [
+      "An obstacle that prevents search engines from accessing a site.",
+      "Common examples include incorrect server responses or `noindex` directives.",
+      "Can significantly harm a website's visibility and performance."
+    ],
+    "example": "A developer accidentally sets a `robots.txt` file to disallow all search engine crawling for the entire site, effectively putting a 'blocker' on all of the website's pages.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Blog & Article Writing",
+    "definition": "This service involves the creation of content for a company's blog or as standalone articles. The content is typically educational, informative, or entertaining, and is written to attract a specific target audience, drive organic traffic, and establish the brand as an authority in its industry.",
+    "category": "Content Marketing",
+    "categories": [
+      "Content Marketing"
+    ],
+    "related_terms": [],
+    "letter": "B",
+    "slug": "blog-article-writing",
+    "bullets": [
+      "Creation of high-quality, long-form written content.",
+      "A core component of an effective content marketing strategy.",
+      "Aids in SEO by targeting long-tail keywords and building internal links."
+    ],
+    "example": "A digital marketing agency writes a 1,500-word article titled 'The Ultimate Guide to Local SEO' to attract small business owners who are looking for tips on how to improve their online presence.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Boolean Operators",
+    "definition": "Boolean operators are logical connectors used in search queries to refine and specify results. The most common operators are `AND`, `OR`, and `NOT`, which allow users to combine or exclude keywords to get more precise information from search engines or databases.",
+    "category": "Digital Skills",
+    "categories": [
+      "Digital Skills",
+      "Searching"
+    ],
+    "related_terms": [],
+    "letter": "B",
+    "slug": "boolean-operators",
+    "bullets": [
+      "Keywords like `AND`, `OR`, and `NOT` to refine searches.",
+      "`AND` narrows a search by requiring all terms to be present.",
+      " `OR` broadens a search by including results with either term."
+    ],
+    "example": "Searching for `\"content marketing\" AND \"SEO\"` will only show results that contain both phrases, while `\"content marketing\" OR \"SEO\"` will show results that contain either phrase.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Broken Link",
+    "definition": "A broken link is a hyperlink that no longer leads to an existing page or resource. This can happen when a page is moved or deleted, or when a website changes its domain. Broken links are bad for SEO because they create a poor user experience and can waste a search engine's crawl budget.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "B",
+    "slug": "broken-link",
+    "bullets": [
+      "A link that leads to a non-existent page or resource.",
+      "Harms user experience and SEO ranking.",
+      "Also known as a 'defective link'."
+    ],
+    "example": "A website links to an article on a different site, but the author of that article later deletes it. The link now leads to a 404 'Page Not Found' error, making it a broken link.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Business Directory",
+    "definition": "An online business directory is a website or printed listing of businesses, organized by category or industry. For local SEO, getting a business listed in these directories (also known as citations) is crucial for improving visibility in local search results.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "B",
+    "slug": "business-directory",
+    "bullets": [
+      "An online version of the Yellow Pages or a phonebook.",
+      "Helps with local SEO by building business citations.",
+      "Examples include Yelp, TripAdvisor, or Google Business Profile."
+    ],
+    "example": "A new coffee shop in Vientiane ensures its business name, address, and phone number are accurately listed on Google Maps, Yelp, and other local business directories to improve its ranking in local search results.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Call to Action (CTA)",
+    "definition": "A call to action is a prompt on a website that tells the user what to do next. It is designed to elicit an immediate response from the user and is crucial for guiding them through a marketing or sales funnel.",
+    "category": "Content Marketing",
+    "categories": [
+      "Content Marketing",
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "C",
+    "slug": "call-to-action-cta",
+    "bullets": [
+      "A prompt that encourages a specific action from the user.",
+      "Examples include 'Buy Now,' 'Sign Up,' and 'Learn More.'",
+      "Essential for conversions and measuring campaign success."
+    ],
+    "example": "At the end of a blog post, a button with the text 'Download Our Free E-book' is a call to action designed to capture leads.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Citations",
+    "definition": "A local citation is any online mention of a business's name, address, and phone number (NAP), typically found on business directories, social media profiles, and review sites. Consistent and accurate citations help improve a business's local search ranking.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Local SEO"
+    ],
+    "related_terms": [],
+    "letter": "C",
+    "slug": "citations",
+    "bullets": [
+      "Online mentions of a business's NAP (Name, Address, Phone Number).",
+      "A key factor in a business's local SEO strategy.",
+      "Helps search engines verify a business's information and location."
+    ],
+    "example": "A local restaurant ensures its name, address, and phone number are consistent across its Facebook page, Yelp profile, and Google Business Profile to improve its local SEO ranking.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Cloaking",
+    "definition": "Cloaking is a black hat SEO technique where a website presents different content or URLs to search engine crawlers than it does to human users. The practice is meant to manipulate a site's ranking by displaying content to search engines that is rich in keywords but may be irrelevant or of low quality for users.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "C",
+    "slug": "cloaking",
+    "bullets": [
+      "A black hat SEO technique.",
+      "Presents different content to search engines and users.",
+      "Will almost always result in a severe penalty from search engines."
+    ],
+    "example": "A website's code shows 'cheap shoes in New York' to a search engine bot, but when a human visits the same URL, they see a page about 'best hotels in Las Vegas'.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Content Management System (CMS)",
+    "definition": "A content management system is a software application that allows users to create, manage, and modify content on a website without the need for specialized technical knowledge. Popular examples include WordPress, Drupal, and Joomla.",
+    "category": "Web Development",
+    "categories": [
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "C",
+    "slug": "content-management-system-cms",
+    "bullets": [
+      "Software for creating and managing digital content.",
+      "Allows non-technical users to build and update websites.",
+      "WordPress is the most widely used CMS in the world."
+    ],
+    "example": "A small business owner uses a CMS like WordPress to easily add new blog posts and update service descriptions on their website without needing to write any code.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Content Marketing",
+    "definition": "Content marketing is a strategic marketing approach focused on creating and distributing valuable, relevant, and consistent content to attract and retain a clearly defined audience. The goal is to drive profitable customer action rather than directly selling a product or service.",
+    "category": "Content Marketing",
+    "categories": [
+      "Content Marketing",
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "C",
+    "slug": "content-marketing",
+    "bullets": [
+      "Creation and distribution of valuable content.",
+      "A long-term strategy that builds brand authority and trust.",
+      "Includes blog posts, videos, e-books, and social media content."
+    ],
+    "example": "A company creates an in-depth blog post series on a topic their customers care about. They share this content on social media and through their newsletter, building a loyal audience and generating inbound leads.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Copywriting",
+    "definition": "Copywriting is the act of writing text for advertising or other forms of marketing. The goal is to persuade the reader, listener, or viewer to take some form of action. This includes writing text for websites, brochures, advertisements, and emails.",
+    "category": "Content Marketing",
+    "categories": [
+      "Content Marketing"
+    ],
+    "related_terms": [],
+    "letter": "C",
+    "slug": "copywriting",
+    "bullets": [
+      "The art of writing persuasive text for marketing.",
+      "Focuses on driving a specific action, like a purchase or sign-up.",
+      "Differs from content writing, which is often more educational."
+    ],
+    "example": "A website's landing page has a headline and body text that clearly explain the product's benefits and a button that says 'Start Your Free Trial'. This is the result of effective copywriting.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Core Web Vitals",
+    "definition": "Core Web Vitals are a set of three specific metrics that Google considers important for user experience on a web page. They measure page speed, interactivity, and visual stability. These metrics are an official ranking factor for Google Search.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "C",
+    "slug": "core-web-vitals",
+    "bullets": [
+      "A set of three metrics: Largest Contentful Paint (LCP), First Input Delay (FID), and Cumulative Layout Shift (CLS).",
+      "Measures a website's user experience.",
+      "Crucial for SEO, as they are a direct ranking signal."
+    ],
+    "example": "A website that takes a long time to load (poor LCP), is slow to respond to clicks (poor FID), and has a distracting layout that shifts while loading (poor CLS) will rank lower in search results due to poor Core Web Vitals.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Crawlability",
+    "definition": "Crawlability refers to a search engine's ability to access and 'crawl' content on a website. If a site has crawlability issues, search engine bots may not be able to find and index new or updated pages, which can prevent them from ranking.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "C",
+    "slug": "crawlability",
+    "bullets": [
+      "An obstacle that prevents search engines from accessing a site.",
+      "Common examples include incorrect server responses or `noindex` directives.",
+      "Can significantly harm a website's visibility and performance."
+    ],
+    "example": "A website's internal linking structure is a mess, and many pages can only be reached through a handful of others. This makes it difficult for a Google bot to crawl the entire site, harming its SEO.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Digital Marketing",
+    "definition": "Digital marketing encompasses all marketing efforts that use an electronic device or the internet. It leverages digital channels such as search engines, social media, email, and websites to connect with current and prospective customers. It is a broad field that includes SEO, content marketing, social media marketing, and more.",
+    "category": "Digital Marketing",
+    "categories": [
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "D",
+    "slug": "digital-marketing",
+    "bullets": [
+      "All marketing that happens online or on an electronic device.",
+      "Uses channels like search engines, social media, and email.",
+      "A diverse and measurable field that has replaced many traditional marketing methods."
+    ],
+    "example": "A company runs a campaign that includes a Facebook ad, a series of blog posts, and an email newsletter. This entire effort is considered digital marketing.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Domain Authority (DA)",
+    "definition": "Domain Authority is a search engine ranking score developed by Moz that predicts how well a website will rank on search engine result pages (SERPs). It is measured on a scale of 1 to 100, with higher scores indicating a greater likelihood of ranking. It is primarily influenced by the quality and quantity of backlinks pointing to a site.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "D",
+    "slug": "domain-authority-da",
+    "bullets": [
+      "A metric that predicts a website's ability to rank.",
+      "Scores range from 1 to 100, with higher being better.",
+      "The most influential factor is the number and quality of backlinks."
+    ],
+    "example": "A new blog starts with a DA of 1, but after consistently publishing high-quality content and earning backlinks from reputable websites, its DA rises to 40, allowing it to rank for more competitive keywords.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "E-E-A-T",
+    "definition": "E-E-A-T stands for Experience, Expertise, Authoritativeness, and Trustworthiness. It is a set of guidelines from Google's Search Quality Rater Guidelines that raters use to evaluate the quality of a web page. It is a critical concept for ranking high-quality, reliable content, especially in 'Your Money or Your Life' (YMYL) topics.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Content Marketing"
+    ],
+    "related_terms": [],
+    "letter": "E",
+    "slug": "e-e-a-t",
+    "bullets": [
+      "Experience, Expertise, Authoritativeness, and Trustworthiness.",
+      "A framework used by Google to evaluate content quality.",
+      "Crucial for ranking in health, finance, and other sensitive topics."
+    ],
+    "example": "An article about medical advice written by a certified doctor (Expertise) who has been practicing for 20 years (Experience) and is published on a reputable hospital website (Authoritativeness and Trustworthiness) will rank higher than a similar article written by an anonymous blogger.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "E-commerce SEO",
+    "definition": "E-commerce SEO is the practice of making an online store more visible in search engine results. This involves optimizing product pages, category pages, and blog posts to rank for relevant keywords, as well as managing product feeds and structured data.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "E-commerce"
+    ],
+    "related_terms": [],
+    "letter": "E",
+    "slug": "e-commerce-seo",
+    "bullets": [
+      "The process of optimizing an online store for search engines.",
+      "Focuses on product and category page optimization.",
+      "Crucial for driving organic traffic and sales to an online store."
+    ],
+    "example": "An online store optimizes its product page for 'men's leather wallet' by including the keyword in the title, description, and image alt text. They also add customer reviews and structured data to improve its chances of ranking.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Fintech Marketing",
+    "definition": "Fintech marketing is a specialized form of digital marketing that focuses on promoting financial technology products and services. Success in this field requires building trust and authority through expert content, secure website practices, and transparent communication, due to the sensitive nature of the industry.",
+    "category": "Digital Marketing",
+    "categories": [
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "F",
+    "slug": "fintech-marketing",
+    "bullets": [
+      "Specialized marketing for financial technology companies.",
+      "Requires building trust and authority.",
+      "Often uses content marketing to educate customers."
+    ],
+    "example": "A new online banking app uses a blog to publish articles about personal finance and saving money. This content builds trust with potential customers and positions the app as a reliable authority in the fintech space.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Google My Business",
+    "definition": "Google My Business (now called Google Business Profile) is a free tool that allows businesses to manage their online presence across Google, including Search and Maps. Optimizing your profile is the single most important part of local SEO.",
+    "category": "Local SEO",
+    "categories": [
+      "Local SEO"
+    ],
+    "related_terms": [],
+    "letter": "G",
+    "slug": "google-my-business",
+    "bullets": [
+      "A free tool to manage a business's online presence.",
+      "Crucial for ranking in local search results and on Google Maps.",
+      "Allows businesses to list their hours, reviews, photos, and contact info."
+    ],
+    "example": "A bakery owner creates a Google My Business profile to ensure their store appears when a user searches for 'bakery near me'. They add photos of their products and respond to customer reviews.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Hidden Text",
+    "definition": "Hidden text is a black hat SEO technique where text is placed on a page in a way that is invisible to human users but readable by search engine crawlers. This is often done to artificially inflate a page's keyword density or to deceive search engines about the page's content. This practice can lead to severe penalties.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "H",
+    "slug": "hidden-text",
+    "bullets": [
+      "Text that is hidden from human users but visible to search engines.",
+      "A manipulative black hat SEO practice.",
+      "Can lead to a website being penalized or banned from search results."
+    ],
+    "example": "A webmaster adds a list of keywords to a page in the same color as the background, making it unreadable to visitors but visible to Google's bots. This is a form of hidden text.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "HTML",
+    "definition": "HTML, or HyperText Markup Language, is the standard markup language for documents designed to be displayed in a web browser. It describes the structure of a web page semantically and includes the elements that create the page's layout and content.",
+    "category": "Web Development",
+    "categories": [
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "H",
+    "slug": "html",
+    "bullets": [
+      "The standard language for creating web pages.",
+      "Describes the structure of a web page.",
+      "Works in conjunction with CSS for styling and JavaScript for interactivity."
+    ],
+    "example": "A simple HTML document might start with an `<html>` tag, contain a `<head>` for metadata, and a `<body>` for the visible content, including paragraphs and images.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Indexing",
+    "definition": "Indexing is the process by which search engines organize and store information from web pages in a massive database called an index. When a user performs a search, the search engine pulls the most relevant results from this index. If a page is not indexed, it cannot appear in search results.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "I",
+    "slug": "indexing",
+    "bullets": [
+      "The process of storing web page information in a search engine's database.",
+      "A page must be indexed to appear in search results.",
+      "Indexing can be influenced by crawl budget and page quality."
+    ],
+    "example": "After publishing a new blog post, a webmaster submits the URL to Google Search Console to tell Google to crawl and index the new page so it can start appearing in search results.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Keyword Research",
+    "definition": "Keyword research is the process of finding and analyzing search terms that people use to find information about a specific topic. This process is the foundation of any SEO strategy and helps to identify high-volume, low-competition keywords to target in content.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "K",
+    "slug": "keyword-research",
+    "bullets": [
+      "The process of identifying search terms that users are looking for.",
+      "Helps inform a website's content strategy.",
+      "Involves analyzing search volume, competition, and user intent."
+    ],
+    "example": "A new pet food company performs keyword research and discovers that a lot of people are searching for 'best grain-free dog food brands.' They decide to write a blog post targeting that keyword to attract potential customers.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Keyword Stuffing",
+    "definition": "Keyword stuffing is a black hat SEO technique that involves loading a web page with a large number of keywords in an attempt to manipulate a site's ranking. This often results in text that is unnatural and difficult for users to read, and it is a major violation of search engine guidelines.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "K",
+    "slug": "keyword-stuffing",
+    "bullets": [
+      "Excessive use of keywords on a web page.",
+      "A black hat tactic that provides a poor user experience.",
+      "Can lead to a severe ranking penalty from search engines."
+    ],
+    "example": "A local business page repeats the phrase 'best digital marketing company in Asia' 10 times in a single paragraph, making the content sound robotic and unnatural. This is a form of keyword stuffing.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Knowledge Panel",
+    "definition": "A knowledge panel is an information box that appears on Google's search result pages when a user searches for entities like people, places, organizations, or things that are in the Knowledge Graph. It is a form of a zero-click search result that provides a quick overview of the entity.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "K",
+    "slug": "knowledge-panel",
+    "bullets": [
+      "An information box on Google's search results page.",
+      "Appears for well-known entities like businesses, celebrities, or historical figures.",
+      "A form of a zero-click search result."
+    ],
+    "example": "When you search for 'Eiffel Tower' on Google, the knowledge panel on the right side of the screen provides information about its height, location, and history, sourced directly from Google's Knowledge Graph.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Landing Page",
+    "definition": "A landing page is a standalone web page created specifically for a marketing or advertising campaign. It is where a visitor 'lands' after clicking on a link in an ad, email, or social media post. Unlike other web pages, landing pages are designed with a single goal or call to action.",
+    "category": "Digital Marketing",
+    "categories": [
+      "Digital Marketing",
+      "Content Marketing"
+    ],
+    "related_terms": [],
+    "letter": "L",
+    "slug": "landing-page",
+    "bullets": [
+      "A standalone page for a marketing campaign.",
+      "Focuses on a single call to action.",
+      "The destination for traffic from ads, emails, or social media."
+    ],
+    "example": "A company runs a Facebook ad promoting their new e-book. The ad links to a dedicated landing page that has a form for users to fill out to download the e-book. This page is focused only on lead generation.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Link Building",
+    "definition": "Link building is the process of acquiring hyperlinks from other websites to your own. These hyperlinks are called backlinks. Link building is a core component of off-page SEO, as search engines view backlinks as 'votes' of authority and trust.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "L",
+    "slug": "link-building",
+    "bullets": [
+      "The process of getting other websites to link to your site.",
+      "A critical off-page SEO strategy.",
+      "Focuses on earning high-quality, relevant backlinks."
+    ],
+    "example": "A marketer emails a popular blogger and pitches a guest post they can write for the blogger's website. If the post is accepted, it will include a link back to the marketer's website, earning them a high-quality backlink.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Local SEO",
+    "definition": "Local SEO is the practice of optimizing a website to rank for local-intent search queries. It helps businesses appear in search results for users who are physically close to them. Key components include optimizing Google Business Profile, building local citations, and managing online reviews.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "L",
+    "slug": "local-seo",
+    "bullets": [
+      "Optimizing a website to appear in local search results.",
+      "Crucial for brick-and-mortar businesses.",
+      "Includes Google Business Profile optimization, local citations, and reviews."
+    ],
+    "example": "A user searches for 'best restaurants in Bangkok' on their phone. Local SEO helps a specific restaurant rank high in the search results and on Google Maps, attracting the user to their business.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Meta Description",
+    "definition": "A meta description is an HTML tag that provides a brief, concise summary of a web page's content. While it is not a direct ranking factor, it appears in search results and can influence a user's decision to click on a link, making it a critical part of a page's click-through rate (CTR).",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Content Marketing"
+    ],
+    "related_terms": [],
+    "letter": "M",
+    "slug": "meta-description",
+    "bullets": [
+      "A short summary of a page's content.",
+      "Appears under the title in search engine results.",
+      "Affects click-through rate (CTR), but not a direct ranking factor."
+    ],
+    "example": "For a blog post about digital marketing, the meta description might read: 'Learn the fundamentals of digital marketing with our comprehensive guide. Explore SEO, content strategy, social media, and more to grow your business online.'",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Meta Keywords",
+    "definition": "Meta keywords are a type of meta tag used in HTML to tell search engines what a web page is about. However, due to past abuse and keyword stuffing, major search engines like Google and Bing no longer use meta keywords as a ranking factor.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "M",
+    "slug": "meta-keywords",
+    "bullets": [
+      "A deprecated HTML tag for providing keywords to search engines.",
+      "No longer used as a ranking factor by major search engines.",
+      "Use of this tag is generally discouraged."
+    ],
+    "example": "A website's code might include `<meta name=\"keywords\" content=\"digital marketing, SEO, content creation\">`. This tag is now ignored by Google.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "On-Page SEO",
+    "definition": "On-page SEO refers to all the optimization efforts performed directly on a website's pages. This includes optimizing content, headlines, images, and HTML source code to improve a page's ranking and traffic from search engines. It is a foundational component of any SEO strategy.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Content Marketing",
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "O",
+    "slug": "on-page-seo",
+    "bullets": [
+      "Optimization efforts that are performed on your website.",
+      "Includes optimizing titles, headings, content, and images.",
+      "A crucial part of technical SEO and content creation."
+    ],
+    "example": "A writer ensures a blog post's title includes a target keyword, uses descriptive alt text for images, and formats the content with clear headings. These are all on-page SEO best practices.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Off-Page SEO",
+    "definition": "Off-page SEO refers to all the optimization efforts performed outside of a website to influence its ranking. The most common off-page SEO practice is link building, as backlinks from other reputable websites are a strong signal of trust and authority to search engines.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "O",
+    "slug": "off-page-seo",
+    "bullets": [
+      "Optimization efforts that happen away from your website.",
+      "Primarily focused on building high-quality backlinks.",
+      "Includes social media promotion and local citations."
+    ],
+    "example": "A business partners with a well-known industry blog for a guest post that includes a link to its website. This is an off-page SEO strategy that helps build authority.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "PPC (Pay-Per-Click)",
+    "definition": "PPC is a digital marketing model in which advertisers pay a fee each time one of their ads is clicked. It is a way of buying visits to a website, rather than attempting to 'earn' those visits organically. Google Ads and social media advertising are common forms of PPC.",
+    "category": "Digital Marketing",
+    "categories": [
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "P",
+    "slug": "ppc-pay-per-click",
+    "bullets": [
+      "An advertising model where you pay for each ad click.",
+      "Provides immediate traffic to a website.",
+      "Requires careful keyword and audience targeting to be profitable."
+    ],
+    "example": "A company bids on the keyword 'digital marketing agency'. When a user searches for that term and clicks on their ad, the company pays a fee to Google. This is a form of PPC.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Robots.txt",
+    "definition": "The robots.txt file is a text file that tells search engine crawlers which pages or files on a site they can or cannot crawl. It is a fundamental part of technical SEO and can be used to prevent search engines from accessing sections of a website that are not meant for public viewing.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "R",
+    "slug": "robots-txt",
+    "bullets": [
+      "A text file that tells search engines which pages to crawl or avoid.",
+      "A crucial part of technical SEO.",
+      "Used to manage a website's crawl budget."
+    ],
+    "example": "A website owner uses their robots.txt file to tell Google's bot not to crawl their 'thank you' page, as it is only relevant for people who have just submitted a form and should not appear in search results.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "ROI",
+    "definition": "ROI stands for Return on Investment. It is a performance measure used to evaluate the efficiency of an investment or to compare the efficiency of a number of different investments. In digital marketing, ROI is calculated by comparing the profit from a campaign to the cost of the campaign.",
+    "category": "Digital Marketing",
+    "categories": [
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "R",
+    "slug": "roi",
+    "bullets": [
+      "Return on Investment.",
+      "A measure of profitability for a marketing campaign.",
+      "Calculated by comparing profit to cost."
+    ],
+    "example": "A company spends $500 on a PPC ad campaign and generates $1,500 in sales directly from that campaign. The ROI for the campaign is 200%, calculated as ($1,500 - $500) / $500 * 100.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "RSS Feed",
+    "definition": "An RSS (Really Simple Syndication) feed is a web feed that allows users and applications to access updates to online content in a standardized, computer-readable format. It is used to syndicate content across platforms, help search engines discover new content instantly, and power email newsletters.",
+    "category": "Content Marketing",
+    "categories": [
+      "Content Marketing",
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "R",
+    "slug": "rss-feed",
+    "bullets": [
+      "A format for syndicating online content updates.",
+      "Helps Google discover new content instantly for faster indexing.",
+      "Used to power email newsletters and other automated updates."
+    ],
+    "example": "A blog uses an RSS feed to allow subscribers to receive automatic updates on their preferred RSS reader whenever a new article is published. This feed also helps search engines find the new content quickly.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "SaaS SEO",
+    "definition": "SaaS SEO is a specialized branch of search engine optimization that focuses on driving organic traffic and sign-ups for software-as-a-service (SaaS) businesses. It involves targeting keywords related to the software's functionality, integrations, and pain points the software solves, as well as creating case studies and content that nurtures leads.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "S",
+    "slug": "saas-seo",
+    "bullets": [
+      "Specialized SEO for Software-as-a-Service companies.",
+      "Focuses on increasing trial sign-ups and reducing customer acquisition cost.",
+      "Often uses a content marketing funnel to educate and convert users."
+    ],
+    "example": "A project management software company writes blog posts titled 'Top 10 Project Management Software for Teams' and 'How to Manage Your Team Remotely.' These articles attract users who are looking for a solution to their problem, which the software can solve.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Search Engine",
+    "definition": "A search engine is a software system that is designed to carry out web searches. It allows users to search the World Wide Web for specific information using a given keyword or phrase. The most popular search engines are Google, Bing, and DuckDuckGo.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Digital Skills"
+    ],
+    "related_terms": [],
+    "letter": "S",
+    "slug": "search-engine",
+    "bullets": [
+      "A program that helps users find information on the internet.",
+      "Uses complex algorithms to rank results.",
+      "The primary goal is to provide the most relevant results for a user's query."
+    ],
+    "example": "When a user types 'weather forecast' into Google's search bar and presses enter, Google's search engine processes the query and returns a list of relevant web pages and a direct answer to the user.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Search Intent",
+    "definition": "Search intent, or user intent, refers to the primary goal a user has when typing a query into a search engine. Understanding search intent is a critical part of SEO, as a page's content should match the user's intent to rank well. There are four main types of intent: informational, navigational, commercial, and transactional.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "S",
+    "slug": "search-intent",
+    "bullets": [
+      "The purpose or goal behind a user's search query.",
+      "Helps to determine the best content to create for a keyword.",
+      "Includes informational, navigational, commercial, and transactional intent."
+    ],
+    "example": "The search query 'what is content marketing' has an informational intent, while 'buy sneakers online' has a transactional intent. A page trying to rank for both would fail.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "SERP",
+    "definition": "SERP stands for Search Engine Results Page. This is the page displayed by a search engine in response to a user's search query. A SERP includes organic search results, paid advertisements, and a variety of other features like featured snippets, knowledge panels, and local packs.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "S",
+    "slug": "serp",
+    "bullets": [
+      "Search Engine Results Page.",
+      "The page a user sees after performing a search.",
+      "Includes both organic results and paid advertisements."
+    ],
+    "example": "When you search for 'weather in London,' the SERP shows the current weather forecast, a map, and links to weather websites.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Social Media Marketing",
+    "definition": "Social media marketing is the use of social media platforms to connect with a target audience and build a brand's presence. It involves creating and sharing content, engaging with followers, running social media ad campaigns, and managing online reputation.",
+    "category": "Social Media",
+    "categories": [
+      "Social Media",
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "S",
+    "slug": "social-media-marketing",
+    "bullets": [
+      "Uses platforms like Facebook, Instagram, and LinkedIn.",
+      "Helps build brand awareness and customer relationships.",
+      "Includes content creation, community management, and advertising."
+    ],
+    "example": "A coffee shop uses social media marketing to post daily photos of their new drinks on Instagram and runs a 'buy one, get one free' ad on Facebook to attract new customers.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Technical SEO",
+    "definition": "Technical SEO refers to the optimization of a website's technical components to help search engines crawl and index the site more effectively. It addresses factors like website speed, crawlability, mobile-friendliness, and site structure to improve a website's overall performance in search results.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Web Development"
+    ],
+    "related_terms": [],
+    "letter": "T",
+    "slug": "technical-seo",
+    "bullets": [
+      "Optimization of a website's technical components.",
+      "Focuses on speed, crawlability, and mobile-friendliness.",
+      "A foundational component of any SEO strategy."
+    ],
+    "example": "A website's loading speed is slow, so a technical SEO consultant optimizes images and minifies the code to improve performance. This helps the website rank higher and provides a better user experience.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "User Signals",
+    "definition": "User signals are positive (and negative) interactions that a website user sends to search engines. These signals include a user's click-through rate, time spent on a page, and bounce rate. Search engines use these signals to determine if a website provides a good user experience.",
+    "category": "SEO",
+    "categories": [
+      "SEO"
+    ],
+    "related_terms": [],
+    "letter": "U",
+    "slug": "user-signals",
+    "bullets": [
+      "Interactions a user has with a website.",
+      "Used by search engines to measure user experience.",
+      "Positive signals can lead to higher rankings."
+    ],
+    "example": "A user clicks on a search result, stays on the page for a long time, and reads the entire article. This positive user signal tells Google that the page is high-quality and relevant to the user's query.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Word Processor",
+    "definition": "A word processor is a software application used for the production (including composition, editing, formatting, and possibly printing) of any sort of readable text or document. It is a fundamental tool for content creators and is essential for writing and managing text-based content.",
+    "category": "Digital Skills",
+    "categories": [
+      "Digital Skills",
+      "Productivity"
+    ],
+    "related_terms": [],
+    "letter": "W",
+    "slug": "word-processor",
+    "bullets": [
+      "An application for creating and editing documents.",
+      "A foundational digital skill for content creation.",
+      "Examples include Microsoft Word, Google Docs, and Pages."
+    ],
+    "example": "A content writer uses a word processor to draft, edit, and format a new blog post before uploading it to a Content Management System (CMS).",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  },
+  {
+    "term": "Zero-Click Searches",
+    "definition": "Zero-click searches are search engine queries where the user finds the answer directly on the search results page without clicking through to any third-party website. This is often due to featured snippets, knowledge panels, or direct answers provided by Google.",
+    "category": "SEO",
+    "categories": [
+      "SEO",
+      "Digital Marketing"
+    ],
+    "related_terms": [],
+    "letter": "Z",
+    "slug": "zero-click-searches",
+    "bullets": [
+      "Search queries that don't result in a click to a website.",
+      "Results are provided directly on the SERP.",
+      "Highlights the importance of optimizing for SERP features."
+    ],
+    "example": "A user searches for 'how tall is the Eiffel Tower'. Google's featured snippet provides the answer directly, so the user doesn't need to click on a website to find the information.",
+    "video_url": null,
+    "featured_image": null,
+    "article_link": null
+  }
+]
