@@ -52,6 +52,8 @@ module.exports = {
         { from: 'google*.html', to: '[name][ext]', noErrorOnMissing: true },
         { from: 'robots.txt', to: 'robots.txt', noErrorOnMissing: true },
         { from: 'sitemap.xml', to: 'sitemap.xml', noErrorOnMissing: true },
+        { from: '_headers', to: '[name]', noErrorOnMissing: true },
+        { from: '_redirects', to: '[name]', noErrorOnMissing: true },
       ]
     })
   ],

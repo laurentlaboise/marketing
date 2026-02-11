@@ -10,3 +10,16 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^en/articles/([^/]+)/?$ /en/articles/index.html [L]
 </IfModule>
+
+# Ensure XML files are served with the correct MIME type
+<IfModule mod_mime.c>
+    AddType application/xml .xml
+</IfModule>
+
+# Set proper headers for sitemap.xml
+<IfModule mod_headers.c>
+    <FilesMatch "sitemap\.xml$">
+        Header set Content-Type "application/xml; charset=utf-8"
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+</IfModule>
