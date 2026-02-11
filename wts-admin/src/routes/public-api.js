@@ -367,7 +367,22 @@ router.get('/seo-terms', async (req, res) => {
     query += ' ORDER BY term ASC';
 
     const result = await db.query(query, params);
-    respond(res, result.rows);
+    const terms = result.rows.map(item => ({
+      id: item.id,
+      term: item.term,
+      slug: item.slug || '',
+      short_definition: item.short_definition || '',
+      definition: item.definition || '',
+      category: item.category || '',
+      related_terms: item.related_terms || [],
+      examples: item.examples || '',
+      bullets: item.bullets || [],
+      video_url: item.video_url || '',
+      featured_image: item.featured_image || '',
+      article_link: item.article_link || '',
+      glossary_link: item.glossary_link || ''
+    }));
+    respond(res, terms);
   } catch (error) {
     console.error('Public API - SEO Terms error:', error);
     respond(res, { error: 'Failed to load SEO terms' }, 500);

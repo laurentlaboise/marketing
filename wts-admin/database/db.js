@@ -242,6 +242,34 @@ const db = {
         )
       `);
 
+      // Add new seo_terms columns
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seo_terms' AND column_name='slug') THEN
+            ALTER TABLE seo_terms ADD COLUMN slug VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seo_terms' AND column_name='short_definition') THEN
+            ALTER TABLE seo_terms ADD COLUMN short_definition TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seo_terms' AND column_name='bullets') THEN
+            ALTER TABLE seo_terms ADD COLUMN bullets JSONB DEFAULT '[]'::jsonb;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seo_terms' AND column_name='video_url') THEN
+            ALTER TABLE seo_terms ADD COLUMN video_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seo_terms' AND column_name='featured_image') THEN
+            ALTER TABLE seo_terms ADD COLUMN featured_image TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seo_terms' AND column_name='article_link') THEN
+            ALTER TABLE seo_terms ADD COLUMN article_link TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seo_terms' AND column_name='glossary_link') THEN
+            ALTER TABLE seo_terms ADD COLUMN glossary_link TEXT;
+          END IF;
+        END $$;
+      `);
+
       // AI Tools table
       await client.query(`
         CREATE TABLE IF NOT EXISTS ai_tools (

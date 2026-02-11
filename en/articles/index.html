@@ -310,6 +310,115 @@
             color: white;
         }
 
+        /* --- SEO Term Tooltip Styles --- */
+        .seo-term-link {
+            color: var(--color-primary-base);
+            text-decoration: none;
+            border-bottom: 1px dashed var(--color-primary-base);
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .seo-term-link:hover {
+            color: var(--color-accent-magenta);
+            border-bottom-color: var(--color-accent-magenta);
+        }
+
+        .seo-term-tooltip {
+            position: absolute;
+            z-index: 1000;
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            padding: 16px 20px;
+            max-width: 360px;
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px);
+            transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+            pointer-events: none;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .seo-term-tooltip.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .seo-term-tooltip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .seo-term-tooltip-title {
+            font-family: var(--font-family-heading);
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--color-slate-900);
+            margin: 0;
+        }
+
+        .seo-term-tooltip-category {
+            font-size: 0.7rem;
+            background: var(--color-primary-base);
+            color: var(--color-white);
+            padding: 2px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .seo-term-tooltip-def {
+            color: var(--color-slate-500);
+            margin: 0 0 10px;
+            font-size: 0.85rem;
+        }
+
+        .seo-term-tooltip-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .seo-term-tooltip-links a {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .seo-term-tooltip-links .tt-read-more {
+            background: var(--color-primary-base);
+            color: var(--color-white);
+        }
+
+        .seo-term-tooltip-links .tt-read-more:hover {
+            background: #185a8d;
+            color: var(--color-white);
+        }
+
+        .seo-term-tooltip-links .tt-glossary {
+            background: var(--color-light);
+            color: var(--color-primary-base);
+            border: 1px solid var(--color-border);
+        }
+
+        .seo-term-tooltip-links .tt-glossary:hover {
+            background: var(--color-primary-base);
+            color: var(--color-white);
+        }
+
         @media (max-width: 768px) {
             .container {
                 width: 95%;
@@ -322,6 +431,11 @@
 
             .article-content {
                 font-size: 1rem;
+            }
+
+            .seo-term-tooltip {
+                max-width: 300px;
+                min-width: 240px;
             }
         }
     </style>
@@ -793,10 +907,229 @@
             handleScroll();
         }
 
+        // ==================== SEO TERM HIGHLIGHTING ====================
+        const SEO_TERMS_API = 'https://admin.wordsthatsells.website/api/public/seo-terms';
+        let seoTermsData = [];
+        let activeTooltip = null;
+
+        // Fetch SEO terms from admin backend
+        async function fetchSeoTerms() {
+            try {
+                const response = await fetch(SEO_TERMS_API);
+                if (!response.ok) return [];
+                return await response.json();
+            } catch (err) {
+                console.warn('SEO terms not available:', err.message);
+                return [];
+            }
+        }
+
+        // Scan article content and wrap matching terms with tooltip links
+        function highlightSeoTerms(containerEl, terms) {
+            if (!terms || terms.length === 0 || !containerEl) return;
+
+            // Sort terms by length (longest first) to match multi-word terms before single words
+            const sorted = [...terms].sort((a, b) => b.term.length - a.term.length);
+
+            // Build a single regex for all terms (word-boundary, case-insensitive)
+            const escapedTerms = sorted.map(t => t.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const regex = new RegExp('\\b(' + escapedTerms.join('|') + ')\\b', 'gi');
+
+            // Create a lookup map for quick access
+            const termMap = {};
+            sorted.forEach(t => { termMap[t.term.toLowerCase()] = t; });
+
+            // Track which terms have already been linked (only highlight first occurrence)
+            const linked = new Set();
+
+            // Walk text nodes inside the article content
+            const walker = document.createTreeWalker(containerEl, NodeFilter.SHOW_TEXT, {
+                acceptNode: function(node) {
+                    // Skip text inside links, scripts, code, or already-highlighted spans
+                    const parent = node.parentElement;
+                    if (!parent) return NodeFilter.FILTER_REJECT;
+                    const tag = parent.tagName.toLowerCase();
+                    if (tag === 'a' || tag === 'script' || tag === 'style' || tag === 'code' || tag === 'pre') return NodeFilter.FILTER_REJECT;
+                    if (parent.classList.contains('seo-term-link')) return NodeFilter.FILTER_REJECT;
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            });
+
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) textNodes.push(node);
+
+            textNodes.forEach(textNode => {
+                const text = textNode.textContent;
+                if (!regex.test(text)) return;
+                regex.lastIndex = 0; // reset regex state
+
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0;
+                let match;
+
+                while ((match = regex.exec(text)) !== null) {
+                    const matchedText = match[0];
+                    const termKey = matchedText.toLowerCase();
+                    const termData = termMap[termKey];
+
+                    // Only highlight first occurrence of each term
+                    if (!termData || linked.has(termKey)) {
+                        continue;
+                    }
+                    linked.add(termKey);
+
+                    // Add text before the match
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                    }
+
+                    // Create the clickable term span
+                    const span = document.createElement('span');
+                    span.className = 'seo-term-link';
+                    span.textContent = matchedText;
+                    span.setAttribute('data-term-id', termData.id);
+                    span.setAttribute('data-term', termKey);
+                    span.setAttribute('role', 'button');
+                    span.setAttribute('tabindex', '0');
+                    span.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showTermTooltip(this, termData);
+                    });
+
+                    fragment.appendChild(span);
+                    lastIndex = match.index + matchedText.length;
+                }
+
+                // Add remaining text
+                if (lastIndex < text.length) {
+                    fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+                }
+
+                if (lastIndex > 0) {
+                    textNode.parentNode.replaceChild(fragment, textNode);
+                }
+            });
+        }
+
+        // Show tooltip popup near the clicked term
+        function showTermTooltip(targetEl, termData) {
+            // Close any existing tooltip
+            closeTooltip();
+
+            const tooltip = document.createElement('div');
+            tooltip.className = 'seo-term-tooltip';
+            tooltip.setAttribute('role', 'dialog');
+
+            // Header: title + category
+            const header = document.createElement('div');
+            header.className = 'seo-term-tooltip-header';
+            const title = document.createElement('span');
+            title.className = 'seo-term-tooltip-title';
+            title.textContent = termData.term;
+            header.appendChild(title);
+            if (termData.category) {
+                const cat = document.createElement('span');
+                cat.className = 'seo-term-tooltip-category';
+                cat.textContent = termData.category;
+                header.appendChild(cat);
+            }
+            tooltip.appendChild(header);
+
+            // Definition
+            const def = document.createElement('p');
+            def.className = 'seo-term-tooltip-def';
+            def.textContent = termData.short_definition || termData.definition || '';
+            tooltip.appendChild(def);
+
+            // Links
+            const links = document.createElement('div');
+            links.className = 'seo-term-tooltip-links';
+
+            if (termData.article_link) {
+                const readMore = document.createElement('a');
+                readMore.href = termData.article_link;
+                readMore.className = 'tt-read-more';
+                readMore.target = '_blank';
+                readMore.textContent = 'Read Article';
+                links.appendChild(readMore);
+            }
+
+            if (termData.glossary_link) {
+                const glossary = document.createElement('a');
+                glossary.href = termData.glossary_link;
+                glossary.className = 'tt-glossary';
+                glossary.target = '_blank';
+                glossary.textContent = 'Glossary';
+                links.appendChild(glossary);
+            }
+
+            if (links.children.length > 0) {
+                tooltip.appendChild(links);
+            }
+
+            document.body.appendChild(tooltip);
+            activeTooltip = tooltip;
+
+            // Position below the term
+            const rect = targetEl.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            let top = rect.bottom + window.scrollY + 8;
+            let left = rect.left + window.scrollX + (rect.width / 2) - (tooltipRect.width / 2);
+
+            // Keep within viewport
+            if (left < 8) left = 8;
+            if (left + tooltipRect.width > window.innerWidth - 8) {
+                left = window.innerWidth - tooltipRect.width - 8;
+            }
+
+            tooltip.style.position = 'absolute';
+            tooltip.style.top = top + 'px';
+            tooltip.style.left = left + 'px';
+
+            // Animate in
+            requestAnimationFrame(() => tooltip.classList.add('visible'));
+        }
+
+        // Close the active tooltip
+        function closeTooltip() {
+            if (activeTooltip) {
+                activeTooltip.classList.remove('visible');
+                setTimeout(() => {
+                    if (activeTooltip && activeTooltip.parentNode) {
+                        activeTooltip.parentNode.removeChild(activeTooltip);
+                    }
+                    activeTooltip = null;
+                }, 250);
+            }
+        }
+
+        // Close tooltip when clicking outside
+        document.addEventListener('click', function(e) {
+            if (activeTooltip && !e.target.closest('.seo-term-tooltip') && !e.target.closest('.seo-term-link')) {
+                closeTooltip();
+            }
+        });
+
+        // Close tooltip on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeTooltip();
+        });
+
         // Load article and initialize features on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            loadArticle();
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Fetch SEO terms in parallel while loading article
+            const termsPromise = fetchSeoTerms();
+            await loadArticle();
             initBackToTop();
+
+            // After article is rendered, highlight SEO terms
+            seoTermsData = await termsPromise;
+            const articleContent = document.querySelector('.article-content');
+            if (articleContent && seoTermsData.length > 0) {
+                highlightSeoTerms(articleContent, seoTermsData);
+            }
         });
     </script>
 </body>
