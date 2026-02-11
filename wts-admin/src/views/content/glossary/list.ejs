@@ -67,7 +67,7 @@
     <div class="card-body">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
         <h3 style="margin:0;"><i class="fas fa-upload"></i> Import Glossary Terms</h3>
-        <button type="button" onclick="document.getElementById('importModal').style.display='none'" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--gray-500);">&times;</button>
+        <button type="button" onclick="document.getElementById('importModal').style.display='none'" aria-label="Close import dialog" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--gray-500);">&times;</button>
       </div>
       <form action="/content/glossary/import" method="POST" enctype="multipart/form-data" id="importForm">
         <div class="form-group">
@@ -88,6 +88,10 @@
   // Close modal on background click
   document.getElementById('importModal').addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';
+  });
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') document.getElementById('importModal').style.display = 'none';
   });
   // Show loading state on submit
   document.getElementById('importForm').addEventListener('submit', function() {

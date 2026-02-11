@@ -638,7 +638,7 @@ router.post('/glossary/import', csvUpload.single('file'), async (req, res) => {
   } finally {
     // Clean up temp file
     if (tempFilePath) {
-      try { fs.unlinkSync(tempFilePath); } catch (e) { /* ignore cleanup errors */ }
+      try { fs.unlinkSync(tempFilePath); } catch (e) { console.error('Temp file cleanup error:', e.message); }
     }
   }
 });
