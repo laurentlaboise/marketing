@@ -276,6 +276,34 @@ const db = {
         )
       `);
 
+      // Add new glossary columns
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='glossary' AND column_name='slug') THEN
+            ALTER TABLE glossary ADD COLUMN slug VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='glossary' AND column_name='video_url') THEN
+            ALTER TABLE glossary ADD COLUMN video_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='glossary' AND column_name='featured_image') THEN
+            ALTER TABLE glossary ADD COLUMN featured_image TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='glossary' AND column_name='article_link') THEN
+            ALTER TABLE glossary ADD COLUMN article_link TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='glossary' AND column_name='bullets') THEN
+            ALTER TABLE glossary ADD COLUMN bullets JSONB DEFAULT '[]'::jsonb;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='glossary' AND column_name='example') THEN
+            ALTER TABLE glossary ADD COLUMN example TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='glossary' AND column_name='categories') THEN
+            ALTER TABLE glossary ADD COLUMN categories TEXT[];
+          END IF;
+        END $$;
+      `);
+
       // Affiliate Solutions table
       await client.query(`
         CREATE TABLE IF NOT EXISTS affiliate_solutions (

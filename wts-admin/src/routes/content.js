@@ -466,13 +466,20 @@ router.get('/glossary/new', (req, res) => {
 
 router.post('/glossary', async (req, res) => {
   try {
-    const { term, definition, category, related_terms } = req.body;
+    const { term, definition, category, related_terms, video_url, featured_image, article_link, bullets, example, categories: catList } = req.body;
     const relatedArray = related_terms ? related_terms.split(',').map(t => t.trim()).filter(t => t) : [];
+    const categoriesArray = catList ? catList.split(',').map(c => c.trim()).filter(c => c) : (category ? [category] : []);
     const letter = term.charAt(0).toUpperCase();
+    const slug = term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    let bulletsArray = [];
+    if (bullets && bullets.trim()) {
+      try { bulletsArray = JSON.parse(bullets); } catch(e) { bulletsArray = bullets.split('\n').filter(b => b.trim()); }
+    }
 
     await db.query(
-      'INSERT INTO glossary (term, definition, category, related_terms, letter) VALUES ($1, $2, $3, $4, $5)',
-      [term, definition, category, relatedArray, letter]
+      `INSERT INTO glossary (term, definition, category, related_terms, letter, slug, video_url, featured_image, article_link, bullets, example, categories)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [term, definition, category, relatedArray, letter, slug, video_url || null, featured_image || null, article_link || null, JSON.stringify(bulletsArray), example || null, categoriesArray]
     );
     req.session.successMessage = 'Glossary term created successfully';
     res.redirect('/content/glossary');
@@ -505,13 +512,21 @@ router.get('/glossary/:id/edit', async (req, res) => {
 
 router.post('/glossary/:id', async (req, res) => {
   try {
-    const { term, definition, category, related_terms } = req.body;
+    const { term, definition, category, related_terms, video_url, featured_image, article_link, bullets, example, categories: catList } = req.body;
     const relatedArray = related_terms ? related_terms.split(',').map(t => t.trim()).filter(t => t) : [];
+    const categoriesArray = catList ? catList.split(',').map(c => c.trim()).filter(c => c) : (category ? [category] : []);
     const letter = term.charAt(0).toUpperCase();
+    const slug = term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    let bulletsArray = [];
+    if (bullets && bullets.trim()) {
+      try { bulletsArray = JSON.parse(bullets); } catch(e) { bulletsArray = bullets.split('\n').filter(b => b.trim()); }
+    }
 
     await db.query(
-      'UPDATE glossary SET term = $1, definition = $2, category = $3, related_terms = $4, letter = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6',
-      [term, definition, category, relatedArray, letter, req.params.id]
+      `UPDATE glossary SET term = $1, definition = $2, category = $3, related_terms = $4, letter = $5,
+       slug = $6, video_url = $7, featured_image = $8, article_link = $9, bullets = $10, example = $11,
+       categories = $12, updated_at = CURRENT_TIMESTAMP WHERE id = $13`,
+      [term, definition, category, relatedArray, letter, slug, video_url || null, featured_image || null, article_link || null, JSON.stringify(bulletsArray), example || null, categoriesArray, req.params.id]
     );
     req.session.successMessage = 'Glossary term updated successfully';
     res.redirect('/content/glossary');
