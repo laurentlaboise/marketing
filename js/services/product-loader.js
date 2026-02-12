@@ -8,13 +8,13 @@
  * 3. If products exist → replaces static cards with dynamic ones
  * 4. If API is down or empty → keeps the original static cards as fallback
  * 5. Generates slide-in detail panels for each product
- * 6. Wires up "Buy Now" buttons to Stripe checkout
+ * 6. Wires up "+ Service" buttons to add products to user profile
  */
 (function () {
   'use strict';
 
   var API_BASE = 'https://admin.wordsthatsells.website/api/public';
-  var PAYMENTS_BASE = 'https://admin.wordsthatsells.website/api/payments';
+  var SAVED_SERVICES_KEY = 'wts_saved_services';
 
   // ── Initializer ──────────────────────────────────────────────
 
@@ -55,7 +55,7 @@
         renderCards(products, grid);
         renderDetailStorage(products);
         bindLearnMoreButtons();
-        bindBuyButtons();
+        bindAddServiceButtons();
       })
       .catch(function (err) {
         console.warn('[ProductLoader] API error — keeping static cards:', err.message);
@@ -85,12 +85,12 @@
           '</span>';
       }
 
-      var buyHTML = '';
-      if (product.has_stripe && product.price) {
-        buyHTML =
-          '<button class="btn btn-accent-magenta btn-buy-now" data-product-id="' +
-          esc(String(product.id)) + '" style="margin-left:0.5rem;">Buy Now</button>';
-      }
+      var addHTML =
+        '<button class="btn btn-accent-magenta btn-add-service" data-product-id="' +
+        esc(String(product.id)) + '" data-product-name="' + esc(product.name) +
+        '" style="margin-left:0.5rem;">' +
+        (isSaved(product.id) ? '<i class="fas fa-check"></i> Added' : '<i class="fas fa-plus"></i> Service') +
+        '</button>';
 
       var card = document.createElement('div');
       card.className = 'service-card reveal' + delay;
@@ -101,7 +101,7 @@
         priceHTML +
         '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;margin-top:auto;">' +
           '<button class="btn btn-premium btn-learn-more" data-service="' + esc(slug) + '">Learn More</button>' +
-          buyHTML +
+          addHTML +
         '</div>';
 
       container.appendChild(card);
@@ -160,13 +160,13 @@
           product.features.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') +
           '</ul></div>';
       }
-      if (product.has_stripe && product.price) {
-        inner +=
-          '<div style="margin-top:2rem;text-align:center;">' +
-          '<button class="btn btn-accent-magenta btn-buy-now" data-product-id="' + esc(String(product.id)) +
-          '" style="font-size:1.1rem;padding:0.8rem 2rem;">Purchase — $' +
-          product.price.toFixed(2) + ' ' + esc(product.currency || 'USD') + '</button></div>';
-      }
+      inner +=
+        '<div style="margin-top:2rem;text-align:center;">' +
+        '<button class="btn btn-accent-magenta btn-add-service" data-product-id="' + esc(String(product.id)) +
+        '" data-product-name="' + esc(product.name) +
+        '" style="font-size:1.1rem;padding:0.8rem 2rem;">' +
+        (isSaved(product.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
+        '</button></div>';
 
       var div = document.createElement('div');
       div.id = detailId;
@@ -217,51 +217,82 @@
     if (elPanel)   elPanel.classList.add('active');
     if (elOverlay) elOverlay.classList.add('active');
 
-    // Re-bind buy buttons that may now be inside the panel
-    bindBuyButtons();
+    // Re-bind add-service buttons that may now be inside the panel
+    bindAddServiceButtons();
   }
 
-  // ── Bind "Buy Now" buttons to Stripe checkout ────────────────
+  // ── Bind "+ Service" buttons to add-to-profile ─────────────
 
-  function bindBuyButtons() {
-    var btns = document.querySelectorAll('.btn-buy-now[data-product-id]');
+  function bindAddServiceButtons() {
+    var btns = document.querySelectorAll('.btn-add-service[data-product-id]');
     for (var i = 0; i < btns.length; i++) {
       if (btns[i].dataset.bound) continue;
       btns[i].dataset.bound = '1';
-      btns[i].addEventListener('click', onBuyNow);
+      btns[i].addEventListener('click', onAddService);
     }
   }
 
-  function onBuyNow(e) {
+  function onAddService(e) {
     e.preventDefault();
     e.stopPropagation();
 
     var btn = this;
     var productId = btn.getAttribute('data-product-id');
-    var originalHTML = btn.innerHTML;
+    var productName = btn.getAttribute('data-product-name') || '';
+    var alreadySaved = isSaved(productId);
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+    if (alreadySaved) {
+      // Toggle off — remove from saved services
+      removeService(productId);
+      updateAllButtons(productId, false);
+      console.log('[ProductLoader] Removed service:', productName);
+    } else {
+      // Save to profile
+      saveService(productId, productName);
+      updateAllButtons(productId, true);
+      console.log('[ProductLoader] Added service:', productName);
+    }
+  }
 
-    fetch(PAYMENTS_BASE + '/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: productId })
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          throw new Error(data.error || 'No checkout URL returned');
-        }
-      })
-      .catch(function (err) {
-        console.error('[ProductLoader] Checkout error:', err);
-        alert('Unable to process payment. Please try again later.');
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
-      });
+  // Update every button for a given product across cards + slide-in
+  function updateAllButtons(productId, added) {
+    var btns = document.querySelectorAll('.btn-add-service[data-product-id="' + productId + '"]');
+    for (var i = 0; i < btns.length; i++) {
+      var isPanel = btns[i].style.fontSize; // panel button has inline font-size
+      if (added) {
+        btns[i].innerHTML = isPanel
+          ? '<i class="fas fa-check"></i> Added to My Services'
+          : '<i class="fas fa-check"></i> Added';
+      } else {
+        btns[i].innerHTML = isPanel
+          ? '<i class="fas fa-plus"></i> Add to My Services'
+          : '<i class="fas fa-plus"></i> Service';
+      }
+    }
+  }
+
+  // ── Saved-services helpers (localStorage until backend ready) ──
+
+  function getSavedServices() {
+    try {
+      return JSON.parse(localStorage.getItem(SAVED_SERVICES_KEY)) || {};
+    } catch (_) { return {}; }
+  }
+
+  function isSaved(productId) {
+    return !!getSavedServices()[String(productId)];
+  }
+
+  function saveService(productId, productName) {
+    var saved = getSavedServices();
+    saved[String(productId)] = { name: productName, added_at: new Date().toISOString() };
+    localStorage.setItem(SAVED_SERVICES_KEY, JSON.stringify(saved));
+  }
+
+  function removeService(productId) {
+    var saved = getSavedServices();
+    delete saved[String(productId)];
+    localStorage.setItem(SAVED_SERVICES_KEY, JSON.stringify(saved));
   }
 
   // ── Sidebar loader ───────────────────────────────────────────
@@ -321,13 +352,13 @@
     if (!('IntersectionObserver' in window)) {
       // Fallback: just reveal everything immediately
       var els = container.querySelectorAll('.reveal');
-      for (var j = 0; j < els.length; j++) els[j].classList.add('revealed');
+      for (var j = 0; j < els.length; j++) els[j].classList.add('visible');
       return;
     }
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
-          entry.target.classList.add('revealed');
+          entry.target.classList.add('visible');
           observer.unobserve(entry.target);
         }
       });
