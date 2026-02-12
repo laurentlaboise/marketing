@@ -456,6 +456,132 @@
             background-color: rgba(31, 133, 201, 0.05);
         }
 
+        /* Form Modals */
+        .form-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(18, 42, 63, 0.7);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .form-modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .form-modal {
+            background: var(--color-white);
+            border-radius: 16px;
+            width: 95%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .form-modal-overlay.active .form-modal {
+            transform: scale(1);
+        }
+        .form-modal-header {
+            padding: 1.5rem 1.5rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .form-modal-header h3 {
+            font-size: 1.4rem;
+            color: var(--color-slate-900);
+            margin: 0;
+        }
+        .form-modal-header .modal-close-btn {
+            font-size: 1.5rem;
+            margin-top: -0.25rem;
+        }
+        .form-modal-body {
+            padding: 1rem 1.5rem 1.5rem;
+        }
+        .form-modal-body p.form-subtitle {
+            font-size: 0.95rem;
+            color: var(--color-slate-500);
+            margin-bottom: 1.25rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            color: var(--color-slate-900);
+        }
+        .form-group label .required { color: var(--color-accent-magenta); }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: var(--font-family-body);
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-primary-base);
+            box-shadow: 0 0 0 3px rgba(31, 133, 201, 0.15);
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-submit-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--color-accent-magenta);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--font-family-heading);
+            transition: all 0.2s;
+            margin-top: 0.5rem;
+        }
+        .form-submit-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .form-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .form-success {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+        .form-success i {
+            font-size: 3rem;
+            color: #10b981;
+            margin-bottom: 1rem;
+        }
+        .form-success h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .form-success p {
+            color: var(--color-slate-500);
+            font-size: 0.95rem;
+        }
+        .form-error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.6rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
         .footer { background-color: var(--color-slate-900); color: var(--color-slate-100); padding: 3rem 0; }
         .footer-top { display: flex; flex-wrap: wrap; gap: 2rem; margin-bottom: 2rem; }
         .footer-brand { flex: 1 1 100%; text-align: center; }
@@ -518,7 +644,7 @@
                     <div class="text-column">
                         <h2>Explore Custom Solutions</h2>
                         <p>Our team of experts can develop a unique strategy and custom software to fit your specific business needs. Schedule a free consultation to discuss your project.</p>
-                        <button class="btn btn-accent" style="margin-top: 1rem;">Schedule a Consultation</button>
+                        <button class="btn btn-accent" style="margin-top: 1rem;" onclick="openFormModal('consultation')">Schedule a Consultation</button>
                     </div>
                     <div class="image-column">
                         <img src="https://placehold.co/600x400/d62b83/ffffff?text=Custom+Solutions" alt="Custom solutions and web development">
@@ -540,7 +666,7 @@
                         <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> **Community Focus**: Exclusively for local Lao businesses and organizations.</li>
                     </ul>
                 </div>
-                <a href="#" class="btn btn-accent" style="margin-top: 3rem;">Apply for Free Support</a>
+                <button class="btn btn-accent" style="margin-top: 3rem;" onclick="openFormModal('free-support')">Apply for Free Support</button>
             </section>
             
             <!-- Strategic Program Bundles -->
@@ -555,7 +681,7 @@
                         <li><i class="fas fa-chart-line" style="color: var(--color-accent-magenta);"></i> **Dedicated Support**: Get access to a dedicated support team to help you succeed.</li>
                     </ul>
                 </div>
-                <button class="btn btn-accent" style="margin-top: 1rem;">Apply Now to Become an Affiliate</button>
+                <button class="btn btn-accent" style="margin-top: 1rem;" onclick="openFormModal('affiliate')">Apply Now to Become an Affiliate</button>
             </section>
             
             <!-- Individual Services -->
@@ -566,7 +692,7 @@
                     <!-- JS will generate this -->
                 </div>
                  <div style="text-align: center; margin-top: 2.5rem;">
-                    <button class="btn btn-accent">Apply for a White Label Partnership</button>
+                    <button class="btn btn-accent" onclick="openFormModal('white-label')">Apply for a White Label Partnership</button>
                 </div>
             </section>
             
@@ -589,6 +715,156 @@
     </div>
     
     
+
+    <!-- ===== Form Modals ===== -->
+
+    <!-- Consultation Form -->
+    <div id="form-modal-consultation" class="form-modal-overlay">
+        <div class="form-modal">
+            <div class="form-modal-header">
+                <h3><i class="fas fa-calendar-check" style="color:var(--color-primary-base);margin-right:0.5rem;"></i> Schedule a Consultation</h3>
+                <button class="modal-close-btn" onclick="closeFormModal('consultation')">&times;</button>
+            </div>
+            <div class="form-modal-body">
+                <p class="form-subtitle">Tell us about your project and we'll schedule a free consultation to discuss custom solutions for your business.</p>
+                <div class="form-error" id="form-error-consultation"></div>
+                <form id="form-consultation" onsubmit="submitForm(event, 'consultation')">
+                    <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" name="name" required placeholder="Your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" name="company" placeholder="Your company name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000">
+                    </div>
+                    <div class="form-group">
+                        <label>Tell us about your project</label>
+                        <textarea name="message" placeholder="What challenges are you facing? What goals do you want to achieve?"></textarea>
+                    </div>
+                    <button type="submit" class="form-submit-btn">Request Consultation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Free Support Form -->
+    <div id="form-modal-free-support" class="form-modal-overlay">
+        <div class="form-modal">
+            <div class="form-modal-header">
+                <h3><i class="fas fa-heart" style="color:var(--color-accent-magenta);margin-right:0.5rem;"></i> Apply for Free Support</h3>
+                <button class="modal-close-btn" onclick="closeFormModal('free-support')">&times;</button>
+            </div>
+            <div class="form-modal-body">
+                <p class="form-subtitle">Our free program is designed for Lao businesses, startups, and NGOs. Tell us about your organization and how we can help.</p>
+                <div class="form-error" id="form-error-free-support"></div>
+                <form id="form-free-support" onsubmit="submitForm(event, 'free-support')">
+                    <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" name="name" required placeholder="Your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Organization / Business Name</label>
+                        <input type="text" name="company" placeholder="Your business or organization">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone" placeholder="+856 20 xxxx xxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>Tell us about your needs</label>
+                        <textarea name="message" placeholder="Describe your business and how digital marketing can help you grow."></textarea>
+                    </div>
+                    <button type="submit" class="form-submit-btn">Submit Application</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Affiliate Form -->
+    <div id="form-modal-affiliate" class="form-modal-overlay">
+        <div class="form-modal">
+            <div class="form-modal-header">
+                <h3><i class="fas fa-handshake" style="color:var(--color-primary-base);margin-right:0.5rem;"></i> Become an Affiliate</h3>
+                <button class="modal-close-btn" onclick="closeFormModal('affiliate')">&times;</button>
+            </div>
+            <div class="form-modal-body">
+                <p class="form-subtitle">Join our affiliate program and earn commissions by promoting our digital products. Perfect for content creators, influencers, and bloggers.</p>
+                <div class="form-error" id="form-error-affiliate"></div>
+                <form id="form-affiliate" onsubmit="submitForm(event, 'affiliate')">
+                    <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" name="name" required placeholder="Your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Website / Social Media</label>
+                        <input type="text" name="company" placeholder="Your website or main social profile URL">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000">
+                    </div>
+                    <div class="form-group">
+                        <label>Tell us about your audience</label>
+                        <textarea name="message" placeholder="What platforms do you use? What is your audience size and niche?"></textarea>
+                    </div>
+                    <button type="submit" class="form-submit-btn">Apply to Become an Affiliate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- White Label Form -->
+    <div id="form-modal-white-label" class="form-modal-overlay">
+        <div class="form-modal">
+            <div class="form-modal-header">
+                <h3><i class="fas fa-building" style="color:var(--color-primary-base);margin-right:0.5rem;"></i> White Label Partnership</h3>
+                <button class="modal-close-btn" onclick="closeFormModal('white-label')">&times;</button>
+            </div>
+            <div class="form-modal-body">
+                <p class="form-subtitle">Expand your agency's offerings with our white-label services. Sell premium digital marketing solutions under your own brand.</p>
+                <div class="form-error" id="form-error-white-label"></div>
+                <form id="form-white-label" onsubmit="submitForm(event, 'white-label')">
+                    <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" name="name" required placeholder="Your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Agency / Company Name</label>
+                        <input type="text" name="company" placeholder="Your agency or company name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000">
+                    </div>
+                    <div class="form-group">
+                        <label>Tell us about your agency</label>
+                        <textarea name="message" placeholder="What services do you currently offer? How many clients do you serve?"></textarea>
+                    </div>
+                    <button type="submit" class="form-submit-btn">Apply for White Label Partnership</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Comparison Modal -->
     <div id="comparison-modal-overlay" class="modal-overlay">
@@ -941,6 +1217,130 @@
                     infoModalOverlay.classList.remove('active');
                 }
             });
+        });
+    </script>
+
+    <!-- Form Modal JS (outside DOMContentLoaded so onclick handlers work) -->
+    <script>
+        const FORM_API = 'https://admin.wordsthatsells.website/api/public/submissions';
+
+        function openFormModal(type) {
+            const overlay = document.getElementById('form-modal-' + type);
+            if (!overlay) return;
+            // Reset to form view (in case it was showing success)
+            const form = document.getElementById('form-' + type);
+            if (form) form.style.display = '';
+            const successEl = overlay.querySelector('.form-success');
+            if (successEl) successEl.remove();
+            const errEl = document.getElementById('form-error-' + type);
+            if (errEl) errEl.style.display = 'none';
+            // Show modal
+            overlay.style.display = 'flex';
+            requestAnimationFrame(() => overlay.classList.add('active'));
+            document.body.classList.add('no-scroll');
+            // GA tracking
+            if (typeof gtag === 'function') {
+                gtag('event', 'open_form', { event_category: 'Forms', event_label: type });
+            }
+        }
+
+        function closeFormModal(type) {
+            const overlay = document.getElementById('form-modal-' + type);
+            if (!overlay) return;
+            overlay.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+
+        // Close on overlay click
+        document.querySelectorAll('.form-modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    const type = overlay.id.replace('form-modal-', '');
+                    closeFormModal(type);
+                }
+            });
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.form-modal-overlay.active').forEach(overlay => {
+                    const type = overlay.id.replace('form-modal-', '');
+                    closeFormModal(type);
+                });
+            }
+        });
+
+        async function submitForm(e, type) {
+            e.preventDefault();
+            const form = document.getElementById('form-' + type);
+            const errEl = document.getElementById('form-error-' + type);
+            const submitBtn = form.querySelector('.form-submit-btn');
+            if (!form) return;
+
+            // Collect values
+            const data = {
+                form_type: type,
+                name: form.querySelector('[name="name"]').value.trim(),
+                email: form.querySelector('[name="email"]').value.trim(),
+                company: form.querySelector('[name="company"]').value.trim(),
+                phone: form.querySelector('[name="phone"]').value.trim(),
+                message: form.querySelector('[name="message"]').value.trim()
+            };
+
+            // Basic validation
+            if (!data.name || !data.email) {
+                errEl.textContent = 'Please fill in your name and email.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            errEl.style.display = 'none';
+
+            try {
+                const res = await fetch(FORM_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Something went wrong. Please try again.');
+                }
+
+                // GA tracking
+                if (typeof gtag === 'function') {
+                    gtag('event', 'form_submit', { event_category: 'Forms', event_label: type });
+                }
+
+                // Show success state
+                form.style.display = 'none';
+                const modalBody = form.parentElement;
+                const successDiv = document.createElement('div');
+                successDiv.className = 'form-success';
+                successDiv.innerHTML = '<i class="fas fa-check-circle"></i>' +
+                    '<h4>Thank you!</h4>' +
+                    '<p>Your request has been submitted successfully. Our team will get back to you shortly.</p>';
+                modalBody.appendChild(successDiv);
+
+                // Reset form for next time
+                form.reset();
+            } catch (err) {
+                errEl.textContent = err.message;
+                errEl.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = submitBtn.dataset.originalText || 'Submit';
+            }
+        }
+
+        // Store original button text
+        document.querySelectorAll('.form-submit-btn').forEach(btn => {
+            btn.dataset.originalText = btn.textContent;
         });
     </script>
 </body>

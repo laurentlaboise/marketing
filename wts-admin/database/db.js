@@ -781,6 +781,23 @@ const db = {
         )
       `);
 
+      // Form Submissions table (consultation, free-support, affiliate, white-label)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS form_submissions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          form_type VARCHAR(100) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          company VARCHAR(255),
+          phone VARCHAR(50),
+          message TEXT,
+          status VARCHAR(50) DEFAULT 'new',
+          metadata JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Images table
       await client.query(`
         CREATE TABLE IF NOT EXISTS images (

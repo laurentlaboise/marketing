@@ -36,12 +36,12 @@
 
       <!-- Business Tools -->
       <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['affiliates', 'agencies', 'automations', 'products', 'pricing', 'pricing-features', 'sidebar', 'orders'].includes(currentPage) ? 'active' : '' %>">
+        <a href="#" class="nav-link submenu-toggle <%= ['affiliates', 'agencies', 'automations', 'products', 'pricing', 'pricing-features', 'sidebar', 'orders', 'submissions'].includes(currentPage) ? 'active' : '' %>">
           <i class="fas fa-briefcase"></i>
           <span>Business Tools</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['affiliates', 'agencies', 'automations', 'products', 'pricing', 'pricing-features', 'sidebar', 'orders'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= ['affiliates', 'agencies', 'automations', 'products', 'pricing', 'pricing-features', 'sidebar', 'orders', 'submissions'].includes(currentPage) ? 'open' : '' %>">
           <li><a href="/business/affiliates" class="<%= currentPage === 'affiliates' ? 'active' : '' %>"><i class="fas fa-handshake"></i> Affiliate Solutions</a></li>
           <li><a href="/business/agencies" class="<%= currentPage === 'agencies' ? 'active' : '' %>"><i class="fas fa-building"></i> Agency Management</a></li>
           <li><a href="/business/automations" class="<%= currentPage === 'automations' ? 'active' : '' %>"><i class="fas fa-cogs"></i> Automations</a></li>
@@ -50,6 +50,7 @@
           <li><a href="/business/pricing-features" class="<%= currentPage === 'pricing-features' ? 'active' : '' %>"><i class="fas fa-list-check"></i> Pricing Features</a></li>
           <li><a href="/business/orders" class="<%= currentPage === 'orders' ? 'active' : '' %>"><i class="fas fa-shopping-cart"></i> Orders</a></li>
           <li><a href="/business/sidebar" class="<%= currentPage === 'sidebar' ? 'active' : '' %>"><i class="fas fa-bars"></i> Sidebar Manager</a></li>
+          <li><a href="/business/submissions" class="<%= currentPage === 'submissions' ? 'active' : '' %>"><i class="fas fa-envelope-open-text"></i> Form Submissions</a></li>
         </ul>
       </li>
 

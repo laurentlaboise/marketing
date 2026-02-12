@@ -598,6 +598,69 @@ router.get('/pricing', async (req, res) => {
   }
 });
 
+// ==================== FORM SUBMISSIONS ====================
+
+// Stricter rate limit for form submissions (10 per 15 min per IP)
+const formLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many submissions, please try again later.' }
+});
+
+router.post('/submissions', formLimiter, async (req, res) => {
+  try {
+    const { form_type, name, email, company, phone, message } = req.body;
+
+    // Validate required fields
+    if (!form_type || !name || !email) {
+      return respond(res, { error: 'form_type, name, and email are required.' }, 400);
+    }
+
+    const allowedTypes = ['consultation', 'free-support', 'affiliate', 'white-label'];
+    if (!allowedTypes.includes(form_type)) {
+      return respond(res, { error: 'Invalid form_type.' }, 400);
+    }
+
+    // Basic email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return respond(res, { error: 'Invalid email address.' }, 400);
+    }
+
+    // Insert submission
+    await db.query(
+      `INSERT INTO form_submissions (form_type, name, email, company, phone, message)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [form_type, name.trim(), email.trim(), company || null, phone || null, message || null]
+    );
+
+    // Create a notification for all admin users
+    const typeLabels = {
+      'consultation': 'Consultation Request',
+      'free-support': 'Free Support Application',
+      'affiliate': 'Affiliate Application',
+      'white-label': 'White Label Partnership'
+    };
+    const notifTitle = `New ${typeLabels[form_type] || form_type}`;
+    const notifMessage = `${name} (${email})${company ? ' from ' + company : ''} submitted a ${typeLabels[form_type].toLowerCase()}.`;
+
+    const admins = await db.query("SELECT id FROM users");
+    for (const admin of admins.rows) {
+      await db.query(
+        `INSERT INTO notifications (user_id, type, title, message, link)
+         VALUES ($1, 'info', $2, $3, '/business/submissions')`,
+        [admin.id, notifTitle, notifMessage]
+      );
+    }
+
+    respond(res, { success: true, message: 'Submission received. We will be in touch.' });
+  } catch (error) {
+    console.error('Public API - Form submission error:', error);
+    respond(res, { error: 'Failed to submit form. Please try again.' }, 500);
+  }
+});
+
 // Health check
 router.get('/health', (req, res) => {
   respond(res, { status: 'ok', timestamp: new Date().toISOString() });
