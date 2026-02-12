@@ -1,0 +1,155 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Form Submissions</h1>
+        <p class="page-subtitle">Inquiries received from the website</p>
+      </div>
+    </div>
+
+    <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+    <div class="alert alert-success" style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: #d1fae5; color: #065f46; border-radius: 8px;">
+      <i class="fas fa-check-circle"></i> <%= successMessage %>
+    </div>
+    <% } %>
+    <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+    <div class="alert alert-danger" style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: #fee2e2; color: #991b1b; border-radius: 8px;">
+      <i class="fas fa-exclamation-circle"></i> <%= errorMessage %>
+    </div>
+    <% } %>
+
+    <!-- Filter Bar -->
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-body" style="padding: 0.75rem 1rem;">
+        <form method="GET" action="/business/submissions" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <label style="font-weight: 600; font-size: 0.9rem;">Filter by type:</label>
+          <select name="type" class="form-input" style="width: auto; min-width: 180px;">
+            <option value="">All Types</option>
+            <option value="consultation" <%= activeFilter === 'consultation' ? 'selected' : '' %>>Consultation</option>
+            <option value="free-support" <%= activeFilter === 'free-support' ? 'selected' : '' %>>Free Support</option>
+            <option value="affiliate" <%= activeFilter === 'affiliate' ? 'selected' : '' %>>Affiliate</option>
+            <option value="white-label" <%= activeFilter === 'white-label' ? 'selected' : '' %>>White Label</option>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+          <% if (activeFilter) { %>
+            <a href="/business/submissions" class="btn btn-sm" style="color: var(--color-slate-500);">Clear</a>
+          <% } %>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (submissions.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% submissions.forEach(sub => { %>
+              <tr>
+                <td style="white-space: nowrap; font-size: 0.85rem;">
+                  <%= new Date(sub.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                  <br><span style="color: var(--color-slate-500);"><%= new Date(sub.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></span>
+                </td>
+                <td>
+                  <% const typeLabels = { 'consultation': 'Consultation', 'free-support': 'Free Support', 'affiliate': 'Affiliate', 'white-label': 'White Label' }; %>
+                  <span class="status-badge" style="background:
+                    <% if (sub.form_type === 'consultation') { %>#dbeafe; color:#1e40af;
+                    <% } else if (sub.form_type === 'free-support') { %>#d1fae5; color:#065f46;
+                    <% } else if (sub.form_type === 'affiliate') { %>#fce7f3; color:#9d174d;
+                    <% } else { %>#e0e7ff; color:#3730a3;
+                    <% } %>">
+                    <%= typeLabels[sub.form_type] || sub.form_type %>
+                  </span>
+                </td>
+                <td><strong><%= sub.name %></strong></td>
+                <td><a href="mailto:<%= sub.email %>" style="color: var(--color-primary-base);"><%= sub.email %></a></td>
+                <td><%= sub.company || '-' %></td>
+                <td>
+                  <form action="/business/submissions/<%= sub.id %>/status" method="POST" style="display:inline;">
+                    <select name="status" class="form-input" style="width: auto; min-width: 110px; padding: 0.25rem 0.5rem; font-size: 0.85rem;" onchange="this.form.submit()">
+                      <option value="new" <%= sub.status === 'new' ? 'selected' : '' %>>New</option>
+                      <option value="reviewed" <%= sub.status === 'reviewed' ? 'selected' : '' %>>Reviewed</option>
+                      <option value="contacted" <%= sub.status === 'contacted' ? 'selected' : '' %>>Contacted</option>
+                      <option value="closed" <%= sub.status === 'closed' ? 'selected' : '' %>>Closed</option>
+                    </select>
+                  </form>
+                </td>
+                <td>
+                  <div class="table-actions">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="toggleDetail(this)" title="View details"><i class="fas fa-eye"></i></button>
+                    <form action="/business/submissions/<%= sub.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <!-- Expandable detail row -->
+              <tr class="detail-row" style="display: none;">
+                <td colspan="7" style="background: #f8fafc; padding: 1rem 1.5rem;">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-width: 800px;">
+                    <% if (sub.phone) { %>
+                    <div><strong>Phone:</strong> <%= sub.phone %></div>
+                    <% } %>
+                    <% if (sub.company) { %>
+                    <div><strong>Company:</strong> <%= sub.company %></div>
+                    <% } %>
+                  </div>
+                  <% if (sub.message) { %>
+                  <div style="margin-top: 0.75rem;">
+                    <strong>Message:</strong>
+                    <p style="margin-top: 0.25rem; white-space: pre-wrap; color: var(--color-slate-700, #334155);"><%= sub.message %></p>
+                  </div>
+                  <% } %>
+                  <% if (sub.metadata && Object.keys(sub.metadata).length > 0) { %>
+                  <div style="margin-top: 0.75rem;">
+                    <strong>Additional Data:</strong>
+                    <pre style="margin-top: 0.25rem; font-size: 0.85rem; background: #e2e8f0; padding: 0.5rem; border-radius: 6px; overflow-x: auto;"><%= JSON.stringify(sub.metadata, null, 2) %></pre>
+                  </div>
+                  <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-envelope-open-text"></i></div>
+          <h3>No Submissions Yet</h3>
+          <p>Form submissions from the website will appear here.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+function toggleDetail(btn) {
+  const row = btn.closest('tr');
+  const detailRow = row.nextElementSibling;
+  if (detailRow && detailRow.classList.contains('detail-row')) {
+    const isVisible = detailRow.style.display !== 'none';
+    detailRow.style.display = isVisible ? 'none' : 'table-row';
+    btn.querySelector('i').className = isVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+  }
+}
+</script>
+
+<%- include('../../partials/footer') %>

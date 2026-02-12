@@ -853,4 +853,68 @@ router.post('/pricing-features/:id/delete', async (req, res) => {
   res.redirect('/business/pricing-features');
 });
 
+// ==================== FORM SUBMISSIONS ====================
+
+// List all form submissions (with optional type filter)
+router.get('/submissions', async (req, res) => {
+  try {
+    const typeFilter = req.query.type || '';
+    let query = 'SELECT * FROM form_submissions';
+    const params = [];
+
+    if (typeFilter) {
+      query += ' WHERE form_type = $1';
+      params.push(typeFilter);
+    }
+    query += ' ORDER BY created_at DESC LIMIT 100';
+
+    const result = await db.query(query, params);
+    res.render('business/submissions/list', {
+      title: 'Form Submissions - WTS Admin',
+      currentPage: 'submissions',
+      submissions: result.rows,
+      activeFilter: typeFilter,
+      successMessage: req.session.successMessage,
+      errorMessage: req.session.errorMessage
+    });
+    req.session.successMessage = null;
+    req.session.errorMessage = null;
+  } catch (error) {
+    console.error('Submissions list error:', error);
+    req.session.errorMessage = 'Failed to load submissions';
+    res.redirect('/business');
+  }
+});
+
+// Update submission status
+router.post('/submissions/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const allowed = ['new', 'reviewed', 'contacted', 'closed'];
+    if (!allowed.includes(status)) {
+      req.session.errorMessage = 'Invalid status';
+      return res.redirect('/business/submissions');
+    }
+    await db.query(
+      'UPDATE form_submissions SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [status, req.params.id]
+    );
+    req.session.successMessage = 'Status updated';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to update status';
+  }
+  res.redirect('/business/submissions');
+});
+
+// Delete submission
+router.post('/submissions/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM form_submissions WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Submission deleted';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to delete submission';
+  }
+  res.redirect('/business/submissions');
+});
+
 module.exports = router;
