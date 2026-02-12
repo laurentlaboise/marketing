@@ -757,27 +757,17 @@
                     const card = document.createElement('div');
                     card.className = `card subscription-card${plan.highlight ? ' highlight' : ''}`;
 
-                    // Build feature list grouped by category (included + missing)
+                    // Build flat feature list (no category headers on the card)
                     const planFeatures = plan.features || {};
-                    let featuresHtml = '';
-
-                    featureCategories.forEach(cat => {
-                        const catFeatures = cat.features || [];
-                        if (!catFeatures.length) return;
-
-                        const rows = catFeatures.map(f => {
-                            const included = planFeatures[f.key] === true;
-                            if (included) {
-                                return `<li title="${f.description || ''}"><i class="fas fa-check-circle"></i> ${f.name}</li>`;
-                            } else {
-                                return `<li class="feature-missing" title="Available in higher plans"><i class="fas fa-minus-circle"></i> ${f.name}</li>`;
-                            }
-                        }).join('');
-
-                        featuresHtml += `
-                            <div class="feature-category-label"><i class="fas ${cat.icon || 'fa-cog'}"></i> ${cat.name}</div>
-                            <ul>${rows}</ul>`;
-                    });
+                    const allFeatures = featureCategories.flatMap(cat => cat.features || []);
+                    const featuresHtml = '<ul>' + allFeatures.map(f => {
+                        const included = planFeatures[f.key] === true;
+                        if (included) {
+                            return `<li title="${f.description || ''}"><i class="fas fa-check-circle"></i> ${f.name}</li>`;
+                        } else {
+                            return `<li class="feature-missing" title="Available in higher plans"><i class="fas fa-minus-circle"></i> ${f.name}</li>`;
+                        }
+                    }).join('') + '</ul>';
 
                     const badgeHtml = plan.badge_text
                         ? `<div class="popular-pill-badge">${plan.badge_text}</div>` : '';
