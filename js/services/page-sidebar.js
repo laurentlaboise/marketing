@@ -45,7 +45,10 @@
     var style = document.createElement('style');
     style.id = 'page-sidebar-styles';
     style.textContent =
-      /* Floating button — desktop: rotated vertical tab on right edge */
+      /* Prevent horizontal overflow from the rotated tab on standalone pages */
+      'html{overflow-x:hidden;}' +
+
+      /* Floating button — rotated vertical tab on right edge */
       '.help-tab{position:fixed;top:28%;right:0;transform:translateY(-50%) rotate(270deg);transform-origin:bottom right;' +
       'background-color:#d62b83;color:#fff;padding:10px 20px;border-top-left-radius:8px;border-top-right-radius:8px;' +
       'cursor:pointer;z-index:999;font-weight:bold;transition:background-color .3s,opacity .3s,transform .3s;' +
@@ -54,7 +57,6 @@
       '.help-tab.show{opacity:1;transform:translateY(-50%) rotate(270deg) translateX(0);pointer-events:auto;}' +
       '.help-tab:hover{background-color:#f90784;}' +
       '.help-tab i{font-size:1rem;}' +
-      '.help-tab .help-tab-label{}' +
 
       /* Overlay */
       '#help-sidebar-overlay{position:fixed;inset:0;background:rgba(18,42,63,.6);z-index:1999;' +
@@ -85,19 +87,9 @@
       '.help-sidebar-body a{color:#d62b83;text-decoration:underline;}' +
       '.help-sidebar-body p{margin-bottom:.75rem;}' +
 
-      /* Mobile — convert rotated tab to bottom-right pill button */
-      '@media(max-width:767px){' +
-        '.help-tab{top:auto;bottom:80px;right:16px;' +
-        'transform:none !important;transform-origin:center;' +
-        'border-radius:50px;padding:12px 18px;font-size:.85rem;' +
-        'box-shadow:0 4px 15px rgba(214,43,131,.4);}' +
-        '.help-tab.show{transform:none !important;}' +
-        '.help-tab .help-tab-label{display:none;}' +
-        '.help-tab i{font-size:1.2rem;margin:0;}' +
-        '#help-sidebar-panel{width:100%;max-width:none;}' +
-        '.help-sidebar-header{padding:.75rem 1rem;}' +
-        '.help-sidebar-body{padding:1rem;}' +
-      '}' +
+      /* Mobile */
+      '@media(max-width:767px){#help-sidebar-panel{width:100%;max-width:none;}' +
+      '.help-sidebar-header{padding:.75rem 1rem;}.help-sidebar-body{padding:1rem;}}' +
 
       /* No scroll when panel open */
       'body.no-scroll{overflow:hidden;}';
@@ -111,7 +103,7 @@
     var btn = document.createElement('button');
     btn.className = 'help-tab';
     btn.id = 'help-sidebar-btn';
-    btn.innerHTML = '<i class="' + esc(panel.icon_class || 'fas fa-question-circle') + '"></i> <span class="help-tab-label">' + esc(panel.button_label || 'Help') + '</span>';
+    btn.innerHTML = '<i class="' + esc(panel.icon_class || 'fas fa-question-circle') + '"></i> ' + esc(panel.button_label || 'Help');
     document.body.appendChild(btn);
 
     // Show after scroll (same pattern as the quote-tab)
