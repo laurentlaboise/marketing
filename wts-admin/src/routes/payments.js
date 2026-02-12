@@ -1,21 +1,9 @@
 const express = require('express');
 const db = require('../../database/db');
-const cors = require('cors');
 
 const router = express.Router();
 
-// CORS for payment API - allow requests from the main website
-router.use(cors({
-  origin: [
-    'https://wordsthatsells.website',
-    'https://www.wordsthatsells.website',
-    'http://localhost:3000',
-    'http://localhost:5500',
-    'http://127.0.0.1:5500'
-  ],
-  methods: ['GET', 'POST'],
-  credentials: false
-}));
+// CORS is handled globally in server.js — no duplicate middleware here
 
 // Lazy-load Stripe to avoid crashes if key is not set
 function getStripe() {
