@@ -142,7 +142,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #d62b83 0%, #b01f6b 100%);
     color: #fff;
 }
 
@@ -209,7 +209,7 @@
 }
 
 .help-sidebar-body a {
-    color: #667eea;
+    color: #d62b83;
     text-decoration: underline;
 }
 
