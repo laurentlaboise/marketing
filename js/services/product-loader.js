@@ -145,6 +145,42 @@ function renderDetailStorage(products) {
 }
 
 /**
+ * Simple URL safety check for image sources.
+ * Allows http(s) URLs and relative paths; rejects javascript:, data:, etc.
+ * @param {string} url
+ * @returns {boolean}
+ */
+function isSafeImageUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return false;
+  }
+
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  // Disallow obvious dangerous schemes quickly
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('javascript:') || lower.startsWith('data:') || lower.startsWith('vbscript:')) {
+    return false;
+  }
+
+  // Allow protocol-relative and relative URLs (e.g. /img/foo.png, images/foo.png)
+  if (lower.startsWith('/') || !lower.includes(':')) {
+    return true;
+  }
+
+  // For absolute URLs, only allow http(s)
+  try {
+    const parsed = new URL(trimmed, window.location.origin);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
  * Bind learn more buttons to the existing slide-in functionality
  */
 function bindLearnMoreButtons() {
@@ -166,7 +202,11 @@ function bindLearnMoreButtons() {
 
         if (slideInTitle) slideInTitle.textContent = title;
         if (slideInImage) {
-          slideInImage.src = img;
+          if (isSafeImageUrl(img)) {
+            slideInImage.src = img;
+          } else {
+            slideInImage.removeAttribute('src');
+          }
           slideInImage.alt = title;
         }
         if (slideInContent) slideInContent.innerHTML = content;
