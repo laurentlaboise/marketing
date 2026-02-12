@@ -32,7 +32,7 @@
   /* Sidebar */
   --sidebar-width: 280px;
   --sidebar-collapsed-width: 70px;
-  --sidebar-bg: linear-gradient(180deg, #4f565c 0%, #3a4045 100%);
+  --sidebar-bg: linear-gradient(180deg, #2c3135 0%, #1e2428 100%);
 
   /* Header */
   --header-height: 64px;
@@ -111,7 +111,7 @@ input, textarea, select {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   padding: 20px;
 }
 
@@ -135,7 +135,7 @@ input, textarea, select {
 .auth-logo-icon {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   border-radius: var(--radius-lg);
   display: inline-flex;
   align-items: center;
@@ -262,7 +262,7 @@ input, textarea, select {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   color: var(--white);
   width: 100%;
 }
@@ -447,7 +447,7 @@ input, textarea, select {
 .logo-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   border-radius: var(--radius);
   display: flex;
   align-items: center;
@@ -506,7 +506,7 @@ input, textarea, select {
 }
 
 .nav-link.active {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   color: var(--white);
 }
 
@@ -587,7 +587,7 @@ input, textarea, select {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -936,7 +936,7 @@ input, textarea, select {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1334,7 +1334,7 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   padding: 20px;
 }
 
