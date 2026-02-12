@@ -176,8 +176,6 @@
         .subscription-card ul { list-style: none; padding: 0; margin: 0; text-align: left; }
         .subscription-card li { display: flex; align-items: flex-start; margin-bottom: 0.5rem; color: #13293f; font-size: 0.95rem; }
         .subscription-card li i { margin-right: 0.6rem; font-size: 1rem; line-height: 1.5; flex-shrink: 0; color: #d62a83; }
-        .subscription-card li.feature-missing { color: #13293f; opacity: 0.3; }
-        .subscription-card li.feature-missing i { display: none; }
         .subscription-card .pay-as-you-go { font-size: 0.9rem; color: var(--color-slate-500); text-align: center; margin-bottom: 1rem; }
         .subscription-card .btn { width: 100%; }
 
@@ -755,16 +753,12 @@
                     const card = document.createElement('div');
                     card.className = `card subscription-card${plan.highlight ? ' highlight' : ''}`;
 
-                    // Build flat feature list (no category headers on the card)
+                    // Build flat feature list — only show included features on the card
                     const planFeatures = plan.features || {};
                     const allFeatures = featureCategories.flatMap(cat => cat.features || []);
-                    const featuresHtml = '<ul>' + allFeatures.map(f => {
-                        const included = planFeatures[f.key] === true;
-                        if (included) {
-                            return `<li title="${f.description || ''}"><i class="fas fa-check"></i> ${f.name}</li>`;
-                        } else {
-                            return `<li class="feature-missing" title="Available in higher plans"><i class="fas fa-check"></i> ${f.name}</li>`;
-                        }
+                    const includedFeatures = allFeatures.filter(f => planFeatures[f.key] === true);
+                    const featuresHtml = '<ul>' + includedFeatures.map(f => {
+                        return `<li title="${f.description || ''}"><i class="fas fa-check"></i> ${f.name}</li>`;
                     }).join('') + '</ul>';
 
                     const badgeHtml = plan.badge_text
