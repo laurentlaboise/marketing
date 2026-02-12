@@ -321,13 +321,13 @@
     if (!('IntersectionObserver' in window)) {
       // Fallback: just reveal everything immediately
       var els = container.querySelectorAll('.reveal');
-      for (var j = 0; j < els.length; j++) els[j].classList.add('revealed');
+      for (var j = 0; j < els.length; j++) els[j].classList.add('visible');
       return;
     }
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
-          entry.target.classList.add('revealed');
+          entry.target.classList.add('visible');
           observer.unobserve(entry.target);
         }
       });
