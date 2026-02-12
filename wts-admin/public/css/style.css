@@ -4,11 +4,11 @@
 
 :root {
   /* Colors */
-  --primary: #667eea;
-  --primary-dark: #5a67d8;
-  --primary-light: #7c8fef;
-  --secondary: #764ba2;
-  --accent: #f093fb;
+  --primary: #2085c8;
+  --primary-dark: #1a6fa8;
+  --primary-light: #3a9ee0;
+  --secondary: #d62b83;
+  --accent: #e85aaa;
 
   --success: #10b981;
   --warning: #f59e0b;
@@ -22,9 +22,9 @@
   --gray-400: #9ca3af;
   --gray-500: #6b7280;
   --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
+  --gray-700: #4f565c;
+  --gray-800: #3a4045;
+  --gray-900: #2c3135;
 
   --white: #ffffff;
   --black: #000000;
@@ -32,7 +32,7 @@
   /* Sidebar */
   --sidebar-width: 280px;
   --sidebar-collapsed-width: 70px;
-  --sidebar-bg: linear-gradient(180deg, #1a1c2e 0%, #0f0f1a 100%);
+  --sidebar-bg: linear-gradient(180deg, #4f565c 0%, #3a4045 100%);
 
   /* Header */
   --header-height: 64px;
@@ -148,6 +148,12 @@ input, textarea, select {
   color: var(--white);
 }
 
+.auth-logo-svg {
+  max-width: 220px;
+  height: auto;
+  margin-bottom: 15px;
+}
+
 .auth-logo h1 {
   font-size: 24px;
   font-weight: 700;
@@ -189,7 +195,7 @@ input, textarea, select {
 .form-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 0 0 3px rgba(32, 133, 200, 0.15);
 }
 
 .form-input::placeholder {
@@ -263,7 +269,7 @@ input, textarea, select {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(32, 133, 200, 0.4);
 }
 
 .btn-secondary {
@@ -448,6 +454,11 @@ input, textarea, select {
   justify-content: center;
   color: var(--white);
   font-size: 18px;
+}
+
+.logo-img {
+  max-width: 180px;
+  height: auto;
 }
 
 .logo-text {
@@ -831,10 +842,10 @@ input, textarea, select {
   background: var(--gray-50);
 }
 .notif-item.unread {
-  background: #eff6ff;
+  background: #e8f4fc;
 }
 .notif-item.unread:hover {
-  background: #dbeafe;
+  background: #d0eaf8;
 }
 .notif-icon {
   width: 36px;
@@ -845,11 +856,11 @@ input, textarea, select {
   justify-content: center;
   flex-shrink: 0;
   font-size: 0.85rem;
-  background: #dbeafe;
-  color: #1e40af;
+  background: #d0eaf8;
+  color: #1a6fa8;
 }
 .notif-item.unread .notif-icon {
-  background: #1e40af;
+  background: #1a6fa8;
   color: white;
 }
 .notif-body {
@@ -1092,7 +1103,7 @@ input, textarea, select {
 }
 
 .stat-icon.purple {
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(32, 133, 200, 0.1);
   color: var(--primary);
 }
 
@@ -1544,7 +1555,7 @@ select.form-input {
 .upload-dropzone:hover,
 .upload-dropzone.dragover {
   border-color: var(--primary);
-  background: rgba(102, 126, 234, 0.03);
+  background: rgba(32, 133, 200, 0.03);
 }
 
 .dropzone-preview {
@@ -1728,7 +1739,7 @@ select.form-input {
 .campaign-label {
   font-size: 11px;
   padding: 2px 10px;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(32, 133, 200, 0.1);
   color: var(--primary);
   border-radius: 12px;
 }
@@ -1758,7 +1769,7 @@ select.form-input {
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+  background: linear-gradient(135deg, rgba(32, 133, 200, 0.08), rgba(214, 43, 131, 0.08));
   color: var(--primary-dark);
   border-radius: 14px;
   font-size: 12px;
@@ -1801,7 +1812,7 @@ select.form-input {
 
 .platform-check input:checked + .platform-check-label {
   border-color: var(--platform-color, var(--primary));
-  background: rgba(102, 126, 234, 0.04);
+  background: rgba(32, 133, 200, 0.04);
   color: var(--gray-900);
 }
 
@@ -1841,7 +1852,7 @@ select.form-input {
 }
 
 .cal-cell:hover {
-  background: rgba(102, 126, 234, 0.02);
+  background: rgba(32, 133, 200, 0.02);
 }
 
 .cal-empty {
@@ -1849,7 +1860,7 @@ select.form-input {
 }
 
 .cal-today {
-  background: rgba(102, 126, 234, 0.04);
+  background: rgba(32, 133, 200, 0.04);
 }
 
 .cal-day-header {
@@ -2258,7 +2269,7 @@ select.form-input {
 }
 
 .detail-tab.active .tab-count {
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(32, 133, 200, 0.1);
   color: var(--primary);
 }
 
@@ -2347,7 +2358,7 @@ select.form-input {
 
 .notification-item.unread {
   border-left: 3px solid var(--primary);
-  background: rgba(102, 126, 234, 0.02);
+  background: rgba(32, 133, 200, 0.02);
 }
 
 .notification-item.read {
