@@ -123,7 +123,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Global variables for views
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   res.locals.user = req.user || null;
   res.locals.isAuthenticated = req.isAuthenticated ? req.isAuthenticated() : false;
   res.locals.messages = {
@@ -132,6 +132,19 @@ app.use((req, res, next) => {
   };
   delete req.session.successMessage;
   delete req.session.errorMessage;
+
+  // Attach unread notification count for authenticated users
+  res.locals.unreadCount = 0;
+  if (req.user && req.user.id) {
+    try {
+      const result = await db.query(
+        'SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND read = FALSE',
+        [req.user.id]
+      );
+      res.locals.unreadCount = parseInt(result.rows[0].count) || 0;
+    } catch (e) { /* ignore */ }
+  }
+
   next();
 });
 

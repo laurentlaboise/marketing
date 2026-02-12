@@ -1342,6 +1342,184 @@
         document.querySelectorAll('.form-submit-btn').forEach(btn => {
             btn.dataset.originalText = btn.textContent;
         });
+
+        // Try to load dynamic form templates from admin
+        // If a template exists for a form type, replace the hardcoded modal contents
+        (async function loadDynamicFormTemplates() {
+            const formTypes = ['consultation', 'free-support', 'affiliate', 'white-label'];
+            try {
+                const res = await fetch('https://admin.wordsthatsells.website/api/public/form-templates');
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!data.templates) return;
+
+                const templateMap = {};
+                data.templates.forEach(t => { templateMap[t.form_type] = t; });
+
+                formTypes.forEach(type => {
+                    const tpl = templateMap[type];
+                    if (!tpl || !tpl.fields || tpl.fields.length === 0) return;
+
+                    const overlay = document.getElementById('form-modal-' + type);
+                    if (!overlay) return;
+
+                    const modal = overlay.querySelector('.form-modal');
+                    if (!modal) return;
+
+                    // Rebuild modal contents from template
+                    modal.innerHTML = '';
+
+                    // Header
+                    const header = document.createElement('div');
+                    header.className = 'form-modal-header';
+                    header.innerHTML = '<h3>' + escapeFormHtml(tpl.title) + '</h3>' +
+                        '<button class="modal-close-btn" onclick="closeFormModal(\'' + type + '\')">&times;</button>';
+                    modal.appendChild(header);
+
+                    // Body
+                    const body = document.createElement('div');
+                    body.className = 'form-modal-body';
+
+                    if (tpl.subtitle) {
+                        const sub = document.createElement('p');
+                        sub.className = 'form-subtitle';
+                        sub.textContent = tpl.subtitle;
+                        body.appendChild(sub);
+                    }
+
+                    // Error div
+                    const errDiv = document.createElement('div');
+                    errDiv.className = 'form-error';
+                    errDiv.id = 'form-error-' + type;
+                    body.appendChild(errDiv);
+
+                    // Form
+                    const form = document.createElement('form');
+                    form.id = 'form-' + type;
+                    form.addEventListener('submit', (e) => submitDynamicForm(e, type, tpl));
+
+                    tpl.fields.forEach(field => {
+                        const group = document.createElement('div');
+                        group.className = 'form-group';
+
+                        const label = document.createElement('label');
+                        label.textContent = field.label || field.name;
+                        if (field.required) {
+                            const req = document.createElement('span');
+                            req.className = 'required';
+                            req.textContent = ' *';
+                            label.appendChild(req);
+                        }
+                        group.appendChild(label);
+
+                        let el;
+                        if (field.type === 'textarea') {
+                            el = document.createElement('textarea');
+                            el.rows = 4;
+                        } else if (field.type === 'select') {
+                            el = document.createElement('select');
+                            const defOpt = document.createElement('option');
+                            defOpt.value = '';
+                            defOpt.textContent = field.placeholder || 'Select...';
+                            el.appendChild(defOpt);
+                            (field.options || []).forEach(opt => {
+                                const o = document.createElement('option');
+                                o.value = opt;
+                                o.textContent = opt;
+                                el.appendChild(o);
+                            });
+                        } else {
+                            el = document.createElement('input');
+                            el.type = field.type || 'text';
+                        }
+                        el.name = field.name;
+                        if (field.placeholder && field.type !== 'select') el.placeholder = field.placeholder;
+                        if (field.required) el.required = true;
+                        group.appendChild(el);
+                        form.appendChild(group);
+                    });
+
+                    const btn = document.createElement('button');
+                    btn.type = 'submit';
+                    btn.className = 'form-submit-btn';
+                    btn.textContent = tpl.submit_button_text || 'Submit';
+                    btn.dataset.originalText = btn.textContent;
+                    form.appendChild(btn);
+
+                    body.appendChild(form);
+                    modal.appendChild(body);
+                });
+            } catch (e) {
+                // Templates not available — keep hardcoded forms
+            }
+        })();
+
+        function escapeFormHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        async function submitDynamicForm(e, type, tpl) {
+            e.preventDefault();
+            const form = e.target;
+            const errEl = document.getElementById('form-error-' + type);
+            const submitBtn = form.querySelector('.form-submit-btn');
+
+            const formData = new FormData(form);
+            const payload = { form_type: type };
+            const metadata = {};
+            const knownFields = ['name', 'email', 'company', 'phone', 'message'];
+
+            for (const [key, value] of formData.entries()) {
+                const val = (value || '').trim();
+                if (!val) continue;
+                if (knownFields.includes(key)) {
+                    payload[key] = val;
+                } else {
+                    metadata[key] = val;
+                }
+            }
+
+            if (!payload.name || !payload.email) {
+                errEl.textContent = 'Please fill in your name and email.';
+                errEl.style.display = 'block';
+                return;
+            }
+            if (Object.keys(metadata).length > 0) payload.metadata = metadata;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            errEl.style.display = 'none';
+
+            try {
+                const res = await fetch(FORM_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Something went wrong.');
+                }
+                if (typeof gtag === 'function') {
+                    gtag('event', 'form_submit', { event_category: 'Forms', event_label: type });
+                }
+                form.style.display = 'none';
+                const successDiv = document.createElement('div');
+                successDiv.className = 'form-success';
+                const msg = (tpl && tpl.success_message) || 'Your request has been submitted successfully.';
+                successDiv.innerHTML = '<i class="fas fa-check-circle"></i><h4>Thank you!</h4><p>' + escapeFormHtml(msg) + '</p>';
+                form.parentElement.appendChild(successDiv);
+                form.reset();
+            } catch (err) {
+                errEl.textContent = err.message;
+                errEl.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = submitBtn.dataset.originalText || 'Submit';
+            }
+        }
     </script>
 </body>
 </html>

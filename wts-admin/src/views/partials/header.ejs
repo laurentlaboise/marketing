@@ -12,10 +12,28 @@
   </div>
 
   <div class="header-actions">
-    <button class="header-btn" id="notificationsBtn" aria-label="Notifications">
-      <i class="fas fa-bell"></i>
-      <span class="notification-badge">0</span>
-    </button>
+    <div class="notif-wrapper" style="position:relative;">
+      <button class="header-btn" id="notificationsBtn" aria-label="Notifications">
+        <i class="fas fa-bell"></i>
+        <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+          <span class="notification-badge"><%= unreadCount > 99 ? '99+' : unreadCount %></span>
+        <% } %>
+      </button>
+
+      <!-- Notification Dropdown -->
+      <div id="notifDropdown" class="notif-dropdown">
+        <div class="notif-dropdown-header">
+          <strong>Notifications</strong>
+          <button type="button" id="markAllReadBtn" class="notif-mark-read">Mark all read</button>
+        </div>
+        <div id="notifList" class="notif-list">
+          <div class="notif-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+        <a href="/business/submissions" class="notif-dropdown-footer">
+          <i class="fas fa-envelope-open-text"></i> View All Submissions
+        </a>
+      </div>
+    </div>
 
     <div class="header-user">
       <% if (user) { %>

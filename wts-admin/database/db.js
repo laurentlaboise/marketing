@@ -798,6 +798,22 @@ const db = {
         )
       `);
 
+      // Form Templates table (dynamic form builder)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS form_templates (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          form_type VARCHAR(100) UNIQUE NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          subtitle TEXT,
+          fields JSONB DEFAULT '[]',
+          submit_button_text VARCHAR(100) DEFAULT 'Submit',
+          success_message TEXT DEFAULT 'Thank you! Your request has been submitted successfully.',
+          status VARCHAR(50) DEFAULT 'active',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Images table
       await client.query(`
         CREATE TABLE IF NOT EXISTS images (

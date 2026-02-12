@@ -1,0 +1,447 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= template ? 'Edit' : 'Create' %> Form Template</h1>
+        <p class="page-subtitle">Design the form fields and settings</p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/form-templates" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+      </div>
+    </div>
+
+    <form method="POST" action="<%= template ? '/business/form-templates/' + template.id : '/business/form-templates' %>">
+
+      <!-- Form Settings -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+          <h3 style="margin-bottom: 1rem; font-size: 1.1rem;"><i class="fas fa-cog" style="margin-right: 0.5rem; color: var(--primary);"></i> Form Settings</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Form Type (unique key) <span style="color: var(--danger);">*</span></label>
+              <input type="text" name="form_type" class="form-input" required
+                     value="<%= template ? template.form_type : '' %>"
+                     placeholder="e.g. consultation, affiliate, contact"
+                     pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, and hyphens only">
+              <small style="color: var(--gray-500); font-size: 0.8rem;">Used to link buttons on the website to this form. Lowercase, hyphens only.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-input">
+                <option value="active" <%= template && template.status === 'active' ? 'selected' : (!template ? 'selected' : '') %>>Active</option>
+                <option value="inactive" <%= template && template.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Form Title <span style="color: var(--danger);">*</span></label>
+            <input type="text" name="title" class="form-input" required
+                   value="<%= template ? template.title : '' %>"
+                   placeholder="e.g. Schedule a Consultation">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Subtitle / Description</label>
+            <textarea name="subtitle" class="form-input" rows="2"
+                      placeholder="Brief description shown below the form title"><%= template ? (template.subtitle || '') : '' %></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Submit Button Text</label>
+              <input type="text" name="submit_button_text" class="form-input"
+                     value="<%= template ? (template.submit_button_text || 'Submit') : 'Submit' %>"
+                     placeholder="Submit">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Success Message</label>
+              <input type="text" name="success_message" class="form-input"
+                     value="<%= template ? (template.success_message || '') : '' %>"
+                     placeholder="Thank you! Your request has been submitted.">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Fields Builder -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.1rem;"><i class="fas fa-list-ul" style="margin-right: 0.5rem; color: var(--primary);"></i> Form Fields</h3>
+            <button type="button" id="addFieldBtn" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Field</button>
+          </div>
+
+          <div id="fieldsContainer">
+            <!-- Fields are added here dynamically -->
+          </div>
+
+          <div id="noFieldsMsg" style="text-align: center; padding: 2rem; color: var(--gray-500); display: none;">
+            <i class="fas fa-mouse-pointer" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+            Click "Add Field" to start building your form.
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Preview -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+          <h3 style="margin-bottom: 1rem; font-size: 1.1rem;"><i class="fas fa-eye" style="margin-right: 0.5rem; color: var(--primary);"></i> Live Preview</h3>
+          <div id="formPreview" style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.5rem; max-width: 520px;">
+            <p style="text-align: center; color: var(--gray-400);">Add fields to see a live preview</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 1rem;">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <%= template ? 'Update' : 'Create' %> Form Template</button>
+        <a href="/business/form-templates" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+
+<style>
+  .field-row {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+    transition: box-shadow 0.2s;
+  }
+  .field-row:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .field-row-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .field-row-header .field-drag {
+    cursor: grab;
+    color: var(--gray-400);
+    font-size: 1.1rem;
+  }
+  .field-row-header .field-number {
+    background: var(--primary);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .field-row-header .field-label-display {
+    font-weight: 600;
+    flex-grow: 1;
+  }
+  .field-row-actions {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .field-row-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem 0.4rem;
+    border-radius: 4px;
+    color: var(--gray-500);
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+  .field-row-actions button:hover {
+    background: var(--gray-200);
+    color: var(--gray-800);
+  }
+  .field-row-actions button.btn-remove:hover {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .field-grid .form-group {
+    margin-bottom: 0;
+  }
+  .field-grid .form-label {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+  }
+  .field-grid .form-input {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .field-options-row {
+    margin-top: 0.5rem;
+    display: none;
+  }
+  .field-options-row.visible {
+    display: block;
+  }
+
+  /* Preview styles */
+  #formPreview .preview-field {
+    margin-bottom: 0.75rem;
+  }
+  #formPreview .preview-field label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+    color: #122a3f;
+  }
+  #formPreview .preview-field label .req {
+    color: #d62a83;
+  }
+  #formPreview .preview-field input,
+  #formPreview .preview-field textarea,
+  #formPreview .preview-field select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+  }
+  #formPreview .preview-btn {
+    width: 100%;
+    padding: 0.7rem;
+    background: #d62a83;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: default;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .field-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  const container = document.getElementById('fieldsContainer');
+  const noFieldsMsg = document.getElementById('noFieldsMsg');
+  const addBtn = document.getElementById('addFieldBtn');
+  const preview = document.getElementById('formPreview');
+
+  // Load existing fields if editing
+  let existingFields = [];
+  <% if (template && template.fields) { %>
+    existingFields = <%= JSON.stringify(typeof template.fields === 'string' ? JSON.parse(template.fields) : template.fields) %>;
+  <% } %>
+
+  let fieldIndex = 0;
+
+  function addField(data) {
+    data = data || { name: '', label: '', type: 'text', placeholder: '', required: false, options: [] };
+    fieldIndex++;
+    const row = document.createElement('div');
+    row.className = 'field-row';
+    row.dataset.index = fieldIndex;
+
+    const optionsVisible = data.type === 'select' ? 'visible' : '';
+
+    row.innerHTML = `
+      <div class="field-row-header">
+        <i class="fas fa-grip-vertical field-drag"></i>
+        <span class="field-number">${fieldIndex}</span>
+        <span class="field-label-display">${data.label || 'New Field'}</span>
+        <div class="field-row-actions">
+          <button type="button" class="btn-move-up" title="Move up"><i class="fas fa-chevron-up"></i></button>
+          <button type="button" class="btn-move-down" title="Move down"><i class="fas fa-chevron-down"></i></button>
+          <button type="button" class="btn-remove" title="Remove"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="form-group">
+          <label class="form-label">Field Name</label>
+          <input type="text" name="field_name" class="form-input" value="${escapeAttr(data.name)}" placeholder="e.g. name, email, phone" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Label</label>
+          <input type="text" name="field_label" class="form-input field-label-input" value="${escapeAttr(data.label)}" placeholder="e.g. Full Name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select name="field_type" class="form-input field-type-select">
+            <option value="text" ${data.type==='text'?'selected':''}>Text</option>
+            <option value="email" ${data.type==='email'?'selected':''}>Email</option>
+            <option value="tel" ${data.type==='tel'?'selected':''}>Phone</option>
+            <option value="textarea" ${data.type==='textarea'?'selected':''}>Textarea</option>
+            <option value="select" ${data.type==='select'?'selected':''}>Dropdown</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Placeholder</label>
+          <input type="text" name="field_placeholder" class="form-input" value="${escapeAttr(data.placeholder)}" placeholder="Placeholder text...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Required?</label>
+          <select name="field_required" class="form-input">
+            <option value="false" ${!data.required?'selected':''}>No</option>
+            <option value="true" ${data.required?'selected':''}>Yes</option>
+          </select>
+        </div>
+        <div class="form-group field-options-row ${optionsVisible}">
+          <label class="form-label">Options (comma-separated)</label>
+          <input type="text" name="field_options" class="form-input" value="${escapeAttr((data.options||[]).join(', '))}" placeholder="Option 1, Option 2, Option 3">
+        </div>
+      </div>
+    `;
+
+    container.appendChild(row);
+
+    // Event listeners
+    row.querySelector('.btn-remove').addEventListener('click', () => {
+      row.remove();
+      renumber();
+      updatePreview();
+    });
+    row.querySelector('.btn-move-up').addEventListener('click', () => {
+      const prev = row.previousElementSibling;
+      if (prev) container.insertBefore(row, prev);
+      renumber();
+      updatePreview();
+    });
+    row.querySelector('.btn-move-down').addEventListener('click', () => {
+      const next = row.nextElementSibling;
+      if (next) container.insertBefore(next, row);
+      renumber();
+      updatePreview();
+    });
+    row.querySelector('.field-label-input').addEventListener('input', (e) => {
+      row.querySelector('.field-label-display').textContent = e.target.value || 'New Field';
+      updatePreview();
+    });
+    row.querySelector('.field-type-select').addEventListener('change', (e) => {
+      const optRow = row.querySelector('.field-options-row');
+      if (e.target.value === 'select') {
+        optRow.classList.add('visible');
+      } else {
+        optRow.classList.remove('visible');
+      }
+      updatePreview();
+    });
+
+    // Update preview on any input change
+    row.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', updatePreview);
+      el.addEventListener('change', updatePreview);
+    });
+
+    updateNoFieldsMsg();
+    updatePreview();
+  }
+
+  function renumber() {
+    const rows = container.querySelectorAll('.field-row');
+    rows.forEach((row, i) => {
+      row.querySelector('.field-number').textContent = i + 1;
+    });
+    updateNoFieldsMsg();
+  }
+
+  function updateNoFieldsMsg() {
+    const hasFields = container.querySelectorAll('.field-row').length > 0;
+    noFieldsMsg.style.display = hasFields ? 'none' : 'block';
+  }
+
+  function updatePreview() {
+    const rows = container.querySelectorAll('.field-row');
+    if (rows.length === 0) {
+      preview.innerHTML = '<p style="text-align:center;color:var(--gray-400);">Add fields to see a live preview</p>';
+      return;
+    }
+
+    const titleInput = document.querySelector('input[name="title"]');
+    const subtitleInput = document.querySelector('textarea[name="subtitle"]');
+    const btnTextInput = document.querySelector('input[name="submit_button_text"]');
+
+    let html = '';
+    if (titleInput && titleInput.value) {
+      html += '<h3 style="margin:0 0 0.25rem;font-size:1.3rem;">' + escapeHtml(titleInput.value) + '</h3>';
+    }
+    if (subtitleInput && subtitleInput.value) {
+      html += '<p style="color:#64748b;font-size:0.9rem;margin:0 0 1rem;">' + escapeHtml(subtitleInput.value) + '</p>';
+    }
+
+    rows.forEach(row => {
+      const label = row.querySelector('[name="field_label"]').value || 'Field';
+      const type = row.querySelector('[name="field_type"]').value;
+      const placeholder = row.querySelector('[name="field_placeholder"]').value;
+      const required = row.querySelector('[name="field_required"]').value === 'true';
+      const options = row.querySelector('[name="field_options"]').value;
+
+      html += '<div class="preview-field">';
+      html += '<label>' + escapeHtml(label) + (required ? ' <span class="req">*</span>' : '') + '</label>';
+
+      if (type === 'textarea') {
+        html += '<textarea placeholder="' + escapeAttr(placeholder) + '" rows="3" disabled></textarea>';
+      } else if (type === 'select') {
+        html += '<select disabled><option>' + (placeholder || 'Select...') + '</option>';
+        if (options) {
+          options.split(',').forEach(opt => {
+            html += '<option>' + escapeHtml(opt.trim()) + '</option>';
+          });
+        }
+        html += '</select>';
+      } else {
+        html += '<input type="' + type + '" placeholder="' + escapeAttr(placeholder) + '" disabled>';
+      }
+
+      html += '</div>';
+    });
+
+    const btnText = (btnTextInput && btnTextInput.value) || 'Submit';
+    html += '<button class="preview-btn">' + escapeHtml(btnText) + '</button>';
+
+    preview.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    return (str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  addBtn.addEventListener('click', () => addField());
+
+  // Also update preview when settings change
+  document.querySelectorAll('input[name="title"], textarea[name="subtitle"], input[name="submit_button_text"]').forEach(el => {
+    el.addEventListener('input', updatePreview);
+  });
+
+  // Load existing fields
+  if (existingFields.length > 0) {
+    existingFields.forEach(f => addField(f));
+  }
+  updateNoFieldsMsg();
+  updatePreview();
+})();
+</script>
+
+<%- include('../../partials/footer') %>
