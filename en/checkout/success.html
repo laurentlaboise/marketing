@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - WordsThatSells</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <style>
+        .checkout-result { max-width: 600px; margin: 4rem auto; padding: 2rem; text-align: center; }
+        .checkout-result .icon { font-size: 4rem; margin-bottom: 1.5rem; }
+        .checkout-result.success .icon { color: #22c55e; }
+        .checkout-result h1 { margin-bottom: 1rem; }
+        .checkout-result p { color: #666; margin-bottom: 1.5rem; }
+        .download-btn { display: inline-block; padding: 0.8rem 2rem; background: #667eea; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; }
+        .download-btn:hover { background: #5a6fd6; }
+        .order-details { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; text-align: left; }
+        .order-details dt { font-weight: 600; color: #333; }
+        .order-details dd { color: #666; margin-bottom: 0.75rem; margin-left: 0; }
+    </style>
+</head>
+<body>
+    <div class="checkout-result success">
+        <div class="icon"><i class="fas fa-check-circle"></i></div>
+        <h1>Payment Successful!</h1>
+        <p>Thank you for your purchase. Your order has been confirmed.</p>
+        <div id="order-details" class="order-details" style="display:none;">
+            <dl>
+                <dt>Product</dt>
+                <dd id="detail-product">-</dd>
+                <dt>Amount</dt>
+                <dd id="detail-amount">-</dd>
+                <dt>Status</dt>
+                <dd id="detail-status">-</dd>
+            </dl>
+            <div id="download-section" style="display:none;text-align:center;margin-top:1rem;">
+                <a id="download-link" href="#" class="download-btn"><i class="fas fa-download"></i> Download Your Product</a>
+            </div>
+        </div>
+        <p><a href="/en/digital-marketing-services/content-creation/" style="color:#667eea;">Back to Services</a></p>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get('session_id');
+        if (sessionId) {
+            fetch('https://admin.wordsthatsells.website/api/payments/order-status/' + encodeURIComponent(sessionId))
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('order-details').style.display = 'block';
+                    document.getElementById('detail-product').textContent = data.product_name || 'Digital Product';
+                    document.getElementById('detail-amount').textContent = '$' + parseFloat(data.amount).toFixed(2) + ' ' + (data.currency || 'USD');
+                    document.getElementById('detail-status').textContent = data.status || 'Processing';
+                    if (data.download_url) {
+                        document.getElementById('download-section').style.display = 'block';
+                        document.getElementById('download-link').href = data.download_url;
+                    }
+                })
+                .catch(() => {});
+        }
+    </script>
+</body>
+</html>
