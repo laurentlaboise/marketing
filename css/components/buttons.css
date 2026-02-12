@@ -81,8 +81,98 @@
     color: var(--color-white);
 }
 
+/* --- FORM BUTTON PRESETS (admin-managed CTA buttons) --- */
+.form-buttons-wrapper {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 2rem;
+    padding: 1.5rem 0;
+}
+
+.btn-form-primary {
+    background-color: var(--color-primary-base);
+    color: var(--color-white);
+    border-color: var(--color-primary-base);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-lg);
+}
+.btn-form-primary:hover {
+    background-color: var(--color-indigo-300);
+    border-color: var(--color-indigo-300);
+    transform: translateY(-2px);
+}
+
+.btn-form-secondary {
+    background-color: var(--color-slate-700);
+    color: var(--color-white);
+    border-color: var(--color-slate-700);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-lg);
+}
+.btn-form-secondary:hover {
+    background-color: var(--color-slate-800);
+    border-color: var(--color-slate-800);
+    transform: translateY(-2px);
+}
+
+.btn-form-outline {
+    background-color: transparent;
+    color: var(--color-primary-base);
+    border-color: var(--color-primary-base);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-lg);
+}
+.btn-form-outline:hover {
+    background-color: var(--color-primary-base);
+    color: var(--color-white);
+    transform: translateY(-2px);
+}
+
+.btn-form-ghost {
+    background-color: rgba(31, 133, 201, 0.1);
+    color: var(--color-primary-base);
+    border-color: transparent;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-lg);
+}
+.btn-form-ghost:hover {
+    background-color: rgba(31, 133, 201, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-form-gradient {
+    background: linear-gradient(135deg, var(--color-primary-base) 0%, var(--color-accent-magenta) 100%);
+    color: var(--color-white);
+    border-color: transparent;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-lg);
+    box-shadow: var(--shadow-md);
+}
+.btn-form-gradient:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.btn-form-cta {
+    background-color: var(--color-accent-magenta);
+    color: var(--color-white);
+    border-color: var(--color-accent-magenta);
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: var(--font-size-xl);
+    border-radius: var(--border-radius-full);
+    box-shadow: var(--shadow-lg);
+}
+.btn-form-cta:hover {
+    background-color: #f90784;
+    border-color: #f90784;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
 /* --- Icon Styling (applies to all buttons) --- */
-.btn i { 
-    margin-right: var(--spacing-sm); 
-    font-size: 1.1em; 
+.btn i {
+    margin-right: var(--spacing-sm);
+    font-size: 1.1em;
 }

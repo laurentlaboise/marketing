@@ -367,16 +367,132 @@
     for (var j = 0; j < cards.length; j++) observer.observe(cards[j]);
   }
 
+  // ── Form Buttons Loader ─────────────────────────────────────
+  // Fetches form buttons from the admin API and renders them into
+  // .form-buttons-section[data-buttons-page] containers, filtered
+  // by the current page URL path.
+
+  function loadFormButtons() {
+    var section = document.querySelector('.form-buttons-section[data-buttons-page]');
+    if (!section) return;
+
+    var pagePath = section.getAttribute('data-buttons-page');
+    if (!pagePath) return;
+
+    var url = API_BASE + '/form-buttons';
+    console.log('[ProductLoader] Fetching form buttons: ' + url);
+
+    fetch(url)
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        var buttons = data.buttons || [];
+        console.log('[ProductLoader] Received ' + buttons.length + ' form button(s)');
+
+        // Filter buttons matching this page URL
+        var matched = buttons.filter(function (btn) {
+          if (!btn.page_url) return false;
+          var p = btn.page_url;
+          if (p === pagePath) return true;
+          // Trailing-slash tolerance
+          if (p.endsWith('/') && p.slice(0, -1) === pagePath) return true;
+          if (pagePath.endsWith('/') && pagePath.slice(0, -1) === p) return true;
+          // Wildcard: /en/digital-marketing-services/* matches all sub-pages
+          if (p.endsWith('/*')) {
+            var prefix = p.slice(0, -1);
+            return pagePath.startsWith(prefix);
+          }
+          return false;
+        });
+
+        if (matched.length === 0) {
+          console.log('[ProductLoader] No form buttons matched for ' + pagePath);
+          return;
+        }
+
+        renderFormButtons(matched, section);
+      })
+      .catch(function (err) {
+        console.warn('[ProductLoader] Form buttons API error:', err.message);
+      });
+  }
+
+  function renderFormButtons(buttons, container) {
+    var html = '<div class="form-buttons-wrapper reveal" style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:2rem;padding:1.5rem 0;">';
+
+    buttons.forEach(function (btn) {
+      var label = esc(btn.button_label || 'Submit');
+      var preset = btn.style_preset || 'primary';
+      var cssClass = 'btn btn-form-' + esc(preset);
+      var customStyle = btn.custom_css ? ' style="' + esc(btn.custom_css) + '"' : '';
+
+      // Build rel attribute
+      var relParts = [];
+      if (btn.rel_nofollow) relParts.push('nofollow');
+      if (btn.rel_noopener) relParts.push('noopener');
+      if (btn.rel_noreferrer) relParts.push('noreferrer');
+      var relAttr = relParts.length ? ' rel="' + relParts.join(' ') + '"' : '';
+
+      var targetAttr = btn.target_blank ? ' target="_blank"' : '';
+
+      // Custom JS as onclick
+      var onclickAttr = '';
+      if (btn.custom_js) {
+        onclickAttr = ' onclick="' + esc(btn.custom_js) + '"';
+      }
+
+      // Render as a button that triggers the form modal with the appropriate form_type
+      html += '<button type="button" class="' + cssClass + '" data-form-type="' + esc(btn.form_type) + '"' +
+        customStyle + relAttr + targetAttr + onclickAttr + '>' +
+        label + '</button>';
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Bind form-button click → open quote modal with matching form_type
+    var formBtns = container.querySelectorAll('[data-form-type]');
+    for (var i = 0; i < formBtns.length; i++) {
+      formBtns[i].addEventListener('click', onFormButtonClick);
+    }
+
+    triggerRevealAnimations(container);
+  }
+
+  function onFormButtonClick(e) {
+    e.preventDefault();
+    var formType = this.getAttribute('data-form-type');
+
+    // Try to open the existing quote modal
+    var overlay = document.getElementById('quote-modal-overlay');
+    if (overlay) {
+      overlay.classList.add('active');
+      document.body.classList.add('no-scroll');
+    }
+
+    // If the modal has a hidden form_type field, set it
+    var hiddenField = document.querySelector('#quote-form input[name="form_type"]');
+    if (hiddenField) {
+      hiddenField.value = formType;
+    }
+
+    console.log('[ProductLoader] Form button clicked, form_type=' + formType);
+  }
+
   // ── Boot ─────────────────────────────────────────────────────
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       init();
       loadSidebar();
+      loadFormButtons();
     });
   } else {
     init();
     loadSidebar();
+    loadFormButtons();
   }
 
 })();
