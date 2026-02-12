@@ -471,6 +471,22 @@ const db = {
         )
       `);
 
+      // Add page-specific sidebar fields
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sidebar_items' AND column_name='page_url') THEN
+            ALTER TABLE sidebar_items ADD COLUMN page_url VARCHAR(500);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sidebar_items' AND column_name='content_html') THEN
+            ALTER TABLE sidebar_items ADD COLUMN content_html TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sidebar_items' AND column_name='button_label') THEN
+            ALTER TABLE sidebar_items ADD COLUMN button_label VARCHAR(255) DEFAULT 'Help';
+          END IF;
+        END $$;
+      `);
+
       // Orders table (for Stripe payment tracking)
       await client.query(`
         CREATE TABLE IF NOT EXISTS orders (

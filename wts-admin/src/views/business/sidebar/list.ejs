@@ -8,10 +8,10 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Sidebar Management</h1>
-        <p class="page-subtitle">Manage the sidebar navigation shown on public service pages</p>
+        <p class="page-subtitle">Manage floating sidebar panels for any page on the website</p>
       </div>
       <div class="page-actions">
-        <a href="/business/sidebar/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Item</a>
+        <a href="/business/sidebar/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Sidebar</a>
       </div>
     </div>
 
@@ -21,7 +21,7 @@
       <div class="card" style="margin-bottom: 1.5rem;">
         <div class="card-body">
           <h3 style="margin-bottom: 1rem; text-transform: capitalize; color: var(--text-primary, #1a1a2e);">
-            <i class="fas fa-layer-group"></i> <%= sectionName %>
+            <i class="fas <%= sectionName === 'page-sidebar' ? 'fa-window-restore' : 'fa-layer-group' %>"></i> <%= sectionName %>
           </h3>
           <div class="table-container">
             <table class="table">
@@ -29,9 +29,10 @@
                 <tr>
                   <th style="width:40px;">#</th>
                   <th>Label</th>
-                  <th>URL</th>
-                  <th>Icon</th>
+                  <th>Target Page</th>
+                  <th>Button</th>
                   <th>Visible</th>
+                  <th>Content</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -43,13 +44,34 @@
                     <i class="<%= item.icon_class %>" style="margin-right: 0.5rem; color: var(--primary-color, #667eea);"></i>
                     <strong><%= item.label %></strong>
                   </td>
-                  <td><small style="color: #666;"><%= item.url || '-' %></small></td>
-                  <td><code style="font-size: 0.75rem;"><%= item.icon_class %></code></td>
+                  <td>
+                    <% if (item.page_url) { %>
+                    <code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.8rem;"><%= item.page_url %></code>
+                    <% } else { %>
+                    <small style="color: #999;">-</small>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (item.button_label) { %>
+                    <span style="display:inline-flex;align-items:center;gap:4px;background:#d62b83;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;">
+                      <i class="<%= item.icon_class || 'fas fa-question-circle' %>" style="font-size:0.7rem;"></i> <%= item.button_label %>
+                    </span>
+                    <% } else { %>
+                    <small style="color: #999;">-</small>
+                    <% } %>
+                  </td>
                   <td>
                     <% if (item.is_visible) { %>
                     <span class="status-badge active">Visible</span>
                     <% } else { %>
                     <span class="status-badge inactive">Hidden</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (item.content_html) { %>
+                    <span style="color:#10b981;font-size:0.85rem;"><i class="fas fa-check-circle"></i> Has content</span>
+                    <% } else { %>
+                    <small style="color: #999;">Empty</small>
                     <% } %>
                   </td>
                   <td>
@@ -72,10 +94,10 @@
     <div class="card">
       <div class="card-body">
         <div class="empty-state">
-          <div class="empty-state-icon"><i class="fas fa-bars"></i></div>
+          <div class="empty-state-icon"><i class="fas fa-window-restore"></i></div>
           <h3>No Sidebar Items</h3>
-          <p>Add items to customize the sidebar navigation on your public service pages.</p>
-          <a href="/business/sidebar/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Item</a>
+          <p>Create your first sidebar panel. It will appear as a floating button on the page you specify, opening a slide-in panel with your custom HTML content.</p>
+          <a href="/business/sidebar/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Sidebar</a>
         </div>
       </div>
     </div>

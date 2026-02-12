@@ -12,73 +12,311 @@
       </div>
     </div>
 
-    <div class="card form-card">
-      <div class="card-body">
-        <form action="<%= item ? '/business/sidebar/' + item.id : '/business/sidebar' %>" method="POST">
-          <div class="form-group">
-            <label class="form-label" for="label">Label *</label>
-            <input type="text" id="label" name="label" class="form-input" value="<%= item ? item.label : '' %>" required>
-          </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
 
-          <div class="form-group">
-            <label class="form-label" for="url">URL</label>
-            <input type="text" id="url" name="url" class="form-input" value="<%= item ? (item.url || '') : '' %>" placeholder="/en/digital-marketing-services/...">
-          </div>
+      <!-- Left column: Settings -->
+      <div class="card form-card">
+        <div class="card-body">
+          <h3 style="margin-bottom:1rem;"><i class="fas fa-cog"></i> Settings</h3>
+          <form id="sidebar-form" action="<%= item ? '/business/sidebar/' + item.id : '/business/sidebar' %>" method="POST">
+            <div class="form-group">
+              <label class="form-label" for="label">Label / Title *</label>
+              <input type="text" id="label" name="label" class="form-input" value="<%= item ? item.label : '' %>" required>
+            </div>
 
-          <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="icon_class">Icon Class (Font Awesome)</label>
-              <input type="text" id="icon_class" name="icon_class" class="form-input" value="<%= item ? (item.icon_class || 'fas fa-link') : 'fas fa-link' %>">
+              <label class="form-label" for="page_url">Target Page URL *</label>
+              <input type="text" id="page_url" name="page_url" class="form-input" value="<%= item ? (item.page_url || '') : '' %>" placeholder="/en/articles/my-article-slug" required>
+              <small style="color:#64748b;">The page path where the floating button will appear (e.g. <code>/en/articles/my-article</code>). Use <code>*</code> as wildcard (e.g. <code>/en/articles/*</code> for all articles).</small>
             </div>
-            <div class="form-group">
-              <label class="form-label" for="section">Section *</label>
-              <select id="section" name="section" class="form-input" required>
-                <option value="content-creation" <%= item && item.section === 'content-creation' ? 'selected' : '' %>>Content Creation</option>
-                <option value="social-media-management" <%= item && item.section === 'social-media-management' ? 'selected' : '' %>>Social Media Management</option>
-                <option value="web-development" <%= item && item.section === 'web-development' ? 'selected' : '' %>>Web Development</option>
-                <option value="business-tools" <%= item && item.section === 'business-tools' ? 'selected' : '' %>>Business Tools</option>
-                <option value="footer" <%= item && item.section === 'footer' ? 'selected' : '' %>>Footer</option>
-                <option value="global" <%= item && item.section === 'global' ? 'selected' : '' %>>Global (all pages)</option>
-              </select>
-            </div>
-          </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="sort_order">Sort Order</label>
-              <input type="number" id="sort_order" name="sort_order" class="form-input" value="<%= item ? (item.sort_order || 0) : 0 %>">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="button_label">Floating Button Label</label>
+                <input type="text" id="button_label" name="button_label" class="form-input" value="<%= item ? (item.button_label || 'Help') : 'Help' %>" placeholder="Help">
+                <small style="color:#64748b;">Text shown on the floating side button (rotated vertically).</small>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="icon_class">Button Icon (Font Awesome)</label>
+                <input type="text" id="icon_class" name="icon_class" class="form-input" value="<%= item ? (item.icon_class || 'fas fa-question-circle') : 'fas fa-question-circle' %>">
+              </div>
             </div>
-            <div class="form-group">
-              <label class="form-label" for="is_visible">Visible</label>
-              <select id="is_visible" name="is_visible" class="form-input">
-                <option value="true" <%= !item || item.is_visible !== false ? 'selected' : '' %>>Yes</option>
-                <option value="false" <%= item && item.is_visible === false ? 'selected' : '' %>>No</option>
-              </select>
-            </div>
-          </div>
 
-          <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="open_in_new_tab">Open in New Tab</label>
-              <select id="open_in_new_tab" name="open_in_new_tab" class="form-input">
-                <option value="false" <%= !item || !item.open_in_new_tab ? 'selected' : '' %>>No</option>
-                <option value="true" <%= item && item.open_in_new_tab ? 'selected' : '' %>>Yes</option>
-              </select>
+              <label class="form-label" for="url">Link URL (optional)</label>
+              <input type="text" id="url" name="url" class="form-input" value="<%= item ? (item.url || '') : '' %>" placeholder="Optional link within sidebar content">
             </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="section">Section *</label>
+                <select id="section" name="section" class="form-input" required>
+                  <option value="page-sidebar" <%= !item || item.section === 'page-sidebar' ? 'selected' : '' %>>Page Sidebar (floating button)</option>
+                  <option value="content-creation" <%= item && item.section === 'content-creation' ? 'selected' : '' %>>Content Creation</option>
+                  <option value="social-media-management" <%= item && item.section === 'social-media-management' ? 'selected' : '' %>>Social Media Management</option>
+                  <option value="web-development" <%= item && item.section === 'web-development' ? 'selected' : '' %>>Web Development</option>
+                  <option value="business-tools" <%= item && item.section === 'business-tools' ? 'selected' : '' %>>Business Tools</option>
+                  <option value="footer" <%= item && item.section === 'footer' ? 'selected' : '' %>>Footer</option>
+                  <option value="global" <%= item && item.section === 'global' ? 'selected' : '' %>>Global (all pages)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="sort_order">Sort Order</label>
+                <input type="number" id="sort_order" name="sort_order" class="form-input" value="<%= item ? (item.sort_order || 0) : 0 %>">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="is_visible">Visible</label>
+                <select id="is_visible" name="is_visible" class="form-input">
+                  <option value="true" <%= !item || item.is_visible !== false ? 'selected' : '' %>>Yes</option>
+                  <option value="false" <%= item && item.is_visible === false ? 'selected' : '' %>>No</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="open_in_new_tab">Open in New Tab</label>
+                <select id="open_in_new_tab" name="open_in_new_tab" class="form-input">
+                  <option value="false" <%= !item || !item.open_in_new_tab ? 'selected' : '' %>>No</option>
+                  <option value="true" <%= item && item.open_in_new_tab ? 'selected' : '' %>>Yes</option>
+                </select>
+              </div>
+            </div>
+
             <div class="form-group">
               <label class="form-label" for="css_class">CSS Class (optional)</label>
               <input type="text" id="css_class" name="css_class" class="form-input" value="<%= item ? (item.css_class || '') : '' %>" placeholder="e.g. highlight, premium">
             </div>
-          </div>
 
-          <div class="form-actions">
-            <a href="/business/sidebar" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
-          </div>
-        </form>
+            <!-- HTML Content -->
+            <div class="form-group">
+              <label class="form-label" for="content_html">Sidebar HTML Content</label>
+              <div style="border:1px solid #d1d5db;border-radius:8px;overflow:hidden;">
+                <div id="html-toolbar" style="display:flex;gap:4px;flex-wrap:wrap;padding:8px 10px;background:#f8fafc;border-bottom:1px solid #d1d5db;">
+                  <button type="button" class="toolbar-btn" data-cmd="bold" title="Bold"><i class="fas fa-bold"></i></button>
+                  <button type="button" class="toolbar-btn" data-cmd="italic" title="Italic"><i class="fas fa-italic"></i></button>
+                  <button type="button" class="toolbar-btn" data-cmd="underline" title="Underline"><i class="fas fa-underline"></i></button>
+                  <span style="border-left:1px solid #d1d5db;margin:0 4px;"></span>
+                  <button type="button" class="toolbar-btn" data-cmd="insertUnorderedList" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                  <button type="button" class="toolbar-btn" data-cmd="insertOrderedList" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+                  <span style="border-left:1px solid #d1d5db;margin:0 4px;"></span>
+                  <button type="button" class="toolbar-btn" data-cmd="formatBlock" data-value="H2" title="Heading 2">H2</button>
+                  <button type="button" class="toolbar-btn" data-cmd="formatBlock" data-value="H3" title="Heading 3">H3</button>
+                  <button type="button" class="toolbar-btn" data-cmd="formatBlock" data-value="H4" title="Heading 4">H4</button>
+                  <button type="button" class="toolbar-btn" data-cmd="formatBlock" data-value="P" title="Paragraph">P</button>
+                  <span style="border-left:1px solid #d1d5db;margin:0 4px;"></span>
+                  <button type="button" class="toolbar-btn" id="insertLinkBtn" title="Insert Link"><i class="fas fa-link"></i></button>
+                  <button type="button" class="toolbar-btn" id="insertImageBtn" title="Insert Image"><i class="fas fa-image"></i></button>
+                  <span style="border-left:1px solid #d1d5db;margin:0 4px;"></span>
+                  <button type="button" class="toolbar-btn" id="toggleSourceBtn" title="Toggle HTML Source"><i class="fas fa-code"></i></button>
+                </div>
+                <div id="html-editor" contenteditable="true" style="min-height:300px;padding:16px;outline:none;font-size:0.95rem;line-height:1.6;"><%- item ? (item.content_html || '') : '' %></div>
+                <textarea id="html-source" name="content_html" style="display:none;width:100%;min-height:300px;padding:16px;border:none;font-family:monospace;font-size:0.9rem;resize:vertical;"><%= item ? (item.content_html || '') : '' %></textarea>
+              </div>
+              <small style="color:#64748b;">Rich HTML content shown in the slide-in panel when the user clicks the floating button.</small>
+            </div>
+
+            <div class="form-actions">
+              <a href="/business/sidebar" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+            </div>
+          </form>
+        </div>
       </div>
+
+      <!-- Right column: Live Preview -->
+      <div>
+        <div class="card" style="position:sticky;top:1rem;">
+          <div class="card-body">
+            <h3 style="margin-bottom:1rem;"><i class="fas fa-eye"></i> Preview</h3>
+
+            <!-- Button preview -->
+            <div style="margin-bottom:1.5rem;">
+              <h4 style="font-size:0.85rem;color:#64748b;text-transform:uppercase;margin-bottom:0.75rem;">Floating Button</h4>
+              <div id="preview-button" style="display:inline-flex;align-items:center;gap:8px;background:var(--color-accent-magenta,#d62b83);color:#fff;padding:10px 20px;border-radius:8px 8px 0 0;font-weight:600;font-size:0.9rem;">
+                <i id="preview-btn-icon" class="<%= item ? (item.icon_class || 'fas fa-question-circle') : 'fas fa-question-circle' %>"></i>
+                <span id="preview-btn-label"><%= item ? (item.button_label || 'Help') : 'Help' %></span>
+              </div>
+            </div>
+
+            <!-- Panel content preview -->
+            <h4 style="font-size:0.85rem;color:#64748b;text-transform:uppercase;margin-bottom:0.75rem;">Panel Content</h4>
+            <div id="preview-panel" style="border:1px solid #e2e8f0;border-radius:12px;max-height:500px;overflow-y:auto;">
+              <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+                <h3 id="preview-title" style="font-size:1.2rem;margin:0;"><%= item ? item.label : 'Sidebar Title' %></h3>
+                <span style="color:#94a3b8;font-size:1.2rem;cursor:default;">&times;</span>
+              </div>
+              <div id="preview-content" style="padding:20px;line-height:1.7;font-size:0.95rem;">
+                <%- item ? (item.content_html || '<p style="color:#94a3b8;">HTML content will appear here...</p>') : '<p style="color:#94a3b8;">HTML content will appear here...</p>' %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </main>
+
+<style>
+  .toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: #374151;
+    transition: all 0.15s;
+  }
+  .toolbar-btn:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+  }
+  #html-editor:focus {
+    box-shadow: inset 0 0 0 2px rgba(102, 126, 234, 0.2);
+  }
+  #html-editor h2, #html-editor h3, #html-editor h4 {
+    margin: 0.5rem 0;
+  }
+  #html-editor ul, #html-editor ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+  #html-editor img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+  }
+  #html-editor a {
+    color: #667eea;
+    text-decoration: underline;
+  }
+  #preview-content h2, #preview-content h3, #preview-content h4 {
+    margin: 0.5rem 0;
+  }
+  #preview-content ul, #preview-content ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+  #preview-content img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+  }
+  @media (max-width: 900px) {
+    div[style*="grid-template-columns:1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const editor = document.getElementById('html-editor');
+  const source = document.getElementById('html-source');
+  const toggleBtn = document.getElementById('toggleSourceBtn');
+  const previewContent = document.getElementById('preview-content');
+  const previewTitle = document.getElementById('preview-title');
+  const previewBtnIcon = document.getElementById('preview-btn-icon');
+  const previewBtnLabel = document.getElementById('preview-btn-label');
+  const labelInput = document.getElementById('label');
+  const iconInput = document.getElementById('icon_class');
+  const btnLabelInput = document.getElementById('button_label');
+  let sourceMode = false;
+
+  // Toolbar commands
+  document.querySelectorAll('.toolbar-btn[data-cmd]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cmd = btn.dataset.cmd;
+      const val = btn.dataset.value || null;
+      document.execCommand(cmd, false, val);
+      editor.focus();
+      syncToSource();
+    });
+  });
+
+  // Insert link
+  document.getElementById('insertLinkBtn').addEventListener('click', () => {
+    const url = prompt('Enter URL:');
+    if (url) {
+      document.execCommand('createLink', false, url);
+      editor.focus();
+      syncToSource();
+    }
+  });
+
+  // Insert image
+  document.getElementById('insertImageBtn').addEventListener('click', () => {
+    const url = prompt('Enter image URL:');
+    if (url) {
+      document.execCommand('insertImage', false, url);
+      editor.focus();
+      syncToSource();
+    }
+  });
+
+  // Toggle source view
+  toggleBtn.addEventListener('click', () => {
+    sourceMode = !sourceMode;
+    if (sourceMode) {
+      source.value = editor.innerHTML;
+      editor.style.display = 'none';
+      source.style.display = 'block';
+      toggleBtn.style.background = '#667eea';
+      toggleBtn.style.color = '#fff';
+    } else {
+      editor.innerHTML = source.value;
+      source.style.display = 'none';
+      editor.style.display = 'block';
+      toggleBtn.style.background = '';
+      toggleBtn.style.color = '';
+      updatePreview();
+    }
+  });
+
+  // Sync editor to hidden textarea
+  function syncToSource() {
+    source.value = editor.innerHTML;
+    updatePreview();
+  }
+
+  // Update live preview
+  function updatePreview() {
+    previewContent.innerHTML = editor.innerHTML || '<p style="color:#94a3b8;">HTML content will appear here...</p>';
+  }
+
+  editor.addEventListener('input', syncToSource);
+  editor.addEventListener('paste', () => setTimeout(syncToSource, 0));
+
+  // Sync form before submit
+  document.getElementById('sidebar-form').addEventListener('submit', () => {
+    if (!sourceMode) {
+      source.value = editor.innerHTML;
+    }
+  });
+
+  // Live preview for label/icon/button
+  if (labelInput) {
+    labelInput.addEventListener('input', () => {
+      previewTitle.textContent = labelInput.value || 'Sidebar Title';
+    });
+  }
+  if (iconInput) {
+    iconInput.addEventListener('input', () => {
+      previewBtnIcon.className = iconInput.value || 'fas fa-question-circle';
+    });
+  }
+  if (btnLabelInput) {
+    btnLabelInput.addEventListener('input', () => {
+      previewBtnLabel.textContent = btnLabelInput.value || 'Help';
+    });
+  }
+});
+</script>
 
 <%- include('../../partials/footer') %>

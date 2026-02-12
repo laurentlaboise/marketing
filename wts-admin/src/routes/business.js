@@ -482,13 +482,14 @@ router.get('/sidebar/new', (req, res) => {
 
 router.post('/sidebar', async (req, res) => {
   try {
-    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class } = req.body;
+    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label } = req.body;
 
     await db.query(
-      `INSERT INTO sidebar_items (label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [label, url || null, icon_class || 'fas fa-link', section, parseInt(sort_order) || 0,
-       is_visible !== 'false', open_in_new_tab === 'true', css_class || null]
+      `INSERT INTO sidebar_items (label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [label, url || null, icon_class || 'fas fa-question-circle', section, parseInt(sort_order) || 0,
+       is_visible !== 'false', open_in_new_tab === 'true', css_class || null,
+       page_url || null, content_html || null, button_label || 'Help']
     );
     req.session.successMessage = 'Sidebar item created successfully';
     res.redirect('/business/sidebar');
@@ -521,13 +522,15 @@ router.get('/sidebar/:id/edit', async (req, res) => {
 
 router.post('/sidebar/:id', async (req, res) => {
   try {
-    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class } = req.body;
+    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label } = req.body;
 
     await db.query(
       `UPDATE sidebar_items SET label=$1, url=$2, icon_class=$3, section=$4, sort_order=$5,
-       is_visible=$6, open_in_new_tab=$7, css_class=$8, updated_at=CURRENT_TIMESTAMP WHERE id=$9`,
-      [label, url || null, icon_class || 'fas fa-link', section, parseInt(sort_order) || 0,
-       is_visible !== 'false', open_in_new_tab === 'true', css_class || null, req.params.id]
+       is_visible=$6, open_in_new_tab=$7, css_class=$8, page_url=$9, content_html=$10, button_label=$11,
+       updated_at=CURRENT_TIMESTAMP WHERE id=$12`,
+      [label, url || null, icon_class || 'fas fa-question-circle', section, parseInt(sort_order) || 0,
+       is_visible !== 'false', open_in_new_tab === 'true', css_class || null,
+       page_url || null, content_html || null, button_label || 'Help', req.params.id]
     );
     req.session.successMessage = 'Sidebar item updated successfully';
     res.redirect('/business/sidebar');
