@@ -571,52 +571,95 @@ router.get('/orders', async (req, res) => {
   }
 });
 
-// ==================== PRICE MODELS ====================
+// ==================== PRICE MODELS (Subscription Packages) ====================
 
 router.get('/pricing', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM price_models ORDER BY name ASC');
+    const result = await db.query('SELECT * FROM price_models ORDER BY sort_order ASC, name ASC');
     res.render('business/pricing/list', {
-      title: 'Price Models - WTS Admin',
+      title: 'Pricing Packages - WTS Admin',
       models: result.rows,
       currentPage: 'pricing'
     });
   } catch (error) {
     res.render('business/pricing/list', {
-      title: 'Price Models - WTS Admin',
+      title: 'Pricing Packages - WTS Admin',
       models: [],
       currentPage: 'pricing',
-      error: 'Failed to load price models'
+      error: 'Failed to load pricing packages'
     });
   }
 });
 
-router.get('/pricing/new', (req, res) => {
-  res.render('business/pricing/form', {
-    title: 'New Price Model - WTS Admin',
-    model: null,
-    currentPage: 'pricing'
-  });
+router.get('/pricing/new', async (req, res) => {
+  try {
+    const featuresResult = await db.query('SELECT * FROM pricing_features WHERE status = $1 ORDER BY category_sort_order ASC, sort_order ASC', ['active']);
+    const plansResult = await db.query('SELECT id, name FROM price_models ORDER BY name ASC');
+    res.render('business/pricing/form', {
+      title: 'New Pricing Package - WTS Admin',
+      model: null,
+      allFeatures: featuresResult.rows,
+      allPlans: plansResult.rows,
+      currentPage: 'pricing'
+    });
+  } catch (error) {
+    res.render('business/pricing/form', {
+      title: 'New Pricing Package - WTS Admin',
+      model: null,
+      allFeatures: [],
+      allPlans: [],
+      currentPage: 'pricing',
+      error: 'Failed to load form data'
+    });
+  }
 });
 
 router.post('/pricing', async (req, res) => {
   try {
-    const { name, description, type, base_price, billing_cycle, features, limits, status } = req.body;
+    const {
+      name, slug, description, type, base_price, billing_cycle, status,
+      highlight, badge_text, annual_discount_pct, sort_order,
+      cta_text, cta_url, icon_class, upsell_text, upsell_target_id,
+      pay_as_you_go_text, trial_days, currency,
+      stripe_price_id_monthly, stripe_price_id_yearly
+    } = req.body;
+
+    // Build features JSONB from checkbox inputs (feature_<key> = "true")
+    const features = {};
+    Object.keys(req.body).forEach(key => {
+      if (key.startsWith('feature_')) {
+        const featureKey = key.replace('feature_', '');
+        features[featureKey] = req.body[key] === 'true';
+      }
+    });
+
+    const modelSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     await db.query(
-      'INSERT INTO price_models (name, description, type, base_price, billing_cycle, features, limits, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-      [name, description, type, base_price || null, billing_cycle, features ? JSON.parse(features) : null, limits ? JSON.parse(limits) : null, status || 'active']
+      `INSERT INTO price_models (
+        name, slug, description, type, base_price, billing_cycle, features, status,
+        highlight, badge_text, annual_discount_pct, sort_order,
+        cta_text, cta_url, icon_class, upsell_text, upsell_target_id,
+        pay_as_you_go_text, trial_days, currency,
+        stripe_price_id_monthly, stripe_price_id_yearly
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+      [
+        name, modelSlug, description, type, base_price || null, billing_cycle || 'monthly',
+        JSON.stringify(features), status || 'active',
+        highlight === 'true', badge_text || null,
+        parseInt(annual_discount_pct) || 20, parseInt(sort_order) || 0,
+        cta_text || 'Choose Plan', cta_url || null, icon_class || null,
+        upsell_text || null, upsell_target_id || null,
+        pay_as_you_go_text || null, parseInt(trial_days) || 0, currency || 'USD',
+        stripe_price_id_monthly || null, stripe_price_id_yearly || null
+      ]
     );
-    req.session.successMessage = 'Price model created successfully';
+    req.session.successMessage = 'Pricing package created successfully';
     res.redirect('/business/pricing');
   } catch (error) {
-    console.error('Create price model error:', error);
-    res.render('business/pricing/form', {
-      title: 'New Price Model - WTS Admin',
-      model: req.body,
-      currentPage: 'pricing',
-      error: 'Failed to create price model'
-    });
+    console.error('Create pricing package error:', error);
+    req.session.errorMessage = 'Failed to create pricing package: ' + error.message;
+    res.redirect('/business/pricing/new');
   }
 });
 
@@ -626,9 +669,13 @@ router.get('/pricing/:id/edit', async (req, res) => {
     if (result.rows.length === 0) {
       return res.redirect('/business/pricing');
     }
+    const featuresResult = await db.query('SELECT * FROM pricing_features WHERE status = $1 ORDER BY category_sort_order ASC, sort_order ASC', ['active']);
+    const plansResult = await db.query('SELECT id, name FROM price_models WHERE id != $1 ORDER BY name ASC', [req.params.id]);
     res.render('business/pricing/form', {
-      title: 'Edit Price Model - WTS Admin',
+      title: 'Edit Pricing Package - WTS Admin',
       model: result.rows[0],
+      allFeatures: featuresResult.rows,
+      allPlans: plansResult.rows,
       currentPage: 'pricing'
     });
   } catch (error) {
@@ -638,16 +685,50 @@ router.get('/pricing/:id/edit', async (req, res) => {
 
 router.post('/pricing/:id', async (req, res) => {
   try {
-    const { name, description, type, base_price, billing_cycle, features, limits, status } = req.body;
+    const {
+      name, slug, description, type, base_price, billing_cycle, status,
+      highlight, badge_text, annual_discount_pct, sort_order,
+      cta_text, cta_url, icon_class, upsell_text, upsell_target_id,
+      pay_as_you_go_text, trial_days, currency,
+      stripe_price_id_monthly, stripe_price_id_yearly
+    } = req.body;
+
+    // Build features JSONB from checkbox inputs
+    const features = {};
+    Object.keys(req.body).forEach(key => {
+      if (key.startsWith('feature_')) {
+        const featureKey = key.replace('feature_', '');
+        features[featureKey] = req.body[key] === 'true';
+      }
+    });
+
+    const modelSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     await db.query(
-      'UPDATE price_models SET name = $1, description = $2, type = $3, base_price = $4, billing_cycle = $5, features = $6, limits = $7, status = $8, updated_at = CURRENT_TIMESTAMP WHERE id = $9',
-      [name, description, type, base_price || null, billing_cycle, features ? JSON.parse(features) : null, limits ? JSON.parse(limits) : null, status, req.params.id]
+      `UPDATE price_models SET
+        name=$1, slug=$2, description=$3, type=$4, base_price=$5, billing_cycle=$6,
+        features=$7, status=$8, highlight=$9, badge_text=$10,
+        annual_discount_pct=$11, sort_order=$12, cta_text=$13, cta_url=$14,
+        icon_class=$15, upsell_text=$16, upsell_target_id=$17,
+        pay_as_you_go_text=$18, trial_days=$19, currency=$20,
+        stripe_price_id_monthly=$21, stripe_price_id_yearly=$22,
+        updated_at=CURRENT_TIMESTAMP
+      WHERE id=$23`,
+      [
+        name, modelSlug, description, type, base_price || null, billing_cycle || 'monthly',
+        JSON.stringify(features), status, highlight === 'true', badge_text || null,
+        parseInt(annual_discount_pct) || 20, parseInt(sort_order) || 0,
+        cta_text || 'Choose Plan', cta_url || null, icon_class || null,
+        upsell_text || null, upsell_target_id || null,
+        pay_as_you_go_text || null, parseInt(trial_days) || 0, currency || 'USD',
+        stripe_price_id_monthly || null, stripe_price_id_yearly || null,
+        req.params.id
+      ]
     );
-    req.session.successMessage = 'Price model updated successfully';
+    req.session.successMessage = 'Pricing package updated successfully';
     res.redirect('/business/pricing');
   } catch (error) {
-    req.session.errorMessage = 'Failed to update price model';
+    req.session.errorMessage = 'Failed to update pricing package';
     res.redirect(`/business/pricing/${req.params.id}/edit`);
   }
 });
@@ -655,11 +736,114 @@ router.post('/pricing/:id', async (req, res) => {
 router.post('/pricing/:id/delete', async (req, res) => {
   try {
     await db.query('DELETE FROM price_models WHERE id = $1', [req.params.id]);
-    req.session.successMessage = 'Price model deleted successfully';
+    req.session.successMessage = 'Pricing package deleted successfully';
   } catch (error) {
-    req.session.errorMessage = 'Failed to delete price model';
+    req.session.errorMessage = 'Failed to delete pricing package';
   }
   res.redirect('/business/pricing');
+});
+
+// ==================== PRICING FEATURES CATALOG ====================
+
+router.get('/pricing-features', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM pricing_features ORDER BY category_sort_order ASC, sort_order ASC');
+    const categories = {};
+    result.rows.forEach(f => {
+      if (!categories[f.category_name]) categories[f.category_name] = [];
+      categories[f.category_name].push(f);
+    });
+    res.render('business/pricing/features-list', {
+      title: 'Pricing Features Catalog - WTS Admin',
+      features: result.rows,
+      categories,
+      currentPage: 'pricing-features'
+    });
+  } catch (error) {
+    res.render('business/pricing/features-list', {
+      title: 'Pricing Features Catalog - WTS Admin',
+      features: [],
+      categories: {},
+      currentPage: 'pricing-features',
+      error: 'Failed to load pricing features'
+    });
+  }
+});
+
+router.get('/pricing-features/new', (req, res) => {
+  res.render('business/pricing/features-form', {
+    title: 'New Pricing Feature - WTS Admin',
+    feature: null,
+    currentPage: 'pricing-features'
+  });
+});
+
+router.post('/pricing-features', async (req, res) => {
+  try {
+    const { category_name, category_icon, feature_key, feature_name, feature_description, sort_order, category_sort_order, status } = req.body;
+
+    await db.query(
+      `INSERT INTO pricing_features (category_name, category_icon, feature_key, feature_name, feature_description, sort_order, category_sort_order, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [category_name, category_icon || 'fas fa-cog', feature_key, feature_name, feature_description || null,
+       parseInt(sort_order) || 0, parseInt(category_sort_order) || 0, status || 'active']
+    );
+    req.session.successMessage = 'Pricing feature created successfully';
+    res.redirect('/business/pricing-features');
+  } catch (error) {
+    console.error('Create pricing feature error:', error);
+    res.render('business/pricing/features-form', {
+      title: 'New Pricing Feature - WTS Admin',
+      feature: req.body,
+      currentPage: 'pricing-features',
+      error: 'Failed to create pricing feature. ' + (error.detail || error.message)
+    });
+  }
+});
+
+router.get('/pricing-features/:id/edit', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM pricing_features WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.redirect('/business/pricing-features');
+    }
+    res.render('business/pricing/features-form', {
+      title: 'Edit Pricing Feature - WTS Admin',
+      feature: result.rows[0],
+      currentPage: 'pricing-features'
+    });
+  } catch (error) {
+    res.redirect('/business/pricing-features');
+  }
+});
+
+router.post('/pricing-features/:id', async (req, res) => {
+  try {
+    const { category_name, category_icon, feature_key, feature_name, feature_description, sort_order, category_sort_order, status } = req.body;
+
+    await db.query(
+      `UPDATE pricing_features SET category_name=$1, category_icon=$2, feature_key=$3, feature_name=$4,
+       feature_description=$5, sort_order=$6, category_sort_order=$7, status=$8, updated_at=CURRENT_TIMESTAMP
+       WHERE id=$9`,
+      [category_name, category_icon || 'fas fa-cog', feature_key, feature_name, feature_description || null,
+       parseInt(sort_order) || 0, parseInt(category_sort_order) || 0, status, req.params.id]
+    );
+    req.session.successMessage = 'Pricing feature updated successfully';
+    res.redirect('/business/pricing-features');
+  } catch (error) {
+    req.session.errorMessage = 'Failed to update pricing feature';
+    res.redirect(`/business/pricing-features/${req.params.id}/edit`);
+  }
+});
+
+router.post('/pricing-features/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM pricing_features WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Pricing feature deleted successfully';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to delete pricing feature';
+  }
+  res.redirect('/business/pricing-features');
 });
 
 module.exports = router;
