@@ -701,6 +701,44 @@ router.get('/form-templates', async (req, res) => {
   }
 });
 
+// ==================== FORM BUTTONS ====================
+
+// Get buttons linked to a specific form type
+router.get('/form-buttons/:type', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT id, form_type, button_label, page_url, style_preset, custom_css, custom_js,
+              rel_nofollow, rel_noopener, rel_noreferrer, target_blank
+       FROM form_buttons
+       WHERE form_type = $1 AND status = 'active'
+       ORDER BY sort_order ASC, created_at ASC`,
+      [req.params.type]
+    );
+    respond(res, { buttons: result.rows });
+  } catch (error) {
+    console.error('Public API - Form buttons error:', error);
+    respond(res, { error: 'Failed to load form buttons' }, 500);
+  }
+});
+
+// Get all active form buttons (bulk)
+router.get('/form-buttons', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT fb.id, fb.form_type, fb.button_label, fb.page_url, fb.style_preset,
+              fb.custom_css, fb.custom_js, fb.rel_nofollow, fb.rel_noopener,
+              fb.rel_noreferrer, fb.target_blank
+       FROM form_buttons fb
+       JOIN form_templates ft ON ft.form_type = fb.form_type
+       WHERE fb.status = 'active' AND ft.status = 'active'
+       ORDER BY fb.form_type, fb.sort_order ASC`
+    );
+    respond(res, { buttons: result.rows });
+  } catch (error) {
+    respond(res, { error: 'Failed to load form buttons' }, 500);
+  }
+});
+
 // ==================== FORM SUBMISSIONS ====================
 
 // Stricter rate limit for form submissions (10 per 15 min per IP)
