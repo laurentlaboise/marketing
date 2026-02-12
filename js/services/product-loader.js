@@ -5,10 +5,10 @@
  * How it works:
  * 1. Finds .service-grid[data-service-page] on the page
  * 2. Fetches active products for that service_page from the admin API
- * 3. If products exist → replaces static cards with dynamic ones
- * 4. If API is down or empty → keeps the original static cards as fallback
- * 5. Generates slide-in detail panels for each product
- * 6. Wires up "+ Service" buttons to add products to user profile
+ * 3. Renders product cards into the grid (static fallback if API is down)
+ * 4. Generates detail content for the slide-in panel
+ * 5. Handles Learn More → slide-in open/close
+ * 6. Handles "+ Add to My Services" toggle in the panel
  */
 (function () {
   'use strict';
@@ -16,9 +16,24 @@
   var API_BASE = 'https://admin.wordsthatsells.website/api/public';
   var SAVED_SERVICES_KEY = 'wts_saved_services';
 
+  // ── Slide-in DOM references (set once) ─────────────────────
+  var elPanel, elOverlay, elTitle, elImage, elContent, elCloseBtn;
+
+  function cacheSlideInElements() {
+    elPanel    = document.getElementById('details-slide-in');
+    elOverlay  = document.getElementById('details-overlay');
+    elTitle    = document.getElementById('slide-in-title');
+    elImage    = document.getElementById('slide-in-image');
+    elContent  = document.getElementById('slide-in-content');
+    elCloseBtn = document.getElementById('slide-in-close');
+  }
+
   // ── Initializer ──────────────────────────────────────────────
 
   function init() {
+    cacheSlideInElements();
+    bindCloseHandlers();
+
     var grid = document.querySelector('.service-grid[data-service-page]');
     if (!grid) return;
 
@@ -32,9 +47,6 @@
   // ── Load products from admin API ─────────────────────────────
 
   function loadProducts(servicePage, grid) {
-    // Preserve the original static HTML so we can restore it on failure
-    var staticHTML = grid.innerHTML;
-
     var url = API_BASE + '/products?service_page=' + encodeURIComponent(servicePage);
     console.log('[ProductLoader] Fetching: ' + url);
 
@@ -51,17 +63,12 @@
           return;
         }
 
-        // API returned products — render them
         renderCards(products, grid);
-        renderDetailStorage(products);
+        storeDetailData(products);
         bindLearnMoreButtons();
       })
       .catch(function (err) {
         console.warn('[ProductLoader] API error — keeping static cards:', err.message);
-        // If the grid was somehow cleared, restore it
-        if (!grid.innerHTML.trim()) {
-          grid.innerHTML = staticHTML;
-        }
       });
   }
 
@@ -98,118 +105,140 @@
       container.appendChild(card);
     });
 
-    // Trigger reveal animations for newly added cards
     triggerRevealAnimations(container);
   }
 
-  // ── Render hidden detail-storage divs for the slide-in panel ─
+  // ── Store product detail data for the slide-in panel ─────────
+  // Instead of injecting hidden DOM, we keep a simple JS map and
+  // build the panel HTML on-the-fly when the user clicks Learn More.
 
-  function renderDetailStorage(products) {
-    var storage = document.querySelector('.service-details-storage');
-    if (!storage) {
-      storage = document.createElement('div');
-      storage.className = 'service-details-storage';
-      storage.style.display = 'none';
-      document.body.appendChild(storage);
-    }
+  var detailMap = {};
 
-    // Remove previously-generated dynamic entries (keep hand-coded static ones)
-    var old = storage.querySelectorAll('[data-dynamic]');
-    for (var k = 0; k < old.length; k++) old[k].remove();
-
+  function storeDetailData(products) {
     products.forEach(function (product) {
       var slug = product.slug || product.id;
-      var detailId = 'details-' + slug;
-
-      // Don't overwrite a hand-coded static entry
-      if (document.getElementById(detailId)) return;
-
       var si = product.slide_in || {};
-      var title = si.title || product.name;
-      var imgUrl = si.image || product.image_url ||
-        'https://placehold.co/800x400/667eea/ffffff?text=' + encodeURIComponent(product.name);
 
-      var inner = '';
-
-      if (si.subtitle) {
-        inner += '<p class="service-description" style="font-size:var(--font-size-lg);">' + esc(si.subtitle) + '</p>';
-      }
-      if (si.video) {
-        inner +=
-          '<div class="feature-visual" style="margin-bottom:var(--spacing-2xl);">' +
-          '<iframe width="100%" height="400" src="' + esc(si.video) + '" title="' + esc(title) +
-          '" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" ' +
-          'allowfullscreen style="border-radius:var(--border-radius-lg);"></iframe></div>';
-      }
-      if (si.content) {
-        inner += '<div class="feature-content">' + si.content + '</div>';
-      }
-      if (product.features && product.features.length) {
-        inner +=
-          '<div class="feature-content" style="margin-top:var(--spacing-xl);">' +
-          '<h3 class="service-title">Features</h3><ul>' +
-          product.features.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') +
-          '</ul></div>';
-      }
-      inner +=
-        '<div style="margin-top:2rem;text-align:center;">' +
-        '<button class="btn btn-accent-magenta btn-add-service" data-product-id="' + esc(String(product.id)) +
-        '" data-product-name="' + esc(product.name) +
-        '" style="font-size:1.1rem;padding:0.8rem 2rem;">' +
-        (isSaved(product.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
-        '</button></div>';
-
-      var div = document.createElement('div');
-      div.id = detailId;
-      div.setAttribute('data-dynamic', 'true');
-      div.setAttribute('data-title', title);
-      div.setAttribute('data-img', imgUrl);
-      div.innerHTML =
-        '<section class="service-section section-alt"><div class="container"><div class="section-header">' +
-        '<center><div class="heading-accent-line"></div></center>' +
-        '<h2>' + esc(title) + '</h2>' + inner +
-        '</div></div></section>';
-
-      storage.appendChild(div);
+      detailMap[slug] = {
+        id: product.id,
+        name: product.name,
+        title: si.title || product.name,
+        subtitle: si.subtitle || '',
+        content: si.content || '',
+        image: si.image || product.image_url || '',
+        video: si.video || '',
+        features: product.features || [],
+        price: product.price ? parseFloat(product.price) : null,
+        currency: product.currency || 'USD',
+        has_stripe: product.has_stripe
+      };
     });
   }
 
-  // ── Bind "Learn More" buttons to the slide-in panel ──────────
+  // ── Bind "Learn More" buttons ────────────────────────────────
 
   function bindLearnMoreButtons() {
     var btns = document.querySelectorAll('.btn-learn-more[data-service]');
     for (var i = 0; i < btns.length; i++) {
-      btns[i].addEventListener('click', onLearnMore);
+      // Remove any stale listeners by cloning
+      var btn = btns[i];
+      var fresh = btn.cloneNode(true);
+      btn.parentNode.replaceChild(fresh, btn);
+      fresh.addEventListener('click', onLearnMore);
     }
   }
 
-  function onLearnMore() {
+  function onLearnMore(e) {
+    e.preventDefault();
     var key = this.getAttribute('data-service');
-    var detail = document.getElementById('details-' + key);
-    if (!detail) return;
+    var data = detailMap[key];
+    if (!data || !elPanel) return;
 
-    var title = detail.getAttribute('data-title') || 'Service Details';
-    var rawImg = detail.getAttribute('data-img') || '';
-    var content = detail.innerHTML;
+    // Build panel content
+    var html = '';
 
-    var elTitle   = document.getElementById('slide-in-title');
-    var elImage   = document.getElementById('slide-in-image');
-    var elContent = document.getElementById('slide-in-content');
-    var elPanel   = document.getElementById('details-slide-in');
-    var elOverlay = document.getElementById('details-overlay');
-
-    if (elTitle)   elTitle.textContent = title;
-    if (elImage) {
-      var safeUrl = sanitizeUrl(rawImg);
-      if (safeUrl) { elImage.src = safeUrl; } else { elImage.removeAttribute('src'); }
-      elImage.alt = title;
+    if (data.subtitle) {
+      html += '<p style="font-size:1.1rem;color:var(--color-slate-500,#64748b);margin-bottom:1.5rem;">' + esc(data.subtitle) + '</p>';
     }
-    if (elContent) elContent.innerHTML = content;
-    if (elPanel)   elPanel.classList.add('active');
-    if (elOverlay) elOverlay.classList.add('active');
 
-    // Re-bind add-service buttons that may now be inside the panel
+    if (data.video) {
+      html += '<div style="margin-bottom:1.5rem;">' +
+        '<iframe width="100%" height="400" src="' + esc(data.video) + '" title="' + esc(data.title) +
+        '" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" ' +
+        'allowfullscreen style="border-radius:var(--border-radius-lg,12px);"></iframe></div>';
+    }
+
+    if (data.content) {
+      html += '<div class="feature-content" style="line-height:1.7;">' + data.content + '</div>';
+    }
+
+    if (data.features.length) {
+      html += '<div style="margin-top:1.5rem;"><h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;">Features</h3><ul style="padding-left:1.2rem;">';
+      data.features.forEach(function (f) { html += '<li style="margin-bottom:0.4rem;">' + esc(f) + '</li>'; });
+      html += '</ul></div>';
+    }
+
+    // Price + Add to My Services
+    html += '<div style="text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--color-border,#e2e8f0);">';
+    if (data.price) {
+      html += '<p style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:1rem;">$' +
+        data.price.toFixed(2) + ' ' + esc(data.currency) + '</p>';
+    }
+    html += '<button class="btn btn-accent-magenta btn-add-service" data-product-id="' + esc(String(data.id)) +
+      '" data-product-name="' + esc(data.name) + '" style="font-size:1.1rem;padding:0.8rem 2rem;">' +
+      (isSaved(data.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
+      '</button></div>';
+
+    // Set panel content
+    if (elTitle) elTitle.textContent = data.title;
+    if (elImage) {
+      if (data.image) {
+        var safeUrl = sanitizeUrl(data.image);
+        if (safeUrl) {
+          elImage.src = safeUrl;
+          elImage.alt = data.title;
+          elImage.style.display = '';
+        } else {
+          elImage.style.display = 'none';
+        }
+      } else {
+        elImage.style.display = 'none';
+      }
+    }
+    if (elContent) elContent.innerHTML = html;
+
+    // Open panel — use is-open to match slide-in.css
+    document.body.classList.add('no-scroll');
+    elPanel.classList.add('is-open');
+    if (elOverlay) elOverlay.classList.add('is-open');
+
+    // Bind the add-service button inside the panel
     bindAddServiceButtons();
+  }
+
+  // ── Close panel handlers ─────────────────────────────────────
+
+  function closePanel() {
+    if (!elPanel) return;
+    document.body.classList.remove('no-scroll');
+    elPanel.classList.remove('is-open');
+    if (elOverlay) elOverlay.classList.remove('is-open');
+  }
+
+  function bindCloseHandlers() {
+    if (elCloseBtn) {
+      elCloseBtn.addEventListener('click', closePanel);
+    }
+    if (elOverlay) {
+      elOverlay.addEventListener('click', function (e) {
+        if (e.target === elOverlay) closePanel();
+      });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && elPanel && elPanel.classList.contains('is-open')) {
+        closePanel();
+      }
+    });
   }
 
   // ── Bind "+ Service" buttons to add-to-profile ─────────────
@@ -230,30 +259,15 @@
     var btn = this;
     var productId = btn.getAttribute('data-product-id');
     var productName = btn.getAttribute('data-product-name') || '';
-    var alreadySaved = isSaved(productId);
 
-    if (alreadySaved) {
-      // Toggle off — remove from saved services
+    if (isSaved(productId)) {
       removeService(productId);
-      updateAllButtons(productId, false);
+      btn.innerHTML = '<i class="fas fa-plus"></i> Add to My Services';
       console.log('[ProductLoader] Removed service:', productName);
     } else {
-      // Save to profile
       saveService(productId, productName);
-      updateAllButtons(productId, true);
+      btn.innerHTML = '<i class="fas fa-check"></i> Added to My Services';
       console.log('[ProductLoader] Added service:', productName);
-    }
-  }
-
-  // Update the button state inside the slide-in panel
-  function updateAllButtons(productId, added) {
-    var btns = document.querySelectorAll('.btn-add-service[data-product-id="' + productId + '"]');
-    for (var i = 0; i < btns.length; i++) {
-      if (added) {
-        btns[i].innerHTML = '<i class="fas fa-check"></i> Added to My Services';
-      } else {
-        btns[i].innerHTML = '<i class="fas fa-plus"></i> Add to My Services';
-      }
     }
   }
 
@@ -308,7 +322,7 @@
         el.innerHTML = '<ul class="sidebar-list">' + html + '</ul>';
       })
       .catch(function (err) {
-        console.warn('[ProductLoader] Sidebar API error — keeping static sidebar:', err.message);
+        console.warn('[ProductLoader] Sidebar API error:', err.message);
       });
   }
 
@@ -336,7 +350,6 @@
 
   function triggerRevealAnimations(container) {
     if (!('IntersectionObserver' in window)) {
-      // Fallback: just reveal everything immediately
       var els = container.querySelectorAll('.reveal');
       for (var j = 0; j < els.length; j++) els[j].classList.add('visible');
       return;
