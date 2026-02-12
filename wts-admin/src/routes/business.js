@@ -550,6 +550,89 @@ router.post('/sidebar/:id/delete', async (req, res) => {
   res.redirect('/business/sidebar');
 });
 
+// ==================== SIDEBAR LINK VERIFIER ====================
+
+// Verify that a page_url will match correctly (AJAX endpoint)
+router.get('/sidebar/verify-link', async (req, res) => {
+  try {
+    const inputPath = (req.query.path || '').trim();
+    if (!inputPath) {
+      return res.json({ error: 'No path provided' });
+    }
+
+    // Normalize exactly the same way page-sidebar.js does on the client
+    let normalized = inputPath;
+    if (normalized.endsWith('.html')) normalized = normalized.slice(0, -5);
+    if (normalized.length > 1 && normalized.endsWith('/')) normalized = normalized.slice(0, -1);
+
+    // Fetch all page-sidebar items to run the matching logic
+    const result = await db.query(
+      `SELECT id, label, page_url, button_label, is_visible, section
+       FROM sidebar_items
+       WHERE section = 'page-sidebar' AND page_url IS NOT NULL
+       ORDER BY sort_order ASC`
+    );
+
+    const matches = [];
+    const conflicts = [];
+
+    result.rows.forEach(item => {
+      const pattern = item.page_url;
+      if (!pattern) return;
+
+      let isMatch = false;
+      let matchType = '';
+
+      if (pattern === normalized) {
+        isMatch = true;
+        matchType = 'exact';
+      } else if (pattern.endsWith('/*')) {
+        const prefix = pattern.slice(0, -1);
+        if (normalized.startsWith(prefix)) {
+          isMatch = true;
+          matchType = 'wildcard';
+        }
+      } else if (normalized.endsWith('/') && pattern === normalized.slice(0, -1)) {
+        isMatch = true;
+        matchType = 'trailing-slash';
+      } else if (pattern.endsWith('/') && normalized === pattern.slice(0, -1)) {
+        isMatch = true;
+        matchType = 'trailing-slash';
+      }
+
+      if (isMatch) {
+        const entry = {
+          id: item.id,
+          label: item.label,
+          page_url: item.page_url,
+          button_label: item.button_label,
+          is_visible: item.is_visible,
+          match_type: matchType
+        };
+        if (item.is_visible) {
+          matches.push(entry);
+        } else {
+          conflicts.push(entry);
+        }
+      }
+    });
+
+    // Also check if the current item being edited is excluded (pass its id)
+    const excludeId = req.query.exclude || null;
+
+    res.json({
+      input: inputPath,
+      normalized,
+      matches: matches.filter(m => m.id !== excludeId),
+      hidden_matches: conflicts.filter(m => m.id !== excludeId),
+      total_sidebar_items: result.rows.length
+    });
+  } catch (error) {
+    console.error('Sidebar verify-link error:', error);
+    res.json({ error: 'Verification failed' });
+  }
+});
+
 // ==================== ORDERS (read-only for admin) ====================
 
 router.get('/orders', async (req, res) => {
