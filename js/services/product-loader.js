@@ -2,6 +2,8 @@
  * Product Loader for Service Pages
  * Fetches products from the WTS Admin API and renders them as service cards.
  * Also dynamically generates the slide-in detail panels and handles Stripe checkout.
+ *
+ * Preserves static HTML content as fallback if the API is unreachable or returns no data.
  */
 
 const ADMIN_API_BASE = 'https://admin.wordsthatsells.website/api/public';
@@ -9,36 +11,45 @@ const PAYMENTS_API_BASE = 'https://admin.wordsthatsells.website/api/payments';
 
 /**
  * Load products for a given service page and render them into the grid.
+ * Static HTML content is preserved as fallback.
  * @param {string} servicePage - The service_page value (e.g. 'content-creation')
  * @param {HTMLElement} gridContainer - The .service-grid element to populate
  */
 export async function loadProducts(servicePage, gridContainer) {
   if (!gridContainer) return;
 
-  // Show loading state
-  gridContainer.innerHTML = '<div class="loading-products" style="text-align:center;padding:2rem;grid-column:1/-1;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary-color,#667eea);"></i><p style="margin-top:1rem;color:#666;">Loading services...</p></div>';
+  // Save the original static content so we can restore it on failure
+  const staticContent = gridContainer.innerHTML;
 
   try {
+    console.log(`[ProductLoader] Fetching products for service_page="${servicePage}"...`);
     const response = await fetch(`${ADMIN_API_BASE}/products?service_page=${encodeURIComponent(servicePage)}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    if (!response.ok) {
+      console.warn(`[ProductLoader] API returned HTTP ${response.status} — keeping static content`);
+      return; // Keep original static content
+    }
 
     const products = await response.json();
+    console.log(`[ProductLoader] Received ${products.length} product(s) from API`);
 
     if (!products || products.length === 0) {
-      gridContainer.innerHTML = '<div style="text-align:center;padding:2rem;grid-column:1/-1;color:#666;"><i class="fas fa-box-open" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>No services available at the moment.</div>';
+      // No products in the database for this service page — keep static content
+      console.log('[ProductLoader] No products found in API — keeping static content as fallback');
       return;
     }
 
+    // We got products from the API — render them
     renderProducts(products, gridContainer);
     renderDetailStorage(products);
     bindLearnMoreButtons();
     bindBuyButtons();
 
   } catch (error) {
-    console.error('Failed to load products:', error);
-    // Keep the static content as fallback - don't clear the grid
-    if (gridContainer.querySelector('.loading-products')) {
-      gridContainer.innerHTML = '<div style="text-align:center;padding:2rem;grid-column:1/-1;color:#999;"><i class="fas fa-exclamation-triangle" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>Unable to load services. Please refresh the page.</div>';
+    console.warn('[ProductLoader] API unavailable — keeping static content:', error.message);
+    // Restore static content if it was somehow lost
+    if (!gridContainer.innerHTML || gridContainer.querySelector('.loading-products')) {
+      gridContainer.innerHTML = staticContent;
     }
   }
 }
@@ -147,31 +158,14 @@ function renderDetailStorage(products) {
 /**
  * Simple URL safety check for image sources.
  * Allows http(s) URLs and relative paths; rejects javascript:, data:, etc.
- * @param {string} url
- * @returns {boolean}
  */
 function isSafeImageUrl(url) {
-  if (!url || typeof url !== 'string') {
-    return false;
-  }
-
+  if (!url || typeof url !== 'string') return false;
   const trimmed = url.trim();
-  if (!trimmed) {
-    return false;
-  }
-
-  // Disallow obvious dangerous schemes quickly
+  if (!trimmed) return false;
   const lower = trimmed.toLowerCase();
-  if (lower.startsWith('javascript:') || lower.startsWith('data:') || lower.startsWith('vbscript:')) {
-    return false;
-  }
-
-  // Allow protocol-relative and relative URLs (e.g. /img/foo.png, images/foo.png)
-  if (lower.startsWith('/') || !lower.includes(':')) {
-    return true;
-  }
-
-  // For absolute URLs, only allow http(s)
+  if (lower.startsWith('javascript:') || lower.startsWith('data:') || lower.startsWith('vbscript:')) return false;
+  if (lower.startsWith('/') || !lower.includes(':')) return true;
   try {
     const parsed = new URL(trimmed, window.location.origin);
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';
@@ -181,32 +175,22 @@ function isSafeImageUrl(url) {
 }
 
 /**
- * Bind learn more buttons to the existing slide-in functionality
- */
-/**
- * Sanitize an image URL read from the DOM.
- * Returns a normalized http(s) URL string or null if invalid/unsafe.
- * This adds a second layer of defense on top of isSafeImageUrl.
+ * Sanitize an image URL. Returns a safe http(s) URL string or null.
  */
 function sanitizeImageUrl(rawUrl) {
-  if (!rawUrl || typeof rawUrl !== 'string') {
-    return null;
-  }
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
   const trimmed = rawUrl.trim();
-  if (!trimmed) {
-    return null;
-  }
+  if (!trimmed) return null;
   try {
     const url = new URL(trimmed, window.location.origin);
-    if (url.protocol === 'http:' || url.protocol === 'https:') {
-      return url.toString();
-    }
-  } catch (e) {
-    // If URL construction fails, treat as unsafe.
-  }
+    if (url.protocol === 'http:' || url.protocol === 'https:') return url.toString();
+  } catch (e) { /* unsafe */ }
   return null;
 }
 
+/**
+ * Bind learn more buttons to the existing slide-in functionality
+ */
 function bindLearnMoreButtons() {
   document.querySelectorAll('.btn-learn-more[data-service]').forEach(btn => {
     btn.addEventListener('click', function() {
