@@ -26,8 +26,18 @@
 
             <div class="form-group">
               <label class="form-label" for="page_url">Target Page URL *</label>
-              <input type="text" id="page_url" name="page_url" class="form-input" value="<%= item ? (item.page_url || '') : '' %>" placeholder="/en/articles/my-article-slug" required>
-              <small style="color:#64748b;">The page path where the floating button will appear (e.g. <code>/en/articles/my-article</code>). Use <code>*</code> as wildcard (e.g. <code>/en/articles/*</code> for all articles).</small>
+              <div style="display:flex;gap:0.5rem;align-items:flex-start;">
+                <div style="flex:1;">
+                  <input type="text" id="page_url" name="page_url" class="form-input" value="<%= item ? (item.page_url || '') : '' %>" placeholder="Paste full URL or path, e.g. https://wordsthatsells.website/en/articles/my-article" required>
+                </div>
+                <button type="button" id="verifyLinkBtn" class="btn btn-primary btn-sm" style="white-space:nowrap;margin-top:1px;height:38px;">
+                  <i class="fas fa-check-circle"></i> Verify
+                </button>
+              </div>
+              <small style="color:#64748b;">Paste the <strong>full URL</strong> or just the path. The system will extract and normalize the path automatically. Use <code>*</code> as wildcard (e.g. <code>/en/articles/*</code>).</small>
+
+              <!-- Verification result panel -->
+              <div id="verifyResult" style="display:none;margin-top:0.6rem;"></div>
             </div>
 
             <div class="form-row">
@@ -213,6 +223,72 @@
       grid-template-columns: 1fr !important;
     }
   }
+
+  /* Link Verifier */
+  .verify-box {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  .verify-box.success {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    color: #166534;
+  }
+  .verify-box.warning {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    color: #92400e;
+  }
+  .verify-box.error {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+  }
+  .verify-box.info {
+    background: #eff6ff;
+    border: 1px solid #93c5fd;
+    color: #1e40af;
+  }
+  .verify-box .verify-icon {
+    font-size: 1rem;
+    margin-right: 0.4rem;
+  }
+  .verify-box .verify-heading {
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .verify-box code {
+    background: rgba(0,0,0,0.06);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.82rem;
+  }
+  .verify-box .conflict-item {
+    margin-top: 0.4rem;
+    padding: 0.4rem 0.6rem;
+    background: rgba(0,0,0,0.04);
+    border-radius: 5px;
+    font-size: 0.82rem;
+  }
+  .verify-box .conflict-item strong {
+    font-weight: 600;
+  }
+  .verify-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #d1d5db;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: verify-spin 0.6s linear infinite;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+  @keyframes verify-spin {
+    to { transform: rotate(360deg); }
+  }
 </style>
 
 <script>
@@ -317,6 +393,120 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+</script>
+
+<!-- Link Verifier Script -->
+<script>
+(function() {
+  var verifyBtn = document.getElementById('verifyLinkBtn');
+  var pageUrlInput = document.getElementById('page_url');
+  var resultBox = document.getElementById('verifyResult');
+  var currentItemId = '<%= item ? item.id : '' %>';
+
+  if (!verifyBtn || !pageUrlInput || !resultBox) return;
+
+  // Auto-extract path from full URL when user pastes
+  pageUrlInput.addEventListener('input', function() {
+    var val = pageUrlInput.value.trim();
+    // If they pasted a full URL, extract just the path
+    try {
+      if (val.match(/^https?:\/\//i)) {
+        var url = new URL(val);
+        pageUrlInput.value = url.pathname;
+      }
+    } catch(e) {
+      // Not a valid URL, leave as-is (they're typing a path)
+    }
+    // Hide previous result
+    resultBox.style.display = 'none';
+  });
+
+  verifyBtn.addEventListener('click', function() {
+    var path = pageUrlInput.value.trim();
+    if (!path) {
+      showResult('error', '<i class="fas fa-times-circle verify-icon"></i> Enter a page URL or paste a full link first.');
+      return;
+    }
+
+    // Extract path from full URL if needed
+    try {
+      if (path.match(/^https?:\/\//i)) {
+        var url = new URL(path);
+        path = url.pathname;
+        pageUrlInput.value = path;
+      }
+    } catch(e) {}
+
+    // Show loading
+    resultBox.style.display = 'block';
+    resultBox.innerHTML = '<div class="verify-box info"><span class="verify-spinner"></span> Verifying link...</div>';
+    verifyBtn.disabled = true;
+
+    var qs = '/business/sidebar/verify-link?path=' + encodeURIComponent(path);
+    if (currentItemId) qs += '&exclude=' + currentItemId;
+
+    fetch(qs)
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        verifyBtn.disabled = false;
+        if (data.error) {
+          showResult('error', '<i class="fas fa-times-circle verify-icon"></i> ' + escHtml(data.error));
+          return;
+        }
+
+        var html = '';
+
+        // Show normalized path
+        html += '<div class="verify-heading"><i class="fas fa-route verify-icon"></i> Path Analysis</div>';
+        html += '<div style="margin-bottom:0.4rem;">Input: <code>' + escHtml(data.input) + '</code></div>';
+        html += '<div style="margin-bottom:0.6rem;">Normalized: <code>' + escHtml(data.normalized) + '</code>';
+        if (data.input !== data.normalized) {
+          html += ' <span style="color:#d97706;font-size:0.8rem;">(auto-corrected)</span>';
+        }
+        html += '</div>';
+
+        // Check for conflicts (other visible items matching same path)
+        if (data.matches && data.matches.length > 0) {
+          html += '<div class="verify-heading" style="color:#dc2626;margin-top:0.5rem;"><i class="fas fa-exclamation-triangle verify-icon"></i> Conflict: ' + data.matches.length + ' other sidebar item' + (data.matches.length > 1 ? 's' : '') + ' already match this path</div>';
+          data.matches.forEach(function(m) {
+            html += '<div class="conflict-item">';
+            html += '<strong>' + escHtml(m.label) + '</strong> ';
+            html += '<code>' + escHtml(m.page_url) + '</code> ';
+            html += '<span style="font-size:0.75rem;color:#6b7280;">(' + m.match_type + ' match)</span> ';
+            html += '<a href="/business/sidebar/' + m.id + '/edit" style="font-size:0.78rem;color:var(--primary);">Edit</a>';
+            html += '</div>';
+          });
+          showResult('warning', html);
+        } else {
+          // No conflicts — this path is clear
+          html += '<div class="verify-heading" style="color:#16a34a;"><i class="fas fa-check-circle verify-icon"></i> No conflicts — this path is available</div>';
+          html += '<div style="font-size:0.82rem;color:#6b7280;">When a visitor loads <code>' + escHtml(data.normalized) + '</code>, your floating button will appear.</div>';
+          showResult('success', html);
+        }
+
+        // Hidden items warning
+        if (data.hidden_matches && data.hidden_matches.length > 0) {
+          var hiddenHtml = '<div style="margin-top:0.5rem;font-size:0.82rem;color:#9ca3af;"><i class="fas fa-eye-slash" style="margin-right:0.3rem;"></i> ' + data.hidden_matches.length + ' hidden item' + (data.hidden_matches.length > 1 ? 's' : '') + ' also match this path (won\'t show on site)</div>';
+          resultBox.querySelector('.verify-box').insertAdjacentHTML('beforeend', hiddenHtml);
+        }
+      })
+      .catch(function(err) {
+        verifyBtn.disabled = false;
+        showResult('error', '<i class="fas fa-times-circle verify-icon"></i> Verification failed. Try again.');
+      });
+  });
+
+  function showResult(type, html) {
+    resultBox.style.display = 'block';
+    resultBox.innerHTML = '<div class="verify-box ' + type + '">' + html + '</div>';
+  }
+
+  function escHtml(str) {
+    var d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+})();
 </script>
 
 <%- include('../../partials/footer') %>
