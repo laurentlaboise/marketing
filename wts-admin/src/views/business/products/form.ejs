@@ -5,11 +5,14 @@
   <%- include('../../partials/header', { user, messages }) %>
 
   <div class="page-content">
-    <div class="page-header">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
         <h1 class="page-title"><%= product ? 'Edit Product' : 'New Product' %></h1>
         <p class="page-subtitle"><a href="/business/products"><i class="fas fa-arrow-left"></i> Back to Products</a></p>
       </div>
+      <button type="button" id="btn-preview-sidebar" class="btn btn-primary" style="white-space:nowrap;">
+        <i class="fas fa-eye"></i> Preview Sidebar
+      </button>
     </div>
 
     <form action="<%= product ? '/business/products/' + product.id : '/business/products' %>" method="POST">
@@ -159,9 +162,16 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="slide_in_content">Detail Content (HTML allowed)</label>
-            <textarea id="slide_in_content" name="slide_in_content" class="form-input" rows="8"><%= product ? (product.slide_in_content || '') : '' %></textarea>
-            <small style="color: #666;">Use HTML for lists, headings, etc. e.g. &lt;ul&gt;&lt;li&gt;Feature 1&lt;/li&gt;&lt;/ul&gt;</small>
+            <label class="form-label" for="slide_in_content" style="display:flex;align-items:center;gap:0.5rem;">
+              <i class="fas fa-code" style="color:#d62b83;"></i> Sidebar HTML Content
+            </label>
+            <textarea id="slide_in_content" name="slide_in_content" class="form-input" rows="16"
+              style="font-family:'Fira Code','Cascadia Code','Consolas',monospace;font-size:13px;line-height:1.6;background:#1a1a2e;color:#e2e8f0;padding:1rem;border-radius:8px;tab-size:2;white-space:pre-wrap;resize:vertical;"
+            ><%= product ? (product.slide_in_content || '') : '' %></textarea>
+            <small style="color: #666; display:block; margin-top:0.4rem;">
+              Write HTML that renders inside the sidebar panel. Use headings, lists, cards, etc.
+              Click <strong>"Preview Sidebar"</strong> above to see the result live.
+            </small>
           </div>
 
           <div class="form-row">
@@ -208,8 +218,20 @@
   </div>
 </main>
 
+<!-- ── Sidebar Preview Panel ────────────────────────────────── -->
+<div id="preview-overlay" style="position:fixed;inset:0;background:rgba(18,42,63,0.6);z-index:9998;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;"></div>
+<div id="preview-panel" style="position:fixed;top:0;right:0;width:75%;max-width:800px;height:100%;background:#fff;z-index:9999;transform:translateX(100%);transition:transform .35s ease;box-shadow:-10px 0 30px rgba(0,0,0,.2);display:flex;flex-direction:column;font-family:'Inter',sans-serif;">
+  <div style="padding:1rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+    <h2 id="preview-title" style="font-size:1.4rem;margin:0;color:#1a1a2e;">Product Preview</h2>
+    <button type="button" id="preview-close" style="font-size:1.6rem;background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem 0.5rem;">&times;</button>
+  </div>
+  <div id="preview-body" style="padding:1.5rem;overflow-y:auto;flex-grow:1;">
+    <!-- filled by JS -->
+  </div>
+</div>
+
 <script>
-// Auto-generate slug from name
+// ── Auto-generate slug ──────────────────────────────────────
 document.getElementById('name').addEventListener('input', function() {
   const slugField = document.getElementById('slug');
   if (!slugField.dataset.manual) {
@@ -225,6 +247,104 @@ document.getElementById('slug').addEventListener('input', function() {
 <% if (product && product.slug) { %>
 document.getElementById('slug').dataset.manual = 'true';
 <% } %>
+
+// ── Sidebar Preview Logic ───────────────────────────────────
+(function() {
+  const btnOpen    = document.getElementById('btn-preview-sidebar');
+  const btnClose   = document.getElementById('preview-close');
+  const overlay    = document.getElementById('preview-overlay');
+  const panel      = document.getElementById('preview-panel');
+  const titleEl    = document.getElementById('preview-title');
+  const bodyEl     = document.getElementById('preview-body');
+
+  function val(id) { return (document.getElementById(id) || {}).value || ''; }
+
+  function open() {
+    // Read current form values
+    const name        = val('name');
+    const description = val('description');
+    const price       = val('price');
+    const currency    = val('currency');
+    const iconClass   = val('icon_class') || 'fas fa-box';
+    const features    = val('features').split('\n').filter(function(l){ return l.trim(); });
+    const siTitle     = val('slide_in_title') || name;
+    const siSubtitle  = val('slide_in_subtitle');
+    const siContent   = val('slide_in_content');
+    const siImage     = val('slide_in_image');
+    const siVideo     = val('slide_in_video');
+
+    titleEl.textContent = siTitle || 'Product Preview';
+
+    // Build preview HTML — matches frontend product-loader rendering
+    let html = '';
+
+    // Image
+    if (siImage) {
+      html += '<img src="' + esc(siImage) + '" alt="' + esc(siTitle) + '" style="width:100%;height:auto;border-radius:12px;margin-bottom:1.5rem;background:#f1f5f9;">';
+    }
+
+    // Subtitle
+    if (siSubtitle) {
+      html += '<p style="font-size:1.1rem;color:#64748b;margin-bottom:1.5rem;">' + esc(siSubtitle) + '</p>';
+    }
+
+    // Video
+    if (siVideo) {
+      html += '<div style="margin-bottom:1.5rem;"><iframe width="100%" height="360" src="' + esc(siVideo) + '" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="border-radius:12px;"></iframe></div>';
+    }
+
+    // HTML Content — rendered raw (this is the HTML textbox output)
+    if (siContent) {
+      var safeContent = (window.DOMPurify && window.DOMPurify.sanitize) ? window.DOMPurify.sanitize(siContent) : siContent;
+      html += '<div class="preview-html-content" style="margin-bottom:1.5rem;line-height:1.7;color:#334155;">' + safeContent + '</div>';
+    }
+
+    // Features list
+    if (features.length) {
+      html += '<div style="margin-bottom:1.5rem;"><h3 style="font-size:1.1rem;font-weight:600;color:#1a1a2e;margin-bottom:0.75rem;">Features</h3><ul style="padding-left:1.2rem;color:#475569;">';
+      features.forEach(function(f) { html += '<li style="margin-bottom:0.4rem;">' + esc(f) + '</li>'; });
+      html += '</ul></div>';
+    }
+
+    // Price + Add to My Services button
+    html += '<div style="text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid #e2e8f0;">';
+    if (price) {
+      html += '<p style="font-size:1.3rem;font-weight:700;color:#d62b83;margin-bottom:1rem;">$' + parseFloat(price).toFixed(2) + ' ' + esc(currency || 'USD') + '</p>';
+    }
+    html += '<button type="button" style="background:#d62b83;color:#fff;border:none;padding:0.8rem 2rem;border-radius:8px;font-size:1.05rem;cursor:pointer;font-weight:600;"><i class="fas fa-plus"></i> Add to My Services</button>';
+    html += '</div>';
+
+    bodyEl.innerHTML = html;
+
+    // Show panel
+    panel.style.transform = 'translateX(0)';
+    overlay.style.opacity = '1';
+    overlay.style.visibility = 'visible';
+  }
+
+  function close() {
+    panel.style.transform = 'translateX(100%)';
+    overlay.style.opacity = '0';
+    overlay.style.visibility = 'hidden';
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
+  }
+
+  btnOpen.addEventListener('click', open);
+  btnClose.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+
+  // Close on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') close();
+  });
+})();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-uT3pX9zt2ChjFuO5YPuMV+KCYQ7LTYxt6++YOaiq4O4psZxfqyD7ZTjZJNMIafzV" crossorigin="anonymous"></script>
 
 <%- include('../../partials/footer') %>
