@@ -1,0 +1,86 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Sidebar Management</h1>
+        <p class="page-subtitle">Manage the sidebar navigation shown on public service pages</p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/sidebar/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Item</a>
+      </div>
+    </div>
+
+    <% const sectionNames = Object.keys(sections); %>
+    <% if (sectionNames.length > 0) { %>
+      <% sectionNames.forEach(sectionName => { %>
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+          <h3 style="margin-bottom: 1rem; text-transform: capitalize; color: var(--text-primary, #1a1a2e);">
+            <i class="fas fa-layer-group"></i> <%= sectionName %>
+          </h3>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:40px;">#</th>
+                  <th>Label</th>
+                  <th>URL</th>
+                  <th>Icon</th>
+                  <th>Visible</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% sections[sectionName].forEach(item => { %>
+                <tr style="<%= !item.is_visible ? 'opacity: 0.5;' : '' %>">
+                  <td style="color: #999;"><%= item.sort_order %></td>
+                  <td>
+                    <i class="<%= item.icon_class %>" style="margin-right: 0.5rem; color: var(--primary-color, #667eea);"></i>
+                    <strong><%= item.label %></strong>
+                  </td>
+                  <td><small style="color: #666;"><%= item.url || '-' %></small></td>
+                  <td><code style="font-size: 0.75rem;"><%= item.icon_class %></code></td>
+                  <td>
+                    <% if (item.is_visible) { %>
+                    <span class="status-badge active">Visible</span>
+                    <% } else { %>
+                    <span class="status-badge inactive">Hidden</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="table-actions">
+                      <a href="/business/sidebar/<%= item.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                      <form action="/business/sidebar/<%= item.id %>/delete" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <% }); %>
+    <% } else { %>
+    <div class="card">
+      <div class="card-body">
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-bars"></i></div>
+          <h3>No Sidebar Items</h3>
+          <p>Add items to customize the sidebar navigation on your public service pages.</p>
+          <a href="/business/sidebar/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Item</a>
+        </div>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

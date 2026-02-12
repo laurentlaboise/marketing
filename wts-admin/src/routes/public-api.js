@@ -391,6 +391,157 @@ router.get('/seo-terms', async (req, res) => {
   }
 });
 
+// ==================== PRODUCTS ====================
+
+// Get all active products (optionally filtered by service_page)
+router.get('/products', async (req, res) => {
+  try {
+    const service_page = req.query.service_page || '';
+    const category = req.query.category || '';
+
+    let query = `SELECT * FROM products WHERE status = 'active'`;
+    const params = [];
+
+    if (service_page) {
+      query += ` AND service_page = $${params.length + 1}`;
+      params.push(service_page);
+    }
+
+    if (category) {
+      query += ` AND category = $${params.length + 1}`;
+      params.push(category);
+    }
+
+    query += ' ORDER BY sort_order ASC, name ASC';
+
+    const result = await db.query(query, params);
+
+    const products = result.rows.map(p => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      description: p.description,
+      price: p.price ? parseFloat(p.price) : null,
+      currency: p.currency || 'USD',
+      category: p.category,
+      service_page: p.service_page,
+      product_type: p.product_type || 'service',
+      features: p.features || [],
+      image_url: p.image_url,
+      icon_class: p.icon_class || 'fas fa-box',
+      animation_class: p.animation_class || 'kinetic-pulse-float',
+      is_featured: p.is_featured || false,
+      has_stripe: !!(p.stripe_price_id || (p.price && parseFloat(p.price) > 0)),
+      slide_in: {
+        title: p.slide_in_title || p.name,
+        subtitle: p.slide_in_subtitle || '',
+        content: p.slide_in_content || '',
+        image: p.slide_in_image || p.image_url || '',
+        video: p.slide_in_video || ''
+      }
+    }));
+
+    respond(res, products);
+  } catch (error) {
+    console.error('Public API - Products error:', error);
+    respond(res, { error: 'Failed to load products' }, 500);
+  }
+});
+
+// Get single product by slug
+router.get('/products/:slug', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT * FROM products WHERE slug = $1 AND status = 'active'`,
+      [req.params.slug]
+    );
+
+    if (result.rows.length === 0) {
+      return respond(res, { error: 'Product not found' }, 404);
+    }
+
+    const p = result.rows[0];
+    respond(res, {
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      description: p.description,
+      price: p.price ? parseFloat(p.price) : null,
+      currency: p.currency || 'USD',
+      category: p.category,
+      service_page: p.service_page,
+      product_type: p.product_type || 'service',
+      features: p.features || [],
+      image_url: p.image_url,
+      icon_class: p.icon_class || 'fas fa-box',
+      animation_class: p.animation_class || 'kinetic-pulse-float',
+      is_featured: p.is_featured || false,
+      has_stripe: !!(p.stripe_price_id || (p.price && parseFloat(p.price) > 0)),
+      slide_in: {
+        title: p.slide_in_title || p.name,
+        subtitle: p.slide_in_subtitle || '',
+        content: p.slide_in_content || '',
+        image: p.slide_in_image || p.image_url || '',
+        video: p.slide_in_video || ''
+      }
+    });
+  } catch (error) {
+    console.error('Public API - Single product error:', error);
+    respond(res, { error: 'Failed to load product' }, 500);
+  }
+});
+
+// Get product categories for a service page
+router.get('/products/categories/:service_page', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT DISTINCT category FROM products WHERE status = 'active' AND service_page = $1 AND category IS NOT NULL ORDER BY category`,
+      [req.params.service_page]
+    );
+    respond(res, result.rows.map(r => r.category));
+  } catch (error) {
+    console.error('Public API - Product categories error:', error);
+    respond(res, { error: 'Failed to load categories' }, 500);
+  }
+});
+
+// ==================== SIDEBAR ITEMS ====================
+
+// Get sidebar items for a section (or all)
+router.get('/sidebar', async (req, res) => {
+  try {
+    const section = req.query.section || '';
+
+    let query = `SELECT * FROM sidebar_items WHERE is_visible = TRUE`;
+    const params = [];
+
+    if (section) {
+      query += ` AND (section = $${params.length + 1} OR section = 'global')`;
+      params.push(section);
+    }
+
+    query += ' ORDER BY section ASC, sort_order ASC';
+
+    const result = await db.query(query, params);
+
+    const items = result.rows.map(item => ({
+      id: item.id,
+      label: item.label,
+      url: item.url,
+      icon_class: item.icon_class,
+      section: item.section,
+      sort_order: item.sort_order,
+      open_in_new_tab: item.open_in_new_tab,
+      css_class: item.css_class
+    }));
+
+    respond(res, items);
+  } catch (error) {
+    console.error('Public API - Sidebar error:', error);
+    respond(res, { error: 'Failed to load sidebar items' }, 500);
+  }
+});
+
 // Health check
 router.get('/health', (req, res) => {
   respond(res, { status: 'ok', timestamp: new Date().toISOString() });

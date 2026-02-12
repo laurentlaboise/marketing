@@ -1,0 +1,84 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= item ? 'Edit Sidebar Item' : 'New Sidebar Item' %></h1>
+        <p class="page-subtitle"><a href="/business/sidebar"><i class="fas fa-arrow-left"></i> Back to Sidebar</a></p>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= item ? '/business/sidebar/' + item.id : '/business/sidebar' %>" method="POST">
+          <div class="form-group">
+            <label class="form-label" for="label">Label *</label>
+            <input type="text" id="label" name="label" class="form-input" value="<%= item ? item.label : '' %>" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="url">URL</label>
+            <input type="text" id="url" name="url" class="form-input" value="<%= item ? (item.url || '') : '' %>" placeholder="/en/digital-marketing-services/...">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="icon_class">Icon Class (Font Awesome)</label>
+              <input type="text" id="icon_class" name="icon_class" class="form-input" value="<%= item ? (item.icon_class || 'fas fa-link') : 'fas fa-link' %>">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="section">Section *</label>
+              <select id="section" name="section" class="form-input" required>
+                <option value="content-creation" <%= item && item.section === 'content-creation' ? 'selected' : '' %>>Content Creation</option>
+                <option value="social-media-management" <%= item && item.section === 'social-media-management' ? 'selected' : '' %>>Social Media Management</option>
+                <option value="web-development" <%= item && item.section === 'web-development' ? 'selected' : '' %>>Web Development</option>
+                <option value="business-tools" <%= item && item.section === 'business-tools' ? 'selected' : '' %>>Business Tools</option>
+                <option value="footer" <%= item && item.section === 'footer' ? 'selected' : '' %>>Footer</option>
+                <option value="global" <%= item && item.section === 'global' ? 'selected' : '' %>>Global (all pages)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="sort_order">Sort Order</label>
+              <input type="number" id="sort_order" name="sort_order" class="form-input" value="<%= item ? (item.sort_order || 0) : 0 %>">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="is_visible">Visible</label>
+              <select id="is_visible" name="is_visible" class="form-input">
+                <option value="true" <%= !item || item.is_visible !== false ? 'selected' : '' %>>Yes</option>
+                <option value="false" <%= item && item.is_visible === false ? 'selected' : '' %>>No</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="open_in_new_tab">Open in New Tab</label>
+              <select id="open_in_new_tab" name="open_in_new_tab" class="form-input">
+                <option value="false" <%= !item || !item.open_in_new_tab ? 'selected' : '' %>>No</option>
+                <option value="true" <%= item && item.open_in_new_tab ? 'selected' : '' %>>Yes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="css_class">CSS Class (optional)</label>
+              <input type="text" id="css_class" name="css_class" class="form-input" value="<%= item ? (item.css_class || '') : '' %>" placeholder="e.g. highlight, premium">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="/business/sidebar" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

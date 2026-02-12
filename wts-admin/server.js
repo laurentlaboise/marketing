@@ -17,6 +17,7 @@ const apiRoutes = require('./src/routes/api');
 const publicApiRoutes = require('./src/routes/public-api');
 const imagesRoutes = require('./src/routes/images');
 const webdevRoutes = require('./src/routes/webdev');
+const paymentsRoutes = require('./src/routes/payments');
 
 // Import passport configuration
 require('./src/utils/passport-config');
@@ -130,6 +131,9 @@ app.use((req, res, next) => {
 
 // Public API routes (no authentication required)
 app.use('/api/public', publicApiRoutes);
+
+// Payment routes (no authentication - public facing)
+app.use('/api/payments', paymentsRoutes);
 
 // Routes
 app.use('/auth', authRoutes);

@@ -292,17 +292,40 @@ router.post('/automations/:id/delete', async (req, res) => {
 
 router.get('/products', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM products ORDER BY name ASC');
+    const { service_page, status } = req.query;
+    let query = 'SELECT * FROM products';
+    const params = [];
+    const conditions = [];
+
+    if (service_page) {
+      conditions.push(`service_page = $${params.length + 1}`);
+      params.push(service_page);
+    }
+    if (status) {
+      conditions.push(`status = $${params.length + 1}`);
+      params.push(status);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+    query += ' ORDER BY sort_order ASC, name ASC';
+
+    const result = await db.query(query, params);
     res.render('business/products/list', {
       title: 'Products - WTS Admin',
       products: result.rows,
-      currentPage: 'products'
+      currentPage: 'products',
+      filter_service_page: service_page || '',
+      filter_status: status || ''
     });
   } catch (error) {
     res.render('business/products/list', {
       title: 'Products - WTS Admin',
       products: [],
       currentPage: 'products',
+      filter_service_page: '',
+      filter_status: '',
       error: 'Failed to load products'
     });
   }
@@ -318,12 +341,31 @@ router.get('/products/new', (req, res) => {
 
 router.post('/products', async (req, res) => {
   try {
-    const { name, description, price, currency, category, features, image_url, status } = req.body;
+    const {
+      name, slug, description, price, currency, category, features, image_url, status,
+      service_page, icon_class, animation_class, sort_order, product_type, download_url,
+      slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
+      stripe_product_id, stripe_price_id, is_featured
+    } = req.body;
+
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
+    const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     await db.query(
-      'INSERT INTO products (name, description, price, currency, category, features, image_url, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-      [name, description, price || null, currency || 'USD', category, featuresArray, image_url, status || 'active']
+      `INSERT INTO products (
+        name, slug, description, price, currency, category, features, image_url, status,
+        service_page, icon_class, animation_class, sort_order, product_type, download_url,
+        slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
+        stripe_product_id, stripe_price_id, is_featured
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
+      [
+        name, productSlug, description, price || null, currency || 'USD', category, featuresArray, image_url, status || 'active',
+        service_page || null, icon_class || 'fas fa-box', animation_class || 'kinetic-pulse-float',
+        parseInt(sort_order) || 0, product_type || 'service', download_url || null,
+        slide_in_title || null, slide_in_subtitle || null, slide_in_content || null,
+        slide_in_image || null, slide_in_video || null,
+        stripe_product_id || null, stripe_price_id || null, is_featured === 'true'
+      ]
     );
     req.session.successMessage = 'Product created successfully';
     res.redirect('/business/products');
@@ -356,12 +398,34 @@ router.get('/products/:id/edit', async (req, res) => {
 
 router.post('/products/:id', async (req, res) => {
   try {
-    const { name, description, price, currency, category, features, image_url, status } = req.body;
+    const {
+      name, slug, description, price, currency, category, features, image_url, status,
+      service_page, icon_class, animation_class, sort_order, product_type, download_url,
+      slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
+      stripe_product_id, stripe_price_id, is_featured
+    } = req.body;
+
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
+    const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     await db.query(
-      'UPDATE products SET name = $1, description = $2, price = $3, currency = $4, category = $5, features = $6, image_url = $7, status = $8, updated_at = CURRENT_TIMESTAMP WHERE id = $9',
-      [name, description, price || null, currency, category, featuresArray, image_url, status, req.params.id]
+      `UPDATE products SET
+        name=$1, slug=$2, description=$3, price=$4, currency=$5, category=$6, features=$7,
+        image_url=$8, status=$9, service_page=$10, icon_class=$11, animation_class=$12,
+        sort_order=$13, product_type=$14, download_url=$15, slide_in_title=$16,
+        slide_in_subtitle=$17, slide_in_content=$18, slide_in_image=$19, slide_in_video=$20,
+        stripe_product_id=$21, stripe_price_id=$22, is_featured=$23, updated_at=CURRENT_TIMESTAMP
+      WHERE id=$24`,
+      [
+        name, productSlug, description, price || null, currency, category, featuresArray,
+        image_url, status, service_page || null, icon_class || 'fas fa-box',
+        animation_class || 'kinetic-pulse-float', parseInt(sort_order) || 0,
+        product_type || 'service', download_url || null,
+        slide_in_title || null, slide_in_subtitle || null, slide_in_content || null,
+        slide_in_image || null, slide_in_video || null,
+        stripe_product_id || null, stripe_price_id || null, is_featured === 'true',
+        req.params.id
+      ]
     );
     req.session.successMessage = 'Product updated successfully';
     res.redirect('/business/products');
@@ -379,6 +443,132 @@ router.post('/products/:id/delete', async (req, res) => {
     req.session.errorMessage = 'Failed to delete product';
   }
   res.redirect('/business/products');
+});
+
+// ==================== SIDEBAR ITEMS ====================
+
+router.get('/sidebar', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM sidebar_items ORDER BY section ASC, sort_order ASC');
+    const sections = {};
+    result.rows.forEach(item => {
+      if (!sections[item.section]) sections[item.section] = [];
+      sections[item.section].push(item);
+    });
+    res.render('business/sidebar/list', {
+      title: 'Sidebar Management - WTS Admin',
+      items: result.rows,
+      sections,
+      currentPage: 'sidebar'
+    });
+  } catch (error) {
+    res.render('business/sidebar/list', {
+      title: 'Sidebar Management - WTS Admin',
+      items: [],
+      sections: {},
+      currentPage: 'sidebar',
+      error: 'Failed to load sidebar items'
+    });
+  }
+});
+
+router.get('/sidebar/new', (req, res) => {
+  res.render('business/sidebar/form', {
+    title: 'New Sidebar Item - WTS Admin',
+    item: null,
+    currentPage: 'sidebar'
+  });
+});
+
+router.post('/sidebar', async (req, res) => {
+  try {
+    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class } = req.body;
+
+    await db.query(
+      `INSERT INTO sidebar_items (label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [label, url || null, icon_class || 'fas fa-link', section, parseInt(sort_order) || 0,
+       is_visible !== 'false', open_in_new_tab === 'true', css_class || null]
+    );
+    req.session.successMessage = 'Sidebar item created successfully';
+    res.redirect('/business/sidebar');
+  } catch (error) {
+    console.error('Create sidebar item error:', error);
+    res.render('business/sidebar/form', {
+      title: 'New Sidebar Item - WTS Admin',
+      item: req.body,
+      currentPage: 'sidebar',
+      error: 'Failed to create sidebar item'
+    });
+  }
+});
+
+router.get('/sidebar/:id/edit', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM sidebar_items WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.redirect('/business/sidebar');
+    }
+    res.render('business/sidebar/form', {
+      title: 'Edit Sidebar Item - WTS Admin',
+      item: result.rows[0],
+      currentPage: 'sidebar'
+    });
+  } catch (error) {
+    res.redirect('/business/sidebar');
+  }
+});
+
+router.post('/sidebar/:id', async (req, res) => {
+  try {
+    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class } = req.body;
+
+    await db.query(
+      `UPDATE sidebar_items SET label=$1, url=$2, icon_class=$3, section=$4, sort_order=$5,
+       is_visible=$6, open_in_new_tab=$7, css_class=$8, updated_at=CURRENT_TIMESTAMP WHERE id=$9`,
+      [label, url || null, icon_class || 'fas fa-link', section, parseInt(sort_order) || 0,
+       is_visible !== 'false', open_in_new_tab === 'true', css_class || null, req.params.id]
+    );
+    req.session.successMessage = 'Sidebar item updated successfully';
+    res.redirect('/business/sidebar');
+  } catch (error) {
+    req.session.errorMessage = 'Failed to update sidebar item';
+    res.redirect(`/business/sidebar/${req.params.id}/edit`);
+  }
+});
+
+router.post('/sidebar/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM sidebar_items WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Sidebar item deleted successfully';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to delete sidebar item';
+  }
+  res.redirect('/business/sidebar');
+});
+
+// ==================== ORDERS (read-only for admin) ====================
+
+router.get('/orders', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT o.*, p.name as product_name FROM orders o
+       LEFT JOIN products p ON o.product_id = p.id
+       ORDER BY o.created_at DESC`
+    );
+    res.render('business/orders/list', {
+      title: 'Orders - WTS Admin',
+      orders: result.rows,
+      currentPage: 'orders'
+    });
+  } catch (error) {
+    res.render('business/orders/list', {
+      title: 'Orders - WTS Admin',
+      orders: [],
+      currentPage: 'orders',
+      error: 'Failed to load orders'
+    });
+  }
 });
 
 // ==================== PRICE MODELS ====================
