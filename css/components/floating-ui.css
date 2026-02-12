@@ -56,6 +56,178 @@
     pointer-events: auto;
 }
 
-.quote-tab:hover { 
-    background-color: #f90784; 
+.quote-tab:hover {
+    background-color: #f90784;
+}
+
+/* Help / Page Sidebar floating button — positioned above the quote tab */
+.help-tab {
+    position: fixed;
+    top: 28%;
+    right: 0;
+    transform: translateY(-50%) rotate(270deg);
+    transform-origin: bottom right;
+    background-color: var(--color-accent-magenta);
+    color: white;
+    padding: 10px 20px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    cursor: pointer;
+    z-index: 999;
+    font-weight: bold;
+    transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
+    opacity: 0;
+    transform: translateY(-50%) rotate(270deg) translateX(20px);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    border: none;
+}
+
+.help-tab.show {
+    opacity: 1;
+    transform: translateY(-50%) rotate(270deg) translateX(0);
+    pointer-events: auto;
+}
+
+.help-tab:hover {
+    background-color: #f90784;
+}
+
+.help-tab i {
+    font-size: 1rem;
+}
+
+/* Help sidebar slide-in panel */
+#help-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(18, 42, 63, 0.6);
+    z-index: 1999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+}
+
+#help-sidebar-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+#help-sidebar-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 75%;
+    max-width: 700px;
+    height: 100%;
+    background-color: #fff;
+    z-index: 2000;
+    transform: translateX(100%);
+    transition: transform 0.4s ease-in-out;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+#help-sidebar-panel.is-open {
+    transform: translateX(0);
+}
+
+.help-sidebar-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+.help-sidebar-header h3 {
+    font-size: 1.2rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.help-sidebar-close {
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.8);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+}
+
+.help-sidebar-close:hover {
+    color: #fff;
+}
+
+.help-sidebar-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex-grow: 1;
+    line-height: 1.7;
+}
+
+.help-sidebar-body h2 {
+    font-size: 1.3rem;
+    margin: 1rem 0 0.5rem;
+    color: #1a1a2e;
+}
+
+.help-sidebar-body h3 {
+    font-size: 1.1rem;
+    margin: 0.8rem 0 0.4rem;
+    color: #1a1a2e;
+}
+
+.help-sidebar-body h4 {
+    font-size: 1rem;
+    margin: 0.6rem 0 0.3rem;
+    color: #334155;
+}
+
+.help-sidebar-body ul, .help-sidebar-body ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.help-sidebar-body li {
+    margin-bottom: 0.3rem;
+}
+
+.help-sidebar-body img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 0.75rem 0;
+}
+
+.help-sidebar-body a {
+    color: #667eea;
+    text-decoration: underline;
+}
+
+.help-sidebar-body p {
+    margin-bottom: 0.75rem;
+}
+
+@media (max-width: 767px) {
+    #help-sidebar-panel {
+        width: 100%;
+        max-width: none;
+    }
+
+    .help-sidebar-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .help-sidebar-body {
+        padding: 1rem;
+    }
 }

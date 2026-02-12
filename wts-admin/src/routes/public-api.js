@@ -520,13 +520,69 @@ router.get('/sidebar', async (req, res) => {
       section: item.section,
       sort_order: item.sort_order,
       open_in_new_tab: item.open_in_new_tab,
-      css_class: item.css_class
+      css_class: item.css_class,
+      page_url: item.page_url || null,
+      content_html: item.content_html || null,
+      button_label: item.button_label || null
     }));
 
     respond(res, items);
   } catch (error) {
     console.error('Public API - Sidebar error:', error);
     respond(res, { error: 'Failed to load sidebar items' }, 500);
+  }
+});
+
+// ==================== PAGE SIDEBARS (floating help button) ====================
+
+// Get sidebar panels for a specific page URL path
+router.get('/page-sidebar', async (req, res) => {
+  try {
+    const path = req.query.path || '';
+    if (!path) {
+      return respond(res, { error: 'path query parameter is required' }, 400);
+    }
+
+    // Find sidebar items whose page_url matches the current path
+    // Supports exact match and wildcard patterns (e.g. /en/articles/*)
+    const result = await db.query(
+      `SELECT id, label, url, icon_class, section, sort_order, open_in_new_tab, css_class,
+              page_url, content_html, button_label
+       FROM sidebar_items
+       WHERE is_visible = TRUE AND section = 'page-sidebar' AND page_url IS NOT NULL
+       ORDER BY sort_order ASC`
+    );
+
+    // Filter matches: exact match or wildcard match
+    const items = result.rows.filter(item => {
+      const pattern = item.page_url;
+      if (!pattern) return false;
+      if (pattern === path) return true;
+      // Wildcard: /en/articles/* matches /en/articles/anything
+      if (pattern.endsWith('/*')) {
+        const prefix = pattern.slice(0, -1); // remove the *
+        return path.startsWith(prefix);
+      }
+      // Also match if path ends with trailing slash or .html variant
+      if (path.endsWith('/') && pattern === path.slice(0, -1)) return true;
+      if (pattern.endsWith('/') && path === pattern.slice(0, -1)) return true;
+      return false;
+    });
+
+    const panels = items.map(item => ({
+      id: item.id,
+      label: item.label,
+      url: item.url,
+      icon_class: item.icon_class || 'fas fa-question-circle',
+      button_label: item.button_label || 'Help',
+      content_html: item.content_html || '',
+      css_class: item.css_class
+    }));
+
+    respond(res, panels);
+  } catch (error) {
+    console.error('Public API - Page sidebar error:', error);
+    respond(res, { error: 'Failed to load page sidebar' }, 500);
   }
 });
 
