@@ -55,7 +55,6 @@
         renderCards(products, grid);
         renderDetailStorage(products);
         bindLearnMoreButtons();
-        bindAddServiceButtons();
       })
       .catch(function (err) {
         console.warn('[ProductLoader] API error — keeping static cards:', err.message);
@@ -85,13 +84,6 @@
           '</span>';
       }
 
-      var addHTML =
-        '<button class="btn btn-accent-magenta btn-add-service" data-product-id="' +
-        esc(String(product.id)) + '" data-product-name="' + esc(product.name) +
-        '" style="margin-left:0.5rem;">' +
-        (isSaved(product.id) ? '<i class="fas fa-check"></i> Added' : '<i class="fas fa-plus"></i> Service') +
-        '</button>';
-
       var card = document.createElement('div');
       card.className = 'service-card reveal' + delay;
       card.innerHTML =
@@ -101,7 +93,6 @@
         priceHTML +
         '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;margin-top:auto;">' +
           '<button class="btn btn-premium btn-learn-more" data-service="' + esc(slug) + '">Learn More</button>' +
-          addHTML +
         '</div>';
 
       container.appendChild(card);
@@ -254,19 +245,14 @@
     }
   }
 
-  // Update every button for a given product across cards + slide-in
+  // Update the button state inside the slide-in panel
   function updateAllButtons(productId, added) {
     var btns = document.querySelectorAll('.btn-add-service[data-product-id="' + productId + '"]');
     for (var i = 0; i < btns.length; i++) {
-      var isPanel = btns[i].style.fontSize; // panel button has inline font-size
       if (added) {
-        btns[i].innerHTML = isPanel
-          ? '<i class="fas fa-check"></i> Added to My Services'
-          : '<i class="fas fa-check"></i> Added';
+        btns[i].innerHTML = '<i class="fas fa-check"></i> Added to My Services';
       } else {
-        btns[i].innerHTML = isPanel
-          ? '<i class="fas fa-plus"></i> Add to My Services'
-          : '<i class="fas fa-plus"></i> Service';
+        btns[i].innerHTML = '<i class="fas fa-plus"></i> Add to My Services';
       }
     }
   }
