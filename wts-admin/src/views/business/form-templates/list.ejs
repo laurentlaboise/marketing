@@ -25,6 +25,7 @@
                 <th>Form Type</th>
                 <th>Title</th>
                 <th>Fields</th>
+                <th>Buttons</th>
                 <th>Status</th>
                 <th>Updated</th>
                 <th>Actions</th>
@@ -33,10 +34,23 @@
             <tbody>
               <% templates.forEach(tpl => { %>
               <% const fields = typeof tpl.fields === 'string' ? JSON.parse(tpl.fields) : (tpl.fields || []); %>
+              <% const btnCount = (buttonCounts && buttonCounts[tpl.form_type]) || 0; %>
               <tr>
                 <td><code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.85rem;"><%= tpl.form_type %></code></td>
                 <td><strong><%= tpl.title %></strong></td>
                 <td><%= fields.length %> field<%= fields.length !== 1 ? 's' : '' %></td>
+                <td>
+                  <% if (btnCount > 0) { %>
+                  <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.85rem;">
+                    <i class="fas fa-link" style="color:var(--primary);font-size:0.75rem;"></i>
+                    <%= btnCount %> button<%= btnCount !== 1 ? 's' : '' %>
+                  </span>
+                  <% } else { %>
+                  <span style="color:var(--gray-400);font-size:0.85rem;">
+                    <i class="fas fa-unlink" style="font-size:0.75rem;"></i> none
+                  </span>
+                  <% } %>
+                </td>
                 <td>
                   <span class="status-badge <%= tpl.status === 'active' ? 'active' : 'inactive' %>">
                     <%= tpl.status %>
@@ -60,7 +74,7 @@
         </div>
         <% } else { %>
         <div class="empty-state">
-          <div class="empty-state-icon"><i class="fas fa-wpforms"></i></div>
+          <div class="empty-state-icon"><i class="fas fa-file-lines"></i></div>
           <h3>No Form Templates</h3>
           <p>Create your first form template to start collecting submissions from the website.</p>
           <a href="/business/form-templates/new" class="btn btn-primary"><i class="fas fa-plus"></i> Create Form</a>

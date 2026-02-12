@@ -861,10 +861,17 @@ router.post('/pricing-features/:id/delete', async (req, res) => {
 router.get('/form-templates', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM form_templates ORDER BY created_at DESC');
+    // Load button counts per form_type
+    const btnResult = await db.query(
+      `SELECT form_type, COUNT(*)::int AS button_count FROM form_buttons GROUP BY form_type`
+    );
+    const buttonCounts = {};
+    btnResult.rows.forEach(r => { buttonCounts[r.form_type] = r.button_count; });
     res.render('business/form-templates/list', {
       title: 'Form Templates - WTS Admin',
       currentPage: 'form-templates',
-      templates: result.rows
+      templates: result.rows,
+      buttonCounts
     });
   } catch (error) {
     console.error('Form templates list error:', error);
@@ -877,7 +884,8 @@ router.get('/form-templates/new', (req, res) => {
   res.render('business/form-templates/form', {
     title: 'Create Form Template - WTS Admin',
     currentPage: 'form-templates',
-    template: null
+    template: null,
+    buttons: []
   });
 });
 
@@ -930,10 +938,16 @@ router.get('/form-templates/:id/edit', async (req, res) => {
     if (result.rows.length === 0) {
       return res.redirect('/business/form-templates');
     }
+    const template = result.rows[0];
+    const btnResult = await db.query(
+      'SELECT * FROM form_buttons WHERE form_type = $1 ORDER BY sort_order ASC, created_at ASC',
+      [template.form_type]
+    );
     res.render('business/form-templates/form', {
       title: 'Edit Form Template - WTS Admin',
       currentPage: 'form-templates',
-      template: result.rows[0]
+      template,
+      buttons: btnResult.rows
     });
   } catch (error) {
     res.redirect('/business/form-templates');
@@ -992,6 +1006,95 @@ router.post('/form-templates/:id/delete', async (req, res) => {
     req.session.errorMessage = 'Failed to delete form template';
   }
   res.redirect('/business/form-templates');
+});
+
+// ==================== FORM BUTTONS (Linked Buttons) ====================
+
+// Add a button to a form template
+router.post('/form-buttons', async (req, res) => {
+  try {
+    const {
+      form_type, button_label, page_url, style_preset, custom_css, custom_js,
+      rel_nofollow, rel_noopener, rel_noreferrer, target_blank, sort_order
+    } = req.body;
+
+    if (!form_type || !button_label) {
+      req.session.errorMessage = 'Form type and button label are required.';
+      return res.redirect('back');
+    }
+
+    await db.query(
+      `INSERT INTO form_buttons (form_type, button_label, page_url, style_preset, custom_css, custom_js,
+        rel_nofollow, rel_noopener, rel_noreferrer, target_blank, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [
+        form_type.trim(),
+        button_label.trim(),
+        page_url || null,
+        style_preset || 'primary',
+        custom_css || null,
+        custom_js || null,
+        rel_nofollow === 'on' || rel_nofollow === 'true',
+        rel_noopener !== 'off' && rel_noopener !== 'false',
+        rel_noreferrer === 'on' || rel_noreferrer === 'true',
+        target_blank === 'on' || target_blank === 'true',
+        parseInt(sort_order) || 0
+      ]
+    );
+    req.session.successMessage = 'Button added successfully';
+  } catch (error) {
+    console.error('Add form button error:', error);
+    req.session.errorMessage = 'Failed to add button. ' + (error.detail || error.message);
+  }
+  res.redirect('back');
+});
+
+// Update a button
+router.post('/form-buttons/:id', async (req, res) => {
+  try {
+    const {
+      button_label, page_url, style_preset, custom_css, custom_js,
+      rel_nofollow, rel_noopener, rel_noreferrer, target_blank, sort_order, status
+    } = req.body;
+
+    await db.query(
+      `UPDATE form_buttons SET
+        button_label=$1, page_url=$2, style_preset=$3, custom_css=$4, custom_js=$5,
+        rel_nofollow=$6, rel_noopener=$7, rel_noreferrer=$8, target_blank=$9,
+        sort_order=$10, status=$11, updated_at=CURRENT_TIMESTAMP
+       WHERE id=$12`,
+      [
+        (button_label || '').trim(),
+        page_url || null,
+        style_preset || 'primary',
+        custom_css || null,
+        custom_js || null,
+        rel_nofollow === 'on' || rel_nofollow === 'true',
+        rel_noopener !== 'off' && rel_noopener !== 'false',
+        rel_noreferrer === 'on' || rel_noreferrer === 'true',
+        target_blank === 'on' || target_blank === 'true',
+        parseInt(sort_order) || 0,
+        status || 'active',
+        req.params.id
+      ]
+    );
+    req.session.successMessage = 'Button updated successfully';
+  } catch (error) {
+    console.error('Update form button error:', error);
+    req.session.errorMessage = 'Failed to update button';
+  }
+  res.redirect('back');
+});
+
+// Delete a button
+router.post('/form-buttons/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM form_buttons WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Button deleted';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to delete button';
+  }
+  res.redirect('back');
 });
 
 // ==================== FORM SUBMISSIONS ====================

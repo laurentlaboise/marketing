@@ -830,6 +830,27 @@ const db = {
         )
       `);
 
+      // Form buttons table (linked buttons for form templates)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS form_buttons (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          form_type VARCHAR(100) NOT NULL REFERENCES form_templates(form_type) ON UPDATE CASCADE ON DELETE CASCADE,
+          button_label VARCHAR(255) NOT NULL DEFAULT 'Submit',
+          page_url VARCHAR(500),
+          style_preset VARCHAR(50) DEFAULT 'primary',
+          custom_css TEXT,
+          custom_js TEXT,
+          rel_nofollow BOOLEAN DEFAULT false,
+          rel_noopener BOOLEAN DEFAULT true,
+          rel_noreferrer BOOLEAN DEFAULT false,
+          target_blank BOOLEAN DEFAULT false,
+          sort_order INTEGER DEFAULT 0,
+          status VARCHAR(50) DEFAULT 'active',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Images table
       await client.query(`
         CREATE TABLE IF NOT EXISTS images (

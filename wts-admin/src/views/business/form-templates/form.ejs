@@ -103,6 +103,207 @@
         <a href="/business/form-templates" class="btn btn-secondary">Cancel</a>
       </div>
     </form>
+
+    <!-- Linked Buttons Section (only shown when editing an existing template) -->
+    <% if (template) { %>
+    <div class="card" style="margin-top: 2rem;">
+      <div class="card-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0; font-size: 1.1rem;"><i class="fas fa-link" style="margin-right: 0.5rem; color: var(--primary);"></i> Linked Buttons</h3>
+          <button type="button" id="addButtonBtn" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Button</button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 1rem;">
+          Buttons on the website that trigger this form. The <code>form_type</code> key <code style="background:#e0f2fe;padding:0.15rem 0.4rem;border-radius:4px;"><%= template.form_type %></code> links them.
+        </p>
+
+        <!-- Existing Buttons -->
+        <div id="linkedButtonsList">
+          <% if (buttons && buttons.length > 0) { %>
+            <% buttons.forEach((btn, idx) => { %>
+            <div class="linked-btn-card" data-btn-id="<%= btn.id %>">
+              <div class="linked-btn-header">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <span class="linked-btn-number"><%= idx + 1 %></span>
+                  <strong class="linked-btn-label-display"><%= btn.button_label %></strong>
+                  <span class="linked-btn-preset-badge"><%= btn.style_preset %></span>
+                  <% if (btn.status !== 'active') { %><span class="status-badge inactive" style="font-size:0.7rem;">inactive</span><% } %>
+                </div>
+                <div class="linked-btn-actions">
+                  <button type="button" class="btn-toggle-edit" title="Edit"><i class="fas fa-pen"></i></button>
+                  <form action="/business/form-buttons/<%= btn.id %>/delete" method="POST" style="display:inline;">
+                    <button type="submit" class="btn-remove" data-confirm-delete title="Delete"><i class="fas fa-trash"></i></button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Collapsed info -->
+              <div class="linked-btn-summary">
+                <% if (btn.page_url) { %><span><i class="fas fa-globe"></i> <%= btn.page_url %></span><% } %>
+                <span><i class="fas fa-external-link-alt"></i> target: <%= btn.target_blank ? '_blank' : '_self' %></span>
+                <% if (btn.rel_nofollow) { %><span class="seo-tag">nofollow</span><% } %>
+                <% if (btn.rel_noopener) { %><span class="seo-tag">noopener</span><% } %>
+                <% if (btn.rel_noreferrer) { %><span class="seo-tag">noreferrer</span><% } %>
+              </div>
+
+              <!-- Expandable edit form -->
+              <div class="linked-btn-edit" style="display:none;">
+                <form action="/business/form-buttons/<%= btn.id %>" method="POST">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+                    <div class="form-group" style="margin:0;">
+                      <label class="form-label">Button Label</label>
+                      <input type="text" name="button_label" class="form-input" value="<%= btn.button_label %>" required>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                      <label class="form-label">Page URL</label>
+                      <input type="text" name="page_url" class="form-input" value="<%= btn.page_url || '' %>" placeholder="/pricing, /contact, etc.">
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+                    <div class="form-group" style="margin:0;">
+                      <label class="form-label">Style Preset</label>
+                      <select name="style_preset" class="form-input">
+                        <option value="primary" <%= btn.style_preset === 'primary' ? 'selected' : '' %>>Primary</option>
+                        <option value="secondary" <%= btn.style_preset === 'secondary' ? 'selected' : '' %>>Secondary</option>
+                        <option value="outline" <%= btn.style_preset === 'outline' ? 'selected' : '' %>>Outline</option>
+                        <option value="ghost" <%= btn.style_preset === 'ghost' ? 'selected' : '' %>>Ghost</option>
+                        <option value="gradient" <%= btn.style_preset === 'gradient' ? 'selected' : '' %>>Gradient</option>
+                        <option value="cta" <%= btn.style_preset === 'cta' ? 'selected' : '' %>>CTA (Call to Action)</option>
+                      </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                      <label class="form-label">Sort Order</label>
+                      <input type="number" name="sort_order" class="form-input" value="<%= btn.sort_order || 0 %>">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                      <label class="form-label">Status</label>
+                      <select name="status" class="form-input">
+                        <option value="active" <%= btn.status === 'active' ? 'selected' : '' %>>Active</option>
+                        <option value="inactive" <%= btn.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- SEO Attributes -->
+                  <div style="margin-bottom:0.75rem;">
+                    <label class="form-label" style="margin-bottom:0.4rem;"><i class="fas fa-search" style="margin-right:0.3rem;color:var(--primary);font-size:0.8rem;"></i> SEO Attributes</label>
+                    <div style="display:flex;gap:1.2rem;flex-wrap:wrap;">
+                      <label class="checkbox-label"><input type="checkbox" name="rel_nofollow" <%= btn.rel_nofollow ? 'checked' : '' %>> <code>nofollow</code></label>
+                      <label class="checkbox-label"><input type="checkbox" name="rel_noopener" <%= btn.rel_noopener ? 'checked' : '' %>> <code>noopener</code></label>
+                      <label class="checkbox-label"><input type="checkbox" name="rel_noreferrer" <%= btn.rel_noreferrer ? 'checked' : '' %>> <code>noreferrer</code></label>
+                      <label class="checkbox-label"><input type="checkbox" name="target_blank" <%= btn.target_blank ? 'checked' : '' %>> <code>target="_blank"</code></label>
+                    </div>
+                  </div>
+
+                  <!-- Custom CSS -->
+                  <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label class="form-label">Custom CSS <small style="color:var(--gray-400);">(optional override)</small></label>
+                    <textarea name="custom_css" class="form-input code-textarea" rows="3" placeholder="background: #ff6600; border-radius: 30px; font-size: 18px;"><%= btn.custom_css || '' %></textarea>
+                  </div>
+
+                  <!-- Custom JS -->
+                  <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label class="form-label">Custom JS <small style="color:var(--gray-400);">(optional onclick logic)</small></label>
+                    <textarea name="custom_js" class="form-input code-textarea" rows="3" placeholder="console.log('Button clicked'); gtag('event', 'click', { ... });"><%= btn.custom_js || '' %></textarea>
+                  </div>
+
+                  <!-- Button Preview -->
+                  <div style="margin-bottom:0.75rem;">
+                    <label class="form-label">Button Preview</label>
+                    <div class="btn-preview-container">
+                      <button type="button" class="btn-preview btn-style-<%= btn.style_preset %>" style="<%= btn.custom_css || '' %>"><%= btn.button_label %></button>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;gap:0.5rem;">
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Save Changes</button>
+                    <button type="button" class="btn btn-secondary btn-sm btn-cancel-edit">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <% }); %>
+          <% } else { %>
+            <div id="noButtonsMsg" style="text-align:center;padding:1.5rem;color:var(--gray-400);">
+              <i class="fas fa-unlink" style="font-size:1.5rem;margin-bottom:0.5rem;display:block;"></i>
+              No buttons linked yet. Click "Add Button" to create one.
+            </div>
+          <% } %>
+        </div>
+
+        <!-- Add New Button Form (hidden by default) -->
+        <div id="addButtonForm" style="display:none;margin-top:1rem;">
+          <div class="linked-btn-card" style="border:2px dashed var(--primary);background:#f0f9ff;">
+            <h4 style="margin:0 0 0.75rem;font-size:0.95rem;color:var(--primary);"><i class="fas fa-plus-circle"></i> New Button</h4>
+            <form action="/business/form-buttons" method="POST">
+              <input type="hidden" name="form_type" value="<%= template.form_type %>">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Button Label <span style="color:var(--danger);">*</span></label>
+                  <input type="text" name="button_label" class="form-input" required placeholder="e.g. Get Free Consultation">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Page URL</label>
+                  <input type="text" name="page_url" class="form-input" placeholder="/pricing, /services, etc.">
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Style Preset</label>
+                  <select name="style_preset" class="form-input">
+                    <option value="primary">Primary</option>
+                    <option value="secondary">Secondary</option>
+                    <option value="outline">Outline</option>
+                    <option value="ghost">Ghost</option>
+                    <option value="gradient">Gradient</option>
+                    <option value="cta">CTA (Call to Action)</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Sort Order</label>
+                  <input type="number" name="sort_order" class="form-input" value="0">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Status</label>
+                  <select name="status" class="form-input">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- SEO Attributes -->
+              <div style="margin-bottom:0.75rem;">
+                <label class="form-label" style="margin-bottom:0.4rem;"><i class="fas fa-search" style="margin-right:0.3rem;color:var(--primary);font-size:0.8rem;"></i> SEO Attributes</label>
+                <div style="display:flex;gap:1.2rem;flex-wrap:wrap;">
+                  <label class="checkbox-label"><input type="checkbox" name="rel_nofollow"> <code>nofollow</code></label>
+                  <label class="checkbox-label"><input type="checkbox" name="rel_noopener" checked> <code>noopener</code></label>
+                  <label class="checkbox-label"><input type="checkbox" name="rel_noreferrer"> <code>noreferrer</code></label>
+                  <label class="checkbox-label"><input type="checkbox" name="target_blank"> <code>target="_blank"</code></label>
+                </div>
+              </div>
+
+              <!-- Custom CSS -->
+              <div class="form-group" style="margin-bottom:0.75rem;">
+                <label class="form-label">Custom CSS <small style="color:var(--gray-400);">(optional)</small></label>
+                <textarea name="custom_css" class="form-input code-textarea" rows="2" placeholder="background: #ff6600; border-radius: 30px;"></textarea>
+              </div>
+
+              <!-- Custom JS -->
+              <div class="form-group" style="margin-bottom:0.75rem;">
+                <label class="form-label">Custom JS <small style="color:var(--gray-400);">(optional)</small></label>
+                <textarea name="custom_js" class="form-input code-textarea" rows="2" placeholder="gtag('event', 'click', { ... });"></textarea>
+              </div>
+
+              <div style="display:flex;gap:0.5rem;">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Button</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="cancelAddBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
   </div>
 </main>
 
@@ -234,6 +435,173 @@
     .field-grid {
       grid-template-columns: 1fr;
     }
+  }
+
+  /* Linked Buttons */
+  .linked-btn-card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: box-shadow 0.2s;
+  }
+  .linked-btn-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .linked-btn-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .linked-btn-number {
+    background: var(--primary);
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .linked-btn-label-display {
+    font-size: 0.95rem;
+  }
+  .linked-btn-preset-badge {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .linked-btn-actions {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .linked-btn-actions button,
+  .linked-btn-actions .btn-toggle-edit,
+  .linked-btn-actions .btn-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.3rem 0.45rem;
+    border-radius: 4px;
+    color: var(--gray-500);
+    font-size: 0.8rem;
+    transition: all 0.15s;
+  }
+  .linked-btn-actions .btn-toggle-edit:hover {
+    background: var(--gray-200);
+    color: var(--gray-800);
+  }
+  .linked-btn-actions .btn-remove:hover {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  .linked-btn-summary {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .linked-btn-summary i {
+    margin-right: 0.2rem;
+    font-size: 0.75rem;
+  }
+  .seo-tag {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 0.05rem 0.4rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .linked-btn-edit {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--gray-200);
+  }
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--gray-700);
+  }
+  .checkbox-label input[type="checkbox"] {
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+  }
+  .checkbox-label code {
+    background: #f1f5f9;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.78rem;
+  }
+  .code-textarea {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem !important;
+    background: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155 !important;
+  }
+  .code-textarea::placeholder {
+    color: #64748b;
+  }
+
+  /* Button Preview Styles */
+  .btn-preview-container {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .btn-preview {
+    padding: 0.6rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: default;
+    transition: all 0.2s;
+  }
+  .btn-style-primary {
+    background: var(--primary);
+    color: white;
+  }
+  .btn-style-secondary {
+    background: var(--gray-600);
+    color: white;
+  }
+  .btn-style-outline {
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+  }
+  .btn-style-ghost {
+    background: rgba(32, 133, 200, 0.1);
+    color: var(--primary);
+  }
+  .btn-style-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+  }
+  .btn-style-cta {
+    background: var(--secondary);
+    color: white;
+    padding: 0.75rem 2rem;
+    font-size: 1.05rem;
+    border-radius: 30px;
   }
 </style>
 
@@ -441,6 +809,58 @@
   }
   updateNoFieldsMsg();
   updatePreview();
+})();
+</script>
+
+<!-- Linked Buttons interaction script -->
+<script>
+(function() {
+  // Toggle edit panels
+  document.querySelectorAll('.btn-toggle-edit').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var card = btn.closest('.linked-btn-card');
+      var editPanel = card.querySelector('.linked-btn-edit');
+      var summary = card.querySelector('.linked-btn-summary');
+      if (editPanel.style.display === 'none') {
+        editPanel.style.display = 'block';
+        if (summary) summary.style.display = 'none';
+        btn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+      } else {
+        editPanel.style.display = 'none';
+        if (summary) summary.style.display = 'flex';
+        btn.innerHTML = '<i class="fas fa-pen"></i>';
+      }
+    });
+  });
+
+  // Cancel edit buttons
+  document.querySelectorAll('.btn-cancel-edit').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var card = btn.closest('.linked-btn-card');
+      var editPanel = card.querySelector('.linked-btn-edit');
+      var summary = card.querySelector('.linked-btn-summary');
+      var toggleBtn = card.querySelector('.btn-toggle-edit');
+      editPanel.style.display = 'none';
+      if (summary) summary.style.display = 'flex';
+      if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-pen"></i>';
+    });
+  });
+
+  // Add button form toggle
+  var addButtonBtn = document.getElementById('addButtonBtn');
+  var addButtonForm = document.getElementById('addButtonForm');
+  var cancelAddBtn = document.getElementById('cancelAddBtn');
+
+  if (addButtonBtn && addButtonForm) {
+    addButtonBtn.addEventListener('click', function() {
+      addButtonForm.style.display = addButtonForm.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+  if (cancelAddBtn && addButtonForm) {
+    cancelAddBtn.addEventListener('click', function() {
+      addButtonForm.style.display = 'none';
+    });
+  }
 })();
 </script>
 
