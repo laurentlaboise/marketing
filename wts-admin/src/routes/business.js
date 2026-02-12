@@ -480,79 +480,8 @@ router.get('/sidebar/new', (req, res) => {
   });
 });
 
-router.post('/sidebar', async (req, res) => {
-  try {
-    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label } = req.body;
-
-    await db.query(
-      `INSERT INTO sidebar_items (label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-      [label, url || null, icon_class || 'fas fa-question-circle', section, parseInt(sort_order) || 0,
-       is_visible !== 'false', open_in_new_tab === 'true', css_class || null,
-       page_url || null, content_html || null, button_label || 'Help']
-    );
-    req.session.successMessage = 'Sidebar item created successfully';
-    res.redirect('/business/sidebar');
-  } catch (error) {
-    console.error('Create sidebar item error:', error);
-    res.render('business/sidebar/form', {
-      title: 'New Sidebar Item - WTS Admin',
-      item: req.body,
-      currentPage: 'sidebar',
-      error: 'Failed to create sidebar item'
-    });
-  }
-});
-
-router.get('/sidebar/:id/edit', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM sidebar_items WHERE id = $1', [req.params.id]);
-    if (result.rows.length === 0) {
-      return res.redirect('/business/sidebar');
-    }
-    res.render('business/sidebar/form', {
-      title: 'Edit Sidebar Item - WTS Admin',
-      item: result.rows[0],
-      currentPage: 'sidebar'
-    });
-  } catch (error) {
-    res.redirect('/business/sidebar');
-  }
-});
-
-router.post('/sidebar/:id', async (req, res) => {
-  try {
-    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label } = req.body;
-
-    await db.query(
-      `UPDATE sidebar_items SET label=$1, url=$2, icon_class=$3, section=$4, sort_order=$5,
-       is_visible=$6, open_in_new_tab=$7, css_class=$8, page_url=$9, content_html=$10, button_label=$11,
-       updated_at=CURRENT_TIMESTAMP WHERE id=$12`,
-      [label, url || null, icon_class || 'fas fa-question-circle', section, parseInt(sort_order) || 0,
-       is_visible !== 'false', open_in_new_tab === 'true', css_class || null,
-       page_url || null, content_html || null, button_label || 'Help', req.params.id]
-    );
-    req.session.successMessage = 'Sidebar item updated successfully';
-    res.redirect('/business/sidebar');
-  } catch (error) {
-    req.session.errorMessage = 'Failed to update sidebar item';
-    res.redirect(`/business/sidebar/${req.params.id}/edit`);
-  }
-});
-
-router.post('/sidebar/:id/delete', async (req, res) => {
-  try {
-    await db.query('DELETE FROM sidebar_items WHERE id = $1', [req.params.id]);
-    req.session.successMessage = 'Sidebar item deleted successfully';
-  } catch (error) {
-    req.session.errorMessage = 'Failed to delete sidebar item';
-  }
-  res.redirect('/business/sidebar');
-});
-
-// ==================== SIDEBAR LINK VERIFIER ====================
-
 // Verify that a page_url will match correctly (AJAX endpoint)
+// IMPORTANT: Must be defined before /sidebar/:id routes to avoid :id capturing "verify-link"
 router.get('/sidebar/verify-link', async (req, res) => {
   try {
     const inputPath = (req.query.path || '').trim();
@@ -631,6 +560,76 @@ router.get('/sidebar/verify-link', async (req, res) => {
     console.error('Sidebar verify-link error:', error);
     res.json({ error: 'Verification failed' });
   }
+});
+
+router.post('/sidebar', async (req, res) => {
+  try {
+    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label } = req.body;
+
+    await db.query(
+      `INSERT INTO sidebar_items (label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [label, url || null, icon_class || 'fas fa-question-circle', section, parseInt(sort_order) || 0,
+       is_visible !== 'false', open_in_new_tab === 'true', css_class || null,
+       page_url || null, content_html || null, button_label || 'Help']
+    );
+    req.session.successMessage = 'Sidebar item created successfully';
+    res.redirect('/business/sidebar');
+  } catch (error) {
+    console.error('Create sidebar item error:', error);
+    res.render('business/sidebar/form', {
+      title: 'New Sidebar Item - WTS Admin',
+      item: req.body,
+      currentPage: 'sidebar',
+      error: 'Failed to create sidebar item'
+    });
+  }
+});
+
+router.get('/sidebar/:id/edit', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM sidebar_items WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.redirect('/business/sidebar');
+    }
+    res.render('business/sidebar/form', {
+      title: 'Edit Sidebar Item - WTS Admin',
+      item: result.rows[0],
+      currentPage: 'sidebar'
+    });
+  } catch (error) {
+    res.redirect('/business/sidebar');
+  }
+});
+
+router.post('/sidebar/:id', async (req, res) => {
+  try {
+    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label } = req.body;
+
+    await db.query(
+      `UPDATE sidebar_items SET label=$1, url=$2, icon_class=$3, section=$4, sort_order=$5,
+       is_visible=$6, open_in_new_tab=$7, css_class=$8, page_url=$9, content_html=$10, button_label=$11,
+       updated_at=CURRENT_TIMESTAMP WHERE id=$12`,
+      [label, url || null, icon_class || 'fas fa-question-circle', section, parseInt(sort_order) || 0,
+       is_visible !== 'false', open_in_new_tab === 'true', css_class || null,
+       page_url || null, content_html || null, button_label || 'Help', req.params.id]
+    );
+    req.session.successMessage = 'Sidebar item updated successfully';
+    res.redirect('/business/sidebar');
+  } catch (error) {
+    req.session.errorMessage = 'Failed to update sidebar item';
+    res.redirect(`/business/sidebar/${req.params.id}/edit`);
+  }
+});
+
+router.post('/sidebar/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM sidebar_items WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Sidebar item deleted successfully';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to delete sidebar item';
+  }
+  res.redirect('/business/sidebar');
 });
 
 // ==================== ORDERS (read-only for admin) ====================
