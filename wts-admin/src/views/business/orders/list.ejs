@@ -1,0 +1,63 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Orders</h1>
+        <p class="page-subtitle">Digital product orders via Stripe payments</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (orders.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Product</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Downloads</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% orders.forEach(order => { %>
+              <tr>
+                <td><%= new Date(order.created_at).toLocaleDateString() %></td>
+                <td><strong><%= order.product_name || 'Unknown' %></strong></td>
+                <td>
+                  <div><%= order.customer_name || '-' %></div>
+                  <small style="color: #888;"><%= order.customer_email %></small>
+                </td>
+                <td>$<%= parseFloat(order.amount).toFixed(2) %> <%= order.currency %></td>
+                <td>
+                  <span class="status-badge <%= order.status === 'completed' ? 'active' : order.status === 'pending' ? '' : 'inactive' %>">
+                    <%= order.status %>
+                  </span>
+                </td>
+                <td><%= order.download_count %></td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-shopping-cart"></i></div>
+          <h3>No Orders Yet</h3>
+          <p>Orders will appear here when customers purchase digital products via Stripe.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

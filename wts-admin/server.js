@@ -17,6 +17,7 @@ const apiRoutes = require('./src/routes/api');
 const publicApiRoutes = require('./src/routes/public-api');
 const imagesRoutes = require('./src/routes/images');
 const webdevRoutes = require('./src/routes/webdev');
+const paymentsRoutes = require('./src/routes/payments');
 
 // Import passport configuration
 require('./src/utils/passport-config');
@@ -39,8 +40,8 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://ka-f.fontawesome.com"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com", "https://connect.facebook.net", "https://kit.fontawesome.com", "https://ka-f.fontawesome.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https://accounts.google.com", "https://www.facebook.com", "https://ka-f.fontawesome.com"],
-      frameSrc: ["https://accounts.google.com", "https://www.facebook.com"]
+      connectSrc: ["'self'", "https://accounts.google.com", "https://www.facebook.com", "https://ka-f.fontawesome.com", "https://checkout.stripe.com"],
+      frameSrc: ["https://accounts.google.com", "https://www.facebook.com", "https://checkout.stripe.com", "https://js.stripe.com"]
     }
   }
 }));
@@ -75,7 +76,14 @@ app.use('/auth/login', authLimiter);
 app.use('/auth/signup', authLimiter);
 
 // Body parsing - increased limit for large content
-app.use(express.json({ limit: '10mb' }));
+// Exclude Stripe webhook path from JSON parsing (needs raw body for signature verification)
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/payments/webhook') {
+    next();
+  } else {
+    express.json({ limit: '10mb' })(req, res, next);
+  }
+});
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static files
@@ -130,6 +138,9 @@ app.use((req, res, next) => {
 
 // Public API routes (no authentication required)
 app.use('/api/public', publicApiRoutes);
+
+// Payment routes (no authentication - public facing)
+app.use('/api/payments', paymentsRoutes);
 
 // Routes
 app.use('/auth', authRoutes);

@@ -8,10 +8,35 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Products</h1>
-        <p class="page-subtitle">Manage your products</p>
+        <p class="page-subtitle">Manage products displayed on your service pages</p>
       </div>
       <div class="page-actions">
         <a href="/business/products/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</a>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-body" style="padding: 0.75rem 1rem;">
+        <form method="GET" action="/business/products" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <select name="service_page" class="form-input" style="max-width: 200px; padding: 0.4rem 0.6rem;">
+            <option value="">All Service Pages</option>
+            <option value="content-creation" <%= filter_service_page === 'content-creation' ? 'selected' : '' %>>Content Creation</option>
+            <option value="social-media-management" <%= filter_service_page === 'social-media-management' ? 'selected' : '' %>>Social Media</option>
+            <option value="web-development" <%= filter_service_page === 'web-development' ? 'selected' : '' %>>Web Development</option>
+            <option value="business-tools" <%= filter_service_page === 'business-tools' ? 'selected' : '' %>>Business Tools</option>
+          </select>
+          <select name="status" class="form-input" style="max-width: 150px; padding: 0.4rem 0.6rem;">
+            <option value="">All Statuses</option>
+            <option value="active" <%= filter_status === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="inactive" <%= filter_status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+            <option value="draft" <%= filter_status === 'draft' ? 'selected' : '' %>>Draft</option>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+          <% if (filter_service_page || filter_status) { %>
+          <a href="/business/products" class="btn btn-sm" style="color: #666;"><i class="fas fa-times"></i> Clear</a>
+          <% } %>
+        </form>
       </div>
     </div>
 
@@ -22,25 +47,53 @@
           <table class="table">
             <thead>
               <tr>
-                <th>Name</th>
+                <th style="width:40px;">#</th>
+                <th>Product</th>
                 <th>Price</th>
-                <th>Category</th>
+                <th>Service Page</th>
+                <th>Type</th>
                 <th>Status</th>
+                <th>Stripe</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <% products.forEach(product => { %>
+              <% products.forEach((product, index) => { %>
               <tr>
-                <td><strong><%= product.name %></strong></td>
+                <td style="color: #999;"><%= product.sort_order || index %></td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="<%= product.icon_class || 'fas fa-box' %>" style="color: var(--primary-color, #667eea); font-size: 1.1rem;"></i>
+                    <div>
+                      <strong><%= product.name %></strong>
+                      <% if (product.category) { %>
+                      <br><small style="color: #888;"><%= product.category %></small>
+                      <% } %>
+                    </div>
+                  </div>
+                </td>
                 <td><%= product.price ? '$' + parseFloat(product.price).toFixed(2) : '-' %></td>
-                <td><%= product.category || '-' %></td>
+                <td>
+                  <% if (product.service_page) { %>
+                  <span class="status-badge active" style="font-size: 0.7rem;"><%= product.service_page %></span>
+                  <% } else { %>
+                  <span style="color: #999;">-</span>
+                  <% } %>
+                </td>
+                <td><span style="text-transform: capitalize; font-size: 0.85rem;"><%= product.product_type || 'service' %></span></td>
                 <td><span class="status-badge <%= product.status %>"><%= product.status %></span></td>
                 <td>
+                  <% if (product.stripe_price_id) { %>
+                  <i class="fab fa-stripe" style="color: #635bff; font-size: 1.2rem;" title="Stripe connected"></i>
+                  <% } else { %>
+                  <span style="color: #ccc;">-</span>
+                  <% } %>
+                </td>
+                <td>
                   <div class="table-actions">
-                    <a href="/business/products/<%= product.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <a href="/business/products/<%= product.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
                     <form action="/business/products/<%= product.id %>/delete" method="POST" style="display: inline;">
-                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete title="Delete"><i class="fas fa-trash"></i></button>
                     </form>
                   </div>
                 </td>
@@ -52,8 +105,8 @@
         <% } else { %>
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-box"></i></div>
-          <h3>No Products</h3>
-          <p>Start adding products to your catalog.</p>
+          <h3>No Products Found</h3>
+          <p>Start adding products to display on your service pages.</p>
           <a href="/business/products/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</a>
         </div>
         <% } %>

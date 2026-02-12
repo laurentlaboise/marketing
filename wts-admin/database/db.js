@@ -407,6 +407,89 @@ const db = {
         )
       `);
 
+      // Add enhanced product fields for service page integration
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='slug') THEN
+            ALTER TABLE products ADD COLUMN slug VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='service_page') THEN
+            ALTER TABLE products ADD COLUMN service_page VARCHAR(100);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='icon_class') THEN
+            ALTER TABLE products ADD COLUMN icon_class VARCHAR(100) DEFAULT 'fas fa-box';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='animation_class') THEN
+            ALTER TABLE products ADD COLUMN animation_class VARCHAR(100) DEFAULT 'kinetic-pulse-float';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='sort_order') THEN
+            ALTER TABLE products ADD COLUMN sort_order INTEGER DEFAULT 0;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='product_type') THEN
+            ALTER TABLE products ADD COLUMN product_type VARCHAR(50) DEFAULT 'service';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='download_url') THEN
+            ALTER TABLE products ADD COLUMN download_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='slide_in_title') THEN
+            ALTER TABLE products ADD COLUMN slide_in_title VARCHAR(500);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='slide_in_subtitle') THEN
+            ALTER TABLE products ADD COLUMN slide_in_subtitle TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='slide_in_content') THEN
+            ALTER TABLE products ADD COLUMN slide_in_content TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='slide_in_image') THEN
+            ALTER TABLE products ADD COLUMN slide_in_image TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='slide_in_video') THEN
+            ALTER TABLE products ADD COLUMN slide_in_video TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='is_featured') THEN
+            ALTER TABLE products ADD COLUMN is_featured BOOLEAN DEFAULT FALSE;
+          END IF;
+        END $$;
+      `);
+
+      // Sidebar Items table (for editable sidebar navigation on public site)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS sidebar_items (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          label VARCHAR(255) NOT NULL,
+          url VARCHAR(500),
+          icon_class VARCHAR(100) DEFAULT 'fas fa-link',
+          parent_id UUID REFERENCES sidebar_items(id) ON DELETE CASCADE,
+          section VARCHAR(100) NOT NULL,
+          sort_order INTEGER DEFAULT 0,
+          is_visible BOOLEAN DEFAULT TRUE,
+          open_in_new_tab BOOLEAN DEFAULT FALSE,
+          css_class VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Orders table (for Stripe payment tracking)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS orders (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          product_id UUID REFERENCES products(id),
+          customer_email VARCHAR(255) NOT NULL,
+          customer_name VARCHAR(255),
+          amount DECIMAL(10,2) NOT NULL,
+          currency VARCHAR(10) DEFAULT 'USD',
+          stripe_session_id VARCHAR(255),
+          stripe_payment_intent VARCHAR(255),
+          status VARCHAR(50) DEFAULT 'pending',
+          download_count INTEGER DEFAULT 0,
+          metadata JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Price Models table
       await client.query(`
         CREATE TABLE IF NOT EXISTS price_models (
