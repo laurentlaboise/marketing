@@ -625,14 +625,18 @@ router.post('/pricing', async (req, res) => {
     } = req.body;
 
     // Build features JSONB from checkbox inputs (feature_<key> = "true")
+    // Note: express.urlencoded({ extended: true }) parses duplicate keys as arrays
+    // e.g. hidden "false" + checked checkbox "true" → ['false', 'true']
     const features = {};
     Object.keys(req.body).forEach(key => {
       if (key.startsWith('feature_')) {
         const featureKey = key.replace('feature_', '');
-        features[featureKey] = req.body[key] === 'true';
+        const val = req.body[key];
+        features[featureKey] = Array.isArray(val) ? val.includes('true') : val === 'true';
       }
     });
 
+    const isHighlight = Array.isArray(highlight) ? highlight.includes('true') : highlight === 'true';
     const modelSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     await db.query(
@@ -646,7 +650,7 @@ router.post('/pricing', async (req, res) => {
       [
         name, modelSlug, description, type, base_price || null, billing_cycle || 'monthly',
         JSON.stringify(features), status || 'active',
-        highlight === 'true', badge_text || null,
+        isHighlight, badge_text || null,
         parseInt(annual_discount_pct) || 20, parseInt(sort_order) || 0,
         cta_text || 'Choose Plan', cta_url || null, icon_class || null,
         upsell_text || null, upsell_target_id || null,
@@ -694,14 +698,17 @@ router.post('/pricing/:id', async (req, res) => {
     } = req.body;
 
     // Build features JSONB from checkbox inputs
+    // Note: express.urlencoded({ extended: true }) parses duplicate keys as arrays
     const features = {};
     Object.keys(req.body).forEach(key => {
       if (key.startsWith('feature_')) {
         const featureKey = key.replace('feature_', '');
-        features[featureKey] = req.body[key] === 'true';
+        const val = req.body[key];
+        features[featureKey] = Array.isArray(val) ? val.includes('true') : val === 'true';
       }
     });
 
+    const isHighlight = Array.isArray(highlight) ? highlight.includes('true') : highlight === 'true';
     const modelSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     await db.query(
@@ -716,7 +723,7 @@ router.post('/pricing/:id', async (req, res) => {
       WHERE id=$23`,
       [
         name, modelSlug, description, type, base_price || null, billing_cycle || 'monthly',
-        JSON.stringify(features), status, highlight === 'true', badge_text || null,
+        JSON.stringify(features), status, isHighlight, badge_text || null,
         parseInt(annual_discount_pct) || 20, parseInt(sort_order) || 0,
         cta_text || 'Choose Plan', cta_url || null, icon_class || null,
         upsell_text || null, upsell_target_id || null,
