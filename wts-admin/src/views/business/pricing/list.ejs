@@ -7,11 +7,12 @@
   <div class="page-content">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Price Models</h1>
-        <p class="page-subtitle">Manage pricing plans</p>
+        <h1 class="page-title">Pricing Packages</h1>
+        <p class="page-subtitle">Manage subscription tiers and pricing plans</p>
       </div>
       <div class="page-actions">
-        <a href="/business/pricing/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Plan</a>
+        <a href="/business/pricing-features" class="btn btn-secondary"><i class="fas fa-list"></i> Feature Catalog</a>
+        <a href="/business/pricing/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Package</a>
       </div>
     </div>
 
@@ -22,21 +23,42 @@
           <table class="table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
+                <th>#</th>
+                <th>Package</th>
                 <th>Price</th>
-                <th>Billing</th>
+                <th>Annual Discount</th>
+                <th>Type</th>
+                <th>Highlight</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <% models.forEach(model => { %>
+              <% models.forEach(function(model) { %>
               <tr>
-                <td><strong><%= model.name %></strong></td>
+                <td><%= model.sort_order || 0 %></td>
+                <td>
+                  <strong><%= model.name %></strong>
+                  <% if (model.badge_text) { %>
+                  <span class="status-badge active" style="margin-left: 0.5rem; font-size: 0.7rem;"><%= model.badge_text %></span>
+                  <% } %>
+                  <% if (model.description) { %>
+                  <br><small style="color: #666;"><%= model.description.substring(0, 60) %><%= model.description.length > 60 ? '...' : '' %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <%= model.base_price ? '$' + parseFloat(model.base_price).toFixed(0) : 'Free' %>
+                  <% if (model.base_price) { %><small>/mo</small><% } %>
+                </td>
+                <td><%= model.annual_discount_pct || 20 %>%</td>
                 <td><%= model.type || '-' %></td>
-                <td><%= model.base_price ? '$' + parseFloat(model.base_price).toFixed(2) : 'Free' %></td>
-                <td><%= model.billing_cycle || '-' %></td>
+                <td>
+                  <% if (model.highlight) { %>
+                  <i class="fas fa-star" style="color: #f59e0b;"></i>
+                  <% } else { %>
+                  <span style="color: #ccc;">-</span>
+                  <% } %>
+                </td>
                 <td><span class="status-badge <%= model.status %>"><%= model.status %></span></td>
                 <td>
                   <div class="table-actions">
@@ -54,9 +76,9 @@
         <% } else { %>
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-tags"></i></div>
-          <h3>No Price Models</h3>
-          <p>Create pricing plans for your services.</p>
-          <a href="/business/pricing/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Plan</a>
+          <h3>No Pricing Packages</h3>
+          <p>Create subscription tiers and pricing plans for the website.</p>
+          <a href="/business/pricing/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Package</a>
         </div>
         <% } %>
       </div>
