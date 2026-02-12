@@ -615,159 +615,46 @@
 
     <script>
         // ============================================================
-        // Static fallback data (used if API is unreachable)
-        // ============================================================
-        const fallbackPricingData = {
-            "subscriptions": [
-                {
-                    "name": "Growth Starter", "price": 297, "highlight": false, "annual_discount_pct": 20,
-                    "cta_text": "Choose Plan", "cta_url": "#", "upsell_text": "Upgrade to Professional for full access!",
-                    "pay_as_you_go_text": "* Pay as you go option",
-                    "features": {
-                        "virtual_card": true, "crm_management": false, "automation": false, "seo_tools": true,
-                        "social_strategy": true, "content_calendar": false, "community_engagement": false, "social_ads": false,
-                        "website_maintenance": true, "landing_page": true, "web_apps": false,
-                        "blog_posts": true, "articles": false, "copywriting": true, "logo_design": true
-                    }
-                },
-                {
-                    "name": "Professional Growth", "price": 597, "highlight": true, "annual_discount_pct": 20,
-                    "cta_text": "Choose Plan", "cta_url": "#", "badge_text": "Most Popular",
-                    "pay_as_you_go_text": "* Pay as you go option",
-                    "features": {
-                        "virtual_card": true, "crm_management": true, "automation": true, "seo_tools": true,
-                        "social_strategy": true, "content_calendar": true, "community_engagement": true, "social_ads": true,
-                        "website_maintenance": true, "landing_page": true, "web_apps": true,
-                        "blog_posts": true, "articles": true, "copywriting": true, "logo_design": true
-                    }
-                }
-            ],
-            "featureCategories": [
-                {
-                    "name": "Business Tools", "icon": "fa-briefcase",
-                    "features": [
-                        { "key": "virtual_card", "name": "Virtual Card Pro+ Maintenance", "description": "Ongoing support and updates for your digital business cards." },
-                        { "key": "crm_management", "name": "CRM Management", "description": "We manage your customer database, ensuring data is clean and actionable." },
-                        { "key": "automation", "name": "Automation", "description": "We ensure your automated workflows are running smoothly." },
-                        { "key": "seo_tools", "name": "SEO Tools", "description": "A suite of tools to optimize your website for search engines." }
-                    ]
-                },
-                {
-                    "name": "Social Media Tools", "icon": "fa-share-alt",
-                    "features": [
-                        { "key": "social_strategy", "name": "Social Media Strategy", "description": "Developing a custom strategy for your social channels." },
-                        { "key": "content_calendar", "name": "Content Calendar Creation", "description": "Planning and scheduling your social media posts." },
-                        { "key": "community_engagement", "name": "Community Engagement", "description": "Interacting with your audience and managing comments." },
-                        { "key": "social_ads", "name": "Social Media Advertising", "description": "Campaign management for paid social ads." }
-                    ]
-                },
-                {
-                    "name": "Web Development Tools", "icon": "fa-laptop-code",
-                    "features": [
-                        { "key": "website_maintenance", "name": "Website Maintenance", "description": "Includes plugin updates, security scans, and performance checks." },
-                        { "key": "landing_page", "name": "Landing Page Development", "description": "A conversion-focused WordPress landing page." },
-                        { "key": "web_apps", "name": "Web App Development", "description": "Custom web applications using Bubble." }
-                    ]
-                },
-                {
-                    "name": "Content Creation Tools", "icon": "fa-feather-alt",
-                    "features": [
-                        { "key": "blog_posts", "name": "Blog Posts", "description": "High-quality, SEO-optimized blog posts to engage your audience." },
-                        { "key": "articles", "name": "In-depth Articles", "description": "In-depth, research-heavy articles to establish thought leadership." },
-                        { "key": "copywriting", "name": "Website Copywriting", "description": "Writing compelling website text to drive conversions." },
-                        { "key": "logo_design", "name": "Logo Design", "description": "Professional logo design service." }
-                    ]
-                }
-            ]
-        };
-
-        // Non-subscription data (bundles, individual services) — not managed from backend
-        const staticSections = {
-            "bundles": [
-                { "name": "Start Strong Package", "description": "Perfect for new businesses launching their digital presence.", "value": 1388, "price": 997, "features": ["AI-Powered Logo Design", "Conversion Landing Page", "Virtual Card Pro+", "Basic Lead Forms", "30-day support"] },
-                { "name": "Authority Builder", "description": "For businesses ready to dominate their market.", "value": 2838, "price": 1997, "features": ["Professional Website (8 pages)", "Blog Professional (6 posts/month)", "SEO Translation (3 languages)", "CRM Starter"] }
-            ],
-            "individualServices": [
-                {
-                    "category": "Web Development", "icon": "fa-laptop-code",
-                    "services": [
-                        { "serviceTitle": "White Label WordPress Websites", "description": "Fully-managed, custom WordPress websites for your clients." },
-                        { "serviceTitle": "White Label Landing Pages", "description": "High-converting landing pages for specific campaigns." },
-                        { "serviceTitle": "SEO Audits & Implementation", "description": "Comprehensive SEO audits and on-page optimization." },
-                        { "serviceTitle": "Performance Optimization", "description": "Speed and performance tuning for websites." }
-                    ]
-                },
-                {
-                    "category": "Content", "icon": "fa-pen-nib",
-                    "services": [
-                        { "serviceTitle": "White Label Blog Post Writing", "description": "Original, SEO-optimized blog content." },
-                        { "serviceTitle": "Website Copywriting", "description": "Compelling and persuasive copy for websites." },
-                        { "serviceTitle": "E-book & Whitepaper Creation", "description": "Long-form content creation for lead generation." },
-                        { "serviceTitle": "Content Calendar Management", "description": "End-to-end content planning and scheduling." }
-                    ]
-                },
-                {
-                    "category": "Business Tools", "icon": "fa-briefcase",
-                    "services": [
-                        { "serviceTitle": "CRM & Automation Setup", "description": "Set up CRM systems and marketing automation workflows." },
-                        { "serviceTitle": "Lead Magnet Development", "description": "Create lead generation tools like quizzes and forms." },
-                        { "serviceTitle": "Email Marketing Campaigns", "description": "Full-service email campaign creation." }
-                    ]
-                },
-                {
-                    "category": "Social Media Tools", "icon": "fa-share-alt",
-                    "services": [
-                        { "serviceTitle": "Social Media Management", "description": "Complete management of social media accounts." },
-                        { "serviceTitle": "Social Media Ad Campaigns", "description": "Targeted ad campaign creation and management." },
-                        { "serviceTitle": "Branding Kits", "description": "Customizable branding assets for social media." }
-                    ]
-                }
-            ]
-        };
-
-        // ============================================================
-        // Fetch pricing data from admin API
+        // Pricing Page — All data loaded from Admin API
+        // No hardcoded pricing data. Admin backend is the single source of truth.
         // ============================================================
         const API_BASE = 'https://admin.wordsthatsells.website/api/public';
 
         async function loadPricingData() {
             try {
                 const response = await fetch(`${API_BASE}/pricing`);
-                if (!response.ok) throw new Error('API error');
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
-                // Validate we got actual data
-                if (data.subscriptions && data.subscriptions.length > 0) {
-                    return data;
-                }
-                return fallbackPricingData;
+                return data;
             } catch (err) {
-                console.warn('Pricing API unavailable, using fallback data:', err.message);
-                return fallbackPricingData;
+                console.warn('[Pricing] API error:', err.message);
+                return null;
             }
         }
 
         // ============================================================
         // Render functions
         // ============================================================
-        const renderIndividualServices = () => {
+
+        function renderIndividualServices(services) {
             const accordionContainer = document.getElementById('services-accordion');
-            if (!accordionContainer) return;
+            if (!accordionContainer || !services || !services.length) return;
             accordionContainer.innerHTML = '';
 
-            staticSections.individualServices.forEach(category => {
+            services.forEach(category => {
                 const accordionItem = document.createElement('div');
                 accordionItem.className = 'accordion-item';
 
                 const servicesHtml = category.services.map(service => `
                     <div class="service-item-card">
-                        <div class="title">${service.serviceTitle}</div>
-                        <div class="description">${service.description}</div>
+                        <div class="title">${service.serviceTitle || service.name || ''}</div>
+                        <div class="description">${service.description || ''}</div>
                     </div>
                 `).join('');
 
                 accordionItem.innerHTML = `
                     <button class="accordion-header">
-                        <h3><i class="fas ${category.icon}" style="margin-right: 0.5rem; color: var(--color-primary-base);"></i> ${category.category}</h3>
+                        <h3><i class="fas ${category.icon || 'fa-cog'}" style="margin-right: 0.5rem; color: var(--color-primary-base);"></i> ${category.category || category.name || ''}</h3>
                         <i class="fas fa-chevron-right"></i>
                     </button>
                     <div class="accordion-content">
@@ -784,37 +671,39 @@
                     header.parentElement.classList.toggle('active');
                 });
             });
-        };
+        }
+
+        function renderBundles(bundles) {
+            const bundlesSection = document.getElementById('bundles-grid');
+            if (!bundlesSection || !bundles || !bundles.length) return;
+            bundlesSection.innerHTML = '';
+
+            bundles.forEach((bundle, i) => {
+                const card = document.createElement('div');
+                card.className = `card bundle-card${i === bundles.length - 1 ? ' highlight' : ''}`;
+
+                const featuresHtml = (bundle.features || []).map(f =>
+                    `<li><i class="fas fa-check-circle"></i> ${f}</li>`
+                ).join('');
+
+                const valueHtml = bundle.value ? `<div class="value">Value: $${bundle.value.toLocaleString()}</div>` : '';
+                const saveHtml = bundle.value && bundle.price ? `<div class="save">You save $${(bundle.value - bundle.price).toLocaleString()}</div>` : '';
+
+                card.innerHTML = `
+                    <h3>${bundle.name || ''}</h3>
+                    <p style="color:var(--color-slate-500);margin:0.5rem 0;">${bundle.description || ''}</p>
+                    ${valueHtml}
+                    <div class="price">$${(bundle.price || 0).toLocaleString()}</div>
+                    ${saveHtml}
+                    <ul>${featuresHtml}</ul>
+                    <a href="${bundle.cta_url || '#'}" class="btn" style="margin-top:auto;">${bundle.cta_text || 'Get Started'}</a>
+                `;
+                bundlesSection.appendChild(card);
+            });
+        }
 
         document.addEventListener('DOMContentLoaded', async () => {
             const billingToggle = document.getElementById('billing-cycle-toggle');
-
-            // Load pricing data from API (with fallback)
-            const pricingData = await loadPricingData();
-
-            // --- Render Lao Programs ---
-            const laoSection = document.getElementById('lao-programs');
-            if (laoSection) {
-                laoSection.innerHTML = `
-                    <div style="text-align: center; max-width: 900px; margin: 0 auto;">
-                        <h2 style="color: var(--color-white); margin-bottom: 1rem; font-size: 2.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">
-                            Our Love for Laos: Free Digital Growth
-                        </h2>
-                        <p style="max-width: 800px; margin: 0 auto 2.5rem; font-size: 1.125rem;">We are dedicated to empowering local businesses, startups, and NGOs in Laos. Our mission is to accelerate digital growth and foster a vibrant local economy with our free marketing services.</p>
-                        <div style="max-width: 900px; margin: 0 auto;">
-                            <ul style="list-style: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; text-align: left;">
-                                <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> **Zero Cost**: Essential services offered at no charge.</li>
-                                <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> **Expert Support**: Receive guidance from our professional team.</li>
-                                <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> **Sustainable Growth**: Tools to help your business thrive long-term.</li>
-                                <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> **Community Focus**: Exclusively for local Lao businesses and organizations.</li>
-                            </ul>
-                        </div>
-                        <a href="#" class="btn btn-accent" style="margin-top: 3rem;">Apply for Free Support</a>
-                    </div>
-                `;
-            }
-
-            // --- Render Subscription Cards ---
             const subsGrid = document.getElementById('subscriptions-grid');
             const modalTableHead = document.getElementById('modal-table-head');
             const modalTableBody = document.getElementById('modal-table-body');
@@ -822,51 +711,58 @@
             const infoModalTitle = document.getElementById('info-modal-title');
             const infoModalDescription = document.getElementById('info-modal-description');
 
-            // Build a plan lookup by id for upsell linking
+            // Load all pricing data from API
+            const pricingData = await loadPricingData();
+
+            if (!pricingData) {
+                // API is down — show a clean message
+                if (subsGrid) {
+                    subsGrid.innerHTML = '<p style="text-align:center;color:var(--color-slate-500);padding:2rem;">Pricing plans are being updated. Please check back shortly.</p>';
+                }
+                return;
+            }
+
+            // --- Render Subscription Cards ---
             const planLookup = {};
-            pricingData.subscriptions.forEach(p => { if (p.id) planLookup[p.id] = p; });
+            if (pricingData.subscriptions) {
+                pricingData.subscriptions.forEach(p => { if (p.id) planLookup[p.id] = p; });
+            }
 
             const renderSubscriptions = () => {
+                if (!pricingData.subscriptions || !pricingData.subscriptions.length) {
+                    subsGrid.innerHTML = '<p style="text-align:center;color:var(--color-slate-500);padding:2rem;">No subscription plans available yet.</p>';
+                    return;
+                }
                 subsGrid.innerHTML = '';
 
-                pricingData.subscriptions.forEach((plan, index) => {
+                pricingData.subscriptions.forEach((plan) => {
                     const card = document.createElement('div');
                     card.className = `card subscription-card${plan.highlight ? ' highlight' : ''}`;
 
                     // Build feature list from feature categories
-                    const features = Object.entries(plan.features)
+                    const featureCategories = pricingData.featureCategories || [];
+                    const features = Object.entries(plan.features || {})
                         .filter(([key, value]) => value === true)
                         .map(([key]) => {
-                            const featureDef = pricingData.featureCategories.flatMap(cat => cat.features).find(f => f.key === key);
+                            const featureDef = featureCategories.flatMap(cat => cat.features).find(f => f.key === key);
                             const featureText = featureDef ? featureDef.name : key;
                             const featureDesc = featureDef ? featureDef.description : '';
                             return `<li title="${featureDesc}"><i class="fas fa-check-circle"></i> ${featureText}</li>`;
                         }).join('');
 
-                    // Badge
                     const badgeHtml = plan.badge_text
-                        ? `<div class="popular-pill-badge">${plan.badge_text}</div>`
-                        : '';
+                        ? `<div class="popular-pill-badge">${plan.badge_text}</div>` : '';
 
-                    // Upsell tooltip (shown on hover)
                     const upsellHtml = plan.upsell_text
-                        ? `<div class="upsell-tooltip"><i class="fas fa-arrow-up"></i> ${plan.upsell_text}</div>`
-                        : '';
+                        ? `<div class="upsell-tooltip"><i class="fas fa-arrow-up"></i> ${plan.upsell_text}</div>` : '';
 
-                    // Upsell banner at bottom of card
                     const upsellTarget = plan.upsell_target_id ? planLookup[plan.upsell_target_id] : null;
                     const upsellBannerHtml = upsellTarget
-                        ? `<div class="upsell-banner" data-upsell-target="${plan.upsell_target_id}"><i class="fas fa-rocket"></i> See ${upsellTarget.name} &rarr;</div>`
-                        : '';
+                        ? `<div class="upsell-banner" data-upsell-target="${plan.upsell_target_id}"><i class="fas fa-rocket"></i> See ${upsellTarget.name} &rarr;</div>` : '';
 
-                    // CTA
                     const ctaText = plan.cta_text || 'Choose Plan';
                     const ctaUrl = plan.cta_url || '#';
-
-                    // Pay as you go note
                     const paygoText = plan.pay_as_you_go_text || '';
-
-                    // Annual discount from plan
                     const discount = plan.annual_discount_pct != null ? plan.annual_discount_pct : 20;
 
                     card.innerHTML = `
@@ -892,7 +788,7 @@
                     subsGrid.appendChild(card);
                 });
 
-                // Bind upsell banner clicks — scroll to the target plan card
+                // Bind upsell banner clicks
                 document.querySelectorAll('.upsell-banner[data-upsell-target]').forEach(banner => {
                     banner.addEventListener('click', () => {
                         const targetId = banner.dataset.upsellTarget;
@@ -912,6 +808,8 @@
             };
 
             const renderModal = () => {
+                if (!pricingData.subscriptions || !pricingData.featureCategories) return;
+
                 let modalHeadHTML = '<tr><th>Features</th>';
                 let modalBodyHTML = '';
 
@@ -965,11 +863,21 @@
                 });
             };
 
+            // Render all sections
             renderSubscriptions();
             renderModal();
-            renderIndividualServices();
 
-            // --- Billing Toggle (uses per-plan discount) ---
+            // Render bundles if API provides them
+            if (pricingData.bundles) {
+                renderBundles(pricingData.bundles);
+            }
+
+            // Render individual services if API provides them
+            if (pricingData.individualServices) {
+                renderIndividualServices(pricingData.individualServices);
+            }
+
+            // --- Billing Toggle ---
             billingToggle.addEventListener('change', () => {
                 const isAnnual = billingToggle.checked;
                 document.querySelectorAll('.plan-price').forEach(el => {
