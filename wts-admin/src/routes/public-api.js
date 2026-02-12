@@ -611,14 +611,14 @@ const formLimiter = rateLimit({
 
 router.post('/submissions', formLimiter, async (req, res) => {
   try {
-    const { form_type, name, email, company, phone, message } = req.body;
+    const { form_type, name, email, company, phone, message, metadata } = req.body;
 
     // Validate required fields
     if (!form_type || !name || !email) {
       return respond(res, { error: 'form_type, name, and email are required.' }, 400);
     }
 
-    const allowedTypes = ['consultation', 'free-support', 'affiliate', 'white-label'];
+    const allowedTypes = ['consultation', 'free-support', 'affiliate', 'white-label', 'general-inquiry', 'newsletter'];
     if (!allowedTypes.includes(form_type)) {
       return respond(res, { error: 'Invalid form_type.' }, 400);
     }
@@ -629,10 +629,11 @@ router.post('/submissions', formLimiter, async (req, res) => {
     }
 
     // Insert submission
+    const metadataJson = metadata && typeof metadata === 'object' ? JSON.stringify(metadata) : '{}';
     await db.query(
-      `INSERT INTO form_submissions (form_type, name, email, company, phone, message)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [form_type, name.trim(), email.trim(), company || null, phone || null, message || null]
+      `INSERT INTO form_submissions (form_type, name, email, company, phone, message, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [form_type, name.trim(), email.trim(), company || null, phone || null, message || null, metadataJson]
     );
 
     // Create a notification for all admin users
@@ -640,7 +641,9 @@ router.post('/submissions', formLimiter, async (req, res) => {
       'consultation': 'Consultation Request',
       'free-support': 'Free Support Application',
       'affiliate': 'Affiliate Application',
-      'white-label': 'White Label Partnership'
+      'white-label': 'White Label Partnership',
+      'general-inquiry': 'General Inquiry',
+      'newsletter': 'Newsletter Signup'
     };
     const notifTitle = `New ${typeLabels[form_type] || form_type}`;
     const notifMessage = `${name} (${email})${company ? ' from ' + company : ''} submitted a ${typeLabels[form_type].toLowerCase()}.`;
