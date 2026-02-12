@@ -227,4 +227,40 @@ router.get('/export/:type', async (req, res) => {
   }
 });
 
+// ==================== NOTIFICATIONS ====================
+
+// Get unread count + recent notifications for the bell dropdown
+router.get('/notifications', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const countResult = await db.query(
+      'SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND read = FALSE',
+      [userId]
+    );
+    const recentResult = await db.query(
+      'SELECT id, type, title, message, link, read, created_at FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 10',
+      [userId]
+    );
+    respond(res, {
+      unreadCount: parseInt(countResult.rows[0].count) || 0,
+      notifications: recentResult.rows
+    });
+  } catch (error) {
+    respond(res, { error: 'Failed to load notifications' }, 500);
+  }
+});
+
+// Mark notifications as read
+router.post('/notifications/mark-read', async (req, res) => {
+  try {
+    await db.query(
+      'UPDATE notifications SET read = TRUE WHERE user_id = $1 AND read = FALSE',
+      [req.user.id]
+    );
+    respond(res, { success: true });
+  } catch (error) {
+    respond(res, { error: 'Failed to mark notifications as read' }, 500);
+  }
+});
+
 module.exports = router;

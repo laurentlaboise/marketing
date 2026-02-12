@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFormValidation();
   initConfirmDelete();
   initCopyCdnUrl();
+  initNotifications();
 });
 
 // Sidebar functionality
@@ -314,6 +315,108 @@ function initCopyCdnUrl() {
       });
     });
   });
+}
+
+// Notification bell dropdown
+function initNotifications() {
+  const btn = document.getElementById('notificationsBtn');
+  const dropdown = document.getElementById('notifDropdown');
+  const notifList = document.getElementById('notifList');
+  const markAllBtn = document.getElementById('markAllReadBtn');
+
+  if (!btn || !dropdown) return;
+
+  let isOpen = false;
+  let loaded = false;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isOpen = !isOpen;
+    dropdown.classList.toggle('active', isOpen);
+
+    if (isOpen && !loaded) {
+      loadNotifications();
+      loaded = true;
+    }
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (isOpen && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+      isOpen = false;
+      dropdown.classList.remove('active');
+    }
+  });
+
+  // Mark all read
+  if (markAllBtn) {
+    markAllBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        await fetch('/api/notifications/mark-read', { method: 'POST' });
+        // Remove badge
+        const badge = btn.querySelector('.notification-badge');
+        if (badge) badge.remove();
+        // Update items
+        dropdown.querySelectorAll('.notif-item.unread').forEach(item => {
+          item.classList.remove('unread');
+        });
+        dropdown.querySelectorAll('.notif-icon').forEach(icon => {
+          icon.style.background = '#dbeafe';
+          icon.style.color = '#1e40af';
+        });
+      } catch (err) {
+        console.error('Failed to mark notifications as read', err);
+      }
+    });
+  }
+
+  async function loadNotifications() {
+    try {
+      const res = await fetch('/api/notifications');
+      const data = await res.json();
+      if (!data.notifications || data.notifications.length === 0) {
+        notifList.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash"></i>No notifications yet</div>';
+        return;
+      }
+      notifList.innerHTML = data.notifications.map(n => {
+        const isUnread = !n.read;
+        const link = n.link || '/business/submissions';
+        return `<a href="${escapeHtml(link)}" class="notif-item ${isUnread ? 'unread' : ''}">
+          <div class="notif-icon"><i class="fas fa-envelope"></i></div>
+          <div class="notif-body">
+            <div class="notif-title">${escapeHtml(n.title)}</div>
+            <div class="notif-msg">${escapeHtml(n.message || '')}</div>
+            <div class="notif-time">${timeAgo(n.created_at)}</div>
+          </div>
+        </a>`;
+      }).join('');
+    } catch (err) {
+      notifList.innerHTML = '<div class="notif-empty">Failed to load notifications</div>';
+    }
+  }
+
+  // Poll for new notifications every 60 seconds
+  setInterval(async () => {
+    try {
+      const res = await fetch('/api/notifications');
+      const data = await res.json();
+      const count = data.unreadCount || 0;
+      let badge = btn.querySelector('.notification-badge');
+      if (count > 0) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'notification-badge';
+          btn.appendChild(badge);
+        }
+        badge.textContent = count > 99 ? '99+' : count;
+      } else if (badge) {
+        badge.remove();
+      }
+      // If dropdown is open, refresh the list
+      if (isOpen) loadNotifications();
+    } catch (err) { /* ignore polling errors */ }
+  }, 60000);
 }
 
 // Format time ago

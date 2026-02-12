@@ -598,6 +598,53 @@ router.get('/pricing', async (req, res) => {
   }
 });
 
+// ==================== FORM TEMPLATES ====================
+
+// Get a form template by type (for dynamic rendering on the website)
+router.get('/form-template/:type', async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT form_type, title, subtitle, fields, submit_button_text, success_message FROM form_templates WHERE form_type = $1 AND status = $2',
+      [req.params.type, 'active']
+    );
+    if (result.rows.length === 0) {
+      return respond(res, { error: 'Form template not found' }, 404);
+    }
+    const tpl = result.rows[0];
+    respond(res, {
+      form_type: tpl.form_type,
+      title: tpl.title,
+      subtitle: tpl.subtitle,
+      fields: typeof tpl.fields === 'string' ? JSON.parse(tpl.fields) : tpl.fields,
+      submit_button_text: tpl.submit_button_text,
+      success_message: tpl.success_message
+    });
+  } catch (error) {
+    console.error('Public API - Form template error:', error);
+    respond(res, { error: 'Failed to load form template' }, 500);
+  }
+});
+
+// Get all active form templates (for bulk loading)
+router.get('/form-templates', async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT form_type, title, subtitle, fields, submit_button_text, success_message FROM form_templates WHERE status = 'active' ORDER BY created_at ASC"
+    );
+    const templates = result.rows.map(tpl => ({
+      form_type: tpl.form_type,
+      title: tpl.title,
+      subtitle: tpl.subtitle,
+      fields: typeof tpl.fields === 'string' ? JSON.parse(tpl.fields) : tpl.fields,
+      submit_button_text: tpl.submit_button_text,
+      success_message: tpl.success_message
+    }));
+    respond(res, { templates });
+  } catch (error) {
+    respond(res, { error: 'Failed to load form templates' }, 500);
+  }
+});
+
 // ==================== FORM SUBMISSIONS ====================
 
 // Stricter rate limit for form submissions (10 per 15 min per IP)

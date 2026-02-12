@@ -853,6 +853,144 @@ router.post('/pricing-features/:id/delete', async (req, res) => {
   res.redirect('/business/pricing-features');
 });
 
+// ==================== FORM TEMPLATES (Form Builder) ====================
+
+router.get('/form-templates', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM form_templates ORDER BY created_at DESC');
+    res.render('business/form-templates/list', {
+      title: 'Form Templates - WTS Admin',
+      currentPage: 'form-templates',
+      templates: result.rows
+    });
+  } catch (error) {
+    console.error('Form templates list error:', error);
+    req.session.errorMessage = 'Failed to load form templates';
+    res.redirect('/business');
+  }
+});
+
+router.get('/form-templates/new', (req, res) => {
+  res.render('business/form-templates/form', {
+    title: 'Create Form Template - WTS Admin',
+    currentPage: 'form-templates',
+    template: null
+  });
+});
+
+router.post('/form-templates', async (req, res) => {
+  try {
+    const { form_type, title, subtitle, submit_button_text, success_message, status } = req.body;
+
+    // Parse fields from the dynamic form builder
+    const fields = [];
+    const fieldNames = Array.isArray(req.body['field_name']) ? req.body['field_name'] : (req.body['field_name'] ? [req.body['field_name']] : []);
+    const fieldLabels = Array.isArray(req.body['field_label']) ? req.body['field_label'] : (req.body['field_label'] ? [req.body['field_label']] : []);
+    const fieldTypes = Array.isArray(req.body['field_type']) ? req.body['field_type'] : (req.body['field_type'] ? [req.body['field_type']] : []);
+    const fieldPlaceholders = Array.isArray(req.body['field_placeholder']) ? req.body['field_placeholder'] : (req.body['field_placeholder'] ? [req.body['field_placeholder']] : []);
+    const fieldRequired = Array.isArray(req.body['field_required']) ? req.body['field_required'] : (req.body['field_required'] ? [req.body['field_required']] : []);
+    const fieldOptions = Array.isArray(req.body['field_options']) ? req.body['field_options'] : (req.body['field_options'] ? [req.body['field_options']] : []);
+
+    for (let i = 0; i < fieldNames.length; i++) {
+      if (!fieldNames[i]) continue;
+      const field = {
+        name: fieldNames[i].trim(),
+        label: (fieldLabels[i] || '').trim(),
+        type: fieldTypes[i] || 'text',
+        placeholder: (fieldPlaceholders[i] || '').trim(),
+        required: fieldRequired[i] === 'true'
+      };
+      if (field.type === 'select' && fieldOptions[i]) {
+        field.options = fieldOptions[i].split(',').map(o => o.trim()).filter(Boolean);
+      }
+      fields.push(field);
+    }
+
+    await db.query(
+      `INSERT INTO form_templates (form_type, title, subtitle, fields, submit_button_text, success_message, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [form_type.trim(), title.trim(), subtitle || null, JSON.stringify(fields),
+       submit_button_text || 'Submit', success_message || null, status || 'active']
+    );
+    req.session.successMessage = 'Form template created successfully';
+    res.redirect('/business/form-templates');
+  } catch (error) {
+    console.error('Create form template error:', error);
+    req.session.errorMessage = 'Failed to create form template. ' + (error.detail || error.message);
+    res.redirect('/business/form-templates/new');
+  }
+});
+
+router.get('/form-templates/:id/edit', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM form_templates WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.redirect('/business/form-templates');
+    }
+    res.render('business/form-templates/form', {
+      title: 'Edit Form Template - WTS Admin',
+      currentPage: 'form-templates',
+      template: result.rows[0]
+    });
+  } catch (error) {
+    res.redirect('/business/form-templates');
+  }
+});
+
+router.post('/form-templates/:id', async (req, res) => {
+  try {
+    const { form_type, title, subtitle, submit_button_text, success_message, status } = req.body;
+
+    // Parse fields
+    const fields = [];
+    const fieldNames = Array.isArray(req.body['field_name']) ? req.body['field_name'] : (req.body['field_name'] ? [req.body['field_name']] : []);
+    const fieldLabels = Array.isArray(req.body['field_label']) ? req.body['field_label'] : (req.body['field_label'] ? [req.body['field_label']] : []);
+    const fieldTypes = Array.isArray(req.body['field_type']) ? req.body['field_type'] : (req.body['field_type'] ? [req.body['field_type']] : []);
+    const fieldPlaceholders = Array.isArray(req.body['field_placeholder']) ? req.body['field_placeholder'] : (req.body['field_placeholder'] ? [req.body['field_placeholder']] : []);
+    const fieldRequired = Array.isArray(req.body['field_required']) ? req.body['field_required'] : (req.body['field_required'] ? [req.body['field_required']] : []);
+    const fieldOptions = Array.isArray(req.body['field_options']) ? req.body['field_options'] : (req.body['field_options'] ? [req.body['field_options']] : []);
+
+    for (let i = 0; i < fieldNames.length; i++) {
+      if (!fieldNames[i]) continue;
+      const field = {
+        name: fieldNames[i].trim(),
+        label: (fieldLabels[i] || '').trim(),
+        type: fieldTypes[i] || 'text',
+        placeholder: (fieldPlaceholders[i] || '').trim(),
+        required: fieldRequired[i] === 'true'
+      };
+      if (field.type === 'select' && fieldOptions[i]) {
+        field.options = fieldOptions[i].split(',').map(o => o.trim()).filter(Boolean);
+      }
+      fields.push(field);
+    }
+
+    await db.query(
+      `UPDATE form_templates SET form_type=$1, title=$2, subtitle=$3, fields=$4,
+       submit_button_text=$5, success_message=$6, status=$7, updated_at=CURRENT_TIMESTAMP
+       WHERE id=$8`,
+      [form_type.trim(), title.trim(), subtitle || null, JSON.stringify(fields),
+       submit_button_text || 'Submit', success_message || null, status || 'active', req.params.id]
+    );
+    req.session.successMessage = 'Form template updated successfully';
+    res.redirect('/business/form-templates');
+  } catch (error) {
+    console.error('Update form template error:', error);
+    req.session.errorMessage = 'Failed to update form template. ' + (error.detail || error.message);
+    res.redirect(`/business/form-templates/${req.params.id}/edit`);
+  }
+});
+
+router.post('/form-templates/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM form_templates WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Form template deleted';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to delete form template';
+  }
+  res.redirect('/business/form-templates');
+});
+
 // ==================== FORM SUBMISSIONS ====================
 
 // List all form submissions (with optional type filter)

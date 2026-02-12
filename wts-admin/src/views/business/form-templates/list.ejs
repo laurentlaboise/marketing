@@ -1,0 +1,74 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Form Builder</h1>
+        <p class="page-subtitle">Create and manage forms for the website</p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/form-templates/new" class="btn btn-primary"><i class="fas fa-plus"></i> Create Form</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (templates.length > 0) { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Form Type</th>
+                <th>Title</th>
+                <th>Fields</th>
+                <th>Status</th>
+                <th>Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% templates.forEach(tpl => { %>
+              <% const fields = typeof tpl.fields === 'string' ? JSON.parse(tpl.fields) : (tpl.fields || []); %>
+              <tr>
+                <td><code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.85rem;"><%= tpl.form_type %></code></td>
+                <td><strong><%= tpl.title %></strong></td>
+                <td><%= fields.length %> field<%= fields.length !== 1 ? 's' : '' %></td>
+                <td>
+                  <span class="status-badge <%= tpl.status === 'active' ? 'active' : 'inactive' %>">
+                    <%= tpl.status %>
+                  </span>
+                </td>
+                <td style="font-size:0.85rem;white-space:nowrap;">
+                  <%= new Date(tpl.updated_at || tpl.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                </td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/business/form-templates/<%= tpl.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                    <form action="/business/form-templates/<%= tpl.id %>/delete" method="POST" style="display:inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-wpforms"></i></div>
+          <h3>No Form Templates</h3>
+          <p>Create your first form template to start collecting submissions from the website.</p>
+          <a href="/business/form-templates/new" class="btn btn-primary"><i class="fas fa-plus"></i> Create Form</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

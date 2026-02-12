@@ -1,20 +1,25 @@
 // js/main.js
 
-import { handleFormSubmit, handleNewsletterSubmit } from './modules/firebase.js'; 
+import { handleFormSubmit, handleNewsletterSubmit, loadQuoteFormTemplate } from './modules/firebase.js';
 import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
 import { initSlidePanel } from './modules/slide.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initScrollReveal();
   initModalsAndButtons();
   initFaqSection();
   initSlidePanel();
 
-  // Connect the Affiliate Form
-  const quoteForm = document.getElementById('quote-form');
-  if (quoteForm) {
-    quoteForm.addEventListener('submit', handleFormSubmit);
+  // Try to load a dynamic form template from the admin.
+  // If a template exists for this page's form type, it replaces the hardcoded form.
+  // If not, fall back to the static #quote-form handler.
+  const dynamicLoaded = await loadQuoteFormTemplate();
+  if (!dynamicLoaded) {
+    const quoteForm = document.getElementById('quote-form');
+    if (quoteForm) {
+      quoteForm.addEventListener('submit', handleFormSubmit);
+    }
   }
 
   // Connect all Newsletter forms (by ID or class)
