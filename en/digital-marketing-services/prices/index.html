@@ -170,9 +170,15 @@
         .subscription-card .plan-price { font-size: 3rem; font-weight: 800; }
         .subscription-card .plan-period { color: var(--color-slate-500); }
         .subscription-card .plan-billing-note { font-size: 0.8rem; color: var(--color-slate-500); min-height: 20px; }
-        .subscription-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: left; flex-grow: 1; }
-        .subscription-card li { display: flex; align-items: flex-start; margin-bottom: 0.75rem; color: var(--color-slate-700); }
-        .subscription-card li i { color: var(--color-primary-base); margin-right: 0.75rem; font-size: 1.1rem; line-height: 1.5; }
+        .subscription-card .feature-section { text-align: left; flex-grow: 1; margin: 1rem 0; }
+        .subscription-card .feature-category-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-slate-500); margin: 1rem 0 0.4rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; gap: 0.4rem; }
+        .subscription-card .feature-category-label i { color: var(--color-primary-base); font-size: 0.8rem; }
+        .subscription-card ul { list-style: none; padding: 0; margin: 0; text-align: left; }
+        .subscription-card li { display: flex; align-items: flex-start; margin-bottom: 0.5rem; color: var(--color-slate-700); font-size: 0.95rem; }
+        .subscription-card li i { margin-right: 0.6rem; font-size: 1rem; line-height: 1.5; flex-shrink: 0; }
+        .subscription-card li i.fa-check-circle { color: var(--color-primary-base); }
+        .subscription-card li.feature-missing { color: var(--color-slate-300); }
+        .subscription-card li.feature-missing i { color: var(--color-slate-300); }
         .subscription-card .pay-as-you-go { font-size: 0.9rem; color: var(--color-slate-500); text-align: center; margin-bottom: 1rem; }
         .subscription-card .btn { width: 100%; }
 
@@ -728,27 +734,50 @@
                 pricingData.subscriptions.forEach(p => { if (p.id) planLookup[p.id] = p; });
             }
 
+            // --- GA helper: fire a custom event ---
+            function trackEvent(action, category, label, value) {
+                if (typeof gtag === 'function') {
+                    gtag('event', action, {
+                        event_category: category,
+                        event_label: label,
+                        value: value
+                    });
+                }
+            }
+
             const renderSubscriptions = () => {
                 if (!pricingData.subscriptions || !pricingData.subscriptions.length) {
                     subsGrid.innerHTML = '<p style="text-align:center;color:var(--color-slate-500);padding:2rem;">No subscription plans available yet.</p>';
                     return;
                 }
                 subsGrid.innerHTML = '';
+                const featureCategories = pricingData.featureCategories || [];
 
                 pricingData.subscriptions.forEach((plan) => {
                     const card = document.createElement('div');
                     card.className = `card subscription-card${plan.highlight ? ' highlight' : ''}`;
 
-                    // Build feature list from feature categories
-                    const featureCategories = pricingData.featureCategories || [];
-                    const features = Object.entries(plan.features || {})
-                        .filter(([key, value]) => value === true)
-                        .map(([key]) => {
-                            const featureDef = featureCategories.flatMap(cat => cat.features).find(f => f.key === key);
-                            const featureText = featureDef ? featureDef.name : key;
-                            const featureDesc = featureDef ? featureDef.description : '';
-                            return `<li title="${featureDesc}"><i class="fas fa-check-circle"></i> ${featureText}</li>`;
+                    // Build feature list grouped by category (included + missing)
+                    const planFeatures = plan.features || {};
+                    let featuresHtml = '';
+
+                    featureCategories.forEach(cat => {
+                        const catFeatures = cat.features || [];
+                        if (!catFeatures.length) return;
+
+                        const rows = catFeatures.map(f => {
+                            const included = planFeatures[f.key] === true;
+                            if (included) {
+                                return `<li title="${f.description || ''}"><i class="fas fa-check-circle"></i> ${f.name}</li>`;
+                            } else {
+                                return `<li class="feature-missing" title="Available in higher plans"><i class="fas fa-minus-circle"></i> ${f.name}</li>`;
+                            }
                         }).join('');
+
+                        featuresHtml += `
+                            <div class="feature-category-label"><i class="fas ${cat.icon || 'fa-cog'}"></i> ${cat.name}</div>
+                            <ul>${rows}</ul>`;
+                    });
 
                     const badgeHtml = plan.badge_text
                         ? `<div class="popular-pill-badge">${plan.badge_text}</div>` : '';
@@ -776,24 +805,30 @@
                             </div>
                             <h3 class="plan-name">${plan.name}</h3>
                             ${plan.description ? '<p style="font-size:0.9rem;color:var(--color-slate-500);margin-top:0.25rem;">' + plan.description + '</p>' : ''}
-                            <div class="faint-divider"></div>
                         </div>
-                        <ul class="feature-list">${features}</ul>
-                        <div class="faint-divider"></div>
+                        <div class="feature-section">${featuresHtml}</div>
                         <div class="card-footer">
                             ${paygoText ? '<div class="pay-as-you-go">' + paygoText + '</div>' : ''}
-                            <a href="${ctaUrl}" class="btn ${plan.highlight ? 'btn-accent' : ''}" style="margin-top:auto;">${ctaText}</a>
+                            <a href="${ctaUrl}" class="btn ${plan.highlight ? 'btn-accent' : ''}" data-plan="${plan.name}" data-price="${plan.price}" style="margin-top:auto;">${ctaText}</a>
                         </div>
                         ${upsellBannerHtml}`;
                     subsGrid.appendChild(card);
                 });
 
-                // Bind upsell banner clicks
+                // --- GA: Track CTA button clicks ---
+                document.querySelectorAll('.subscription-card .btn[data-plan]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        trackEvent('select_plan', 'Pricing', btn.dataset.plan, parseFloat(btn.dataset.price));
+                    });
+                });
+
+                // --- Bind upsell banner clicks ---
                 document.querySelectorAll('.upsell-banner[data-upsell-target]').forEach(banner => {
                     banner.addEventListener('click', () => {
                         const targetId = banner.dataset.upsellTarget;
                         const targetPlan = planLookup[targetId];
                         if (targetPlan) {
+                            trackEvent('click_upsell', 'Pricing', targetPlan.name);
                             const targetIndex = pricingData.subscriptions.indexOf(targetPlan);
                             const cards = subsGrid.querySelectorAll('.subscription-card');
                             if (cards[targetIndex]) {
@@ -880,6 +915,7 @@
             // --- Billing Toggle ---
             billingToggle.addEventListener('change', () => {
                 const isAnnual = billingToggle.checked;
+                trackEvent('toggle_billing', 'Pricing', isAnnual ? 'Annual' : 'Monthly');
                 document.querySelectorAll('.plan-price').forEach(el => {
                     const basePrice = parseFloat(el.dataset.price);
                     const discount = parseFloat(el.dataset.discount || 20);
@@ -901,6 +937,7 @@
             // --- Modal controls ---
             const modalOverlay = document.getElementById('comparison-modal-overlay');
             document.getElementById('compare-plans-btn').addEventListener('click', () => {
+                trackEvent('open_comparison', 'Pricing', 'Compare All Plans');
                 modalOverlay.classList.add('active');
                 document.body.classList.add('no-scroll');
             });
