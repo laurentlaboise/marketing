@@ -183,6 +183,30 @@ function isSafeImageUrl(url) {
 /**
  * Bind learn more buttons to the existing slide-in functionality
  */
+/**
+ * Sanitize an image URL read from the DOM.
+ * Returns a normalized http(s) URL string or null if invalid/unsafe.
+ * This adds a second layer of defense on top of isSafeImageUrl.
+ */
+function sanitizeImageUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    return null;
+  }
+  const trimmed = rawUrl.trim();
+  if (!trimmed) {
+    return null;
+  }
+  try {
+    const url = new URL(trimmed, window.location.origin);
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      return url.toString();
+    }
+  } catch (e) {
+    // If URL construction fails, treat as unsafe.
+  }
+  return null;
+}
+
 function bindLearnMoreButtons() {
   document.querySelectorAll('.btn-learn-more[data-service]').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -202,8 +226,9 @@ function bindLearnMoreButtons() {
 
         if (slideInTitle) slideInTitle.textContent = title;
         if (slideInImage) {
-          if (isSafeImageUrl(img)) {
-            slideInImage.src = img;
+          const safeImgUrl = sanitizeImageUrl(img);
+          if (isSafeImageUrl(img) && safeImgUrl) {
+            slideInImage.src = safeImgUrl;
           } else {
             slideInImage.removeAttribute('src');
           }
