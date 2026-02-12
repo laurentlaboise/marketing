@@ -362,8 +362,8 @@ function initNotifications() {
           item.classList.remove('unread');
         });
         dropdown.querySelectorAll('.notif-icon').forEach(icon => {
-          icon.style.background = '#dbeafe';
-          icon.style.color = '#1e40af';
+          icon.style.background = '#d0eaf8';
+          icon.style.color = '#1a6fa8';
         });
       } catch (err) {
         console.error('Failed to mark notifications as read', err);
