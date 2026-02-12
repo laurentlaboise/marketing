@@ -542,6 +542,74 @@ router.get('/sidebar', async (req, res) => {
   }
 });
 
+// ==================== PRICING PACKAGES ====================
+
+// Get all active pricing plans with feature categories (mirrors the pricingData structure)
+router.get('/pricing', async (req, res) => {
+  try {
+    // Fetch active plans
+    const plansResult = await db.query(
+      `SELECT * FROM price_models WHERE status = 'active' ORDER BY sort_order ASC, name ASC`
+    );
+
+    // Fetch active features
+    const featuresResult = await db.query(
+      `SELECT * FROM pricing_features WHERE status = 'active' ORDER BY category_sort_order ASC, sort_order ASC`
+    );
+
+    // Build subscriptions array
+    const subscriptions = plansResult.rows.map(plan => {
+      const planFeatures = (typeof plan.features === 'string') ? JSON.parse(plan.features) : (plan.features || {});
+      return {
+        id: plan.id,
+        name: plan.name,
+        slug: plan.slug,
+        description: plan.description || '',
+        price: plan.base_price ? parseFloat(plan.base_price) : 0,
+        currency: plan.currency || 'USD',
+        billing_cycle: plan.billing_cycle || 'monthly',
+        annual_discount_pct: plan.annual_discount_pct != null ? plan.annual_discount_pct : 20,
+        highlight: plan.highlight || false,
+        badge_text: plan.badge_text || null,
+        icon_class: plan.icon_class || null,
+        cta_text: plan.cta_text || 'Choose Plan',
+        cta_url: plan.cta_url || '#',
+        upsell_text: plan.upsell_text || null,
+        upsell_target_id: plan.upsell_target_id || null,
+        pay_as_you_go_text: plan.pay_as_you_go_text || null,
+        trial_days: plan.trial_days || 0,
+        features: planFeatures
+      };
+    });
+
+    // Build featureCategories array (grouped by category)
+    const categoryMap = {};
+    featuresResult.rows.forEach(f => {
+      if (!categoryMap[f.category_name]) {
+        categoryMap[f.category_name] = {
+          name: f.category_name,
+          icon: f.category_icon || 'fas fa-cog',
+          features: []
+        };
+      }
+      categoryMap[f.category_name].features.push({
+        key: f.feature_key,
+        name: f.feature_name,
+        description: f.feature_description || ''
+      });
+    });
+    const featureCategories = Object.values(categoryMap);
+
+    respond(res, {
+      subscriptions,
+      featureCategories
+    });
+  } catch (error) {
+    console.error('Public API - Pricing error:', error);
+    respond(res, { error: 'Failed to load pricing data' }, 500);
+  }
+});
+
 // Health check
 router.get('/health', (req, res) => {
   respond(res, { status: 'ok', timestamp: new Date().toISOString() });

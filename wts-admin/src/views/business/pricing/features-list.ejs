@@ -1,0 +1,80 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Pricing Features Catalog</h1>
+        <p class="page-subtitle">Manage features that can be toggled on/off per pricing package. <a href="/business/pricing"><i class="fas fa-arrow-left"></i> Back to Packages</a></p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/pricing-features/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Feature</a>
+      </div>
+    </div>
+
+    <% if (features.length > 0) { %>
+    <% var catNames = Object.keys(categories); catNames.forEach(function(catName) { var catFeatures = categories[catName]; %>
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div class="card-header">
+        <h3>
+          <i class="<%= catFeatures[0].category_icon %>" style="margin-right: 0.5rem; color: #667eea;"></i>
+          <%= catName %>
+          <small style="color: #999; font-weight: 400; margin-left: 0.5rem;">(<%= catFeatures.length %> features)</small>
+        </h3>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Feature Name</th>
+                <th>Description</th>
+                <th>Order</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% catFeatures.forEach(function(feature) { %>
+              <tr>
+                <td><code><%= feature.feature_key %></code></td>
+                <td><strong><%= feature.feature_name %></strong></td>
+                <td><small style="color: #666;"><%= feature.feature_description || '-' %></small></td>
+                <td><%= feature.sort_order %></td>
+                <td><span class="status-badge <%= feature.status %>"><%= feature.status %></span></td>
+                <td>
+                  <div class="table-actions">
+                    <a href="/business/pricing-features/<%= feature.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/business/pricing-features/<%= feature.id %>/delete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+    <% } else { %>
+    <div class="card">
+      <div class="card-body">
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-list"></i></div>
+          <h3>No Pricing Features</h3>
+          <p>Create features to build your plan comparison matrix.</p>
+          <a href="/business/pricing-features/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Feature</a>
+        </div>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

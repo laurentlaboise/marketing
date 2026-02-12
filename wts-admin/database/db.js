@@ -507,6 +507,75 @@ const db = {
         )
       `);
 
+      // Add enhanced pricing columns for subscription packages
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='slug') THEN
+            ALTER TABLE price_models ADD COLUMN slug VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='highlight') THEN
+            ALTER TABLE price_models ADD COLUMN highlight BOOLEAN DEFAULT FALSE;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='badge_text') THEN
+            ALTER TABLE price_models ADD COLUMN badge_text VARCHAR(100);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='annual_discount_pct') THEN
+            ALTER TABLE price_models ADD COLUMN annual_discount_pct INTEGER DEFAULT 20;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='sort_order') THEN
+            ALTER TABLE price_models ADD COLUMN sort_order INTEGER DEFAULT 0;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='cta_text') THEN
+            ALTER TABLE price_models ADD COLUMN cta_text VARCHAR(255) DEFAULT 'Choose Plan';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='cta_url') THEN
+            ALTER TABLE price_models ADD COLUMN cta_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='icon_class') THEN
+            ALTER TABLE price_models ADD COLUMN icon_class VARCHAR(100);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='upsell_text') THEN
+            ALTER TABLE price_models ADD COLUMN upsell_text TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='upsell_target_id') THEN
+            ALTER TABLE price_models ADD COLUMN upsell_target_id UUID;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='pay_as_you_go_text') THEN
+            ALTER TABLE price_models ADD COLUMN pay_as_you_go_text VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='trial_days') THEN
+            ALTER TABLE price_models ADD COLUMN trial_days INTEGER DEFAULT 0;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='currency') THEN
+            ALTER TABLE price_models ADD COLUMN currency VARCHAR(10) DEFAULT 'USD';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='stripe_price_id_monthly') THEN
+            ALTER TABLE price_models ADD COLUMN stripe_price_id_monthly VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='price_models' AND column_name='stripe_price_id_yearly') THEN
+            ALTER TABLE price_models ADD COLUMN stripe_price_id_yearly VARCHAR(255);
+          END IF;
+        END $$;
+      `);
+
+      // Pricing Features catalog (manages the feature list & categories for comparison)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS pricing_features (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          category_name VARCHAR(255) NOT NULL,
+          category_icon VARCHAR(100) DEFAULT 'fas fa-cog',
+          feature_key VARCHAR(100) NOT NULL UNIQUE,
+          feature_name VARCHAR(255) NOT NULL,
+          feature_description TEXT,
+          sort_order INTEGER DEFAULT 0,
+          category_sort_order INTEGER DEFAULT 0,
+          status VARCHAR(50) DEFAULT 'active',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Social Posts table
       await client.query(`
         CREATE TABLE IF NOT EXISTS social_posts (
