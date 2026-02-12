@@ -17,11 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     quoteForm.addEventListener('submit', handleFormSubmit);
   }
 
-  // Connect the Newsletter form
-  const newsletterForm = document.getElementById('newsletter-form');
-  if (newsletterForm) {
-    newsletterForm.addEventListener('submit', handleNewsletterSubmit);
-  }
+  // Connect all Newsletter forms (by ID or class)
+  document.querySelectorAll('#newsletter-form, form.newsletter-form').forEach(form => {
+    form.addEventListener('submit', handleNewsletterSubmit);
+  });
 
   updateFooterLanguageLinks();
 });

@@ -34,6 +34,8 @@
             <option value="free-support" <%= activeFilter === 'free-support' ? 'selected' : '' %>>Free Support</option>
             <option value="affiliate" <%= activeFilter === 'affiliate' ? 'selected' : '' %>>Affiliate</option>
             <option value="white-label" <%= activeFilter === 'white-label' ? 'selected' : '' %>>White Label</option>
+            <option value="general-inquiry" <%= activeFilter === 'general-inquiry' ? 'selected' : '' %>>General Inquiry</option>
+            <option value="newsletter" <%= activeFilter === 'newsletter' ? 'selected' : '' %>>Newsletter</option>
           </select>
           <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
           <% if (activeFilter) { %>
@@ -67,11 +69,13 @@
                   <br><span style="color: var(--color-slate-500);"><%= new Date(sub.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></span>
                 </td>
                 <td>
-                  <% const typeLabels = { 'consultation': 'Consultation', 'free-support': 'Free Support', 'affiliate': 'Affiliate', 'white-label': 'White Label' }; %>
+                  <% const typeLabels = { 'consultation': 'Consultation', 'free-support': 'Free Support', 'affiliate': 'Affiliate', 'white-label': 'White Label', 'general-inquiry': 'General Inquiry', 'newsletter': 'Newsletter' }; %>
                   <span class="status-badge" style="background:
                     <% if (sub.form_type === 'consultation') { %>#dbeafe; color:#1e40af;
                     <% } else if (sub.form_type === 'free-support') { %>#d1fae5; color:#065f46;
                     <% } else if (sub.form_type === 'affiliate') { %>#fce7f3; color:#9d174d;
+                    <% } else if (sub.form_type === 'general-inquiry') { %>#fef3c7; color:#92400e;
+                    <% } else if (sub.form_type === 'newsletter') { %>#f0fdf4; color:#166534;
                     <% } else { %>#e0e7ff; color:#3730a3;
                     <% } %>">
                     <%= typeLabels[sub.form_type] || sub.form_type %>
