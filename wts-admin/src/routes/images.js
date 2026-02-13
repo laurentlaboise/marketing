@@ -12,6 +12,70 @@ const https = require('https');
 // Root directory for uploaded files handled by this router.
 const UPLOAD_ROOT = path.join(__dirname, '../../../uploads');
 
+/**
+ * Validate that a redirect path is a safe, application-local path.
+ *
+ * Rules:
+ * - Must be a string.
+ * - Must start with a single "/" (application-relative).
+ * - Must not start with "//" (protocol-relative external URL).
+ * - Must not contain a URL scheme like "http:" or "https:" at the start.
+ */
+function isSafeRedirectPath(p) {
+  if (typeof p !== 'string') {
+    return false;
+  }
+
+  // Trim whitespace to avoid hiding unsafe prefixes
+  const trimmed = p.trim();
+
+  // Must start with "/" (app-relative)
+  if (!trimmed.startsWith('/')) {
+    return false;
+  }
+
+  // Reject protocol-relative URLs (e.g., "//evil.com")
+  if (trimmed.startsWith('//')) {
+    return false;
+  }
+
+  // Reject explicit URL schemes (e.g., "http://", "https://")
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('http://') || lower.startsWith('https://')) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Ensure a redirect target is a safe local path.
+ * Only allow relative paths on this server that start with a single "/"
+ * and do not contain a URL scheme.
+ */
+function isSafeRedirectPath(target) {
+  if (typeof target !== 'string') {
+    return false;
+  }
+
+  // Trim whitespace
+  const trimmed = target.trim();
+
+  // Must start with "/" but not with "//" (protocol-relative) and not be empty
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//')) {
+    return false;
+  }
+
+  // Disallow any ":" before a "/" to prevent schemes like "http:" or "javascript:"
+  const firstSlashIndex = trimmed.indexOf('/');
+  const firstColonIndex = trimmed.indexOf(':');
+  if (firstColonIndex !== -1 && (firstSlashIndex === -1 || firstColonIndex < firstSlashIndex)) {
+    return false;
+  }
+
+  return true;
+}
+
 const router = express.Router();
 router.use(ensureAuthenticated);
 
@@ -637,6 +701,295 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     if (req.file) cleanupTempFile(req.file.path);
     req.session.errorMessage = 'Upload failed: ' + error.message;
     res.redirect('/images/upload');
+  }
+});
+
+// ==================== IMAGE OPTIMIZATION ====================
+
+// Optimize existing image (convert format, resize, adjust quality)
+router.post('/:id/optimize', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+
+    const image = result.rows[0];
+    const { format, quality, max_width, max_height, fit } = req.body;
+    const qualityInt = Math.min(100, Math.max(1, parseInt(quality) || 82));
+    const maxW = parseInt(max_width) || 0;
+    const maxH = parseInt(max_height) || 0;
+    const fitMode = ['cover', 'contain', 'fill', 'inside', 'outside'].includes(fit) ? fit : 'inside';
+
+    // Read source file
+    const sourcePath = path.resolve(__dirname, '../../../', image.file_path);
+    if (!fs.existsSync(sourcePath)) {
+      return res.status(404).json({ error: 'Image file not found on disk' });
+    }
+
+    const isSvg = image.mime_type === 'image/svg+xml';
+    if (isSvg) {
+      return res.status(400).json({ error: 'SVG files cannot be optimized. They are already vector-based.' });
+    }
+
+    const originalSize = fs.statSync(sourcePath).size;
+    let sharpInstance = sharp(sourcePath);
+    const meta = await sharpInstance.metadata();
+
+    // Resize if requested
+    const resizeOpts = {};
+    if (maxW > 0 || maxH > 0) {
+      if (maxW > 0) resizeOpts.width = maxW;
+      if (maxH > 0) resizeOpts.height = maxH;
+      resizeOpts.fit = fitMode;
+      resizeOpts.withoutEnlargement = true;
+    }
+    if (Object.keys(resizeOpts).length > 0) {
+      sharpInstance = sharpInstance.resize(resizeOpts);
+    }
+
+    // Determine output format and extension
+    const targetFormat = format || 'webp';
+    let newExt, newMime;
+    switch (targetFormat) {
+      case 'webp':
+        sharpInstance = sharpInstance.webp({ quality: qualityInt });
+        newExt = '.webp'; newMime = 'image/webp';
+        break;
+      case 'avif':
+        sharpInstance = sharpInstance.avif({ quality: qualityInt });
+        newExt = '.avif'; newMime = 'image/avif';
+        break;
+      case 'jpeg':
+        sharpInstance = sharpInstance.jpeg({ quality: qualityInt, mozjpeg: true });
+        newExt = '.jpg'; newMime = 'image/jpeg';
+        break;
+      case 'png':
+        sharpInstance = sharpInstance.png({ quality: qualityInt, compressionLevel: 9 });
+        newExt = '.png'; newMime = 'image/png';
+        break;
+      default:
+        return res.status(400).json({ error: 'Unsupported format: ' + targetFormat });
+    }
+
+    // Build new filename/path
+    const baseName = path.basename(image.filename, path.extname(image.filename));
+    const newFilename = baseName + newExt;
+    const dir = path.dirname(image.file_path);
+    const newRelPath = path.join(dir, newFilename);
+    const newFullPath = assertPathWithin(path.resolve(__dirname, '../../../', newRelPath), IMAGES_DIR);
+
+    // Process and save
+    const destDir = path.dirname(newFullPath);
+    if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+    await sharpInstance.toFile(newFullPath);
+
+    // Get new metadata
+    const newMeta = await sharp(newFullPath).metadata();
+    const newSize = fs.statSync(newFullPath).size;
+
+    // If format changed, delete old file (if different path)
+    const oldFullPath = path.resolve(__dirname, '../../../', image.file_path);
+    if (oldFullPath !== newFullPath && fs.existsSync(oldFullPath)) {
+      fs.unlinkSync(oldFullPath);
+    }
+
+    // Push to GitHub CDN
+    const newCdnUrl = buildCdnUrl(newRelPath);
+    const fileBuffer = fs.readFileSync(newFullPath);
+    const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Optimize image: ${newFilename}`);
+
+    // If file changed names, also delete old file from GitHub
+    if (image.file_path !== newRelPath) {
+      try {
+        const oldSha = await getGitHubFileSha(image.file_path);
+        if (oldSha) {
+          await pushToGitHub(image.file_path, Buffer.from(''), `Remove old image: ${image.filename}`, oldSha);
+        }
+      } catch (e) { /* ignore cleanup errors */ }
+    }
+
+    // Update database
+    await db.query(
+      `UPDATE images SET filename = $1, file_path = $2, file_size = $3, mime_type = $4, width = $5, height = $6, cdn_url = $7, updated_at = CURRENT_TIMESTAMP WHERE id = $8`,
+      [newFilename, newRelPath, newSize, newMime, newMeta.width, newMeta.height, newCdnUrl, req.params.id]
+    );
+
+    const savings = originalSize - newSize;
+    const pct = originalSize > 0 ? Math.round((savings / originalSize) * 100) : 0;
+
+    res.json({
+      success: true,
+      original_size: originalSize,
+      new_size: newSize,
+      savings,
+      savings_pct: pct,
+      new_filename: newFilename,
+      new_format: targetFormat,
+      new_width: newMeta.width,
+      new_height: newMeta.height,
+      cdn_pushed: ghResult.pushed || false,
+      cdn_url: newCdnUrl,
+    });
+  } catch (error) {
+    console.error('Image optimization error:', error);
+    res.status(500).json({ error: 'Optimization failed: ' + error.message });
+  }
+});
+
+// Preview optimization (returns estimated size without saving)
+router.post('/:id/optimize-preview', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+
+    const image = result.rows[0];
+    const { format, quality, max_width, max_height, fit } = req.body;
+    const qualityInt = Math.min(100, Math.max(1, parseInt(quality) || 82));
+    const maxW = parseInt(max_width) || 0;
+    const maxH = parseInt(max_height) || 0;
+    const fitMode = ['cover', 'contain', 'fill', 'inside', 'outside'].includes(fit) ? fit : 'inside';
+
+    const sourcePath = path.resolve(__dirname, '../../../', image.file_path);
+    if (!fs.existsSync(sourcePath)) {
+      return res.status(404).json({ error: 'Image file not found on disk' });
+    }
+
+    if (image.mime_type === 'image/svg+xml') {
+      return res.json({ original_size: image.file_size, estimated_size: image.file_size, savings_pct: 0, error: 'SVG' });
+    }
+
+    const originalSize = fs.statSync(sourcePath).size;
+    let sharpInstance = sharp(sourcePath);
+
+    const resizeOpts = {};
+    if (maxW > 0) resizeOpts.width = maxW;
+    if (maxH > 0) resizeOpts.height = maxH;
+    if (Object.keys(resizeOpts).length > 0) {
+      resizeOpts.fit = fitMode;
+      resizeOpts.withoutEnlargement = true;
+      sharpInstance = sharpInstance.resize(resizeOpts);
+    }
+
+    const targetFormat = format || 'webp';
+    switch (targetFormat) {
+      case 'webp': sharpInstance = sharpInstance.webp({ quality: qualityInt }); break;
+      case 'avif': sharpInstance = sharpInstance.avif({ quality: qualityInt }); break;
+      case 'jpeg': sharpInstance = sharpInstance.jpeg({ quality: qualityInt, mozjpeg: true }); break;
+      case 'png': sharpInstance = sharpInstance.png({ quality: qualityInt, compressionLevel: 9 }); break;
+    }
+
+    // Process to buffer to get estimated size (don't save to disk)
+    const outputBuffer = await sharpInstance.toBuffer();
+    const estimatedSize = outputBuffer.length;
+    const savings = originalSize - estimatedSize;
+    const pct = originalSize > 0 ? Math.round((savings / originalSize) * 100) : 0;
+
+    res.json({
+      original_size: originalSize,
+      estimated_size: estimatedSize,
+      savings,
+      savings_pct: pct,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Preview failed: ' + error.message });
+  }
+});
+
+// Bulk optimize multiple images
+router.post('/bulk-optimize', async (req, res) => {
+  try {
+    const { image_ids, format, quality } = req.body;
+    if (!image_ids) {
+      req.session.errorMessage = 'No images selected';
+      return res.redirect('/images');
+    }
+
+    const ids = Array.isArray(image_ids) ? image_ids : [image_ids];
+    const targetFormat = format || 'webp';
+    const qualityInt = Math.min(100, Math.max(1, parseInt(quality) || 82));
+    let totalSavings = 0;
+    let optimizedCount = 0;
+
+    for (const id of ids) {
+      try {
+        const result = await db.query('SELECT * FROM images WHERE id = $1', [id]);
+        if (result.rows.length === 0) continue;
+        const image = result.rows[0];
+
+        if (image.mime_type === 'image/svg+xml') continue;
+
+        const sourcePath = path.resolve(__dirname, '../../../', image.file_path);
+        if (!fs.existsSync(sourcePath)) continue;
+
+        const originalSize = fs.statSync(sourcePath).size;
+        let sharpInstance = sharp(sourcePath);
+        const meta = await sharpInstance.metadata();
+
+        // Resize large images
+        if (meta.width > 2400 || meta.height > 2400) {
+          sharpInstance = sharpInstance.resize({ width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true });
+        }
+
+        let newExt, newMime;
+        switch (targetFormat) {
+          case 'webp': sharpInstance = sharpInstance.webp({ quality: qualityInt }); newExt = '.webp'; newMime = 'image/webp'; break;
+          case 'avif': sharpInstance = sharpInstance.avif({ quality: qualityInt }); newExt = '.avif'; newMime = 'image/avif'; break;
+          case 'jpeg': sharpInstance = sharpInstance.jpeg({ quality: qualityInt, mozjpeg: true }); newExt = '.jpg'; newMime = 'image/jpeg'; break;
+          case 'png': sharpInstance = sharpInstance.png({ quality: qualityInt, compressionLevel: 9 }); newExt = '.png'; newMime = 'image/png'; break;
+          default: continue;
+        }
+
+        const baseName = path.basename(image.filename, path.extname(image.filename));
+        const newFilename = baseName + newExt;
+        const dir = path.dirname(image.file_path);
+        const newRelPath = path.join(dir, newFilename);
+        const newFullPath = assertPathWithin(path.resolve(__dirname, '../../../', newRelPath), IMAGES_DIR);
+
+        const destDir = path.dirname(newFullPath);
+        if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+        await sharpInstance.toFile(newFullPath);
+
+        const newMeta = await sharp(newFullPath).metadata();
+        const newSize = fs.statSync(newFullPath).size;
+
+        // Delete old file if name changed
+        const oldFullPath = path.resolve(__dirname, '../../../', image.file_path);
+        if (oldFullPath !== newFullPath && fs.existsSync(oldFullPath)) {
+          fs.unlinkSync(oldFullPath);
+        }
+
+        // Push to CDN
+        const newCdnUrl = buildCdnUrl(newRelPath);
+        const fileBuffer = fs.readFileSync(newFullPath);
+        await pushToGitHub(newRelPath, fileBuffer, `Bulk optimize: ${newFilename}`);
+
+        // Update DB
+        await db.query(
+          `UPDATE images SET filename = $1, file_path = $2, file_size = $3, mime_type = $4, width = $5, height = $6, cdn_url = $7, updated_at = CURRENT_TIMESTAMP WHERE id = $8`,
+          [newFilename, newRelPath, newSize, newMime, newMeta.width, newMeta.height, newCdnUrl, id]
+        );
+
+        totalSavings += (originalSize - newSize);
+        optimizedCount++;
+      } catch (err) {
+        console.error('Bulk optimize error for image %s:', id, err);
+      }
+    }
+
+    const savedFormatted = totalSavings > 1024 * 1024
+      ? (totalSavings / (1024 * 1024)).toFixed(1) + ' MB'
+      : (totalSavings / 1024).toFixed(1) + ' KB';
+
+    req.session.successMessage = `${optimizedCount} image${optimizedCount !== 1 ? 's' : ''} optimized to ${targetFormat.toUpperCase()}. Total savings: ${savedFormatted}`;
+    const redirectTarget = isSafeRedirectPath(req.body.return_to) ? req.body.return_to : '/images';
+    res.redirect(redirectTarget);
+  } catch (error) {
+    console.error('Bulk optimize error:', error);
+    req.session.errorMessage = 'Bulk optimization failed: ' + error.message;
+    res.redirect('/images');
   }
 });
 
