@@ -1473,4 +1473,444 @@ router.post('/posts/:id/publish', async (req, res) => {
   }
 });
 
+// ==================== PHASE 4: BITLY + UTM + ANALYTICS ====================
+
+// Bitly API helper
+async function shortenWithBitly(longUrl) {
+  const token = process.env.BITLY_ACCESS_TOKEN;
+  if (!token) return null;
+  try {
+    const resp = await fetch('https://api-ssl.bitly.com/v4/shorten', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ long_url: longUrl }),
+    });
+    const data = await resp.json();
+    return data.link || null;
+  } catch (e) {
+    console.error('Bitly shorten error:', e.message);
+    return null;
+  }
+}
+
+// Bitly click stats helper
+async function getBitlyClicks(bitlyLink) {
+  const token = process.env.BITLY_ACCESS_TOKEN;
+  if (!token || !bitlyLink) return 0;
+  try {
+    const bitHash = bitlyLink.replace('https://bit.ly/', '').replace('http://bit.ly/', '');
+    const resp = await fetch('https://api-ssl.bitly.com/v4/bitlinks/bit.ly/' + bitHash + '/clicks/summary?unit=month&units=1', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    const data = await resp.json();
+    return data.total_clicks || 0;
+  } catch (e) { return 0; }
+}
+
+// UTM builder
+function buildUtmUrl(baseUrl, post, campaign) {
+  if (!baseUrl) return baseUrl;
+  try {
+    const url = new URL(baseUrl);
+    const utmParams = post.utm_params ? (typeof post.utm_params === 'string' ? JSON.parse(post.utm_params) : post.utm_params) : {};
+    url.searchParams.set('utm_source', utmParams.source || (campaign && campaign.utm_source) || 'social');
+    url.searchParams.set('utm_medium', utmParams.medium || (campaign && campaign.utm_medium) || 'post');
+    url.searchParams.set('utm_campaign', utmParams.campaign || (campaign && campaign.utm_campaign) || 'wts');
+    if (utmParams.term || (campaign && campaign.utm_term)) url.searchParams.set('utm_term', utmParams.term || campaign.utm_term);
+    if (utmParams.content || (campaign && campaign.utm_content)) url.searchParams.set('utm_content', utmParams.content || campaign.utm_content);
+    return url.toString();
+  } catch (e) { return baseUrl; }
+}
+
+// Auto-shorten + UTM on publish
+router.post('/posts/:id/shorten', async (req, res) => {
+  try {
+    const postResult = await db.query('SELECT * FROM social_posts WHERE id=$1', [req.params.id]);
+    if (postResult.rows.length === 0) return res.status(404).json({ success: false, error: 'Post not found' });
+    const post = postResult.rows[0];
+    if (!post.link_url) return res.status(400).json({ success: false, error: 'No link to shorten' });
+
+    let campaign = null;
+    if (post.campaign_id) {
+      const cResult = await db.query('SELECT * FROM social_campaigns WHERE id=$1', [post.campaign_id]);
+      if (cResult.rows.length) campaign = cResult.rows[0];
+    }
+
+    const utmUrl = buildUtmUrl(post.link_url, post, campaign);
+    const shortUrl = await shortenWithBitly(utmUrl);
+
+    if (shortUrl) {
+      await db.query('UPDATE social_posts SET bitly_url=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2', [shortUrl, post.id]);
+      res.json({ success: true, short_url: shortUrl, utm_url: utmUrl });
+    } else {
+      res.json({ success: false, error: 'Bitly not configured or API error', utm_url: utmUrl });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Bitly click sync (cron-compatible endpoint)
+router.post('/analytics/sync-clicks', async (req, res) => {
+  try {
+    const posts = await db.query("SELECT id, bitly_url FROM social_posts WHERE bitly_url IS NOT NULL AND status='published'");
+    let updated = 0;
+    for (const post of posts.rows) {
+      const clicks = await getBitlyClicks(post.bitly_url);
+      if (clicks > 0) {
+        await db.query('UPDATE social_posts SET bitly_clicks=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2', [clicks, post.id]);
+        updated++;
+      }
+    }
+    res.json({ success: true, synced: updated, total: posts.rows.length });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Full analytics dashboard
+router.get('/analytics/dashboard', async (req, res) => {
+  try {
+    const [
+      overviewResult,
+      platformResult,
+      topPostsResult,
+      aiCostResult,
+      weeklyResult,
+      campaignResult,
+    ] = await Promise.all([
+      db.query(`SELECT
+        COUNT(*) FILTER (WHERE status='published') as published,
+        COUNT(*) FILTER (WHERE status='draft') as drafts,
+        COUNT(*) FILTER (WHERE status='scheduled') as scheduled,
+        SUM(COALESCE(bitly_clicks,0)) as total_clicks,
+        COUNT(DISTINCT campaign_id) FILTER (WHERE campaign_id IS NOT NULL) as campaigns_used
+        FROM social_posts`),
+      db.query(`SELECT unnest(platforms) as platform, COUNT(*) as count, SUM(COALESCE(bitly_clicks,0)) as clicks
+        FROM social_posts WHERE status='published' GROUP BY platform ORDER BY count DESC`),
+      db.query(`SELECT id, content, platforms, bitly_clicks, bitly_url, link_url, published_at, source_type
+        FROM social_posts WHERE status='published' ORDER BY COALESCE(bitly_clicks,0) DESC, published_at DESC LIMIT 10`),
+      db.query(`SELECT ai_provider, COUNT(*) as uses FROM social_posts WHERE ai_generated=true GROUP BY ai_provider ORDER BY uses DESC`),
+      db.query(`SELECT DATE_TRUNC('week', COALESCE(published_at, created_at)) as week, COUNT(*) as posts, SUM(COALESCE(bitly_clicks,0)) as clicks
+        FROM social_posts WHERE status='published' AND COALESCE(published_at, created_at) > NOW() - INTERVAL '12 weeks'
+        GROUP BY week ORDER BY week`),
+      db.query(`SELECT c.name, c.color, COUNT(p.id) as posts, SUM(COALESCE(p.bitly_clicks,0)) as clicks
+        FROM social_campaigns c LEFT JOIN social_posts p ON p.campaign_id=c.id AND p.status='published'
+        GROUP BY c.id, c.name, c.color ORDER BY posts DESC LIMIT 10`),
+    ]);
+
+    res.render('social/analytics-dashboard', {
+      title: 'Analytics Dashboard - WTS Admin',
+      currentPage: 'social-analytics',
+      overview: overviewResult.rows[0] || {},
+      platformStats: platformResult.rows,
+      topPosts: topPostsResult.rows,
+      aiCost: aiCostResult.rows,
+      weeklyTrend: weeklyResult.rows,
+      campaignStats: campaignResult.rows,
+    });
+  } catch (error) {
+    console.error('Analytics dashboard error:', error);
+    res.render('social/analytics-dashboard', {
+      title: 'Analytics Dashboard - WTS Admin',
+      currentPage: 'social-analytics',
+      overview: {}, platformStats: [], topPosts: [], aiCost: [], weeklyTrend: [], campaignStats: [],
+      error: 'Failed to load analytics',
+    });
+  }
+});
+
+// ==================== PHASE 5: RETARGETING + INSIGHTS ====================
+
+// AI insights endpoint
+router.get('/analytics/insights', async (req, res) => {
+  try {
+    const [postsData, platformData] = await Promise.all([
+      db.query(`SELECT content, platforms, bitly_clicks, source_type, ai_provider, hashtags, language, published_at
+        FROM social_posts WHERE status='published' ORDER BY published_at DESC LIMIT 50`),
+      db.query(`SELECT unnest(platforms) as platform, AVG(COALESCE(bitly_clicks,0)) as avg_clicks, COUNT(*) as total
+        FROM social_posts WHERE status='published' GROUP BY platform`),
+    ]);
+
+    const performanceData = {
+      posts: postsData.rows,
+      platforms: platformData.rows,
+    };
+
+    const systemPrompt = `You are an analytics advisor for a digital marketing agency called "Words That Sells".
+Analyze the social media performance data and provide actionable insights.
+Return ONLY valid JSON with this structure:
+{
+  "summary": "1-2 sentence overview",
+  "insights": ["insight 1", "insight 2", "insight 3"],
+  "recommendations": ["action 1", "action 2", "action 3"],
+  "best_performing": { "platform": "name", "content_type": "type", "reason": "why" },
+  "post_suggestion": "A suggested next post topic based on what's working"
+}`;
+
+    const userPrompt = 'Analyze this performance data and provide insights:\n' + JSON.stringify(performanceData).substring(0, 3000);
+
+    let rawResponse;
+    try {
+      rawResponse = await callDeepSeek(userPrompt, systemPrompt);
+      const fenceMatch = rawResponse.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (fenceMatch) rawResponse = fenceMatch[1];
+      const insights = JSON.parse(rawResponse.trim());
+      res.json({ success: true, insights, generated_at: new Date().toISOString() });
+    } catch (e) {
+      res.json({ success: true, insights: {
+        summary: 'Unable to generate AI insights at this time.',
+        insights: ['Publish more posts to build enough data for analysis.'],
+        recommendations: ['Connect more platforms', 'Use the Content Hub to repurpose existing content'],
+        post_suggestion: 'Share a client success story with before/after metrics',
+      }, generated_at: new Date().toISOString() });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Weekly report generation
+router.get('/analytics/weekly-report', async (req, res) => {
+  try {
+    const [postsThisWeek, topContent, platformBreakdown] = await Promise.all([
+      db.query(`SELECT COUNT(*) as total, SUM(COALESCE(bitly_clicks,0)) as clicks
+        FROM social_posts WHERE status='published' AND published_at > NOW() - INTERVAL '7 days'`),
+      db.query(`SELECT content, platforms, bitly_clicks, source_type FROM social_posts
+        WHERE status='published' AND published_at > NOW() - INTERVAL '7 days' ORDER BY COALESCE(bitly_clicks,0) DESC LIMIT 5`),
+      db.query(`SELECT unnest(platforms) as platform, COUNT(*) as posts, SUM(COALESCE(bitly_clicks,0)) as clicks
+        FROM social_posts WHERE status='published' AND published_at > NOW() - INTERVAL '7 days' GROUP BY platform`),
+    ]);
+
+    const report = {
+      period: { start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), end: new Date().toISOString() },
+      summary: postsThisWeek.rows[0] || { total: 0, clicks: 0 },
+      top_content: topContent.rows,
+      platform_breakdown: platformBreakdown.rows,
+    };
+
+    res.json({ success: true, report });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Retargeting audiences
+router.get('/retargeting', async (req, res) => {
+  try {
+    const audiences = await db.query('SELECT * FROM retargeting_audiences ORDER BY created_at DESC');
+    res.render('social/retargeting', {
+      title: 'Retargeting Audiences - WTS Admin',
+      currentPage: 'social-analytics',
+      audiences: audiences.rows,
+    });
+  } catch (error) {
+    res.render('social/retargeting', {
+      title: 'Retargeting Audiences - WTS Admin',
+      currentPage: 'social-analytics',
+      audiences: [],
+      error: 'Failed to load audiences',
+    });
+  }
+});
+
+router.post('/retargeting', async (req, res) => {
+  try {
+    const { name, platform, source_type, date_range_days, description } = req.body;
+    await db.query(
+      `INSERT INTO retargeting_audiences (name, platform, source_type, date_range_days, description, status)
+       VALUES ($1, $2, $3, $4, $5, 'draft')`,
+      [name, platform || 'Facebook', source_type || 'all', parseInt(date_range_days) || 30, description]
+    );
+    req.session.successMessage = 'Audience "' + name + '" created';
+    res.redirect('/social/retargeting');
+  } catch (error) {
+    req.session.errorMessage = 'Failed to create audience';
+    res.redirect('/social/retargeting');
+  }
+});
+
+// ==================== PHASE 6: PREVIEWS + TEMPLATES + COST + BULK ====================
+
+// Platform preview data
+router.get('/posts/:id/preview', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM social_posts WHERE id=$1', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Post not found' });
+    const post = result.rows[0];
+
+    const previews = {};
+    const platforms = post.platforms || [];
+    const hashtags = post.hashtags || [];
+    const hashStr = hashtags.length ? '\n\n' + hashtags.join(' ') : '';
+
+    platforms.forEach(function(p) {
+      const pDef = PLATFORMS.find(x => x.id === p);
+      const charLimit = pDef ? pDef.charLimit : 280;
+      let text = post.content || '';
+      if (text.length + hashStr.length > charLimit) {
+        text = text.substring(0, charLimit - hashStr.length - 3) + '...' + hashStr;
+      } else {
+        text += hashStr;
+      }
+
+      previews[p] = {
+        platform: p,
+        icon: pDef ? pDef.icon : 'fas fa-globe',
+        color: pDef ? pDef.color : '#666',
+        text,
+        charCount: text.length,
+        charLimit,
+        hashtagCount: Math.min(hashtags.length, pDef ? pDef.hashtagLimit : 10),
+        link: post.bitly_url || post.link_url || null,
+        media: post.media_urls && post.media_urls.length ? post.media_urls[0] : null,
+      };
+    });
+
+    res.json({ success: true, previews, post: { id: post.id, content: post.content, platforms } });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Post templates
+router.get('/templates', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM post_templates ORDER BY usage_count DESC, name ASC');
+    res.render('social/templates', {
+      title: 'Post Templates - WTS Admin',
+      currentPage: 'social-posts',
+      templates: result.rows,
+    });
+  } catch (error) {
+    res.render('social/templates', {
+      title: 'Post Templates - WTS Admin',
+      currentPage: 'social-posts',
+      templates: [],
+      error: 'Failed to load templates',
+    });
+  }
+});
+
+router.post('/templates', async (req, res) => {
+  try {
+    const { name, content, platforms, tone, style, hashtags, category } = req.body;
+    const platformsArray = Array.isArray(platforms) ? platforms : (platforms ? platforms.split(',') : []);
+    const hashtagsArray = Array.isArray(hashtags) ? hashtags : (hashtags ? hashtags.split(',').map(h => h.trim()) : []);
+    await db.query(
+      `INSERT INTO post_templates (name, content, platforms, tone, style, hashtags, category) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [name, content, platformsArray, tone || 'professional', style || 'key takeaway', hashtagsArray, category || 'general']
+    );
+    req.session.successMessage = 'Template saved';
+    res.redirect('/social/templates');
+  } catch (error) {
+    req.session.errorMessage = 'Failed to save template';
+    res.redirect('/social/templates');
+  }
+});
+
+router.post('/templates/:id/use', async (req, res) => {
+  try {
+    await db.query('UPDATE post_templates SET usage_count=usage_count+1 WHERE id=$1', [req.params.id]);
+    const result = await db.query('SELECT * FROM post_templates WHERE id=$1', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ success: false });
+    res.json({ success: true, template: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/templates/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM post_templates WHERE id=$1', [req.params.id]);
+    req.session.successMessage = 'Template deleted';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to delete template';
+  }
+  res.redirect('/social/templates');
+});
+
+// Bulk scheduling
+router.post('/posts/bulk-schedule', async (req, res) => {
+  try {
+    const { post_ids, start_date, interval_hours, platforms } = req.body;
+    const ids = Array.isArray(post_ids) ? post_ids : (post_ids ? post_ids.split(',') : []);
+    const interval = parseInt(interval_hours) || 4;
+    let scheduledTime = new Date(start_date || Date.now());
+    const results = [];
+
+    for (const id of ids) {
+      await db.query(
+        "UPDATE social_posts SET status='scheduled', scheduled_at=$1, platforms=COALESCE($2, platforms), updated_at=CURRENT_TIMESTAMP WHERE id=$3",
+        [scheduledTime, platforms || null, id.trim()]
+      );
+      results.push({ id: id.trim(), scheduled_at: scheduledTime.toISOString() });
+      scheduledTime = new Date(scheduledTime.getTime() + interval * 60 * 60 * 1000);
+    }
+
+    res.json({ success: true, scheduled: results });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Cost tracking
+router.get('/analytics/costs', async (req, res) => {
+  try {
+    const [providerUsage, monthlyCost] = await Promise.all([
+      db.query(`SELECT ai_provider, COUNT(*) as uses FROM social_posts WHERE ai_generated=true GROUP BY ai_provider ORDER BY uses DESC`),
+      db.query(`SELECT DATE_TRUNC('month', created_at) as month, ai_provider, COUNT(*) as uses
+        FROM social_posts WHERE ai_generated=true AND created_at > NOW() - INTERVAL '6 months'
+        GROUP BY month, ai_provider ORDER BY month DESC`),
+    ]);
+
+    // Get provider costs for calculation
+    const providers = await db.query('SELECT id, name, cost_per_1m_input, cost_per_1m_output FROM ai_providers');
+    const costMap = {};
+    providers.rows.forEach(function(p) { costMap[p.id] = p; });
+
+    const providerStats = providerUsage.rows.map(function(row) {
+      const provider = costMap[row.ai_provider];
+      // Estimate: ~500 input tokens + ~200 output tokens per post
+      const estCost = provider ? ((500 * provider.cost_per_1m_input + 200 * provider.cost_per_1m_output) / 1000000) * parseInt(row.uses) : 0;
+      return { provider: row.ai_provider, uses: parseInt(row.uses), estimated_cost: estCost.toFixed(4), provider_name: provider ? provider.name : row.ai_provider };
+    });
+
+    res.json({
+      success: true,
+      providers: providerStats,
+      monthly: monthlyCost.rows,
+      total_estimated: providerStats.reduce((sum, p) => sum + parseFloat(p.estimated_cost), 0).toFixed(4),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Rate limit tracking
+router.get('/analytics/rate-limits', async (req, res) => {
+  try {
+    const channels = await db.query("SELECT id, platform, account_name, status FROM social_channels WHERE status='active'");
+    const limits = channels.rows.map(function(ch) {
+      const platformLimits = {
+        'Facebook': { posts_per_day: 25, api_calls_per_hour: 200 },
+        'Twitter/X': { posts_per_day: 50, api_calls_per_hour: 300 },
+        'LinkedIn': { posts_per_day: 20, api_calls_per_hour: 100 },
+        'TikTok': { posts_per_day: 10, api_calls_per_hour: 100 },
+        'Pinterest': { posts_per_day: 25, api_calls_per_hour: 200 },
+        'Instagram': { posts_per_day: 25, api_calls_per_hour: 200 },
+      };
+      return {
+        channel_id: ch.id,
+        platform: ch.platform,
+        account: ch.account_name,
+        limits: platformLimits[ch.platform] || { posts_per_day: 10, api_calls_per_hour: 100 },
+      };
+    });
+    res.json({ success: true, rate_limits: limits });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;

@@ -1,0 +1,149 @@
+<%- include('../partials/head', { title }) %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <%- include('../partials/header') %>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div>
+          <h1>Post Templates</h1>
+          <p class="page-subtitle">Reusable templates for quick post creation</p>
+        </div>
+        <div class="page-actions">
+          <a href="/social/posts/new" class="btn btn-secondary"><i class="fas fa-plus"></i> New Post</a>
+        </div>
+      </div>
+
+      <!-- Create Template -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header"><h3><i class="fas fa-plus-circle"></i> New Template</h3></div>
+        <div class="card-body">
+          <form action="/social/templates" method="POST">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label">Template Name</label>
+                <input type="text" name="name" class="form-control" required placeholder="e.g. Article Promotion - Twitter">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-control">
+                  <option value="promotion">Content Promotion</option>
+                  <option value="engagement">Engagement / Question</option>
+                  <option value="announcement">Announcement</option>
+                  <option value="educational">Educational / Tips</option>
+                  <option value="behind_scenes">Behind the Scenes</option>
+                  <option value="general">General</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+              <label class="form-label">Template Content</label>
+              <textarea name="content" class="form-control" rows="4" required placeholder="Use {title}, {url}, {excerpt} as placeholders..."></textarea>
+              <div style="font-size: 11px; color: var(--gray-400); margin-top: 4px;">Variables: <code>{title}</code> <code>{url}</code> <code>{excerpt}</code> <code>{hashtags}</code></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 12px;">
+              <div class="form-group">
+                <label class="form-label">Tone</label>
+                <select name="tone" class="form-control">
+                  <option value="professional">Professional</option>
+                  <option value="casual">Casual</option>
+                  <option value="witty">Witty</option>
+                  <option value="educational">Educational</option>
+                  <option value="inspirational">Inspirational</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Style</label>
+                <select name="style" class="form-control">
+                  <option value="key takeaway">Key Takeaway</option>
+                  <option value="question hook">Question Hook</option>
+                  <option value="stat lead">Stat Lead</option>
+                  <option value="thread starter">Thread Starter</option>
+                  <option value="how-to">How-To</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hashtags (comma-separated)</label>
+                <input type="text" name="hashtags" class="form-control" placeholder="#Digital, #Marketing">
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+              <label class="form-label">Platforms</label>
+              <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <label><input type="checkbox" name="platforms" value="Twitter/X"> Twitter/X</label>
+                <label><input type="checkbox" name="platforms" value="LinkedIn"> LinkedIn</label>
+                <label><input type="checkbox" name="platforms" value="Facebook"> Facebook</label>
+                <label><input type="checkbox" name="platforms" value="Instagram"> Instagram</label>
+                <label><input type="checkbox" name="platforms" value="TikTok"> TikTok</label>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 16px;"><i class="fas fa-save"></i> Save Template</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Templates List -->
+      <div class="card">
+        <div class="card-header"><h3><i class="fas fa-copy"></i> Saved Templates (<%= templates.length %>)</h3></div>
+        <div class="card-body" style="padding: 0;">
+          <% if (templates.length > 0) { %>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; padding: 20px;">
+            <% templates.forEach(function(t) { %>
+            <div class="card" style="border: 1px solid var(--gray-200);">
+              <div class="card-body" style="padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <div>
+                    <h4 style="margin: 0 0 4px 0; font-size: 14px;"><%= t.name %></h4>
+                    <span style="font-size: 11px; background: var(--gray-100); padding: 2px 8px; border-radius: 10px; color: var(--gray-500);"><%= t.category %></span>
+                    <span style="font-size: 11px; color: var(--gray-400); margin-left: 8px;"><%= t.usage_count %> uses</span>
+                  </div>
+                  <form action="/social/templates/<%= t.id %>/delete" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete style="padding: 2px 6px;"><i class="fas fa-trash" style="font-size: 11px;"></i></button>
+                  </form>
+                </div>
+                <div style="background: var(--gray-50); padding: 10px; border-radius: 6px; font-size: 13px; color: var(--gray-600); margin-bottom: 8px; max-height: 80px; overflow: hidden;">
+                  <%= (t.content || '').substring(0, 150) %><%= (t.content || '').length > 150 ? '...' : '' %>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; gap: 4px;">
+                    <% (t.platforms || []).forEach(function(p) { %>
+                    <span style="font-size: 10px; background: var(--gray-100); padding: 1px 6px; border-radius: 8px; color: var(--gray-500);"><%= p %></span>
+                    <% }); %>
+                  </div>
+                  <button class="btn btn-sm btn-primary use-template-btn" data-template-id="<%= t.id %>" style="font-size: 12px;"><i class="fas fa-magic"></i> Use</button>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+          <% } else { %>
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-copy"></i></div>
+            <h3>No Templates Yet</h3>
+            <p>Create your first template above to speed up post creation.</p>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.use-template-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    fetch('/social/templates/' + btn.dataset.templateId + '/use', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success && d.template) {
+        window.location.href = '/social/posts/new?template=' + d.template.id;
+      }
+    });
+  });
+});
+</script>
+
+<%- include('../partials/footer') %>

@@ -388,8 +388,10 @@
             </div>
           </div>
 
-          <div class="form-actions">
+          <div class="form-actions" style="display: flex; gap: 8px; align-items: center;">
             <a href="/social/posts" class="btn btn-secondary">Cancel</a>
+            <button type="button" class="btn btn-secondary" onclick="showPlatformPreview()"><i class="fas fa-eye"></i> Preview</button>
+            <button type="button" class="btn btn-secondary" id="shortenBtn" onclick="shortenLink()"><i class="fas fa-link"></i> Shorten</button>
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <%= post ? 'Update Post' : 'Create Post' %></button>
           </div>
         </form>
@@ -943,6 +945,117 @@ function clearSource() {
   var sourceCard = document.querySelector('.card[style*="border-left: 4px"]');
   if (sourceCard) sourceCard.style.display = 'none';
 }
+
+// ==================== PLATFORM PREVIEW MOCKUPS ====================
+function showPlatformPreview() {
+  var content = document.getElementById('content').value || 'Preview text here...';
+  var hashtags = document.getElementById('hashtags').value.split(',').map(function(t) { return '#' + t.trim().replace(/^#/, ''); }).filter(function(t) { return t !== '#'; });
+  var link = document.getElementById('link_url').value || '';
+  var platforms = Array.from(document.querySelectorAll('input[name="platforms"]:checked')).map(function(c) { return c.value; });
+  var modal = document.getElementById('platformPreviewModal');
+  var body = document.getElementById('platformPreviewBody');
+  body.innerHTML = '';
+
+  if (platforms.length === 0) { alert('Select platforms first'); return; }
+
+  platforms.forEach(function(p) {
+    var card = document.createElement('div');
+    card.style.cssText = 'border: 1px solid var(--gray-200); border-radius: 12px; padding: 16px; margin-bottom: 16px;';
+
+    var header = document.createElement('div');
+    header.style.cssText = 'display: flex; align-items: center; gap: 10px; margin-bottom: 12px;';
+    var avatar = document.createElement('div');
+    avatar.style.cssText = 'width: 40px; height: 40px; border-radius: 50%; background: var(--gray-200); display: flex; align-items: center; justify-content: center;';
+    avatar.innerHTML = '<i class="fas fa-user" style="color: var(--gray-400);"></i>';
+    var nameCol = document.createElement('div');
+    nameCol.innerHTML = '<div style="font-weight: 600; font-size: 14px;">Words That Sells</div><div style="font-size: 12px; color: var(--gray-400);">Just now</div>';
+    header.appendChild(avatar);
+    header.appendChild(nameCol);
+
+    var platformLabel = document.createElement('div');
+    var colors = { 'Facebook': '#1877f2', 'Twitter/X': '#000', 'LinkedIn': '#0a66c2', 'Instagram': '#e4405f', 'TikTok': '#000' };
+    var icons = { 'Facebook': 'fab fa-facebook', 'Twitter/X': 'fab fa-x-twitter', 'LinkedIn': 'fab fa-linkedin', 'Instagram': 'fab fa-instagram', 'TikTok': 'fab fa-tiktok' };
+    platformLabel.innerHTML = '<i class="' + (icons[p] || 'fas fa-globe') + '" style="color: ' + (colors[p] || '#666') + '; font-size: 16px;"></i> <strong>' + p + '</strong>';
+    platformLabel.style.cssText = 'margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-100);';
+
+    var limits = { 'Twitter/X': 280, 'Facebook': 63206, 'LinkedIn': 3000, 'Instagram': 2200, 'TikTok': 2200 };
+    var limit = limits[p] || 500;
+    var text = content;
+    if (text.length > limit) text = text.substring(0, limit - 3) + '...';
+
+    var textEl = document.createElement('div');
+    textEl.style.cssText = 'font-size: 14px; line-height: 1.6; white-space: pre-wrap; margin-bottom: 8px;';
+    textEl.textContent = text;
+
+    var hashEl = document.createElement('div');
+    hashEl.style.cssText = 'color: var(--primary); font-size: 13px; margin-bottom: 8px;';
+    hashEl.textContent = hashtags.join(' ');
+
+    var linkEl = document.createElement('div');
+    if (link) {
+      linkEl.style.cssText = 'background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 10px; font-size: 12px;';
+      linkEl.innerHTML = '<i class="fas fa-link" style="color: var(--gray-400);"></i> ' + link;
+    }
+
+    var charInfo = document.createElement('div');
+    charInfo.style.cssText = 'font-size: 11px; color: var(--gray-400); margin-top: 8px; text-align: right;';
+    charInfo.textContent = text.length + ' / ' + limit + ' chars';
+    if (text.length > limit * 0.9) charInfo.style.color = 'var(--danger)';
+
+    card.appendChild(platformLabel);
+    card.appendChild(header);
+    card.appendChild(textEl);
+    if (hashtags.length) card.appendChild(hashEl);
+    if (link) card.appendChild(linkEl);
+    card.appendChild(charInfo);
+    body.appendChild(card);
+  });
+
+  modal.style.display = 'flex';
+}
+
+function closePlatformPreview() {
+  document.getElementById('platformPreviewModal').style.display = 'none';
+}
+
+// ==================== BITLY SHORTEN ====================
+function shortenLink() {
+  <% if (post) { %>
+  var postId = '<%= post.id %>';
+  var btn = document.getElementById('shortenBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+  fetch('/social/posts/' + postId + '/shorten', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-link"></i> Shorten';
+    if (d.success && d.short_url) {
+      document.getElementById('link_url').value = d.short_url;
+      alert('Link shortened: ' + d.short_url);
+    } else {
+      alert('UTM URL: ' + (d.utm_url || 'N/A') + '\n\n' + (d.error || 'Bitly not configured'));
+    }
+  });
+  <% } else { %>
+  alert('Save the post first, then shorten.');
+  <% } %>
+}
 </script>
+
+<!-- Platform Preview Modal -->
+<div id="platformPreviewModal" class="modal-overlay" style="display: none;">
+  <div class="modal" style="max-width: 700px; max-height: 85vh;">
+    <div class="modal-header">
+      <h3><i class="fas fa-eye"></i> Platform Previews</h3>
+      <button type="button" class="modal-close" onclick="closePlatformPreview()">&times;</button>
+    </div>
+    <div class="modal-body" id="platformPreviewBody" style="overflow-y: auto; max-height: 65vh;"></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="closePlatformPreview()">Close</button>
+    </div>
+  </div>
+</div>
 
 <%- include('../../partials/footer') %>
