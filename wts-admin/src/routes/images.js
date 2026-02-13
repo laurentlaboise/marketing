@@ -1153,13 +1153,21 @@ router.post('/:id/analyze', async (req, res) => {
 
     const image = result.rows[0];
 
-    // Read image from disk
+    // Read image from disk (fetch from CDN if not on disk - Railway ephemeral storage)
     const imagePath = path.join(__dirname, '../../../', image.file_path);
-    if (!fs.existsSync(imagePath)) {
-      return res.status(404).json({ error: 'Image file not found on disk' });
+    let imageBuffer;
+    if (fs.existsSync(imagePath)) {
+      imageBuffer = fs.readFileSync(imagePath);
+    } else if (image.cdn_url) {
+      try {
+        await fetchImageFromCdn(image);
+        imageBuffer = fs.readFileSync(imagePath);
+      } catch (cdnErr) {
+        return res.status(404).json({ error: 'Image file not found on disk and could not be fetched from CDN' });
+      }
+    } else {
+      return res.status(404).json({ error: 'Image file not found on disk and no CDN URL available' });
     }
-
-    const imageBuffer = fs.readFileSync(imagePath);
     const analysis = await analyzeImageWithAI(imageBuffer, image.mime_type, image.filename);
 
     res.json({
