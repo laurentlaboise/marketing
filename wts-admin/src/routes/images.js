@@ -9,6 +9,9 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 
+// Root directory for uploaded files handled by this router.
+const UPLOAD_ROOT = path.join(__dirname, '../../../uploads');
+
 const router = express.Router();
 router.use(ensureAuthenticated);
 
@@ -782,15 +785,34 @@ router.post('/analyze-upload', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'No image provided' });
     }
 
-    const imageBuffer = req.file.buffer || fs.readFileSync(req.file.path);
+    let imageBuffer;
+    if (req.file.buffer) {
+      imageBuffer = req.file.buffer;
+    } else if (req.file.path) {
+      // Resolve and validate the file path to ensure it is under the upload root
+      const resolvedPath = path.resolve(req.file.path);
+      if (!resolvedPath.startsWith(UPLOAD_ROOT)) {
+        return res.status(400).json({ error: 'Invalid file path' });
+      }
+      if (!fs.existsSync(resolvedPath)) {
+        return res.status(404).json({ error: 'Uploaded file not found on disk' });
+      }
+      imageBuffer = fs.readFileSync(resolvedPath);
+    } else {
+      return res.status(400).json({ error: 'No image data available' });
+    }
+
     const filename = req.file.originalname;
     const mimeType = req.file.mimetype;
 
     const analysis = await analyzeImageWithAI(imageBuffer, mimeType, filename);
 
     // Clean up temp file if multer saved to disk
-    if (req.file.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    if (req.file.path) {
+      const resolvedPath = path.resolve(req.file.path);
+      if (resolvedPath.startsWith(UPLOAD_ROOT) && fs.existsSync(resolvedPath)) {
+        fs.unlinkSync(resolvedPath);
+      }
     }
 
     res.json({
@@ -803,8 +825,11 @@ router.post('/analyze-upload', upload.single('image'), async (req, res) => {
   } catch (error) {
     console.error('Upload analysis error:', error);
     // Clean up temp file on error
-    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    if (req.file && req.file.path) {
+      const resolvedPath = path.resolve(req.file.path);
+      if (resolvedPath.startsWith(UPLOAD_ROOT) && fs.existsSync(resolvedPath)) {
+        fs.unlinkSync(resolvedPath);
+      }
     }
     res.status(500).json({ error: error.message || 'Failed to analyze image' });
   }
