@@ -104,6 +104,40 @@ function buildCdnUrl(filePath) {
 const IMAGES_DIR = path.resolve(__dirname, '../../../images');
 const UPLOAD_TEMP_DIR = path.resolve(__dirname, '../../uploads/temp');
 
+// Fetch image from CDN to local disk (Railway has ephemeral storage)
+function fetchImageFromCdn(image) {
+  return new Promise((resolve, reject) => {
+    if (!image.cdn_url) return reject(new Error('No CDN URL available'));
+
+    // Parse the CDN URL - may redirect, so we follow up to 3 redirects
+    const fetch = (url, redirects) => {
+      if (redirects > 3) return reject(new Error('Too many redirects'));
+      const mod = url.startsWith('https') ? https : require('http');
+      mod.get(url, { headers: { 'User-Agent': 'WTS-Admin' } }, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          return fetch(res.headers.location, redirects + 1);
+        }
+        if (res.statusCode !== 200) {
+          return reject(new Error(`CDN returned ${res.statusCode}`));
+        }
+        const chunks = [];
+        res.on('data', c => chunks.push(c));
+        res.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          // Save to local path
+          const localPath = path.resolve(__dirname, '../../../', image.file_path);
+          const dir = path.dirname(localPath);
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(localPath, buffer);
+          resolve(localPath);
+        });
+        res.on('error', reject);
+      }).on('error', reject);
+    };
+    fetch(image.cdn_url, 0);
+  });
+}
+
 // Validate a resolved path stays within an allowed parent directory (prevents path traversal)
 function assertPathWithin(filePath, parentDir) {
   const resolved = path.resolve(filePath);
@@ -721,10 +755,14 @@ router.post('/:id/optimize', async (req, res) => {
     const maxH = parseInt(max_height) || 0;
     const fitMode = ['cover', 'contain', 'fill', 'inside', 'outside'].includes(fit) ? fit : 'inside';
 
-    // Read source file
-    const sourcePath = path.resolve(__dirname, '../../../', image.file_path);
+    // Read source file (fetch from CDN if not on disk - Railway ephemeral storage)
+    let sourcePath = path.resolve(__dirname, '../../../', image.file_path);
     if (!fs.existsSync(sourcePath)) {
-      return res.status(404).json({ error: 'Image file not found on disk' });
+      try {
+        sourcePath = await fetchImageFromCdn(image);
+      } catch (cdnErr) {
+        return res.status(404).json({ error: 'Image file not found on disk and could not be fetched from CDN' });
+      }
     }
 
     const isSvg = image.mime_type === 'image/svg+xml';
@@ -852,9 +890,13 @@ router.post('/:id/optimize-preview', async (req, res) => {
     const maxH = parseInt(max_height) || 0;
     const fitMode = ['cover', 'contain', 'fill', 'inside', 'outside'].includes(fit) ? fit : 'inside';
 
-    const sourcePath = path.resolve(__dirname, '../../../', image.file_path);
+    let sourcePath = path.resolve(__dirname, '../../../', image.file_path);
     if (!fs.existsSync(sourcePath)) {
-      return res.status(404).json({ error: 'Image file not found on disk' });
+      try {
+        sourcePath = await fetchImageFromCdn(image);
+      } catch (cdnErr) {
+        return res.status(404).json({ error: 'Image file not found on disk and could not be fetched from CDN' });
+      }
     }
 
     if (image.mime_type === 'image/svg+xml') {
@@ -921,8 +963,10 @@ router.post('/bulk-optimize', async (req, res) => {
 
         if (image.mime_type === 'image/svg+xml') continue;
 
-        const sourcePath = path.resolve(__dirname, '../../../', image.file_path);
-        if (!fs.existsSync(sourcePath)) continue;
+        let sourcePath = path.resolve(__dirname, '../../../', image.file_path);
+        if (!fs.existsSync(sourcePath)) {
+          try { sourcePath = await fetchImageFromCdn(image); } catch (e) { continue; }
+        }
 
         const originalSize = fs.statSync(sourcePath).size;
         let sharpInstance = sharp(sourcePath);
