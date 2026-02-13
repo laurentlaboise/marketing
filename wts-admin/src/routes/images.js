@@ -190,6 +190,159 @@ async function pushToGitHub(repoPath, fileBuffer, commitMessage, sha) {
   });
 }
 
+// ==================== IMAGE FOLDERS ====================
+
+// Helper: slugify folder name
+function slugifyFolder(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// Helper: build flat list of folders with depth for indent
+async function getFolderTree() {
+  const result = await db.query('SELECT * FROM image_folders ORDER BY name ASC');
+  const folders = result.rows;
+  const map = {};
+  folders.forEach(f => { map[f.id] = { ...f, children: [] }; });
+  const roots = [];
+  folders.forEach(f => {
+    if (f.parent_id && map[f.parent_id]) {
+      map[f.parent_id].children.push(map[f.id]);
+    } else {
+      roots.push(map[f.id]);
+    }
+  });
+  // Flatten tree with depth
+  const flat = [];
+  function walk(nodes, depth) {
+    nodes.forEach(n => {
+      flat.push({ ...n, depth });
+      walk(n.children, depth + 1);
+    });
+  }
+  walk(roots, 0);
+  return flat;
+}
+
+// Helper: get image count per folder
+async function getFolderImageCounts() {
+  const result = await db.query(
+    "SELECT folder_id, COUNT(*) as count FROM images WHERE folder_id IS NOT NULL AND status = 'active' GROUP BY folder_id"
+  );
+  const counts = {};
+  result.rows.forEach(r => { counts[r.folder_id] = parseInt(r.count); });
+  return counts;
+}
+
+// Create folder
+router.post('/folders', async (req, res) => {
+  try {
+    const { name, parent_id, description } = req.body;
+    if (!name || !name.trim()) {
+      req.session.errorMessage = 'Folder name is required';
+      return res.redirect('/images' + (req.body.return_to ? '?folder=' + req.body.return_to : ''));
+    }
+
+    const slug = slugifyFolder(name.trim());
+    await db.query(
+      'INSERT INTO image_folders (name, slug, parent_id, description) VALUES ($1, $2, $3, $4)',
+      [name.trim(), slug, parent_id || null, description || null]
+    );
+
+    req.session.successMessage = `Folder "${name.trim()}" created`;
+    res.redirect('/images' + (parent_id ? '?folder=' + parent_id : ''));
+  } catch (error) {
+    console.error('Create folder error:', error);
+    req.session.errorMessage = 'Failed to create folder: ' + error.message;
+    res.redirect('/images');
+  }
+});
+
+// Rename folder
+router.post('/folders/:id/rename', async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      req.session.errorMessage = 'Folder name is required';
+      return res.redirect('/images');
+    }
+
+    const slug = slugifyFolder(name.trim());
+    await db.query(
+      'UPDATE image_folders SET name = $1, slug = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+      [name.trim(), slug, req.params.id]
+    );
+
+    req.session.successMessage = `Folder renamed to "${name.trim()}"`;
+    res.redirect('/images?folder=' + req.params.id);
+  } catch (error) {
+    console.error('Rename folder error:', error);
+    req.session.errorMessage = 'Failed to rename folder';
+    res.redirect('/images');
+  }
+});
+
+// Delete folder (images inside get unassigned)
+router.post('/folders/:id/delete', async (req, res) => {
+  try {
+    // Unassign images in this folder first
+    await db.query('UPDATE images SET folder_id = NULL WHERE folder_id = $1', [req.params.id]);
+    // Also unassign images in child folders (CASCADE will delete child folders)
+    const children = await db.query('SELECT id FROM image_folders WHERE parent_id = $1', [req.params.id]);
+    for (const child of children.rows) {
+      await db.query('UPDATE images SET folder_id = NULL WHERE folder_id = $1', [child.id]);
+    }
+    await db.query('DELETE FROM image_folders WHERE id = $1', [req.params.id]);
+
+    req.session.successMessage = 'Folder deleted. Images have been unassigned.';
+    res.redirect('/images');
+  } catch (error) {
+    console.error('Delete folder error:', error);
+    req.session.errorMessage = 'Failed to delete folder';
+    res.redirect('/images');
+  }
+});
+
+// Move images to folder (bulk action)
+router.post('/move-to-folder', async (req, res) => {
+  try {
+    const { image_ids, folder_id } = req.body;
+    if (!image_ids) {
+      req.session.errorMessage = 'No images selected';
+      return res.redirect('/images');
+    }
+
+    const ids = Array.isArray(image_ids) ? image_ids : [image_ids];
+    const targetFolder = folder_id || null;
+
+    for (const id of ids) {
+      await db.query('UPDATE images SET folder_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [targetFolder, id]);
+    }
+
+    const folderName = targetFolder
+      ? (await db.query('SELECT name FROM image_folders WHERE id = $1', [targetFolder])).rows[0]?.name || 'folder'
+      : 'root';
+    req.session.successMessage = `${ids.length} image${ids.length !== 1 ? 's' : ''} moved to ${folderName}`;
+    res.redirect('/images' + (targetFolder ? '?folder=' + targetFolder : ''));
+  } catch (error) {
+    console.error('Move to folder error:', error);
+    req.session.errorMessage = 'Failed to move images';
+    res.redirect('/images');
+  }
+});
+
+// API: get folders as JSON (for modals)
+router.get('/folders/json', async (req, res) => {
+  try {
+    const folders = await getFolderTree();
+    res.json({ folders });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to load folders' });
+  }
+});
+
 // ==================== IMAGE LIBRARY ====================
 
 // List all images
@@ -200,6 +353,7 @@ router.get('/', async (req, res) => {
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
     const category = req.query.category || '';
+    const folderId = req.query.folder || '';
     const view = req.query.view || 'grid';
 
     let query = 'SELECT * FROM images';
@@ -217,6 +371,13 @@ router.get('/', async (req, res) => {
       params.push(category);
     }
 
+    if (folderId === 'unfiled') {
+      conditions.push('folder_id IS NULL');
+    } else if (folderId) {
+      conditions.push(`folder_id = $${params.length + 1}`);
+      params.push(folderId);
+    }
+
     conditions.push("status = 'active'");
 
     if (conditions.length > 0) {
@@ -226,12 +387,24 @@ router.get('/', async (req, res) => {
 
     query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
 
-    const [images, count] = await Promise.all([
+    const [images, count, folders, folderCounts] = await Promise.all([
       db.query(query, params),
       db.query(countQuery, params),
+      getFolderTree(),
+      getFolderImageCounts(),
     ]);
 
-    // Also scan the filesystem for untracked images
+    // Get current folder info if browsing a folder
+    let currentFolder = null;
+    if (folderId && folderId !== 'unfiled') {
+      const folderResult = await db.query('SELECT * FROM image_folders WHERE id = $1', [folderId]);
+      if (folderResult.rows.length > 0) currentFolder = folderResult.rows[0];
+    }
+
+    // Count unfiled images
+    const unfiledResult = await db.query("SELECT COUNT(*) FROM images WHERE folder_id IS NULL AND status = 'active'");
+    const unfiledCount = parseInt(unfiledResult.rows[0].count);
+
     const totalPages = Math.ceil(count.rows[0].count / limit);
 
     res.render('images/library', {
@@ -242,7 +415,12 @@ router.get('/', async (req, res) => {
       })),
       currentPage: 'images',
       view,
-      pagination: { page, totalPages, search, category },
+      folders,
+      folderCounts,
+      currentFolder,
+      activeFolder: folderId,
+      unfiledCount,
+      pagination: { page, totalPages, search, category, folder: folderId },
     });
   } catch (error) {
     console.error('Image library error:', error);
@@ -251,7 +429,12 @@ router.get('/', async (req, res) => {
       images: [],
       currentPage: 'images',
       view: 'grid',
-      pagination: { page: 1, totalPages: 0, search: '', category: '' },
+      folders: [],
+      folderCounts: {},
+      currentFolder: null,
+      activeFolder: '',
+      unfiledCount: 0,
+      pagination: { page: 1, totalPages: 0, search: '', category: '', folder: '' },
       error: 'Failed to load image library',
     });
   }
@@ -342,11 +525,14 @@ router.post('/sync', async (req, res) => {
 });
 
 // Upload form
-router.get('/upload', (req, res) => {
+router.get('/upload', async (req, res) => {
+  const folders = await getFolderTree();
   res.render('images/upload', {
     title: 'Upload Image - WTS Admin',
     currentPage: 'images',
     githubConfigured: !!process.env.GITHUB_TOKEN,
+    folders,
+    preselectedFolder: req.query.folder || '',
   });
 });
 
@@ -358,7 +544,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       return res.redirect('/images/upload');
     }
 
-    const { alt_text, title, description, category, tags, optimize } = req.body;
+    const { alt_text, title, description, category, tags, optimize, folder_id } = req.body;
     const catDir = getCategoryDir(category || 'general');
     const seoFilename = slugifyFilename(req.file.originalname);
     const isSvg = /\.svg$/i.test(req.file.originalname);
@@ -426,10 +612,10 @@ router.post('/upload', upload.single('image'), async (req, res) => {
 
     // Save to database
     const result = await db.query(
-      `INSERT INTO images (original_filename, filename, file_path, file_size, mime_type, width, height, alt_text, title, description, category, tags, cdn_url, uploaded_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      `INSERT INTO images (original_filename, filename, file_path, file_size, mime_type, width, height, alt_text, title, description, category, tags, cdn_url, folder_id, uploaded_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING id`,
-      [req.file.originalname, finalFilename, relPath, fileSize, mimeType, width, height, alt_text || '', title || '', description || '', category || 'general', tagsArray, cdnUrl, req.user.id]
+      [req.file.originalname, finalFilename, relPath, fileSize, mimeType, width, height, alt_text || '', title || '', description || '', category || 'general', tagsArray, cdnUrl, folder_id || null, req.user.id]
     );
 
     let msg = `Image uploaded successfully${optimize === 'on' && !isSvg ? ' (optimized to WebP)' : ''}`;
@@ -464,10 +650,21 @@ router.get('/:id', async (req, res) => {
     image.file_size_formatted = formatFileSize(image.file_size || 0);
     image.web_url = `https://wordsthatsells.website/${image.file_path}`;
 
+    const folders = await getFolderTree();
+
+    // Get current folder name if assigned
+    let currentFolderName = null;
+    if (image.folder_id) {
+      const folderResult = await db.query('SELECT name FROM image_folders WHERE id = $1', [image.folder_id]);
+      if (folderResult.rows.length > 0) currentFolderName = folderResult.rows[0].name;
+    }
+
     res.render('images/detail', {
       title: (image.title || image.filename) + ' - Image Library',
       image,
       currentPage: 'images',
+      folders,
+      currentFolderName,
     });
   } catch (error) {
     console.error('Image detail error:', error);
@@ -479,13 +676,13 @@ router.get('/:id', async (req, res) => {
 // Update SEO metadata
 router.post('/:id', async (req, res) => {
   try {
-    const { alt_text, title, description, category, tags } = req.body;
+    const { alt_text, title, description, category, tags, folder_id } = req.body;
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
 
     await db.query(
-      `UPDATE images SET alt_text = $1, title = $2, description = $3, category = $4, tags = $5, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $6`,
-      [alt_text || '', title || '', description || '', category || 'general', tagsArray, req.params.id]
+      `UPDATE images SET alt_text = $1, title = $2, description = $3, category = $4, tags = $5, folder_id = $6, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $7`,
+      [alt_text || '', title || '', description || '', category || 'general', tagsArray, folder_id || null, req.params.id]
     );
 
     req.session.successMessage = 'Image metadata updated';

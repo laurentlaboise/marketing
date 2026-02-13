@@ -53,6 +53,7 @@
                 <tr><td style="font-weight: 600;">Dimensions</td><td><%= image.width %> &times; <%= image.height %> px</td></tr>
                 <% } %>
                 <tr><td style="font-weight: 600;">Category</td><td><span class="status-badge <%= image.category %>"><%= image.category %></span></td></tr>
+                <tr><td style="font-weight: 600;">Folder</td><td><%= currentFolderName ? currentFolderName : '<span style="color:var(--gray-400);">None</span>' %></td></tr>
                 <tr><td style="font-weight: 600;">File Path</td><td style="word-break: break-all;"><code><%= image.file_path %></code></td></tr>
                 <tr><td style="font-weight: 600;">Uploaded</td><td><%= new Date(image.created_at).toLocaleDateString() %></td></tr>
               </tbody>
@@ -223,6 +224,17 @@
                     <option value="icons" <%= image.category === 'icons' ? 'selected' : '' %>>Icons</option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label class="form-label" for="folder_id">Folder</label>
+                  <select id="folder_id" name="folder_id" class="form-input">
+                    <option value="">No folder</option>
+                    <% if (folders && folders.length > 0) { folders.forEach(f => { %>
+                    <option value="<%= f.id %>" <%= image.folder_id === f.id ? 'selected' : '' %>><%= '—'.repeat(f.depth) %><%= f.depth ? ' ' : '' %><%= f.name %></option>
+                    <% }); } %>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="tags">Tags</label>
                   <input type="text" id="tags" name="tags" class="form-input" value="<%= image.tags ? image.tags.join(', ') : '' %>" placeholder="marketing, seo, laos">
