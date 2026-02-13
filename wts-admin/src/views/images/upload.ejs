@@ -82,6 +82,18 @@
                 <p class="form-help">Determines the subdirectory in the images folder</p>
               </div>
               <div class="form-group">
+                <label class="form-label" for="folder_id">Folder</label>
+                <select id="folder_id" name="folder_id" class="form-input">
+                  <option value="">No folder</option>
+                  <% if (folders && folders.length > 0) { folders.forEach(f => { %>
+                  <option value="<%= f.id %>" <%= preselectedFolder === f.id ? 'selected' : '' %>><%= '—'.repeat(f.depth) %><%= f.depth ? ' ' : '' %><%= f.name %></option>
+                  <% }); } %>
+                </select>
+                <p class="form-help">Organize this image into a folder</p>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
                 <label class="form-label" for="tags">Tags</label>
                 <input type="text" id="tags" name="tags" class="form-input" placeholder="marketing, seo, laos">
                 <p class="form-help">Comma-separated tags for organization</p>

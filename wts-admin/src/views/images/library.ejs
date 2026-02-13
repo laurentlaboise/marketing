@@ -17,15 +17,68 @@
             <i class="fas fa-sync-alt"></i> Sync from Disk
           </button>
         </form>
-        <a href="/images/upload" class="btn btn-primary">
+        <a href="/images/upload<%= (typeof activeFolder !== 'undefined' && activeFolder && activeFolder !== 'unfiled') ? '?folder=' + activeFolder : '' %>" class="btn btn-primary">
           <i class="fas fa-cloud-upload-alt"></i> Upload Image
         </a>
       </div>
     </div>
 
+    <!-- Folder Sidebar + Content Layout -->
+    <div style="display: grid; grid-template-columns: 240px 1fr; gap: 20px;">
+
+      <!-- Folder Sidebar -->
+      <div class="card" style="align-self: start;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
+          <strong style="font-size: 0.9rem;"><i class="fas fa-folder"></i> Folders</strong>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('newFolderModal').style.display='flex'" title="New Folder">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        <div style="padding: 0;">
+          <a href="/images" class="folder-nav-item <%= !activeFolder ? 'active' : '' %>">
+            <i class="fas fa-images"></i> All Images
+          </a>
+          <a href="/images?folder=unfiled" class="folder-nav-item <%= activeFolder === 'unfiled' ? 'active' : '' %>">
+            <i class="fas fa-file-image"></i> Unfiled
+            <span class="folder-count"><%= unfiledCount %></span>
+          </a>
+          <% if (folders && folders.length > 0) { %>
+            <div style="border-top: 1px solid var(--gray-200); margin: 4px 0;"></div>
+            <% folders.forEach(folder => { %>
+            <div class="folder-nav-item-wrapper" style="position: relative;">
+              <a href="/images?folder=<%= folder.id %>" class="folder-nav-item <%= activeFolder === folder.id ? 'active' : '' %>" style="padding-left: <%= 16 + folder.depth * 16 %>px;">
+                <i class="fas fa-folder<%= activeFolder === folder.id ? '-open' : '' %>"></i>
+                <%= folder.name %>
+                <span class="folder-count"><%= (folderCounts && folderCounts[folder.id]) || 0 %></span>
+              </a>
+              <div class="folder-actions">
+                <button type="button" class="folder-action-btn" onclick="openRenameFolderModal(<%= JSON.stringify(folder.id) %>, <%= JSON.stringify(folder.name) %>)" title="Rename">
+                  <i class="fas fa-pen" style="font-size: 10px;"></i>
+                </button>
+                <form action="/images/folders/<%= folder.id %>/delete" method="POST" style="display: inline;">
+                  <button type="submit" class="folder-action-btn" data-confirm-delete="Delete this folder? Images will be unassigned." title="Delete">
+                    <i class="fas fa-trash" style="font-size: 10px;"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+            <% }); %>
+          <% } %>
+        </div>
+      </div>
+
     <div class="card">
       <div class="card-header">
+        <% if (currentFolder) { %>
+        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+          <a href="/images" style="color: var(--gray-500); font-size: 0.85rem;"><i class="fas fa-arrow-left"></i></a>
+          <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-folder-open" style="color: var(--primary);"></i> <%= currentFolder.name %></h3>
+        </div>
+        <% } %>
         <form action="/images" method="GET" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <% if (activeFolder) { %>
+          <input type="hidden" name="folder" value="<%= activeFolder %>">
+          <% } %>
           <input type="text" name="search" class="form-input" placeholder="Search images..." value="<%= pagination.search || '' %>" style="width: 200px;">
           <select name="category" class="form-input" style="width: 150px;">
             <option value="">All Categories</option>
@@ -41,10 +94,10 @@
             <i class="fas fa-search"></i> Search
           </button>
           <div style="margin-left: auto; display: flex; gap: 4px;">
-            <a href="?view=grid&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>" class="btn btn-sm <%= view === 'grid' ? 'btn-primary' : 'btn-secondary' %>" title="Grid view">
+            <a href="?view=grid&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= activeFolder || '' %>" class="btn btn-sm <%= view === 'grid' ? 'btn-primary' : 'btn-secondary' %>" title="Grid view">
               <i class="fas fa-th"></i>
             </a>
-            <a href="?view=list&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>" class="btn btn-sm <%= view === 'list' ? 'btn-primary' : 'btn-secondary' %>" title="List view">
+            <a href="?view=list&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= activeFolder || '' %>" class="btn btn-sm <%= view === 'list' ? 'btn-primary' : 'btn-secondary' %>" title="List view">
               <i class="fas fa-list"></i>
             </a>
           </div>
@@ -164,17 +217,17 @@
           <div class="card-footer">
             <div class="pagination">
               <% if (pagination.page > 1) { %>
-              <a href="?page=<%= pagination.page - 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&view=<%= view %>" class="pagination-btn">
+              <a href="?page=<%= pagination.page - 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>" class="pagination-btn">
                 <i class="fas fa-chevron-left"></i>
               </a>
               <% } %>
               <% for (let i = 1; i <= pagination.totalPages; i++) { %>
-              <a href="?page=<%= i %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&view=<%= view %>" class="pagination-btn <%= i === pagination.page ? 'active' : '' %>">
+              <a href="?page=<%= i %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>" class="pagination-btn <%= i === pagination.page ? 'active' : '' %>">
                 <%= i %>
               </a>
               <% } %>
               <% if (pagination.page < pagination.totalPages) { %>
-              <a href="?page=<%= pagination.page + 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&view=<%= view %>" class="pagination-btn">
+              <a href="?page=<%= pagination.page + 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>" class="pagination-btn">
                 <i class="fas fa-chevron-right"></i>
               </a>
               <% } %>
@@ -203,12 +256,83 @@
         <% } %>
       </div>
     </div>
+
+    </div><!-- close grid layout -->
+
+  <!-- New Folder Modal -->
+  <div id="newFolderModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-folder-plus"></i> New Folder</h3>
+        <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="modal-close">&times;</button>
+      </div>
+      <form action="/images/folders" method="POST">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Folder Name *</label>
+            <input type="text" name="name" class="form-input" placeholder="e.g. Client Logos" required autofocus>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Parent Folder</label>
+            <select name="parent_id" class="form-input">
+              <option value="">None (root level)</option>
+              <% if (folders) { folders.forEach(f => { %>
+              <option value="<%= f.id %>"><%= '—'.repeat(f.depth) %><%= f.depth ? ' ' : '' %><%= f.name %></option>
+              <% }); } %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" name="description" class="form-input" placeholder="Optional description">
+          </div>
+          <% if (activeFolder && activeFolder !== 'unfiled') { %>
+          <input type="hidden" name="return_to" value="<%= activeFolder %>">
+          <% } %>
+        </div>
+        <div class="modal-footer">
+          <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Create Folder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rename Folder Modal -->
+  <div id="renameFolderModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-pen"></i> Rename Folder</h3>
+        <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="modal-close">&times;</button>
+      </div>
+      <form id="renameFolderForm" action="" method="POST">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">New Name *</label>
+            <input type="text" name="name" id="renameFolderInput" class="form-input" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Rename</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Copy URL toast -->
   <div id="copyToast" class="copy-toast">
     <i class="fas fa-check-circle"></i> CDN URL copied to clipboard
   </div>
+  </div><!-- close page-content -->
 </main>
+
+<script>
+function openRenameFolderModal(folderId, folderName) {
+  document.getElementById('renameFolderForm').action = '/images/folders/' + folderId + '/rename';
+  document.getElementById('renameFolderInput').value = folderName;
+  document.getElementById('renameFolderModal').style.display = 'flex';
+  document.getElementById('renameFolderInput').focus();
+}
+</script>
 
 <%- include('../partials/footer') %>

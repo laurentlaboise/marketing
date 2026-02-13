@@ -851,6 +851,19 @@ const db = {
         )
       `);
 
+      // Image folders table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS image_folders (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          slug VARCHAR(255) NOT NULL,
+          parent_id UUID REFERENCES image_folders(id) ON DELETE CASCADE,
+          description TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Images table
       await client.query(`
         CREATE TABLE IF NOT EXISTS images (
@@ -868,6 +881,7 @@ const db = {
           category VARCHAR(100) DEFAULT 'general',
           tags TEXT[],
           cdn_url TEXT,
+          folder_id UUID REFERENCES image_folders(id) ON DELETE SET NULL,
           status VARCHAR(50) DEFAULT 'active',
           uploaded_by UUID REFERENCES users(id),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -894,6 +908,16 @@ const db = {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+      `);
+
+      // Add folder_id column to images if it doesn't exist (for existing tables)
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='images' AND column_name='folder_id') THEN
+            ALTER TABLE images ADD COLUMN folder_id UUID REFERENCES image_folders(id) ON DELETE SET NULL;
+          END IF;
+        END $$;
       `);
 
       await client.query('COMMIT');
