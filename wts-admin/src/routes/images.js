@@ -637,6 +637,179 @@ router.post('/upload', upload.single('image'), async (req, res) => {
   }
 });
 
+// ==================== AI IMAGE ANALYSIS ====================
+
+// Helper: call Anthropic Claude Vision API to analyze an image
+async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY is not configured. Add it to your environment variables.');
+  }
+
+  // Convert image to base64
+  const base64Image = imageBuffer.toString('base64');
+
+  // Map MIME types for Anthropic API
+  const supportedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  let mediaType = mimeType;
+  if (!supportedTypes.includes(mediaType)) {
+    // For SVG/AVIF, convert to PNG via sharp first
+    const converted = await sharp(imageBuffer).png().toBuffer();
+    return analyzeImageWithAI(converted, 'image/png', filename);
+  }
+
+  const requestBody = JSON.stringify({
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 1024,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: mediaType,
+              data: base64Image,
+            },
+          },
+          {
+            type: 'text',
+            text: `Analyze this image for SEO optimization on a digital marketing agency website (WordsThatSells.website). The filename is: "${filename}"
+
+Return ONLY valid JSON (no markdown, no code fences) with these exact fields:
+{
+  "alt_text": "Concise descriptive alt text for accessibility and SEO, 60-125 characters. Describe what the image shows naturally with relevant keywords.",
+  "title": "A clear, keyword-rich title for the image, suitable as a tooltip and for AI crawlers.",
+  "description": "A detailed 1-2 sentence description for Schema.org ImageObject markup. Mention the context, subject matter, and relevance to digital marketing services.",
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
+}
+
+Tags should be lowercase, relevant for categorization. Include 4-8 tags.
+Focus on: what the image depicts, its purpose on a marketing website, and relevant SEO keywords.`
+          }
+        ]
+      }
+    ]
+  });
+
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.anthropic.com',
+      port: 443,
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(requestBody),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const response = JSON.parse(data);
+          if (response.error) {
+            reject(new Error(response.error.message || 'Anthropic API error'));
+            return;
+          }
+
+          // Extract text content from response
+          const textBlock = response.content && response.content.find(b => b.type === 'text');
+          if (!textBlock || !textBlock.text) {
+            reject(new Error('No text response from AI'));
+            return;
+          }
+
+          // Parse JSON from the response (strip any markdown fences if present)
+          let jsonText = textBlock.text.trim();
+          jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+          const result = JSON.parse(jsonText);
+          resolve(result);
+        } catch (e) {
+          reject(new Error('Failed to parse AI response: ' + e.message));
+        }
+      });
+    });
+
+    req.on('error', (e) => reject(new Error('API request failed: ' + e.message)));
+    req.setTimeout(30000, () => { req.destroy(); reject(new Error('API request timed out')); });
+    req.write(requestBody);
+    req.end();
+  });
+}
+
+// Analyze existing image (from detail page)
+router.post('/:id/analyze', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+
+    const image = result.rows[0];
+
+    // Read image from disk
+    const imagePath = path.join(__dirname, '../../../', image.file_path);
+    if (!fs.existsSync(imagePath)) {
+      return res.status(404).json({ error: 'Image file not found on disk' });
+    }
+
+    const imageBuffer = fs.readFileSync(imagePath);
+    const analysis = await analyzeImageWithAI(imageBuffer, image.mime_type, image.filename);
+
+    res.json({
+      success: true,
+      alt_text: analysis.alt_text || '',
+      title: analysis.title || '',
+      description: analysis.description || '',
+      tags: Array.isArray(analysis.tags) ? analysis.tags.join(', ') : '',
+    });
+  } catch (error) {
+    console.error('Image analysis error:', error);
+    res.status(500).json({ error: error.message || 'Failed to analyze image' });
+  }
+});
+
+// Analyze image during upload (before saving) - accepts file via multipart
+router.post('/analyze-upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image provided' });
+    }
+
+    const imageBuffer = req.file.buffer || fs.readFileSync(req.file.path);
+    const filename = req.file.originalname;
+    const mimeType = req.file.mimetype;
+
+    const analysis = await analyzeImageWithAI(imageBuffer, mimeType, filename);
+
+    // Clean up temp file if multer saved to disk
+    if (req.file.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    res.json({
+      success: true,
+      alt_text: analysis.alt_text || '',
+      title: analysis.title || '',
+      description: analysis.description || '',
+      tags: Array.isArray(analysis.tags) ? analysis.tags.join(', ') : '',
+    });
+  } catch (error) {
+    console.error('Upload analysis error:', error);
+    // Clean up temp file on error
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: error.message || 'Failed to analyze image' });
+  }
+});
+
 // Image detail / edit
 router.get('/:id', async (req, res) => {
   try {
