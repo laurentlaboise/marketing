@@ -102,10 +102,19 @@
           </div>
 
           <div class="form-section">
-            <h3 class="form-section-title">SEO Metadata</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 class="form-section-title" style="margin-bottom: 0;">SEO Metadata</h3>
+              <button type="button" id="aiAnalyzeUploadBtn" class="btn btn-sm btn-primary" onclick="analyzeUploadWithAI()" disabled>
+                <i class="fas fa-robot"></i> AI Auto-fill
+              </button>
+            </div>
             <p style="color: var(--gray-500); font-size: 13px; margin-bottom: 16px;">
               <i class="fas fa-info-circle"></i> Setting these fields improves discoverability in Google, Bing, ChatGPT, and Perplexity search results.
+              Select an image first, then click <strong>AI Auto-fill</strong> to generate metadata automatically.
             </p>
+
+            <!-- AI Analysis Status -->
+            <div id="aiAnalysisStatus" style="display: none; margin-bottom: 16px;"></div>
 
             <div class="form-group">
               <label class="form-label" for="alt_text">Alt Text *</label>
@@ -177,6 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.value = '';
     content.style.display = '';
     preview.style.display = 'none';
+    // Disable AI Auto-fill button when file is removed
+    const aiBtn = document.getElementById('aiAnalyzeUploadBtn');
+    if (aiBtn) aiBtn.disabled = true;
   });
 
   function showPreview(file) {
@@ -186,6 +198,10 @@ document.addEventListener('DOMContentLoaded', () => {
     previewSize.textContent = formatSize(file.size);
     content.style.display = 'none';
     preview.style.display = 'flex';
+
+    // Enable AI Auto-fill button when a file is selected
+    const aiBtn = document.getElementById('aiAnalyzeUploadBtn');
+    if (aiBtn) aiBtn.disabled = false;
   }
 
   function formatSize(bytes) {
@@ -200,6 +216,52 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading & publishing to CDN...';
   });
 });
+
+// AI Image Analysis for upload page
+function analyzeUploadWithAI() {
+  const fileInput = document.getElementById('image');
+  if (!fileInput.files || fileInput.files.length === 0) return;
+
+  const btn = document.getElementById('aiAnalyzeUploadBtn');
+  const status = document.getElementById('aiAnalysisStatus');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+  status.style.display = 'block';
+  status.innerHTML = '<div style="padding: 12px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius); font-size: 13px; color: var(--primary);"><i class="fas fa-robot"></i> AI is analyzing the image content and filename...</div>';
+
+  const formData = new FormData();
+  formData.append('image', fileInput.files[0]);
+
+  fetch('/images/analyze-upload', {
+    method: 'POST',
+    body: formData,
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) {
+      status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> ' + data.error + '</div>';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-robot"></i> AI Auto-fill';
+      return;
+    }
+
+    // Fill in the SEO fields
+    if (data.alt_text) document.getElementById('alt_text').value = data.alt_text;
+    if (data.title) document.getElementById('title').value = data.title;
+    if (data.description) document.getElementById('description').value = data.description;
+    if (data.tags) document.getElementById('tags').value = data.tags;
+
+    status.innerHTML = '<div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> AI analysis complete! Review the fields below and edit as needed.</div>';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-robot"></i> AI Auto-fill';
+  })
+  .catch(err => {
+    status.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: var(--radius); font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Failed to analyze: ' + err.message + '</div>';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-robot"></i> AI Auto-fill';
+  });
+}
 </script>
 
 <%- include('../partials/footer') %>
