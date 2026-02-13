@@ -13,6 +13,42 @@ const https = require('https');
 const UPLOAD_ROOT = path.join(__dirname, '../../../uploads');
 
 /**
+ * Validate that a redirect path is a safe, application-local path.
+ *
+ * Rules:
+ * - Must be a string.
+ * - Must start with a single "/" (application-relative).
+ * - Must not start with "//" (protocol-relative external URL).
+ * - Must not contain a URL scheme like "http:" or "https:" at the start.
+ */
+function isSafeRedirectPath(p) {
+  if (typeof p !== 'string') {
+    return false;
+  }
+
+  // Trim whitespace to avoid hiding unsafe prefixes
+  const trimmed = p.trim();
+
+  // Must start with "/" (app-relative)
+  if (!trimmed.startsWith('/')) {
+    return false;
+  }
+
+  // Reject protocol-relative URLs (e.g., "//evil.com")
+  if (trimmed.startsWith('//')) {
+    return false;
+  }
+
+  // Reject explicit URL schemes (e.g., "http://", "https://")
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('http://') || lower.startsWith('https://')) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Ensure a redirect target is a safe local path.
  * Only allow relative paths on this server that start with a single "/"
  * and do not contain a URL scheme.
