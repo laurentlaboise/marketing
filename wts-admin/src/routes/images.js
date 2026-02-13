@@ -734,7 +734,7 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
         uploaded++;
         totalSize += fileSize;
       } catch (fileErr) {
-        console.error(`Failed to upload ${file.originalname}:`, fileErr);
+        console.error('Failed to upload %s:', file.originalname, fileErr);
         cleanupTempFile(file.path);
         failed++;
         errors.push(file.originalname);
