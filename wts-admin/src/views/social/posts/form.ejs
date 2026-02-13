@@ -975,7 +975,15 @@ function showPlatformPreview() {
     var platformLabel = document.createElement('div');
     var colors = { 'Facebook': '#1877f2', 'Twitter/X': '#000', 'LinkedIn': '#0a66c2', 'Instagram': '#e4405f', 'TikTok': '#000' };
     var icons = { 'Facebook': 'fab fa-facebook', 'Twitter/X': 'fab fa-x-twitter', 'LinkedIn': 'fab fa-linkedin', 'Instagram': 'fab fa-instagram', 'TikTok': 'fab fa-tiktok' };
-    platformLabel.innerHTML = '<i class="' + (icons[p] || 'fas fa-globe') + '" style="color: ' + (colors[p] || '#666') + '; font-size: 16px;"></i> <strong>' + p + '</strong>';
+    var iconEl = document.createElement('i');
+    iconEl.className = icons[p] || 'fas fa-globe';
+    iconEl.style.color = colors[p] || '#666';
+    iconEl.style.fontSize = '16px';
+    platformLabel.appendChild(iconEl);
+    platformLabel.appendChild(document.createTextNode(' '));
+    var strongEl = document.createElement('strong');
+    strongEl.textContent = p;
+    platformLabel.appendChild(strongEl);
     platformLabel.style.cssText = 'margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-100);';
 
     var limits = { 'Twitter/X': 280, 'Facebook': 63206, 'LinkedIn': 3000, 'Instagram': 2200, 'TikTok': 2200 };
