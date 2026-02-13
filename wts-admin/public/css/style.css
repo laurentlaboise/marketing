@@ -2615,9 +2615,136 @@ select.form-input {
   border-top: 1px solid var(--gray-200);
 }
 
+/* ==================== Bulk Action Bar ==================== */
+
+.bulk-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  background: var(--primary-light, #eff6ff);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bulk-action-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.bulk-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* ==================== Image Select Checkbox ==================== */
+
+.image-select-checkbox {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.image-select-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.image-select-grid {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 5;
+  background: white;
+  border-radius: 4px;
+  padding: 2px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.image-card {
+  position: relative;
+}
+
+.image-card:hover .image-select-grid,
+.image-select-grid:has(input:checked) {
+  opacity: 1;
+}
+
+.image-card:has(.image-checkbox:checked) {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  border-radius: var(--radius);
+}
+
+/* ==================== Move Folder List ==================== */
+
+.move-folder-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+}
+
+.move-folder-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--gray-100);
+  transition: background 0.1s;
+  font-size: 0.85rem;
+}
+
+.move-folder-option:last-child {
+  border-bottom: none;
+}
+
+.move-folder-option:hover {
+  background: var(--gray-50);
+}
+
+.move-folder-option input[type="radio"] {
+  accent-color: var(--primary);
+  flex-shrink: 0;
+}
+
+.move-folder-option span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.move-folder-option span i {
+  color: var(--gray-400);
+  width: 16px;
+  text-align: center;
+}
+
 /* Responsive: stack folder sidebar below on mobile */
 @media (max-width: 768px) {
   .page-content > div[style*="grid-template-columns: 240px"] {
     grid-template-columns: 1fr !important;
+  }
+
+  .bulk-action-bar {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
   }
 }
