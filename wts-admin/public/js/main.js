@@ -381,7 +381,7 @@ function initNotifications() {
       }
       notifList.innerHTML = data.notifications.map(n => {
         const isUnread = !n.read;
-        const link = n.link || '/business/submissions';
+        const link = n.link || '/webdev/submissions';
         return `<a href="${escapeHtml(link)}" class="notif-item ${isUnread ? 'unread' : ''}">
           <div class="notif-icon"><i class="fas fa-envelope"></i></div>
           <div class="notif-body">

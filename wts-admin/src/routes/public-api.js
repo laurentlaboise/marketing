@@ -793,7 +793,7 @@ router.post('/submissions', formLimiter, async (req, res) => {
     for (const admin of admins.rows) {
       await db.query(
         `INSERT INTO notifications (user_id, type, title, message, link)
-         VALUES ($1, 'info', $2, $3, '/business/submissions')`,
+         VALUES ($1, 'info', $2, $3, '/webdev/submissions')`,
         [admin.id, notifTitle, notifMessage]
       );
     }

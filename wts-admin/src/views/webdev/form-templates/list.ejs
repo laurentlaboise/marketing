@@ -11,7 +11,7 @@
         <p class="page-subtitle">Create and manage forms for the website</p>
       </div>
       <div class="page-actions">
-        <a href="/business/form-templates/new" class="btn btn-primary"><i class="fas fa-plus"></i> Create Form</a>
+        <a href="/webdev/form-templates/new" class="btn btn-primary"><i class="fas fa-plus"></i> Create Form</a>
       </div>
     </div>
 
@@ -61,8 +61,8 @@
                 </td>
                 <td>
                   <div class="table-actions">
-                    <a href="/business/form-templates/<%= tpl.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
-                    <form action="/business/form-templates/<%= tpl.id %>/delete" method="POST" style="display:inline;">
+                    <a href="/webdev/form-templates/<%= tpl.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                    <form action="/webdev/form-templates/<%= tpl.id %>/delete" method="POST" style="display:inline;">
                       <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
                     </form>
                   </div>
@@ -77,7 +77,7 @@
           <div class="empty-state-icon"><i class="fas fa-file-lines"></i></div>
           <h3>No Form Templates</h3>
           <p>Create your first form template to start collecting submissions from the website.</p>
-          <a href="/business/form-templates/new" class="btn btn-primary"><i class="fas fa-plus"></i> Create Form</a>
+          <a href="/webdev/form-templates/new" class="btn btn-primary"><i class="fas fa-plus"></i> Create Form</a>
         </div>
         <% } %>
       </div>

@@ -8,7 +8,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title"><%= item ? 'Edit Sidebar Item' : 'New Sidebar Item' %></h1>
-        <p class="page-subtitle"><a href="/business/sidebar"><i class="fas fa-arrow-left"></i> Back to Sidebar</a></p>
+        <p class="page-subtitle"><a href="/webdev/sidebar"><i class="fas fa-arrow-left"></i> Back to Sidebar</a></p>
       </div>
     </div>
 
@@ -18,7 +18,7 @@
       <div class="card form-card">
         <div class="card-body">
           <h3 style="margin-bottom:1rem;"><i class="fas fa-cog"></i> Settings</h3>
-          <form id="sidebar-form" action="<%= item ? '/business/sidebar/' + item.id : '/business/sidebar' %>" method="POST">
+          <form id="sidebar-form" action="<%= item ? '/webdev/sidebar/' + item.id : '/webdev/sidebar' %>" method="POST">
             <div class="form-group">
               <label class="form-label" for="label">Label / Title *</label>
               <input type="text" id="label" name="label" class="form-input" value="<%= item ? item.label : '' %>" required>
@@ -127,7 +127,7 @@
             </div>
 
             <div class="form-actions">
-              <a href="/business/sidebar" class="btn btn-secondary">Cancel</a>
+              <a href="/webdev/sidebar" class="btn btn-secondary">Cancel</a>
               <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
             </div>
           </form>
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resultBox.innerHTML = '<div class="verify-box info"><span class="verify-spinner"></span> Verifying link...</div>';
     verifyBtn.disabled = true;
 
-    var qs = '/business/sidebar/verify-link?path=' + encodeURIComponent(path);
+    var qs = '/webdev/sidebar/verify-link?path=' + encodeURIComponent(path);
     if (currentItemId) qs += '&exclude=' + currentItemId;
 
     fetch(qs)
@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
             html += '<strong>' + escHtml(m.label) + '</strong> ';
             html += '<code>' + escHtml(m.page_url) + '</code> ';
             html += '<span style="font-size:0.75rem;color:#6b7280;">(' + m.match_type + ' match)</span> ';
-            html += '<a href="/business/sidebar/' + m.id + '/edit" style="font-size:0.78rem;color:var(--primary);">Edit</a>';
+            html += '<a href="/webdev/sidebar/' + m.id + '/edit" style="font-size:0.78rem;color:var(--primary);">Edit</a>';
             html += '</div>';
           });
           showResult('warning', html);
