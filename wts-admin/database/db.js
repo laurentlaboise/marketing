@@ -989,6 +989,11 @@ const db = {
         END $$;
       `);
 
+      // Add unique index for OAuth upsert on social_channels
+      await client.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_channels_platform_account ON social_channels(platform, account_id)
+      `);
+
       await client.query('COMMIT');
       console.log('Database tables initialized successfully');
     } catch (error) {

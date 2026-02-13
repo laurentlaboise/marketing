@@ -144,6 +144,9 @@
                 <td><span class="status-badge <%= post.status %>"><%= post.status %></span></td>
                 <td>
                   <div class="table-actions">
+                    <% if (post.status !== 'published') { %>
+                    <button type="button" class="btn btn-sm btn-primary publish-btn" data-post-id="<%= post.id %>" title="Publish Now"><i class="fas fa-paper-plane"></i></button>
+                    <% } %>
                     <a href="/social/posts/<%= post.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
                     <form action="/social/posts/<%= post.id %>/clone" method="POST" style="display: inline;">
                       <button type="submit" class="btn btn-sm btn-secondary" title="Clone"><i class="fas fa-copy"></i></button>
@@ -188,5 +191,37 @@
 .source-badge-guide { background: #ffedd5; color: #9a3412; }
 .source-badge-service { background: #fce7f3; color: #9d174d; }
 </style>
+
+<script>
+document.querySelectorAll('.publish-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var postId = btn.dataset.postId;
+    if (!confirm('Publish this post to all connected platforms?')) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    fetch('/social/posts/' + postId + '/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        var summary = Object.entries(data.results).map(function(e) {
+          return e[0] + ': ' + (e[1].success ? 'OK' : 'Failed - ' + (e[1].error || e[1].reason || 'unknown'));
+        }).join('\n');
+        alert('Publishing results:\n' + summary);
+        window.location.reload();
+      } else {
+        alert('Publish failed: ' + (data.error || 'Unknown error'));
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+      }
+    })
+    .catch(function(err) {
+      alert('Error: ' + err.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+    });
+  });
+});
+</script>
 
 <%- include('../../partials/footer') %>
