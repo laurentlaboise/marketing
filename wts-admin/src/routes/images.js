@@ -911,7 +911,7 @@ router.post('/bulk-optimize', async (req, res) => {
         totalSavings += (originalSize - newSize);
         optimizedCount++;
       } catch (err) {
-        console.error(`Bulk optimize error for image ${id}:`, err);
+        console.error('Bulk optimize error for image %s:', id, err);
       }
     }
 
