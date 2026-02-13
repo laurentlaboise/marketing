@@ -204,22 +204,58 @@ document.addEventListener('DOMContentLoaded', () => {
       row.style.cssText = 'display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--gray-100);';
 
       const isImage = file.type.startsWith('image/') && file.type !== 'image/svg+xml';
-      let thumbHtml;
+
+      // Thumbnail
+      let thumbElement;
       if (isImage) {
         const url = URL.createObjectURL(file);
-        thumbHtml = '<img src="' + url + '" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; flex-shrink: 0;">';
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = '';
+        img.style.cssText = 'width: 40px; height: 40px; object-fit: cover; border-radius: 4px; flex-shrink: 0;';
+        thumbElement = img;
       } else {
-        thumbHtml = '<div style="width: 40px; height: 40px; background: var(--gray-100); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fas fa-file-image" style="color: var(--gray-400);"></i></div>';
+        const placeholder = document.createElement('div');
+        placeholder.style.cssText = 'width: 40px; height: 40px; background: var(--gray-100); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;';
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-file-image';
+        icon.style.color = 'var(--gray-400)';
+        placeholder.appendChild(icon);
+        thumbElement = placeholder;
       }
 
-      row.innerHTML = thumbHtml +
-        '<div style="flex: 1; min-width: 0;">' +
-          '<p style="font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + escapeHtml(file.name) + '</p>' +
-          '<p style="font-size: 12px; color: var(--gray-500);">' + formatSize(file.size) + '</p>' +
-        '</div>' +
-        '<button type="button" class="btn-remove-file" data-index="' + i + '" style="background: none; border: none; color: var(--gray-400); cursor: pointer; padding: 4px 8px; font-size: 14px;" title="Remove">' +
-          '<i class="fas fa-times"></i>' +
-        '</button>';
+      // Info container
+      const infoContainer = document.createElement('div');
+      infoContainer.style.cssText = 'flex: 1; min-width: 0;';
+
+      const nameEl = document.createElement('p');
+      nameEl.style.cssText = 'font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+      // Using textContent avoids any need for manual escaping
+      nameEl.textContent = file.name;
+
+      const sizeEl = document.createElement('p');
+      sizeEl.style.cssText = 'font-size: 12px; color: var(--gray-500);';
+      sizeEl.textContent = formatSize(file.size);
+
+      infoContainer.appendChild(nameEl);
+      infoContainer.appendChild(sizeEl);
+
+      // Remove button
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn-remove-file';
+      removeBtn.dataset.index = String(i);
+      removeBtn.style.cssText = 'background: none; border: none; color: var(--gray-400); cursor: pointer; padding: 4px 8px; font-size: 14px;';
+      removeBtn.title = 'Remove';
+
+      const removeIcon = document.createElement('i');
+      removeIcon.className = 'fas fa-times';
+      removeBtn.appendChild(removeIcon);
+
+      // Assemble row
+      row.appendChild(thumbElement);
+      row.appendChild(infoContainer);
+      row.appendChild(removeBtn);
 
       fileItems.appendChild(row);
     });
