@@ -2,6 +2,7 @@ const express = require('express');
 const { ensureAuthenticated } = require('../middleware/auth');
 const db = require('../../database/db');
 const RateLimit = require('express-rate-limit');
+const escapeHtml = require('escape-html');
 
 const router = express.Router();
 router.use(ensureAuthenticated);
@@ -1143,7 +1144,7 @@ function getOAuthRedirectUri(req, platform) {
 router.get('/oauth/:platform', (req, res) => {
   const platform = req.params.platform;
   const config = OAUTH_CONFIG[platform];
-  if (!config) return res.status(400).send('Unsupported platform: ' + platform);
+  if (!config) return res.status(400).send('Unsupported platform: ' + escapeHtml(platform));
 
   const clientId = process.env[config.clientIdEnv];
   if (!clientId) {
