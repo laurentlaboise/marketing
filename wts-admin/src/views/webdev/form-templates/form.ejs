@@ -11,11 +11,11 @@
         <p class="page-subtitle">Design the form fields and settings</p>
       </div>
       <div class="page-actions">
-        <a href="/business/form-templates" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+        <a href="/webdev/form-templates" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
       </div>
     </div>
 
-    <form method="POST" action="<%= template ? '/business/form-templates/' + template.id : '/business/form-templates' %>">
+    <form method="POST" action="<%= template ? '/webdev/form-templates/' + template.id : '/webdev/form-templates' %>">
 
       <!-- Form Settings -->
       <div class="card" style="margin-bottom: 1.5rem;">
@@ -100,7 +100,7 @@
 
       <div style="display: flex; gap: 1rem;">
         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <%= template ? 'Update' : 'Create' %> Form Template</button>
-        <a href="/business/form-templates" class="btn btn-secondary">Cancel</a>
+        <a href="/webdev/form-templates" class="btn btn-secondary">Cancel</a>
       </div>
     </form>
 
@@ -130,7 +130,7 @@
                 </div>
                 <div class="linked-btn-actions">
                   <button type="button" class="btn-toggle-edit" title="Edit"><i class="fas fa-pen"></i></button>
-                  <form action="/business/form-buttons/<%= btn.id %>/delete" method="POST" style="display:inline;">
+                  <form action="/webdev/form-buttons/<%= btn.id %>/delete" method="POST" style="display:inline;">
                     <button type="submit" class="btn-remove" data-confirm-delete title="Delete"><i class="fas fa-trash"></i></button>
                   </form>
                 </div>
@@ -147,7 +147,7 @@
 
               <!-- Expandable edit form -->
               <div class="linked-btn-edit" style="display:none;">
-                <form action="/business/form-buttons/<%= btn.id %>" method="POST">
+                <form action="/webdev/form-buttons/<%= btn.id %>" method="POST">
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                     <div class="form-group" style="margin:0;">
                       <label class="form-label">Button Label</label>
@@ -234,7 +234,7 @@
         <div id="addButtonForm" style="display:none;margin-top:1rem;">
           <div class="linked-btn-card" style="border:2px dashed var(--primary);background:#f0f9ff;">
             <h4 style="margin:0 0 0.75rem;font-size:0.95rem;color:var(--primary);"><i class="fas fa-plus-circle"></i> New Button</h4>
-            <form action="/business/form-buttons" method="POST">
+            <form action="/webdev/form-buttons" method="POST">
               <input type="hidden" name="form_type" value="<%= template.form_type %>">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                 <div class="form-group" style="margin:0;">
