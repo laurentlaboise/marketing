@@ -52,7 +52,7 @@
                 <span class="folder-count"><%= (folderCounts && folderCounts[folder.id]) || 0 %></span>
               </a>
               <div class="folder-actions">
-                <button type="button" class="folder-action-btn" onclick="openRenameFolderModal('<%= folder.id %>', '<%= folder.name.replace(/'/g, "\\'") %>')" title="Rename">
+                <button type="button" class="folder-action-btn" onclick="openRenameFolderModal(<%= JSON.stringify(folder.id) %>, <%= JSON.stringify(folder.name) %>)" title="Rename">
                   <i class="fas fa-pen" style="font-size: 10px;"></i>
                 </button>
                 <form action="/images/folders/<%= folder.id %>/delete" method="POST" style="display: inline;">
