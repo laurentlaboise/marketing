@@ -53,15 +53,17 @@
 
       <!-- Social Media Management -->
       <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['social-posts', 'social-channels', 'social-calendar', 'social-campaigns', 'social-hashtags'].includes(currentPage) ? 'active' : '' %>">
+        <a href="#" class="nav-link submenu-toggle <%= ['content-hub', 'social-posts', 'social-channels', 'social-calendar', 'social-campaigns', 'social-hashtags', 'social-analytics'].includes(currentPage) ? 'active' : '' %>">
           <i class="fas fa-share-alt"></i>
           <span>Social Media</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['social-posts', 'social-channels', 'social-calendar', 'social-campaigns', 'social-hashtags'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= ['content-hub', 'social-posts', 'social-channels', 'social-calendar', 'social-campaigns', 'social-hashtags', 'social-analytics'].includes(currentPage) ? 'open' : '' %>">
+          <li><a href="/social/content-hub" class="<%= currentPage === 'content-hub' ? 'active' : '' %>"><i class="fas fa-wand-magic-sparkles"></i> Content Hub</a></li>
           <li><a href="/social/campaigns" class="<%= currentPage === 'social-campaigns' ? 'active' : '' %>"><i class="fas fa-bullhorn"></i> Campaigns</a></li>
           <li><a href="/social/posts" class="<%= currentPage === 'social-posts' ? 'active' : '' %>"><i class="fas fa-pen"></i> Posts</a></li>
           <li><a href="/social/calendar" class="<%= currentPage === 'social-calendar' ? 'active' : '' %>"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+          <li><a href="/social/analytics" class="<%= currentPage === 'social-analytics' ? 'active' : '' %>"><i class="fas fa-chart-line"></i> Analytics</a></li>
           <li><a href="/social/hashtags" class="<%= currentPage === 'social-hashtags' ? 'active' : '' %>"><i class="fas fa-hashtag"></i> Hashtags</a></li>
           <li><a href="/social/channels" class="<%= currentPage === 'social-channels' ? 'active' : '' %>"><i class="fas fa-plug"></i> Channels</a></li>
         </ul>

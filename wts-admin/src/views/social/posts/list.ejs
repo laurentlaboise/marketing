@@ -11,6 +11,7 @@
         <p class="page-subtitle">Manage your social media content across all platforms</p>
       </div>
       <div class="page-actions">
+        <a href="/social/content-hub" class="btn btn-secondary"><i class="fas fa-wand-magic-sparkles"></i> Content Hub</a>
         <a href="/social/calendar" class="btn btn-secondary"><i class="fas fa-calendar"></i> Calendar</a>
         <a href="/social/posts/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Post</a>
       </div>
@@ -38,8 +39,17 @@
             <option value="<%= ct.id %>" <%= filter.content_type === ct.id ? 'selected' : '' %>><%= ct.label %></option>
             <% }); %>
           </select>
+          <select name="source" class="form-input" style="width: 140px;">
+            <option value="">All Sources</option>
+            <option value="article" <%= filter.source === 'article' ? 'selected' : '' %>>Article</option>
+            <option value="glossary" <%= filter.source === 'glossary' ? 'selected' : '' %>>Glossary</option>
+            <option value="ai_tool" <%= filter.source === 'ai_tool' ? 'selected' : '' %>>AI Tool</option>
+            <option value="guide" <%= filter.source === 'guide' ? 'selected' : '' %>>Guide</option>
+            <option value="service" <%= filter.source === 'service' ? 'selected' : '' %>>Service</option>
+            <option value="standalone" <%= filter.source === 'standalone' ? 'selected' : '' %>>Standalone</option>
+          </select>
           <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Filter</button>
-          <% if (filter.status || filter.campaign || filter.content_type) { %>
+          <% if (filter.status || filter.campaign || filter.content_type || filter.source) { %>
           <a href="/social/posts" class="btn btn-sm" style="color: var(--gray-500);"><i class="fas fa-times"></i> Clear</a>
           <% } %>
         </form>
@@ -54,6 +64,7 @@
             <thead>
               <tr>
                 <th>Content</th>
+                <th>Source</th>
                 <th>Campaign</th>
                 <th>Platforms</th>
                 <th>Type</th>
@@ -78,6 +89,14 @@
                     <span style="font-size: 11px; color: var(--gray-400);">+<%= post.hashtags.length - 3 %></span>
                     <% } %>
                   </div>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (post.source_type) { %>
+                  <span class="source-badge source-badge-<%= post.source_type %>"><%= post.source_type %></span>
+                  <% if (post.ai_generated) { %><i class="fas fa-robot" style="font-size: 11px; color: var(--gray-400); margin-left: 4px;" title="AI generated"></i><% } %>
+                  <% } else { %>
+                  <span style="color: var(--gray-400); font-size: 12px;">-</span>
                   <% } %>
                 </td>
                 <td>
@@ -157,5 +176,17 @@
     <% } %>
   </div>
 </main>
+
+<style>
+.source-badge {
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px;
+  text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+}
+.source-badge-article { background: #dbeafe; color: #1e40af; }
+.source-badge-glossary { background: #d1fae5; color: #065f46; }
+.source-badge-ai_tool { background: #ede9fe; color: #5b21b6; }
+.source-badge-guide { background: #ffedd5; color: #9a3412; }
+.source-badge-service { background: #fce7f3; color: #9d174d; }
+</style>
 
 <%- include('../../partials/footer') %>

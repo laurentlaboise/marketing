@@ -920,6 +920,75 @@ const db = {
         END $$;
       `);
 
+      // AI Providers table (for multi-AI routing)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS ai_providers (
+          id VARCHAR(50) PRIMARY KEY,
+          name VARCHAR(100) NOT NULL,
+          api_key_env VARCHAR(100),
+          model_id VARCHAR(200),
+          endpoint_url TEXT,
+          cost_per_1m_input DECIMAL(8,4) DEFAULT 0,
+          cost_per_1m_output DECIMAL(8,4) DEFAULT 0,
+          best_for TEXT[],
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Seed default AI providers if table is empty
+      await client.query(`
+        INSERT INTO ai_providers (id, name, api_key_env, model_id, endpoint_url, cost_per_1m_input, cost_per_1m_output, best_for)
+        SELECT * FROM (VALUES
+          ('deepseek', 'DeepSeek V3', 'DEEPSEEK_API_KEY', 'deepseek-chat', 'https://api.deepseek.com/v1/chat/completions', 0.28, 0.42, ARRAY['short_posts', 'bulk']),
+          ('claude_haiku', 'Claude Haiku 4.5', 'ANTHROPIC_API_KEY', 'claude-haiku-4-5-20251001', 'https://api.anthropic.com/v1/messages', 1.0, 5.0, ARRAY['long_posts', 'quality']),
+          ('claude_sonnet', 'Claude Sonnet 4.5', 'ANTHROPIC_API_KEY', 'claude-sonnet-4-5-20250929', 'https://api.anthropic.com/v1/messages', 3.0, 15.0, ARRAY['campaigns', 'complex']),
+          ('gemini', 'Gemini 2.0 Flash-Lite', 'GOOGLE_GEMINI_API_KEY', 'gemini-2.0-flash-lite', 'https://generativelanguage.googleapis.com/v1beta/models', 0.075, 0.30, ARRAY['translations', 'multilingual']),
+          ('perplexity', 'Perplexity Sonar', 'PERPLEXITY_API_KEY', 'sonar', 'https://api.perplexity.ai/chat/completions', 1.0, 1.0, ARRAY['trends', 'news'])
+        ) AS v(id, name, api_key_env, model_id, endpoint_url, cost_per_1m_input, cost_per_1m_output, best_for)
+        WHERE NOT EXISTS (SELECT 1 FROM ai_providers LIMIT 1)
+      `);
+
+      // Add content promotion + AI columns to social_posts
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='source_type') THEN
+            ALTER TABLE social_posts ADD COLUMN source_type VARCHAR(50);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='source_id') THEN
+            ALTER TABLE social_posts ADD COLUMN source_id UUID;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='source_title') THEN
+            ALTER TABLE social_posts ADD COLUMN source_title VARCHAR(500);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='source_url') THEN
+            ALTER TABLE social_posts ADD COLUMN source_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='ai_provider') THEN
+            ALTER TABLE social_posts ADD COLUMN ai_provider VARCHAR(50);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='ai_generated') THEN
+            ALTER TABLE social_posts ADD COLUMN ai_generated BOOLEAN DEFAULT false;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='ai_prompt_used') THEN
+            ALTER TABLE social_posts ADD COLUMN ai_prompt_used TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='ai_variations') THEN
+            ALTER TABLE social_posts ADD COLUMN ai_variations JSONB;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='language') THEN
+            ALTER TABLE social_posts ADD COLUMN language VARCHAR(10) DEFAULT 'en';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='bitly_url') THEN
+            ALTER TABLE social_posts ADD COLUMN bitly_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='bitly_clicks') THEN
+            ALTER TABLE social_posts ADD COLUMN bitly_clicks INTEGER DEFAULT 0;
+          END IF;
+        END $$;
+      `);
+
       await client.query('COMMIT');
       console.log('Database tables initialized successfully');
     } catch (error) {
