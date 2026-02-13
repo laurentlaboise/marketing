@@ -2147,7 +2147,7 @@ function aiAnalyzeArticle() {
   status.innerHTML = '<div style="padding: 12px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius); font-size: 13px; color: var(--primary);"><i class="fas fa-robot"></i> AI is analyzing your article content and generating SEO metadata, social previews, and content labels...</div>';
 
   // Determine which endpoint to use
-  var articleId = '<%= article ? article.id : "" %>';
+  var articleId = '<%= (typeof articleId !== "undefined" && articleId) ? articleId : "" %>';
   var url, fetchOptions;
 
   if (articleId && titleVal === '<%= article ? (article.title || "").replace(/\'/g, "\\\'") : "" %>') {

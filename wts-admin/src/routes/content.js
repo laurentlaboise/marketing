@@ -108,6 +108,7 @@ router.get('/articles/new', (req, res) => {
   res.render('content/articles/form', {
     title: 'New Article - WTS Admin',
     article: null,
+    articleId: null,
     currentPage: 'articles'
   });
 });
@@ -122,6 +123,7 @@ router.post('/articles', [
     return res.render('content/articles/form', {
       title: 'New Article - WTS Admin',
       article: req.body,
+      articleId: null,
       currentPage: 'articles',
       error: errors.array()[0].msg
     });
@@ -163,6 +165,7 @@ router.post('/articles', [
     res.render('content/articles/form', {
       title: 'New Article - WTS Admin',
       article: req.body,
+      articleId: null,
       currentPage: 'articles',
       error: 'Failed to create article'
     });
