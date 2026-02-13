@@ -12,6 +12,34 @@ const https = require('https');
 // Root directory for uploaded files handled by this router.
 const UPLOAD_ROOT = path.join(__dirname, '../../../uploads');
 
+/**
+ * Ensure a redirect target is a safe local path.
+ * Only allow relative paths on this server that start with a single "/"
+ * and do not contain a URL scheme.
+ */
+function isSafeRedirectPath(target) {
+  if (typeof target !== 'string') {
+    return false;
+  }
+
+  // Trim whitespace
+  const trimmed = target.trim();
+
+  // Must start with "/" but not with "//" (protocol-relative) and not be empty
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//')) {
+    return false;
+  }
+
+  // Disallow any ":" before a "/" to prevent schemes like "http:" or "javascript:"
+  const firstSlashIndex = trimmed.indexOf('/');
+  const firstColonIndex = trimmed.indexOf(':');
+  if (firstColonIndex !== -1 && (firstSlashIndex === -1 || firstColonIndex < firstSlashIndex)) {
+    return false;
+  }
+
+  return true;
+}
+
 const router = express.Router();
 router.use(ensureAuthenticated);
 
@@ -920,7 +948,8 @@ router.post('/bulk-optimize', async (req, res) => {
       : (totalSavings / 1024).toFixed(1) + ' KB';
 
     req.session.successMessage = `${optimizedCount} image${optimizedCount !== 1 ? 's' : ''} optimized to ${targetFormat.toUpperCase()}. Total savings: ${savedFormatted}`;
-    res.redirect(req.body.return_to || '/images');
+    const redirectTarget = isSafeRedirectPath(req.body.return_to) ? req.body.return_to : '/images';
+    res.redirect(redirectTarget);
   } catch (error) {
     console.error('Bulk optimize error:', error);
     req.session.errorMessage = 'Bulk optimization failed: ' + error.message;
