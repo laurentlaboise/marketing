@@ -1,0 +1,138 @@
+<%- include('../partials/head', { title }) %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <%- include('../partials/header') %>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div>
+          <h1>Retargeting Audiences</h1>
+          <p class="page-subtitle">Build custom audiences for ad retargeting</p>
+        </div>
+        <div class="page-actions">
+          <a href="/social/analytics/dashboard" class="btn btn-secondary"><i class="fas fa-chart-line"></i> Analytics</a>
+        </div>
+      </div>
+
+      <!-- Create Audience Form -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header"><h3><i class="fas fa-plus-circle"></i> New Audience</h3></div>
+        <div class="card-body">
+          <form action="/social/retargeting" method="POST">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label">Audience Name</label>
+                <input type="text" name="name" class="form-control" required placeholder="e.g. Blog Readers - Last 30 Days">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Platform</label>
+                <select name="platform" class="form-control">
+                  <option value="Facebook">Facebook / Meta</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Twitter/X">Twitter / X</option>
+                  <option value="Google">Google Ads</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Source Content Type</label>
+                <select name="source_type" class="form-control">
+                  <option value="all">All Content</option>
+                  <option value="article">Articles Only</option>
+                  <option value="glossary">Glossary Pages</option>
+                  <option value="ai_tool">AI Tool Pages</option>
+                  <option value="guide">Guides</option>
+                  <option value="service">Service Pages</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Lookback Window (days)</label>
+                <input type="number" name="date_range_days" class="form-control" value="30" min="1" max="180">
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+              <label class="form-label">Description</label>
+              <textarea name="description" class="form-control" rows="2" placeholder="Notes about this audience segment..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 12px;"><i class="fas fa-save"></i> Create Audience</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Setup Guide -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header"><h3><i class="fas fa-info-circle"></i> Pixel Setup Guide</h3></div>
+        <div class="card-body">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div>
+              <h4 style="margin-bottom: 8px;"><i class="fab fa-facebook" style="color: #1877f2;"></i> Meta Pixel</h4>
+              <ol style="font-size: 13px; color: var(--gray-600); padding-left: 20px;">
+                <li>Go to Meta Events Manager</li>
+                <li>Create a new Pixel (or use existing)</li>
+                <li>Add <code>META_PIXEL_ID</code> to Railway env vars</li>
+                <li>The base pixel code is auto-injected on the WTS website</li>
+                <li>Custom audiences will be created via the Conversions API</li>
+              </ol>
+            </div>
+            <div>
+              <h4 style="margin-bottom: 8px;"><i class="fab fa-google" style="color: #4285f4;"></i> Google Tag Manager</h4>
+              <ol style="font-size: 13px; color: var(--gray-600); padding-left: 20px;">
+                <li>Create a GTM container</li>
+                <li>Add <code>GTM_CONTAINER_ID</code> to Railway env vars</li>
+                <li>Configure Google Ads remarketing tag in GTM</li>
+                <li>Set up conversion events for key pages</li>
+                <li>Link to Google Ads for audience sync</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audience List -->
+      <div class="card">
+        <div class="card-header"><h3><i class="fas fa-users"></i> Saved Audiences</h3></div>
+        <div class="card-body" style="padding: 0;">
+          <% if (audiences.length > 0) { %>
+          <div class="table-container">
+            <table class="table">
+              <thead><tr><th>Name</th><th>Platform</th><th>Source</th><th>Window</th><th>Status</th><th>Created</th></tr></thead>
+              <tbody>
+                <% audiences.forEach(function(a) { %>
+                <tr>
+                  <td><strong><%= a.name %></strong><% if (a.description) { %><div style="font-size: 12px; color: var(--gray-400);"><%= a.description %></div><% } %></td>
+                  <td><%= a.platform %></td>
+                  <td><span class="source-badge source-badge-<%= a.source_type %>"><%= a.source_type %></span></td>
+                  <td><%= a.date_range_days %> days</td>
+                  <td><span class="status-badge <%= a.status %>"><%= a.status %></span></td>
+                  <td style="font-size: 13px; color: var(--gray-500);"><%= new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% } else { %>
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-users"></i></div>
+            <h3>No Audiences Yet</h3>
+            <p>Create your first retargeting audience above.</p>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.source-badge { font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.source-badge-all { background: var(--gray-100); color: var(--gray-600); }
+.source-badge-article { background: #dbeafe; color: #1e40af; }
+.source-badge-glossary { background: #d1fae5; color: #065f46; }
+.source-badge-ai_tool { background: #ede9fe; color: #5b21b6; }
+.source-badge-guide { background: #ffedd5; color: #9a3412; }
+.source-badge-service { background: #fce7f3; color: #9d174d; }
+</style>
+
+<%- include('../partials/footer') %>

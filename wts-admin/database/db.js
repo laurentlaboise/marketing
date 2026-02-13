@@ -994,6 +994,48 @@ const db = {
         CREATE UNIQUE INDEX IF NOT EXISTS idx_channels_platform_account ON social_channels(platform, account_id)
       `);
 
+      // Phase 4-6: retargeting_audiences + post_templates tables
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS retargeting_audiences (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          platform VARCHAR(50) DEFAULT 'Facebook',
+          source_type VARCHAR(50) DEFAULT 'all',
+          date_range_days INTEGER DEFAULT 30,
+          description TEXT,
+          status VARCHAR(20) DEFAULT 'draft',
+          pixel_id VARCHAR(255),
+          audience_size INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS post_templates (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          content TEXT,
+          platforms TEXT[] DEFAULT '{}',
+          tone VARCHAR(50) DEFAULT 'professional',
+          style VARCHAR(50) DEFAULT 'key takeaway',
+          hashtags TEXT[] DEFAULT '{}',
+          category VARCHAR(50) DEFAULT 'general',
+          usage_count INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Add bitly_url column to social_posts if missing
+      await client.query(`
+        DO $$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='social_posts' AND column_name='bitly_url') THEN
+            ALTER TABLE social_posts ADD COLUMN bitly_url VARCHAR(255);
+          END IF;
+        END $$;
+      `);
+
       await client.query('COMMIT');
       console.log('Database tables initialized successfully');
     } catch (error) {
