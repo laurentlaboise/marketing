@@ -994,7 +994,8 @@ function showPlatformPreview() {
     var linkEl = document.createElement('div');
     if (link) {
       linkEl.style.cssText = 'background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 10px; font-size: 12px;';
-      linkEl.innerHTML = '<i class="fas fa-link" style="color: var(--gray-400);"></i> ' + link;
+      linkEl.innerHTML = '<i class="fas fa-link" style="color: var(--gray-400);"></i> ';
+      linkEl.appendChild(document.createTextNode(link));
     }
 
     var charInfo = document.createElement('div');
