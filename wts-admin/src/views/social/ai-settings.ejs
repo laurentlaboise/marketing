@@ -1,0 +1,151 @@
+<%- include('../partials/head', { title }) %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <%- include('../partials/header') %>
+
+    <div class="page-content">
+      <% if (messages && messages.success) { %>
+      <div class="alert alert-success"><i class="fas fa-check-circle"></i> <span><%= messages.success %></span></div>
+      <% } %>
+      <% if (messages && messages.error) { %>
+      <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <span><%= messages.error %></span></div>
+      <% } %>
+
+      <div class="page-header">
+        <div>
+          <h1>AI Providers</h1>
+          <p class="page-subtitle">Manage AI engines used for content generation</p>
+        </div>
+      </div>
+
+      <!-- Provider Cards -->
+      <div class="ai-providers-grid">
+        <% providers.forEach(function(p) { %>
+        <div class="card ai-provider-card <%= p.is_active ? '' : 'inactive' %>">
+          <div class="card-body" style="padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+              <div>
+                <h3 style="margin: 0 0 4px 0; font-size: 16px;"><%= p.name %></h3>
+                <span style="font-size: 12px; color: var(--gray-400); font-family: monospace;"><%= p.id %></span>
+              </div>
+              <form action="/social/ai-settings/<%= p.id %>/toggle" method="POST">
+                <button type="submit" class="btn btn-sm <%= p.is_active ? 'btn-success' : 'btn-secondary' %>" title="<%= p.is_active ? 'Disable' : 'Enable' %>">
+                  <i class="fas <%= p.is_active ? 'fa-toggle-on' : 'fa-toggle-off' %>"></i>
+                  <%= p.is_active ? 'Active' : 'Disabled' %>
+                </button>
+              </form>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+              <div class="ai-stat">
+                <span class="ai-stat-label">Input cost</span>
+                <span class="ai-stat-value">$<%= p.cost_per_1m_input %>/M</span>
+              </div>
+              <div class="ai-stat">
+                <span class="ai-stat-label">Output cost</span>
+                <span class="ai-stat-value">$<%= p.cost_per_1m_output %>/M</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <span class="ai-stat-label">Model</span>
+              <div style="font-size: 13px; color: var(--gray-700); font-family: monospace; margin-top: 2px;"><%= p.model_id %></div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <span class="ai-stat-label">Best for</span>
+              <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;">
+                <% (p.best_for || []).forEach(function(b) { %>
+                <span class="ai-tag"><%= b %></span>
+                <% }); %>
+              </div>
+            </div>
+
+            <div>
+              <span class="ai-stat-label">API Key</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                <code style="font-size: 12px; background: var(--gray-50); padding: 2px 8px; border-radius: 4px;"><%= p.api_key_env %></code>
+                <% if (p.key_configured) { %>
+                <span style="color: var(--success); font-size: 12px;"><i class="fas fa-check-circle"></i> Set</span>
+                <% } else { %>
+                <span style="color: var(--danger); font-size: 12px;"><i class="fas fa-times-circle"></i> Missing</span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+
+      <!-- Auto-Router Logic -->
+      <div class="card" style="margin-top: 24px;">
+        <div class="card-header"><h3><i class="fas fa-route"></i> Auto-Router Logic</h3></div>
+        <div class="card-body">
+          <p style="color: var(--gray-500); font-size: 14px; margin-bottom: 16px;">When "Auto" is selected in the post composer, the system picks the best AI based on the task:</p>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr><th>Scenario</th><th>Provider</th><th>Reason</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Non-English language</td><td>Gemini Flash-Lite</td><td>Best multilingual at lowest cost</td></tr>
+                <tr><td>Twitter/X only (short post)</td><td>DeepSeek V3</td><td>Cheapest for simple short content</td></tr>
+                <tr><td>LinkedIn or article promotion</td><td>Claude Haiku</td><td>Better quality for professional content</td></tr>
+                <tr><td>Default / everything else</td><td>DeepSeek V3</td><td>Cost-effective general purpose</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.ai-providers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+.ai-provider-card.inactive {
+  opacity: 0.6;
+}
+.ai-stat {
+  background: var(--gray-50);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.ai-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-400);
+  font-weight: 600;
+  display: block;
+}
+.ai-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+.ai-tag {
+  font-size: 11px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.btn-success {
+  background: var(--success);
+  color: white;
+  border: none;
+}
+@media (max-width: 768px) {
+  .ai-providers-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<%- include('../partials/footer') %>

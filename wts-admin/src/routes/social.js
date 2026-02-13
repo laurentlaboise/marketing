@@ -994,4 +994,482 @@ router.get('/calendar', async (req, res) => {
   }
 });
 
+// ==================== AI PROVIDER SETTINGS ====================
+
+router.get('/ai-settings', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM ai_providers ORDER BY cost_per_1m_input ASC');
+    const providers = result.rows.map(function(p) {
+      p.key_configured = !!process.env[p.api_key_env];
+      return p;
+    });
+    res.render('social/ai-settings', {
+      title: 'AI Providers - WTS Admin',
+      currentPage: 'social-analytics',
+      providers,
+    });
+  } catch (error) {
+    res.render('social/ai-settings', {
+      title: 'AI Providers - WTS Admin',
+      currentPage: 'social-analytics',
+      providers: [],
+      error: 'Failed to load providers',
+    });
+  }
+});
+
+router.post('/ai-settings/:id/toggle', async (req, res) => {
+  try {
+    await db.query('UPDATE ai_providers SET is_active = NOT is_active WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Provider toggled';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to toggle provider';
+  }
+  res.redirect('/social/ai-settings');
+});
+
+// ==================== BATCH MULTI-LANGUAGE ====================
+
+router.post('/batch-generate', async (req, res) => {
+  try {
+    const { source_type, source_id, platforms, tone, style, cta, languages, ai_provider } = req.body;
+    const langsArray = Array.isArray(languages) ? languages : (languages ? [languages] : ['en']);
+    const platformsArray = Array.isArray(platforms) ? platforms : (platforms ? [platforms] : ['Twitter/X']);
+    const results = {};
+
+    for (const lang of langsArray) {
+      const body = { source_type, source_id, platforms: platformsArray, tone, style, cta, language: lang, ai_provider: ai_provider || 'auto' };
+
+      // Reuse internal generate logic
+      const provider = body.ai_provider === 'auto' ? autoSelectProvider(platformsArray, lang, source_type) : body.ai_provider;
+
+      let sourceContent = null;
+      if (source_type && source_id) {
+        sourceContent = await fetchSourceContent(source_type, source_id);
+      }
+
+      const platformInfo = platformsArray.map(function(p) {
+        const pDef = PLATFORMS.find(x => x.id === p);
+        return pDef ? p + ' (' + pDef.charLimit + ' chars)' : p;
+      }).join(', ');
+
+      const langName = LANGUAGES.find(l => l.code === lang);
+
+      const systemPrompt = `You are a social media copywriter for Words That Sells, a digital marketing agency.
+Generate exactly 1 social media post variation.
+Tone: ${tone || 'professional'}. Style: ${style || 'key takeaway'}. CTA: ${cta || 'Read more'}.
+Platforms: ${platformInfo}. Language: ${langName ? langName.name : lang}.
+Return ONLY valid JSON: {"text":"post text","hashtags":["#Tag1","#Tag2"]}`;
+
+      let userPrompt = 'Create 1 social media post';
+      if (sourceContent) {
+        userPrompt += ' promoting: ' + sourceContent.title;
+        if (sourceContent.excerpt) userPrompt += '. Summary: ' + sourceContent.excerpt.substring(0, 300);
+        if (sourceContent.url) userPrompt += '. URL: ' + sourceContent.url;
+      }
+
+      let rawResponse;
+      try {
+        switch (provider) {
+          case 'gemini': rawResponse = await callGemini(userPrompt, systemPrompt); break;
+          case 'claude_haiku': rawResponse = await callClaude('claude-haiku-4-5-20251001', systemPrompt, userPrompt); break;
+          case 'claude_sonnet': rawResponse = await callClaude('claude-sonnet-4-5-20250929', systemPrompt, userPrompt); break;
+          case 'perplexity': rawResponse = await callPerplexity(userPrompt, systemPrompt); break;
+          default: rawResponse = await callDeepSeek(userPrompt, systemPrompt); break;
+        }
+        let jsonStr = rawResponse;
+        const fenceMatch = rawResponse.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (fenceMatch) jsonStr = fenceMatch[1];
+        const parsed = JSON.parse(jsonStr.trim());
+        results[lang] = { success: true, provider, text: parsed.text, hashtags: parsed.hashtags || [] };
+      } catch (e) {
+        results[lang] = { success: false, provider, error: e.message };
+      }
+    }
+
+    res.json({ success: true, results });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==================== OAUTH FLOWS (Phase 3) ====================
+
+// Platform OAuth config
+const OAUTH_CONFIG = {
+  facebook: {
+    authUrl: 'https://www.facebook.com/v21.0/dialog/oauth',
+    tokenUrl: 'https://graph.facebook.com/v21.0/oauth/access_token',
+    scope: 'pages_manage_posts,pages_read_engagement,instagram_basic,instagram_content_publish',
+    clientIdEnv: 'META_APP_ID',
+    clientSecretEnv: 'META_APP_SECRET',
+  },
+  twitter: {
+    authUrl: 'https://twitter.com/i/oauth2/authorize',
+    tokenUrl: 'https://api.twitter.com/2/oauth2/token',
+    scope: 'tweet.read tweet.write users.read offline.access',
+    clientIdEnv: 'TWITTER_CLIENT_ID',
+    clientSecretEnv: 'TWITTER_CLIENT_SECRET',
+  },
+  linkedin: {
+    authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
+    tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
+    scope: 'openid profile w_member_social',
+    clientIdEnv: 'LINKEDIN_CLIENT_ID',
+    clientSecretEnv: 'LINKEDIN_CLIENT_SECRET',
+  },
+  tiktok: {
+    authUrl: 'https://www.tiktok.com/v2/auth/authorize/',
+    tokenUrl: 'https://open.tiktokapis.com/v2/oauth/token/',
+    scope: 'user.info.basic,video.publish',
+    clientIdEnv: 'TIKTOK_CLIENT_KEY',
+    clientSecretEnv: 'TIKTOK_CLIENT_SECRET',
+  },
+  pinterest: {
+    authUrl: 'https://www.pinterest.com/oauth/',
+    tokenUrl: 'https://api.pinterest.com/v5/oauth/token',
+    scope: 'boards:read,pins:read,pins:write',
+    clientIdEnv: 'PINTEREST_APP_ID',
+    clientSecretEnv: 'PINTEREST_APP_SECRET',
+  },
+};
+
+function getOAuthRedirectUri(req, platform) {
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  return proto + '://' + req.get('host') + '/social/oauth/' + platform + '/callback';
+}
+
+// Start OAuth — redirect user to platform
+router.get('/oauth/:platform', (req, res) => {
+  const platform = req.params.platform;
+  const config = OAUTH_CONFIG[platform];
+  if (!config) return res.status(400).send('Unsupported platform: ' + platform);
+
+  const clientId = process.env[config.clientIdEnv];
+  if (!clientId) {
+    req.session.errorMessage = config.clientIdEnv + ' not configured. Add it to Railway env vars.';
+    return res.redirect('/social/channels');
+  }
+
+  const state = require('crypto').randomBytes(16).toString('hex');
+  req.session.oauthState = state;
+  req.session.oauthPlatform = platform;
+
+  const redirectUri = getOAuthRedirectUri(req, platform);
+  let authUrl;
+
+  if (platform === 'twitter') {
+    // Twitter uses PKCE
+    const codeVerifier = require('crypto').randomBytes(32).toString('base64url');
+    const codeChallenge = require('crypto').createHash('sha256').update(codeVerifier).digest('base64url');
+    req.session.twitterCodeVerifier = codeVerifier;
+    authUrl = config.authUrl + '?response_type=code&client_id=' + encodeURIComponent(clientId) +
+      '&redirect_uri=' + encodeURIComponent(redirectUri) +
+      '&scope=' + encodeURIComponent(config.scope) +
+      '&state=' + state +
+      '&code_challenge=' + codeChallenge + '&code_challenge_method=S256';
+  } else if (platform === 'tiktok') {
+    authUrl = config.authUrl + '?client_key=' + encodeURIComponent(clientId) +
+      '&response_type=code&scope=' + encodeURIComponent(config.scope) +
+      '&redirect_uri=' + encodeURIComponent(redirectUri) + '&state=' + state;
+  } else {
+    authUrl = config.authUrl + '?client_id=' + encodeURIComponent(clientId) +
+      '&redirect_uri=' + encodeURIComponent(redirectUri) +
+      '&response_type=code&scope=' + encodeURIComponent(config.scope) +
+      '&state=' + state;
+  }
+
+  res.redirect(authUrl);
+});
+
+// OAuth callback — exchange code for token, save channel
+router.get('/oauth/:platform/callback', async (req, res) => {
+  const platform = req.params.platform;
+  const config = OAUTH_CONFIG[platform];
+  const { code, state } = req.query;
+
+  if (!config || !code) {
+    req.session.errorMessage = 'OAuth failed: no authorization code received';
+    return res.redirect('/social/channels');
+  }
+
+  if (state !== req.session.oauthState) {
+    req.session.errorMessage = 'OAuth failed: state mismatch (possible CSRF)';
+    return res.redirect('/social/channels');
+  }
+
+  const clientId = process.env[config.clientIdEnv];
+  const clientSecret = process.env[config.clientSecretEnv];
+  if (!clientId || !clientSecret) {
+    req.session.errorMessage = 'OAuth credentials not configured';
+    return res.redirect('/social/channels');
+  }
+
+  const redirectUri = getOAuthRedirectUri(req, platform);
+
+  try {
+    let tokenBody, tokenHeaders;
+
+    if (platform === 'twitter') {
+      const basicAuth = Buffer.from(clientId + ':' + clientSecret).toString('base64');
+      tokenHeaders = { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + basicAuth };
+      tokenBody = 'grant_type=authorization_code&code=' + encodeURIComponent(code) +
+        '&redirect_uri=' + encodeURIComponent(redirectUri) +
+        '&code_verifier=' + (req.session.twitterCodeVerifier || '');
+    } else if (platform === 'tiktok') {
+      tokenHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
+      tokenBody = 'client_key=' + encodeURIComponent(clientId) +
+        '&client_secret=' + encodeURIComponent(clientSecret) +
+        '&code=' + encodeURIComponent(code) +
+        '&grant_type=authorization_code&redirect_uri=' + encodeURIComponent(redirectUri);
+    } else {
+      tokenHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
+      tokenBody = 'client_id=' + encodeURIComponent(clientId) +
+        '&client_secret=' + encodeURIComponent(clientSecret) +
+        '&code=' + encodeURIComponent(code) +
+        '&grant_type=authorization_code&redirect_uri=' + encodeURIComponent(redirectUri);
+    }
+
+    const tokenResp = await fetch(config.tokenUrl, {
+      method: 'POST',
+      headers: tokenHeaders,
+      body: tokenBody,
+    });
+
+    const tokenData = await tokenResp.json();
+    const accessToken = tokenData.access_token;
+    const refreshToken = tokenData.refresh_token || null;
+    const expiresIn = tokenData.expires_in;
+
+    if (!accessToken) {
+      req.session.errorMessage = 'OAuth failed: ' + JSON.stringify(tokenData);
+      return res.redirect('/social/channels');
+    }
+
+    // Fetch account info
+    let accountName = '', accountId = '';
+    try {
+      if (platform === 'facebook') {
+        const meResp = await fetch('https://graph.facebook.com/v21.0/me?fields=id,name&access_token=' + accessToken);
+        const me = await meResp.json();
+        accountName = me.name; accountId = me.id;
+      } else if (platform === 'twitter') {
+        const meResp = await fetch('https://api.twitter.com/2/users/me', { headers: { 'Authorization': 'Bearer ' + accessToken } });
+        const me = await meResp.json();
+        accountName = me.data.username; accountId = me.data.id;
+      } else if (platform === 'linkedin') {
+        const meResp = await fetch('https://api.linkedin.com/v2/userinfo', { headers: { 'Authorization': 'Bearer ' + accessToken } });
+        const me = await meResp.json();
+        accountName = me.name || me.given_name; accountId = me.sub;
+      } else if (platform === 'tiktok') {
+        accountName = 'TikTok User'; accountId = tokenData.open_id || '';
+      } else if (platform === 'pinterest') {
+        const meResp = await fetch('https://api.pinterest.com/v5/user_account', { headers: { 'Authorization': 'Bearer ' + accessToken } });
+        const me = await meResp.json();
+        accountName = me.username; accountId = me.id;
+      }
+    } catch (e) {
+      accountName = platform + ' Account';
+    }
+
+    const platformNameMap = { facebook: 'Facebook', twitter: 'Twitter/X', linkedin: 'LinkedIn', tiktok: 'TikTok', pinterest: 'Pinterest' };
+    const tokenExpires = expiresIn ? new Date(Date.now() + expiresIn * 1000) : null;
+
+    // Upsert channel
+    await db.query(`
+      INSERT INTO social_channels (platform, account_name, account_id, access_token, refresh_token, token_expires, status, settings)
+      VALUES ($1, $2, $3, $4, $5, $6, 'active', $7)
+      ON CONFLICT (platform, account_id) DO UPDATE SET
+        access_token = $4, refresh_token = COALESCE($5, social_channels.refresh_token),
+        token_expires = $6, account_name = $2, status = 'active', updated_at = CURRENT_TIMESTAMP
+    `, [platformNameMap[platform] || platform, accountName, accountId, accessToken, refreshToken, tokenExpires,
+        JSON.stringify({ oauth_platform: platform, connected_at: new Date().toISOString() })]);
+
+    // Add unique constraint if missing (for upsert)
+    try {
+      await db.query('CREATE UNIQUE INDEX IF NOT EXISTS idx_channels_platform_account ON social_channels(platform, account_id)');
+    } catch (e) { /* ignore if exists */ }
+
+    req.session.successMessage = accountName + ' connected via ' + (platformNameMap[platform] || platform);
+    res.redirect('/social/channels');
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    req.session.errorMessage = 'OAuth exchange failed: ' + error.message;
+    res.redirect('/social/channels');
+  }
+});
+
+// Token refresh utility
+async function refreshOAuthToken(channel) {
+  const platformMap = { 'Facebook': 'facebook', 'Twitter/X': 'twitter', 'LinkedIn': 'linkedin', 'TikTok': 'tiktok', 'Pinterest': 'pinterest' };
+  const platform = platformMap[channel.platform];
+  if (!platform || !channel.refresh_token) return null;
+
+  const config = OAUTH_CONFIG[platform];
+  const clientId = process.env[config.clientIdEnv];
+  const clientSecret = process.env[config.clientSecretEnv];
+  if (!clientId || !clientSecret) return null;
+
+  try {
+    let body;
+    if (platform === 'twitter') {
+      body = 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(channel.refresh_token);
+    } else {
+      body = 'client_id=' + encodeURIComponent(clientId) +
+        '&client_secret=' + encodeURIComponent(clientSecret) +
+        '&grant_type=refresh_token&refresh_token=' + encodeURIComponent(channel.refresh_token);
+    }
+
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    if (platform === 'twitter') {
+      headers['Authorization'] = 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64');
+    }
+
+    const resp = await fetch(config.tokenUrl, { method: 'POST', headers, body });
+    const data = await resp.json();
+
+    if (data.access_token) {
+      const tokenExpires = data.expires_in ? new Date(Date.now() + data.expires_in * 1000) : null;
+      await db.query(
+        'UPDATE social_channels SET access_token=$1, refresh_token=COALESCE($2, refresh_token), token_expires=$3, status=$4, updated_at=CURRENT_TIMESTAMP WHERE id=$5',
+        [data.access_token, data.refresh_token || null, tokenExpires, 'active', channel.id]
+      );
+      return data.access_token;
+    }
+  } catch (e) {
+    console.error('Token refresh error for ' + channel.platform + ':', e.message);
+  }
+  await db.query("UPDATE social_channels SET status='expired', updated_at=CURRENT_TIMESTAMP WHERE id=$1", [channel.id]);
+  return null;
+}
+
+// Get valid token (refresh if expired)
+async function getValidToken(channel) {
+  if (channel.token_expires && new Date(channel.token_expires) > new Date(Date.now() + 5 * 60 * 1000)) {
+    return channel.access_token;
+  }
+  if (channel.refresh_token) {
+    return await refreshOAuthToken(channel);
+  }
+  return channel.access_token;
+}
+
+// ==================== DIRECT PUBLISHING ====================
+
+// Platform-specific publish functions
+async function publishToFacebook(channel, post) {
+  const token = await getValidToken(channel);
+  if (!token) throw new Error('No valid Facebook token');
+
+  // Get page token (needed for page posting)
+  const pagesResp = await fetch('https://graph.facebook.com/v21.0/me/accounts?access_token=' + token);
+  const pagesData = await pagesResp.json();
+  const page = pagesData.data && pagesData.data[0];
+  if (!page) throw new Error('No Facebook page found. User must be a page admin.');
+
+  const pageToken = page.access_token;
+  const params = new URLSearchParams();
+  params.append('message', post.content + (post.hashtags ? '\n\n' + post.hashtags.join(' ') : ''));
+  if (post.link_url) params.append('link', post.link_url);
+  params.append('access_token', pageToken);
+
+  const resp = await fetch('https://graph.facebook.com/v21.0/' + page.id + '/feed', { method: 'POST', body: params });
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  return { platform_post_id: data.id, url: 'https://facebook.com/' + data.id };
+}
+
+async function publishToTwitter(channel, post) {
+  const token = await getValidToken(channel);
+  if (!token) throw new Error('No valid Twitter token');
+
+  let tweetText = post.content;
+  if (post.hashtags && post.hashtags.length) tweetText += '\n\n' + post.hashtags.slice(0, 5).join(' ');
+  if (post.link_url) tweetText += '\n' + post.link_url;
+  if (tweetText.length > 280) tweetText = tweetText.substring(0, 277) + '...';
+
+  const resp = await fetch('https://api.twitter.com/2/tweets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ text: tweetText }),
+  });
+  const data = await resp.json();
+  if (data.errors) throw new Error(data.errors[0].message);
+  return { platform_post_id: data.data.id, url: 'https://x.com/' + channel.account_name + '/status/' + data.data.id };
+}
+
+async function publishToLinkedIn(channel, post) {
+  const token = await getValidToken(channel);
+  if (!token) throw new Error('No valid LinkedIn token');
+
+  let text = post.content;
+  if (post.hashtags && post.hashtags.length) text += '\n\n' + post.hashtags.join(' ');
+
+  const body = {
+    author: 'urn:li:person:' + channel.account_id,
+    lifecycleState: 'PUBLISHED',
+    specificContent: {
+      'com.linkedin.ugc.ShareContent': {
+        shareCommentary: { text },
+        shareMediaCategory: post.link_url ? 'ARTICLE' : 'NONE',
+      },
+    },
+    visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' },
+  };
+
+  if (post.link_url) {
+    body.specificContent['com.linkedin.ugc.ShareContent'].media = [{ status: 'READY', originalUrl: post.link_url }];
+  }
+
+  const resp = await fetch('https://api.linkedin.com/v2/ugcPosts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'X-Restli-Protocol-Version': '2.0.0' },
+    body: JSON.stringify(body),
+  });
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(JSON.stringify(data));
+  return { platform_post_id: data.id, url: 'https://linkedin.com/feed/update/' + data.id };
+}
+
+// Main publish endpoint
+router.post('/posts/:id/publish', async (req, res) => {
+  try {
+    const postResult = await db.query('SELECT * FROM social_posts WHERE id = $1', [req.params.id]);
+    if (postResult.rows.length === 0) return res.status(404).json({ success: false, error: 'Post not found' });
+    const post = postResult.rows[0];
+
+    if (!post.platforms || post.platforms.length === 0) {
+      return res.status(400).json({ success: false, error: 'No platforms selected' });
+    }
+
+    const results = {};
+    const channels = await db.query("SELECT * FROM social_channels WHERE status IN ('active', 'expired') AND platform = ANY($1)", [post.platforms]);
+
+    for (const channel of channels.rows) {
+      try {
+        let result;
+        switch (channel.platform) {
+          case 'Facebook': result = await publishToFacebook(channel, post); break;
+          case 'Twitter/X': result = await publishToTwitter(channel, post); break;
+          case 'LinkedIn': result = await publishToLinkedIn(channel, post); break;
+          default:
+            result = { skipped: true, reason: 'Publishing not yet supported for ' + channel.platform };
+        }
+        results[channel.platform] = { success: true, ...result };
+      } catch (e) {
+        results[channel.platform] = { success: false, error: e.message };
+      }
+    }
+
+    // Mark post as published
+    await db.query("UPDATE social_posts SET status='published', published_at=CURRENT_TIMESTAMP, engagement_data=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2",
+      [JSON.stringify(results), post.id]);
+
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Publish error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;
