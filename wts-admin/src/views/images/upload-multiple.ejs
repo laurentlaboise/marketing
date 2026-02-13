@@ -1,0 +1,256 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Upload Multiple Images</h1>
+        <p class="page-subtitle">
+          <a href="/images"><i class="fas fa-arrow-left"></i> Back to Image Library</a>
+          &nbsp;&middot;&nbsp;
+          <a href="/images/upload">Single upload with SEO</a>
+        </p>
+      </div>
+    </div>
+
+    <% if (!githubConfigured) { %>
+    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px; max-width: 900px; display: flex; gap: 12px; align-items: flex-start;">
+      <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 18px; margin-top: 2px;"></i>
+      <div>
+        <p style="font-weight: 600; color: #856404; margin-bottom: 4px;">GitHub Token Not Configured</p>
+        <p style="font-size: 13px; color: #856404;">Uploaded images will be stored locally only and <strong>will not appear on the CDN</strong>. Add <code>GITHUB_TOKEN</code> to enable CDN publishing.</p>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="card form-card" style="max-width: 900px;">
+      <div class="card-body">
+        <form action="/images/upload-multiple" method="POST" enctype="multipart/form-data" id="multiUploadForm">
+
+          <div class="form-section">
+            <h3 class="form-section-title">Select Images</h3>
+
+            <div class="form-group">
+              <div class="upload-dropzone" id="dropzone" style="min-height: 180px;">
+                <input type="file" id="images" name="images" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,image/avif" multiple required style="display: none;">
+                <div class="dropzone-content" id="dropzoneContent">
+                  <i class="fas fa-images" style="font-size: 48px; color: var(--gray-400); margin-bottom: 16px;"></i>
+                  <p style="font-size: 16px; font-weight: 600; color: var(--gray-700);">Drag & drop multiple images here</p>
+                  <p style="color: var(--gray-500); margin-top: 4px;">or <span style="color: var(--primary); cursor: pointer;" id="browseBtn">browse files</span></p>
+                  <p class="form-help" style="margin-top: 12px;">JPG, PNG, GIF, WebP, SVG, AVIF - Max 20MB each - Up to 50 files</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- File list preview -->
+            <div id="fileList" style="display: none; margin-top: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <p style="font-weight: 600; font-size: 14px;"><span id="fileCount">0</span> files selected (<span id="totalSize">0 KB</span>)</p>
+                <button type="button" class="btn btn-sm btn-danger" id="clearAllBtn">
+                  <i class="fas fa-times"></i> Clear All
+                </button>
+              </div>
+              <div id="fileItems" style="max-height: 320px; overflow-y: auto; border: 1px solid var(--gray-200); border-radius: var(--radius);"></div>
+            </div>
+
+            <div class="form-group" style="margin-top: 16px;">
+              <label class="form-checkbox">
+                <input type="checkbox" name="optimize" value="on" checked>
+                <span class="form-label" style="margin-bottom: 0;">Optimize images (convert to WebP, max 2400px)</span>
+              </label>
+              <p class="form-help">Reduces file size for faster CDN delivery. SVG files are kept as-is.</p>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">Organization</h3>
+            <p style="color: var(--gray-500); font-size: 13px; margin-bottom: 16px;">
+              <i class="fas fa-info-circle"></i> These settings apply to all uploaded images. You can edit SEO metadata individually after upload.
+            </p>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="category">Category *</label>
+                <select id="category" name="category" class="form-input" required>
+                  <option value="general">General</option>
+                  <option value="hero">Hero Images</option>
+                  <option value="portfolio">Portfolio</option>
+                  <option value="logos">Logos</option>
+                  <option value="articles">Articles</option>
+                  <option value="og">Open Graph</option>
+                  <option value="icons">Icons</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="folder_id">Folder</label>
+                <select id="folder_id" name="folder_id" class="form-input">
+                  <option value="">No folder</option>
+                  <% if (folders && folders.length > 0) { folders.forEach(f => { %>
+                  <option value="<%= f.id %>" <%= preselectedFolder === f.id ? 'selected' : '' %>><%= '—'.repeat(f.depth) %><%= f.depth ? ' ' : '' %><%= f.name %></option>
+                  <% }); } %>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="/images" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+              <i class="fas fa-cloud-upload-alt"></i> Upload <span id="uploadBtnCount">0</span> Images
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('images');
+  const browseBtn = document.getElementById('browseBtn');
+  const clearAllBtn = document.getElementById('clearAllBtn');
+  const content = document.getElementById('dropzoneContent');
+  const fileList = document.getElementById('fileList');
+  const fileItems = document.getElementById('fileItems');
+  const fileCount = document.getElementById('fileCount');
+  const totalSize = document.getElementById('totalSize');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const uploadBtnCount = document.getElementById('uploadBtnCount');
+
+  let selectedFiles = [];
+
+  browseBtn.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('click', (e) => {
+    if (e.target === dropzone || e.target.closest('.dropzone-content')) fileInput.click();
+  });
+
+  // Drag and drop
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+      addFiles(Array.from(e.dataTransfer.files));
+    }
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      addFiles(Array.from(fileInput.files));
+    }
+  });
+
+  clearAllBtn.addEventListener('click', () => {
+    selectedFiles = [];
+    syncFileInput();
+    renderFileList();
+  });
+
+  function addFiles(newFiles) {
+    const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/avif'];
+    for (const file of newFiles) {
+      if (!imageTypes.includes(file.type)) continue;
+      if (file.size > 20 * 1024 * 1024) continue;
+      // Avoid duplicates by name+size
+      if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) continue;
+      selectedFiles.push(file);
+    }
+    if (selectedFiles.length > 50) selectedFiles = selectedFiles.slice(0, 50);
+    syncFileInput();
+    renderFileList();
+  }
+
+  function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    syncFileInput();
+    renderFileList();
+  }
+
+  function syncFileInput() {
+    // Create a new DataTransfer to set the file input's files
+    const dt = new DataTransfer();
+    selectedFiles.forEach(f => dt.items.add(f));
+    fileInput.files = dt.files;
+  }
+
+  function renderFileList() {
+    if (selectedFiles.length === 0) {
+      fileList.style.display = 'none';
+      content.style.display = '';
+      uploadBtn.disabled = true;
+      uploadBtnCount.textContent = '0';
+      return;
+    }
+
+    content.style.display = 'none';
+    fileList.style.display = 'block';
+    uploadBtn.disabled = false;
+
+    const total = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+    fileCount.textContent = selectedFiles.length;
+    totalSize.textContent = formatSize(total);
+    uploadBtnCount.textContent = selectedFiles.length;
+
+    fileItems.innerHTML = '';
+    selectedFiles.forEach((file, i) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--gray-100);';
+
+      const isImage = file.type.startsWith('image/') && file.type !== 'image/svg+xml';
+      let thumbHtml;
+      if (isImage) {
+        const url = URL.createObjectURL(file);
+        thumbHtml = '<img src="' + url + '" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; flex-shrink: 0;">';
+      } else {
+        thumbHtml = '<div style="width: 40px; height: 40px; background: var(--gray-100); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fas fa-file-image" style="color: var(--gray-400);"></i></div>';
+      }
+
+      row.innerHTML = thumbHtml +
+        '<div style="flex: 1; min-width: 0;">' +
+          '<p style="font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + escapeHtml(file.name) + '</p>' +
+          '<p style="font-size: 12px; color: var(--gray-500);">' + formatSize(file.size) + '</p>' +
+        '</div>' +
+        '<button type="button" class="btn-remove-file" data-index="' + i + '" style="background: none; border: none; color: var(--gray-400); cursor: pointer; padding: 4px 8px; font-size: 14px;" title="Remove">' +
+          '<i class="fas fa-times"></i>' +
+        '</button>';
+
+      fileItems.appendChild(row);
+    });
+
+    // Wire up remove buttons
+    fileItems.querySelectorAll('.btn-remove-file').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        removeFile(parseInt(btn.dataset.index));
+      });
+    });
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Loading state on submit
+  document.getElementById('multiUploadForm').addEventListener('submit', () => {
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading ' + selectedFiles.length + ' images...';
+  });
+});
+</script>
+
+<%- include('../partials/footer') %>

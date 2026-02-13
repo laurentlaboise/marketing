@@ -637,6 +637,127 @@ router.get('/upload', async (req, res) => {
   });
 });
 
+// Multi-upload form
+router.get('/upload-multiple', async (req, res) => {
+  const folders = await getFolderTree();
+  res.render('images/upload-multiple', {
+    title: 'Upload Multiple Images - WTS Admin',
+    currentPage: 'images',
+    githubConfigured: !!process.env.GITHUB_TOKEN,
+    folders,
+    preselectedFolder: req.query.folder || '',
+  });
+});
+
+// Handle multi-upload
+router.post('/upload-multiple', upload.array('images', 50), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      req.session.errorMessage = 'No image files selected';
+      return res.redirect('/images/upload-multiple');
+    }
+
+    const { category, optimize, folder_id } = req.body;
+    const catDir = getCategoryDir(category || 'general');
+    const shouldOptimize = optimize === 'on';
+    let uploaded = 0;
+    let failed = 0;
+    let totalSize = 0;
+    const errors = [];
+
+    for (const file of req.files) {
+      try {
+        const seoFilename = slugifyFilename(file.originalname);
+        const isSvg = /\.svg$/i.test(file.originalname);
+
+        let finalFilename, finalPath, fileSize, width, height, mimeType;
+
+        if (isSvg || !shouldOptimize) {
+          const ext = path.extname(file.originalname).toLowerCase();
+          finalFilename = seoFilename + ext;
+          const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
+          if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+          finalPath = path.join(destDir, finalFilename);
+          fs.copyFileSync(file.path, finalPath);
+          fileSize = fs.statSync(finalPath).size;
+          mimeType = file.mimetype;
+
+          if (!isSvg) {
+            try {
+              const meta = await sharp(finalPath).metadata();
+              width = meta.width;
+              height = meta.height;
+            } catch (e) { /* ignore */ }
+          }
+        } else {
+          finalFilename = seoFilename + '.webp';
+          const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
+          if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+          finalPath = path.join(destDir, finalFilename);
+
+          const sharpInstance = sharp(file.path);
+          const meta = await sharpInstance.metadata();
+
+          let resizeOpts = {};
+          if (meta.width > 2400 || meta.height > 2400) {
+            resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
+          }
+
+          await sharpInstance
+            .resize(resizeOpts)
+            .webp({ quality: 82 })
+            .toFile(finalPath);
+
+          const optimizedMeta = await sharp(finalPath).metadata();
+          width = optimizedMeta.width;
+          height = optimizedMeta.height;
+          fileSize = fs.statSync(finalPath).size;
+          mimeType = 'image/webp';
+        }
+
+        cleanupTempFile(file.path);
+
+        const relPath = catDir ? `images/${catDir}/${finalFilename}` : `images/${finalFilename}`;
+        const cdnUrl = buildCdnUrl(relPath);
+
+        // Push to GitHub CDN
+        const fileBuffer = fs.readFileSync(finalPath);
+        await pushToGitHub(relPath, fileBuffer, `Upload image: ${finalFilename}`);
+
+        // Save to database
+        await db.query(
+          `INSERT INTO images (original_filename, filename, file_path, file_size, mime_type, width, height, alt_text, title, description, category, tags, cdn_url, folder_id, uploaded_by)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+          [file.originalname, finalFilename, relPath, fileSize, mimeType, width, height, '', '', '', category || 'general', [], cdnUrl, folder_id || null, req.user.id]
+        );
+
+        uploaded++;
+        totalSize += fileSize;
+      } catch (fileErr) {
+        console.error(`Failed to upload ${file.originalname}:`, fileErr);
+        cleanupTempFile(file.path);
+        failed++;
+        errors.push(file.originalname);
+      }
+    }
+
+    const sizeFormatted = totalSize > 1024 * 1024
+      ? (totalSize / (1024 * 1024)).toFixed(1) + ' MB'
+      : (totalSize / 1024).toFixed(1) + ' KB';
+
+    let msg = `${uploaded} image${uploaded !== 1 ? 's' : ''} uploaded (${sizeFormatted})`;
+    if (shouldOptimize) msg += ', optimized to WebP';
+    if (failed > 0) msg += `. ${failed} failed: ${errors.join(', ')}`;
+    req.session.successMessage = msg;
+    res.redirect('/images' + (folder_id ? '?folder=' + folder_id : ''));
+  } catch (error) {
+    console.error('Multi-upload error:', error);
+    if (req.files) req.files.forEach(f => cleanupTempFile(f.path));
+    req.session.errorMessage = 'Upload failed: ' + error.message;
+    res.redirect('/images/upload-multiple');
+  }
+});
+
 // Handle upload
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {
