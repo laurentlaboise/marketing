@@ -26,7 +26,14 @@
       <div class="card-body">
         <form action="<%= article ? '/content/articles/' + article.id : '/content/articles' %>" method="POST">
           <div class="form-section">
-            <h3 class="form-section-title">Article Content</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 class="form-section-title" style="margin-bottom: 0;">Article Content</h3>
+              <button type="button" id="aiArticleBtn" class="btn btn-primary" onclick="aiAnalyzeArticle()">
+                <i class="fas fa-robot"></i> AI Auto-fill All Metadata
+              </button>
+            </div>
+            <!-- AI Analysis Status -->
+            <div id="aiArticleStatus" style="display: none; margin-bottom: 16px;"></div>
 
             <div class="form-group">
               <label class="form-label" for="title">Title *</label>
@@ -2118,6 +2125,155 @@ function renderSidebarSources() {
       '<button type="button" class="btn-remove" onclick="removeSidebarSource(' + i + ')"><i class="fas fa-times"></i></button>';
     container.appendChild(div);
   });
+}
+
+// ==================== AI Article Analysis ====================
+function aiAnalyzeArticle() {
+  var titleVal = document.getElementById('title').value.trim();
+  var contentVal = document.getElementById('content').value.trim();
+  var excerptVal = document.getElementById('excerpt').value.trim();
+
+  if (!titleVal && !contentVal) {
+    alert('Please enter at least a title or content before running AI analysis.');
+    return;
+  }
+
+  var btn = document.getElementById('aiArticleBtn');
+  var status = document.getElementById('aiArticleStatus');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing with AI...';
+  status.style.display = 'block';
+  status.innerHTML = '<div style="padding: 12px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius); font-size: 13px; color: var(--primary);"><i class="fas fa-robot"></i> AI is analyzing your article content and generating SEO metadata, social previews, and content labels...</div>';
+
+  // Determine which endpoint to use
+  var articleId = '<%= article ? article.id : "" %>';
+  var url, fetchOptions;
+
+  if (articleId && titleVal === '<%= article ? (article.title || "").replace(/\'/g, "\\\'") : "" %>') {
+    // Existing article with unchanged title - use saved data
+    url = '/content/articles/' + articleId + '/ai-analyze';
+    fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+  } else {
+    // New article or modified content - send form data
+    url = '/content/articles/ai-analyze-draft';
+    fetchOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: titleVal, content: contentVal, excerpt: excerptVal })
+    };
+  }
+
+  fetch(url, fetchOptions)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.error) {
+        status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> ' + data.error + '</div>';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-robot"></i> AI Auto-fill All Metadata';
+        return;
+      }
+
+      var fieldsUpdated = [];
+
+      // Excerpt
+      if (data.excerpt && !excerptVal) {
+        document.getElementById('excerpt').value = data.excerpt;
+        fieldsUpdated.push('Excerpt');
+      }
+
+      // SEO fields
+      if (data.seo_title) {
+        document.getElementById('seo_title').value = data.seo_title;
+        updateCharCount(document.getElementById('seo_title'), 'seoTitleCount', 60);
+        fieldsUpdated.push('SEO Title');
+      }
+      if (data.seo_description) {
+        document.getElementById('seo_description').value = data.seo_description;
+        updateCharCount(document.getElementById('seo_description'), 'seoDescCount', 160);
+        fieldsUpdated.push('SEO Description');
+      }
+      if (data.seo_keywords && Array.isArray(data.seo_keywords)) {
+        document.getElementById('seo_keywords').value = data.seo_keywords.join(', ');
+        fieldsUpdated.push('SEO Keywords');
+      }
+
+      // Tags
+      if (data.tags && Array.isArray(data.tags)) {
+        var existingTags = document.getElementById('tags').value.trim();
+        if (!existingTags) {
+          document.getElementById('tags').value = data.tags.join(', ');
+          fieldsUpdated.push('Tags');
+        }
+      }
+
+      // Category
+      if (data.category) {
+        var catEl = document.getElementById('category');
+        var validCats = ['marketing', 'seo', 'ai', 'social-media', 'content', 'business'];
+        if (validCats.indexOf(data.category) !== -1 && !catEl.value) {
+          catEl.value = data.category;
+          fieldsUpdated.push('Category');
+        }
+      }
+
+      // OG fields
+      if (data.og_title) {
+        document.getElementById('og_title').value = data.og_title;
+        updateCharCount(document.getElementById('og_title'), 'ogTitleCount', 60);
+        fieldsUpdated.push('OG Title');
+      }
+      if (data.og_description) {
+        document.getElementById('og_description').value = data.og_description;
+        updateCharCount(document.getElementById('og_description'), 'ogDescCount', 200);
+        fieldsUpdated.push('OG Description');
+      }
+
+      // Twitter fields
+      if (data.twitter_title) {
+        document.getElementById('twitter_title').value = data.twitter_title;
+        updateCharCount(document.getElementById('twitter_title'), 'twitterTitleCount', 70);
+        fieldsUpdated.push('X Title');
+      }
+      if (data.twitter_description) {
+        document.getElementById('twitter_description').value = data.twitter_description;
+        updateCharCount(document.getElementById('twitter_description'), 'twitterDescCount', 200);
+        fieldsUpdated.push('X Description');
+      }
+
+      // Content Labels
+      if (data.content_labels) {
+        var cl = data.content_labels;
+        if (cl.description) {
+          document.getElementById('cl_description').value = cl.description;
+          fieldsUpdated.push('Card Description');
+        }
+        if (cl.who_should_read && Array.isArray(cl.who_should_read)) {
+          document.getElementById('cl_who_should_read').value = cl.who_should_read.join('\n');
+          fieldsUpdated.push('Who Should Read');
+        }
+        if (cl.key_points && Array.isArray(cl.key_points)) {
+          keyPointsData = cl.key_points;
+          renderKeyPoints();
+          fieldsUpdated.push('Key Points');
+        }
+        updateContentLabels();
+      }
+
+      // Update all live previews
+      updateSerpPreview();
+      updateSocialPreviews();
+      updateSocialScore();
+
+      status.innerHTML = '<div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> AI analysis complete! Updated: <strong>' + fieldsUpdated.join(', ') + '</strong>. Review and edit as needed before saving.</div>';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-robot"></i> AI Auto-fill All Metadata';
+    })
+    .catch(function(err) {
+      status.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: var(--radius); font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Failed to analyze: ' + err.message + '</div>';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-robot"></i> AI Auto-fill All Metadata';
+    });
 }
 
 // ==================== Initialize on Page Load ====================

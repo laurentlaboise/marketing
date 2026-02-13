@@ -1,4 +1,5 @@
 const express = require('express');
+const https = require('https');
 const { ensureAuthenticated, logActivity } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 const db = require('../../database/db');
@@ -168,6 +169,22 @@ router.post('/articles', [
   }
 });
 
+// AI analyze article from form data (for new articles not yet saved)
+router.post('/articles/ai-analyze-draft', async (req, res) => {
+  try {
+    const { title, content, excerpt } = req.body;
+    if (!title && !content) {
+      return res.status(400).json({ error: 'Provide at least a title or content for AI analysis' });
+    }
+
+    const analysis = await analyzeArticleWithAI(title || '', content || '', excerpt || '');
+    res.json({ success: true, ...analysis });
+  } catch (error) {
+    console.error('Article AI draft analysis error:', error);
+    res.status(500).json({ error: error.message || 'Failed to analyze article' });
+  }
+});
+
 // Edit article form
 router.get('/articles/:id/edit', async (req, res) => {
   try {
@@ -265,6 +282,134 @@ router.post('/articles/:id/delete', async (req, res) => {
     req.session.errorMessage = 'Failed to delete article';
   }
   res.redirect('/content/articles');
+});
+
+// ==================== AI ARTICLE ANALYSIS ====================
+
+// Helper: call Anthropic Claude API to analyze article content
+function analyzeArticleWithAI(title, content, excerpt) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY is not configured. Add it to your environment variables.');
+  }
+
+  // Truncate content to ~8000 chars to stay within token limits
+  const truncatedContent = content && content.length > 8000 ? content.substring(0, 8000) + '...' : content;
+
+  const requestBody = JSON.stringify({
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 2048,
+    messages: [
+      {
+        role: 'user',
+        content: `You are an SEO and content marketing expert for WordsThatSells.website, a digital marketing agency. Analyze this article and generate optimized metadata.
+
+Article Title: "${title}"
+${excerpt ? `Excerpt: "${excerpt}"` : ''}
+Content:
+${truncatedContent || '(No content provided)'}
+
+Return ONLY valid JSON (no markdown, no code fences) with these exact fields:
+{
+  "excerpt": "A compelling 1-2 sentence summary of the article (150-200 chars). Hook the reader.",
+  "seo_title": "SEO-optimized page title (50-60 chars). Include primary keyword near the start.",
+  "seo_description": "Meta description for search results (150-160 chars). Include a call-to-action.",
+  "seo_keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "category": "one of: marketing, seo, ai, social-media, content, business",
+  "og_title": "Engaging social share title (40-60 chars). Optimized for clicks on Facebook/LinkedIn.",
+  "og_description": "Social sharing description (100-200 chars). Compelling and actionable.",
+  "twitter_title": "X/Twitter optimized title (max 70 chars). Punchy and attention-grabbing.",
+  "twitter_description": "X/Twitter description (max 200 chars). Concise with value proposition.",
+  "content_labels": {
+    "description": "A short sidebar card description (2-3 sentences) explaining what the reader will gain.",
+    "who_should_read": ["Audience type 1", "Audience type 2", "Audience type 3"],
+    "key_points": [
+      {"title": "Key Point 1", "description": "Brief explanation"},
+      {"title": "Key Point 2", "description": "Brief explanation"},
+      {"title": "Key Point 3", "description": "Brief explanation"}
+    ]
+  }
+}
+
+Focus on:
+- Natural keyword integration for Google, Bing, ChatGPT, Perplexity
+- Compelling copy that drives clicks and engagement
+- Accurate content representation
+- Keywords should be relevant SEO terms for digital marketing
+- Tags should be lowercase, 4-6 tags
+- Category must be one of the listed options`
+      }
+    ]
+  });
+
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.anthropic.com',
+      port: 443,
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(requestBody),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const response = JSON.parse(data);
+          if (response.error) {
+            reject(new Error(response.error.message || 'Anthropic API error'));
+            return;
+          }
+
+          const textBlock = response.content && response.content.find(b => b.type === 'text');
+          if (!textBlock || !textBlock.text) {
+            reject(new Error('No text response from AI'));
+            return;
+          }
+
+          let jsonText = textBlock.text.trim();
+          jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+          const result = JSON.parse(jsonText);
+          resolve(result);
+        } catch (e) {
+          reject(new Error('Failed to parse AI response: ' + e.message));
+        }
+      });
+    });
+
+    req.on('error', (e) => reject(new Error('API request failed: ' + e.message)));
+    req.setTimeout(60000, () => { req.destroy(); reject(new Error('API request timed out')); });
+    req.write(requestBody);
+    req.end();
+  });
+}
+
+// AI analyze article endpoint
+router.post('/articles/:id/ai-analyze', async (req, res) => {
+  try {
+    const result = await db.query('SELECT title, content, excerpt FROM articles WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    const article = result.rows[0];
+    if (!article.title && !article.content) {
+      return res.status(400).json({ error: 'Article needs at least a title or content for AI analysis' });
+    }
+
+    const analysis = await analyzeArticleWithAI(article.title, article.content, article.excerpt);
+    res.json({ success: true, ...analysis });
+  } catch (error) {
+    console.error('Article AI analysis error:', error);
+    res.status(500).json({ error: error.message || 'Failed to analyze article' });
+  }
 });
 
 // ==================== SEO TERMS ====================
