@@ -107,11 +107,32 @@
       <div class="card-body">
         <% if (images.length > 0) { %>
 
+          <!-- Bulk Action Bar (hidden until selection) -->
+          <div id="bulkActionBar" class="bulk-action-bar" style="display: none;">
+            <div class="bulk-action-info">
+              <label class="image-select-checkbox" style="margin-right: 8px;">
+                <input type="checkbox" id="selectAllCheckbox" title="Select all">
+              </label>
+              <span id="bulkSelectedCount">0</span> selected
+            </div>
+            <div class="bulk-action-buttons">
+              <button type="button" class="btn btn-sm btn-primary" onclick="openMoveToFolderModal()">
+                <i class="fas fa-folder"></i> Move to Folder
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary" onclick="clearSelection()">
+                <i class="fas fa-times"></i> Clear
+              </button>
+            </div>
+          </div>
+
           <% if (view === 'grid') { %>
           <!-- Grid View -->
           <div class="image-grid">
             <% images.forEach(image => { %>
-            <div class="image-card">
+            <div class="image-card" data-image-id="<%= image.id %>">
+              <label class="image-select-checkbox image-select-grid" onclick="event.stopPropagation()">
+                <input type="checkbox" class="image-checkbox" value="<%= image.id %>" onchange="updateBulkBar()">
+              </label>
               <a href="/images/<%= image.id %>" class="image-card-preview">
                 <img src="<%= image.cdn_url || ('/images-serve/' + encodeURIComponent(image.filename) + '?path=' + encodeURIComponent(image.file_path)) %>" alt="<%= image.alt_text || image.filename %>" loading="lazy">
                 <div class="image-card-overlay">
@@ -153,6 +174,7 @@
             <table class="table">
               <thead>
                 <tr>
+                  <th style="width: 36px;"><input type="checkbox" id="selectAllListCheckbox" onchange="toggleSelectAll(this.checked); updateBulkBar();" title="Select all"></th>
                   <th style="width: 60px;">Preview</th>
                   <th>Filename</th>
                   <th>Category</th>
@@ -164,7 +186,8 @@
               </thead>
               <tbody>
                 <% images.forEach(image => { %>
-                <tr>
+                <tr data-image-id="<%= image.id %>">
+                  <td><input type="checkbox" class="image-checkbox" value="<%= image.id %>" onchange="updateBulkBar()"></td>
                   <td>
                     <div class="image-table-thumb">
                       <img src="<%= image.cdn_url || ('/images-serve/' + encodeURIComponent(image.filename) + '?path=' + encodeURIComponent(image.file_path)) %>" alt="<%= image.alt_text || image.filename %>" loading="lazy">
@@ -319,6 +342,40 @@
     </div>
   </div>
 
+  <!-- Move to Folder Modal -->
+  <div id="moveToFolderModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-folder-open"></i> Move to Folder</h3>
+        <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="modal-close">&times;</button>
+      </div>
+      <form id="moveToFolderForm" action="/images/move-to-folder" method="POST">
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">
+            Moving <strong id="moveImageCount">0</strong> image(s) to:
+          </p>
+          <div id="moveImageInputs"></div>
+          <div class="move-folder-list">
+            <label class="move-folder-option">
+              <input type="radio" name="folder_id" value="" checked>
+              <span><i class="fas fa-file-image"></i> Unfiled (remove from folder)</span>
+            </label>
+            <% if (folders && folders.length > 0) { folders.forEach(f => { %>
+            <label class="move-folder-option">
+              <input type="radio" name="folder_id" value="<%= f.id %>">
+              <span style="padding-left: <%= f.depth * 16 %>px;"><i class="fas fa-folder"></i> <%= f.name %></span>
+            </label>
+            <% }); } %>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-folder-open"></i> Move</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Copy URL toast -->
   <div id="copyToast" class="copy-toast">
     <i class="fas fa-check-circle"></i> CDN URL copied to clipboard
@@ -333,6 +390,66 @@ function openRenameFolderModal(folderId, folderName) {
   document.getElementById('renameFolderModal').style.display = 'flex';
   document.getElementById('renameFolderInput').focus();
 }
+
+// Selection & Bulk Actions
+function getSelectedIds() {
+  return Array.from(document.querySelectorAll('.image-checkbox:checked')).map(cb => cb.value);
+}
+
+function updateBulkBar() {
+  const ids = getSelectedIds();
+  const bar = document.getElementById('bulkActionBar');
+  const count = document.getElementById('bulkSelectedCount');
+  count.textContent = ids.length;
+  bar.style.display = ids.length > 0 ? 'flex' : 'none';
+
+  // Sync "select all" checkboxes
+  const all = document.querySelectorAll('.image-checkbox');
+  const selectAllGrid = document.getElementById('selectAllCheckbox');
+  const selectAllList = document.getElementById('selectAllListCheckbox');
+  if (selectAllGrid) selectAllGrid.checked = ids.length === all.length && all.length > 0;
+  if (selectAllList) selectAllList.checked = ids.length === all.length && all.length > 0;
+}
+
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.image-checkbox').forEach(cb => { cb.checked = checked; });
+  updateBulkBar();
+}
+
+function clearSelection() {
+  document.querySelectorAll('.image-checkbox').forEach(cb => { cb.checked = false; });
+  updateBulkBar();
+}
+
+function openMoveToFolderModal() {
+  const ids = getSelectedIds();
+  if (ids.length === 0) return;
+
+  document.getElementById('moveImageCount').textContent = ids.length;
+
+  // Create hidden inputs for each selected image
+  const container = document.getElementById('moveImageInputs');
+  container.innerHTML = '';
+  ids.forEach(id => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'image_ids';
+    input.value = id;
+    container.appendChild(input);
+  });
+
+  document.getElementById('moveToFolderModal').style.display = 'flex';
+}
+
+// Wire up the grid "select all" checkbox
+document.addEventListener('DOMContentLoaded', () => {
+  const selectAllGrid = document.getElementById('selectAllCheckbox');
+  if (selectAllGrid) {
+    selectAllGrid.addEventListener('change', () => {
+      toggleSelectAll(selectAllGrid.checked);
+    });
+  }
+});
 </script>
 
 <%- include('../partials/footer') %>
