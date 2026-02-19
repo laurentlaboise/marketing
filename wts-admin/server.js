@@ -18,6 +18,9 @@ const publicApiRoutes = require('./src/routes/public-api');
 const imagesRoutes = require('./src/routes/images');
 const webdevRoutes = require('./src/routes/webdev');
 const paymentsRoutes = require('./src/routes/payments');
+const automationsApiRoutes = require('./src/routes/automations-api');
+const proxyApiRoutes = require('./src/routes/proxy-api');
+const webhooksApiRoutes = require('./src/routes/webhooks-api');
 
 // Import passport configuration
 require('./src/utils/passport-config');
@@ -36,11 +39,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://ka-f.fontawesome.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://ka-f.fontawesome.com", "https://cdn.jsdelivr.net"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://ka-f.fontawesome.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com", "https://connect.facebook.net", "https://kit.fontawesome.com", "https://ka-f.fontawesome.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com", "https://connect.facebook.net", "https://kit.fontawesome.com", "https://ka-f.fontawesome.com", "https://cdn.jsdelivr.net"],
+      workerSrc: ["'self'", "blob:"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https://accounts.google.com", "https://www.facebook.com", "https://ka-f.fontawesome.com", "https://checkout.stripe.com"],
+      connectSrc: ["'self'", "https://accounts.google.com", "https://www.facebook.com", "https://ka-f.fontawesome.com", "https://checkout.stripe.com", "https://cdn.jsdelivr.net", "wss:", "ws:"],
       frameSrc: ["https://accounts.google.com", "https://www.facebook.com", "https://checkout.stripe.com", "https://js.stripe.com"]
     }
   }
@@ -155,6 +159,9 @@ app.use('/api/public', publicApiRoutes);
 // Payment routes (no authentication - public facing)
 app.use('/api/payments', paymentsRoutes);
 
+// Webhook ingest routes (no authentication - external webhook sources)
+app.use('/api/webhooks', webhooksApiRoutes);
+
 // Routes
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
@@ -162,6 +169,8 @@ app.use('/content', contentRoutes);
 app.use('/business', businessRoutes);
 app.use('/social', socialRoutes);
 app.use('/api', apiRoutes);
+app.use('/api/automations', automationsApiRoutes);
+app.use('/api/proxy', proxyApiRoutes);
 app.use('/images', imagesRoutes);
 app.use('/webdev', webdevRoutes);
 

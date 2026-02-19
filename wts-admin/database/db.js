@@ -1036,6 +1036,109 @@ const db = {
         END $$;
       `);
 
+      // ==================== AUTOMATION COMPILER TABLES ====================
+
+      // Upgrade automations table with compiler fields
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='automations' AND column_name='workspace_id') THEN
+            ALTER TABLE automations ADD COLUMN workspace_id UUID;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='automations' AND column_name='target_engine') THEN
+            ALTER TABLE automations ADD COLUMN target_engine VARCHAR(50)[] DEFAULT '{custom}';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='automations' AND column_name='topology_type') THEN
+            ALTER TABLE automations ADD COLUMN topology_type VARCHAR(50) DEFAULT 'DAG';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='automations' AND column_name='ast_payload') THEN
+            ALTER TABLE automations ADD COLUMN ast_payload JSONB NOT NULL DEFAULT '{}';
+          END IF;
+        END $$;
+      `);
+
+      // Automation Versions (version control for AST + compiled code)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS automation_versions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          automation_id UUID REFERENCES automations(id) ON DELETE CASCADE,
+          version_number INT NOT NULL,
+          ast_payload JSONB NOT NULL,
+          compiled_code JSONB NOT NULL,
+          test_results JSONB,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `);
+
+      // Integrations Registry (credential + platform registry)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS integrations_registry (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          workspace_id UUID NOT NULL,
+          platform_name VARCHAR(100) NOT NULL,
+          auth_credential_id UUID NOT NULL,
+          api_endpoint VARCHAR(255),
+          rate_limits JSONB
+        )
+      `);
+
+      // Agent Memory State (autonomous swarm context)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS agent_memory_state (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          automation_id UUID REFERENCES automations(id) ON DELETE CASCADE,
+          context_window JSONB NOT NULL,
+          last_action TEXT,
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `);
+
+      // High-Velocity Telemetry (Partitioned by executed_at)
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'execution_telemetry') THEN
+            CREATE TABLE execution_telemetry (
+              id UUID DEFAULT gen_random_uuid(),
+              automation_id UUID NOT NULL,
+              execution_status VARCHAR(50),
+              error_log TEXT,
+              anomaly_score FLOAT,
+              latency_ms INT,
+              executed_at TIMESTAMPTZ NOT NULL,
+              PRIMARY KEY (id, executed_at)
+            ) PARTITION BY RANGE (executed_at);
+          END IF;
+        END $$;
+      `);
+
+      // Create current month partition
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'execution_telemetry_y2026m02') THEN
+            CREATE TABLE execution_telemetry_y2026m02 PARTITION OF execution_telemetry
+              FOR VALUES FROM ('2026-02-01') TO ('2026-03-01');
+          END IF;
+        END $$;
+      `);
+
+      // Create next month partition for continuity
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'execution_telemetry_y2026m03') THEN
+            CREATE TABLE execution_telemetry_y2026m03 PARTITION OF execution_telemetry
+              FOR VALUES FROM ('2026-03-01') TO ('2026-04-01');
+          END IF;
+        END $$;
+      `);
+
+      // Index for telemetry lookups
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_telemetry_automation_id ON execution_telemetry (automation_id, executed_at DESC)
+      `);
+
       await client.query('COMMIT');
       console.log('Database tables initialized successfully');
     } catch (error) {
