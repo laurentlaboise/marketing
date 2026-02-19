@@ -335,8 +335,8 @@ const DAGRenderer = (() => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid
-    ctx.strokeStyle = '#1e293b';
+    // Draw grid (light theme)
+    ctx.strokeStyle = '#e5e7eb';
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += 40) {
       ctx.beginPath();
@@ -362,7 +362,7 @@ const DAGRenderer = (() => {
 
     // Draw connecting line
     if (connecting) {
-      ctx.strokeStyle = '#60a5fa';
+      ctx.strokeStyle = '#2085c8';
       ctx.lineWidth = 2;
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
@@ -379,8 +379,8 @@ const DAGRenderer = (() => {
 
     // Empty state
     if (nodes.length === 0) {
-      ctx.fillStyle = '#475569';
-      ctx.font = '14px Inter, sans-serif';
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '14px Inter, -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('Add nodes from the left panel or right-click to add', canvas.width / 2, canvas.height / 2);
       ctx.fillText('Use the node palette below to drag nodes onto the canvas', canvas.width / 2, canvas.height / 2 + 24);
@@ -393,12 +393,12 @@ const DAGRenderer = (() => {
     const color = NODE_COLORS[node.type] || '#3b82f6';
 
     // Shadow
-    ctx.shadowColor = isSelected ? color : 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = isSelected ? 12 : 6;
+    ctx.shadowColor = isSelected ? color : 'rgba(0,0,0,0.1)';
+    ctx.shadowBlur = isSelected ? 12 : 4;
     ctx.shadowOffsetY = 2;
 
-    // Body
-    ctx.fillStyle = '#1e293b';
+    // Body (light theme: white card)
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.roundRect(x, y, NODE_W, NODE_H, 8);
     ctx.fill();
@@ -413,14 +413,12 @@ const DAGRenderer = (() => {
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
 
-    // Border
-    if (isSelected) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(x, y, NODE_W, NODE_H, 8);
-      ctx.stroke();
-    }
+    // Border (always draw a subtle border, accent on selection)
+    ctx.strokeStyle = isSelected ? color : '#e5e7eb';
+    ctx.lineWidth = isSelected ? 2 : 1;
+    ctx.beginPath();
+    ctx.roundRect(x, y, NODE_W, NODE_H, 8);
+    ctx.stroke();
 
     // Type badge
     ctx.fillStyle = color + '33';
@@ -433,9 +431,9 @@ const DAGRenderer = (() => {
     ctx.textBaseline = 'middle';
     ctx.fillText(NODE_ICONS[node.type] || '\uf013', x + 24, y + 30);
 
-    // Label
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = '600 13px Inter, sans-serif';
+    // Label (dark text for light theme)
+    ctx.fillStyle = '#1f2937';
+    ctx.font = '600 13px Inter, -apple-system, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const maxLabelWidth = NODE_W - 60;
@@ -449,15 +447,15 @@ const DAGRenderer = (() => {
     ctx.fillText(label, x + 48, y + 24);
 
     // Type text
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px Inter, sans-serif';
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '11px Inter, -apple-system, sans-serif';
     ctx.fillText(node.type.charAt(0).toUpperCase() + node.type.slice(1), x + 48, y + 42);
 
     // Connection ports
     // Input port (left center)
     if (node.type !== 'trigger') {
-      ctx.fillStyle = '#334155';
-      ctx.strokeStyle = '#475569';
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#d1d5db';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(x, y + NODE_H / 2, 6, 0, Math.PI * 2);
@@ -467,7 +465,7 @@ const DAGRenderer = (() => {
 
     // Output port (right center)
     if (node.type !== 'output') {
-      ctx.fillStyle = '#334155';
+      ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = color;
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -486,7 +484,7 @@ const DAGRenderer = (() => {
     const cpx1 = sx + Math.abs(tx - sx) * 0.4;
     const cpx2 = tx - Math.abs(tx - sx) * 0.4;
 
-    ctx.strokeStyle = '#475569';
+    ctx.strokeStyle = '#9ca3af';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(sx, sy);
@@ -495,7 +493,7 @@ const DAGRenderer = (() => {
 
     // Arrow
     const angle = Math.atan2(ty - sy, tx - cpx2);
-    ctx.fillStyle = '#475569';
+    ctx.fillStyle = '#9ca3af';
     ctx.beginPath();
     ctx.moveTo(tx, ty);
     ctx.lineTo(tx - 8 * Math.cos(angle - 0.4), ty - 8 * Math.sin(angle - 0.4));
@@ -506,10 +504,15 @@ const DAGRenderer = (() => {
     if (label) {
       const midX = (sx + tx) / 2;
       const midY = (sy + ty) / 2;
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(midX - 20, midY - 10, 40, 20);
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '10px Inter, sans-serif';
+      ctx.fillStyle = '#f9fafb';
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(midX - 22, midY - 10, 44, 20, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '10px Inter, -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(label, midX, midY);
@@ -772,16 +775,16 @@ const TelemetryWS = (() => {
 
     let html = `<svg width="${width}" height="${height}" class="telemetry-svg">`;
     // Y axis
-    html += `<line x1="35" y1="10" x2="35" y2="${height - 25}" stroke="#334155" stroke-width="1"/>`;
+    html += `<line x1="35" y1="10" x2="35" y2="${height - 25}" stroke="#d1d5db" stroke-width="1"/>`;
     // X axis
-    html += `<line x1="35" y1="${height - 25}" x2="${width - 5}" y2="${height - 25}" stroke="#334155" stroke-width="1"/>`;
+    html += `<line x1="35" y1="${height - 25}" x2="${width - 5}" y2="${height - 25}" stroke="#d1d5db" stroke-width="1"/>`;
 
     // Y labels
     for (let i = 0; i <= 4; i++) {
       const y = 10 + (height - 35) * (1 - i / 4);
       const val = Math.round(maxLatency * i / 4);
-      html += `<text x="30" y="${y + 4}" fill="#64748b" font-size="9" text-anchor="end">${val}ms</text>`;
-      html += `<line x1="35" y1="${y}" x2="${width - 5}" y2="${y}" stroke="#1e293b" stroke-width="1" stroke-dasharray="3"/>`;
+      html += `<text x="30" y="${y + 4}" fill="#6b7280" font-size="9" text-anchor="end">${val}ms</text>`;
+      html += `<line x1="35" y1="${y}" x2="${width - 5}" y2="${y}" stroke="#f3f4f6" stroke-width="1" stroke-dasharray="3"/>`;
     }
 
     // Bars
@@ -798,7 +801,7 @@ const TelemetryWS = (() => {
     });
 
     // Legend
-    html += `<text x="${width - 5}" y="${height - 5}" fill="#64748b" font-size="9" text-anchor="end">Latency (ms) over time</text>`;
+    html += `<text x="${width - 5}" y="${height - 5}" fill="#9ca3af" font-size="9" text-anchor="end">Latency (ms) over time</text>`;
     html += `</svg>`;
 
     // Status counters
@@ -847,24 +850,26 @@ const CodeEditor = (() => {
   }
 
   function createEditor(containerId) {
-    // Define custom dark theme
-    monaco.editor.defineTheme('automationDark', {
-      base: 'vs-dark',
+    // Define custom light theme matching admin design
+    monaco.editor.defineTheme('automationLight', {
+      base: 'vs',
       inherit: true,
       rules: [],
       colors: {
-        'editor.background': '#0f172a',
-        'editor.foreground': '#e2e8f0',
-        'editorLineNumber.foreground': '#475569',
-        'editor.selectionBackground': '#334155',
-        'editor.lineHighlightBackground': '#1e293b'
+        'editor.background': '#ffffff',
+        'editor.foreground': '#3a4045',
+        'editorLineNumber.foreground': '#9ca3af',
+        'editor.selectionBackground': '#dbeafe',
+        'editor.lineHighlightBackground': '#f9fafb',
+        'editorWidget.background': '#f3f4f6',
+        'editorWidget.border': '#e5e7eb'
       }
     });
 
     editor = monaco.editor.create(document.getElementById(containerId), {
       value: '// Compiled output will appear here\n// Configure your automation in the left panel',
       language: 'json',
-      theme: 'automationDark',
+      theme: 'automationLight',
       readOnly: true,
       minimap: { enabled: false },
       fontSize: 13,
@@ -1112,13 +1117,22 @@ function bindFormControls() {
     });
   }
 
-  // Status
+  // Status - update store AND toolbar badge reactively
   const statusSelect = document.getElementById('automationStatus');
   if (statusSelect) {
     statusSelect.addEventListener('change', e => {
       AutomationStore.setState({ status: e.target.value });
+      updateStatusBadge(e.target.value);
     });
   }
+}
+
+function updateStatusBadge(status) {
+  const badge = document.getElementById('statusBadge');
+  if (!badge) return;
+  badge.textContent = status;
+  // Use same status-badge classes from style.css
+  badge.className = 'status-badge ' + status;
 }
 
 function initNodePalette() {
