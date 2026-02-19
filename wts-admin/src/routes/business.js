@@ -217,10 +217,18 @@ router.get('/automations', async (req, res) => {
   }
 });
 
-router.get('/automations/new', (req, res) => {
-  res.render('business/automations/form', {
-    title: 'New Automation - WTS Admin',
+router.get('/automations/new', async (req, res) => {
+  // Load integrations for the left pane
+  let integrations = [];
+  try {
+    const result = await db.query('SELECT * FROM integrations_registry WHERE workspace_id IS NOT NULL ORDER BY platform_name ASC');
+    integrations = result.rows;
+  } catch (e) { /* table may not exist yet */ }
+
+  res.render('business/automations/compiler', {
+    title: 'Automation Compiler - WTS Admin',
     automation: null,
+    integrations,
     currentPage: 'automations'
   });
 });

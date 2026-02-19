@@ -1,0 +1,286 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout compiler-layout' }) %>
+<link rel="stylesheet" href="/css/automation-compiler.css">
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content compiler-main">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <!-- Toolbar -->
+  <div class="compiler-toolbar">
+    <div class="toolbar-left">
+      <a href="/business/automations" class="btn btn-ghost btn-sm"><i class="fas fa-arrow-left"></i></a>
+      <input type="text" id="automationName" class="toolbar-name-input" value="Untitled Automation" placeholder="Automation name...">
+      <span class="toolbar-badge badge-draft" id="statusBadge">draft</span>
+    </div>
+    <div class="toolbar-center">
+      <button id="compileBtn" class="btn btn-sm btn-primary"><i class="fas fa-play"></i> Compile</button>
+      <button id="simulateBtn" class="btn btn-sm btn-secondary"><i class="fas fa-flask"></i> Simulate</button>
+      <button id="saveAutomation" class="btn btn-sm btn-success"><i class="fas fa-save"></i> Save</button>
+    </div>
+    <div class="toolbar-right">
+      <label class="toggle-label">
+        <input type="checkbox" id="manualOverride">
+        <span>Manual Override</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Tri-Pane Container -->
+  <div class="compiler-panes">
+
+    <!-- LEFT PANE: Parameterization Matrix (30%) -->
+    <div class="compiler-pane pane-left" id="leftPane">
+      <div class="pane-header">
+        <i class="fas fa-sliders-h"></i>
+        <span>Parameters</span>
+      </div>
+      <div class="pane-body">
+        <!-- Engine & Topology -->
+        <div class="param-section">
+          <label class="param-label">Target Engine</label>
+          <select id="targetEngine" class="form-input form-input-sm" multiple>
+            <option value="n8n">n8n</option>
+            <option value="make">Make.com</option>
+            <option value="custom" selected>Custom Agent</option>
+          </select>
+        </div>
+
+        <div class="param-section">
+          <label class="param-label">Topology</label>
+          <select id="topologyType" class="form-input form-input-sm">
+            <option value="DAG">DAG (Directed Acyclic Graph)</option>
+            <option value="Agent_Loop">Agent Loop</option>
+            <option value="Swarm">Swarm</option>
+          </select>
+        </div>
+
+        <div class="param-section">
+          <label class="param-label">Status</label>
+          <select id="automationStatus" class="form-input form-input-sm">
+            <option value="draft">Draft</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="testing">Testing</option>
+          </select>
+        </div>
+
+        <!-- Trigger Configuration -->
+        <div class="param-section">
+          <label class="param-label">Trigger</label>
+          <select id="triggerType" class="form-input form-input-sm">
+            <option value="">Select trigger...</option>
+            <option value="webhook">Webhook</option>
+            <option value="schedule">Schedule (Cron)</option>
+            <option value="event">Event</option>
+            <option value="manual">Manual</option>
+            <option value="api_call">API Call</option>
+          </select>
+        </div>
+
+        <!-- Action Pipeline -->
+        <div class="param-section">
+          <label class="param-label">Action Pipeline</label>
+          <div class="action-pipeline" id="actionPipeline">
+            <button class="btn btn-ghost btn-sm btn-block" onclick="addActionStep()">
+              <i class="fas fa-plus"></i> Add Action Step
+            </button>
+          </div>
+        </div>
+
+        <hr class="param-divider">
+
+        <!-- LLM Prompt -->
+        <div class="param-section">
+          <label class="param-label">
+            <i class="fas fa-brain"></i> Semantic Prompt
+          </label>
+          <textarea id="llmPrompt" class="form-input form-input-sm" rows="5"
+            placeholder="Describe what this automation should do in natural language. The compiler will use this to fill mapping gaps..."></textarea>
+        </div>
+
+        <hr class="param-divider">
+
+        <!-- Integrations -->
+        <div class="param-section">
+          <label class="param-label">
+            <i class="fas fa-plug"></i> Integrations
+          </label>
+          <div id="integrationsList" class="integrations-list">
+            <% if (typeof integrations !== 'undefined' && integrations.length > 0) { %>
+              <% integrations.forEach(function(integ) { %>
+                <div class="integration-item">
+                  <span class="integration-platform"><%= integ.platform_name %></span>
+                  <span class="integration-status connected">Connected</span>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <p class="text-muted text-sm">No integrations configured.<br>
+              <a href="/business/integrations">Set up integrations</a></p>
+            <% } %>
+          </div>
+        </div>
+
+        <hr class="param-divider">
+
+        <!-- Node Detail Inspector -->
+        <div class="param-section">
+          <label class="param-label"><i class="fas fa-info-circle"></i> Node Inspector</label>
+          <div id="nodeDetail">
+            <p class="text-muted text-sm">Select a node to edit its configuration</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER PANE: Visual DAG (40%) -->
+    <div class="compiler-pane pane-center" id="centerPane">
+      <div class="pane-header">
+        <i class="fas fa-project-diagram"></i>
+        <span>Visual DAG</span>
+        <div class="pane-header-actions">
+          <button class="btn btn-ghost btn-xs" onclick="autoLayout()" title="Auto-layout"><i class="fas fa-magic"></i></button>
+          <button class="btn btn-ghost btn-xs" onclick="clearCanvas()" title="Clear all"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+      <div class="pane-body pane-body-canvas">
+        <canvas id="dagCanvas"></canvas>
+      </div>
+      <!-- Node Palette -->
+      <div class="node-palette">
+        <button class="node-palette-item" data-node-type="trigger" data-node-label="Trigger" title="Trigger">
+          <i class="fas fa-bolt" style="color:#10b981"></i> Trigger
+        </button>
+        <button class="node-palette-item" data-node-type="action" data-node-label="Action" title="Action">
+          <i class="fas fa-cog" style="color:#3b82f6"></i> Action
+        </button>
+        <button class="node-palette-item" data-node-type="condition" data-node-label="Condition" title="Condition">
+          <i class="fas fa-code-branch" style="color:#f59e0b"></i> If/Else
+        </button>
+        <button class="node-palette-item" data-node-type="transform" data-node-label="Transform" title="Transform">
+          <i class="fas fa-exchange-alt" style="color:#8b5cf6"></i> Transform
+        </button>
+        <button class="node-palette-item" data-node-type="llm" data-node-label="LLM Agent" title="LLM Agent">
+          <i class="fas fa-robot" style="color:#ec4899"></i> LLM
+        </button>
+        <button class="node-palette-item" data-node-type="loop" data-node-label="Loop" title="Loop">
+          <i class="fas fa-sync-alt" style="color:#06b6d4"></i> Loop
+        </button>
+        <button class="node-palette-item" data-node-type="delay" data-node-label="Delay" title="Delay">
+          <i class="fas fa-clock" style="color:#6b7280"></i> Delay
+        </button>
+        <button class="node-palette-item" data-node-type="output" data-node-label="Output" title="Output">
+          <i class="fas fa-sign-out-alt" style="color:#ef4444"></i> Output
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANE: Code & Telemetry (30%) -->
+    <div class="compiler-pane pane-right">
+      <div class="pane-header">
+        <i class="fas fa-code"></i>
+        <span>Compiled Output</span>
+      </div>
+      <!-- Top Half: Monaco Editor -->
+      <div class="pane-body pane-body-split-top" id="codeSection">
+        <div id="monacoContainer" style="width:100%;height:100%;"></div>
+      </div>
+      <!-- Bottom Half: Telemetry -->
+      <div class="pane-split-divider">
+        <i class="fas fa-chart-bar"></i>
+        <span>Live Telemetry</span>
+      </div>
+      <div class="pane-body pane-body-split-bottom">
+        <div id="telemetryChart" class="telemetry-chart-container">
+          <div class="telemetry-empty">
+            No telemetry data yet. Deploy and run your automation to see live metrics.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+</main>
+
+<script>
+function autoLayout() {
+  const state = AutomationStore.getState();
+  const nodes = state.ast.nodes;
+  if (nodes.length === 0) return;
+
+  // Simple layered layout
+  const sorted = topologicalSort(nodes, state.ast.edges);
+  sorted.forEach((node, i) => {
+    AutomationStore.updateNodePosition(node.id, {
+      x: 60 + (i % 3) * 220,
+      y: 60 + Math.floor(i / 3) * 100
+    });
+  });
+}
+
+function topologicalSort(nodes, edges) {
+  const inDegree = {};
+  const adj = {};
+  nodes.forEach(n => { inDegree[n.id] = 0; adj[n.id] = []; });
+  edges.forEach(e => {
+    if (inDegree[e.target] !== undefined) inDegree[e.target]++;
+    if (adj[e.source]) adj[e.source].push(e.target);
+  });
+
+  const queue = nodes.filter(n => inDegree[n.id] === 0).map(n => n.id);
+  const result = [];
+  while (queue.length) {
+    const id = queue.shift();
+    const node = nodes.find(n => n.id === id);
+    if (node) result.push(node);
+    (adj[id] || []).forEach(tgt => {
+      inDegree[tgt]--;
+      if (inDegree[tgt] === 0) queue.push(tgt);
+    });
+  }
+  // Add any remaining (cycles)
+  nodes.forEach(n => { if (!result.find(r => r.id === n.id)) result.push(n); });
+  return result;
+}
+
+function clearCanvas() {
+  if (confirm('Remove all nodes and edges?')) {
+    AutomationStore.updateAst({ nodes: [], edges: [] });
+  }
+}
+
+function addActionStep() {
+  const pipeline = document.getElementById('actionPipeline');
+  const idx = pipeline.querySelectorAll('.action-step').length;
+  const step = document.createElement('div');
+  step.className = 'action-step';
+  step.innerHTML = `
+    <select class="form-input form-input-sm action-type-select" onchange="updateActionMeta()">
+      <option value="">Select action...</option>
+      <option value="http_request">HTTP Request</option>
+      <option value="send_email">Send Email</option>
+      <option value="database_query">Database Query</option>
+      <option value="llm_completion">LLM Completion</option>
+      <option value="webhook_call">Webhook Call</option>
+      <option value="file_operation">File Operation</option>
+    </select>
+    <button class="btn btn-ghost btn-xs" onclick="this.parentElement.remove(); updateActionMeta();">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  pipeline.insertBefore(step, pipeline.lastElementChild);
+}
+
+function updateActionMeta() {
+  const selects = document.querySelectorAll('.action-type-select');
+  const actions = Array.from(selects).map(s => ({
+    type: s.value,
+    config: {}
+  })).filter(a => a.type);
+  AutomationStore.updateMetadata({ actions });
+}
+</script>
+<script src="/js/automation-compiler.js"></script>
+</body>
+</html>
