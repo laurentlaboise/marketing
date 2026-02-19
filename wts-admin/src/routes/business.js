@@ -296,6 +296,97 @@ router.post('/automations/:id/delete', async (req, res) => {
   res.redirect('/business/automations');
 });
 
+// ==================== INTEGRATIONS ====================
+
+router.get('/integrations', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM integrations_registry ORDER BY platform_name ASC');
+    res.render('business/integrations/list', {
+      title: 'Integrations - WTS Admin',
+      integrations: result.rows,
+      currentPage: 'integrations'
+    });
+  } catch (error) {
+    res.render('business/integrations/list', {
+      title: 'Integrations - WTS Admin',
+      integrations: [],
+      currentPage: 'integrations',
+      error: 'Failed to load integrations'
+    });
+  }
+});
+
+router.get('/integrations/new', (req, res) => {
+  res.render('business/integrations/form', {
+    title: 'New Integration - WTS Admin',
+    integration: null,
+    currentPage: 'integrations'
+  });
+});
+
+router.post('/integrations', async (req, res) => {
+  try {
+    const { platform_name, workspace_id, auth_credential_id, api_endpoint, rate_limits } = req.body;
+
+    await db.query(
+      'INSERT INTO integrations_registry (platform_name, workspace_id, auth_credential_id, api_endpoint, rate_limits) VALUES ($1, $2, $3, $4, $5)',
+      [platform_name, workspace_id, auth_credential_id, api_endpoint || null, rate_limits ? JSON.parse(rate_limits) : null]
+    );
+    req.session.successMessage = 'Integration created successfully';
+    res.redirect('/business/integrations');
+  } catch (error) {
+    console.error('Create integration error:', error);
+    res.render('business/integrations/form', {
+      title: 'New Integration - WTS Admin',
+      integration: req.body,
+      currentPage: 'integrations',
+      error: 'Failed to create integration. ' + (error.message || '')
+    });
+  }
+});
+
+router.get('/integrations/:id/edit', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM integrations_registry WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.redirect('/business/integrations');
+    }
+    res.render('business/integrations/form', {
+      title: 'Edit Integration - WTS Admin',
+      integration: result.rows[0],
+      currentPage: 'integrations'
+    });
+  } catch (error) {
+    res.redirect('/business/integrations');
+  }
+});
+
+router.post('/integrations/:id', async (req, res) => {
+  try {
+    const { platform_name, workspace_id, auth_credential_id, api_endpoint, rate_limits } = req.body;
+
+    await db.query(
+      'UPDATE integrations_registry SET platform_name = $1, workspace_id = $2, auth_credential_id = $3, api_endpoint = $4, rate_limits = $5 WHERE id = $6',
+      [platform_name, workspace_id, auth_credential_id, api_endpoint || null, rate_limits ? JSON.parse(rate_limits) : null, req.params.id]
+    );
+    req.session.successMessage = 'Integration updated successfully';
+    res.redirect('/business/integrations');
+  } catch (error) {
+    req.session.errorMessage = 'Failed to update integration';
+    res.redirect(`/business/integrations/${req.params.id}/edit`);
+  }
+});
+
+router.post('/integrations/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM integrations_registry WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Integration deleted successfully';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to delete integration';
+  }
+  res.redirect('/business/integrations');
+});
+
 // ==================== PRODUCTS ====================
 
 router.get('/products', async (req, res) => {
