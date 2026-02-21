@@ -2657,8 +2657,12 @@ function aiSuggestSection(section) {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
 
   var articleId = '<%= (typeof articleId !== "undefined" && articleId) ? articleId : "" %>';
+  <% 
+    var _originalTitle = article ? (article.title || "") : "";
+    var _escapedTitle = JSON.stringify(_originalTitle).slice(1, -1);
+  %>
   var url, fetchOptions;
-  if (articleId && titleVal === '<%= article ? (article.title || "").replace(/\'/g, "\\\'") : "" %>') {
+  if (articleId && titleVal === '<%= _escapedTitle %>') {
     url = '/content/articles/' + articleId + '/ai-analyze';
     fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
   } else {
