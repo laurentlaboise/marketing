@@ -119,12 +119,6 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="content"><i class="fas fa-file-code"></i> Full Article HTML *</label>
-              <textarea id="content" name="content" class="form-input" rows="15" required><%= article ? article.content : '' %></textarea>
-              <p class="form-help">The full HTML content of your article as it appears on the published page.</p>
-            </div>
-
-            <div class="form-group">
               <label class="form-label" for="featured_image"><i class="fas fa-image"></i> Featured Image</label>
               <div class="featured-image-picker" id="featuredImagePicker">
                 <div id="featuredImagePreview" class="featured-image-preview" style="<%= article && article.featured_image ? '' : 'display:none;' %>">
@@ -142,6 +136,18 @@
                   <input type="url" id="featured_image" name="featured_image" class="form-input" placeholder="Or paste image URL" value="<%= article ? article.featured_image : '' %>" style="flex: 1; font-size: 13px;">
                 </div>
               </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="text_article"><i class="fas fa-file-alt"></i> Text Article</label>
+              <textarea id="text_article" name="text_article" class="form-input" rows="15" placeholder="Enter the main article text content here"><%= article ? article.text_article : '' %></textarea>
+              <p class="form-help">The main text content of your article.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="content"><i class="fas fa-file-code"></i> Sidemenu Content *</label>
+              <textarea id="content" name="content" class="form-input" rows="15" required><%= article ? article.content : '' %></textarea>
+              <p class="form-help">HTML content displayed in the slide-in sidebar panel when the article is previewed.</p>
             </div>
 
             <div class="form-group">
