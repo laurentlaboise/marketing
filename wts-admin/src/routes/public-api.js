@@ -38,7 +38,7 @@ router.get('/articles', async (req, res) => {
              og_title, og_description, og_image, og_type,
              twitter_card, twitter_title, twitter_description, twitter_image, twitter_site, twitter_creator,
              canonical_url, robots_meta, schema_markup, article_images, citations,
-             time_to_read, seo_keywords, content_labels
+             time_to_read, seo_keywords, content_labels, text_article
       FROM articles
       WHERE status = 'published'
     `;
@@ -67,6 +67,7 @@ router.get('/articles', async (req, res) => {
       featured: article.featured || false,
       sidebar_content: article.excerpt || article.content?.substring(0, 500) || '',
       full_article_content: article.content,
+      text_article: article.text_article || '',
       published_url: article.published_url || '',
       article_images: article.article_images || [],
       citations: article.citations || [],
@@ -126,6 +127,7 @@ router.get('/articles/:slug', async (req, res) => {
       featured: article.featured || false,
       published_url: article.published_url || '',
       full_article_content: article.content,
+      text_article: article.text_article || '',
       time_to_read: article.time_to_read || null,
       article_images: article.article_images || [],
       citations: article.citations || [],
