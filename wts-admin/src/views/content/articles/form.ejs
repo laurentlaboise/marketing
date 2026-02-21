@@ -29,7 +29,7 @@
           <!-- ===== STICKY ACTION BAR ===== -->
           <div class="sticky-action-bar" id="stickyActionBar">
             <div class="sticky-bar-left">
-              <button type="button" id="aiArticleBtn" class="btn btn-secondary btn-sm" onclick="confirmAiAnalysis()">
+              <button type="button" id="aiArticleBtn" class="btn btn-secondary btn-sm">
                 <i class="fas fa-robot"></i> AI Auto-fill
               </button>
               <div class="completion-indicator" id="completionIndicator">
@@ -129,17 +129,17 @@
               <div class="featured-image-picker" id="featuredImagePicker">
                 <div id="featuredImagePreview" class="featured-image-preview" style="<%= article && article.featured_image ? '' : 'display:none;' %>">
                   <img id="featuredImageThumb" src="<%= article && article.featured_image ? article.featured_image : '' %>" alt="Featured image preview">
-                  <button type="button" class="featured-image-remove" onclick="removeFeaturedImage()" title="Remove image">&times;</button>
+                  <button type="button" class="featured-image-remove" id="removeFeaturedImageBtn" title="Remove image">&times;</button>
                 </div>
                 <div id="featuredImageEmpty" class="featured-image-empty" style="<%= article && article.featured_image ? 'display:none;' : '' %>">
                   <i class="fas fa-image"></i>
                   <span>No featured image selected</span>
                 </div>
                 <div style="display: flex; gap: 8px; margin-top: 8px;">
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="openFeaturedImageSelector()">
+                  <button type="button" class="btn btn-secondary btn-sm" id="openFeaturedImageBtn">
                     <i class="fas fa-photo-video"></i> Choose from Library
                   </button>
-                  <input type="url" id="featured_image" name="featured_image" class="form-input" placeholder="Or paste image URL" value="<%= article ? article.featured_image : '' %>" oninput="updateFeaturedPreview()" style="flex: 1; font-size: 13px;">
+                  <input type="url" id="featured_image" name="featured_image" class="form-input" placeholder="Or paste image URL" value="<%= article ? article.featured_image : '' %>" style="flex: 1; font-size: 13px;">
                 </div>
               </div>
             </div>
@@ -196,14 +196,14 @@
           <div class="form-section">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <h3 class="form-section-title" style="margin-bottom: 0;"><i class="fas fa-search"></i> SEO Settings</h3>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="aiSuggestSection('seo')">
+              <button type="button" class="btn btn-secondary btn-sm" id="aiSuggestSeoBtn">
                 <i class="fas fa-robot"></i> AI Suggest SEO
               </button>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="seo_title">SEO Title</label>
-              <input type="text" id="seo_title" name="seo_title" class="form-input" maxlength="70" placeholder="Optimized title for search results (50-60 chars ideal)" value="<%= article ? article.seo_title : '' %>" oninput="updateCharCount(this, 'seoTitleCount', 60)">
+              <input type="text" id="seo_title" name="seo_title" class="form-input" maxlength="70" placeholder="Optimized title for search results (50-60 chars ideal)" value="<%= article ? article.seo_title : '' %>" >
               <div class="char-counter-row">
                 <p class="form-help">Appears as the clickable headline in search results</p>
                 <span id="seoTitleCount" class="char-counter"></span>
@@ -212,7 +212,7 @@
 
             <div class="form-group">
               <label class="form-label" for="seo_description">SEO Description</label>
-              <textarea id="seo_description" name="seo_description" class="form-input" rows="2" maxlength="320" placeholder="Meta description for search results (150-160 chars ideal)" oninput="updateCharCount(this, 'seoDescCount', 160)"><%= article ? article.seo_description : '' %></textarea>
+              <textarea id="seo_description" name="seo_description" class="form-input" rows="2" maxlength="320" placeholder="Meta description for search results (150-160 chars ideal)" ><%= article ? article.seo_description : '' %></textarea>
               <div class="char-counter-row">
                 <p class="form-help">Appears below the title in search results</p>
                 <span id="seoDescCount" class="char-counter"></span>
@@ -263,7 +263,7 @@
           <div class="form-section">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <h3 class="form-section-title" style="margin-bottom: 0;"><i class="fas fa-share-alt"></i> Social Preview (Open Graph / Twitter Cards)</h3>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="aiSuggestSection('social')">
+              <button type="button" class="btn btn-secondary btn-sm" id="aiSuggestSocialBtn">
                 <i class="fas fa-robot"></i> AI Suggest Social
               </button>
             </div>
@@ -283,7 +283,7 @@
 
             <!-- Auto-populate button -->
             <div class="form-group" style="margin-bottom: 20px;">
-              <button type="button" class="btn btn-secondary" onclick="autoPopulateSocial()">
+              <button type="button" class="btn btn-secondary" id="autoPopulateSocialBtn">
                 <i class="fas fa-magic"></i> Auto-fill from Article Data
               </button>
               <p class="form-help" style="margin-top: 4px;">Populates OG & Twitter fields from your article title, excerpt, and featured image</p>
@@ -303,7 +303,7 @@
             <div class="social-tab-content active" id="tab-og">
               <div class="form-group">
                 <label class="form-label" for="og_title"><i class="fab fa-facebook-square" style="color: #1877F2;"></i> OG Title</label>
-                <input type="text" id="og_title" name="og_title" class="form-input" maxlength="95" placeholder="Title as it appears on Facebook, LinkedIn, WhatsApp, Pinterest (40-60 chars)" value="<%= article && article.og_title ? article.og_title : '' %>" oninput="updateCharCount(this, 'ogTitleCount', 60); updateSocialPreviews(); updateSocialScore();">
+                <input type="text" id="og_title" name="og_title" class="form-input" maxlength="95" placeholder="Title as it appears on Facebook, LinkedIn, WhatsApp, Pinterest (40-60 chars)" value="<%= article && article.og_title ? article.og_title : '' %>" >
                 <div class="char-counter-row">
                   <p class="form-help">Best practice: 40-60 characters. Used by Facebook, LinkedIn, WhatsApp, Slack, Discord, Pinterest.</p>
                   <span id="ogTitleCount" class="char-counter"></span>
@@ -312,7 +312,7 @@
 
               <div class="form-group">
                 <label class="form-label" for="og_description"><i class="fab fa-facebook-square" style="color: #1877F2;"></i> OG Description</label>
-                <textarea id="og_description" name="og_description" class="form-input" rows="2" maxlength="300" placeholder="Description for social sharing (100-200 chars ideal)" oninput="updateCharCount(this, 'ogDescCount', 200); updateSocialPreviews(); updateSocialScore();"><%= article && article.og_description ? article.og_description : '' %></textarea>
+                <textarea id="og_description" name="og_description" class="form-input" rows="2" maxlength="300" placeholder="Description for social sharing (100-200 chars ideal)" ><%= article && article.og_description ? article.og_description : '' %></textarea>
                 <div class="char-counter-row">
                   <p class="form-help">Best practice: 100-200 characters. Keep it compelling and actionable.</p>
                   <span id="ogDescCount" class="char-counter"></span>
@@ -322,8 +322,8 @@
               <div class="form-group">
                 <label class="form-label" for="og_image"><i class="fas fa-image" style="color: #1877F2;"></i> OG Image URL</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="url" id="og_image" name="og_image" class="form-input" placeholder="https://example.com/image.jpg (1200x630px recommended)" value="<%= article && article.og_image ? article.og_image : '' %>" oninput="updateSocialPreviews(); updateSocialScore();" style="flex: 1;">
-                  <button type="button" class="btn btn-secondary" onclick="openOgImageSelector()">
+                  <input type="url" id="og_image" name="og_image" class="form-input" placeholder="https://example.com/image.jpg (1200x630px recommended)" value="<%= article && article.og_image ? article.og_image : '' %>" style="flex: 1;">
+                  <button type="button" class="btn btn-secondary" id="openOgImageBtn">
                     <i class="fas fa-photo-video"></i> Library
                   </button>
                 </div>
@@ -336,7 +336,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="og_type">OG Type</label>
-                  <select id="og_type" name="og_type" class="form-input" onchange="updateSocialScore();">
+                  <select id="og_type" name="og_type" class="form-input">
                     <option value="article" <%= (!article || !article.og_type || article.og_type === 'article') ? 'selected' : '' %>>Article</option>
                     <option value="website" <%= (article && article.og_type === 'website') ? 'selected' : '' %>>Website</option>
                     <option value="blog" <%= (article && article.og_type === 'blog') ? 'selected' : '' %>>Blog</option>
@@ -350,7 +350,7 @@
             <!-- Twitter Customize Toggle -->
             <div style="margin: 20px 0; padding: 12px 16px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px;">
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
-                <input type="checkbox" id="twitterCustomizeToggle" onchange="toggleTwitterFields()">
+                <input type="checkbox" id="twitterCustomizeToggle">
                 <span>Customize X/Twitter fields separately</span>
               </label>
               <p class="form-help" style="margin: 4px 0 0 26px;">When unchecked, X/Twitter cards automatically use your OG values above.</p>
@@ -360,7 +360,7 @@
             <div id="tab-twitter" style="display: none;">
               <div class="form-group">
                 <label class="form-label" for="twitter_card"><i class="fab fa-x-twitter"></i> Card Type</label>
-                <select id="twitter_card" name="twitter_card" class="form-input" onchange="updateSocialPreviews(); updateSocialScore();">
+                <select id="twitter_card" name="twitter_card" class="form-input">
                   <option value="summary_large_image" <%= (!article || !article.twitter_card || article.twitter_card === 'summary_large_image') ? 'selected' : '' %>>Summary with Large Image (recommended)</option>
                   <option value="summary" <%= (article && article.twitter_card === 'summary') ? 'selected' : '' %>>Summary (small thumbnail)</option>
                 </select>
@@ -369,7 +369,7 @@
 
               <div class="form-group">
                 <label class="form-label" for="twitter_title"><i class="fab fa-x-twitter"></i> X Title</label>
-                <input type="text" id="twitter_title" name="twitter_title" class="form-input" maxlength="70" placeholder="Title for X/Twitter cards (max 70 chars)" value="<%= article && article.twitter_title ? article.twitter_title : '' %>" oninput="updateCharCount(this, 'twitterTitleCount', 70); updateSocialPreviews(); updateSocialScore();">
+                <input type="text" id="twitter_title" name="twitter_title" class="form-input" maxlength="70" placeholder="Title for X/Twitter cards (max 70 chars)" value="<%= article && article.twitter_title ? article.twitter_title : '' %>" >
                 <div class="char-counter-row">
                   <p class="form-help">Falls back to OG Title if empty. Max 70 characters.</p>
                   <span id="twitterTitleCount" class="char-counter"></span>
@@ -378,7 +378,7 @@
 
               <div class="form-group">
                 <label class="form-label" for="twitter_description"><i class="fab fa-x-twitter"></i> X Description</label>
-                <textarea id="twitter_description" name="twitter_description" class="form-input" rows="2" maxlength="200" placeholder="Description for X/Twitter (max 200 chars)" oninput="updateCharCount(this, 'twitterDescCount', 200); updateSocialPreviews(); updateSocialScore();"><%= article && article.twitter_description ? article.twitter_description : '' %></textarea>
+                <textarea id="twitter_description" name="twitter_description" class="form-input" rows="2" maxlength="200" placeholder="Description for X/Twitter (max 200 chars)" ><%= article && article.twitter_description ? article.twitter_description : '' %></textarea>
                 <div class="char-counter-row">
                   <p class="form-help">Falls back to OG Description if empty. Keep it concise.</p>
                   <span id="twitterDescCount" class="char-counter"></span>
@@ -388,8 +388,8 @@
               <div class="form-group">
                 <label class="form-label" for="twitter_image"><i class="fas fa-image"></i> X Image URL</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="url" id="twitter_image" name="twitter_image" class="form-input" placeholder="https://example.com/image.jpg (leave empty to use OG image)" value="<%= article && article.twitter_image ? article.twitter_image : '' %>" oninput="updateSocialPreviews(); updateSocialScore();" style="flex: 1;">
-                  <button type="button" class="btn btn-secondary" onclick="openTwitterImageSelector()">
+                  <input type="url" id="twitter_image" name="twitter_image" class="form-input" placeholder="https://example.com/image.jpg (leave empty to use OG image)" value="<%= article && article.twitter_image ? article.twitter_image : '' %>" style="flex: 1;">
+                  <button type="button" class="btn btn-secondary" id="openTwitterImageBtn">
                     <i class="fas fa-photo-video"></i> Library
                   </button>
                 </div>
@@ -399,12 +399,12 @@
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="twitter_site">@Site Handle</label>
-                  <input type="text" id="twitter_site" name="twitter_site" class="form-input" placeholder="@wordsthatsells" value="<%= article && article.twitter_site ? article.twitter_site : '' %>" oninput="updateSocialPreviews(); updateSocialScore();">
+                  <input type="text" id="twitter_site" name="twitter_site" class="form-input" placeholder="@wordsthatsells" value="<%= article && article.twitter_site ? article.twitter_site : '' %>">
                   <p class="form-help">Your brand's X handle (e.g. @wordsthatsells)</p>
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="twitter_creator">@Author Handle</label>
-                  <input type="text" id="twitter_creator" name="twitter_creator" class="form-input" placeholder="@authorname" value="<%= article && article.twitter_creator ? article.twitter_creator : '' %>" oninput="updateSocialScore();">
+                  <input type="text" id="twitter_creator" name="twitter_creator" class="form-input" placeholder="@authorname" value="<%= article && article.twitter_creator ? article.twitter_creator : '' %>">
                   <p class="form-help">The content creator's X handle</p>
                 </div>
               </div>
@@ -498,14 +498,14 @@
             <input type="hidden" id="citations" name="citations" value="<%= article && article.citations ? (typeof article.citations === 'string' ? article.citations : JSON.stringify(article.citations)) : '[]' %>">
 
             <div id="citationsList" class="citation-list"></div>
-            <button type="button" class="btn btn-secondary" onclick="addCitation()" style="margin-top: 8px;">
+            <button type="button" id="addCitationBtn" class="btn btn-secondary" style="margin-top: 8px;">
               <i class="fas fa-plus"></i> Add Citation
             </button>
           </div>
 
           <!-- Schema.org / Structured Data Section (Accordion) -->
           <div class="form-section">
-            <button type="button" class="accordion-header" onclick="toggleAccordion('schemaAccordion', this)">
+            <button type="button" class="accordion-header" id="schemaAccordionBtn">
               <span><i class="fas fa-code"></i> Structured Data (Schema.org / JSON-LD)</span>
               <i class="fas fa-chevron-down accordion-arrow"></i>
             </button>
@@ -513,10 +513,10 @@
 
             <div id="schemaAccordion" class="accordion-body" style="display: none;">
               <div class="form-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-secondary" onclick="generateSchemaMarkup()">
+                <button type="button" id="genSchemaBtn" class="btn btn-secondary">
                   <i class="fas fa-cogs"></i> Auto-Generate Schema Markup
                 </button>
-                <button type="button" class="btn btn-secondary" onclick="generateOgMetaPreview()">
+                <button type="button" id="genOgPreviewBtn" class="btn btn-secondary">
                   <i class="fas fa-share-alt"></i> Preview OG &amp; Meta Tags
                 </button>
               </div>
@@ -543,13 +543,13 @@
 
             <div class="form-group">
               <label class="form-label" for="cl_description"><i class="fas fa-align-left"></i> Card Description</label>
-              <textarea id="cl_description" name="cl_description" class="form-input" rows="3" placeholder="A short description that appears on the sidebar card..." oninput="updateContentLabels()"></textarea>
+              <textarea id="cl_description" name="cl_description" class="form-input" rows="3" placeholder="A short description that appears on the sidebar card..."></textarea>
               <p class="form-help">Shown at the top of the sidebar card below the title.</p>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="cl_who_should_read"><i class="fas fa-users"></i> Who Should Read This</label>
-              <textarea id="cl_who_should_read" name="cl_who_should_read" class="form-input" rows="4" placeholder="Marketing professionals&#10;Business owners&#10;SEO specialists" oninput="updateContentLabels()"></textarea>
+              <textarea id="cl_who_should_read" name="cl_who_should_read" class="form-input" rows="4" placeholder="Marketing professionals&#10;Business owners&#10;SEO specialists"></textarea>
               <p class="form-help">One audience type per line. Displayed as a bullet list.</p>
             </div>
 
@@ -557,7 +557,7 @@
               <label class="form-label"><i class="fas fa-lightbulb"></i> What You'll Learn (Key Points)</label>
               <p class="form-help" style="margin-bottom: 8px;">Add key points with a bold title and description.</p>
               <div id="keyPointsList" class="key-points-list"></div>
-              <button type="button" class="btn btn-secondary" onclick="addKeyPoint()" style="margin-top: 8px;">
+              <button type="button" id="addKeyPointBtn" class="btn btn-secondary" style="margin-top: 8px;">
                 <i class="fas fa-plus"></i> Add Key Point
               </button>
             </div>
@@ -566,7 +566,7 @@
               <label class="form-label"><i class="fas fa-book-open"></i> Sources Referenced</label>
               <p class="form-help" style="margin-bottom: 8px;">Add source badges and links shown on the sidebar card.</p>
               <div id="sidebarSourcesList" class="sidebar-sources-list"></div>
-              <button type="button" class="btn btn-secondary" onclick="addSidebarSource()" style="margin-top: 8px;">
+              <button type="button" id="addSidebarSourceBtn" class="btn btn-secondary" style="margin-top: 8px;">
                 <i class="fas fa-plus"></i> Add Source
               </button>
             </div>
@@ -574,12 +574,12 @@
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label" for="cl_faqs_count"><i class="fas fa-question-circle"></i> FAQs Count</label>
-                <input type="number" id="cl_faqs_count" name="cl_faqs_count" class="form-input" min="0" placeholder="e.g. 5" oninput="updateContentLabels()">
+                <input type="number" id="cl_faqs_count" name="cl_faqs_count" class="form-input" min="0" placeholder="e.g. 5">
                 <p class="form-help">Number of FAQs in the article</p>
               </div>
               <div class="form-group">
                 <label class="form-label" for="cl_cta_text"><i class="fas fa-mouse-pointer"></i> CTA Button Text</label>
-                <input type="text" id="cl_cta_text" name="cl_cta_text" class="form-input" placeholder="Read Full Article" oninput="updateContentLabels()">
+                <input type="text" id="cl_cta_text" name="cl_cta_text" class="form-input" placeholder="Read Full Article">
                 <p class="form-help">Custom text for the call-to-action button (default: "Read Full Article")</p>
               </div>
             </div>
@@ -605,7 +605,7 @@
   <div class="modal-content" style="max-width: 460px;">
     <div class="modal-header">
       <h2><i class="fas fa-robot"></i> AI Auto-fill</h2>
-      <button class="modal-close" onclick="closeAiConfirmModal()">&times;</button>
+      <button class="modal-close" id="aiConfirmCloseX">&times;</button>
     </div>
     <div class="modal-body">
       <p style="margin-bottom: 12px;">This will use AI to auto-fill the following fields:</p>
@@ -618,8 +618,8 @@
       </ul>
       <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;"><strong>Note:</strong> Existing values in SEO, OG, and Twitter fields will be overwritten.</p>
       <div style="display: flex; gap: 10px; justify-content: flex-end;">
-        <button type="button" class="btn btn-secondary" onclick="closeAiConfirmModal()">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="closeAiConfirmModal(); aiAnalyzeArticle();">
+        <button type="button" class="btn btn-secondary" id="aiConfirmCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="aiConfirmGoBtn">
           <i class="fas fa-robot"></i> Continue
         </button>
       </div>
@@ -632,13 +632,13 @@
   <div class="modal-content" style="max-width: 420px;">
     <div class="modal-header">
       <h2>Unsaved Changes</h2>
-      <button class="modal-close" onclick="closeUnsavedModal()">&times;</button>
+      <button class="modal-close" id="unsavedCloseX">&times;</button>
     </div>
     <div class="modal-body">
       <p>You have unsaved changes that will be lost. Are you sure you want to leave?</p>
       <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px;">
-        <button type="button" class="btn btn-secondary" onclick="closeUnsavedModal()">Stay</button>
-        <button type="button" class="btn btn-danger" onclick="leaveWithoutSaving()">Leave</button>
+        <button type="button" class="btn btn-secondary" id="unsavedStayBtn">Stay</button>
+        <button type="button" class="btn btn-danger" id="unsavedLeaveBtn">Leave</button>
       </div>
     </div>
   </div>
@@ -649,7 +649,7 @@
   <div class="modal-content" style="max-width: 900px;">
     <div class="modal-header">
       <h2>Select Image from Library</h2>
-      <button class="modal-close" onclick="closeImageSelector()">&times;</button>
+      <button class="modal-close" id="imageModalCloseX">&times;</button>
     </div>
     <div class="modal-body">
       <div style="display: flex; gap: 12px; margin-bottom: 16px;">
@@ -664,7 +664,7 @@
           <option value="icons">Icons</option>
           <option value="general">General</option>
         </select>
-        <button type="button" class="btn btn-secondary" onclick="searchImages()">
+        <button type="button" class="btn btn-secondary" id="imageSearchBtn">
           <i class="fas fa-search"></i> Search
         </button>
       </div>
@@ -1518,34 +1518,56 @@ async function loadImages(page) {
 }
 
 function renderPagination(pagination) {
-  const container = document.getElementById('imageModalPagination');
+  var container = document.getElementById('imageModalPagination');
   if (pagination.totalPages <= 1) {
     container.innerHTML = '';
     return;
   }
-  
-  let html = '<div style="display: flex; gap: 4px; justify-content: center;">';
-  
-  if (pagination.page > 1) {
-    html += `<button class="btn btn-sm btn-secondary" onclick="loadImages(${pagination.page - 1})"><i class="fas fa-chevron-left"></i></button>`;
+
+  container.innerHTML = '';
+  var wrapper = document.createElement('div');
+  wrapper.style.display = 'flex';
+  wrapper.style.gap = '4px';
+  wrapper.style.justifyContent = 'center';
+
+  function makePageBtn(page, label, isPrimary, isIcon) {
+    var btn = document.createElement('button');
+    btn.className = 'btn btn-sm ' + (isPrimary ? 'btn-primary' : 'btn-secondary');
+    if (isIcon) {
+      var icon = document.createElement('i');
+      icon.className = 'fas ' + label;
+      btn.appendChild(icon);
+    } else {
+      btn.textContent = label;
+    }
+    if (!isPrimary) {
+      btn.addEventListener('click', (function(p) { return function() { loadImages(p); }; })(page));
+    }
+    return btn;
   }
-  
-  for (let i = 1; i <= pagination.totalPages; i++) {
+
+  if (pagination.page > 1) {
+    wrapper.appendChild(makePageBtn(pagination.page - 1, 'fa-chevron-left', false, true));
+  }
+
+  for (var i = 1; i <= pagination.totalPages; i++) {
     if (i === pagination.page) {
-      html += `<button class="btn btn-sm btn-primary">${i}</button>`;
+      wrapper.appendChild(makePageBtn(i, String(i), true, false));
     } else if (i === 1 || i === pagination.totalPages || (i >= pagination.page - 1 && i <= pagination.page + 1)) {
-      html += `<button class="btn btn-sm btn-secondary" onclick="loadImages(${i})">${i}</button>`;
+      wrapper.appendChild(makePageBtn(i, String(i), false, false));
     } else if (i === pagination.page - 2 || i === pagination.page + 2) {
-      html += '<span style="padding: 0 4px;">...</span>';
+      var dots = document.createElement('span');
+      dots.style.padding = '0 4px';
+      dots.textContent = '...';
+      wrapper.appendChild(dots);
     }
   }
-  
+
   if (pagination.page < pagination.totalPages) {
-    html += `<button class="btn btn-sm btn-secondary" onclick="loadImages(${pagination.page + 1})"><i class="fas fa-chevron-right"></i></button>`;
+    wrapper.appendChild(makePageBtn(pagination.page + 1, 'fa-chevron-right', false, true));
   }
-  
-  html += '</div>';
-  container.innerHTML = html;
+
+  container.appendChild(wrapper);
 }
 
 function selectImage(image) {
@@ -1965,10 +1987,34 @@ function renderCitations() {
   citationsData.forEach(function(cit, i) {
     var div = document.createElement('div');
     div.className = 'citation-item';
-    div.innerHTML =
-      '<input type="text" class="form-input" placeholder="Source name (e.g. AI Basic Act)" value="' + (cit.name || '').replace(/"/g, '&quot;') + '" oninput="updateCitationField(' + i + ', \'name\', this.value)" style="flex:0.4">' +
-      '<input type="url" class="form-input" placeholder="https://official-source-url.com" value="' + (cit.url || '').replace(/"/g, '&quot;') + '" oninput="updateCitationField(' + i + ', \'url\', this.value)" style="flex:0.6">' +
-      '<button type="button" class="btn-remove" onclick="removeCitation(' + i + ')"><i class="fas fa-times"></i></button>';
+
+    var nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'form-input';
+    nameInput.placeholder = 'Source name (e.g. AI Basic Act)';
+    nameInput.value = cit.name || '';
+    nameInput.style.flex = '0.4';
+    nameInput.addEventListener('input', (function(idx) { return function() { updateCitationField(idx, 'name', this.value); }; })(i));
+
+    var urlInput = document.createElement('input');
+    urlInput.type = 'url';
+    urlInput.className = 'form-input';
+    urlInput.placeholder = 'https://official-source-url.com';
+    urlInput.value = cit.url || '';
+    urlInput.style.flex = '0.6';
+    urlInput.addEventListener('input', (function(idx) { return function() { updateCitationField(idx, 'url', this.value); }; })(i));
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn-remove';
+    var removeIcon = document.createElement('i');
+    removeIcon.className = 'fas fa-times';
+    removeBtn.appendChild(removeIcon);
+    removeBtn.addEventListener('click', (function(idx) { return function() { removeCitation(idx); }; })(i));
+
+    div.appendChild(nameInput);
+    div.appendChild(urlInput);
+    div.appendChild(removeBtn);
     container.appendChild(div);
   });
 }
@@ -2426,10 +2472,34 @@ function renderSidebarSources() {
   sidebarSourcesData.forEach(function(src, i) {
     var div = document.createElement('div');
     div.className = 'sidebar-source-item';
-    div.innerHTML =
-      '<input type="text" class="form-input" placeholder="Source name" value="' + (src.name || '').replace(/"/g, '&quot;') + '" oninput="updateSidebarSourceField(' + i + ', \'name\', this.value)" style="flex:0.4">' +
-      '<input type="url" class="form-input" placeholder="https://source-url.com" value="' + (src.url || '').replace(/"/g, '&quot;') + '" oninput="updateSidebarSourceField(' + i + ', \'url\', this.value)" style="flex:0.6">' +
-      '<button type="button" class="btn-remove" onclick="removeSidebarSource(' + i + ')"><i class="fas fa-times"></i></button>';
+
+    var nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'form-input';
+    nameInput.placeholder = 'Source name';
+    nameInput.value = src.name || '';
+    nameInput.style.flex = '0.4';
+    nameInput.addEventListener('input', (function(idx) { return function() { updateSidebarSourceField(idx, 'name', this.value); }; })(i));
+
+    var urlInput = document.createElement('input');
+    urlInput.type = 'url';
+    urlInput.className = 'form-input';
+    urlInput.placeholder = 'https://source-url.com';
+    urlInput.value = src.url || '';
+    urlInput.style.flex = '0.6';
+    urlInput.addEventListener('input', (function(idx) { return function() { updateSidebarSourceField(idx, 'url', this.value); }; })(i));
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn-remove';
+    var removeIcon = document.createElement('i');
+    removeIcon.className = 'fas fa-times';
+    removeBtn.appendChild(removeIcon);
+    removeBtn.addEventListener('click', (function(idx) { return function() { removeSidebarSource(idx); }; })(i));
+
+    div.appendChild(nameInput);
+    div.appendChild(urlInput);
+    div.appendChild(removeBtn);
     container.appendChild(div);
   });
 }
@@ -2857,6 +2927,67 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // ---- Wire up ALL buttons (no inline onclick) ----
+  function bind(id, fn) { var el = document.getElementById(id); if (el) el.addEventListener('click', fn); }
+
+  // Sticky action bar
+  bind('aiArticleBtn', function() { confirmAiAnalysis(); });
+
+  // Content tab
+  bind('removeFeaturedImageBtn', function() { removeFeaturedImage(); });
+  bind('openFeaturedImageBtn', function() { openFeaturedImageSelector(); });
+
+  // SEO tab
+  bind('aiSuggestSeoBtn', function() { aiSuggestSection('seo'); });
+
+  // Social tab
+  bind('aiSuggestSocialBtn', function() { aiSuggestSection('social'); });
+  bind('autoPopulateSocialBtn', function() { autoPopulateSocial(); });
+  bind('openOgImageBtn', function() { openOgImageSelector(); });
+  bind('openTwitterImageBtn', function() { openTwitterImageSelector(); });
+
+  // Advanced tab
+  bind('addCitationBtn', function() { addCitation(); });
+  bind('schemaAccordionBtn', function() { toggleAccordion('schemaAccordion', this); });
+  bind('genSchemaBtn', function() { generateSchemaMarkup(); });
+  bind('genOgPreviewBtn', function() { generateOgMetaPreview(); });
+  bind('addKeyPointBtn', function() { addKeyPoint(); });
+  bind('addSidebarSourceBtn', function() { addSidebarSource(); });
+
+  // Twitter toggle
+  bind('twitterCustomizeToggle', function() { toggleTwitterFields(); });
+
+  // AI Confirm modal
+  bind('aiConfirmCloseX', function() { closeAiConfirmModal(); });
+  bind('aiConfirmCancelBtn', function() { closeAiConfirmModal(); });
+  bind('aiConfirmGoBtn', function() { closeAiConfirmModal(); aiAnalyzeArticle(); });
+
+  // Unsaved modal
+  bind('unsavedCloseX', function() { closeUnsavedModal(); });
+  bind('unsavedStayBtn', function() { closeUnsavedModal(); });
+  bind('unsavedLeaveBtn', function() { leaveWithoutSaving(); });
+
+  // Image selector modal
+  bind('imageModalCloseX', function() { closeImageSelector(); });
+  bind('imageSearchBtn', function() { searchImages(); });
+
+  // OG type & twitter card selects
+  var ogTypeEl = document.getElementById('og_type');
+  if (ogTypeEl) ogTypeEl.addEventListener('change', function() { updateSocialScore(); });
+  var twCardEl = document.getElementById('twitter_card');
+  if (twCardEl) twCardEl.addEventListener('change', function() { updateSocialPreviews(); updateSocialScore(); });
+
+  // Featured image URL input
+  var featImgEl = document.getElementById('featured_image');
+  if (featImgEl) featImgEl.addEventListener('input', function() { updateFeaturedPreview(); });
+
+  // Content labels fields
+  var clFields = ['cl_description', 'cl_who_should_read', 'cl_faqs_count', 'cl_cta_text'];
+  for (var c = 0; c < clFields.length; c++) {
+    var clEl = document.getElementById(clFields[c]);
+    if (clEl) clEl.addEventListener('input', function() { updateContentLabels(); });
+  }
+
   // Initialize character counters
   var seoTitleEl = document.getElementById('seo_title');
   var seoDescEl = document.getElementById('seo_description');
@@ -2883,8 +3014,24 @@ document.addEventListener('DOMContentLoaded', function() {
   var excerptEl = document.getElementById('excerpt');
   if (titleEl) titleEl.addEventListener('input', function() { updateSerpPreview(); updateSocialPreviews(); });
   if (excerptEl) excerptEl.addEventListener('input', function() { updateSerpPreview(); updateSocialPreviews(); });
-  if (seoTitleEl) seoTitleEl.addEventListener('input', function() { updateSerpPreview(); updateSocialScore(); });
-  if (seoDescEl) seoDescEl.addEventListener('input', function() { updateSerpPreview(); updateSocialScore(); });
+  if (seoTitleEl) seoTitleEl.addEventListener('input', function() { updateCharCount(seoTitleEl, 'seoTitleCount', 60); updateSerpPreview(); updateSocialScore(); });
+  if (seoDescEl) seoDescEl.addEventListener('input', function() { updateCharCount(seoDescEl, 'seoDescCount', 160); updateSerpPreview(); updateSocialScore(); });
+
+  // OG / Social field input listeners
+  if (ogTitleEl) ogTitleEl.addEventListener('input', function() { updateCharCount(ogTitleEl, 'ogTitleCount', 60); updateSocialPreviews(); updateSocialScore(); });
+  if (ogDescEl) ogDescEl.addEventListener('input', function() { updateCharCount(ogDescEl, 'ogDescCount', 200); updateSocialPreviews(); updateSocialScore(); });
+  var ogImageEl = document.getElementById('og_image');
+  if (ogImageEl) ogImageEl.addEventListener('input', function() { updateSocialPreviews(); updateSocialScore(); });
+
+  // Twitter field input listeners
+  if (twTitleEl) twTitleEl.addEventListener('input', function() { updateCharCount(twTitleEl, 'twitterTitleCount', 70); updateSocialPreviews(); updateSocialScore(); });
+  if (twDescEl) twDescEl.addEventListener('input', function() { updateCharCount(twDescEl, 'twitterDescCount', 200); updateSocialPreviews(); updateSocialScore(); });
+  var twImageEl = document.getElementById('twitter_image');
+  if (twImageEl) twImageEl.addEventListener('input', function() { updateSocialPreviews(); updateSocialScore(); });
+  var twSiteEl = document.getElementById('twitter_site');
+  if (twSiteEl) twSiteEl.addEventListener('input', function() { updateSocialPreviews(); updateSocialScore(); });
+  var twCreatorEl = document.getElementById('twitter_creator');
+  if (twCreatorEl) twCreatorEl.addEventListener('input', function() { updateSocialScore(); });
 
   // Initialize completion indicator
   updateCompletionIndicator();
