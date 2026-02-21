@@ -88,17 +88,17 @@
           </div>
 
           <!-- ===== TAB NAVIGATION ===== -->
-          <div class="form-tabs">
-            <button type="button" class="form-tab active" data-tab="content" onclick="switchFormTab('content')">
+          <div class="form-tabs" id="formTabs">
+            <button type="button" class="form-tab active" data-tab="content">
               <i class="fas fa-file-alt"></i> Content
             </button>
-            <button type="button" class="form-tab" data-tab="seo" onclick="switchFormTab('seo')">
+            <button type="button" class="form-tab" data-tab="seo">
               <i class="fas fa-search"></i> SEO
             </button>
-            <button type="button" class="form-tab" data-tab="social" onclick="switchFormTab('social')">
+            <button type="button" class="form-tab" data-tab="social">
               <i class="fas fa-share-alt"></i> Social
             </button>
-            <button type="button" class="form-tab" data-tab="advanced" onclick="switchFormTab('advanced')">
+            <button type="button" class="form-tab" data-tab="advanced">
               <i class="fas fa-cogs"></i> Advanced
             </button>
           </div>
@@ -290,11 +290,11 @@
             </div>
 
             <!-- Platform Tabs -->
-            <div class="social-tabs">
-              <button type="button" class="social-tab active" data-tab="og" onclick="switchSocialTab('og')">
+            <div class="social-tabs" id="socialTabs">
+              <button type="button" class="social-tab active" data-tab="og">
                 <i class="fab fa-facebook"></i> OG Fields (Facebook / LinkedIn)
               </button>
-              <button type="button" class="social-tab" data-tab="previews" onclick="switchSocialTab('previews')">
+              <button type="button" class="social-tab" data-tab="previews">
                 <i class="fas fa-eye"></i> Live Previews
               </button>
             </div>
@@ -2837,6 +2837,26 @@ function updateCompletionIndicator() {
 
 // ==================== Initialize on Page Load ====================
 document.addEventListener('DOMContentLoaded', function() {
+  // ---- Form tab click handlers (using addEventListener, not inline onclick) ----
+  var formTabButtons = document.querySelectorAll('#formTabs .form-tab');
+  for (var t = 0; t < formTabButtons.length; t++) {
+    formTabButtons[t].addEventListener('click', function(e) {
+      e.preventDefault();
+      var tabName = this.getAttribute('data-tab');
+      if (tabName) switchFormTab(tabName);
+    });
+  }
+
+  // ---- Social inner tab click handlers ----
+  var socialTabButtons = document.querySelectorAll('#socialTabs .social-tab');
+  for (var s = 0; s < socialTabButtons.length; s++) {
+    socialTabButtons[s].addEventListener('click', function(e) {
+      e.preventDefault();
+      var tabName = this.getAttribute('data-tab');
+      if (tabName) switchSocialTab(tabName);
+    });
+  }
+
   // Initialize character counters
   var seoTitleEl = document.getElementById('seo_title');
   var seoDescEl = document.getElementById('seo_description');
