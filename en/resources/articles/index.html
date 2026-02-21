@@ -1001,6 +1001,7 @@
 
         // Transform API article to internal format
         function transformArticle(article) {
+            const sm = article.social_meta || {};
             return {
                 id: article.id,
                 title: article.title,
@@ -1014,6 +1015,20 @@
                 sidebar_content: article.sidebar_content || article.content || '<p>Preview not available.</p>',
                 full_article_content: article.full_article_content || article.content || '<p>Content not available.</p>',
                 published_url: article.published_url || '',
+                // Social metadata from admin backend
+                social_meta: {
+                    og_title: sm.og_title || '',
+                    og_description: sm.og_description || '',
+                    og_image: sm.og_image || '',
+                    og_type: sm.og_type || 'article',
+                    twitter_card: sm.twitter_card || 'summary_large_image',
+                    twitter_title: sm.twitter_title || '',
+                    twitter_description: sm.twitter_description || '',
+                    twitter_image: sm.twitter_image || '',
+                    twitter_site: sm.twitter_site || '',
+                    twitter_creator: sm.twitter_creator || '',
+                    canonical_url: sm.canonical_url || ''
+                },
                 // Link opens in slide panel - no external page needed
                 read_more_link: '#'
             };
@@ -1033,18 +1048,25 @@
             return new Date(dateString).toLocaleDateString('en-US', options);
         }
 
-        // Update meta tags dynamically
+        // Update meta tags dynamically using social_meta from admin backend
         function updateMetaTags(article) {
-            const articleUrl = `${SITE_BASE_URL}/articles/${article.slug}`;
+            const sm = article.social_meta || {};
+            const articleUrl = sm.canonical_url || article.published_url || `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
+            const ogTitle = sm.og_title || article.title;
+            const ogDesc = sm.og_description || article.short_description;
+            const ogImage = sm.og_image || article.image;
+            const twTitle = sm.twitter_title || ogTitle;
+            const twDesc = sm.twitter_description || ogDesc;
+            const twImage = sm.twitter_image || ogImage;
 
-            document.getElementById('meta-description').setAttribute('content', article.short_description);
-            document.getElementById('meta-og-title').setAttribute('content', article.title);
-            document.getElementById('meta-og-description').setAttribute('content', article.short_description);
-            document.getElementById('meta-og-image').setAttribute('content', article.image);
+            document.getElementById('meta-description').setAttribute('content', ogDesc);
+            document.getElementById('meta-og-title').setAttribute('content', ogTitle);
+            document.getElementById('meta-og-description').setAttribute('content', ogDesc);
+            document.getElementById('meta-og-image').setAttribute('content', ogImage);
             document.getElementById('meta-og-url').setAttribute('content', articleUrl);
-            document.getElementById('meta-twitter-title').setAttribute('content', article.title);
-            document.getElementById('meta-twitter-description').setAttribute('content', article.short_description);
-            document.getElementById('meta-twitter-image').setAttribute('content', article.image);
+            document.getElementById('meta-twitter-title').setAttribute('content', twTitle);
+            document.getElementById('meta-twitter-description').setAttribute('content', twDesc);
+            document.getElementById('meta-twitter-image').setAttribute('content', twImage);
 
             // Update page title
             document.title = `${article.title} | Digital Marketing Blog`;
@@ -1288,35 +1310,24 @@
             slideInImage.src = postData.image;
             slideInImage.alt = `${postData.title} image`;
 
-            // Show/hide published URL button
-            if (postData.published_url && slideInPublishedLink) {
-                slideInPublishedLink.href = postData.published_url;
+            // Show published URL button — always link to the static article page
+            const headerArticleUrl = postData.published_url || `${SITE_BASE_URL}/en/articles/${postData.slug}.html`;
+            if (slideInPublishedLink) {
+                slideInPublishedLink.href = headerArticleUrl;
                 slideInPublishedLink.style.display = 'inline-flex';
-            } else if (slideInPublishedLink) {
-                slideInPublishedLink.style.display = 'none';
             }
 
-            // Update share buttons in sidebar content to use dynamic slug
-            let contentWithDynamicShares = postData.sidebar_content;
-            const articleUrl = `${SITE_BASE_URL}/en/articles/${postData.slug}`;
+            // Resolve social metadata from admin backend
+            const sm = postData.social_meta || {};
+            const staticArticleUrl = `${SITE_BASE_URL}/en/articles/${postData.slug}.html`;
+            const articleUrl = sm.canonical_url || postData.published_url || staticArticleUrl;
+            const readMoreUrl = postData.published_url || staticArticleUrl;
 
-            // Replace share button URLs and onclick handlers
-            function escapeJsString(str) {
-                return String(str)
-                    .replace(/\\/g, "\\\\")
-                    .replace(/'/g, "\\'");
-            }
-
-            const escapedTitleForJs = escapeJsString(postData.title || '');
-
-            contentWithDynamicShares = contentWithDynamicShares.replace(
-                /onclick="sharePost\('(\w+)',\s*'[^']*',\s*'[^']*'\)/g,
-                `onclick="sharePost('$1', '${escapedTitleForJs}', '${articleUrl}')`
-            );
-            contentWithDynamicShares = contentWithDynamicShares.replace(
-                /onclick="copyLink\('[^']*'\)/g,
-                `onclick="copyLink('${articleUrl}')`
-            );
+            // Social sharing metadata (falls back to article title/description)
+            const ogTitle = sm.og_title || postData.title;
+            const ogDesc = sm.og_description || postData.short_description;
+            const twTitle = sm.twitter_title || ogTitle;
+            const twDesc = sm.twitter_description || ogDesc;
 
             let contentHTML = `
                 <div class="article-meta-info">
@@ -1325,31 +1336,46 @@
                     <span><i class="fas fa-book-open"></i> ${readingTime} min read</span>
                 </div>
                 <div class="blog-info-section">
-                    ${postData.full_article_content || contentWithDynamicShares}
+                    ${postData.full_article_content || postData.sidebar_content}
                 </div>
-                ${postData.published_url ? `<div style="margin-top: var(--spacing-lg); text-align: center;">
-                    <a href="${postData.published_url}" target="_blank" rel="noopener noreferrer" class="read-button">Read More <i class="fas fa-arrow-right"></i></a>
-                </div>` : ''}
-                <div class="share-buttons" style="margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border);">
-                    <a href="#" class="share-x" onclick="sharePost('x', '${escapedTitleForJs}', '${window.location.href}'); return false;" title="Share on X">
+                <div style="margin-top: var(--spacing-lg); text-align: center;">
+                    <a href="${readMoreUrl}" target="_blank" rel="noopener noreferrer" class="read-button">Read Full Article <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="share-buttons" id="slideShareButtons" style="margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border);">
+                    <a href="#" class="share-x" data-platform="x" title="Share on X (Twitter)">
                         <i class="fab fa-x-twitter"></i>
                     </a>
-                    <a href="#" class="share-linkedin" onclick="sharePost('linkedin', '${escapedTitleForJs}', '${window.location.href}'); return false;" title="Share on LinkedIn">
+                    <a href="#" class="share-linkedin" data-platform="linkedin" title="Share on LinkedIn">
                         <i class="fab fa-linkedin-in"></i>
                     </a>
-                    <a href="#" class="share-facebook" onclick="sharePost('facebook', '${escapedTitleForJs}', '${window.location.href}'); return false;" title="Share on Facebook">
+                    <a href="#" class="share-facebook" data-platform="facebook" title="Share on Facebook">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#" class="share-whatsapp" onclick="sharePost('whatsapp', '${escapedTitleForJs}', '${window.location.href}'); return false;" title="Share on WhatsApp">
+                    <a href="#" class="share-whatsapp" data-platform="whatsapp" title="Share on WhatsApp">
                         <i class="fab fa-whatsapp"></i>
                     </a>
-                    <a href="#" class="share-copy" onclick="copyLink('${window.location.href}'); return false;" title="Copy Link">
+                    <a href="#" class="share-copy" data-platform="copy" title="Copy Link">
                         <i class="fas fa-link"></i>
                     </a>
                 </div>
             `;
 
             slideInContent.innerHTML = contentHTML;
+
+            // Wire up share buttons with proper article URL and social metadata
+            slideInContent.querySelectorAll('#slideShareButtons a').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const platform = btn.dataset.platform;
+                    if (platform === 'x') {
+                        sharePost('x', twTitle, articleUrl, twDesc);
+                    } else if (platform === 'copy') {
+                        copyLink(articleUrl);
+                    } else {
+                        sharePost(platform, ogTitle, articleUrl, ogDesc);
+                    }
+                });
+            });
             document.body.classList.add('no-scroll');
             overlay.classList.add('is-open');
             slideInPanel.classList.add('is-open');
@@ -1387,14 +1413,15 @@
             handleFloatingButtons();
         }
 
-        function sharePost(platform, title, url) {
+        function sharePost(platform, title, url, description) {
             let shareUrl = '';
-            const encodedTitle = encodeURIComponent(title);
             const encodedUrl = encodeURIComponent(url);
+            const shareText = title + (description ? ' - ' + description : '');
+            const encodedShareText = encodeURIComponent(shareText);
 
             switch (platform) {
                 case 'x':
-                    shareUrl = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
+                    shareUrl = `https://twitter.com/intent/tweet?text=${encodedShareText}&url=${encodedUrl}`;
                     break;
                 case 'linkedin':
                     shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
@@ -1403,18 +1430,15 @@
                     shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
                     break;
                 case 'whatsapp':
-                    shareUrl = `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`;
+                    shareUrl = `https://api.whatsapp.com/send?text=${encodedShareText}%20${encodedUrl}`;
                     break;
                 case 'copy':
                     copyLink(url);
                     return;
-                case 'instagram':
-                    alert('Instagram sharing requires a mobile app and cannot be done from the web directly. Please save the image and text and share from your device.');
-                    return;
             }
 
             if (shareUrl) {
-                window.open(shareUrl, '_blank');
+                window.open(shareUrl, '_blank', 'width=600,height=400');
             }
         }
 
