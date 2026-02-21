@@ -384,6 +384,55 @@
       font-weight: 600;
     }
 
+    /* Share Buttons */
+    .share-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+      justify-content: center;
+    }
+
+    .share-buttons a {
+      background-color: #e5e7eb;
+      color: #4e555b;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+
+    .share-buttons a:hover {
+      color: var(--color-white);
+    }
+
+    .share-buttons .share-x:hover {
+      background-color: #000000;
+    }
+
+    .share-buttons .share-linkedin:hover {
+      background-color: #0077b5;
+    }
+
+    .share-buttons .share-facebook:hover {
+      background-color: #3b5998;
+    }
+
+    .share-buttons .share-whatsapp:hover {
+      background-color: #25d366;
+    }
+
+    .share-buttons .share-copy:hover {
+      background-color: var(--color-primary);
+    }
+
     /* Admin Link */
     .admin-link {
       position: fixed;
@@ -663,6 +712,10 @@
       const modalContent = document.getElementById('modalContent');
       const createdDate = formatDate(article.created_at);
 
+      // Build the article URL — prefer published_url, fall back to canonical or slug-based
+      const sm = article.social_meta || {};
+      const articleUrl = article.published_url || sm.canonical_url || (window.location.origin + '/en/articles/' + article.slug + '.html');
+
       modalContent.innerHTML = `
         <button class="modal-close" onclick="closeModal()">&times;</button>
         <h2 class="modal-title">${article.title}</h2>
@@ -673,7 +726,43 @@
         <div class="modal-body">
           ${article.content}
         </div>
+        <div class="share-buttons">
+          <a href="#" class="share-btn share-x" data-platform="x" title="Share on X (Twitter)">
+            <i class="fab fa-twitter"></i>
+          </a>
+          <a href="#" class="share-btn share-linkedin" data-platform="linkedin" title="Share on LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+          <a href="#" class="share-btn share-facebook" data-platform="facebook" title="Share on Facebook">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="#" class="share-btn share-whatsapp" data-platform="whatsapp" title="Share on WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          <a href="#" class="share-btn share-copy" data-platform="copy" title="Copy Link">
+            <i class="fas fa-link"></i>
+          </a>
+        </div>
       `;
+
+      // Wire up share buttons with social_meta from admin backend
+      const ogTitle = sm.og_title || article.title;
+      const ogDesc = sm.og_description || article.description || '';
+      const ogImage = sm.og_image || article.featured_image_url || '';
+      const twTitle = sm.twitter_title || ogTitle;
+      const twDesc = sm.twitter_description || ogDesc;
+
+      modalContent.querySelectorAll('.share-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const platform = btn.dataset.platform;
+          if (platform === 'x') {
+            sharePost(platform, twTitle, articleUrl, twDesc, ogImage);
+          } else {
+            sharePost(platform, ogTitle, articleUrl, ogDesc, ogImage);
+          }
+        });
+      });
 
       document.getElementById('articleModal').classList.add('show');
       document.body.style.overflow = 'hidden';
@@ -683,6 +772,62 @@
     function closeModal() {
       document.getElementById('articleModal').classList.remove('show');
       document.body.style.overflow = 'auto';
+    }
+
+    // Share functions — uses social_meta from admin backend
+    function sharePost(platform, title, url, description, imageUrl) {
+      let shareUrl = '';
+      const encodedUrl = encodeURIComponent(url);
+      const shareText = title + (description ? ' - ' + description : '');
+      const encodedShareText = encodeURIComponent(shareText);
+
+      switch (platform) {
+        case 'x':
+          shareUrl = 'https://twitter.com/intent/tweet?text=' + encodedShareText + '&url=' + encodedUrl;
+          break;
+        case 'linkedin':
+          shareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodedUrl;
+          break;
+        case 'facebook':
+          shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodedUrl;
+          break;
+        case 'whatsapp':
+          shareUrl = 'https://api.whatsapp.com/send?text=' + encodedShareText + '%20' + encodedUrl;
+          break;
+        case 'copy':
+          copyLink(url);
+          return;
+      }
+
+      if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+      }
+    }
+
+    function copyLink(url) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function() {
+          alert('Link copied to clipboard!');
+        }).catch(function() {
+          fallbackCopyLink(url);
+        });
+      } else {
+        fallbackCopyLink(url);
+      }
+    }
+
+    function fallbackCopyLink(url) {
+      const tempInput = document.createElement('input');
+      tempInput.value = url;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand('copy');
+        alert('Link copied to clipboard!');
+      } catch (err) {
+        alert('Failed to copy link. Please copy it manually: ' + url);
+      }
+      document.body.removeChild(tempInput);
     }
 
     // Setup event listeners
