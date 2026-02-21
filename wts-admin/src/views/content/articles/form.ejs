@@ -10,7 +10,7 @@
       <div>
         <h1 class="page-title"><%= article ? 'Edit Article' : 'New Article' %></h1>
         <p class="page-subtitle">
-          <a href="/content/articles"><i class="fas fa-arrow-left"></i> Back to Articles</a>
+          <a href="/content/articles" id="backToArticlesLink"><i class="fas fa-arrow-left"></i> Back to Articles</a>
         </p>
       </div>
     </div>
@@ -22,18 +22,91 @@
     </div>
     <% } %>
 
-    <div class="card form-card">
-      <div class="card-body">
-        <form action="<%= article ? '/content/articles/' + article.id : '/content/articles' %>" method="POST">
-          <div class="form-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <h3 class="form-section-title" style="margin-bottom: 0;">Article Content</h3>
-              <button type="button" id="aiArticleBtn" class="btn btn-primary" onclick="aiAnalyzeArticle()">
-                <i class="fas fa-robot"></i> AI Auto-fill All Metadata
+    <div class="card" style="max-width: 1100px; overflow: visible;">
+      <div class="card-body" style="padding: 0;">
+        <form id="articleForm" action="<%= article ? '/content/articles/' + article.id : '/content/articles' %>" method="POST">
+
+          <!-- ===== STICKY ACTION BAR ===== -->
+          <div class="sticky-action-bar" id="stickyActionBar">
+            <div class="sticky-bar-left">
+              <button type="button" id="aiArticleBtn" class="btn btn-secondary btn-sm" onclick="confirmAiAnalysis()">
+                <i class="fas fa-robot"></i> AI Auto-fill
+              </button>
+              <div class="completion-indicator" id="completionIndicator">
+                <span class="completion-dot" data-section="content" title="Content"></span>
+                <span class="completion-dot" data-section="seo" title="SEO"></span>
+                <span class="completion-dot" data-section="social" title="Social"></span>
+                <span class="completion-dot" data-section="advanced" title="Advanced"></span>
+                <span class="completion-text" id="completionText">0/4</span>
+              </div>
+            </div>
+            <div class="sticky-bar-right">
+              <span class="unsaved-badge" id="unsavedBadge" style="display: none;">
+                <i class="fas fa-circle"></i> Unsaved
+              </span>
+              <a href="/content/articles" class="btn btn-secondary btn-sm" id="cancelBtn">Cancel</a>
+              <button type="submit" class="btn btn-primary btn-sm">
+                <i class="fas fa-save"></i> <%= article ? 'Update' : 'Create' %>
               </button>
             </div>
-            <!-- AI Analysis Status -->
-            <div id="aiArticleStatus" style="display: none; margin-bottom: 16px;"></div>
+          </div>
+
+          <!-- AI Analysis Status -->
+          <div id="aiArticleStatus" style="display: none; padding: 0 24px; margin-bottom: 8px;"></div>
+
+          <!-- ===== ORGANIZATION STRIP (Always Visible) ===== -->
+          <div class="org-strip">
+            <div class="org-strip-field">
+              <label class="org-strip-label">Status</label>
+              <select id="status" name="status" class="org-strip-select">
+                <option value="draft" <%= !article || article.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                <option value="published" <%= article && article.status === 'published' ? 'selected' : '' %>>Published</option>
+              </select>
+            </div>
+            <div class="org-strip-field">
+              <label class="org-strip-label">Category</label>
+              <select id="category" name="category" class="org-strip-select">
+                <option value="">Select...</option>
+                <option value="marketing" <%= article && article.category === 'marketing' ? 'selected' : '' %>>Marketing</option>
+                <option value="seo" <%= article && article.category === 'seo' ? 'selected' : '' %>>SEO</option>
+                <option value="ai" <%= article && article.category === 'ai' ? 'selected' : '' %>>AI & Automation</option>
+                <option value="social-media" <%= article && article.category === 'social-media' ? 'selected' : '' %>>Social Media</option>
+                <option value="content" <%= article && article.category === 'content' ? 'selected' : '' %>>Content Creation</option>
+                <option value="business" <%= article && article.category === 'business' ? 'selected' : '' %>>Business</option>
+              </select>
+            </div>
+            <div class="org-strip-field">
+              <label class="org-strip-checkbox">
+                <input type="checkbox" name="featured" value="true" <%= article && article.featured ? 'checked' : '' %>>
+                <span>Featured</span>
+              </label>
+            </div>
+            <div class="org-strip-field" style="flex: 2;">
+              <label class="org-strip-label">Tags</label>
+              <input type="text" id="tags" name="tags" class="org-strip-select" placeholder="marketing, seo, tips" value="<%= article && article.tags ? article.tags.join(', ') : '' %>">
+            </div>
+          </div>
+
+          <!-- ===== TAB NAVIGATION ===== -->
+          <div class="form-tabs">
+            <button type="button" class="form-tab active" data-tab="content" onclick="switchFormTab('content')">
+              <i class="fas fa-file-alt"></i> Content
+            </button>
+            <button type="button" class="form-tab" data-tab="seo" onclick="switchFormTab('seo')">
+              <i class="fas fa-search"></i> SEO
+            </button>
+            <button type="button" class="form-tab" data-tab="social" onclick="switchFormTab('social')">
+              <i class="fas fa-share-alt"></i> Social
+            </button>
+            <button type="button" class="form-tab" data-tab="advanced" onclick="switchFormTab('advanced')">
+              <i class="fas fa-cogs"></i> Advanced
+            </button>
+          </div>
+
+          <!-- ===== TAB: CONTENT ===== -->
+          <div class="form-tab-panel active" id="panel-content">
+          <div class="form-section">
+            <h3 class="form-section-title" style="margin-bottom: 16px;">Article Content</h3>
 
             <div class="form-group">
               <label class="form-label" for="title">Title *</label>
@@ -46,13 +119,29 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="content">Content *</label>
+              <label class="form-label" for="content"><i class="fas fa-file-code"></i> Full Article HTML *</label>
               <textarea id="content" name="content" class="form-input" rows="15" required><%= article ? article.content : '' %></textarea>
+              <p class="form-help">The full HTML content of your article as it appears on the published page.</p>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="featured_image">Featured Image URL</label>
-              <input type="url" id="featured_image" name="featured_image" class="form-input" placeholder="https://example.com/image.jpg" value="<%= article ? article.featured_image : '' %>">
+              <label class="form-label" for="featured_image"><i class="fas fa-image"></i> Featured Image</label>
+              <div class="featured-image-picker" id="featuredImagePicker">
+                <div id="featuredImagePreview" class="featured-image-preview" style="<%= article && article.featured_image ? '' : 'display:none;' %>">
+                  <img id="featuredImageThumb" src="<%= article && article.featured_image ? article.featured_image : '' %>" alt="Featured image preview">
+                  <button type="button" class="featured-image-remove" onclick="removeFeaturedImage()" title="Remove image">&times;</button>
+                </div>
+                <div id="featuredImageEmpty" class="featured-image-empty" style="<%= article && article.featured_image ? 'display:none;' : '' %>">
+                  <i class="fas fa-image"></i>
+                  <span>No featured image selected</span>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="openFeaturedImageSelector()">
+                    <i class="fas fa-photo-video"></i> Choose from Library
+                  </button>
+                  <input type="url" id="featured_image" name="featured_image" class="form-input" placeholder="Or paste image URL" value="<%= article ? article.featured_image : '' %>" oninput="updateFeaturedPreview()" style="flex: 1; font-size: 13px;">
+                </div>
+              </div>
             </div>
 
             <div class="form-group">
@@ -61,9 +150,9 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="article_code">Article Code</label>
-              <textarea id="article_code" name="article_code" class="form-input" rows="10" placeholder="Enter HTML5 code here"><%= article ? article.article_code : '' %></textarea>
-              <p class="form-help">HTML5 code for the article</p>
+              <label class="form-label" for="article_code"><i class="fas fa-code"></i> Embeddable Card Code</label>
+              <textarea id="article_code" name="article_code" class="form-input" rows="10" placeholder="Enter embeddable HTML widget/card code here"><%= article ? article.article_code : '' %></textarea>
+              <p class="form-help">HTML snippet for embedding this article as a card/widget on other pages. This is different from the full article content above.</p>
             </div>
 
             <div class="form-group">
@@ -100,49 +189,17 @@
             </div>
           </div>
 
+          </div><!-- /panel-content -->
+
+          <!-- ===== TAB: SEO ===== -->
+          <div class="form-tab-panel" id="panel-seo">
           <div class="form-section">
-            <h3 class="form-section-title">Organization</h3>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="category">Category</label>
-                <select id="category" name="category" class="form-input">
-                  <option value="">Select category</option>
-                  <option value="marketing" <%= article && article.category === 'marketing' ? 'selected' : '' %>>Marketing</option>
-                  <option value="seo" <%= article && article.category === 'seo' ? 'selected' : '' %>>SEO</option>
-                  <option value="ai" <%= article && article.category === 'ai' ? 'selected' : '' %>>AI & Automation</option>
-                  <option value="social-media" <%= article && article.category === 'social-media' ? 'selected' : '' %>>Social Media</option>
-                  <option value="content" <%= article && article.category === 'content' ? 'selected' : '' %>>Content Creation</option>
-                  <option value="business" <%= article && article.category === 'business' ? 'selected' : '' %>>Business</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="status">Status</label>
-                <select id="status" name="status" class="form-input">
-                  <option value="draft" <%= !article || article.status === 'draft' ? 'selected' : '' %>>Draft</option>
-                  <option value="published" <%= article && article.status === 'published' ? 'selected' : '' %>>Published</option>
-                </select>
-              </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 class="form-section-title" style="margin-bottom: 0;"><i class="fas fa-search"></i> SEO Settings</h3>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="aiSuggestSection('seo')">
+                <i class="fas fa-robot"></i> AI Suggest SEO
+              </button>
             </div>
-
-            <div class="form-group">
-              <label class="form-checkbox">
-                <input type="checkbox" name="featured" value="true" <%= article && article.featured ? 'checked' : '' %>>
-                <span class="checkmark"></span>
-                <span class="form-label">Featured Article</span>
-              </label>
-              <p class="form-help">Featured articles appear at the top of the articles page</p>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="tags">Tags</label>
-              <input type="text" id="tags" name="tags" class="form-input" placeholder="marketing, seo, tips" value="<%= article && article.tags ? article.tags.join(', ') : '' %>">
-              <p class="form-help">Separate tags with commas</p>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <h3 class="form-section-title"><i class="fas fa-search"></i> SEO Settings</h3>
 
             <div class="form-group">
               <label class="form-label" for="seo_title">SEO Title</label>
@@ -198,10 +255,19 @@
             </div>
           </div>
 
+          </div><!-- /panel-seo -->
+
+          <!-- ===== TAB: SOCIAL ===== -->
+          <div class="form-tab-panel" id="panel-social">
           <!-- Social Preview Section -->
           <div class="form-section">
-            <h3 class="form-section-title"><i class="fas fa-share-alt"></i> Social Preview (Open Graph / Twitter Cards)</h3>
-            <p class="form-help" style="margin-bottom: 16px;">Control how your article appears when shared on social platforms. These tags are essential for CTR and engagement.</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 class="form-section-title" style="margin-bottom: 0;"><i class="fas fa-share-alt"></i> Social Preview (Open Graph / Twitter Cards)</h3>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="aiSuggestSection('social')">
+                <i class="fas fa-robot"></i> AI Suggest Social
+              </button>
+            </div>
+            <p class="form-help" style="margin-bottom: 16px;">Control how your article appears when shared on social platforms.</p>
 
             <!-- Social Metadata Completeness Score -->
             <div class="social-score-card" id="socialScoreCard">
@@ -226,10 +292,7 @@
             <!-- Platform Tabs -->
             <div class="social-tabs">
               <button type="button" class="social-tab active" data-tab="og" onclick="switchSocialTab('og')">
-                <i class="fab fa-facebook"></i> Facebook / Meta / LinkedIn
-              </button>
-              <button type="button" class="social-tab" data-tab="twitter" onclick="switchSocialTab('twitter')">
-                <i class="fab fa-x-twitter"></i> X (Twitter)
+                <i class="fab fa-facebook"></i> OG Fields (Facebook / LinkedIn)
               </button>
               <button type="button" class="social-tab" data-tab="previews" onclick="switchSocialTab('previews')">
                 <i class="fas fa-eye"></i> Live Previews
@@ -284,8 +347,17 @@
               </div>
             </div>
 
-            <!-- Twitter Tab -->
-            <div class="social-tab-content" id="tab-twitter">
+            <!-- Twitter Customize Toggle -->
+            <div style="margin: 20px 0; padding: 12px 16px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                <input type="checkbox" id="twitterCustomizeToggle" onchange="toggleTwitterFields()">
+                <span>Customize X/Twitter fields separately</span>
+              </label>
+              <p class="form-help" style="margin: 4px 0 0 26px;">When unchecked, X/Twitter cards automatically use your OG values above.</p>
+            </div>
+
+            <!-- Twitter Fields (hidden by default) -->
+            <div id="tab-twitter" style="display: none;">
               <div class="form-group">
                 <label class="form-label" for="twitter_card"><i class="fab fa-x-twitter"></i> Card Type</label>
                 <select id="twitter_card" name="twitter_card" class="form-input" onchange="updateSocialPreviews(); updateSocialScore();">
@@ -415,6 +487,10 @@
             </div>
           </div>
 
+          </div><!-- /panel-social -->
+
+          <!-- ===== TAB: ADVANCED ===== -->
+          <div class="form-tab-panel" id="panel-advanced">
           <!-- Citations / Sources Section -->
           <div class="form-section">
             <h3 class="form-section-title"><i class="fas fa-quote-right"></i> Citations &amp; Sources</h3>
@@ -427,30 +503,35 @@
             </button>
           </div>
 
-          <!-- Schema.org / Structured Data Section -->
+          <!-- Schema.org / Structured Data Section (Accordion) -->
           <div class="form-section">
-            <h3 class="form-section-title"><i class="fas fa-code"></i> Structured Data (Schema.org / JSON-LD)</h3>
-            <p class="form-help" style="margin-bottom: 12px;">Structured data helps search engines and AI systems understand your content. Auto-generated from article fields.</p>
+            <button type="button" class="accordion-header" onclick="toggleAccordion('schemaAccordion', this)">
+              <span><i class="fas fa-code"></i> Structured Data (Schema.org / JSON-LD)</span>
+              <i class="fas fa-chevron-down accordion-arrow"></i>
+            </button>
+            <p class="form-help" style="margin-bottom: 8px;">Structured data helps search engines and AI systems understand your content.</p>
 
-            <div class="form-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="btn btn-secondary" onclick="generateSchemaMarkup()">
-                <i class="fas fa-cogs"></i> Auto-Generate Schema Markup
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="generateOgMetaPreview()">
-                <i class="fas fa-share-alt"></i> Preview OG &amp; Meta Tags
-              </button>
-            </div>
+            <div id="schemaAccordion" class="accordion-body" style="display: none;">
+              <div class="form-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-secondary" onclick="generateSchemaMarkup()">
+                  <i class="fas fa-cogs"></i> Auto-Generate Schema Markup
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="generateOgMetaPreview()">
+                  <i class="fas fa-share-alt"></i> Preview OG &amp; Meta Tags
+                </button>
+              </div>
 
-            <div class="form-group">
-              <label class="form-label" for="schema_markup">JSON-LD Schema Markup</label>
-              <textarea id="schema_markup" name="schema_markup" class="form-input code-textarea" rows="12" placeholder='Click "Auto-Generate" to create schema markup from your article data'><%= article && article.schema_markup ? JSON.stringify(article.schema_markup, null, 2) : '' %></textarea>
-              <p class="form-help">This will be embedded as &lt;script type="application/ld+json"&gt; in the article page. Improves rich snippets and AI comprehension.</p>
-            </div>
+              <div class="form-group">
+                <label class="form-label" for="schema_markup">JSON-LD Schema Markup</label>
+                <textarea id="schema_markup" name="schema_markup" class="form-input code-textarea" rows="12" placeholder='Click "Auto-Generate" to create schema markup from your article data'><%= article && article.schema_markup ? JSON.stringify(article.schema_markup, null, 2) : '' %></textarea>
+                <p class="form-help">This will be embedded as &lt;script type="application/ld+json"&gt; in the article page.</p>
+              </div>
 
-            <div id="ogMetaPreviewSection" class="form-group" style="display: none;">
-              <label class="form-label">Open Graph &amp; Meta Tags Preview</label>
-              <textarea id="og_meta_preview" class="form-input code-textarea" rows="18" readonly></textarea>
-              <p class="form-help">Read-only preview of all meta tags that will be rendered on the article page. Copy if needed for manual use.</p>
+              <div id="ogMetaPreviewSection" class="form-group" style="display: none;">
+                <label class="form-label">Open Graph &amp; Meta Tags Preview</label>
+                <textarea id="og_meta_preview" class="form-input code-textarea" rows="18" readonly></textarea>
+                <p class="form-help">Read-only preview of all meta tags. Copy if needed for manual use.</p>
+              </div>
             </div>
           </div>
 
@@ -504,8 +585,11 @@
             </div>
           </div>
 
-          <div class="form-actions">
-            <a href="/content/articles" class="btn btn-secondary">Cancel</a>
+          </div><!-- /panel-advanced -->
+
+          <!-- Bottom save bar (non-sticky fallback) -->
+          <div class="form-actions" style="padding: 16px 24px; border-top: 1px solid var(--gray-200);">
+            <a href="/content/articles" class="btn btn-secondary" id="cancelBtnBottom">Cancel</a>
             <button type="submit" class="btn btn-primary">
               <i class="fas fa-save"></i> <%= article ? 'Update Article' : 'Create Article' %>
             </button>
@@ -515,6 +599,50 @@
     </div>
   </div>
 </main>
+
+<!-- AI Confirmation Modal -->
+<div id="aiConfirmModal" class="modal">
+  <div class="modal-content" style="max-width: 460px;">
+    <div class="modal-header">
+      <h2><i class="fas fa-robot"></i> AI Auto-fill</h2>
+      <button class="modal-close" onclick="closeAiConfirmModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom: 12px;">This will use AI to auto-fill the following fields:</p>
+      <ul style="font-size: 13px; color: var(--gray-700); margin: 0 0 16px 16px; line-height: 1.8;">
+        <li>SEO Title, Description, Keywords</li>
+        <li>OG Title & Description</li>
+        <li>X/Twitter Title & Description</li>
+        <li>Content Labels & Key Points</li>
+        <li>Category, Tags, Excerpt (if empty)</li>
+      </ul>
+      <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;"><strong>Note:</strong> Existing values in SEO, OG, and Twitter fields will be overwritten.</p>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeAiConfirmModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="closeAiConfirmModal(); aiAnalyzeArticle();">
+          <i class="fas fa-robot"></i> Continue
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Unsaved Changes Modal -->
+<div id="unsavedModal" class="modal">
+  <div class="modal-content" style="max-width: 420px;">
+    <div class="modal-header">
+      <h2>Unsaved Changes</h2>
+      <button class="modal-close" onclick="closeUnsavedModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>You have unsaved changes that will be lost. Are you sure you want to leave?</p>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px;">
+        <button type="button" class="btn btn-secondary" onclick="closeUnsavedModal()">Stay</button>
+        <button type="button" class="btn btn-danger" onclick="leaveWithoutSaving()">Leave</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Image Selector Modal -->
 <div id="imageSelectorModal" class="modal">
@@ -1140,6 +1268,185 @@
 .citation-item .btn-remove:hover {
   background: #c82333;
 }
+
+/* ===== STICKY ACTION BAR ===== */
+.sticky-action-bar {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 24px;
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.sticky-bar-left, .sticky-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.unsaved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #d97706;
+  font-weight: 600;
+}
+.unsaved-badge i { font-size: 8px; }
+
+/* ===== COMPLETION INDICATOR ===== */
+.completion-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.completion-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gray-300);
+  transition: background 0.3s;
+}
+.completion-dot.partial { background: #f59e0b; }
+.completion-dot.complete { background: #10b981; }
+.completion-text {
+  font-size: 12px;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+/* ===== ORGANIZATION STRIP ===== */
+.org-strip {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  padding: 12px 24px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  flex-wrap: wrap;
+}
+.org-strip-field { display: flex; flex-direction: column; gap: 4px; }
+.org-strip-label { font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; }
+.org-strip-select {
+  padding: 6px 10px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  color: var(--gray-800);
+}
+.org-strip-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+/* ===== FORM TABS ===== */
+.form-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--gray-200);
+  padding: 0 24px;
+  background: #fff;
+}
+.form-tab {
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-500);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.form-tab:hover { color: var(--gray-800); background: var(--gray-50); }
+.form-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.form-tab-panel { display: none; padding: 24px; }
+.form-tab-panel.active { display: block; }
+
+/* ===== FEATURED IMAGE PICKER ===== */
+.featured-image-picker {
+  border: 1px dashed var(--gray-300);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--gray-50);
+}
+.featured-image-preview {
+  position: relative;
+  display: inline-block;
+  max-width: 280px;
+  margin-bottom: 4px;
+}
+.featured-image-preview img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+}
+.featured-image-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.featured-image-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gray-400);
+  font-size: 14px;
+  padding: 12px 0;
+}
+.featured-image-empty i { font-size: 24px; }
+
+/* ===== ACCORDION ===== */
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+.accordion-header:hover { color: var(--primary); }
+.accordion-arrow { transition: transform 0.2s; font-size: 14px; color: var(--gray-500); }
+.accordion-header.open .accordion-arrow { transform: rotate(180deg); }
+.accordion-body { padding-top: 8px; }
+
+/* ===== BTN DANGER ===== */
+.btn-danger {
+  background: #dc3545;
+  color: #fff;
+  border: 1px solid #dc3545;
+}
+.btn-danger:hover { background: #c82333; }
 </style>
 
 <script>
@@ -2276,6 +2583,240 @@ function aiAnalyzeArticle() {
     });
 }
 
+// ==================== Form Tab Switching ====================
+function switchFormTab(tabName) {
+  var tabs = document.querySelectorAll('.form-tab');
+  var panels = document.querySelectorAll('.form-tab-panel');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
+  var tab = document.querySelector('.form-tab[data-tab="' + tabName + '"]');
+  var panel = document.getElementById('panel-' + tabName);
+  if (tab) tab.classList.add('active');
+  if (panel) panel.classList.add('active');
+  if (tabName === 'social') { updateSocialPreviews(); updateSocialScore(); }
+  if (tabName === 'seo') { updateSerpPreview(); }
+}
+
+// ==================== Featured Image Picker ====================
+function openFeaturedImageSelector() {
+  socialImageTarget = 'featured_image';
+  openSocialImageModal();
+}
+
+function updateFeaturedPreview() {
+  var url = document.getElementById('featured_image').value;
+  var preview = document.getElementById('featuredImagePreview');
+  var thumb = document.getElementById('featuredImageThumb');
+  var empty = document.getElementById('featuredImageEmpty');
+  if (url) {
+    thumb.src = url;
+    preview.style.display = 'inline-block';
+    empty.style.display = 'none';
+  } else {
+    preview.style.display = 'none';
+    empty.style.display = 'flex';
+  }
+}
+
+function removeFeaturedImage() {
+  document.getElementById('featured_image').value = '';
+  updateFeaturedPreview();
+}
+
+// ==================== AI Confirmation Dialog ====================
+function confirmAiAnalysis() {
+  var titleVal = document.getElementById('title').value.trim();
+  var contentVal = document.getElementById('content').value.trim();
+  if (!titleVal && !contentVal) {
+    alert('Please enter at least a title or content before running AI analysis.');
+    return;
+  }
+  document.getElementById('aiConfirmModal').style.display = 'block';
+}
+
+function closeAiConfirmModal() {
+  document.getElementById('aiConfirmModal').style.display = 'none';
+}
+
+// AI per-section micro-buttons (uses cached response)
+var aiCachedResponse = null;
+
+function aiSuggestSection(section) {
+  if (aiCachedResponse) {
+    applyAiToSection(section, aiCachedResponse);
+    return;
+  }
+  // No cache, run full analysis and then apply just this section
+  var titleVal = document.getElementById('title').value.trim();
+  var contentVal = document.getElementById('content').value.trim();
+  var excerptVal = document.getElementById('excerpt').value.trim();
+  if (!titleVal && !contentVal) { alert('Please enter at least a title or content first.'); return; }
+
+  var btn = event.target.closest('button');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
+  var articleId = '<%= (typeof articleId !== "undefined" && articleId) ? articleId : "" %>';
+  var url, fetchOptions;
+  if (articleId && titleVal === '<%= article ? (article.title || "").replace(/\'/g, "\\\'") : "" %>') {
+    url = '/content/articles/' + articleId + '/ai-analyze';
+    fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+  } else {
+    url = '/content/articles/ai-analyze-draft';
+    fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: titleVal, content: contentVal, excerpt: excerptVal }) };
+  }
+
+  fetch(url, fetchOptions)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (!data.error) {
+        aiCachedResponse = data;
+        applyAiToSection(section, data);
+      } else {
+        alert('AI error: ' + data.error);
+      }
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-robot"></i> AI Suggest ' + (section === 'seo' ? 'SEO' : 'Social');
+    })
+    .catch(function(err) {
+      alert('AI failed: ' + err.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-robot"></i> AI Suggest ' + (section === 'seo' ? 'SEO' : 'Social');
+    });
+}
+
+function applyAiToSection(section, data) {
+  if (section === 'seo') {
+    if (data.seo_title) { document.getElementById('seo_title').value = data.seo_title; updateCharCount(document.getElementById('seo_title'), 'seoTitleCount', 60); }
+    if (data.seo_description) { document.getElementById('seo_description').value = data.seo_description; updateCharCount(document.getElementById('seo_description'), 'seoDescCount', 160); }
+    if (data.seo_keywords && Array.isArray(data.seo_keywords)) { document.getElementById('seo_keywords').value = data.seo_keywords.join(', '); }
+    updateSerpPreview();
+  } else if (section === 'social') {
+    if (data.og_title) { document.getElementById('og_title').value = data.og_title; updateCharCount(document.getElementById('og_title'), 'ogTitleCount', 60); }
+    if (data.og_description) { document.getElementById('og_description').value = data.og_description; updateCharCount(document.getElementById('og_description'), 'ogDescCount', 200); }
+    if (data.twitter_title) { document.getElementById('twitter_title').value = data.twitter_title; updateCharCount(document.getElementById('twitter_title'), 'twitterTitleCount', 70); }
+    if (data.twitter_description) { document.getElementById('twitter_description').value = data.twitter_description; updateCharCount(document.getElementById('twitter_description'), 'twitterDescCount', 200); }
+    updateSocialPreviews();
+    updateSocialScore();
+  }
+  formDirty = true;
+  document.getElementById('unsavedBadge').style.display = 'inline-flex';
+}
+
+// ==================== Twitter Fields Toggle ====================
+function toggleTwitterFields() {
+  var checked = document.getElementById('twitterCustomizeToggle').checked;
+  document.getElementById('tab-twitter').style.display = checked ? 'block' : 'none';
+}
+
+// ==================== Accordion Toggle ====================
+function toggleAccordion(id, btn) {
+  var body = document.getElementById(id);
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    if (btn) btn.classList.add('open');
+  } else {
+    body.style.display = 'none';
+    if (btn) btn.classList.remove('open');
+  }
+}
+
+// ==================== Unsaved Changes Warning ====================
+var formDirty = false;
+var leaveUrl = '/content/articles';
+
+document.addEventListener('DOMContentLoaded', function() {
+  var form = document.getElementById('articleForm');
+  form.addEventListener('input', function() {
+    formDirty = true;
+    var badge = document.getElementById('unsavedBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    updateCompletionIndicator();
+  });
+  form.addEventListener('change', function() {
+    formDirty = true;
+    var badge = document.getElementById('unsavedBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    updateCompletionIndicator();
+  });
+  form.addEventListener('submit', function() { formDirty = false; });
+
+  // Intercept navigation links
+  var backLink = document.querySelector('a[href="/content/articles"]');
+  if (backLink) {
+    backLink.addEventListener('click', function(e) {
+      if (formDirty) { e.preventDefault(); showUnsavedModal('/content/articles'); }
+    });
+  }
+  var cancelBtn = document.getElementById('cancelBtn');
+  if (cancelBtn) cancelBtn.addEventListener('click', function(e) {
+    if (formDirty) { e.preventDefault(); showUnsavedModal('/content/articles'); }
+  });
+  var cancelBtnBottom = document.getElementById('cancelBtnBottom');
+  if (cancelBtnBottom) cancelBtnBottom.addEventListener('click', function(e) {
+    if (formDirty) { e.preventDefault(); showUnsavedModal('/content/articles'); }
+  });
+
+  window.addEventListener('beforeunload', function(e) {
+    if (formDirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+});
+
+function showUnsavedModal(url) {
+  leaveUrl = url;
+  document.getElementById('unsavedModal').style.display = 'block';
+}
+function closeUnsavedModal() {
+  document.getElementById('unsavedModal').style.display = 'none';
+}
+function leaveWithoutSaving() {
+  formDirty = false;
+  window.location.href = leaveUrl;
+}
+
+// ==================== Completion Indicator ====================
+function updateCompletionIndicator() {
+  var dots = document.querySelectorAll('.completion-dot');
+  var complete = 0;
+
+  // Content: title + content
+  var cDot = document.querySelector('.completion-dot[data-section="content"]');
+  var hasTitle = document.getElementById('title').value.trim();
+  var hasContent = document.getElementById('content').value.trim();
+  if (hasTitle && hasContent) { cDot.className = 'completion-dot complete'; complete++; }
+  else if (hasTitle || hasContent) { cDot.className = 'completion-dot partial'; }
+  else { cDot.className = 'completion-dot'; }
+
+  // SEO: seo_title + seo_description
+  var sDot = document.querySelector('.completion-dot[data-section="seo"]');
+  var hasST = document.getElementById('seo_title').value.trim();
+  var hasSD = document.getElementById('seo_description').value.trim();
+  if (hasST && hasSD) { sDot.className = 'completion-dot complete'; complete++; }
+  else if (hasST || hasSD) { sDot.className = 'completion-dot partial'; }
+  else { sDot.className = 'completion-dot'; }
+
+  // Social: og_title + og_description + og_image
+  var soDot = document.querySelector('.completion-dot[data-section="social"]');
+  var hasOT = document.getElementById('og_title').value.trim();
+  var hasOD = document.getElementById('og_description').value.trim();
+  var hasOI = document.getElementById('og_image').value.trim();
+  if (hasOT && hasOD && hasOI) { soDot.className = 'completion-dot complete'; complete++; }
+  else if (hasOT || hasOD || hasOI) { soDot.className = 'completion-dot partial'; }
+  else { soDot.className = 'completion-dot'; }
+
+  // Advanced: citations or schema
+  var aDot = document.querySelector('.completion-dot[data-section="advanced"]');
+  var hasCit = false;
+  try { hasCit = JSON.parse(document.getElementById('citations').value || '[]').length > 0; } catch(e) {}
+  var hasSch = document.getElementById('schema_markup').value.trim();
+  if (hasCit && hasSch) { aDot.className = 'completion-dot complete'; complete++; }
+  else if (hasCit || hasSch) { aDot.className = 'completion-dot partial'; }
+  else { aDot.className = 'completion-dot'; }
+
+  var text = document.getElementById('completionText');
+  if (text) text.textContent = complete + '/4';
+}
+
 // ==================== Initialize on Page Load ====================
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize character counters
@@ -2306,6 +2847,26 @@ document.addEventListener('DOMContentLoaded', function() {
   if (excerptEl) excerptEl.addEventListener('input', function() { updateSerpPreview(); updateSocialPreviews(); });
   if (seoTitleEl) seoTitleEl.addEventListener('input', function() { updateSerpPreview(); updateSocialScore(); });
   if (seoDescEl) seoDescEl.addEventListener('input', function() { updateSerpPreview(); updateSocialScore(); });
+
+  // Initialize completion indicator
+  updateCompletionIndicator();
+
+  // Auto-check Twitter toggle if Twitter-specific values exist
+  var twTitle = document.getElementById('twitter_title').value.trim();
+  var twDesc = document.getElementById('twitter_description').value.trim();
+  var twImage = document.getElementById('twitter_image').value.trim();
+  var twSite = document.getElementById('twitter_site').value.trim();
+  var twCreator = document.getElementById('twitter_creator').value.trim();
+  if (twTitle || twDesc || twImage || twSite || twCreator) {
+    document.getElementById('twitterCustomizeToggle').checked = true;
+    toggleTwitterFields();
+  }
+
+  // Close modals on outside click
+  window.addEventListener('click', function(e) {
+    if (e.target === document.getElementById('aiConfirmModal')) closeAiConfirmModal();
+    if (e.target === document.getElementById('unsavedModal')) closeUnsavedModal();
+  });
 });
 </script>
 
