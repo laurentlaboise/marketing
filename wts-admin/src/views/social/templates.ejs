@@ -22,7 +22,7 @@
         <div class="card-header"><h3><i class="fas fa-plus-circle"></i> New Template</h3></div>
         <div class="card-body">
           <form action="/social/templates" method="POST">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="responsive-grid-2">
               <div class="form-group">
                 <label class="form-label">Template Name</label>
                 <input type="text" name="name" class="form-control" required placeholder="e.g. Article Promotion - Twitter">
@@ -44,7 +44,7 @@
               <textarea name="content" class="form-control" rows="4" required placeholder="Use {title}, {url}, {excerpt} as placeholders..."></textarea>
               <div style="font-size: 11px; color: var(--gray-400); margin-top: 4px;">Variables: <code>{title}</code> <code>{url}</code> <code>{excerpt}</code> <code>{hashtags}</code></div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 12px;">
+            <div class="responsive-grid-3" style="margin-top: 12px;">
               <div class="form-group">
                 <label class="form-label">Tone</label>
                 <select name="tone" class="form-control">
@@ -90,7 +90,7 @@
         <div class="card-header"><h3><i class="fas fa-copy"></i> Saved Templates (<%= templates.length %>)</h3></div>
         <div class="card-body" style="padding: 0;">
           <% if (templates.length > 0) { %>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; padding: 20px;">
+          <div class="responsive-card-grid" style="padding: 20px;">
             <% templates.forEach(function(t) { %>
             <div class="card" style="border: 1px solid var(--gray-200);">
               <div class="card-body" style="padding: 16px;">

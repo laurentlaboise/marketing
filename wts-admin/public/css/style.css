@@ -3345,3 +3345,353 @@ select.form-input {
     margin-bottom: 8px;
   }
 }
+
+/* ==========================================
+   RESPONSIVE GRID UTILITY CLASSES
+   ========================================== */
+
+/* 2-column grid that stacks on mobile */
+.responsive-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+}
+
+/* 3-column grid that stacks on mobile */
+.responsive-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-md);
+}
+
+/* Card grid with auto-fill and safe min */
+.responsive-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
+  gap: var(--space-md);
+}
+
+@media (max-width: 768px) {
+  .responsive-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .responsive-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Campaign / category legend row */
+.legend-row {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+  font-size: var(--text-sm);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Alert / warning banner */
+.alert-banner {
+  border-radius: var(--radius);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  display: flex;
+  gap: var(--space-md);
+  align-items: flex-start;
+}
+
+.alert-banner-warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+}
+
+.alert-banner-warning,
+.alert-banner-warning p,
+.alert-banner-warning i {
+  color: #856404;
+}
+
+@media (max-width: 480px) {
+  .alert-banner {
+    flex-direction: column;
+  }
+}
+
+/* Platform breakdown / stats bar items */
+.stat-bar-item {
+  margin-bottom: var(--space-md);
+}
+
+.stat-bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  margin-bottom: 4px;
+}
+
+.stat-bar-track {
+  background: var(--gray-100);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+/* Provider / key-value list */
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: var(--text-sm);
+}
+
+/* Quick link cards grid */
+.quick-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+  gap: var(--space-md);
+}
+
+.quick-link-card {
+  text-decoration: none;
+  text-align: center;
+  padding: var(--space-lg);
+}
+
+.quick-link-card .quick-link-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.quick-link-card .quick-link-title {
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.quick-link-card .quick-link-desc {
+  font-size: var(--text-xs);
+  color: var(--gray-400);
+}
+
+/* Empty state inline variant */
+.empty-state-inline {
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--gray-400);
+}
+
+.empty-state-inline i {
+  font-size: 32px;
+  color: var(--gray-300);
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* ==========================================
+   PRODUCT PREVIEW PANEL RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  #preview-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ==========================================
+   FORM-CARD MAX-WIDTH RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .form-card {
+    max-width: 100% !important;
+  }
+}
+
+/* ==========================================
+   MODAL INLINE MAX-WIDTH OVERRIDE
+   ========================================== */
+
+@media (max-width: 480px) {
+  .modal-card[style*="max-width"] {
+    max-width: calc(100vw - 16px) !important;
+  }
+}
+
+/* ==========================================
+   SEO-TERMS TOOLTIP TD RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .table-responsive-cards td[data-label="Tooltip"] {
+    max-width: none !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+}
+
+/* ==========================================
+   COPY TOAST MOBILE POSITION
+   ========================================== */
+
+@media (max-width: 480px) {
+  .copy-toast {
+    right: 50%;
+    transform: translateX(50%);
+    bottom: 16px;
+    left: auto;
+  }
+}
+
+/* ==========================================
+   FORM ACTIONS BUTTONS NO-WRAP
+   ========================================== */
+
+@media (max-width: 768px) {
+  .form-actions .btn {
+    white-space: nowrap;
+    min-width: 0;
+  }
+}
+
+/* ==========================================
+   DASHBOARD COMPACT TABLES RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .dashboard-cards-grid .table td {
+    font-size: var(--text-sm);
+  }
+
+  .dashboard-cards-grid .table a {
+    word-break: break-word;
+  }
+}
+
+/* ==========================================
+   IMAGE DETAIL / MICROSITE DETAIL 2-COL
+   ========================================== */
+
+@media (max-width: 768px) {
+  /* All direct child 2-col grids in page-content stack */
+  .page-content > .responsive-grid-2,
+  .responsive-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================
+   CALENDAR UPCOMING POSTS TABLE RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .table-responsive-cards td[data-label="Content"] {
+    max-width: none !important;
+  }
+
+  .table-responsive-cards td[data-label="Content"] a {
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+}
+
+/* ==========================================
+   DOMAIN FORM RESPONSIVE
+   ========================================== */
+
+.domain-add-form {
+  display: flex;
+  gap: var(--space-md);
+  align-items: flex-end;
+}
+
+.domain-add-form .form-group {
+  margin-bottom: 0;
+}
+
+.domain-add-form .form-group:first-child {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .domain-add-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .domain-add-form .form-group {
+    width: 100% !important;
+  }
+}
+
+/* ==========================================
+   DEPLOYMENT FORM RESPONSIVE
+   ========================================== */
+
+.deploy-form {
+  display: flex;
+  gap: var(--space-md);
+  align-items: flex-end;
+}
+
+.deploy-form .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .deploy-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ==========================================
+   DETAIL ROW (EXPANDABLE) RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .detail-row td {
+    grid-column: 1 / -1;
+  }
+
+  .detail-row .responsive-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================
+   DELETE CARD RESPONSIVE
+   ========================================== */
+
+@media (max-width: 480px) {
+  .delete-card-body {
+    flex-direction: column;
+    gap: var(--space-md);
+    align-items: flex-start !important;
+  }
+}
+
+.delete-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

@@ -18,16 +18,16 @@
     </div>
 
     <% if (!githubConfigured) { %>
-    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px; max-width: 900px; display: flex; gap: 12px; align-items: flex-start;">
-      <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 18px; margin-top: 2px;"></i>
+    <div class="alert-banner alert-banner-warning">
+      <i class="fas fa-exclamation-triangle" style="font-size: 18px; margin-top: 2px;"></i>
       <div>
-        <p style="font-weight: 600; color: #856404; margin-bottom: 4px;">GitHub Token Not Configured</p>
-        <p style="font-size: 13px; color: #856404;">Uploaded images will be stored locally only and <strong>will not appear on the CDN</strong>. They will be lost when Railway redeploys. Add <code>GITHUB_TOKEN</code> to your Railway environment variables to enable automatic CDN publishing.</p>
+        <p style="font-weight: 600; margin-bottom: 4px;">GitHub Token Not Configured</p>
+        <p style="font-size: 13px;">Uploaded images will be stored locally only and <strong>will not appear on the CDN</strong>. They will be lost when Railway redeploys. Add <code>GITHUB_TOKEN</code> to your Railway environment variables to enable automatic CDN publishing.</p>
       </div>
     </div>
     <% } %>
 
-    <div class="card form-card" style="max-width: 900px;">
+    <div class="card form-card">
       <div class="card-body">
         <form action="/images/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
 

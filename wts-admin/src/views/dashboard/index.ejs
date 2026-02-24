@@ -164,8 +164,8 @@
             </tbody>
           </table>
           <% } else { %>
-          <div class="empty-state" style="padding: 40px;">
-            <i class="fas fa-newspaper" style="font-size: 32px; color: var(--gray-300); margin-bottom: 10px;"></i>
+          <div class="empty-state-inline">
+            <i class="fas fa-newspaper"></i>
             <p>No articles yet</p>
           </div>
           <% } %>
@@ -197,8 +197,8 @@
             </tbody>
           </table>
           <% } else { %>
-          <div class="empty-state" style="padding: 40px;">
-            <i class="fas fa-globe" style="font-size: 32px; color: var(--gray-300); margin-bottom: 10px;"></i>
+          <div class="empty-state-inline">
+            <i class="fas fa-globe"></i>
             <p>No microsites yet</p>
             <a href="/webdev/microsites/new" class="btn btn-sm btn-primary" style="margin-top: 8px;">Create one</a>
           </div>
@@ -250,7 +250,7 @@
         <a href="/social/calendar" class="btn btn-sm btn-secondary">View Calendar</a>
       </div>
       <div class="card-body" style="padding: 0;">
-        <table class="table">
+        <table class="table table-responsive-cards">
           <thead>
             <tr>
               <th>Content</th>
@@ -261,17 +261,17 @@
           <tbody>
             <% scheduledPosts.forEach(post => { %>
             <tr>
-              <td>
+              <td data-label="Content">
                 <a href="/social/posts/<%= post.id %>/edit"><%= post.content ? post.content.substring(0, 60) + (post.content.length > 60 ? '...' : '') : 'Untitled' %></a>
               </td>
-              <td>
+              <td data-label="Platforms">
                 <% if (post.platforms && post.platforms.length) { %>
                 <% post.platforms.forEach(p => { %>
                 <span class="status-badge" style="font-size: 11px;"><%= p %></span>
                 <% }); %>
                 <% } %>
               </td>
-              <td style="white-space: nowrap;"><%= new Date(post.scheduled_at).toLocaleString() %></td>
+              <td data-label="Scheduled For"><%= new Date(post.scheduled_at).toLocaleString() %></td>
             </tr>
             <% }); %>
           </tbody>
