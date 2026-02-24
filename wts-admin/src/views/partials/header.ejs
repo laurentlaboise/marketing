@@ -11,6 +11,10 @@
     </form>
   </div>
 
+  <button class="mobile-search-btn" id="mobileSearchBtn" aria-label="Search">
+    <i class="fas fa-search"></i>
+  </button>
+
   <div class="header-actions">
     <div class="notif-wrapper" style="position:relative;">
       <button class="header-btn" id="notificationsBtn" aria-label="Notifications">
@@ -66,6 +70,18 @@
     </div>
   </div>
 </header>
+
+<!-- Mobile Search Overlay -->
+<div class="mobile-search-overlay" id="mobileSearchOverlay">
+  <button class="mobile-search-close" id="mobileSearchClose" aria-label="Close search">
+    <i class="fas fa-times"></i>
+  </button>
+  <form action="/api/search" method="GET" class="search-form" id="mobileGlobalSearch">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" name="q" placeholder="Search..." class="search-input" autocomplete="off" id="mobileSearchInput">
+    <div class="search-results" id="mobileSearchResults"></div>
+  </form>
+</div>
 
 <% if (messages && messages.success) { %>
 <div class="alert alert-success" id="successAlert">

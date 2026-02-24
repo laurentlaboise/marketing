@@ -18,15 +18,15 @@
     <!-- Filter Bar -->
     <div class="card" style="margin-bottom: 1rem;">
       <div class="card-body" style="padding: 0.75rem 1rem;">
-        <form method="GET" action="/business/products" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-          <select name="service_page" class="form-input" style="max-width: 200px; padding: 0.4rem 0.6rem;">
+        <form method="GET" action="/business/products" class="filter-form">
+          <select name="service_page" class="form-input filter-input" style="padding: 0.4rem 0.6rem;">
             <option value="">All Service Pages</option>
             <option value="content-creation" <%= filter_service_page === 'content-creation' ? 'selected' : '' %>>Content Creation</option>
             <option value="social-media-management" <%= filter_service_page === 'social-media-management' ? 'selected' : '' %>>Social Media</option>
             <option value="web-development" <%= filter_service_page === 'web-development' ? 'selected' : '' %>>Web Development</option>
             <option value="business-tools" <%= filter_service_page === 'business-tools' ? 'selected' : '' %>>Business Tools</option>
           </select>
-          <select name="status" class="form-input" style="max-width: 150px; padding: 0.4rem 0.6rem;">
+          <select name="status" class="form-input filter-select" style="padding: 0.4rem 0.6rem;">
             <option value="">All Statuses</option>
             <option value="active" <%= filter_status === 'active' ? 'selected' : '' %>>Active</option>
             <option value="inactive" <%= filter_status === 'inactive' ? 'selected' : '' %>>Inactive</option>
@@ -44,7 +44,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (products.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th style="width:40px;">#</th>
@@ -60,8 +60,8 @@
             <tbody>
               <% products.forEach((product, index) => { %>
               <tr>
-                <td style="color: #999;"><%= product.sort_order || index %></td>
-                <td>
+                <td data-label="#" style="color: #999;"><%= product.sort_order || index %></td>
+                <td data-label="Product">
                   <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <i class="<%= product.icon_class || 'fas fa-box' %>" style="color: var(--primary-color, #667eea); font-size: 1.1rem;"></i>
                     <div>
@@ -72,24 +72,24 @@
                     </div>
                   </div>
                 </td>
-                <td><%= product.price ? '$' + parseFloat(product.price).toFixed(2) : '-' %></td>
-                <td>
+                <td data-label="Price"><%= product.price ? '$' + parseFloat(product.price).toFixed(2) : '-' %></td>
+                <td data-label="Service Page">
                   <% if (product.service_page) { %>
                   <span class="status-badge active" style="font-size: 0.7rem;"><%= product.service_page %></span>
                   <% } else { %>
                   <span style="color: #999;">-</span>
                   <% } %>
                 </td>
-                <td><span style="text-transform: capitalize; font-size: 0.85rem;"><%= product.product_type || 'service' %></span></td>
-                <td><span class="status-badge <%= product.status %>"><%= product.status %></span></td>
-                <td>
+                <td data-label="Type"><span style="text-transform: capitalize; font-size: 0.85rem;"><%= product.product_type || 'service' %></span></td>
+                <td data-label="Status"><span class="status-badge <%= product.status %>"><%= product.status %></span></td>
+                <td data-label="Stripe">
                   <% if (product.stripe_price_id) { %>
                   <i class="fab fa-stripe" style="color: #635bff; font-size: 1.2rem;" title="Stripe connected"></i>
                   <% } else { %>
                   <span style="color: #ccc;">-</span>
                   <% } %>
                 </td>
-                <td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/business/products/<%= product.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
                     <form action="/business/products/<%= product.id %>/delete" method="POST" style="display: inline;">

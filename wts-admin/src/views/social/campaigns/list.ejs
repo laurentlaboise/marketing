@@ -18,8 +18,8 @@
     <!-- Filters -->
     <div class="card" style="margin-bottom: 20px;">
       <div class="card-body" style="padding: 16px 24px;">
-        <form action="/social/campaigns" method="GET" style="display: flex; gap: 12px; align-items: center;">
-          <select name="status" class="form-input" style="width: 160px;">
+        <form action="/social/campaigns" method="GET" class="filter-form">
+          <select name="status" class="form-input filter-select">
             <option value="">All Status</option>
             <option value="draft" <%= filter.status === 'draft' ? 'selected' : '' %>>Draft</option>
             <option value="active" <%= filter.status === 'active' ? 'selected' : '' %>>Active</option>

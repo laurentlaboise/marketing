@@ -20,7 +20,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (items.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Term</th>
@@ -32,10 +32,10 @@
             <tbody>
               <% items.forEach(item => { %>
               <tr>
-                <td><strong><%= item.term %></strong></td>
-                <td><%= item.category || '-' %></td>
-                <td><%= item.letter %></td>
-                <td>
+                <td data-label="Term"><strong><%= item.term %></strong></td>
+                <td data-label="Category"><%= item.category || '-' %></td>
+                <td data-label="Letter"><%= item.letter %></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/content/glossary/<%= item.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                     <form action="/content/glossary/<%= item.id %>/delete" method="POST" style="display: inline;">

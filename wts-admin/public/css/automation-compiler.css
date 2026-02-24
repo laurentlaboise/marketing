@@ -565,22 +565,32 @@ textarea.form-input-sm {
 /* ==================== RESPONSIVE ==================== */
 
 @media (max-width: 1024px) {
+  .compiler-layout .compiler-main {
+    height: auto;
+    overflow: visible;
+  }
+
   .compiler-panes {
     flex-direction: column;
   }
+
   .pane-left, .pane-center, .pane-right {
     width: 100%;
     min-width: auto;
     border-right: none;
     border-bottom: 1px solid var(--gray-200);
-    max-height: 33vh;
+    max-height: none;
+    min-height: 300px;
   }
+
   .pane-center {
-    max-height: 40vh;
+    min-height: 400px;
   }
+
   .toolbar-name-input {
     width: 180px;
   }
+
   .compiler-toolbar {
     flex-wrap: wrap;
   }
@@ -591,16 +601,71 @@ textarea.form-input-sm {
     padding: 8px 12px;
     gap: 8px;
   }
+
+  .toolbar-left {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
   .toolbar-name-input {
-    width: 140px;
+    width: 100%;
     font-size: 14px;
   }
+
+  .toolbar-center {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .toolbar-right {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
   .node-palette {
     gap: 3px;
     padding: 6px;
   }
+
   .node-palette-item {
-    padding: 4px 8px;
+    padding: 6px 10px;
     font-size: 11px;
+    min-height: 44px;
+  }
+
+  .pane-left, .pane-center, .pane-right {
+    min-height: 250px;
+  }
+
+  /* Telemetry stats wrap on mobile */
+  .telemetry-stats {
+    flex-wrap: wrap;
+  }
+
+  /* Toast notifications adjust for mobile */
+  .toast-container {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .compiler-toast {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .pane-body {
+    padding: 10px;
+  }
+
+  .toggle-label {
+    font-size: 12px;
+  }
+
+  .pane-body-split-bottom {
+    height: 160px;
+    min-height: 120px;
   }
 }

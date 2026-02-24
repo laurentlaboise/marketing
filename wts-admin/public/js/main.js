@@ -4,12 +4,15 @@ document.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   initDropdowns();
   initSearch();
+  initMobileSearch();
   initAlerts();
   initSubmenuToggle();
   initFormValidation();
   initConfirmDelete();
   initCopyCdnUrl();
   initNotifications();
+  initKeyboardShortcuts();
+  initLazyLoading();
 });
 
 // Sidebar functionality
@@ -49,9 +52,33 @@ function initSidebar() {
   });
 }
 
-// Submenu toggle
+// Submenu toggle with state persistence
 function initSubmenuToggle() {
   const submenuToggles = document.querySelectorAll('.submenu-toggle');
+  const STORAGE_KEY = 'wts_sidebar_submenu_state';
+
+  // Restore saved state
+  try {
+    const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    submenuToggles.forEach((toggle, index) => {
+      const parent = toggle.closest('.nav-item');
+      const submenu = parent.querySelector('.submenu');
+      if (savedState[index] && submenu) {
+        toggle.classList.add('active');
+        submenu.classList.add('open');
+      }
+    });
+  } catch (e) { /* ignore parse errors */ }
+
+  function saveSubmenuState() {
+    const state = {};
+    submenuToggles.forEach((toggle, index) => {
+      state[index] = toggle.classList.contains('active');
+    });
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) { /* ignore storage errors */ }
+  }
 
   submenuToggles.forEach(toggle => {
     toggle.addEventListener('click', (e) => {
@@ -67,13 +94,8 @@ function initSubmenuToggle() {
         submenu.classList.toggle('open');
       }
 
-      // Close other submenus (optional - remove if you want multiple open)
-      // document.querySelectorAll('.submenu.open').forEach(s => {
-      //   if (s !== submenu) {
-      //     s.classList.remove('open');
-      //     s.closest('.nav-item').querySelector('.submenu-toggle').classList.remove('active');
-      //   }
-      // });
+      // Save state to localStorage
+      saveSubmenuState();
     });
   });
 }
@@ -442,4 +464,113 @@ function timeAgo(dateString) {
   }
 
   return 'Just now';
+}
+
+// Mobile search overlay
+function initMobileSearch() {
+  const openBtn = document.getElementById('mobileSearchBtn');
+  const overlay = document.getElementById('mobileSearchOverlay');
+  const closeBtn = document.getElementById('mobileSearchClose');
+  const searchInput = document.getElementById('mobileSearchInput');
+  const searchResults = document.getElementById('mobileSearchResults');
+  const searchForm = document.getElementById('mobileGlobalSearch');
+
+  if (!openBtn || !overlay) return;
+
+  openBtn.addEventListener('click', () => {
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => searchInput?.focus(), 100);
+  });
+
+  function closeOverlay() {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  if (closeBtn) closeBtn.addEventListener('click', closeOverlay);
+
+  // Close on Escape
+  overlay.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeOverlay();
+  });
+
+  // Search functionality (mirrors desktop search)
+  if (searchInput && searchResults && searchForm) {
+    let debounceTimer;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      const query = e.target.value.trim();
+      if (query.length < 2) {
+        searchResults.classList.remove('active');
+        return;
+      }
+      debounceTimer = setTimeout(async () => {
+        try {
+          const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+          const data = await response.json();
+          if (data.results && data.results.length > 0) {
+            searchResults.innerHTML = data.results.map(item => {
+              const typeIcons = { 'article': 'fa-newspaper', 'ai-tool': 'fa-robot', 'glossary': 'fa-book', 'product': 'fa-box' };
+              const typeUrls = { 'article': '/content/articles', 'ai-tool': '/content/ai-tools', 'glossary': '/content/glossary', 'product': '/business/products' };
+              return `<a href="${typeUrls[item.type]}/${item.id}/edit" class="search-result-item">
+                <i class="fas ${typeIcons[item.type] || 'fa-file'}"></i>
+                <div><div class="result-title">${escapeHtml(item.title)}</div><div class="result-type">${item.type}</div></div>
+              </a>`;
+            }).join('');
+            searchResults.classList.add('active');
+          } else {
+            searchResults.innerHTML = '<div class="search-result-item">No results found</div>';
+            searchResults.classList.add('active');
+          }
+        } catch (error) {
+          console.error('Mobile search error:', error);
+        }
+      }, 300);
+    });
+
+    searchForm.addEventListener('submit', (e) => e.preventDefault());
+  }
+}
+
+// Keyboard shortcuts
+function initKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Don't trigger when typing in inputs
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+    // '/' to focus search
+    if (e.key === '/') {
+      e.preventDefault();
+      const searchInput = document.querySelector('.header-search .search-input');
+      if (searchInput && window.getComputedStyle(searchInput.closest('.header-search')).display !== 'none') {
+        searchInput.focus();
+      } else {
+        // On mobile, open the mobile search overlay
+        document.getElementById('mobileSearchBtn')?.click();
+      }
+    }
+
+    // Escape to close sidebar/modals
+    if (e.key === 'Escape') {
+      const mobileOverlay = document.getElementById('mobileSearchOverlay');
+      if (mobileOverlay?.classList.contains('active')) {
+        mobileOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        return;
+      }
+      // Close any open modals
+      document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.style.display = 'none';
+      });
+    }
+  });
+}
+
+// Lazy loading for images
+function initLazyLoading() {
+  document.querySelectorAll('.image-card-preview img, .image-grid img').forEach(img => {
+    if (!img.loading) img.loading = 'lazy';
+    if (!img.decoding) img.decoding = 'async';
+  });
 }

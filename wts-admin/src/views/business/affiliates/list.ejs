@@ -19,7 +19,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (affiliates.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Name</th>
@@ -32,11 +32,11 @@
             <tbody>
               <% affiliates.forEach(aff => { %>
               <tr>
-                <td><strong><%= aff.name %></strong></td>
-                <td><%= aff.commission_rate || '-' %></td>
-                <td><%= aff.cookie_duration || '-' %></td>
-                <td><span class="status-badge <%= aff.status %>"><%= aff.status %></span></td>
-                <td>
+                <td data-label="Name"><strong><%= aff.name %></strong></td>
+                <td data-label="Commission"><%= aff.commission_rate || '-' %></td>
+                <td data-label="Cookie"><%= aff.cookie_duration || '-' %></td>
+                <td data-label="Status"><span class="status-badge <%= aff.status %>"><%= aff.status %></span></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/business/affiliates/<%= aff.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                     <form action="/business/affiliates/<%= aff.id %>/delete" method="POST" style="display: inline;">

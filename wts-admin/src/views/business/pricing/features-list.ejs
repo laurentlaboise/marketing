@@ -27,7 +27,7 @@
       </div>
       <div class="card-body" style="padding: 0;">
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Key</th>
@@ -41,12 +41,12 @@
             <tbody>
               <% catFeatures.forEach(function(feature) { %>
               <tr>
-                <td><code><%= feature.feature_key %></code></td>
-                <td><strong><%= feature.feature_name %></strong></td>
-                <td><small style="color: #666;"><%= feature.feature_description || '-' %></small></td>
-                <td><%= feature.sort_order %></td>
-                <td><span class="status-badge <%= feature.status %>"><%= feature.status %></span></td>
-                <td>
+                <td data-label="Key"><code><%= feature.feature_key %></code></td>
+                <td data-label="Feature Name"><strong><%= feature.feature_name %></strong></td>
+                <td data-label="Description"><small style="color: #666;"><%= feature.feature_description || '-' %></small></td>
+                <td data-label="Order"><%= feature.sort_order %></td>
+                <td data-label="Status"><span class="status-badge <%= feature.status %>"><%= feature.status %></span></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/business/pricing-features/<%= feature.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                     <form action="/business/pricing-features/<%= feature.id %>/delete" method="POST" style="display: inline;">

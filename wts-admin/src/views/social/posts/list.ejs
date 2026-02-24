@@ -20,26 +20,26 @@
     <!-- Filters -->
     <div class="card" style="margin-bottom: 20px;">
       <div class="card-body" style="padding: 16px 24px;">
-        <form action="/social/posts" method="GET" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-          <select name="status" class="form-input" style="width: 140px;">
+        <form action="/social/posts" method="GET" class="filter-form">
+          <select name="status" class="form-input filter-select">
             <option value="">All Status</option>
             <option value="draft" <%= filter.status === 'draft' ? 'selected' : '' %>>Draft</option>
             <option value="scheduled" <%= filter.status === 'scheduled' ? 'selected' : '' %>>Scheduled</option>
             <option value="published" <%= filter.status === 'published' ? 'selected' : '' %>>Published</option>
           </select>
-          <select name="campaign" class="form-input" style="width: 180px;">
+          <select name="campaign" class="form-input filter-select">
             <option value="">All Campaigns</option>
             <% campaigns.forEach(c => { %>
             <option value="<%= c.id %>" <%= filter.campaign == c.id ? 'selected' : '' %>><%= c.name %></option>
             <% }); %>
           </select>
-          <select name="content_type" class="form-input" style="width: 150px;">
+          <select name="content_type" class="form-input filter-select">
             <option value="">All Types</option>
             <% contentTypes.forEach(ct => { %>
             <option value="<%= ct.id %>" <%= filter.content_type === ct.id ? 'selected' : '' %>><%= ct.label %></option>
             <% }); %>
           </select>
-          <select name="source" class="form-input" style="width: 140px;">
+          <select name="source" class="form-input filter-select">
             <option value="">All Sources</option>
             <option value="article" <%= filter.source === 'article' ? 'selected' : '' %>>Article</option>
             <option value="glossary" <%= filter.source === 'glossary' ? 'selected' : '' %>>Glossary</option>
@@ -60,7 +60,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (posts.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Content</th>
@@ -76,7 +76,7 @@
             <tbody>
               <% posts.forEach(post => { %>
               <tr>
-                <td style="max-width: 280px;">
+                <td data-label="Content" style="max-width: 280px;">
                   <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px;">
                     <%= post.content ? post.content.substring(0, 80) : '' %><%= post.content && post.content.length > 80 ? '...' : '' %>
                   </div>
@@ -91,7 +91,7 @@
                   </div>
                   <% } %>
                 </td>
-                <td>
+                <td data-label="Source">
                   <% if (post.source_type) { %>
                   <span class="source-badge source-badge-<%= post.source_type %>"><%= post.source_type %></span>
                   <% if (post.ai_generated) { %><i class="fas fa-robot" style="font-size: 11px; color: var(--gray-400); margin-left: 4px;" title="AI generated"></i><% } %>
@@ -99,7 +99,7 @@
                   <span style="color: var(--gray-400); font-size: 12px;">-</span>
                   <% } %>
                 </td>
-                <td>
+                <td data-label="Campaign">
                   <% if (post.campaign_name) { %>
                   <span class="campaign-badge" style="border-left: 3px solid <%= post.campaign_color || '#667eea' %>; padding-left: 8px; font-size: 13px;">
                     <%= post.campaign_name %>
@@ -108,7 +108,7 @@
                   <span style="color: var(--gray-400); font-size: 13px;">-</span>
                   <% } %>
                 </td>
-                <td>
+                <td data-label="Platforms">
                   <div style="display: flex; gap: 4px; flex-wrap: wrap;">
                     <%
                     const platformIcons = {
@@ -126,14 +126,14 @@
                     <% }); } %>
                   </div>
                 </td>
-                <td>
+                <td data-label="Type">
                   <% if (post.content_type && post.content_type !== 'text') { %>
                   <span style="font-size: 12px; padding: 2px 8px; background: var(--gray-100); border-radius: 12px; color: var(--gray-600);"><%= post.content_type %></span>
                   <% } else { %>
                   <span style="color: var(--gray-400); font-size: 13px;">text</span>
                   <% } %>
                 </td>
-                <td style="font-size: 13px; white-space: nowrap;">
+                <td data-label="Scheduled" style="font-size: 13px; white-space: nowrap;">
                   <% if (post.scheduled_at) { %>
                   <div><%= new Date(post.scheduled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></div>
                   <div style="color: var(--gray-500); font-size: 12px;"><%= new Date(post.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></div>
@@ -141,8 +141,8 @@
                   <span style="color: var(--gray-400);">-</span>
                   <% } %>
                 </td>
-                <td><span class="status-badge <%= post.status %>"><%= post.status %></span></td>
-                <td>
+                <td data-label="Status"><span class="status-badge <%= post.status %>"><%= post.status %></span></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <% if (post.status !== 'published') { %>
                     <button type="button" class="btn btn-sm btn-primary publish-btn" data-post-id="<%= post.id %>" title="Publish Now"><i class="fas fa-paper-plane"></i></button>

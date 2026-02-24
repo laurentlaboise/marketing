@@ -21,7 +21,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (terms.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Term</th>
@@ -35,17 +35,17 @@
             <tbody>
               <% terms.forEach(term => { %>
               <tr>
-                <td><strong><%= term.term %></strong></td>
-                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 0.85rem;"><%= term.short_definition || '-' %></td>
-                <td><%= term.category || '-' %></td>
-                <td>
+                <td data-label="Term"><strong><%= term.term %></strong></td>
+                <td data-label="Tooltip" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 0.85rem;"><%= term.short_definition || '-' %></td>
+                <td data-label="Category"><%= term.category || '-' %></td>
+                <td data-label="Links">
                   <% if (term.article_link) { %><i class="fas fa-newspaper" title="Has article link" style="color: #1f85c9; margin-right: 4px;"></i><% } %>
                   <% if (term.glossary_link) { %><i class="fas fa-book-open" title="Has glossary link" style="color: #d62b83; margin-right: 4px;"></i><% } %>
                   <% if (term.video_url) { %><i class="fas fa-video" title="Has video" style="color: #25d366;"></i><% } %>
                   <% if (!term.article_link && !term.glossary_link && !term.video_url) { %>-<% } %>
                 </td>
-                <td><%= new Date(term.created_at).toLocaleDateString() %></td>
-                <td>
+                <td data-label="Created"><%= new Date(term.created_at).toLocaleDateString() %></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/content/seo-terms/<%= term.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                     <form action="/content/seo-terms/<%= term.id %>/delete" method="POST" style="display: inline;">

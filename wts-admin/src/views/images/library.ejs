@@ -27,7 +27,7 @@
     </div>
 
     <!-- Folder Sidebar + Content Layout -->
-    <div style="display: grid; grid-template-columns: 240px 1fr; gap: 20px;">
+    <div class="image-library-layout">
 
       <!-- Folder Sidebar -->
       <div class="card" style="align-self: start;">
@@ -78,12 +78,12 @@
           <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-folder-open" style="color: var(--primary);"></i> <%= currentFolder.name %></h3>
         </div>
         <% } %>
-        <form action="/images" method="GET" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+        <form action="/images" method="GET" class="filter-form" style="align-items: center;">
           <% if (activeFolder) { %>
           <input type="hidden" name="folder" value="<%= activeFolder %>">
           <% } %>
-          <input type="text" name="search" class="form-input" placeholder="Search images..." value="<%= pagination.search || '' %>" style="width: 200px;">
-          <select name="category" class="form-input" style="width: 150px;">
+          <input type="text" name="search" class="form-input filter-input" placeholder="Search images..." value="<%= pagination.search || '' %>">
+          <select name="category" class="form-input filter-select">
             <option value="">All Categories</option>
             <option value="hero" <%= pagination.category === 'hero' ? 'selected' : '' %>>Hero</option>
             <option value="portfolio" <%= pagination.category === 'portfolio' ? 'selected' : '' %>>Portfolio</option>

@@ -16,7 +16,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (orders.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Date</th>
@@ -30,19 +30,19 @@
             <tbody>
               <% orders.forEach(order => { %>
               <tr>
-                <td><%= new Date(order.created_at).toLocaleDateString() %></td>
-                <td><strong><%= order.product_name || 'Unknown' %></strong></td>
-                <td>
+                <td data-label="Date"><%= new Date(order.created_at).toLocaleDateString() %></td>
+                <td data-label="Product"><strong><%= order.product_name || 'Unknown' %></strong></td>
+                <td data-label="Customer">
                   <div><%= order.customer_name || '-' %></div>
                   <small style="color: #888;"><%= order.customer_email %></small>
                 </td>
-                <td>$<%= parseFloat(order.amount).toFixed(2) %> <%= order.currency %></td>
-                <td>
+                <td data-label="Amount">$<%= parseFloat(order.amount).toFixed(2) %> <%= order.currency %></td>
+                <td data-label="Status">
                   <span class="status-badge <%= order.status === 'completed' ? 'active' : order.status === 'pending' ? '' : 'inactive' %>">
                     <%= order.status %>
                   </span>
                 </td>
-                <td><%= order.download_count %></td>
+                <td data-label="Downloads"><%= order.download_count %></td>
               </tr>
               <% }); %>
             </tbody>
