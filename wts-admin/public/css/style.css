@@ -4299,3 +4299,160 @@ select.form-input {
 img, video, iframe, canvas, svg, embed, object {
   max-width: 100%;
 }
+
+/* ==========================================
+   RESPONSIVE BUTTON DESIGN (ALL BREAKPOINTS)
+   ========================================== */
+
+/* Fluid button padding using clamp */
+.btn {
+  padding: clamp(8px, 1vw + 4px, 12px) clamp(14px, 2vw + 6px, 24px);
+  font-size: clamp(13px, 0.5vw + 12px, 15px);
+}
+
+.btn-sm {
+  padding: clamp(6px, 0.8vw + 4px, 10px) clamp(10px, 1.5vw + 4px, 16px);
+  font-size: clamp(12px, 0.4vw + 11px, 13px);
+}
+
+/* Active/pressed state for touch feedback */
+@media (hover: none) {
+  .btn:hover {
+    transform: none;
+  }
+  .btn-primary:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* --- 1024px: Small desktop / large tablet --- */
+@media (max-width: 1024px) {
+  .btn {
+    padding: 10px 18px;
+  }
+
+  .page-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .page-actions .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+  }
+}
+
+/* --- 768px: Tablet and below --- */
+@media (max-width: 768px) {
+  .btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    width: auto;
+  }
+
+  .btn-primary {
+    width: 100%;
+  }
+
+  /* Page header buttons stack on mobile */
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .page-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Social login buttons stack */
+  .social-login {
+    flex-direction: column;
+  }
+
+  .social-btn {
+    width: 100%;
+  }
+}
+
+/* --- 480px: Small mobile --- */
+@media (max-width: 480px) {
+  .btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .btn-sm {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .btn-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Auth page buttons */
+  .auth-card {
+    padding: 24px 20px;
+  }
+}
+
+/* ==========================================
+   STICKY FORM ACTION BARS (ALL FORMS)
+   ========================================== */
+
+/* Sticky on all screens for long forms - applied via class */
+.form-actions-sticky {
+  position: sticky;
+  bottom: 0;
+  background: var(--white);
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-200);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+  margin: 0 -24px -24px;
+  z-index: 50;
+}
+
+/* Make all form-actions sticky on mobile by default */
+@media (max-width: 768px) {
+  .form-card .form-actions,
+  .card .form-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--white);
+    padding: var(--space-md) var(--space-lg);
+    border-top: 1px solid var(--gray-200);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+    margin: 0 calc(var(--space-lg) * -1) calc(var(--space-lg) * -1);
+    z-index: 50;
+    border-radius: 0;
+  }
+
+  .form-card .form-actions .btn,
+  .card .form-actions .btn {
+    flex: 1;
+    justify-content: center;
+    white-space: nowrap;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-card .form-actions,
+  .card .form-actions {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .form-card .form-actions .btn,
+  .card .form-actions .btn {
+    width: 100%;
+  }
+}
