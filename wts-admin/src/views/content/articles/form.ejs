@@ -3449,8 +3449,19 @@ function generateArticlePreview() {
   if (category) categories.push(category.charAt(0).toUpperCase() + category.slice(1));
   tags.forEach(function(t) { categories.push(t); });
 
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   var categoryPills = categories.map(function(c) {
-    return '<span style="background-color:#64748b;color:#fff;padding:4px 12px;border-radius:999px;font-size:0.875rem;font-weight:500;">' + c + '</span>';
+    return '<span style="background-color:#64748b;color:#fff;padding:4px 12px;border-radius:999px;font-size:0.875rem;font-weight:500;">'
+      + escapeHtml(c)
+      + '</span>';
   }).join('');
 
   // Detect if content is plain text (no HTML tags) and wrap in paragraphs
