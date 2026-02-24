@@ -37,7 +37,8 @@
                 <span class="completion-dot" data-section="seo" title="SEO"></span>
                 <span class="completion-dot" data-section="social" title="Social"></span>
                 <span class="completion-dot" data-section="advanced" title="Advanced"></span>
-                <span class="completion-text" id="completionText">0/4</span>
+                <span class="completion-dot" data-section="publish" title="Publish"></span>
+                <span class="completion-text" id="completionText">0/5</span>
               </div>
             </div>
             <div class="sticky-bar-right">
@@ -101,6 +102,9 @@
             <button type="button" class="form-tab" data-tab="advanced">
               <i class="fas fa-cogs"></i> Advanced
             </button>
+            <button type="button" class="form-tab" data-tab="publish">
+              <i class="fas fa-rocket"></i> Publish
+            </button>
           </div>
 
           <!-- ===== TAB: CONTENT ===== -->
@@ -150,6 +154,23 @@
               <p class="form-help">HTML content displayed in the slide-in sidebar panel when the article is previewed.</p>
             </div>
 
+            <!-- Auto-Hyperlink Button -->
+            <div class="form-group" style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label class="form-label" style="margin-bottom: 0;"><i class="fas fa-link" style="color: var(--primary);"></i> Auto-Hyperlink Content</label>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" id="autoHyperlinkContentBtn" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-magic"></i> Auto-Link Sidemenu
+                  </button>
+                  <button type="button" id="autoHyperlinkTextBtn" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-magic"></i> Auto-Link Text Article
+                  </button>
+                </div>
+              </div>
+              <p class="form-help" style="margin: 0;">Scans content and auto-creates hyperlinks for glossary terms, SEO terms, and AI tools from your database. First occurrence of each term gets linked.</p>
+              <div id="hyperlinkStatus" style="display: none; margin-top: 8px;"></div>
+            </div>
+
             <div class="form-group">
               <label class="form-label" for="published_url">Article Published URL</label>
               <input type="url" id="published_url" name="published_url" class="form-input" placeholder="https://example.com/article-slug" value="<%= article ? article.published_url : '' %>">
@@ -190,8 +211,13 @@
 
             <div class="form-group">
               <label class="form-label" for="time_to_read"><i class="fas fa-book-open"></i> Time to Read (minutes)</label>
-              <input type="number" id="time_to_read" name="time_to_read" class="form-input" min="1" placeholder="e.g. 5" value="<%= article && article.time_to_read ? article.time_to_read : '' %>">
-              <p class="form-help">Estimated reading time in minutes. If left empty, it will be auto-calculated from content.</p>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="number" id="time_to_read" name="time_to_read" class="form-input" min="1" placeholder="e.g. 5" value="<%= article && article.time_to_read ? article.time_to_read : '' %>" style="flex: 1;">
+                <button type="button" id="calcReadTimeBtn" class="btn btn-secondary btn-sm" title="Auto-calculate from content">
+                  <i class="fas fa-calculator"></i> Calculate
+                </button>
+              </div>
+              <p class="form-help">Estimated reading time in minutes. Click Calculate to auto-compute from content word count.</p>
             </div>
           </div>
 
@@ -592,6 +618,126 @@
           </div>
 
           </div><!-- /panel-advanced -->
+
+          <!-- ===== TAB: PUBLISH ===== -->
+          <div class="form-tab-panel" id="panel-publish" style="display:none;">
+
+          <!-- Auto-Hyperlink Section -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-link"></i> Intelligent Hyperlinking</h3>
+            <p class="form-help" style="margin-bottom: 12px;">Automatically scan article content and create hyperlinks for glossary terms, SEO terms, and AI tools from your database.</p>
+
+            <div class="publish-hyperlink-controls">
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                <button type="button" id="pubAutoHyperlinkBtn" class="btn btn-primary">
+                  <i class="fas fa-magic"></i> Auto-Hyperlink All Content
+                </button>
+                <button type="button" id="pubPreviewLinksBtn" class="btn btn-secondary">
+                  <i class="fas fa-eye"></i> Preview Linked Content
+                </button>
+                <button type="button" id="pubUndoLinksBtn" class="btn btn-secondary" style="display: none;">
+                  <i class="fas fa-undo"></i> Undo Links
+                </button>
+              </div>
+
+              <div id="pubHyperlinkStats" style="display: none;" class="hyperlink-stats">
+                <!-- Stats will be populated by JS -->
+              </div>
+              <div id="pubHyperlinkStatus" style="display: none;"></div>
+            </div>
+          </div>
+
+          <!-- Article Preview Section -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-eye"></i> Article Preview</h3>
+            <p class="form-help" style="margin-bottom: 12px;">Preview how the article will look when published as a static HTML page on GitHub Pages.</p>
+
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+              <button type="button" id="generatePreviewBtn" class="btn btn-primary">
+                <i class="fas fa-eye"></i> Generate Preview
+              </button>
+              <button type="button" id="openPreviewNewTabBtn" class="btn btn-secondary" style="display: none;">
+                <i class="fas fa-external-link-alt"></i> Open in New Tab
+              </button>
+            </div>
+
+            <div id="articlePreviewContainer" class="article-preview-container" style="display: none;">
+              <iframe id="articlePreviewFrame" class="article-preview-frame" sandbox="allow-same-origin"></iframe>
+            </div>
+          </div>
+
+          <!-- GitHub Publishing Section -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fab fa-github"></i> Publish to GitHub Pages</h3>
+            <p class="form-help" style="margin-bottom: 12px;">Generate a static HTML article file and push it to your GitHub repository. The article will be live on GitHub Pages after deployment.</p>
+
+            <!-- GitHub Settings -->
+            <div class="github-settings" style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+              <h4 style="font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 12px;"><i class="fas fa-cog"></i> GitHub Settings</h4>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="gh_token">Personal Access Token</label>
+                  <input type="password" id="gh_token" class="form-input" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+                  <p class="form-help">Stored in browser localStorage. Needs repo write access.</p>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="gh_repo">Repository</label>
+                  <input type="text" id="gh_repo" class="form-input" value="laurentlaboise/marketing" placeholder="owner/repo">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="gh_branch">Branch</label>
+                  <input type="text" id="gh_branch" class="form-input" value="main" placeholder="main">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="gh_path">File Path</label>
+                  <input type="text" id="gh_path" class="form-input" placeholder="en/articles/your-slug.html" readonly>
+                  <p class="form-help">Auto-generated from article slug</p>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 8px;">
+                <button type="button" id="saveGhSettingsBtn" class="btn btn-secondary btn-sm">
+                  <i class="fas fa-save"></i> Save Settings
+                </button>
+                <button type="button" id="testGhConnectionBtn" class="btn btn-secondary btn-sm">
+                  <i class="fas fa-plug"></i> Test Connection
+                </button>
+              </div>
+              <div id="ghConnectionStatus" style="display: none; margin-top: 8px;"></div>
+            </div>
+
+            <!-- Publish Actions -->
+            <div class="publish-actions" style="background: linear-gradient(135deg, #f0f9ff 0%, #e8f5e9 100%); border: 1px solid #c8e6c9; border-radius: 8px; padding: 20px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <div>
+                  <h4 style="font-size: 16px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px;">Deploy Article</h4>
+                  <p style="font-size: 13px; color: var(--gray-600); margin: 0;">Generate static HTML and push to GitHub Pages</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" id="publishToGithubBtn" class="btn btn-primary" style="background: #28a745; border-color: #28a745;">
+                    <i class="fab fa-github"></i> Publish to GitHub
+                  </button>
+                </div>
+              </div>
+
+              <!-- Progress Indicator -->
+              <div id="publishProgress" style="display: none; margin-top: 16px;">
+                <div class="publish-progress-bar">
+                  <div class="publish-progress-fill" id="publishProgressFill"></div>
+                </div>
+                <div id="publishProgressText" style="font-size: 13px; color: var(--gray-600); margin-top: 6px;"></div>
+              </div>
+
+              <!-- Result -->
+              <div id="publishResult" style="display: none; margin-top: 12px;"></div>
+            </div>
+          </div>
+
+          </div><!-- /panel-publish -->
 
           <!-- Bottom save bar (non-sticky fallback) -->
           <div class="form-actions" style="padding: 16px 24px; border-top: 1px solid var(--gray-200);">
@@ -1453,6 +1599,59 @@
   border: 1px solid #dc3545;
 }
 .btn-danger:hover { background: #c82333; }
+
+/* ===== PUBLISH TAB STYLES ===== */
+.hyperlink-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  padding: 12px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+}
+.hyperlink-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gray-700);
+}
+.hyperlink-stat-item i {
+  width: 20px;
+  text-align: center;
+  color: var(--primary);
+}
+.hyperlink-stat-item .stat-count {
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.article-preview-container {
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.article-preview-frame {
+  width: 100%;
+  height: 600px;
+  border: none;
+}
+
+.publish-progress-bar {
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.publish-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: #28a745;
+  transition: width 0.4s ease;
+  width: 0%;
+}
 </style>
 
 <script>
@@ -2907,8 +3106,18 @@ function updateCompletionIndicator() {
   else if (hasCit || hasSch) { aDot.className = 'completion-dot partial'; }
   else { aDot.className = 'completion-dot'; }
 
+  // Publish: published_url set
+  var pDot = document.querySelector('.completion-dot[data-section="publish"]');
+  if (pDot) {
+    var hasPubUrl = document.getElementById('published_url').value.trim();
+    var ghToken = localStorage.getItem('wts_gh_token');
+    if (hasPubUrl) { pDot.className = 'completion-dot complete'; complete++; }
+    else if (ghToken) { pDot.className = 'completion-dot partial'; }
+    else { pDot.className = 'completion-dot'; }
+  }
+
   var text = document.getElementById('completionText');
-  if (text) text.textContent = complete + '/4';
+  if (text) text.textContent = complete + '/5';
 }
 
 // ==================== Initialize on Page Load ====================
@@ -3058,6 +3267,841 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.target === document.getElementById('aiConfirmModal')) closeAiConfirmModal();
     if (e.target === document.getElementById('unsavedModal')) closeUnsavedModal();
   });
+});
+
+// ==================== AUTO-HYPERLINK ENGINE ====================
+var linkTermsCache = null;
+var contentBeforeLinks = null;
+var textArticleBeforeLinks = null;
+
+function fetchLinkTerms(callback) {
+  if (linkTermsCache) return callback(linkTermsCache);
+  fetch('/content/articles/api/link-terms')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      linkTermsCache = data;
+      callback(data);
+    })
+    .catch(function(err) {
+      console.error('Failed to fetch link terms:', err);
+      callback({ glossary: [], seo_terms: [], ai_tools: [] });
+    });
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function hyperlinkContent(htmlContent, terms) {
+  if (!terms || !htmlContent) return { html: htmlContent, count: 0, details: { glossary: 0, seo: 0, ai_tool: 0 } };
+
+  // Combine all terms and sort by length (longest first for greedy matching)
+  var allTerms = [].concat(
+    terms.glossary || [],
+    terms.seo_terms || [],
+    terms.ai_tools || []
+  ).sort(function(a, b) { return b.term.length - a.term.length; });
+
+  var linked = {};
+  var result = htmlContent;
+  var count = 0;
+  var details = { glossary: 0, seo: 0, ai_tool: 0 };
+
+  for (var i = 0; i < allTerms.length; i++) {
+    var termData = allTerms[i];
+    var termKey = termData.term.toLowerCase();
+    if (linked[termKey]) continue;
+    if (!termData.link) continue;
+
+    var escaped = escapeRegex(termData.term);
+    // Match term not already inside an HTML tag or existing link
+    var regex = new RegExp('(?<![<\\/\\w])\\b(' + escaped + ')\\b(?![^<]*>)', 'i');
+
+    var match = result.match(regex);
+    if (match) {
+      var linkClass = 'auto-linked auto-linked-' + termData.type;
+      var title = (termData.definition || '').replace(/"/g, '&quot;');
+      var replacement = '<a href="' + termData.link + '" class="' + linkClass + '" title="' + title + '" data-type="' + termData.type + '">' + match[1] + '</a>';
+      result = result.replace(regex, replacement);
+      linked[termKey] = true;
+      count++;
+      if (details[termData.type] !== undefined) details[termData.type]++;
+    }
+  }
+
+  return { html: result, count: count, details: details };
+}
+
+function autoHyperlinkField(fieldId, statusId) {
+  var statusEl = document.getElementById(statusId);
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '<div style="padding: 10px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius, 6px); font-size: 13px; color: var(--primary);"><i class="fas fa-spinner fa-spin"></i> Fetching terms and scanning content...</div>';
+
+  fetchLinkTerms(function(terms) {
+    var field = document.getElementById(fieldId);
+    var content = field.value;
+
+    // Save original content for undo
+    if (fieldId === 'content') contentBeforeLinks = content;
+    if (fieldId === 'text_article') textArticleBeforeLinks = content;
+
+    var result = hyperlinkContent(content, terms);
+    field.value = result.html;
+
+    var totalTerms = (terms.glossary || []).length + (terms.seo_terms || []).length + (terms.ai_tools || []).length;
+    statusEl.innerHTML = '<div style="padding: 10px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius, 6px); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Linked <strong>' + result.count + '</strong> terms (Glossary: ' + result.details.glossary + ', SEO: ' + result.details.seo + ', AI Tools: ' + result.details.ai_tool + ') from ' + totalTerms + ' available terms.</div>';
+
+    formDirty = true;
+    document.getElementById('unsavedBadge').style.display = 'inline-flex';
+  });
+}
+
+function autoHyperlinkAll() {
+  var statusEl = document.getElementById('pubHyperlinkStatus');
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '<div style="padding: 10px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius, 6px); font-size: 13px; color: var(--primary);"><i class="fas fa-spinner fa-spin"></i> Fetching terms and scanning all content fields...</div>';
+
+  fetchLinkTerms(function(terms) {
+    var contentField = document.getElementById('content');
+    var textField = document.getElementById('text_article');
+
+    // Save originals for undo
+    contentBeforeLinks = contentField.value;
+    textArticleBeforeLinks = textField.value;
+
+    var contentResult = hyperlinkContent(contentField.value, terms);
+    var textResult = hyperlinkContent(textField.value, terms);
+
+    contentField.value = contentResult.html;
+    textField.value = textResult.html;
+
+    var totalLinked = contentResult.count + textResult.count;
+    var totalTerms = (terms.glossary || []).length + (terms.seo_terms || []).length + (terms.ai_tools || []).length;
+
+    // Show stats
+    var statsEl = document.getElementById('pubHyperlinkStats');
+    statsEl.style.display = 'grid';
+    statsEl.innerHTML =
+      '<div class="hyperlink-stat-item"><i class="fas fa-link"></i> Total Linked: <span class="stat-count">' + totalLinked + '</span></div>' +
+      '<div class="hyperlink-stat-item"><i class="fas fa-book"></i> Glossary: <span class="stat-count">' + (contentResult.details.glossary + textResult.details.glossary) + '</span></div>' +
+      '<div class="hyperlink-stat-item"><i class="fas fa-search"></i> SEO Terms: <span class="stat-count">' + (contentResult.details.seo + textResult.details.seo) + '</span></div>' +
+      '<div class="hyperlink-stat-item"><i class="fas fa-robot"></i> AI Tools: <span class="stat-count">' + (contentResult.details.ai_tool + textResult.details.ai_tool) + '</span></div>' +
+      '<div class="hyperlink-stat-item"><i class="fas fa-database"></i> Available: <span class="stat-count">' + totalTerms + '</span></div>';
+
+    // Show undo button
+    document.getElementById('pubUndoLinksBtn').style.display = 'inline-flex';
+
+    statusEl.innerHTML = '<div style="padding: 10px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius, 6px); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Successfully auto-linked <strong>' + totalLinked + '</strong> terms across both content fields.</div>';
+
+    formDirty = true;
+    document.getElementById('unsavedBadge').style.display = 'inline-flex';
+  });
+}
+
+function undoAutoLinks() {
+  if (contentBeforeLinks !== null) {
+    document.getElementById('content').value = contentBeforeLinks;
+    contentBeforeLinks = null;
+  }
+  if (textArticleBeforeLinks !== null) {
+    document.getElementById('text_article').value = textArticleBeforeLinks;
+    textArticleBeforeLinks = null;
+  }
+  document.getElementById('pubUndoLinksBtn').style.display = 'none';
+  document.getElementById('pubHyperlinkStats').style.display = 'none';
+  document.getElementById('pubHyperlinkStatus').innerHTML = '<div style="padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius, 6px); font-size: 13px; color: #856404;"><i class="fas fa-undo"></i> Links have been removed. Content restored to previous state.</div>';
+}
+
+// ==================== CALCULATE READING TIME ====================
+function calcReadingTime() {
+  var content = document.getElementById('text_article').value || document.getElementById('content').value || '';
+  var text = content.replace(/<[^>]*>/g, ' ');
+  var words = text.split(/\s+/).filter(function(w) { return w.length > 0; });
+  var minutes = Math.max(1, Math.ceil(words.length / 200));
+  document.getElementById('time_to_read').value = minutes;
+  formDirty = true;
+  document.getElementById('unsavedBadge').style.display = 'inline-flex';
+}
+
+// ==================== ARTICLE PREVIEW GENERATOR ====================
+function generateArticlePreview() {
+  var title = document.getElementById('title').value || 'Untitled Article';
+  var excerpt = document.getElementById('excerpt').value || '';
+  var featuredImage = document.getElementById('featured_image').value || '';
+  var textArticle = document.getElementById('text_article').value || document.getElementById('content').value || '';
+  var publishedAt = document.getElementById('published_at').value || new Date().toISOString();
+  var updatedAt = document.getElementById('updated_at').value || '';
+  var timeToRead = document.getElementById('time_to_read').value || '';
+  var category = document.getElementById('category').value || '';
+  var tags = (document.getElementById('tags').value || '').split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
+  var seoDesc = document.getElementById('seo_description').value || excerpt || '';
+
+  if (!timeToRead) {
+    var text = textArticle.replace(/<[^>]*>/g, ' ');
+    var words = text.split(/\s+/).filter(function(w) { return w.length > 0; });
+    timeToRead = Math.max(1, Math.ceil(words.length / 200));
+  }
+
+  var formattedDate = new Date(publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  var formattedUpdated = updatedAt ? new Date(updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+  var categories = [];
+  if (category) categories.push(category.charAt(0).toUpperCase() + category.slice(1));
+  tags.forEach(function(t) { categories.push(t); });
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  var categoryPills = categories.map(function(c) {
+    return '<span style="background-color:#64748b;color:#fff;padding:4px 12px;border-radius:999px;font-size:0.875rem;font-weight:500;">'
+      + escapeHtml(c)
+      + '</span>';
+  }).join('');
+
+  // Detect if content is plain text (no HTML tags) and wrap in paragraphs
+  var articleContent = textArticle;
+  if (articleContent && !/<[a-z][\s\S]*>/i.test(articleContent)) {
+    articleContent = articleContent.split(/\n\n+/).map(function(p) {
+      return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
+    }).join('');
+  }
+
+  var previewHTML = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
+    + '<title>' + title + ' | WordsThatSells.Website</title>'
+    + '<script src="https://kit.fontawesome.com/a521ce00f6.js" crossorigin="anonymous"><\/script>'
+    + '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">'
+    + '<style>'
+    + ':root{--color-primary-base:#1f85c9;--color-accent-magenta:#d62b83;--color-slate-900:#122a3f;--color-slate-800:#154266;--color-slate-500:#64748b;--color-white:#ffffff;--color-light:#f9f9f9;--color-border:#e5e7eb;--font-family-heading:"Poppins",sans-serif;--font-family-body:"Inter",sans-serif;}'
+    + '*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}'
+    + 'body{font-family:var(--font-family-body);line-height:1.6;color:var(--color-slate-800);background-color:var(--color-white);}'
+    + '.container{width:90%;max-width:900px;margin:0 auto;padding:3rem 0;}'
+    + '.article-header{margin-bottom:2rem;text-align:center;}'
+    + 'h1{font-family:var(--font-family-heading);font-size:clamp(2rem,5vw,3rem);color:var(--color-slate-900);margin-bottom:1rem;line-height:1.2;}'
+    + '.article-meta{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;font-size:0.875rem;color:var(--color-slate-500);margin-bottom:1.5rem;}'
+    + '.article-meta span{display:flex;align-items:center;gap:0.5rem;}'
+    + '.article-meta i{color:var(--color-primary-base);}'
+    + '.article-categories{display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;margin-bottom:2rem;}'
+    + '.featured-image{width:100%;max-height:500px;object-fit:cover;border-radius:0.75rem;margin-bottom:2rem;}'
+    + '.article-content{font-size:1.125rem;line-height:1.8;}'
+    + '.article-content h2{font-family:var(--font-family-heading);font-size:1.875rem;color:var(--color-slate-900);margin-top:2rem;margin-bottom:1rem;}'
+    + '.article-content h3{font-family:var(--font-family-heading);font-size:1.5rem;color:var(--color-slate-900);margin-top:1.5rem;margin-bottom:1rem;}'
+    + '.article-content p{margin-bottom:1rem;}'
+    + '.article-content ul,.article-content ol{margin-bottom:1rem;padding-left:2rem;}'
+    + '.article-content li{margin-bottom:0.5rem;}'
+    + '.article-content a{color:var(--color-primary-base);text-decoration:none;border-bottom:1px dashed var(--color-primary-base);}'
+    + '.article-content a:hover{color:var(--color-accent-magenta);border-color:var(--color-accent-magenta);}'
+    + '</style></head><body><div class="container">'
+    + '<article><header class="article-header">'
+    + '<h1>' + title + '</h1>'
+    + '<div class="article-meta">'
+    + '<span><i class="fas fa-calendar"></i> ' + formattedDate + '</span>'
+    + (formattedUpdated ? '<span><i class="fas fa-clock"></i> Updated: ' + formattedUpdated + '</span>' : '')
+    + '<span><i class="fas fa-book-open"></i> ' + timeToRead + ' min read</span>'
+    + '</div>'
+    + (categoryPills ? '<div class="article-categories">' + categoryPills + '</div>' : '')
+    + '</header>'
+    + (featuredImage ? '<img src="' + featuredImage + '" alt="' + title + '" class="featured-image" onerror="this.style.display=\'none\'">' : '')
+    + '<div class="article-content">' + articleContent + '</div>'
+    + '</article></div></body></html>';
+
+  var container = document.getElementById('articlePreviewContainer');
+  var frame = document.getElementById('articlePreviewFrame');
+  container.style.display = 'block';
+
+  var doc = frame.contentDocument || frame.contentWindow.document;
+  doc.open();
+  doc.write(previewHTML);
+  doc.close();
+
+  document.getElementById('openPreviewNewTabBtn').style.display = 'inline-flex';
+
+  // Store for new tab opening
+  window._lastPreviewHTML = previewHTML;
+}
+
+function openPreviewInNewTab() {
+  if (!window._lastPreviewHTML) return;
+  var blob = new Blob([window._lastPreviewHTML], { type: 'text/html' });
+  var url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+// ==================== GITHUB PUBLISHING ====================
+function initGitHubSettings() {
+  // Load saved settings from localStorage
+  var savedToken = localStorage.getItem('wts_gh_token') || '';
+  var savedRepo = localStorage.getItem('wts_gh_repo') || 'laurentlaboise/marketing';
+  var savedBranch = localStorage.getItem('wts_gh_branch') || 'main';
+
+  var tokenEl = document.getElementById('gh_token');
+  var repoEl = document.getElementById('gh_repo');
+  var branchEl = document.getElementById('gh_branch');
+
+  if (tokenEl && savedToken) tokenEl.value = savedToken;
+  if (repoEl) repoEl.value = savedRepo;
+  if (branchEl) branchEl.value = savedBranch;
+
+  updateGhFilePath();
+}
+
+function updateGhFilePath() {
+  var title = document.getElementById('title').value || '';
+  var slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  var pathEl = document.getElementById('gh_path');
+  if (pathEl) pathEl.value = slug ? 'en/articles/' + slug + '.html' : '';
+}
+
+function saveGhSettings() {
+  localStorage.setItem('wts_gh_token', document.getElementById('gh_token').value);
+  localStorage.setItem('wts_gh_repo', document.getElementById('gh_repo').value);
+  localStorage.setItem('wts_gh_branch', document.getElementById('gh_branch').value);
+
+  var statusEl = document.getElementById('ghConnectionStatus');
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '<div style="padding: 8px 12px; background: #d4edda; border: 1px solid #28a745; border-radius: 6px; font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Settings saved to browser storage.</div>';
+  setTimeout(function() { statusEl.style.display = 'none'; }, 3000);
+}
+
+function testGhConnection() {
+  var token = document.getElementById('gh_token').value;
+  var repo = document.getElementById('gh_repo').value;
+  var statusEl = document.getElementById('ghConnectionStatus');
+
+  if (!token) {
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = '<div style="padding: 8px 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Please enter a GitHub Personal Access Token.</div>';
+    return;
+  }
+
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '<div style="padding: 8px 12px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: 6px; font-size: 13px; color: var(--primary);"><i class="fas fa-spinner fa-spin"></i> Testing connection...</div>';
+
+  fetch('https://api.github.com/repos/' + repo, {
+    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+  })
+  .then(function(r) {
+    if (r.ok) return r.json();
+    throw new Error('HTTP ' + r.status);
+  })
+  .then(function(data) {
+    statusEl.innerHTML = '<div style="padding: 8px 12px; background: #d4edda; border: 1px solid #28a745; border-radius: 6px; font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Connected to <strong>' + data.full_name + '</strong>. Permissions: ' + (data.permissions && data.permissions.push ? 'Write' : 'Read-only') + '.</div>';
+  })
+  .catch(function(err) {
+    statusEl.innerHTML = '<div style="padding: 8px 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Connection failed: ' + err.message + '</div>';
+  });
+}
+
+function generateFullArticleHTML() {
+  var title = document.getElementById('title').value || 'Untitled Article';
+  var slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  var seoTitle = document.getElementById('seo_title').value || title;
+  var seoDesc = document.getElementById('seo_description').value || document.getElementById('excerpt').value || title;
+  var featuredImage = document.getElementById('featured_image').value || '';
+  var canonicalUrl = document.getElementById('canonical_url').value || ('https://wordsthatsells.website/en/articles/' + slug + '.html');
+  var robotsMeta = document.getElementById('robots_meta').value || 'index, follow';
+  var ogTitle = document.getElementById('og_title').value || seoTitle;
+  var ogDesc = document.getElementById('og_description').value || seoDesc;
+  var ogImage = document.getElementById('og_image').value || featuredImage;
+  var ogType = document.getElementById('og_type').value || 'article';
+  var twCard = document.getElementById('twitter_card').value || 'summary_large_image';
+  var twTitle = document.getElementById('twitter_title').value || ogTitle;
+  var twDesc = document.getElementById('twitter_description').value || ogDesc;
+  var twImage = document.getElementById('twitter_image').value || ogImage;
+  var twSite = document.getElementById('twitter_site').value || '';
+  var twCreator = document.getElementById('twitter_creator').value || '';
+  var publishedAt = document.getElementById('published_at').value || new Date().toISOString();
+  var updatedAt = document.getElementById('updated_at').value || '';
+  var timeToRead = document.getElementById('time_to_read').value || '';
+  var category = document.getElementById('category').value || '';
+  var tags = (document.getElementById('tags').value || '').split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
+  var textArticle = document.getElementById('text_article').value || document.getElementById('content').value || '';
+
+  // Calculate reading time if not set
+  if (!timeToRead) {
+    var textContent = textArticle.replace(/<[^>]*>/g, ' ');
+    var words = textContent.split(/\s+/).filter(function(w) { return w.length > 0; });
+    timeToRead = Math.max(1, Math.ceil(words.length / 200));
+  }
+
+  var publishedISO = new Date(publishedAt).toISOString();
+  var updatedISO = updatedAt ? new Date(updatedAt).toISOString() : '';
+  var articleUrl = canonicalUrl;
+  var formattedDate = new Date(publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  var formattedUpdated = updatedAt ? new Date(updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+  // Detect if content is plain text and wrap in paragraphs
+  var articleContent = textArticle;
+  if (articleContent && !/<[a-z][\s\S]*>/i.test(articleContent)) {
+    articleContent = articleContent.split(/\n\n+/).map(function(p) {
+      return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
+    }).join('\n');
+  }
+
+  // Build Schema.org JSON-LD
+  var schemaCustom = document.getElementById('schema_markup').value.trim();
+  var schemaJSON;
+  if (schemaCustom) {
+    try { schemaJSON = schemaCustom; } catch(e) { schemaJSON = ''; }
+  }
+  if (!schemaJSON) {
+    var schemaObj = {
+      "@context": "https://schema.org",
+      "@graph": [{
+        "@type": "Article",
+        "@id": articleUrl + "#article",
+        "headline": title,
+        "description": seoDesc,
+        "datePublished": publishedISO,
+        "author": { "@type": "Organization", "name": "Words That Sells", "url": "https://wordsthatsells.website" },
+        "publisher": { "@type": "Organization", "name": "Words That Sells", "logo": { "@type": "ImageObject", "url": "https://wordsthatsells.website/assets/images/logo.png" } },
+        "mainEntityOfPage": { "@type": "WebPage", "@id": articleUrl }
+      }, {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://wordsthatsells.website" },
+          { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://wordsthatsells.website/en/articles/" },
+          { "@type": "ListItem", "position": 3, "name": title }
+        ]
+      }]
+    };
+    if (updatedISO) schemaObj["@graph"][0].dateModified = updatedISO;
+    if (ogImage) schemaObj["@graph"][0].image = ogImage;
+    if (category) schemaObj["@graph"][0].articleSection = category;
+    if (timeToRead) schemaObj["@graph"][0].timeRequired = "PT" + timeToRead + "M";
+    schemaJSON = JSON.stringify(schemaObj, null, 2);
+  }
+
+  // Build category pills
+  var categories = [];
+  if (category) categories.push(category.charAt(0).toUpperCase() + category.slice(1));
+  tags.forEach(function(t) { categories.push(t); });
+
+  var html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
+    + '    <meta charset="UTF-8">\n'
+    + '    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+    + '    <title>' + escapeHTMLForAttr(title) + ' | WordsThatSells.Website</title>\n\n'
+    + '    <!-- Favicon -->\n'
+    + '    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">\n'
+    + '    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">\n'
+    + '    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">\n'
+    + '    <link rel="shortcut icon" href="/favicon/favicon.ico">\n\n'
+    + '    <!-- SEO Meta Tags -->\n'
+    + '    <meta name="description" content="' + escapeHTMLForAttr(seoDesc) + '">\n'
+    + '    <meta name="robots" content="' + robotsMeta + '">\n'
+    + '    <link rel="canonical" href="' + articleUrl + '">\n\n'
+    + '    <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->\n'
+    + '    <meta property="og:site_name" content="WordsThatSells.Website">\n'
+    + '    <meta property="og:type" content="' + ogType + '">\n'
+    + '    <meta property="og:title" content="' + escapeHTMLForAttr(ogTitle) + '">\n'
+    + '    <meta property="og:description" content="' + escapeHTMLForAttr(ogDesc) + '">\n'
+    + (ogImage ? '    <meta property="og:image" content="' + ogImage + '">\n    <meta property="og:image:width" content="1200">\n    <meta property="og:image:height" content="630">\n' : '')
+    + '    <meta property="og:url" content="' + articleUrl + '">\n'
+    + '    <meta property="article:published_time" content="' + publishedISO + '">\n'
+    + (updatedISO ? '    <meta property="article:modified_time" content="' + updatedISO + '">\n' : '')
+    + '    <meta property="article:author" content="WordsThatSells.Website">\n'
+    + tags.map(function(t) { return '    <meta property="article:tag" content="' + escapeHTMLForAttr(t) + '">'; }).join('\n') + '\n\n'
+    + '    <!-- Twitter / X Card -->\n'
+    + '    <meta name="twitter:card" content="' + twCard + '">\n'
+    + (twSite ? '    <meta name="twitter:site" content="' + escapeHTMLForAttr(twSite) + '">\n' : '')
+    + (twCreator ? '    <meta name="twitter:creator" content="' + escapeHTMLForAttr(twCreator) + '">\n' : '')
+    + '    <meta name="twitter:title" content="' + escapeHTMLForAttr(twTitle) + '">\n'
+    + '    <meta name="twitter:description" content="' + escapeHTMLForAttr(twDesc) + '">\n'
+    + (twImage ? '    <meta name="twitter:image" content="' + twImage + '">\n' : '')
+    + '\n    <!-- Schema.org JSON-LD -->\n'
+    + '    <script type="application/ld+json">\n' + schemaJSON + '\n    <\/script>\n\n'
+    + '    <!-- Fonts and Icons -->\n'
+    + '    <script src="https://kit.fontawesome.com/a521ce00f6.js" crossorigin="anonymous"><\/script>\n'
+    + '    <link rel="preconnect" href="https://fonts.googleapis.com">\n'
+    + '    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
+    + '    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">\n\n'
+    + '    <style>\n'
+    + '        :root {\n'
+    + '            --color-primary-base: #1f85c9;\n'
+    + '            --color-accent-magenta: #d62b83;\n'
+    + '            --color-slate-900: #122a3f;\n'
+    + '            --color-slate-800: #154266;\n'
+    + '            --color-slate-500: #64748b;\n'
+    + '            --color-white: #ffffff;\n'
+    + '            --color-light: #f9f9f9;\n'
+    + '            --color-border: #e5e7eb;\n'
+    + '            --font-family-heading: \'Poppins\', sans-serif;\n'
+    + '            --font-family-body: \'Inter\', sans-serif;\n'
+    + '        }\n'
+    + '        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\n'
+    + '        body { font-family: var(--font-family-body); line-height: 1.6; color: var(--color-slate-800); background-color: var(--color-white); }\n'
+    + '        .container { width: 90%; max-width: 900px; margin: 0 auto; padding: 4rem 0; }\n'
+    + '        .article-header { margin-bottom: 3rem; text-align: center; }\n'
+    + '        h1 { font-family: var(--font-family-heading); font-size: clamp(2rem, 5vw, 3rem); color: var(--color-slate-900); margin-bottom: 1rem; line-height: 1.2; }\n'
+    + '        .article-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; font-size: 0.875rem; color: var(--color-slate-500); margin-bottom: 1.5rem; }\n'
+    + '        .article-meta span { display: flex; align-items: center; gap: 0.5rem; }\n'
+    + '        .article-meta i { color: var(--color-primary-base); }\n'
+    + '        .article-categories { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 2rem; }\n'
+    + '        .category-pill { background-color: var(--color-slate-500); color: var(--color-white); padding: 4px 12px; border-radius: 999px; font-size: 0.875rem; font-weight: 500; }\n'
+    + '        .featured-image { width: 100%; max-height: 500px; object-fit: cover; border-radius: 0.75rem; margin-bottom: 3rem; }\n'
+    + '        .article-content { font-size: 1.125rem; line-height: 1.8; }\n'
+    + '        .article-content h2 { font-family: var(--font-family-heading); font-size: 1.875rem; color: var(--color-slate-900); margin-top: 3rem; margin-bottom: 1rem; }\n'
+    + '        .article-content h3 { font-family: var(--font-family-heading); font-size: 1.5rem; color: var(--color-slate-900); margin-top: 2rem; margin-bottom: 1rem; }\n'
+    + '        .article-content p { margin-bottom: 1rem; }\n'
+    + '        .article-content ul, .article-content ol { margin-bottom: 1rem; padding-left: 2rem; }\n'
+    + '        .article-content li { margin-bottom: 0.5rem; }\n'
+    + '        .article-content img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0; }\n'
+    + '        .article-content a { color: var(--color-primary-base); text-decoration: none; border-bottom: 1px dashed var(--color-primary-base); }\n'
+    + '        .article-content a:hover { color: var(--color-accent-magenta); border-color: var(--color-accent-magenta); }\n'
+    + '        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--color-primary-base); text-decoration: none; font-weight: 500; margin-bottom: 2rem; transition: color 0.2s; }\n'
+    + '        .back-link:hover { color: var(--color-accent-magenta); }\n'
+    + '        .share-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--color-border); justify-content: center; }\n'
+    + '        .share-buttons a { background-color: #e5e7eb; color: #4e555b; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; text-decoration: none; }\n'
+    + '        .share-buttons a:hover { color: var(--color-white); }\n'
+    + '        .share-buttons .share-x:hover { background-color: #000; }\n'
+    + '        .share-buttons .share-linkedin:hover { background-color: #0077b5; }\n'
+    + '        .share-buttons .share-facebook:hover { background-color: #3b5998; }\n'
+    + '        .share-buttons .share-whatsapp:hover { background-color: #25d366; }\n'
+    + '        .share-buttons .share-copy:hover { background-color: var(--color-primary-base); }\n'
+    + '        .back-to-top { position: fixed; bottom: 20px; right: 20px; background-color: var(--color-accent-magenta); color: white; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; z-index: 1000; transition: background-color 0.3s, transform 0.3s, opacity 0.3s; display: flex; justify-content: center; align-items: center; font-size: 24px; opacity: 0; transform: translateY(20px); pointer-events: none; text-decoration: none; }\n'
+    + '        .back-to-top.show { opacity: 1; transform: translateY(0); pointer-events: auto; }\n'
+    + '        .back-to-top:hover { background-color: #f90784; color: white; }\n'
+    + '        @media (max-width: 768px) { .container { width: 95%; padding: 2rem 0; } h1 { font-size: 2rem; } .article-content { font-size: 1rem; } }\n'
+    + '    </style>\n'
+    + '    <!-- Google tag (gtag.js) -->\n'
+    + '    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMRKC1VBBB"><\/script>\n'
+    + '    <script>\n'
+    + '      window.dataLayer = window.dataLayer || [];\n'
+    + '      function gtag(){dataLayer.push(arguments);}\n'
+    + '      gtag(\'js\', new Date());\n'
+    + '      gtag(\'config\', \'G-LMRKC1VBBB\');\n'
+    + '    <\/script>\n'
+    + '</head>\n<body>\n'
+    + '    <div class="container">\n'
+    + '        <a href="../resources/articles/" class="back-link">\n'
+    + '            <i class="fas fa-arrow-left"></i> Back to All Articles\n'
+    + '        </a>\n\n'
+    + '        <article>\n'
+    + '            <header class="article-header">\n'
+    + '                <h1>' + title + '</h1>\n\n'
+    + '                <div class="article-meta">\n'
+    + '                    <span><i class="fas fa-calendar"></i> <time datetime="' + publishedISO + '">' + formattedDate + '</time></span>\n'
+    + (formattedUpdated ? '                    <span><i class="fas fa-clock"></i> Updated: <time datetime="' + updatedISO + '">' + formattedUpdated + '</time></span>\n' : '')
+    + '                    <span><i class="fas fa-book-open"></i> ' + timeToRead + ' min read</span>\n'
+    + '                </div>\n\n'
+    + (categories.length > 0 ? '                <div class="article-categories">\n' + categories.map(function(c) { return '                    <span class="category-pill">' + c + '</span>'; }).join('\n') + '\n                </div>\n' : '')
+    + '            </header>\n\n'
+    + (featuredImage ? '            <img src="' + featuredImage + '" alt="' + escapeHTMLForAttr(title) + '" class="featured-image" onerror="this.style.display=\'none\'">\n\n' : '')
+    + '            <div class="article-content">\n                ' + articleContent + '\n            </div>\n\n'
+    + '            <div class="share-buttons">\n'
+    + '                <a href="#" class="share-btn share-x" data-platform="x" title="Share on X (Twitter)"><i class="fab fa-twitter"></i></a>\n'
+    + '                <a href="#" class="share-btn share-linkedin" data-platform="linkedin" title="Share on LinkedIn"><i class="fab fa-linkedin-in"></i></a>\n'
+    + '                <a href="#" class="share-btn share-facebook" data-platform="facebook" title="Share on Facebook"><i class="fab fa-facebook-f"></i></a>\n'
+    + '                <a href="#" class="share-btn share-whatsapp" data-platform="whatsapp" title="Share on WhatsApp"><i class="fab fa-whatsapp"></i></a>\n'
+    + '                <a href="#" class="share-btn share-copy" data-platform="copy" title="Copy Link"><i class="fas fa-link"></i></a>\n'
+    + '            </div>\n'
+    + '        </article>\n'
+    + '    </div>\n\n'
+    + '    <a href="#" class="back-to-top" id="back-to-top"><i class="fas fa-chevron-up"></i></a>\n\n'
+    + '    <script>\n'
+    + '        var ARTICLE_URL = \'' + articleUrl + '\';\n'
+    + '        var ARTICLE_TITLE = ' + JSON.stringify(title) + ';\n'
+    + '        var ARTICLE_DESCRIPTION = ' + JSON.stringify(seoDesc) + ';\n'
+    + '        var ARTICLE_IMAGE = \'' + ogImage + '\';\n\n'
+    + '        function sharePost(platform, title, url, description, imageUrl) {\n'
+    + '            var shareUrl = \'\';\n'
+    + '            var encodedUrl = encodeURIComponent(url);\n'
+    + '            var shareText = title + (description ? \' - \' + description : \'\');\n'
+    + '            var encodedShareText = encodeURIComponent(shareText);\n'
+    + '            switch (platform) {\n'
+    + '                case \'x\': shareUrl = \'https://twitter.com/intent/tweet?text=\' + encodedShareText + \'&url=\' + encodedUrl; break;\n'
+    + '                case \'linkedin\': shareUrl = \'https://www.linkedin.com/sharing/share-offsite/?url=\' + encodedUrl; break;\n'
+    + '                case \'facebook\': shareUrl = \'https://www.facebook.com/sharer/sharer.php?u=\' + encodedUrl; break;\n'
+    + '                case \'whatsapp\': shareUrl = \'https://api.whatsapp.com/send?text=\' + encodedShareText + \'%20\' + encodedUrl; break;\n'
+    + '                case \'copy\': navigator.clipboard ? navigator.clipboard.writeText(url).then(function() { alert(\'Link copied!\'); }) : alert(url); return;\n'
+    + '            }\n'
+    + '            if (shareUrl) window.open(shareUrl, \'_blank\', \'width=600,height=400\');\n'
+    + '        }\n'
+    + '        document.addEventListener(\'DOMContentLoaded\', function() {\n'
+    + '            document.querySelectorAll(\'.share-btn\').forEach(function(btn) {\n'
+    + '                btn.addEventListener(\'click\', function(e) { e.preventDefault(); sharePost(btn.dataset.platform, ARTICLE_TITLE, ARTICLE_URL, ARTICLE_DESCRIPTION, ARTICLE_IMAGE); });\n'
+    + '            });\n'
+    + '            var btt = document.querySelector(\'.back-to-top\');\n'
+    + '            window.addEventListener(\'scroll\', function() { if (btt) { if (window.scrollY > 300) btt.classList.add(\'show\'); else btt.classList.remove(\'show\'); } });\n'
+    + '            if (btt) btt.addEventListener(\'click\', function(e) { e.preventDefault(); window.scrollTo({ top: 0, behavior: \'smooth\' }); });\n'
+    + '        });\n'
+    + '    <\/script>\n'
+    + '    <script src="/js/services/page-sidebar.js"><\/script>\n'
+    + '</body>\n</html>';
+
+  return html;
+}
+
+function escapeHTMLForAttr(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function publishToGitHub() {
+  var token = document.getElementById('gh_token').value || localStorage.getItem('wts_gh_token');
+  var repo = document.getElementById('gh_repo').value;
+  var branch = document.getElementById('gh_branch').value;
+  var filePath = document.getElementById('gh_path').value;
+
+  var progressEl = document.getElementById('publishProgress');
+  var progressFill = document.getElementById('publishProgressFill');
+  var progressText = document.getElementById('publishProgressText');
+  var resultEl = document.getElementById('publishResult');
+
+  if (!token) {
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> GitHub Personal Access Token is required. Enter it in the GitHub Settings above.</div>';
+    return;
+  }
+  if (!filePath) {
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Article title is required to generate file path.</div>';
+    return;
+  }
+
+  var title = document.getElementById('title').value || 'Untitled';
+
+  // Generate the full article HTML
+  progressEl.style.display = 'block';
+  resultEl.style.display = 'none';
+  progressFill.style.width = '10%';
+  progressText.textContent = 'Generating article HTML...';
+
+  var articleHTML;
+  try {
+    articleHTML = generateFullArticleHTML();
+  } catch(e) {
+    progressEl.style.display = 'none';
+    resultEl.style.display = 'block';
+
+    // Clear any existing content
+    resultEl.textContent = '';
+
+    // Build error message safely without using innerHTML
+    var errorWrapper = document.createElement('div');
+    errorWrapper.style.padding = '12px';
+    errorWrapper.style.background = '#f8d7da';
+    errorWrapper.style.border = '1px solid #dc3545';
+    errorWrapper.style.borderRadius = '6px';
+    errorWrapper.style.fontSize = '13px';
+    errorWrapper.style.color = '#721c24';
+
+    var errorIcon = document.createElement('i');
+    errorIcon.className = 'fas fa-times-circle';
+    errorWrapper.appendChild(errorIcon);
+
+    errorWrapper.appendChild(document.createTextNode(' Failed to generate HTML: ' + e.message));
+
+    resultEl.appendChild(errorWrapper);
+    return;
+  }
+
+  progressFill.style.width = '30%';
+  progressText.textContent = 'Checking for existing file...';
+
+  var apiBase = 'https://api.github.com/repos/' + repo + '/contents/' + filePath;
+  var headers = {
+    'Authorization': 'Bearer ' + token,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  };
+
+  // Check if file exists (to get SHA for update)
+  fetch(apiBase + '?ref=' + branch, { headers: headers })
+    .then(function(r) {
+      if (r.ok) return r.json();
+      if (r.status === 404) return null;
+      throw new Error('GitHub API error: HTTP ' + r.status);
+    })
+    .then(function(existing) {
+      progressFill.style.width = '50%';
+      progressText.textContent = 'Pushing to GitHub...';
+
+      var content = btoa(unescape(encodeURIComponent(articleHTML)));
+      var body = {
+        message: (existing ? 'Update' : 'Add') + ' article: ' + title,
+        content: content,
+        branch: branch
+      };
+
+      if (existing && existing.sha) {
+        body.sha = existing.sha;
+      }
+
+      return fetch(apiBase, {
+        method: 'PUT',
+        headers: headers,
+        body: JSON.stringify(body)
+      });
+    })
+    .then(function(r) {
+      if (!r.ok) {
+        return r.json().then(function(err) {
+          throw new Error(err.message || 'HTTP ' + r.status);
+        });
+      }
+      return r.json();
+    })
+    .then(function(data) {
+      progressFill.style.width = '80%';
+      progressText.textContent = 'Triggering GitHub Pages rebuild...';
+
+      // GitHub Pages auto-rebuilds on push, show success
+      setTimeout(function() {
+        progressFill.style.width = '100%';
+        progressText.textContent = 'Published successfully!';
+
+        var publishedUrl = 'https://wordsthatsells.website/' + filePath;
+        var githubUrl = 'https://github.com/' + repo + '/blob/' + branch + '/' + filePath;
+
+        // Also update published_url field
+        var pubUrlField = document.getElementById('published_url');
+        if (pubUrlField && !pubUrlField.value) {
+          pubUrlField.value = publishedUrl;
+          formDirty = true;
+          document.getElementById('unsavedBadge').style.display = 'inline-flex';
+        }
+
+        resultEl.style.display = 'block';
+
+        // Clear any existing content
+        resultEl.textContent = '';
+
+        // Build success message safely without using innerHTML
+        var successWrapper = document.createElement('div');
+        successWrapper.style.padding = '16px';
+        successWrapper.style.background = '#d4edda';
+        successWrapper.style.border = '1px solid #28a745';
+        successWrapper.style.borderRadius = '8px';
+        successWrapper.style.fontSize = '13px';
+        successWrapper.style.color = '#155724';
+
+        var titleDiv = document.createElement('div');
+        titleDiv.style.fontSize = '16px';
+        titleDiv.style.fontWeight = '600';
+        titleDiv.style.marginBottom = '8px';
+
+        var successIcon = document.createElement('i');
+        successIcon.className = 'fas fa-check-circle';
+        titleDiv.appendChild(successIcon);
+        titleDiv.appendChild(document.createTextNode(' Article Published Successfully!'));
+
+        var liveUrlDiv = document.createElement('div');
+        liveUrlDiv.style.marginBottom = '8px';
+        var liveStrong = document.createElement('strong');
+        liveStrong.textContent = 'Live URL:';
+        liveUrlDiv.appendChild(liveStrong);
+        liveUrlDiv.appendChild(document.createTextNode(' '));
+        var liveLink = document.createElement('a');
+        liveLink.href = publishedUrl;
+        liveLink.target = '_blank';
+        liveLink.style.color = '#155724';
+        liveLink.style.textDecoration = 'underline';
+        liveLink.textContent = publishedUrl;
+        liveUrlDiv.appendChild(liveLink);
+
+        var githubDiv = document.createElement('div');
+        githubDiv.style.marginBottom = '8px';
+        var ghStrong = document.createElement('strong');
+        ghStrong.textContent = 'GitHub:';
+        githubDiv.appendChild(ghStrong);
+        githubDiv.appendChild(document.createTextNode(' '));
+        var ghLink = document.createElement('a');
+        ghLink.href = githubUrl;
+        ghLink.target = '_blank';
+        ghLink.style.color = '#155724';
+        ghLink.style.textDecoration = 'underline';
+        ghLink.textContent = 'View on GitHub';
+        githubDiv.appendChild(ghLink);
+
+        var noteDiv = document.createElement('div');
+        noteDiv.style.fontSize = '12px';
+        noteDiv.style.color = '#6c757d';
+        noteDiv.textContent = 'Note: GitHub Pages may take 1-2 minutes to rebuild. The article URL will be live after deployment completes.';
+
+        successWrapper.appendChild(titleDiv);
+        successWrapper.appendChild(liveUrlDiv);
+        successWrapper.appendChild(githubDiv);
+        successWrapper.appendChild(noteDiv);
+
+        resultEl.appendChild(successWrapper);
+      }, 1000);
+    })
+    .catch(function(err) {
+      progressFill.style.width = '0%';
+      progressEl.style.display = 'none';
+      resultEl.style.display = 'block';
+
+      // Clear any existing content
+      resultEl.textContent = '';
+
+      // Build error message safely without using innerHTML
+      var publishErrorWrapper = document.createElement('div');
+      publishErrorWrapper.style.padding = '12px';
+      publishErrorWrapper.style.background = '#f8d7da';
+      publishErrorWrapper.style.border = '1px solid #dc3545';
+      publishErrorWrapper.style.borderRadius = '6px';
+      publishErrorWrapper.style.fontSize = '13px';
+      publishErrorWrapper.style.color = '#721c24';
+
+      var publishErrorIcon = document.createElement('i');
+      publishErrorIcon.className = 'fas fa-times-circle';
+      publishErrorWrapper.appendChild(publishErrorIcon);
+
+      publishErrorWrapper.appendChild(document.createTextNode(' Publish failed: ' + err.message));
+
+      resultEl.appendChild(publishErrorWrapper);
+    });
+}
+
+// ==================== PUBLISH TAB INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', function() {
+  initGitHubSettings();
+
+  // Update file path when title changes
+  var titleEl = document.getElementById('title');
+  if (titleEl) titleEl.addEventListener('input', function() { updateGhFilePath(); });
+
+  // Bind Publish tab buttons
+  function bind(id, fn) { var el = document.getElementById(id); if (el) el.addEventListener('click', fn); }
+
+  // Content tab auto-hyperlink buttons
+  bind('autoHyperlinkContentBtn', function() { autoHyperlinkField('content', 'hyperlinkStatus'); });
+  bind('autoHyperlinkTextBtn', function() { autoHyperlinkField('text_article', 'hyperlinkStatus'); });
+
+  // Calculate reading time
+  bind('calcReadTimeBtn', function() { calcReadingTime(); });
+
+  // Publish tab buttons
+  bind('pubAutoHyperlinkBtn', function() { autoHyperlinkAll(); });
+  bind('pubPreviewLinksBtn', function() {
+    fetchLinkTerms(function(terms) {
+      var content = document.getElementById('content').value || '';
+      var textArticle = document.getElementById('text_article').value || '';
+      var contentResult = hyperlinkContent(content, terms);
+      var textResult = hyperlinkContent(textArticle, terms);
+      var total = contentResult.count + textResult.count;
+      var statusEl = document.getElementById('pubHyperlinkStatus');
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = '<div style="padding: 10px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius, 6px); font-size: 13px; color: var(--primary);"><i class="fas fa-info-circle"></i> Preview: <strong>' + total + '</strong> terms would be linked (Sidemenu: ' + contentResult.count + ', Text Article: ' + textResult.count + '). Click "Auto-Hyperlink All Content" to apply.</div>';
+    });
+  });
+  bind('pubUndoLinksBtn', function() { undoAutoLinks(); });
+
+  // Preview
+  bind('generatePreviewBtn', function() { generateArticlePreview(); });
+  bind('openPreviewNewTabBtn', function() { openPreviewInNewTab(); });
+
+  // GitHub settings
+  bind('saveGhSettingsBtn', function() { saveGhSettings(); });
+  bind('testGhConnectionBtn', function() { testGhConnection(); });
+  bind('publishToGithubBtn', function() { publishToGitHub(); });
 });
 </script>
 
