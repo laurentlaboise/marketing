@@ -4038,3 +4038,216 @@ select.form-input {
     align-self: center;
   }
 }
+
+/* ==========================================
+   ARTICLE FORM RESPONSIVE OVERRIDES
+   ========================================== */
+
+/* --- 768px: Tablet and below --- */
+@media (max-width: 768px) {
+
+  /* Sticky action bar: wrap items */
+  .sticky-action-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 16px !important;
+  }
+  .sticky-bar-left,
+  .sticky-bar-right {
+    gap: 8px;
+  }
+
+  /* Organization strip: stack fields vertically */
+  .org-strip {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px !important;
+    align-items: stretch;
+  }
+  .org-strip-field {
+    width: 100%;
+  }
+  .org-strip-field[style*="flex: 2"] {
+    flex: unset !important;
+  }
+  .org-strip-select {
+    width: 100%;
+  }
+
+  /* Form tabs: horizontal scroll */
+  .form-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 16px !important;
+    scrollbar-width: none;
+  }
+  .form-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .form-tab {
+    white-space: nowrap;
+    padding: 10px 14px;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  /* Form tab panels: less padding on mobile */
+  .form-tab-panel {
+    padding: 16px !important;
+  }
+
+  /* Social preview grid: single column */
+  .preview-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Social tabs: scroll if needed */
+  .social-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .social-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .social-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Social score checklist: single column */
+  .social-score-checklist {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Citation items: stack inputs */
+  .citation-item {
+    flex-wrap: wrap;
+  }
+  .citation-item input {
+    flex: 1 1 100% !important;
+    min-width: 0;
+  }
+
+  /* Key point items: stack vertically */
+  .key-point-item {
+    flex-direction: column;
+  }
+  .key-point-item input,
+  .key-point-item textarea {
+    flex: unset !important;
+    width: 100%;
+  }
+
+  /* Sidebar source items: stack inputs */
+  .sidebar-source-item {
+    flex-wrap: wrap;
+  }
+  .sidebar-source-item input {
+    flex: 1 1 100% !important;
+    min-width: 0;
+  }
+
+  /* Modal content: fit smaller screens */
+  .modal-content {
+    margin: 2% auto !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: 94vh;
+    overflow-y: auto;
+  }
+
+  /* Hyperlink stats: 2-column */
+  .hyperlink-stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Article preview iframe: shorter */
+  .article-preview-frame {
+    height: 400px !important;
+  }
+
+  /* Audio language rows (dynamically created with inline styles) */
+  #audioLangRows > div[style*="display:flex"] {
+    flex-wrap: wrap !important;
+  }
+  #audioLangRows > div[style*="display:flex"] > input[type="url"] {
+    flex: 1 1 100% !important;
+    min-width: 0;
+  }
+
+  /* Card max-width: constrain on mobile */
+  .card[style*="overflow: visible"] {
+    max-width: 100% !important;
+  }
+}
+
+/* --- 640px: Small mobile --- */
+@media (max-width: 640px) {
+
+  /* Sticky action bar: full stacking */
+  .sticky-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sticky-bar-left {
+    justify-content: space-between;
+  }
+  .sticky-bar-right {
+    justify-content: flex-end;
+  }
+
+  /* Form tabs: icon only (hide text labels) */
+  .form-tab {
+    padding: 10px 12px;
+    font-size: 0;
+  }
+  .form-tab i {
+    font-size: 16px;
+  }
+
+  /* Completion indicator: smaller dots */
+  .completion-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  /* Hyperlink stats: single column */
+  .hyperlink-stats {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* --- 480px: Extra small --- */
+@media (max-width: 480px) {
+
+  /* Sticky bar buttons: compact */
+  .sticky-action-bar .btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  /* Unsaved badge: smaller */
+  .unsaved-badge {
+    font-size: 11px;
+  }
+
+  /* SERP preview: constrain width */
+  .serp-preview {
+    max-width: 100%;
+  }
+  .serp-title {
+    font-size: 16px;
+  }
+
+  /* Char counter row: stack */
+  .char-counter-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  /* Article preview frame: shorter */
+  .article-preview-frame {
+    height: 300px !important;
+  }
+}

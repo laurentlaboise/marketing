@@ -133,11 +133,11 @@
                   <i class="fas fa-image"></i>
                   <span>No featured image selected</span>
                 </div>
-                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <div class="image-url-row" style="margin-top: 8px;">
                   <button type="button" class="btn btn-secondary btn-sm" id="openFeaturedImageBtn">
                     <i class="fas fa-photo-video"></i> Choose from Library
                   </button>
-                  <input type="url" id="featured_image" name="featured_image" class="form-input" placeholder="Or paste image URL" value="<%= article ? article.featured_image : '' %>" style="flex: 1; font-size: 13px;">
+                  <input type="url" id="featured_image" name="featured_image" class="form-input" placeholder="Or paste image URL" value="<%= article ? article.featured_image : '' %>" style="font-size: 13px;">
                 </div>
               </div>
             </div>
@@ -156,9 +156,9 @@
 
             <!-- Auto-Hyperlink Button -->
             <div class="form-group" style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div class="autolink-header">
                 <label class="form-label" style="margin-bottom: 0;"><i class="fas fa-link" style="color: var(--primary);"></i> Auto-Hyperlink Content</label>
-                <div style="display: flex; gap: 8px;">
+                <div class="autolink-buttons">
                   <button type="button" id="autoHyperlinkContentBtn" class="btn btn-secondary btn-sm">
                     <i class="fas fa-magic"></i> Auto-Link Sidemenu
                   </button>
@@ -226,7 +226,7 @@
           <!-- ===== TAB: SEO ===== -->
           <div class="form-tab-panel" id="panel-seo" style="display:none;">
           <div class="form-section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="section-header-row">
               <h3 class="form-section-title" style="margin-bottom: 0;"><i class="fas fa-search"></i> SEO Settings</h3>
               <button type="button" class="btn btn-secondary btn-sm" id="aiSuggestSeoBtn">
                 <i class="fas fa-robot"></i> AI Suggest SEO
@@ -293,7 +293,7 @@
           <div class="form-tab-panel" id="panel-social" style="display:none;">
           <!-- Social Preview Section -->
           <div class="form-section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="section-header-row">
               <h3 class="form-section-title" style="margin-bottom: 0;"><i class="fas fa-share-alt"></i> Social Preview (Open Graph / Twitter Cards)</h3>
               <button type="button" class="btn btn-secondary btn-sm" id="aiSuggestSocialBtn">
                 <i class="fas fa-robot"></i> AI Suggest Social
@@ -353,8 +353,8 @@
 
               <div class="form-group">
                 <label class="form-label" for="og_image"><i class="fas fa-image" style="color: #1877F2;"></i> OG Image URL</label>
-                <div style="display: flex; gap: 8px;">
-                  <input type="url" id="og_image" name="og_image" class="form-input" placeholder="https://example.com/image.jpg (1200x630px recommended)" value="<%= article && article.og_image ? article.og_image : '' %>" style="flex: 1;">
+                <div class="image-url-row">
+                  <input type="url" id="og_image" name="og_image" class="form-input" placeholder="https://example.com/image.jpg (1200x630px recommended)" value="<%= article && article.og_image ? article.og_image : '' %>">
                   <button type="button" class="btn btn-secondary" id="openOgImageBtn">
                     <i class="fas fa-photo-video"></i> Library
                   </button>
@@ -419,8 +419,8 @@
 
               <div class="form-group">
                 <label class="form-label" for="twitter_image"><i class="fas fa-image"></i> X Image URL</label>
-                <div style="display: flex; gap: 8px;">
-                  <input type="url" id="twitter_image" name="twitter_image" class="form-input" placeholder="https://example.com/image.jpg (leave empty to use OG image)" value="<%= article && article.twitter_image ? article.twitter_image : '' %>" style="flex: 1;">
+                <div class="image-url-row">
+                  <input type="url" id="twitter_image" name="twitter_image" class="form-input" placeholder="https://example.com/image.jpg (leave empty to use OG image)" value="<%= article && article.twitter_image ? article.twitter_image : '' %>">
                   <button type="button" class="btn btn-secondary" id="openTwitterImageBtn">
                     <i class="fas fa-photo-video"></i> Library
                   </button>
@@ -669,7 +669,7 @@
             <p class="form-help" style="margin-bottom: 12px;">Automatically scan article content and create hyperlinks for glossary terms, SEO terms, and AI tools from your database.</p>
 
             <div class="publish-hyperlink-controls">
-              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+              <div class="hyperlink-button-row">
                 <button type="button" id="pubAutoHyperlinkBtn" class="btn btn-primary">
                   <i class="fas fa-magic"></i> Auto-Hyperlink All Content
                 </button>
@@ -693,7 +693,7 @@
             <h3 class="form-section-title"><i class="fas fa-eye"></i> Article Preview</h3>
             <p class="form-help" style="margin-bottom: 12px;">Preview how the article will look when published as a static HTML page on GitHub Pages.</p>
 
-            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <div class="preview-button-row">
               <button type="button" id="generatePreviewBtn" class="btn btn-primary">
                 <i class="fas fa-eye"></i> Generate Preview
               </button>
@@ -740,7 +740,7 @@
                 </div>
               </div>
 
-              <div style="display: flex; gap: 8px;">
+              <div class="gh-settings-buttons">
                 <button type="button" id="saveGhSettingsBtn" class="btn btn-secondary btn-sm">
                   <i class="fas fa-save"></i> Save Settings
                 </button>
@@ -753,12 +753,12 @@
 
             <!-- Publish Actions -->
             <div class="publish-actions" style="background: linear-gradient(135deg, #f0f9ff 0%, #e8f5e9 100%); border: 1px solid #c8e6c9; border-radius: 8px; padding: 20px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div class="deploy-header">
                 <div>
                   <h4 style="font-size: 16px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px;">Deploy Article</h4>
                   <p style="font-size: 13px; color: var(--gray-600); margin: 0;">Generate static HTML and push to GitHub Pages</p>
                 </div>
-                <div style="display: flex; gap: 8px;">
+                <div>
                   <button type="button" id="publishToGithubBtn" class="btn btn-primary" style="background: #28a745; border-color: #28a745;">
                     <i class="fab fa-github"></i> Publish to GitHub
                   </button>
@@ -845,9 +845,9 @@
       <button class="modal-close" id="imageModalCloseX">&times;</button>
     </div>
     <div class="modal-body">
-      <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-        <input type="text" id="imageSearchInput" class="form-input" placeholder="Search images..." style="flex: 1;">
-        <select id="imageCategoryFilter" class="form-input" style="width: 150px;">
+      <div class="image-modal-search">
+        <input type="text" id="imageSearchInput" class="form-input" placeholder="Search images...">
+        <select id="imageCategoryFilter" class="form-input">
           <option value="">All Categories</option>
           <option value="hero">Hero</option>
           <option value="portfolio">Portfolio</option>
@@ -861,7 +861,7 @@
           <i class="fas fa-search"></i> Search
         </button>
       </div>
-      <div id="imageGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; max-height: 400px; overflow-y: auto;">
+      <div id="imageGridContainer" class="image-modal-grid">
         <!-- Images will be loaded here -->
       </div>
       <div id="imageModalPagination" style="margin-top: 16px; text-align: center;">
@@ -1692,6 +1692,138 @@
   background: #28a745;
   transition: width 0.4s ease;
   width: 0%;
+}
+
+/* ===== RESPONSIVE UTILITY CLASSES (article form) ===== */
+.autolink-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.autolink-buttons {
+  display: flex;
+  gap: 8px;
+}
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.image-url-row {
+  display: flex;
+  gap: 8px;
+}
+.image-url-row .form-input {
+  flex: 1;
+}
+.image-modal-search {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.image-modal-search .form-input:first-child {
+  flex: 1;
+}
+.image-modal-search select.form-input {
+  width: 150px;
+}
+.image-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.deploy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.gh-settings-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.hyperlink-button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.preview-button-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* ===== ARTICLE FORM RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .autolink-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .autolink-buttons {
+    flex-wrap: wrap;
+  }
+  .section-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .image-url-row {
+    flex-direction: column;
+  }
+  .image-url-row .form-input {
+    flex: unset;
+    width: 100%;
+  }
+  .image-modal-search {
+    flex-wrap: wrap;
+  }
+  .image-modal-search .form-input:first-child {
+    flex: 1 1 100%;
+  }
+  .image-modal-search select.form-input {
+    width: 100%;
+    flex: 1;
+  }
+  .image-modal-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    max-height: 300px;
+  }
+  .deploy-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .autolink-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  .autolink-buttons .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .hyperlink-button-row {
+    flex-direction: column;
+  }
+  .hyperlink-button-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .preview-button-row {
+    flex-direction: column;
+  }
+  .preview-button-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>
 
