@@ -222,6 +222,133 @@
     .back-link:hover {
       text-decoration: underline;
     }
+
+    /* Audio Section */
+    .audio-section {
+      border: 1px solid #e0e7ff;
+      background: #f8faff;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .audio-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .audio-section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f3a5f;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #ccc;
+      border-radius: 24px;
+      transition: 0.3s;
+    }
+
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: #0066cc;
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+
+    .audio-fields {
+      display: none;
+    }
+
+    .audio-fields.visible {
+      display: block;
+    }
+
+    .audio-lang-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .audio-lang-row label {
+      min-width: 70px;
+      margin-bottom: 0;
+      font-weight: 600;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .audio-lang-row input {
+      flex: 1;
+    }
+
+    .audio-add-lang {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: 1px dashed #0066cc;
+      color: #0066cc;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
+    .audio-add-lang:hover {
+      background: #e8f0fe;
+    }
+
+    .audio-remove-btn {
+      background: none;
+      border: none;
+      color: #dc3545;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px 8px;
+      line-height: 1;
+    }
+
+    .audio-remove-btn:hover {
+      background: #fff0f0;
+      border-radius: 4px;
+    }
   </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMRKC1VBBB"></script>
@@ -300,6 +427,49 @@
         />
         <div class="helper-text">
           Use Unsplash, your own CDN, or leave blank for placeholder image
+        </div>
+      </div>
+
+      <!-- Audio Widget Controls -->
+      <div class="audio-section">
+        <div class="audio-section-header">
+          <span class="audio-section-title">Article Audio (Listen to this Article)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="audio_enabled" name="audio_enabled" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="helper-text" style="margin-bottom:12px">
+          Enable to attach multi-language audio files. The audio widget will appear beneath the article title.
+        </div>
+        <div class="audio-fields" id="audioFields">
+          <div id="audioLangRows">
+            <div class="audio-lang-row" data-lang="en">
+              <label>English</label>
+              <input type="url" name="audio_en" placeholder="https://cdn.example.com/audio/article-en.mp3" />
+              <button type="button" class="audio-remove-btn" title="Remove language" onclick="removeAudioLang(this)">&times;</button>
+            </div>
+            <div class="audio-lang-row" data-lang="lo">
+              <label>Lao</label>
+              <input type="url" name="audio_lo" placeholder="https://cdn.example.com/audio/article-lo.mp3" />
+              <button type="button" class="audio-remove-btn" title="Remove language" onclick="removeAudioLang(this)">&times;</button>
+            </div>
+          </div>
+          <button type="button" class="audio-add-lang" id="addAudioLangBtn">+ Add Language</button>
+          <div id="addLangDropdown" style="display:none; margin-top:8px;">
+            <select id="newLangSelect" style="padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px;">
+              <option value="">-- Select language --</option>
+              <option value="th">Thai</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="zh">Chinese</option>
+              <option value="ja">Japanese</option>
+              <option value="ko">Korean</option>
+              <option value="vi">Vietnamese</option>
+              <option value="km">Khmer</option>
+              <option value="my">Burmese</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -488,6 +658,116 @@
         localStorage.removeItem(`draft_${inputId}`);
       });
     });
+
+    // ==================== AUDIO CONTROLS ====================
+    const LANG_LABELS = {
+      en: 'English', lo: 'Lao', th: 'Thai', es: 'Spanish',
+      fr: 'French', zh: 'Chinese', ja: 'Japanese', ko: 'Korean',
+      vi: 'Vietnamese', km: 'Khmer', my: 'Burmese'
+    };
+
+    const audioEnabledToggle = document.getElementById('audio_enabled');
+    const audioFieldsPanel = document.getElementById('audioFields');
+    const audioLangRows = document.getElementById('audioLangRows');
+    const addAudioLangBtn = document.getElementById('addAudioLangBtn');
+    const addLangDropdown = document.getElementById('addLangDropdown');
+    const newLangSelect = document.getElementById('newLangSelect');
+
+    // Toggle audio panel visibility
+    audioEnabledToggle.addEventListener('change', () => {
+      audioFieldsPanel.classList.toggle('visible', audioEnabledToggle.checked);
+    });
+
+    // Show/hide add language dropdown
+    addAudioLangBtn.addEventListener('click', () => {
+      addLangDropdown.style.display = addLangDropdown.style.display === 'none' ? 'block' : 'none';
+      updateLangDropdownOptions();
+    });
+
+    // Add new language row when selected
+    newLangSelect.addEventListener('change', () => {
+      const code = newLangSelect.value;
+      if (!code) return;
+      addAudioLangRow(code, LANG_LABELS[code] || code);
+      newLangSelect.value = '';
+      addLangDropdown.style.display = 'none';
+    });
+
+    function addAudioLangRow(code, label) {
+      const row = document.createElement('div');
+      row.className = 'audio-lang-row';
+      row.dataset.lang = code;
+
+      const labelEl = document.createElement('label');
+      labelEl.textContent = label;
+      row.appendChild(labelEl);
+
+      const inputEl = document.createElement('input');
+      inputEl.type = 'url';
+      inputEl.name = 'audio_' + code;
+      inputEl.placeholder = 'https://cdn.example.com/audio/article-' + code + '.mp3';
+      row.appendChild(inputEl);
+
+      const btnEl = document.createElement('button');
+      btnEl.type = 'button';
+      btnEl.className = 'audio-remove-btn';
+      btnEl.title = 'Remove language';
+      btnEl.innerHTML = '&times;';
+      btnEl.addEventListener('click', function () {
+        window.removeAudioLang(btnEl);
+      });
+      row.appendChild(btnEl);
+
+      audioLangRows.appendChild(row);
+    }
+
+    function updateLangDropdownOptions() {
+      const existing = Array.from(audioLangRows.querySelectorAll('[data-lang]')).map(r => r.dataset.lang);
+      newLangSelect.querySelectorAll('option').forEach(opt => {
+        if (opt.value) opt.disabled = existing.includes(opt.value);
+      });
+    }
+
+    // Remove a language row (global function for onclick)
+    window.removeAudioLang = function(btn) {
+      btn.closest('.audio-lang-row').remove();
+    };
+
+    // Collect audio data for form submission
+    function getAudioFilesData() {
+      if (!audioEnabledToggle.checked) return {};
+      const data = { _enabled: true };
+      audioLangRows.querySelectorAll('.audio-lang-row').forEach(row => {
+        const code = row.dataset.lang;
+        const url = row.querySelector('input[type="url"]').value.trim();
+        if (url) data[code] = url;
+      });
+      return data;
+    }
+
+    // Patch the existing submit handler to include audio_files
+    const originalSubmitHandler = form.onsubmit;
+    const submitBtnEl = document.getElementById('submitBtn');
+
+    // Override — intercept the form submit to add audio data
+    const origFormListeners = form._events;
+    form.addEventListener('submit', async (e) => {
+      // The existing handler already prevents default and handles submission.
+      // We need to patch it. Instead, let's override by removing and re-adding.
+    }, true);
+
+    // Monkey-patch: wrap the fetch body to include audio_files
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options) {
+      if (typeof url === 'string' && url.includes('/api/articles') && options && options.method === 'POST') {
+        try {
+          const body = JSON.parse(options.body);
+          body.audio_files = getAudioFilesData();
+          options.body = JSON.stringify(body);
+        } catch(e) { /* ignore */ }
+      }
+      return originalFetch.call(this, url, options);
+    };
   </script>
 </body>
 </html>

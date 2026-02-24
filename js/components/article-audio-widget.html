@@ -1,0 +1,479 @@
+<!--
+  ============================================================
+  "Listen to this Article" Multi-Language Audio Widget
+  ============================================================
+  Drop-in component — place this block directly beneath an
+  article's <h1> tag.  Zero framework dependencies.
+
+  SETUP:
+  1. Edit the AUDIO_TRACKS object below to map language codes
+     to their MP3/WAV URLs.
+  2. Optionally update the ARTICLE_META object for JSON-LD.
+  3. Paste this entire block into your article HTML.
+  ============================================================
+-->
+
+<!-- ==================== JSON-LD AudioObject Schema ==================== -->
+<script type="application/ld+json" id="audio-widget-schema">
+{
+  "@context": "https://schema.org",
+  "@type": "AudioObject",
+  "name": "Listen to this Article",
+  "description": "Audio version of this article",
+  "encodingFormat": "audio/mpeg",
+  "inLanguage": "en",
+  "contentUrl": ""
+}
+</script>
+
+<!-- ==================== Widget Markup ==================== -->
+<figure class="article-audio-widget" role="region" aria-label="Listen to this article in multiple languages">
+  <figcaption class="aaw-caption" id="aaw-figcaption">
+    <svg class="aaw-icon-headphones" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+    <span>Listen to this article</span>
+  </figcaption>
+
+  <div class="aaw-controls">
+    <!-- Language selector -->
+    <div class="aaw-lang-wrapper">
+      <label for="aaw-lang-select" class="aaw-sr-only">Select language</label>
+      <select id="aaw-lang-select" class="aaw-lang-select" aria-label="Audio language">
+        <!-- Populated by JS -->
+      </select>
+    </div>
+
+    <!-- Play / Pause -->
+    <button class="aaw-play-btn" id="aaw-play-btn" aria-label="Play audio" type="button">
+      <svg class="aaw-icon-play" id="aaw-icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg>
+      <svg class="aaw-icon-pause" id="aaw-icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+
+    <!-- Time + Scrubber -->
+    <span class="aaw-time" id="aaw-time-current">0:00</span>
+    <div class="aaw-progress-wrap" id="aaw-progress-wrap" role="slider" aria-label="Audio progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+      <div class="aaw-progress-track">
+        <div class="aaw-progress-fill" id="aaw-progress-fill"></div>
+      </div>
+    </div>
+    <span class="aaw-time" id="aaw-time-total">0:00</span>
+  </div>
+
+  <!-- Hidden audio element — background playback by default -->
+  <audio id="aaw-audio" preload="metadata"></audio>
+</figure>
+
+<!-- ==================== Styles ==================== -->
+<style>
+/* === Audio Widget Reset === */
+.article-audio-widget,
+.article-audio-widget *,
+.article-audio-widget *::before,
+.article-audio-widget *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.article-audio-widget {
+  --aaw-bg: #f8fafc;
+  --aaw-border: #e2e8f0;
+  --aaw-text: #334155;
+  --aaw-text-muted: #94a3b8;
+  --aaw-accent: #2563eb;
+  --aaw-accent-hover: #1d4ed8;
+  --aaw-track-bg: #cbd5e1;
+  --aaw-radius: 999px;
+  --aaw-radius-md: 10px;
+  --aaw-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--aaw-bg);
+  border: 1px solid var(--aaw-border);
+  border-radius: var(--aaw-radius-md);
+  padding: 14px 18px;
+  margin: 20px 0 28px;
+  font-family: var(--aaw-font);
+  max-width: 100%;
+}
+
+/* Caption / heading */
+.aaw-caption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--aaw-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.aaw-icon-headphones {
+  flex-shrink: 0;
+  color: var(--aaw-accent);
+}
+
+/* Controls row */
+.aaw-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Language selector */
+.aaw-lang-wrapper {
+  flex-shrink: 0;
+}
+
+.aaw-lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #ffffff;
+  border: 1px solid var(--aaw-border);
+  border-radius: var(--aaw-radius);
+  padding: 6px 28px 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--aaw-text);
+  cursor: pointer;
+  font-family: var(--aaw-font);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: border-color 0.2s;
+}
+.aaw-lang-select:hover,
+.aaw-lang-select:focus {
+  border-color: var(--aaw-accent);
+  outline: none;
+}
+
+/* Play button */
+.aaw-play-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--aaw-accent);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.aaw-play-btn:hover {
+  background: var(--aaw-accent-hover);
+  transform: scale(1.06);
+}
+.aaw-play-btn:active {
+  transform: scale(0.96);
+}
+
+.aaw-icon-play {
+  margin-left: 2px; /* optical centre */
+}
+
+/* Time labels */
+.aaw-time {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--aaw-text-muted);
+  min-width: 34px;
+  text-align: center;
+  user-select: none;
+}
+
+/* Progress / scrubber */
+.aaw-progress-wrap {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  padding: 6px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.aaw-progress-track {
+  position: relative;
+  height: 5px;
+  background: var(--aaw-track-bg);
+  border-radius: var(--aaw-radius);
+  overflow: hidden;
+}
+.aaw-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: var(--aaw-accent);
+  border-radius: var(--aaw-radius);
+  transition: width 0.15s linear;
+}
+.aaw-progress-wrap:hover .aaw-progress-track {
+  height: 7px;
+}
+
+/* Screen-reader only utility */
+.aaw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .article-audio-widget {
+    padding: 12px 14px;
+  }
+  .aaw-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .aaw-lang-wrapper {
+    order: -1;
+    width: 100%;
+  }
+  .aaw-lang-select {
+    width: 100%;
+  }
+}
+</style>
+
+<!-- ==================== JavaScript ==================== -->
+<script>
+(function () {
+  'use strict';
+
+  // ============================================================
+  // CONFIGURATION — edit these to match your article
+  // ============================================================
+
+  /**
+   * Map language codes to audio file URLs.
+   * Add or remove entries as needed.
+   * Keys   = ISO 639-1 codes  (used in schema inLanguage)
+   * Values = { label: display name, url: audio file URL }
+   */
+  const AUDIO_TRACKS = {
+    en: {
+      label: 'English',
+      url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+    },
+    lo: {
+      label: 'Lao',
+      url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
+    },
+    th: {
+      label: 'Thai',
+      url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'
+    },
+    es: {
+      label: 'Spanish',
+      url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3'
+    }
+  };
+
+  /** Optional metadata for richer JSON-LD */
+  const ARTICLE_META = {
+    name: document.querySelector('h1')
+      ? document.querySelector('h1').textContent
+      : 'Article Audio',
+    description: document.querySelector('meta[name="description"]')
+      ? document.querySelector('meta[name="description"]').getAttribute('content')
+      : ''
+  };
+
+  // ============================================================
+  // DOM REFERENCES
+  // ============================================================
+  const audio         = document.getElementById('aaw-audio');
+  const playBtn       = document.getElementById('aaw-play-btn');
+  const iconPlay      = document.getElementById('aaw-icon-play');
+  const iconPause     = document.getElementById('aaw-icon-pause');
+  const langSelect    = document.getElementById('aaw-lang-select');
+  const timeCurrent   = document.getElementById('aaw-time-current');
+  const timeTotal     = document.getElementById('aaw-time-total');
+  const progressWrap  = document.getElementById('aaw-progress-wrap');
+  const progressFill  = document.getElementById('aaw-progress-fill');
+  const schemaScript  = document.getElementById('audio-widget-schema');
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+
+  /** Format seconds → m:ss */
+  function fmtTime(s) {
+    if (!s || !isFinite(s)) return '0:00';
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  /** Update JSON-LD AudioObject schema dynamically */
+  function updateSchema(langCode, url) {
+    try {
+      const schema = JSON.parse(schemaScript.textContent);
+      schema.name = ARTICLE_META.name + ' (' + (AUDIO_TRACKS[langCode]?.label || langCode) + ')';
+      schema.description = ARTICLE_META.description;
+      schema.inLanguage = langCode;
+      schema.contentUrl = url;
+      schemaScript.textContent = JSON.stringify(schema, null, 2);
+    } catch (_) { /* schema update is non-critical */ }
+  }
+
+  // ============================================================
+  // INITIALISE LANGUAGE DROPDOWN
+  // ============================================================
+  const langCodes = Object.keys(AUDIO_TRACKS);
+
+  langCodes.forEach(function (code) {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = AUDIO_TRACKS[code].label;
+    langSelect.appendChild(opt);
+  });
+
+  // Load first track
+  if (langCodes.length > 0) {
+    const firstCode = langCodes[0];
+    audio.src = AUDIO_TRACKS[firstCode].url;
+    updateSchema(firstCode, AUDIO_TRACKS[firstCode].url);
+  }
+
+  // ============================================================
+  // LANGUAGE SWITCH
+  // ============================================================
+  langSelect.addEventListener('change', function () {
+    var code = langSelect.value;
+    var track = AUDIO_TRACKS[code];
+    if (!track) return;
+
+    var wasPlaying = !audio.paused;
+    audio.pause();
+    audio.src = track.url;
+    audio.load();
+    progressFill.style.width = '0%';
+    timeCurrent.textContent = '0:00';
+    timeTotal.textContent = '0:00';
+    setPlayIcon(false);
+
+    updateSchema(code, track.url);
+
+    // ---- Analytics: language_changed ----
+    // Replace this console.log with your GA4 dataLayer.push():
+    // window.dataLayer = window.dataLayer || [];
+    // window.dataLayer.push({ event: 'audio_language_changed', audio_language: code });
+    console.log('[AudioWidget] language_changed:', code);
+  });
+
+  // ============================================================
+  // PLAY / PAUSE
+  // ============================================================
+  function setPlayIcon(playing) {
+    iconPlay.style.display  = playing ? 'none'  : 'block';
+    iconPause.style.display = playing ? 'block' : 'none';
+    playBtn.setAttribute('aria-label', playing ? 'Pause audio' : 'Play audio');
+  }
+
+  playBtn.addEventListener('click', function () {
+    if (audio.paused) {
+      audio.play().catch(function () { /* autoplay blocked — user must interact */ });
+    } else {
+      audio.pause();
+    }
+  });
+
+  audio.addEventListener('play', function () {
+    setPlayIcon(true);
+    // ---- Analytics: play ----
+    // window.dataLayer.push({ event: 'audio_play', audio_language: langSelect.value });
+    console.log('[AudioWidget] play — lang:', langSelect.value);
+  });
+
+  audio.addEventListener('pause', function () {
+    setPlayIcon(false);
+    // ---- Analytics: pause ----
+    // window.dataLayer.push({ event: 'audio_pause', audio_language: langSelect.value, audio_position: audio.currentTime });
+    console.log('[AudioWidget] pause — lang:', langSelect.value, 'at', fmtTime(audio.currentTime));
+  });
+
+  audio.addEventListener('ended', function () {
+    setPlayIcon(false);
+    progressFill.style.width = '100%';
+    // ---- Analytics: ended ----
+    // window.dataLayer.push({ event: 'audio_ended', audio_language: langSelect.value });
+    console.log('[AudioWidget] ended — lang:', langSelect.value);
+  });
+
+  // ============================================================
+  // PROGRESS & TIME UPDATES
+  // ============================================================
+  audio.addEventListener('loadedmetadata', function () {
+    timeTotal.textContent = fmtTime(audio.duration);
+  });
+
+  audio.addEventListener('timeupdate', function () {
+    if (!audio.duration) return;
+    var pct = (audio.currentTime / audio.duration) * 100;
+    progressFill.style.width = pct + '%';
+    timeCurrent.textContent = fmtTime(audio.currentTime);
+    progressWrap.setAttribute('aria-valuenow', Math.round(pct));
+  });
+
+  // ============================================================
+  // SCRUBBER INTERACTION (mouse + touch + keyboard)
+  // ============================================================
+  function seekFromEvent(e) {
+    var rect = progressWrap.getBoundingClientRect();
+    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    var pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    if (audio.duration && isFinite(audio.duration)) {
+      audio.currentTime = pct * audio.duration;
+    }
+  }
+
+  var isScrubbing = false;
+
+  progressWrap.addEventListener('mousedown', function (e) {
+    isScrubbing = true;
+    seekFromEvent(e);
+  });
+  document.addEventListener('mousemove', function (e) {
+    if (isScrubbing) seekFromEvent(e);
+  });
+  document.addEventListener('mouseup', function () {
+    isScrubbing = false;
+  });
+
+  progressWrap.addEventListener('touchstart', function (e) {
+    isScrubbing = true;
+    seekFromEvent(e);
+  }, { passive: true });
+  progressWrap.addEventListener('touchmove', function (e) {
+    if (isScrubbing) seekFromEvent(e);
+  }, { passive: true });
+  progressWrap.addEventListener('touchend', function () {
+    isScrubbing = false;
+  });
+
+  // Keyboard: left/right arrows to seek +-5s
+  progressWrap.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') {
+      audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5);
+    } else if (e.key === 'ArrowLeft') {
+      audio.currentTime = Math.max(0, audio.currentTime - 5);
+    }
+  });
+
+})();
+</script>

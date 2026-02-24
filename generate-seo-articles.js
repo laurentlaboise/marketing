@@ -87,6 +87,128 @@ function formatSchemaDate(dateString) {
 }
 
 /**
+ * Generate the inline "Listen to this Article" audio widget HTML.
+ * Returns empty string if audio is not enabled.
+ */
+function generateAudioWidgetHTML(article) {
+  const audioFiles = article.audio_files || {};
+  if (!audioFiles._enabled) return '';
+
+  const LANG_LABELS = {
+    en: 'English', lo: 'Lao', th: 'Thai', es: 'Spanish',
+    fr: 'French', zh: 'Chinese', ja: 'Japanese', ko: 'Korean',
+    vi: 'Vietnamese', km: 'Khmer', my: 'Burmese'
+  };
+
+  // Build tracks object (exclude _enabled flag)
+  const tracks = {};
+  for (const [code, url] of Object.entries(audioFiles)) {
+    if (code === '_enabled' || !url) continue;
+    tracks[code] = { label: LANG_LABELS[code] || code, url: url };
+  }
+
+  if (Object.keys(tracks).length === 0) return '';
+
+  const firstCode = Object.keys(tracks)[0];
+  const articleTitle = escapeHtml(article.title);
+
+  return `
+            <!-- Audio Widget: Listen to this Article -->
+            <script type="application/ld+json" id="audio-widget-schema">
+            ${JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "AudioObject",
+              "name": article.title,
+              "description": article.description || '',
+              "encodingFormat": "audio/mpeg",
+              "inLanguage": firstCode,
+              "contentUrl": tracks[firstCode].url
+            }, null, 14)}
+            </script>
+            <figure class="article-audio-widget" role="region" aria-label="Listen to this article in multiple languages">
+              <figcaption class="aaw-caption">
+                <svg class="aaw-icon-headphones" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+                <span>Listen to this article</span>
+              </figcaption>
+              <div class="aaw-controls">
+                <div class="aaw-lang-wrapper">
+                  <label for="aaw-lang-select" class="aaw-sr-only">Select language</label>
+                  <select id="aaw-lang-select" class="aaw-lang-select" aria-label="Audio language"></select>
+                </div>
+                <button class="aaw-play-btn" id="aaw-play-btn" aria-label="Play audio" type="button">
+                  <svg class="aaw-icon-play" id="aaw-icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg>
+                  <svg class="aaw-icon-pause" id="aaw-icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                </button>
+                <span class="aaw-time" id="aaw-time-current">0:00</span>
+                <div class="aaw-progress-wrap" id="aaw-progress-wrap" role="slider" aria-label="Audio progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+                  <div class="aaw-progress-track"><div class="aaw-progress-fill" id="aaw-progress-fill"></div></div>
+                </div>
+                <span class="aaw-time" id="aaw-time-total">0:00</span>
+              </div>
+              <audio id="aaw-audio" preload="metadata"></audio>
+            </figure>
+            <style>
+            .article-audio-widget,.article-audio-widget *,.article-audio-widget *::before,.article-audio-widget *::after{box-sizing:border-box;margin:0;padding:0}
+            .article-audio-widget{--aaw-bg:#f8fafc;--aaw-border:#e2e8f0;--aaw-text:#334155;--aaw-text-muted:#94a3b8;--aaw-accent:#2563eb;--aaw-accent-hover:#1d4ed8;--aaw-track-bg:#cbd5e1;--aaw-radius:999px;--aaw-radius-md:10px;--aaw-font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:flex;flex-direction:column;gap:8px;background:var(--aaw-bg);border:1px solid var(--aaw-border);border-radius:var(--aaw-radius-md);padding:14px 18px;margin:20px 0 28px;font-family:var(--aaw-font);max-width:100%}
+            .aaw-caption{display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--aaw-text-muted);text-transform:uppercase;letter-spacing:.5px}
+            .aaw-icon-headphones{flex-shrink:0;color:var(--aaw-accent)}
+            .aaw-controls{display:flex;align-items:center;gap:10px}
+            .aaw-lang-wrapper{flex-shrink:0}
+            .aaw-lang-select{appearance:none;-webkit-appearance:none;background:#fff;border:1px solid var(--aaw-border);border-radius:var(--aaw-radius);padding:6px 28px 6px 12px;font-size:.8rem;font-weight:500;color:var(--aaw-text);cursor:pointer;font-family:var(--aaw-font);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;transition:border-color .2s}
+            .aaw-lang-select:hover,.aaw-lang-select:focus{border-color:var(--aaw-accent);outline:none}
+            .aaw-play-btn{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:none;background:var(--aaw-accent);color:#fff;cursor:pointer;transition:background .2s,transform .15s}
+            .aaw-play-btn:hover{background:var(--aaw-accent-hover);transform:scale(1.06)}
+            .aaw-play-btn:active{transform:scale(.96)}
+            .aaw-icon-play{margin-left:2px}
+            .aaw-time{flex-shrink:0;font-size:.75rem;font-variant-numeric:tabular-nums;color:var(--aaw-text-muted);min-width:34px;text-align:center;user-select:none}
+            .aaw-progress-wrap{flex:1;min-width:0;cursor:pointer;padding:6px 0;-webkit-tap-highlight-color:transparent}
+            .aaw-progress-track{position:relative;height:5px;background:var(--aaw-track-bg);border-radius:var(--aaw-radius);overflow:hidden}
+            .aaw-progress-fill{position:absolute;top:0;left:0;height:100%;width:0%;background:var(--aaw-accent);border-radius:var(--aaw-radius);transition:width .15s linear}
+            .aaw-progress-wrap:hover .aaw-progress-track{height:7px}
+            .aaw-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+            @media(max-width:480px){.article-audio-widget{padding:12px 14px}.aaw-controls{flex-wrap:wrap;gap:8px}.aaw-lang-wrapper{order:-1;width:100%}.aaw-lang-select{width:100%}}
+            </style>
+            <script>
+            (function(){
+              'use strict';
+              var AUDIO_TRACKS=${JSON.stringify(tracks)};
+              var audio=document.getElementById('aaw-audio'),playBtn=document.getElementById('aaw-play-btn'),iconPlay=document.getElementById('aaw-icon-play'),iconPause=document.getElementById('aaw-icon-pause'),langSelect=document.getElementById('aaw-lang-select'),timeCurrent=document.getElementById('aaw-time-current'),timeTotal=document.getElementById('aaw-time-total'),progressWrap=document.getElementById('aaw-progress-wrap'),progressFill=document.getElementById('aaw-progress-fill'),schemaScript=document.getElementById('audio-widget-schema');
+              function fmtTime(s){if(!s||!isFinite(s))return'0:00';var m=Math.floor(s/60),sec=Math.floor(s%60);return m+':'+(sec<10?'0':'')+sec}
+              function updateSchema(langCode,url){try{var schema=JSON.parse(schemaScript.textContent);schema.inLanguage=langCode;schema.contentUrl=url;schemaScript.textContent=JSON.stringify(schema,null,2)}catch(e){}}
+              var codes=Object.keys(AUDIO_TRACKS);
+              codes.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=AUDIO_TRACKS[c].label;langSelect.appendChild(o)});
+              if(codes.length>0){audio.src=AUDIO_TRACKS[codes[0]].url;updateSchema(codes[0],AUDIO_TRACKS[codes[0]].url)}
+              langSelect.addEventListener('change',function(){var c=langSelect.value,t=AUDIO_TRACKS[c];if(!t)return;audio.pause();audio.src=t.url;audio.load();progressFill.style.width='0%';timeCurrent.textContent='0:00';timeTotal.textContent='0:00';setPlayIcon(false);updateSchema(c,t.url);
+                // Analytics: language_changed — Replace console.log with dataLayer.push()
+                // window.dataLayer.push({event:'audio_language_changed',audio_language:c});
+                console.log('[AudioWidget] language_changed:',c)});
+              function setPlayIcon(p){iconPlay.style.display=p?'none':'block';iconPause.style.display=p?'block':'none';playBtn.setAttribute('aria-label',p?'Pause audio':'Play audio')}
+              playBtn.addEventListener('click',function(){if(audio.paused){audio.play().catch(function(){})}else{audio.pause()}});
+              audio.addEventListener('play',function(){setPlayIcon(true);
+                // Analytics: play — Replace with dataLayer.push({event:'audio_play',audio_language:langSelect.value})
+                console.log('[AudioWidget] play — lang:',langSelect.value)});
+              audio.addEventListener('pause',function(){setPlayIcon(false);
+                // Analytics: pause — Replace with dataLayer.push({event:'audio_pause',audio_language:langSelect.value,audio_position:audio.currentTime})
+                console.log('[AudioWidget] pause — lang:',langSelect.value,'at',fmtTime(audio.currentTime))});
+              audio.addEventListener('ended',function(){setPlayIcon(false);progressFill.style.width='100%';
+                // Analytics: ended — Replace with dataLayer.push({event:'audio_ended',audio_language:langSelect.value})
+                console.log('[AudioWidget] ended — lang:',langSelect.value)});
+              audio.addEventListener('loadedmetadata',function(){timeTotal.textContent=fmtTime(audio.duration)});
+              audio.addEventListener('timeupdate',function(){if(!audio.duration)return;var pct=(audio.currentTime/audio.duration)*100;progressFill.style.width=pct+'%';timeCurrent.textContent=fmtTime(audio.currentTime);progressWrap.setAttribute('aria-valuenow',Math.round(pct))});
+              function seekFromEvent(e){var rect=progressWrap.getBoundingClientRect();var clientX=e.touches?e.touches[0].clientX:e.clientX;var pct=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width));if(audio.duration&&isFinite(audio.duration)){audio.currentTime=pct*audio.duration}}
+              var isScrubbing=false;
+              progressWrap.addEventListener('mousedown',function(e){isScrubbing=true;seekFromEvent(e)});
+              document.addEventListener('mousemove',function(e){if(isScrubbing)seekFromEvent(e)});
+              document.addEventListener('mouseup',function(){isScrubbing=false});
+              progressWrap.addEventListener('touchstart',function(e){isScrubbing=true;seekFromEvent(e)},{passive:true});
+              progressWrap.addEventListener('touchmove',function(e){if(isScrubbing)seekFromEvent(e)},{passive:true});
+              progressWrap.addEventListener('touchend',function(){isScrubbing=false});
+              progressWrap.addEventListener('keydown',function(e){if(e.key==='ArrowRight'){audio.currentTime=Math.min(audio.duration||0,audio.currentTime+5)}else if(e.key==='ArrowLeft'){audio.currentTime=Math.max(0,audio.currentTime-5)}});
+            })();
+            </script>`;
+}
+
+/**
  * Resolve social metadata with fallback chain
  */
 function resolveSocialMeta(article) {
@@ -831,6 +953,8 @@ ${JSON.stringify(schemaMarkup, null, 2)}
                 </div>
                 ` : ''}
             </header>
+
+            ${generateAudioWidgetHTML(article)}
 
             ${article.featured_image_url ? `
             <img src="${article.featured_image_url}" alt="${escapeHtml(article.title)}" class="featured-image" onerror="this.style.display='none'">
