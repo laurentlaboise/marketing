@@ -3695,3 +3695,346 @@ select.form-input {
   justify-content: space-between;
   align-items: center;
 }
+
+/* ==========================================
+   INLINE GRID LAYOUT RESPONSIVE OVERRIDES
+   ========================================== */
+
+/* Catch all inline 2-column grid layouts and stack on mobile */
+@media (max-width: 768px) {
+  div[style*="grid-template-columns: 2fr 1fr"],
+  div[style*="grid-template-columns:2fr 1fr"],
+  div[style*="grid-template-columns: 1fr 1fr"],
+  div[style*="grid-template-columns:1fr 1fr"],
+  div[style*="grid-template-columns: 1fr 1fr 1fr"],
+  div[style*="grid-template-columns:1fr 1fr 1fr"],
+  div[style*="grid-template-columns: 1fr 340px"],
+  div[style*="grid-template-columns:1fr 340px"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ==========================================
+   CONTENT HUB RESPONSIVE
+   ========================================== */
+
+.content-hub-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab-pill {
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .content-hub-tabs {
+    gap: 6px;
+  }
+
+  .tab-pill {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
+
+/* ==========================================
+   DASHBOARD COMPACT TABLES CARD MORPHING
+   ========================================== */
+
+/* Dashboard mini-tables: stack on narrow screens */
+@media (max-width: 640px) {
+  .dashboard-cards-grid .table thead {
+    display: none;
+  }
+
+  .dashboard-cards-grid .table tbody tr {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .dashboard-cards-grid .table td {
+    padding: 4px 0;
+    border: none;
+    text-align: left !important;
+    font-size: var(--text-sm);
+  }
+
+  .dashboard-cards-grid .table td[style*="text-align: right"] {
+    text-align: left !important;
+  }
+
+  /* Activity log icon column */
+  .dashboard-cards-grid .table td[style*="width: 36px"] {
+    display: none;
+  }
+}
+
+/* ==========================================
+   IMAGE DETAIL KEY-VALUE TABLE RESPONSIVE
+   ========================================== */
+
+@media (max-width: 640px) {
+  /* Key-value detail tables: stack label and value */
+  .card .table:not(.table-responsive-cards) td[style*="font-weight: 600"],
+  .card .table:not(.table-responsive-cards) td[style*="font-weight:600"] {
+    width: auto !important;
+  }
+
+  .card .table:not(.table-responsive-cards) tr {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .card .table:not(.table-responsive-cards) td {
+    padding: 2px 16px;
+    border: none;
+  }
+}
+
+/* ==========================================
+   MICROSITE DETAIL PAGE HEADER RESPONSIVE
+   ========================================== */
+
+@media (max-width: 640px) {
+  div[style*="display: flex"][style*="align-items: center"][style*="gap: 16px"] {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+}
+
+/* ==========================================
+   POSTS TABLE CONTENT COLUMN RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  td[style*="max-width: 280px"],
+  td[style*="max-width:280px"] {
+    max-width: none !important;
+  }
+
+  td[style*="max-width: 280px"] > div[style*="overflow: hidden"],
+  td[style*="max-width:280px"] > div[style*="overflow: hidden"] {
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+}
+
+/* ==========================================
+   SIDEBAR FORM STICKY PREVIEW RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .card[style*="position:sticky"],
+  .card[style*="position: sticky"] {
+    position: static !important;
+  }
+}
+
+/* ==========================================
+   FILTER / SEARCH INLINE FLEX RESPONSIVE
+   ========================================== */
+
+@media (max-width: 640px) {
+  form[style*="display: flex"][style*="flex-wrap: wrap"],
+  form[style*="display:flex"][style*="flex-wrap:wrap"],
+  div[style*="display: flex"][style*="gap: 12px"][style*="align-items: center"] {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  div[style*="flex: 1; min-width: 200px"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  select[style*="width: auto"] {
+    width: 100% !important;
+  }
+
+  .form-group[style*="width: 160px"] {
+    width: 100% !important;
+  }
+}
+
+/* ==========================================
+   SOCIAL POSTS FILTER BAR RESPONSIVE
+   ========================================== */
+
+@media (max-width: 640px) {
+  .card-body[style*="padding: 16px 24px"] {
+    padding: 12px !important;
+  }
+}
+
+/* ==========================================
+   SUBMISSIONS DETAIL ROW RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .detail-row td[colspan] {
+    padding: 12px !important;
+  }
+
+  pre[style*="overflow-x: auto"] {
+    font-size: 11px !important;
+    padding: 8px !important;
+  }
+}
+
+/* ==========================================
+   AI SETTINGS TABLE RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .table:not(.table-responsive-cards) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ==========================================
+   LINKED BUTTON CARDS RESPONSIVE
+   ========================================== */
+
+.linked-btn-card {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+@media (max-width: 640px) {
+  .linked-btn-card div[style*="grid-template-columns:1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .linked-btn-card div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ==========================================
+   SEO SCORE SECTION RESPONSIVE
+   ========================================== */
+
+@media (max-width: 480px) {
+  .seo-score-ring[style*="width: 80px"] {
+    width: 64px !important;
+    height: 64px !important;
+  }
+}
+
+/* ==========================================
+   SIDEBAR TOGGLE VISIBILITY ON MOBILE
+   ========================================== */
+
+@media (max-width: 1024px) {
+  .sidebar-toggle {
+    display: block;
+  }
+}
+
+/* ==========================================
+   NOTIFICATION ITEMS MOBILE
+   ========================================== */
+
+@media (max-width: 640px) {
+  .notification-item {
+    flex-wrap: wrap;
+  }
+
+  .notification-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .notification-content .notification-message {
+    word-break: break-word;
+  }
+
+  .notification-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+}
+
+/* ==========================================
+   PAGE ACTIONS BUTTONS RESPONSIVE
+   ========================================== */
+
+@media (max-width: 640px) {
+  .page-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .page-actions .btn {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+
+/* ==========================================
+   CAMPAIGN CARDS RESPONSIVE
+   ========================================== */
+
+@media (max-width: 640px) {
+  .campaign-card-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .campaign-card-header div[style*="flex: 1"] {
+    width: 100%;
+  }
+}
+
+/* ==========================================
+   CARD-BODY ZERO-PADDING TABLE OVERFLOW
+   ========================================== */
+
+@media (max-width: 768px) {
+  .card-body[style*="padding: 0"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ==========================================
+   HASHTAG GRID RESPONSIVE
+   ========================================== */
+
+@media (max-width: 640px) {
+  .hashtag-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ==========================================
+   CALENDAR MONTH NAV RESPONSIVE
+   ========================================== */
+
+@media (max-width: 480px) {
+  .calendar-month-nav {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .calendar-month-nav .btn {
+    align-self: center;
+  }
+}
