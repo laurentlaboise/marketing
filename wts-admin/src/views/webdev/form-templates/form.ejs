@@ -21,7 +21,7 @@
       <div class="card" style="margin-bottom: 1.5rem;">
         <div class="card-body">
           <h3 style="margin-bottom: 1rem; font-size: 1.1rem;"><i class="fas fa-cog" style="margin-right: 0.5rem; color: var(--primary);"></i> Form Settings</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-row">
             <div class="form-group">
               <label class="form-label">Form Type (unique key) <span style="color: var(--danger);">*</span></label>
               <input type="text" name="form_type" class="form-input" required
@@ -52,7 +52,7 @@
                       placeholder="Brief description shown below the form title"><%= template ? (template.subtitle || '') : '' %></textarea>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-row">
             <div class="form-group">
               <label class="form-label">Submit Button Text</label>
               <input type="text" name="submit_button_text" class="form-input"

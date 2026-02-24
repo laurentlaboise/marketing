@@ -94,9 +94,9 @@
             <% templates.forEach(function(t) { %>
             <div class="card" style="border: 1px solid var(--gray-200);">
               <div class="card-body" style="padding: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                  <div>
-                    <h4 style="margin: 0 0 4px 0; font-size: 14px;"><%= t.name %></h4>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px;">
+                  <div style="min-width: 0;">
+                    <h4 style="margin: 0 0 4px 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><%= t.name %></h4>
                     <span style="font-size: 11px; background: var(--gray-100); padding: 2px 8px; border-radius: 10px; color: var(--gray-500);"><%= t.category %></span>
                     <span style="font-size: 11px; color: var(--gray-400); margin-left: 8px;"><%= t.usage_count %> uses</span>
                   </div>
@@ -107,8 +107,8 @@
                 <div style="background: var(--gray-50); padding: 10px; border-radius: 6px; font-size: 13px; color: var(--gray-600); margin-bottom: 8px; max-height: 80px; overflow: hidden;">
                   <%= (t.content || '').substring(0, 150) %><%= (t.content || '').length > 150 ? '...' : '' %>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <div style="display: flex; gap: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <div style="display: flex; gap: 4px; flex-wrap: wrap;">
                     <% (t.platforms || []).forEach(function(p) { %>
                     <span style="font-size: 10px; background: var(--gray-100); padding: 1px 6px; border-radius: 8px; color: var(--gray-500);"><%= p %></span>
                     <% }); %>
