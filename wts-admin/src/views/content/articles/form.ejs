@@ -3868,7 +3868,26 @@ function publishToGitHub() {
   } catch(e) {
     progressEl.style.display = 'none';
     resultEl.style.display = 'block';
-    resultEl.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Failed to generate HTML: ' + e.message + '</div>';
+
+    // Clear any existing content
+    resultEl.textContent = '';
+
+    // Build error message safely without using innerHTML
+    var errorWrapper = document.createElement('div');
+    errorWrapper.style.padding = '12px';
+    errorWrapper.style.background = '#f8d7da';
+    errorWrapper.style.border = '1px solid #dc3545';
+    errorWrapper.style.borderRadius = '6px';
+    errorWrapper.style.fontSize = '13px';
+    errorWrapper.style.color = '#721c24';
+
+    var errorIcon = document.createElement('i');
+    errorIcon.className = 'fas fa-times-circle';
+    errorWrapper.appendChild(errorIcon);
+
+    errorWrapper.appendChild(document.createTextNode(' Failed to generate HTML: ' + e.message));
+
+    resultEl.appendChild(errorWrapper);
     return;
   }
 
@@ -3939,19 +3958,94 @@ function publishToGitHub() {
         }
 
         resultEl.style.display = 'block';
-        resultEl.innerHTML = '<div style="padding: 16px; background: #d4edda; border: 1px solid #28a745; border-radius: 8px; font-size: 13px; color: #155724;">'
-          + '<div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;"><i class="fas fa-check-circle"></i> Article Published Successfully!</div>'
-          + '<div style="margin-bottom: 8px;"><strong>Live URL:</strong> <a href="' + publishedUrl + '" target="_blank" style="color: #155724; text-decoration: underline;">' + publishedUrl + '</a></div>'
-          + '<div style="margin-bottom: 8px;"><strong>GitHub:</strong> <a href="' + githubUrl + '" target="_blank" style="color: #155724; text-decoration: underline;">View on GitHub</a></div>'
-          + '<div style="font-size: 12px; color: #6c757d;">Note: GitHub Pages may take 1-2 minutes to rebuild. The article URL will be live after deployment completes.</div>'
-          + '</div>';
+
+        // Clear any existing content
+        resultEl.textContent = '';
+
+        // Build success message safely without using innerHTML
+        var successWrapper = document.createElement('div');
+        successWrapper.style.padding = '16px';
+        successWrapper.style.background = '#d4edda';
+        successWrapper.style.border = '1px solid #28a745';
+        successWrapper.style.borderRadius = '8px';
+        successWrapper.style.fontSize = '13px';
+        successWrapper.style.color = '#155724';
+
+        var titleDiv = document.createElement('div');
+        titleDiv.style.fontSize = '16px';
+        titleDiv.style.fontWeight = '600';
+        titleDiv.style.marginBottom = '8px';
+
+        var successIcon = document.createElement('i');
+        successIcon.className = 'fas fa-check-circle';
+        titleDiv.appendChild(successIcon);
+        titleDiv.appendChild(document.createTextNode(' Article Published Successfully!'));
+
+        var liveUrlDiv = document.createElement('div');
+        liveUrlDiv.style.marginBottom = '8px';
+        var liveStrong = document.createElement('strong');
+        liveStrong.textContent = 'Live URL:';
+        liveUrlDiv.appendChild(liveStrong);
+        liveUrlDiv.appendChild(document.createTextNode(' '));
+        var liveLink = document.createElement('a');
+        liveLink.href = publishedUrl;
+        liveLink.target = '_blank';
+        liveLink.style.color = '#155724';
+        liveLink.style.textDecoration = 'underline';
+        liveLink.textContent = publishedUrl;
+        liveUrlDiv.appendChild(liveLink);
+
+        var githubDiv = document.createElement('div');
+        githubDiv.style.marginBottom = '8px';
+        var ghStrong = document.createElement('strong');
+        ghStrong.textContent = 'GitHub:';
+        githubDiv.appendChild(ghStrong);
+        githubDiv.appendChild(document.createTextNode(' '));
+        var ghLink = document.createElement('a');
+        ghLink.href = githubUrl;
+        ghLink.target = '_blank';
+        ghLink.style.color = '#155724';
+        ghLink.style.textDecoration = 'underline';
+        ghLink.textContent = 'View on GitHub';
+        githubDiv.appendChild(ghLink);
+
+        var noteDiv = document.createElement('div');
+        noteDiv.style.fontSize = '12px';
+        noteDiv.style.color = '#6c757d';
+        noteDiv.textContent = 'Note: GitHub Pages may take 1-2 minutes to rebuild. The article URL will be live after deployment completes.';
+
+        successWrapper.appendChild(titleDiv);
+        successWrapper.appendChild(liveUrlDiv);
+        successWrapper.appendChild(githubDiv);
+        successWrapper.appendChild(noteDiv);
+
+        resultEl.appendChild(successWrapper);
       }, 1000);
     })
     .catch(function(err) {
       progressFill.style.width = '0%';
       progressEl.style.display = 'none';
       resultEl.style.display = 'block';
-      resultEl.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Publish failed: ' + err.message + '</div>';
+
+      // Clear any existing content
+      resultEl.textContent = '';
+
+      // Build error message safely without using innerHTML
+      var publishErrorWrapper = document.createElement('div');
+      publishErrorWrapper.style.padding = '12px';
+      publishErrorWrapper.style.background = '#f8d7da';
+      publishErrorWrapper.style.border = '1px solid #dc3545';
+      publishErrorWrapper.style.borderRadius = '6px';
+      publishErrorWrapper.style.fontSize = '13px';
+      publishErrorWrapper.style.color = '#721c24';
+
+      var publishErrorIcon = document.createElement('i');
+      publishErrorIcon.className = 'fas fa-times-circle';
+      publishErrorWrapper.appendChild(publishErrorIcon);
+
+      publishErrorWrapper.appendChild(document.createTextNode(' Publish failed: ' + err.message));
+
+      resultEl.appendChild(publishErrorWrapper);
     });
 }
 
