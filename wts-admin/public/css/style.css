@@ -686,14 +686,29 @@ input, textarea, select {
   display: flex;
   align-items: center;
   padding: 0 24px;
-  gap: 20px;
+  gap: 16px;
   z-index: 100;
 }
 
 .mobile-menu-btn {
   display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
   font-size: 20px;
   color: var(--gray-600);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.mobile-menu-btn:hover {
+  background: var(--gray-100);
+  color: var(--gray-800);
 }
 
 .header-search {
@@ -3043,10 +3058,21 @@ select.form-input {
   display: none;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
   color: var(--gray-600);
   font-size: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.mobile-search-btn:hover {
+  background: var(--gray-100);
+  color: var(--gray-800);
 }
 
 .mobile-search-overlay {
@@ -3088,7 +3114,25 @@ select.form-input {
   cursor: pointer;
 }
 
+/* -- Header responsive: 1024px (tablet - sidebar collapses) -- */
+@media (max-width: 1024px) {
+  .main-header {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .header-search {
+    max-width: 320px;
+  }
+}
+
+/* -- Header responsive: 768px (small tablet / large phone) -- */
 @media (max-width: 768px) {
+  .main-header {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
   .header-search {
     display: none;
   }
@@ -3097,24 +3141,57 @@ select.form-input {
     display: flex;
   }
 
-  .main-header {
-    padding: 0 12px;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 480px) {
   .user-name-header {
     display: none;
   }
 
+  .user-dropdown-btn {
+    gap: 6px;
+    padding: 6px 8px 6px 6px;
+  }
+}
+
+/* -- Header responsive: 480px (phone) -- */
+@media (max-width: 480px) {
+  .main-header {
+    padding: 0 8px;
+    gap: 6px;
+  }
+
   .header-actions {
     gap: 4px;
-    padding-right: 4px;
+    padding-right: 2px;
+  }
+
+  .header-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .mobile-search-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
 
   .user-dropdown-btn {
-    padding: 6px;
+    padding: 4px;
+  }
+
+  .user-avatar-small {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .user-dropdown-btn .fa-chevron-down {
+    display: none;
   }
 }
 
