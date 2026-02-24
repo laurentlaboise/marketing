@@ -40,3 +40,103 @@ select:focus {
         flex-direction: row;
     }
 }
+
+/* ==========================================
+   STICKY FORM BARS & RESPONSIVE FORM DESIGN
+   ========================================== */
+
+/* Touch-friendly form inputs */
+input[type="text"],
+input[type="email"],
+textarea,
+select {
+    min-height: 44px;
+}
+
+/* --- Modal form sticky submit button --- */
+.modal-form button[type="submit"] {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+/* --- Sticky newsletter bar on scroll --- */
+.newsletter-sticky-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--color-white);
+    padding: var(--spacing-md) var(--spacing-lg);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    border-top: 2px solid var(--color-accent-magenta);
+}
+
+.newsletter-sticky-bar .newsletter-form {
+    margin-top: 0;
+    max-width: 600px;
+}
+
+/* --- CTA sticky bottom bar --- */
+.cta-sticky-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--color-white);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out;
+    border-top: 2px solid var(--color-accent-magenta);
+}
+
+.cta-sticky-bar.show {
+    transform: translateY(0);
+}
+
+.cta-sticky-bar .btn {
+    white-space: nowrap;
+}
+
+/* --- Responsive form fields --- */
+@media (max-width: 768px) {
+    .modal-form .form-fields {
+        gap: var(--spacing-sm);
+    }
+
+    .modal-form .form-fields input,
+    .modal-form .form-fields select,
+    .modal-form .form-fields textarea {
+        font-size: 16px; /* prevents iOS zoom on focus */
+    }
+
+    .cta-sticky-bar {
+        padding: var(--spacing-sm) var(--spacing-md);
+        gap: var(--spacing-sm);
+    }
+
+    .cta-sticky-bar .btn {
+        flex: 1;
+        font-size: var(--font-size-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .cta-sticky-bar {
+        flex-direction: column;
+        padding: var(--spacing-sm);
+    }
+
+    .cta-sticky-bar .btn {
+        width: 100%;
+    }
+
+    .newsletter-form input {
+        font-size: 16px; /* prevents iOS zoom */
+    }
+}
