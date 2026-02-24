@@ -19,7 +19,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (integrations.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Platform</th>
@@ -32,30 +32,30 @@
             <tbody>
               <% integrations.forEach(function(integ) { %>
               <tr>
-                <td>
+                <td data-label="Platform">
                   <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <i class="fas fa-plug" style="color: var(--primary); font-size: 1.1rem;"></i>
                     <strong><%= integ.platform_name %></strong>
                   </div>
                 </td>
-                <td>
+                <td data-label="API Endpoint">
                   <% if (integ.api_endpoint) { %>
                   <code style="font-size: 12px; background: var(--gray-100); padding: 2px 6px; border-radius: 4px;"><%= integ.api_endpoint %></code>
                   <% } else { %>
                   <span style="color: #999;">-</span>
                   <% } %>
                 </td>
-                <td>
+                <td data-label="Workspace">
                   <span style="font-size: 12px; color: var(--gray-500);"><%= integ.workspace_id ? integ.workspace_id.substring(0, 8) + '...' : '-' %></span>
                 </td>
-                <td>
+                <td data-label="Rate Limits">
                   <% if (integ.rate_limits) { %>
                   <span style="font-size: 12px;"><%= typeof integ.rate_limits === 'object' ? JSON.stringify(integ.rate_limits) : integ.rate_limits %></span>
                   <% } else { %>
                   <span style="color: #999;">None</span>
                   <% } %>
                 </td>
-                <td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/business/integrations/<%= integ.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
                     <form action="/business/integrations/<%= integ.id %>/delete" method="POST" style="display: inline;">

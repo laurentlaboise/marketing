@@ -20,9 +20,9 @@
 
     <div class="card">
       <div class="card-header">
-        <form action="/content/guides" method="GET" style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <input type="text" name="search" class="form-input" placeholder="Search guides..." value="<%= pagination.search || '' %>" style="width: 200px;">
-          <select name="status" class="form-input" style="width: 150px;">
+        <form action="/content/guides" method="GET" class="filter-form">
+          <input type="text" name="search" class="form-input filter-input" placeholder="Search guides..." value="<%= pagination.search || '' %>">
+          <select name="status" class="form-input filter-select">
             <option value="">All Status</option>
             <option value="draft" <%= pagination.status === 'draft' ? 'selected' : '' %>>Draft</option>
             <option value="published" <%= pagination.status === 'published' ? 'selected' : '' %>>Published</option>
@@ -35,7 +35,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (guides.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Title</th>
@@ -48,17 +48,17 @@
             <tbody>
               <% guides.forEach(guide => { %>
               <tr>
-                <td>
+                <td data-label="Title">
                   <strong><%= guide.title %></strong>
                   <br>
                   <small style="color: var(--gray-500);">/<%= guide.slug %></small>
                 </td>
-                <td><%= guide.category || '-' %></td>
-                <td>
+                <td data-label="Category"><%= guide.category || '-' %></td>
+                <td data-label="Status">
                   <span class="status-badge <%= guide.status %>"><%= guide.status %></span>
                 </td>
-                <td><%= new Date(guide.created_at).toLocaleDateString() %></td>
-                <td>
+                <td data-label="Created"><%= new Date(guide.created_at).toLocaleDateString() %></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/content/guides/<%= guide.id %>/edit" class="btn btn-sm btn-secondary" title="Edit">
                       <i class="fas fa-edit"></i>

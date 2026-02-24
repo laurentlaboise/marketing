@@ -19,7 +19,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (templates.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Form Type</th>
@@ -36,10 +36,10 @@
               <% const fields = typeof tpl.fields === 'string' ? JSON.parse(tpl.fields) : (tpl.fields || []); %>
               <% const btnCount = (buttonCounts && buttonCounts[tpl.form_type]) || 0; %>
               <tr>
-                <td><code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.85rem;"><%= tpl.form_type %></code></td>
-                <td><strong><%= tpl.title %></strong></td>
-                <td><%= fields.length %> field<%= fields.length !== 1 ? 's' : '' %></td>
-                <td>
+                <td data-label="Form Type"><code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.85rem;"><%= tpl.form_type %></code></td>
+                <td data-label="Title"><strong><%= tpl.title %></strong></td>
+                <td data-label="Fields"><%= fields.length %> field<%= fields.length !== 1 ? 's' : '' %></td>
+                <td data-label="Buttons">
                   <% if (btnCount > 0) { %>
                   <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.85rem;">
                     <i class="fas fa-link" style="color:var(--primary);font-size:0.75rem;"></i>
@@ -51,15 +51,15 @@
                   </span>
                   <% } %>
                 </td>
-                <td>
+                <td data-label="Status">
                   <span class="status-badge <%= tpl.status === 'active' ? 'active' : 'inactive' %>">
                     <%= tpl.status %>
                   </span>
                 </td>
-                <td style="font-size:0.85rem;white-space:nowrap;">
+                <td data-label="Updated" style="font-size:0.85rem;white-space:nowrap;">
                   <%= new Date(tpl.updated_at || tpl.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
                 </td>
-                <td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/webdev/form-templates/<%= tpl.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
                     <form action="/webdev/form-templates/<%= tpl.id %>/delete" method="POST" style="display:inline;">

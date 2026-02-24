@@ -20,9 +20,9 @@
 
     <div class="card">
       <div class="card-header">
-        <form action="/content/articles" method="GET" style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <input type="text" name="search" class="form-input" placeholder="Search articles..." value="<%= pagination.search || '' %>" style="width: 200px;">
-          <select name="status" class="form-input" style="width: 150px;">
+        <form action="/content/articles" method="GET" class="filter-form">
+          <input type="text" name="search" class="form-input filter-input" placeholder="Search articles..." value="<%= pagination.search || '' %>">
+          <select name="status" class="form-input filter-select">
             <option value="">All Status</option>
             <option value="draft" <%= pagination.status === 'draft' ? 'selected' : '' %>>Draft</option>
             <option value="published" <%= pagination.status === 'published' ? 'selected' : '' %>>Published</option>
@@ -35,7 +35,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (articles.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Title</th>
@@ -48,17 +48,17 @@
             <tbody>
               <% articles.forEach(article => { %>
               <tr>
-                <td>
+                <td data-label="Title">
                   <strong><%= article.title %></strong>
                   <br>
                   <small style="color: var(--gray-500);">/<%= article.slug %></small>
                 </td>
-                <td><%= article.category || '-' %></td>
-                <td>
+                <td data-label="Category"><%= article.category || '-' %></td>
+                <td data-label="Status">
                   <span class="status-badge <%= article.status %>"><%= article.status %></span>
                 </td>
-                <td><%= new Date(article.created_at).toLocaleDateString() %></td>
-                <td>
+                <td data-label="Created"><%= new Date(article.created_at).toLocaleDateString() %></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/content/articles/<%= article.id %>/edit" class="btn btn-sm btn-secondary" title="Edit">
                       <i class="fas fa-edit"></i>

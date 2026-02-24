@@ -20,7 +20,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (models.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>#</th>
@@ -36,8 +36,8 @@
             <tbody>
               <% models.forEach(function(model) { %>
               <tr>
-                <td><%= model.sort_order || 0 %></td>
-                <td>
+                <td data-label="#"><%= model.sort_order || 0 %></td>
+                <td data-label="Package">
                   <strong><%= model.name %></strong>
                   <% if (model.badge_text) { %>
                   <span class="status-badge active" style="margin-left: 0.5rem; font-size: 0.7rem;"><%= model.badge_text %></span>
@@ -46,21 +46,21 @@
                   <br><small style="color: #666;"><%= model.description.substring(0, 60) %><%= model.description.length > 60 ? '...' : '' %></small>
                   <% } %>
                 </td>
-                <td>
+                <td data-label="Price">
                   <%= model.base_price ? '$' + parseFloat(model.base_price).toFixed(0) : 'Free' %>
                   <% if (model.base_price) { %><small>/mo</small><% } %>
                 </td>
-                <td><%= model.annual_discount_pct || 20 %>%</td>
-                <td><%= model.type || '-' %></td>
-                <td>
+                <td data-label="Annual Discount"><%= model.annual_discount_pct || 20 %>%</td>
+                <td data-label="Type"><%= model.type || '-' %></td>
+                <td data-label="Highlight">
                   <% if (model.highlight) { %>
                   <i class="fas fa-star" style="color: #f59e0b;"></i>
                   <% } else { %>
                   <span style="color: #ccc;">-</span>
                   <% } %>
                 </td>
-                <td><span class="status-badge <%= model.status %>"><%= model.status %></span></td>
-                <td>
+                <td data-label="Status"><span class="status-badge <%= model.status %>"><%= model.status %></span></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/business/pricing/<%= model.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                     <form action="/business/pricing/<%= model.id %>/delete" method="POST" style="display: inline;">

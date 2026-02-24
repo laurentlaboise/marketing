@@ -24,7 +24,7 @@
             <i class="fas <%= sectionName === 'page-sidebar' ? 'fa-window-restore' : 'fa-layer-group' %>"></i> <%= sectionName %>
           </h3>
           <div class="table-container">
-            <table class="table">
+            <table class="table table-responsive-cards">
               <thead>
                 <tr>
                   <th style="width:40px;">#</th>
@@ -39,19 +39,19 @@
               <tbody>
                 <% sections[sectionName].forEach(item => { %>
                 <tr style="<%= !item.is_visible ? 'opacity: 0.5;' : '' %>">
-                  <td style="color: #999;"><%= item.sort_order %></td>
-                  <td>
+                  <td data-label="#" style="color: #999;"><%= item.sort_order %></td>
+                  <td data-label="Label">
                     <i class="<%= item.icon_class %>" style="margin-right: 0.5rem; color: var(--primary-color, #667eea);"></i>
                     <strong><%= item.label %></strong>
                   </td>
-                  <td>
+                  <td data-label="Target Page">
                     <% if (item.page_url) { %>
                     <code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.8rem;"><%= item.page_url %></code>
                     <% } else { %>
                     <small style="color: #999;">-</small>
                     <% } %>
                   </td>
-                  <td>
+                  <td data-label="Button">
                     <% if (item.button_label) { %>
                     <span style="display:inline-flex;align-items:center;gap:4px;background:#d62b83;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;">
                       <i class="<%= item.icon_class || 'fas fa-question-circle' %>" style="font-size:0.7rem;"></i> <%= item.button_label %>
@@ -60,21 +60,21 @@
                     <small style="color: #999;">-</small>
                     <% } %>
                   </td>
-                  <td>
+                  <td data-label="Visible">
                     <% if (item.is_visible) { %>
                     <span class="status-badge active">Visible</span>
                     <% } else { %>
                     <span class="status-badge inactive">Hidden</span>
                     <% } %>
                   </td>
-                  <td>
+                  <td data-label="Content">
                     <% if (item.content_html) { %>
                     <span style="color:#10b981;font-size:0.85rem;"><i class="fas fa-check-circle"></i> Has content</span>
                     <% } else { %>
                     <small style="color: #999;">Empty</small>
                     <% } %>
                   </td>
-                  <td>
+                  <td data-label="Actions">
                     <div class="table-actions">
                       <a href="/webdev/sidebar/<%= item.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                       <form action="/webdev/sidebar/<%= item.id %>/delete" method="POST" style="display: inline;">

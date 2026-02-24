@@ -26,9 +26,9 @@
     <!-- Filter Bar -->
     <div class="card" style="margin-bottom: 1rem;">
       <div class="card-body" style="padding: 0.75rem 1rem;">
-        <form method="GET" action="/webdev/submissions" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <form method="GET" action="/webdev/submissions" class="filter-form">
           <label style="font-weight: 600; font-size: 0.9rem;">Filter by type:</label>
-          <select name="type" class="form-input" style="width: auto; min-width: 180px;">
+          <select name="type" class="form-input filter-select">
             <option value="">All Types</option>
             <option value="consultation" <%= activeFilter === 'consultation' ? 'selected' : '' %>>Consultation</option>
             <option value="free-support" <%= activeFilter === 'free-support' ? 'selected' : '' %>>Free Support</option>
@@ -49,7 +49,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (submissions.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Date</th>
@@ -64,11 +64,11 @@
             <tbody>
               <% submissions.forEach(sub => { %>
               <tr>
-                <td style="white-space: nowrap; font-size: 0.85rem;">
+                <td data-label="Date" style="white-space: nowrap; font-size: 0.85rem;">
                   <%= new Date(sub.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
                   <br><span style="color: var(--color-slate-500);"><%= new Date(sub.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></span>
                 </td>
-                <td>
+                <td data-label="Type">
                   <% const typeLabels = { 'consultation': 'Consultation', 'free-support': 'Free Support', 'affiliate': 'Affiliate', 'white-label': 'White Label', 'general-inquiry': 'General Inquiry', 'newsletter': 'Newsletter' }; %>
                   <span class="status-badge" style="background:
                     <% if (sub.form_type === 'consultation') { %>#dbeafe; color:#1e40af;
@@ -81,10 +81,10 @@
                     <%= typeLabels[sub.form_type] || sub.form_type %>
                   </span>
                 </td>
-                <td><strong><%= sub.name %></strong></td>
-                <td><a href="mailto:<%= sub.email %>" style="color: var(--color-primary-base);"><%= sub.email %></a></td>
-                <td><%= sub.company || '-' %></td>
-                <td>
+                <td data-label="Name"><strong><%= sub.name %></strong></td>
+                <td data-label="Email"><a href="mailto:<%= sub.email %>" style="color: var(--color-primary-base);"><%= sub.email %></a></td>
+                <td data-label="Company"><%= sub.company || '-' %></td>
+                <td data-label="Status">
                   <form action="/webdev/submissions/<%= sub.id %>/status" method="POST" style="display:inline;">
                     <select name="status" class="form-input" style="width: auto; min-width: 110px; padding: 0.25rem 0.5rem; font-size: 0.85rem;" onchange="this.form.submit()">
                       <option value="new" <%= sub.status === 'new' ? 'selected' : '' %>>New</option>
@@ -94,7 +94,7 @@
                     </select>
                   </form>
                 </td>
-                <td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <button type="button" class="btn btn-sm btn-secondary" onclick="toggleDetail(this)" title="View details"><i class="fas fa-eye"></i></button>
                     <form action="/webdev/submissions/<%= sub.id %>/delete" method="POST" style="display: inline;">

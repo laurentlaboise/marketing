@@ -19,7 +19,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (tools.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Name</th>
@@ -32,11 +32,11 @@
             <tbody>
               <% tools.forEach(tool => { %>
               <tr>
-                <td><strong><%= tool.name %></strong></td>
-                <td><%= tool.category || '-' %></td>
-                <td><%= tool.pricing_model || '-' %></td>
-                <td><span class="status-badge <%= tool.status %>"><%= tool.status %></span></td>
-                <td>
+                <td data-label="Name"><strong><%= tool.name %></strong></td>
+                <td data-label="Category"><%= tool.category || '-' %></td>
+                <td data-label="Pricing"><%= tool.pricing_model || '-' %></td>
+                <td data-label="Status"><span class="status-badge <%= tool.status %>"><%= tool.status %></span></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/content/ai-tools/<%= tool.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                     <form action="/content/ai-tools/<%= tool.id %>/delete" method="POST" style="display: inline;">
