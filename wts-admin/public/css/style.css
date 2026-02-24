@@ -81,6 +81,7 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 body {
@@ -89,6 +90,7 @@ body {
   color: var(--gray-800);
   line-height: 1.6;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 a {
@@ -670,6 +672,8 @@ input, textarea, select {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* Header */
@@ -1153,7 +1157,8 @@ input, textarea, select {
 
 /* Tables */
 .table-container {
-  overflow-x: auto;
+  width: 100%;
+  overflow: hidden;
 }
 
 .table {
@@ -2449,12 +2454,10 @@ select.form-input {
   }
 
   .detail-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    flex-wrap: wrap;
   }
 
   .detail-tab {
-    white-space: nowrap;
     padding: 10px 14px;
     font-size: 13px;
   }
@@ -3309,22 +3312,16 @@ select.form-input {
   }
 }
 
-/* Detail tabs horizontal scroll with no visible scrollbar */
+/* Detail tabs wrap on small mobile */
 @media (max-width: 640px) {
   .detail-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .detail-tabs::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap;
+    gap: 4px;
   }
 
   .detail-tab {
-    white-space: nowrap;
-    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 }
 
@@ -3881,9 +3878,13 @@ select.form-input {
     padding: 12px !important;
   }
 
-  pre[style*="overflow-x: auto"] {
+  pre[style*="overflow-x: auto"],
+  pre {
     font-size: 11px !important;
     padding: 8px !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    overflow-x: hidden !important;
   }
 }
 
@@ -3894,8 +3895,31 @@ select.form-input {
 @media (max-width: 768px) {
   .table:not(.table-responsive-cards) {
     display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .table:not(.table-responsive-cards) thead {
+    display: none;
+  }
+
+  .table:not(.table-responsive-cards) tbody,
+  .table:not(.table-responsive-cards) tr {
+    display: block;
+    width: 100%;
+  }
+
+  .table:not(.table-responsive-cards) td {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .table:not(.table-responsive-cards) tr {
+    border-bottom: 2px solid var(--gray-200);
+    padding: 8px 0;
   }
 }
 
@@ -4008,8 +4032,7 @@ select.form-input {
 
 @media (max-width: 768px) {
   .card-body[style*="padding: 0"] {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
   }
 }
 
@@ -4074,21 +4097,15 @@ select.form-input {
     width: 100%;
   }
 
-  /* Form tabs: horizontal scroll */
+  /* Form tabs: wrap into rows */
   .form-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    flex-wrap: wrap;
     padding: 0 16px !important;
-    scrollbar-width: none;
-  }
-  .form-tabs::-webkit-scrollbar {
-    display: none;
+    gap: 0;
   }
   .form-tab {
-    white-space: nowrap;
     padding: 10px 14px;
     font-size: 13px;
-    flex-shrink: 0;
   }
 
   /* Form tab panels: less padding on mobile */
@@ -4101,18 +4118,13 @@ select.form-input {
     grid-template-columns: 1fr !important;
   }
 
-  /* Social tabs: scroll if needed */
+  /* Social tabs: wrap */
   .social-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .social-tabs::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap;
   }
   .social-tab {
-    white-space: nowrap;
-    flex-shrink: 0;
+    flex: 1;
+    justify-content: center;
   }
 
   /* Social score checklist: single column */
@@ -4250,4 +4262,40 @@ select.form-input {
   .article-preview-frame {
     height: 300px !important;
   }
+}
+
+/* ==========================================
+   GLOBAL: PREVENT ALL HORIZONTAL SCROLL
+   Force grids with large minmax to single-column on small screens
+   ========================================== */
+@media (max-width: 480px) {
+  .ai-providers-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .content-hub-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Catch any grid with large minmax values */
+  [style*="minmax(3"],
+  [style*="minmax(4"],
+  [style*="minmax(5"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* All pages: prevent any child from overflowing */
+.page-content {
+  overflow-x: hidden;
+}
+
+/* Ensure cards never exceed parent width */
+.card {
+  max-width: 100%;
+}
+
+/* All images and media: never exceed container */
+img, video, iframe, canvas, svg, embed, object {
+  max-width: 100%;
 }
