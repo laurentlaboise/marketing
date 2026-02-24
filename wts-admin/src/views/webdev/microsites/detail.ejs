@@ -109,7 +109,7 @@
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="responsive-grid-2">
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">Site Details</h2>
@@ -153,8 +153,8 @@
               </tbody>
             </table>
             <% } else { %>
-            <div style="padding: 24px; text-align: center; color: var(--gray-400);">
-              <i class="fas fa-rocket" style="font-size: 24px; margin-bottom: 8px;"></i>
+            <div class="empty-state-inline">
+              <i class="fas fa-rocket"></i>
               <p>No deployments yet</p>
             </div>
             <% } %>
@@ -181,12 +181,12 @@
         <h2 class="card-title">Add Domain</h2>
       </div>
       <div class="card-body">
-        <form action="/webdev/microsites/<%= microsite.id %>/domains" method="POST" style="display: flex; gap: 12px; align-items: flex-end;">
-          <div class="form-group" style="flex: 1; margin-bottom: 0;">
+        <form action="/webdev/microsites/<%= microsite.id %>/domains" method="POST" class="domain-add-form">
+          <div class="form-group">
             <label class="form-label">Domain</label>
             <input type="text" name="domain" class="form-input" placeholder="subdomain.example.com" required>
           </div>
-          <div class="form-group" style="width: 160px; margin-bottom: 0;">
+          <div class="form-group" style="width: 160px;">
             <label class="form-label">Type</label>
             <select name="type" class="form-input">
               <option value="secondary">Secondary</option>
@@ -194,7 +194,7 @@
               <option value="staging">Staging</option>
             </select>
           </div>
-          <button type="submit" class="btn btn-primary" style="height: 42px;">
+          <button type="submit" class="btn btn-primary">
             <i class="fas fa-plus"></i> Add
           </button>
         </form>
@@ -207,35 +207,35 @@
       </div>
       <div class="card-body" style="padding: 0;">
         <% if (domains.length > 0) { %>
-        <table class="table">
+        <table class="table table-responsive-cards">
           <thead>
             <tr>
               <th>Domain</th>
               <th>Type</th>
               <th>DNS</th>
               <th>SSL</th>
-              <th style="text-align: right;">Actions</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <% domains.forEach(d => { %>
             <tr>
-              <td>
-                <a href="https://<%= d.domain %>" target="_blank" style="font-weight: 500;">
+              <td data-label="Domain">
+                <a href="https://<%= d.domain %>" target="_blank" style="font-weight: 500; word-break: break-all;">
                   <%= d.domain %> <i class="fas fa-external-link-alt" style="font-size: 10px;"></i>
                 </a>
               </td>
-              <td><span class="status-badge"><%= d.type %></span></td>
-              <td>
+              <td data-label="Type"><span class="status-badge"><%= d.type %></span></td>
+              <td data-label="DNS">
                 <span style="color: var(<%= d.dns_verified ? '--success' : '--warning' %>);">
                   <i class="fas fa-<%= d.dns_verified ? 'check-circle' : 'exclamation-triangle' %>"></i>
                   <%= d.dns_verified ? 'Verified' : 'Pending' %>
                 </span>
               </td>
-              <td>
+              <td data-label="SSL">
                 <span class="status-badge <%= d.ssl_status %>"><%= d.ssl_status %></span>
               </td>
-              <td style="text-align: right;">
+              <td data-label="Actions">
                 <form action="/webdev/microsites/<%= microsite.id %>/domains/<%= d.id %>/verify" method="POST" style="display: inline;">
                   <button type="submit" class="btn btn-sm btn-secondary" title="Toggle DNS verification">
                     <i class="fas fa-check"></i>
@@ -252,8 +252,8 @@
           </tbody>
         </table>
         <% } else { %>
-        <div style="padding: 40px; text-align: center; color: var(--gray-400);">
-          <i class="fas fa-globe" style="font-size: 32px; margin-bottom: 12px;"></i>
+        <div class="empty-state-inline">
+          <i class="fas fa-globe"></i>
           <p>No domains connected yet</p>
         </div>
         <% } %>
@@ -262,7 +262,7 @@
 
     <% } else if (tab === 'seo') { %>
     <!-- SEO TAB -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="responsive-grid-2">
       <div>
         <div class="card">
           <div class="card-header">
@@ -368,12 +368,12 @@
     <!-- DEPLOYMENTS TAB -->
     <div class="card" style="margin-bottom: 20px;">
       <div class="card-body">
-        <form action="/webdev/microsites/<%= microsite.id %>/deploy" method="POST" style="display: flex; gap: 12px; align-items: flex-end;">
-          <div class="form-group" style="flex: 1; margin-bottom: 0;">
+        <form action="/webdev/microsites/<%= microsite.id %>/deploy" method="POST" class="deploy-form">
+          <div class="form-group">
             <label class="form-label">Deployment Note</label>
             <input type="text" name="commit_message" class="form-input" placeholder="What's being deployed?" value="">
           </div>
-          <button type="submit" class="btn btn-primary" style="height: 42px;">
+          <button type="submit" class="btn btn-primary">
             <i class="fas fa-rocket"></i> Log Deployment
           </button>
         </form>
@@ -386,7 +386,7 @@
       </div>
       <div class="card-body" style="padding: 0;">
         <% if (deployments.length > 0) { %>
-        <table class="table">
+        <table class="table table-responsive-cards">
           <thead>
             <tr>
               <th>Status</th>
@@ -399,23 +399,23 @@
           <tbody>
             <% deployments.forEach(d => { %>
             <tr>
-              <td>
+              <td data-label="Status">
                 <span class="status-badge <%= d.status %>">
                   <i class="fas fa-<%= d.status === 'success' ? 'check' : d.status === 'failed' ? 'times' : d.status === 'building' ? 'spinner fa-spin' : 'clock' %>"></i>
                   <%= d.status %>
                 </span>
               </td>
-              <td><%= d.commit_message || 'No message' %></td>
-              <td><span class="status-badge"><%= d.trigger %></span></td>
-              <td><%= d.first_name ? d.first_name + ' ' + (d.last_name || '') : 'System' %></td>
-              <td style="white-space: nowrap;"><%= new Date(d.created_at).toLocaleString() %></td>
+              <td data-label="Message"><%= d.commit_message || 'No message' %></td>
+              <td data-label="Trigger"><span class="status-badge"><%= d.trigger %></span></td>
+              <td data-label="Deployed By"><%= d.first_name ? d.first_name + ' ' + (d.last_name || '') : 'System' %></td>
+              <td data-label="Date"><%= new Date(d.created_at).toLocaleString() %></td>
             </tr>
             <% }); %>
           </tbody>
         </table>
         <% } else { %>
-        <div style="padding: 40px; text-align: center; color: var(--gray-400);">
-          <i class="fas fa-rocket" style="font-size: 32px; margin-bottom: 12px;"></i>
+        <div class="empty-state-inline">
+          <i class="fas fa-rocket"></i>
           <p>No deployment history</p>
         </div>
         <% } %>
@@ -424,7 +424,7 @@
 
     <% } else if (tab === 'settings') { %>
     <!-- SETTINGS TAB -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="responsive-grid-2">
       <div class="card">
         <div class="card-header">
           <h2 class="card-title"><i class="fas fa-robot"></i> robots.txt</h2>
@@ -463,7 +463,7 @@ Sitemap: https://example.com/sitemap.xml"><%= microsite.robots_txt || '' %></tex
         </div>
 
         <div class="card" style="margin-top: 20px; border: 1px solid var(--danger);">
-          <div class="card-body" style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="card-body delete-card-body">
             <div>
               <p style="font-weight: 600; color: var(--danger);">Delete Microsite</p>
               <p class="form-help">This will permanently remove the microsite and all associated data.</p>

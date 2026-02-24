@@ -22,7 +22,7 @@
         <div class="card-header"><h3><i class="fas fa-plus-circle"></i> New Audience</h3></div>
         <div class="card-body">
           <form action="/social/retargeting" method="POST">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="responsive-grid-2">
               <div class="form-group">
                 <label class="form-label">Audience Name</label>
                 <input type="text" name="name" class="form-control" required placeholder="e.g. Blog Readers - Last 30 Days">
@@ -65,7 +65,7 @@
       <div class="card" style="margin-bottom: 24px;">
         <div class="card-header"><h3><i class="fas fa-info-circle"></i> Pixel Setup Guide</h3></div>
         <div class="card-body">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <div class="responsive-grid-2">
             <div>
               <h4 style="margin-bottom: 8px;"><i class="fab fa-facebook" style="color: #1877f2;"></i> Meta Pixel</h4>
               <ol style="font-size: 13px; color: var(--gray-600); padding-left: 20px;">
@@ -96,17 +96,17 @@
         <div class="card-body" style="padding: 0;">
           <% if (audiences.length > 0) { %>
           <div class="table-container">
-            <table class="table">
+            <table class="table table-responsive-cards">
               <thead><tr><th>Name</th><th>Platform</th><th>Source</th><th>Window</th><th>Status</th><th>Created</th></tr></thead>
               <tbody>
                 <% audiences.forEach(function(a) { %>
                 <tr>
-                  <td><strong><%= a.name %></strong><% if (a.description) { %><div style="font-size: 12px; color: var(--gray-400);"><%= a.description %></div><% } %></td>
-                  <td><%= a.platform %></td>
-                  <td><span class="source-badge source-badge-<%= a.source_type %>"><%= a.source_type %></span></td>
-                  <td><%= a.date_range_days %> days</td>
-                  <td><span class="status-badge <%= a.status %>"><%= a.status %></span></td>
-                  <td style="font-size: 13px; color: var(--gray-500);"><%= new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></td>
+                  <td data-label="Name"><strong><%= a.name %></strong><% if (a.description) { %><div style="font-size: 12px; color: var(--gray-400);"><%= a.description %></div><% } %></td>
+                  <td data-label="Platform"><%= a.platform %></td>
+                  <td data-label="Source"><span class="source-badge source-badge-<%= a.source_type %>"><%= a.source_type %></span></td>
+                  <td data-label="Window"><%= a.date_range_days %> days</td>
+                  <td data-label="Status"><span class="status-badge <%= a.status %>"><%= a.status %></span></td>
+                  <td data-label="Created" style="font-size: 13px; color: var(--gray-500);"><%= new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></td>
                 </tr>
                 <% }); %>
               </tbody>

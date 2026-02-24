@@ -19,7 +19,7 @@
       <div class="card-body" style="padding: 0;">
         <% if (automations.length > 0) { %>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Name</th>
@@ -32,11 +32,11 @@
             <tbody>
               <% automations.forEach(auto => { %>
               <tr>
-                <td><strong><%= auto.name %></strong></td>
-                <td><%= auto.trigger_type || '-' %></td>
-                <td><%= auto.action_type || '-' %></td>
-                <td><span class="status-badge <%= auto.status %>"><%= auto.status %></span></td>
-                <td>
+                <td data-label="Name"><strong><%= auto.name %></strong></td>
+                <td data-label="Trigger"><%= auto.trigger_type || '-' %></td>
+                <td data-label="Action"><%= auto.action_type || '-' %></td>
+                <td data-label="Status"><span class="status-badge <%= auto.status %>"><%= auto.status %></span></td>
+                <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/business/automations/<%= auto.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                     <form action="/business/automations/<%= auto.id %>/delete" method="POST" style="display: inline;">

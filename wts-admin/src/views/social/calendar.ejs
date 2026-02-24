@@ -66,10 +66,10 @@
 
     <!-- Campaign Legend -->
     <% if (campaigns.length > 0) { %>
-    <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; font-size: 13px;">
+    <div class="legend-row">
       <% campaigns.forEach(c => { %>
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <span style="width: 12px; height: 12px; border-radius: 3px; background: <%= c.color || '#667eea' %>;"></span>
+      <div class="legend-item">
+        <span class="legend-dot" style="background: <%= c.color || '#667eea' %>;"></span>
         <span style="color: var(--gray-600);"><%= c.name %></span>
       </div>
       <% }); %>
@@ -146,7 +146,7 @@
       </div>
       <div class="card-body" style="padding: 0;">
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead>
               <tr>
                 <th>Date & Time</th>
@@ -159,26 +159,26 @@
             <tbody>
               <% upcoming.forEach(post => { %>
               <tr>
-                <td style="white-space: nowrap; font-size: 13px;">
+                <td data-label="Date & Time" style="font-size: 13px;">
                   <div><%= new Date(post.scheduled_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) %></div>
                   <div style="color: var(--gray-500);"><%= new Date(post.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></div>
                 </td>
-                <td style="max-width: 250px;">
-                  <a href="/social/posts/<%= post.id %>/edit" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">
+                <td data-label="Content">
+                  <a href="/social/posts/<%= post.id %>/edit">
                     <%= post.content ? post.content.substring(0, 80) : '' %>
                   </a>
                 </td>
-                <td>
+                <td data-label="Campaign">
                   <% if (post.campaign_name) { %>
                   <span style="border-left: 3px solid <%= post.campaign_color || '#667eea' %>; padding-left: 8px; font-size: 13px;"><%= post.campaign_name %></span>
                   <% } else { %>-<% } %>
                 </td>
-                <td>
+                <td data-label="Platforms">
                   <% if (post.platforms) { post.platforms.forEach(p => { %>
                   <i class="<%= pIcons[p] || 'fas fa-globe' %>" style="margin-right: 3px;" title="<%= p %>"></i>
                   <% }); } %>
                 </td>
-                <td><span class="status-badge <%= post.status %>"><%= post.status %></span></td>
+                <td data-label="Status"><span class="status-badge <%= post.status %>"><%= post.status %></span></td>
               </tr>
               <% }); %>
             </tbody>

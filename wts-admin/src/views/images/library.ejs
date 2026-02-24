@@ -177,7 +177,7 @@
           <% } else { %>
           <!-- List View -->
           <div class="table-container">
-            <table class="table">
+            <table class="table table-responsive-cards">
               <thead>
                 <tr>
                   <th style="width: 36px;"><input type="checkbox" id="selectAllListCheckbox" onchange="toggleSelectAll(this.checked); updateBulkBar();" title="Select all"></th>
@@ -193,21 +193,21 @@
               <tbody>
                 <% images.forEach(image => { %>
                 <tr data-image-id="<%= image.id %>">
-                  <td><input type="checkbox" class="image-checkbox" value="<%= image.id %>" onchange="updateBulkBar()"></td>
-                  <td>
+                  <td data-label="Select"><input type="checkbox" class="image-checkbox" value="<%= image.id %>" onchange="updateBulkBar()"></td>
+                  <td data-label="Preview">
                     <div class="image-table-thumb">
                       <img src="<%= image.cdn_url || ('/images-serve/' + encodeURIComponent(image.filename) + '?path=' + encodeURIComponent(image.file_path)) %>" alt="<%= image.alt_text || image.filename %>" loading="lazy">
                     </div>
                   </td>
-                  <td>
+                  <td data-label="Filename">
                     <strong><a href="/images/<%= image.id %>"><%= image.filename %></a></strong>
                     <br>
                     <small style="color: var(--gray-500);"><%= image.mime_type %></small>
                   </td>
-                  <td><span class="status-badge <%= image.category %>"><%= image.category %></span></td>
-                  <td><%= image.file_size_formatted %></td>
-                  <td><%= image.width && image.height ? image.width + ' x ' + image.height : '-' %></td>
-                  <td>
+                  <td data-label="Category"><span class="status-badge <%= image.category %>"><%= image.category %></span></td>
+                  <td data-label="Size"><%= image.file_size_formatted %></td>
+                  <td data-label="Dimensions"><%= image.width && image.height ? image.width + ' x ' + image.height : '-' %></td>
+                  <td data-label="SEO">
                     <% if (image.alt_text) { %>
                     <span style="color: var(--success);" title="Alt text set"><i class="fas fa-check-circle"></i></span>
                     <% } else { %>
@@ -217,7 +217,7 @@
                     <span style="color: var(--success);" title="Title set"><i class="fas fa-heading"></i></span>
                     <% } %>
                   </td>
-                  <td>
+                  <td data-label="Actions">
                     <div class="table-actions">
                       <button class="btn btn-sm btn-secondary copy-cdn-url" data-url="<%= image.cdn_url %>" title="Copy CDN URL">
                         <i class="fas fa-link"></i>

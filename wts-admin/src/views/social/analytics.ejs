@@ -55,7 +55,7 @@
         <div class="card-body">
           <% if (contentStats.length > 0) { %>
           <div class="table-container">
-            <table class="table">
+            <table class="table table-responsive-cards">
               <thead>
                 <tr>
                   <th>Content Type</th>
@@ -66,9 +66,9 @@
               <tbody>
                 <% contentStats.forEach(function(s) { %>
                 <tr>
-                  <td><span class="source-badge source-badge-<%= s.source_type || 'standalone' %>"><%= s.source_type || 'Standalone' %></span></td>
-                  <td><%= s.count %></td>
-                  <td><%= s.clicks || 0 %></td>
+                  <td data-label="Content Type"><span class="source-badge source-badge-<%= s.source_type || 'standalone' %>"><%= s.source_type || 'Standalone' %></span></td>
+                  <td data-label="Posts"><%= s.count %></td>
+                  <td data-label="Clicks"><%= s.clicks || 0 %></td>
                 </tr>
                 <% }); %>
               </tbody>
@@ -86,26 +86,26 @@
       </div>
 
       <!-- Quick Links -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
-        <a href="/social/analytics/dashboard" class="card" style="text-decoration: none; text-align: center; padding: 20px;">
-          <i class="fas fa-chart-line" style="font-size: 24px; color: var(--primary); margin-bottom: 8px;"></i>
-          <div style="font-weight: 600; color: var(--gray-700);">Full Dashboard</div>
-          <div style="font-size: 12px; color: var(--gray-400);">Platform stats, top posts, AI costs</div>
+      <div class="quick-links-grid">
+        <a href="/social/analytics/dashboard" class="card quick-link-card">
+          <div class="quick-link-icon" style="color: var(--primary);"><i class="fas fa-chart-line"></i></div>
+          <div class="quick-link-title">Full Dashboard</div>
+          <div class="quick-link-desc">Platform stats, top posts, AI costs</div>
         </a>
-        <a href="/social/retargeting" class="card" style="text-decoration: none; text-align: center; padding: 20px;">
-          <i class="fas fa-users" style="font-size: 24px; color: #8b5cf6; margin-bottom: 8px;"></i>
-          <div style="font-weight: 600; color: var(--gray-700);">Retargeting</div>
-          <div style="font-size: 12px; color: var(--gray-400);">Build custom audiences</div>
+        <a href="/social/retargeting" class="card quick-link-card">
+          <div class="quick-link-icon" style="color: #8b5cf6;"><i class="fas fa-users"></i></div>
+          <div class="quick-link-title">Retargeting</div>
+          <div class="quick-link-desc">Build custom audiences</div>
         </a>
-        <a href="/social/templates" class="card" style="text-decoration: none; text-align: center; padding: 20px;">
-          <i class="fas fa-copy" style="font-size: 24px; color: var(--success); margin-bottom: 8px;"></i>
-          <div style="font-weight: 600; color: var(--gray-700);">Templates</div>
-          <div style="font-size: 12px; color: var(--gray-400);">Reusable post templates</div>
+        <a href="/social/templates" class="card quick-link-card">
+          <div class="quick-link-icon" style="color: var(--success);"><i class="fas fa-copy"></i></div>
+          <div class="quick-link-title">Templates</div>
+          <div class="quick-link-desc">Reusable post templates</div>
         </a>
-        <a href="/social/ai-settings" class="card" style="text-decoration: none; text-align: center; padding: 20px;">
-          <i class="fas fa-robot" style="font-size: 24px; color: var(--warning); margin-bottom: 8px;"></i>
-          <div style="font-weight: 600; color: var(--gray-700);">AI Providers</div>
-          <div style="font-size: 12px; color: var(--gray-400);">Manage AI engines + costs</div>
+        <a href="/social/ai-settings" class="card quick-link-card">
+          <div class="quick-link-icon" style="color: var(--warning);"><i class="fas fa-robot"></i></div>
+          <div class="quick-link-title">AI Providers</div>
+          <div class="quick-link-desc">Manage AI engines + costs</div>
         </a>
       </div>
     </div>

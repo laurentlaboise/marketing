@@ -1,5 +1,22 @@
 // WTS Admin - Main JavaScript
 
+// Body scroll lock helpers (iOS-safe)
+let _scrollY = 0;
+function lockBody() {
+  _scrollY = window.scrollY;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${_scrollY}px`;
+  document.body.style.width = '100%';
+  document.body.style.overflow = 'hidden';
+}
+function unlockBody() {
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  document.body.style.overflow = '';
+  window.scrollTo(0, _scrollY);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   initDropdowns();
@@ -26,7 +43,7 @@ function initSidebar() {
     mobileMenuBtn.addEventListener('click', () => {
       sidebar.classList.add('open');
       overlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
+      lockBody();
     });
   }
 
@@ -41,7 +58,7 @@ function initSidebar() {
   function closeSidebar() {
     sidebar.classList.remove('open');
     overlay.classList.remove('active');
-    document.body.style.overflow = '';
+    unlockBody();
   }
 
   // Close sidebar on escape key
@@ -479,13 +496,13 @@ function initMobileSearch() {
 
   openBtn.addEventListener('click', () => {
     overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    lockBody();
     setTimeout(() => searchInput?.focus(), 100);
   });
 
   function closeOverlay() {
     overlay.classList.remove('active');
-    document.body.style.overflow = '';
+    unlockBody();
   }
 
   if (closeBtn) closeBtn.addEventListener('click', closeOverlay);
@@ -556,7 +573,7 @@ function initKeyboardShortcuts() {
       const mobileOverlay = document.getElementById('mobileSearchOverlay');
       if (mobileOverlay?.classList.contains('active')) {
         mobileOverlay.classList.remove('active');
-        document.body.style.overflow = '';
+        unlockBody();
         return;
       }
       // Close any open modals
