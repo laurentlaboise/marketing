@@ -141,7 +141,7 @@ app.get('/api/articles/:slug', async (req, res) => {
 // POST: Create new article (Admin)
 app.post('/api/articles', async (req, res) => {
   try {
-    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, content, time_to_read } = req.body;
+    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, content, time_to_read, audio_files } = req.body;
 
     // Handle both old (content) and new (sidebar_content/full_article_content) field names for backwards compatibility
     const sidebarContentValue = sidebar_content || content;
@@ -155,12 +155,13 @@ app.post('/api/articles', async (req, res) => {
     const slug = titleToSlug(title);
     const categoriesArray = Array.isArray(categories) ? categories : [];
     const timeToRead = time_to_read ? parseInt(time_to_read, 10) : null;
+    const audioFilesJson = audio_files && typeof audio_files === 'object' ? JSON.stringify(audio_files) : (audio_files || '{}');
 
     const result = await pool.query(
-      `INSERT INTO articles (title, slug, description, sidebar_content, full_article_content, featured_image_url, categories, is_published, time_to_read)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO articles (title, slug, description, sidebar_content, full_article_content, featured_image_url, categories, is_published, time_to_read, audio_files)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb)
        RETURNING *`,
-      [title, slug, description, sidebarContentValue, fullArticleContentValue, featured_image_url || null, categoriesArray, true, timeToRead]
+      [title, slug, description, sidebarContentValue, fullArticleContentValue, featured_image_url || null, categoriesArray, true, timeToRead, audioFilesJson]
     );
 
     res.status(201).json({
@@ -181,12 +182,13 @@ app.post('/api/articles', async (req, res) => {
 app.put('/api/articles/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, is_published, content, time_to_read } = req.body;
+    const { title, description, sidebar_content, full_article_content, featured_image_url, categories, is_published, content, time_to_read, audio_files } = req.body;
 
     // Handle both old (content) and new (sidebar_content/full_article_content) field names for backwards compatibility
     const sidebarContentValue = sidebar_content || content;
     const fullArticleContentValue = full_article_content || content;
     const timeToRead = time_to_read !== undefined ? (time_to_read ? parseInt(time_to_read, 10) : null) : undefined;
+    const audioFilesJson = audio_files !== undefined ? (typeof audio_files === 'object' ? JSON.stringify(audio_files) : (audio_files || null)) : undefined;
 
     const result = await pool.query(
       `UPDATE articles
@@ -198,10 +200,11 @@ app.put('/api/articles/:id', async (req, res) => {
            categories = COALESCE($6, categories),
            is_published = COALESCE($7, is_published),
            updated_at = CURRENT_TIMESTAMP,
-           time_to_read = COALESCE($9, time_to_read)
+           time_to_read = COALESCE($9, time_to_read),
+           audio_files = COALESCE($10::jsonb, audio_files)
        WHERE id = $8
        RETURNING *`,
-      [title, description, sidebarContentValue, fullArticleContentValue, featured_image_url, categories, is_published, id, timeToRead]
+      [title, description, sidebarContentValue, fullArticleContentValue, featured_image_url, categories, is_published, id, timeToRead, audioFilesJson]
     );
 
     if (result.rows.length === 0) {
@@ -556,6 +559,16 @@ app.get('/api/setup-database', async (req, res) => {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         is_published BOOLEAN DEFAULT FALSE
       )
+    `);
+
+    // Add audio_files column if it doesn't exist
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='audio_files') THEN
+          ALTER TABLE articles ADD COLUMN audio_files JSONB DEFAULT '{}'::jsonb;
+        END IF;
+      END $$;
     `);
 
     // Create indexes

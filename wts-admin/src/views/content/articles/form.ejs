@@ -523,6 +523,47 @@
 
           <!-- ===== TAB: ADVANCED ===== -->
           <div class="form-tab-panel" id="panel-advanced" style="display:none;">
+
+          <!-- Article Audio Section -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-headphones"></i> Article Audio (Listen to this Article)</h3>
+            <p class="form-help" style="margin-bottom: 12px;">Enable multi-language audio playback. The audio widget appears beneath the article title on the published page.</p>
+
+            <input type="hidden" id="audio_files" name="audio_files" value="<%= article && article.audio_files ? (typeof article.audio_files === 'string' ? article.audio_files : JSON.stringify(article.audio_files)) : '{}' %>">
+
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="audioEnabledToggle" style="width: 18px; height: 18px; cursor: pointer;">
+                <span>Enable audio widget for this article</span>
+              </label>
+            </div>
+
+            <div id="audioFieldsPanel" style="display: none;">
+              <div id="audioLangRows"></div>
+
+              <div style="display: flex; gap: 8px; align-items: center; margin-top: 12px;">
+                <select id="audioNewLangSelect" class="form-input" style="max-width: 180px; font-size: 13px;">
+                  <option value="">Add language...</option>
+                  <option value="en">English</option>
+                  <option value="lo">Lao</option>
+                  <option value="th">Thai</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  <option value="zh">Chinese</option>
+                  <option value="ja">Japanese</option>
+                  <option value="ko">Korean</option>
+                  <option value="vi">Vietnamese</option>
+                  <option value="km">Khmer</option>
+                  <option value="my">Burmese</option>
+                </select>
+                <button type="button" id="addAudioLangBtn" class="btn btn-secondary btn-sm">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </div>
+              <p class="form-help" style="margin-top: 4px;">Paste the direct URL to each language's MP3/WAV audio file.</p>
+            </div>
+          </div>
+
           <!-- Citations / Sources Section -->
           <div class="form-section">
             <h3 class="form-section-title"><i class="fas fa-quote-right"></i> Citations &amp; Sources</h3>
@@ -4103,6 +4144,116 @@ document.addEventListener('DOMContentLoaded', function() {
   bind('testGhConnectionBtn', function() { testGhConnection(); });
   bind('publishToGithubBtn', function() { publishToGitHub(); });
 });
+
+// ==================== ARTICLE AUDIO MANAGEMENT ====================
+(function() {
+  var LANG_LABELS = {
+    en: 'English', lo: 'Lao', th: 'Thai', es: 'Spanish',
+    fr: 'French', zh: 'Chinese', ja: 'Japanese', ko: 'Korean',
+    vi: 'Vietnamese', km: 'Khmer', my: 'Burmese'
+  };
+
+  var hiddenInput   = document.getElementById('audio_files');
+  var toggle        = document.getElementById('audioEnabledToggle');
+  var panel         = document.getElementById('audioFieldsPanel');
+  var rowsContainer = document.getElementById('audioLangRows');
+  var addBtn        = document.getElementById('addAudioLangBtn');
+  var langSelect    = document.getElementById('audioNewLangSelect');
+
+  if (!hiddenInput || !toggle) return;
+
+  // Parse stored value
+  var audioData = {};
+  try { audioData = JSON.parse(hiddenInput.value) || {}; } catch(e) { audioData = {}; }
+
+  // Check if audio is enabled (has at least one key or _enabled flag)
+  var isEnabled = audioData._enabled === true || Object.keys(audioData).filter(function(k){ return k !== '_enabled'; }).length > 0;
+  toggle.checked = isEnabled;
+  panel.style.display = isEnabled ? 'block' : 'none';
+
+  toggle.addEventListener('change', function() {
+    panel.style.display = toggle.checked ? 'block' : 'none';
+    syncHiddenInput();
+  });
+
+  function createRow(langCode, url) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex; align-items:center; gap:8px; margin-bottom:8px;';
+    row.dataset.lang = langCode;
+
+    var label = document.createElement('span');
+    label.style.cssText = 'min-width:80px; font-weight:600; font-size:13px; color:#555;';
+    label.textContent = LANG_LABELS[langCode] || langCode;
+
+    var input = document.createElement('input');
+    input.type = 'url';
+    input.className = 'form-input';
+    input.placeholder = 'https://cdn.example.com/audio/article-' + langCode + '.mp3';
+    input.value = url || '';
+    input.style.cssText = 'flex:1; font-size:13px;';
+    input.addEventListener('input', syncHiddenInput);
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-sm';
+    removeBtn.style.cssText = 'background:none; border:none; color:#dc3545; font-size:18px; cursor:pointer; padding:4px 8px;';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.title = 'Remove ' + (LANG_LABELS[langCode] || langCode);
+    removeBtn.addEventListener('click', function() {
+      row.remove();
+      syncHiddenInput();
+      updateSelectOptions();
+    });
+
+    row.appendChild(label);
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    rowsContainer.appendChild(row);
+  }
+
+  function syncHiddenInput() {
+    var data = {};
+    if (toggle.checked) {
+      data._enabled = true;
+      var rows = rowsContainer.querySelectorAll('[data-lang]');
+      rows.forEach(function(row) {
+        var code = row.dataset.lang;
+        var val = row.querySelector('input[type="url"]').value.trim();
+        if (val) data[code] = val;
+      });
+    }
+    hiddenInput.value = JSON.stringify(data);
+    // Trigger unsaved badge
+    var badge = document.getElementById('unsavedBadge');
+    if (badge) badge.style.display = 'inline-flex';
+  }
+
+  function updateSelectOptions() {
+    var existing = [];
+    rowsContainer.querySelectorAll('[data-lang]').forEach(function(r) { existing.push(r.dataset.lang); });
+    var options = langSelect.querySelectorAll('option');
+    options.forEach(function(opt) {
+      if (opt.value) opt.disabled = existing.indexOf(opt.value) !== -1;
+    });
+    langSelect.value = '';
+  }
+
+  // Initialize rows from stored data
+  Object.keys(audioData).forEach(function(key) {
+    if (key === '_enabled') return;
+    createRow(key, audioData[key]);
+  });
+  updateSelectOptions();
+
+  // Add language button
+  addBtn.addEventListener('click', function() {
+    var code = langSelect.value;
+    if (!code) return;
+    createRow(code, '');
+    syncHiddenInput();
+    updateSelectOptions();
+  });
+})();
 </script>
 
 <%- include('../../partials/footer') %>
