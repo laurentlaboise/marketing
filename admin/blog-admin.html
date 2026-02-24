@@ -697,11 +697,27 @@
       const row = document.createElement('div');
       row.className = 'audio-lang-row';
       row.dataset.lang = code;
-      row.innerHTML = `
-        <label>${label}</label>
-        <input type="url" name="audio_${code}" placeholder="https://cdn.example.com/audio/article-${code}.mp3" />
-        <button type="button" class="audio-remove-btn" title="Remove language" onclick="removeAudioLang(this)">&times;</button>
-      `;
+
+      const labelEl = document.createElement('label');
+      labelEl.textContent = label;
+      row.appendChild(labelEl);
+
+      const inputEl = document.createElement('input');
+      inputEl.type = 'url';
+      inputEl.name = 'audio_' + code;
+      inputEl.placeholder = 'https://cdn.example.com/audio/article-' + code + '.mp3';
+      row.appendChild(inputEl);
+
+      const btnEl = document.createElement('button');
+      btnEl.type = 'button';
+      btnEl.className = 'audio-remove-btn';
+      btnEl.title = 'Remove language';
+      btnEl.innerHTML = '&times;';
+      btnEl.addEventListener('click', function () {
+        window.removeAudioLang(btnEl);
+      });
+      row.appendChild(btnEl);
+
       audioLangRows.appendChild(row);
     }
 
