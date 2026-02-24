@@ -188,6 +188,51 @@ router.post('/articles/ai-analyze-draft', async (req, res) => {
   }
 });
 
+// ==================== ARTICLE CREATOR API ====================
+
+// Fetch all linkable terms (glossary + SEO terms + AI tools) for auto-hyperlinking
+router.get('/articles/api/link-terms', async (req, res) => {
+  try {
+    const [glossary, seoTerms, aiTools] = await Promise.all([
+      db.query('SELECT id, term, definition, slug, category FROM glossary ORDER BY LENGTH(term) DESC'),
+      db.query('SELECT id, term, short_definition, definition, category, slug, article_link, glossary_link FROM seo_terms ORDER BY LENGTH(term) DESC'),
+      db.query("SELECT id, name, description, category, website_url FROM ai_tools WHERE status = 'active' ORDER BY LENGTH(name) DESC")
+    ]);
+
+    res.json({
+      glossary: glossary.rows.map(g => ({
+        id: g.id,
+        term: g.term,
+        definition: g.definition ? g.definition.substring(0, 200) : '',
+        slug: g.slug,
+        category: g.category,
+        link: g.slug ? ('/en/resources/glossary/' + g.slug + '.html') : '',
+        type: 'glossary'
+      })),
+      seo_terms: seoTerms.rows.map(s => ({
+        id: s.id,
+        term: s.term,
+        definition: (s.short_definition || s.definition || '').substring(0, 200),
+        slug: s.slug,
+        category: s.category,
+        link: s.article_link || s.glossary_link || '',
+        type: 'seo'
+      })),
+      ai_tools: aiTools.rows.map(t => ({
+        id: t.id,
+        term: t.name,
+        definition: (t.description || '').substring(0, 200),
+        category: t.category,
+        link: t.website_url || '',
+        type: 'ai-tool'
+      }))
+    });
+  } catch (error) {
+    console.error('Link terms fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch link terms' });
+  }
+});
+
 // Edit article form
 router.get('/articles/:id/edit', async (req, res) => {
   try {
