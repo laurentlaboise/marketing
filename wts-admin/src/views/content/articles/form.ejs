@@ -177,9 +177,9 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="article_code"><i class="fas fa-code"></i> Embeddable Card Code</label>
-              <textarea id="article_code" name="article_code" class="form-input" rows="10" placeholder="Enter embeddable HTML widget/card code here"><%= article ? article.article_code : '' %></textarea>
-              <p class="form-help">HTML snippet for embedding this article as a card/widget on other pages. This is different from the full article content above.</p>
+              <label class="form-label" for="article_code"><i class="fas fa-code"></i> HTML Article Page</label>
+              <textarea id="article_code" name="article_code" class="form-input" rows="10" placeholder="Enter the full HTML code for the article page"><%= article ? article.article_code : '' %></textarea>
+              <p class="form-help">The actual HTML code of the article page.</p>
             </div>
 
             <div class="form-group">
@@ -3598,6 +3598,23 @@ function calcReadingTime() {
 
 // ==================== ARTICLE PREVIEW GENERATOR ====================
 function generateArticlePreview() {
+  // If HTML Article Page code is provided, use it directly
+  var articleCode = (document.getElementById('article_code').value || '').trim();
+  if (articleCode) {
+    var container = document.getElementById('articlePreviewContainer');
+    var frame = document.getElementById('articlePreviewFrame');
+    container.style.display = 'block';
+
+    var doc = frame.contentDocument || frame.contentWindow.document;
+    doc.open();
+    doc.write(articleCode);
+    doc.close();
+
+    document.getElementById('openPreviewNewTabBtn').style.display = 'inline-flex';
+    window._lastPreviewHTML = articleCode;
+    return;
+  }
+
   var title = document.getElementById('title').value || 'Untitled Article';
   var excerpt = document.getElementById('excerpt').value || '';
   var featuredImage = document.getElementById('featured_image').value || '';
@@ -4040,7 +4057,7 @@ function publishToGitHub() {
 
   var title = document.getElementById('title').value || 'Untitled';
 
-  // Generate the full article HTML
+  // Use HTML Article Page code if provided, otherwise generate from form fields
   progressEl.style.display = 'block';
   resultEl.style.display = 'none';
   progressFill.style.width = '10%';
@@ -4048,7 +4065,8 @@ function publishToGitHub() {
 
   var articleHTML;
   try {
-    articleHTML = generateFullArticleHTML();
+    var articleCode = (document.getElementById('article_code').value || '').trim();
+    articleHTML = articleCode || generateFullArticleHTML();
   } catch(e) {
     progressEl.style.display = 'none';
     resultEl.style.display = 'block';
