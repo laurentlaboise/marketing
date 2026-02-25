@@ -177,9 +177,9 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="article_code"><i class="fas fa-code"></i> Embeddable Card Code</label>
-              <textarea id="article_code" name="article_code" class="form-input" rows="10" placeholder="Enter embeddable HTML widget/card code here"><%= article ? article.article_code : '' %></textarea>
-              <p class="form-help">HTML snippet for embedding this article as a card/widget on other pages. This is different from the full article content above.</p>
+              <label class="form-label" for="article_code"><i class="fas fa-code"></i> HTML Article Page</label>
+              <textarea id="article_code" name="article_code" class="form-input" rows="10" placeholder="Enter the full HTML code for the article page"><%= article ? article.article_code : '' %></textarea>
+              <p class="form-help">The actual HTML code of the article page.</p>
             </div>
 
             <div class="form-group">
