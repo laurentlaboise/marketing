@@ -43,6 +43,7 @@ function initSidebar() {
     mobileMenuBtn.addEventListener('click', () => {
       sidebar.classList.add('open');
       overlay.classList.add('active');
+      mobileMenuBtn.classList.add('active');
       lockBody();
     });
   }
@@ -58,6 +59,7 @@ function initSidebar() {
   function closeSidebar() {
     sidebar.classList.remove('open');
     overlay.classList.remove('active');
+    if (mobileMenuBtn) mobileMenuBtn.classList.remove('active');
     unlockBody();
   }
 
