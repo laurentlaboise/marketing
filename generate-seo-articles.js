@@ -17,7 +17,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const striptags = require('striptags');
-const API_BASE_URL = 'https://marketing-production-a3ee.up.railway.app/api';
+const API_BASE_URL = 'https://admin.wordsthatsells.website/api/public';
 const SITE_BASE_URL = 'https://wordsthatsells.website';
 const OUTPUT_DIR = path.join(__dirname, 'en', 'articles');
 

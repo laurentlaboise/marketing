@@ -5,7 +5,7 @@
   "scripts": {
     "build": "webpack --mode=production",
     "analyze-schema": "node analyze-schema.js",
-    "start": "cd blog-backend && npm install && npm start"
+    "start": "echo 'No local server - blog-backend has been migrated to wts-admin'"
   },
   "keywords": [],
   "author": "",
