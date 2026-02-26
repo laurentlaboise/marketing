@@ -27,6 +27,15 @@
             <option value="draft" <%= pagination.status === 'draft' ? 'selected' : '' %>>Draft</option>
             <option value="published" <%= pagination.status === 'published' ? 'selected' : '' %>>Published</option>
           </select>
+          <select name="category" class="form-input filter-select">
+            <option value="">All Categories</option>
+            <option value="Digital Marketing" <%= pagination.category === 'Digital Marketing' ? 'selected' : '' %>>Digital Marketing</option>
+            <option value="SEO" <%= pagination.category === 'SEO' ? 'selected' : '' %>>SEO</option>
+            <option value="AI & Automation" <%= pagination.category === 'AI & Automation' ? 'selected' : '' %>>AI & Automation</option>
+            <option value="Content Strategy" <%= pagination.category === 'Content Strategy' ? 'selected' : '' %>>Content Strategy</option>
+            <option value="Business Growth" <%= pagination.category === 'Business Growth' ? 'selected' : '' %>>Business Growth</option>
+            <option value="Social Media Marketing" <%= pagination.category === 'Social Media Marketing' ? 'selected' : '' %>>Social Media Marketing</option>
+          </select>
           <button type="submit" class="btn btn-secondary btn-sm">
             <i class="fas fa-search"></i> Search
           </button>
@@ -38,8 +47,9 @@
           <table class="table table-responsive-cards">
             <thead>
               <tr>
-                <th>Title</th>
+                <th>Article</th>
                 <th>Category</th>
+                <th>Words</th>
                 <th>Status</th>
                 <th>Created</th>
                 <th>Actions</th>
@@ -48,12 +58,39 @@
             <tbody>
               <% articles.forEach(article => { %>
               <tr>
-                <td data-label="Title">
-                  <strong><%= article.title %></strong>
-                  <br>
-                  <small style="color: var(--gray-500);">/<%= article.slug %></small>
+                <td data-label="Article">
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <% if (article.featured_image) { %>
+                    <img src="<%= article.featured_image %>" alt="" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0;" onerror="this.style.display='none'">
+                    <% } %>
+                    <div style="min-width: 0;">
+                      <strong style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;"><%= article.title %></strong>
+                      <% if (article.excerpt) { %>
+                      <small style="color: var(--gray-500); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px;"><%= article.excerpt.substring(0, 100) %></small>
+                      <% } %>
+                      <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                        <small style="color: var(--gray-400); font-size: 11px;">/<%= article.slug %></small>
+                        <% if (article.featured) { %>
+                        <span style="background: #fef3c7; color: #92400e; font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600;"><i class="fas fa-star" style="font-size: 8px;"></i> Featured</span>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
                 </td>
-                <td data-label="Category"><%= article.category || '-' %></td>
+                <td data-label="Category">
+                  <% if (article.category) { %>
+                  <span style="background: var(--gray-100); color: var(--gray-700); font-size: 12px; padding: 2px 8px; border-radius: 4px; white-space: nowrap;"><%= article.category %></span>
+                  <% } else { %>
+                  <span style="color: var(--gray-400);">—</span>
+                  <% } %>
+                </td>
+                <td data-label="Words">
+                  <% if (article.word_count) { %>
+                  <span style="font-size: 13px; color: <%= article.word_count >= 1000 ? '#059669' : article.word_count >= 500 ? '#d97706' : '#dc2626' %>;"><%= article.word_count.toLocaleString() %></span>
+                  <% } else { %>
+                  <span style="color: var(--gray-400);">—</span>
+                  <% } %>
+                </td>
                 <td data-label="Status">
                   <span class="status-badge <%= article.status %>"><%= article.status %></span>
                 </td>
@@ -80,19 +117,19 @@
         <div class="card-footer">
           <div class="pagination">
             <% if (pagination.page > 1) { %>
-            <a href="?page=<%= pagination.page - 1 %>&search=<%= pagination.search || '' %>&status=<%= pagination.status || '' %>" class="pagination-btn">
+            <a href="?page=<%= pagination.page - 1 %>&search=<%= pagination.search || '' %>&status=<%= pagination.status || '' %>&category=<%= pagination.category || '' %>" class="pagination-btn">
               <i class="fas fa-chevron-left"></i>
             </a>
             <% } %>
 
             <% for (let i = 1; i <= pagination.totalPages; i++) { %>
-            <a href="?page=<%= i %>&search=<%= pagination.search || '' %>&status=<%= pagination.status || '' %>" class="pagination-btn <%= i === pagination.page ? 'active' : '' %>">
+            <a href="?page=<%= i %>&search=<%= pagination.search || '' %>&status=<%= pagination.status || '' %>&category=<%= pagination.category || '' %>" class="pagination-btn <%= i === pagination.page ? 'active' : '' %>">
               <%= i %>
             </a>
             <% } %>
 
             <% if (pagination.page < pagination.totalPages) { %>
-            <a href="?page=<%= pagination.page + 1 %>&search=<%= pagination.search || '' %>&status=<%= pagination.status || '' %>" class="pagination-btn">
+            <a href="?page=<%= pagination.page + 1 %>&search=<%= pagination.search || '' %>&status=<%= pagination.status || '' %>&category=<%= pagination.category || '' %>" class="pagination-btn">
               <i class="fas fa-chevron-right"></i>
             </a>
             <% } %>
