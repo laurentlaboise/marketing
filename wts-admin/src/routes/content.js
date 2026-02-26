@@ -334,7 +334,10 @@ router.post('/articles/:id', async (req, res) => {
     const resolvedCanonical = canonical_url || `https://wordsthatsells.website/en/articles/${slug}.html`;
 
     // Compute word count from text_article or content
-    const rawText = (text_article || content || '').replace(/<[^>]*>/g, '');
+    const rawTextSource = text_article || content || '';
+    const rawText = rawTextSource
+      .replace(/<[^>]*>/g, '')  // remove HTML tags
+      .replace(/[<>]/g, '');    // remove any leftover angle brackets
     const wordCount = rawText.split(/\s+/).filter(w => w.length > 0).length || null;
 
     // Normalize tags to human-readable names
