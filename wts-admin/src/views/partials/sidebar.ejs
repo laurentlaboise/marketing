@@ -35,17 +35,16 @@
 
       <!-- Website Resources -->
       <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['affiliates', 'agencies', 'products', 'pricing', 'pricing-features'].includes(currentPage) ? 'active' : '' %>">
+        <a href="#" class="nav-link submenu-toggle <%= ['affiliates', 'agencies', 'products', 'pricing'].includes(currentPage) ? 'active' : '' %>">
           <i class="fas fa-briefcase"></i>
           <span>Website Resources</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['affiliates', 'agencies', 'products', 'pricing', 'pricing-features'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= ['affiliates', 'agencies', 'products', 'pricing'].includes(currentPage) ? 'open' : '' %>">
           <li><a href="/business/affiliates" class="<%= currentPage === 'affiliates' ? 'active' : '' %>"><i class="fas fa-handshake"></i> Affiliate Solutions</a></li>
           <li><a href="/business/agencies" class="<%= currentPage === 'agencies' ? 'active' : '' %>"><i class="fas fa-building"></i> Agency Management</a></li>
           <li><a href="/business/products" class="<%= currentPage === 'products' ? 'active' : '' %>"><i class="fas fa-box"></i> Products</a></li>
-          <li><a href="/business/pricing" class="<%= currentPage === 'pricing' ? 'active' : '' %>"><i class="fas fa-tags"></i> Pricing Packages</a></li>
-          <li><a href="/business/pricing-features" class="<%= currentPage === 'pricing-features' ? 'active' : '' %>"><i class="fas fa-list-check"></i> Pricing Features</a></li>
+          <li><a href="/business/pricing" class="<%= currentPage === 'pricing' ? 'active' : '' %>"><i class="fas fa-tags"></i> Packages</a></li>
         </ul>
       </li>
 
