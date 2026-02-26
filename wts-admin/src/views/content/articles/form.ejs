@@ -166,8 +166,8 @@
 
             <div class="form-group">
               <label class="form-label" for="content"><i class="fas fa-file-code"></i> Sidemenu Content *</label>
-              <textarea id="content" name="content" class="form-input" rows="15" required><%= article ? article.content : '' %></textarea>
-              <p class="form-help">HTML content displayed in the slide-in sidebar panel when the article is previewed.</p>
+              <textarea id="content" name="content" class="form-input" rows="15" required placeholder="Enter full HTML for the sidebar panel. Use standard HTML: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;a&gt; tags. This appears in the slide-in panel when readers click 'Read More' on the article card."><%= article ? article.content : '' %></textarea>
+              <p class="form-help">Full HTML content for the slide-in sidebar panel. This is the rich preview shown when a reader clicks on the article card from the listing page. Use standard HTML markup — headings, paragraphs, lists, links. You can use the <strong>Auto-Hyperlink</strong> button below to add internal links automatically.</p>
             </div>
 
             <!-- Auto-Hyperlink Button -->
@@ -3056,7 +3056,9 @@ function aiAnalyzeArticle() {
   var excerptVal = document.getElementById('excerpt').value.trim();
 
   if (!titleVal && !contentVal) {
-    alert('Please enter at least a title or content before running AI analysis.');
+    var status = document.getElementById('aiArticleStatus');
+    status.style.display = 'block';
+    status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> <strong>Title or content required.</strong> Enter at least an article title or content before running AI analysis.</div>';
     return;
   }
 
@@ -3129,12 +3131,17 @@ function aiAnalyzeArticle() {
         }
       }
 
-      // Category
+      // Category — map AI response to current dropdown values
       if (data.category) {
         var catEl = document.getElementById('category');
-        var validCats = ['marketing', 'seo', 'ai', 'social-media', 'content', 'business'];
-        if (validCats.indexOf(data.category) !== -1 && !catEl.value) {
-          catEl.value = data.category;
+        var legacyToNew = {
+          'marketing': 'Digital Marketing', 'seo': 'SEO', 'ai': 'AI & Automation',
+          'social-media': 'Social Media Marketing', 'content': 'Content Strategy', 'business': 'Business Growth'
+        };
+        var newCats = ['Digital Marketing','SEO','AI & Automation','Social Media Marketing','Content Strategy','Business Growth','Web Development','E-Commerce','Analytics & Data','Email Marketing','PPC & Paid Advertising','Branding & Design'];
+        var mapped = legacyToNew[data.category] || data.category;
+        if (newCats.indexOf(mapped) !== -1 && !catEl.value) {
+          catEl.value = mapped;
           fieldsUpdated.push('Category');
         }
       }
@@ -3256,7 +3263,9 @@ function confirmAiAnalysis() {
   var titleVal = document.getElementById('title').value.trim();
   var contentVal = document.getElementById('content').value.trim();
   if (!titleVal && !contentVal) {
-    alert('Please enter at least a title or content before running AI analysis.');
+    var status = document.getElementById('aiArticleStatus');
+    status.style.display = 'block';
+    status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> <strong>Title or content required.</strong> Enter at least an article title or content before running AI analysis.</div>';
     return;
   }
   document.getElementById('aiConfirmModal').style.display = 'block';

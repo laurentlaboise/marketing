@@ -57,6 +57,7 @@ router.get('/articles', async (req, res) => {
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
     const status = req.query.status || '';
+    const category = req.query.category || '';
 
     let query = 'SELECT * FROM articles';
     let countQuery = 'SELECT COUNT(*) FROM articles';
@@ -71,6 +72,11 @@ router.get('/articles', async (req, res) => {
     if (status) {
       conditions.push(`status = $${params.length + 1}`);
       params.push(status);
+    }
+
+    if (category) {
+      conditions.push(`category = $${params.length + 1}`);
+      params.push(category);
     }
 
     if (conditions.length > 0) {
@@ -91,7 +97,7 @@ router.get('/articles', async (req, res) => {
       title: 'Articles - WTS Admin',
       articles: articles.rows,
       currentPage: 'articles',
-      pagination: { page, totalPages, search, status }
+      pagination: { page, totalPages, search, status, category }
     });
   } catch (error) {
     console.error('Articles list error:', error);
@@ -421,7 +427,7 @@ Return ONLY valid JSON (no markdown, no code fences) with these exact fields:
   "seo_description": "Meta description for search results (150-160 chars). Include a call-to-action.",
   "seo_keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "category": "one of: marketing, seo, ai, social-media, content, business",
+  "category": "one of: Digital Marketing, SEO, AI & Automation, Social Media Marketing, Content Strategy, Business Growth, Web Development, E-Commerce, Analytics & Data, Email Marketing, PPC & Paid Advertising, Branding & Design",
   "og_title": "Engaging social share title (40-60 chars). Optimized for clicks on Facebook/LinkedIn.",
   "og_description": "Social sharing description (100-200 chars). Compelling and actionable.",
   "twitter_title": "X/Twitter optimized title (max 70 chars). Punchy and attention-grabbing.",
@@ -443,7 +449,7 @@ Focus on:
 - Accurate content representation
 - Keywords should be relevant SEO terms for digital marketing
 - Tags should be lowercase, 4-6 tags
-- Category must be one of the listed options`
+- Category must be one of the listed options exactly as written (case-sensitive)`
       }
     ]
   });
