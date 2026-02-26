@@ -17,11 +17,11 @@
         </a>
       </li>
 
-      <!-- Content Management -->
+      <!-- Resource Management -->
       <li class="nav-item has-submenu">
         <a href="#" class="nav-link submenu-toggle <%= ['articles', 'seo-terms', 'ai-tools', 'glossary', 'guides'].includes(currentPage) ? 'active' : '' %>">
           <i class="fas fa-file-alt"></i>
-          <span>Content Management</span>
+          <span>Resource Management</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
         <ul class="submenu <%= ['articles', 'seo-terms', 'ai-tools', 'glossary', 'guides'].includes(currentPage) ? 'open' : '' %>">
@@ -33,11 +33,11 @@
         </ul>
       </li>
 
-      <!-- Business Tools -->
+      <!-- Website Resources -->
       <li class="nav-item has-submenu">
         <a href="#" class="nav-link submenu-toggle <%= ['affiliates', 'agencies', 'products', 'pricing', 'pricing-features'].includes(currentPage) ? 'active' : '' %>">
           <i class="fas fa-briefcase"></i>
-          <span>Business Tools</span>
+          <span>Website Resources</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
         <ul class="submenu <%= ['affiliates', 'agencies', 'products', 'pricing', 'pricing-features'].includes(currentPage) ? 'open' : '' %>">
@@ -49,18 +49,29 @@
         </ul>
       </li>
 
-      <!-- Web Development -->
+      <!-- Message Board -->
       <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['microsites', 'sidebar', 'form-templates', 'submissions'].includes(currentPage) ? 'active' : '' %>">
-          <i class="fas fa-code"></i>
-          <span>Web Development</span>
+        <a href="#" class="nav-link submenu-toggle <%= ['form-templates', 'submissions'].includes(currentPage) ? 'active' : '' %>">
+          <i class="fas fa-envelope-open-text"></i>
+          <span>Message Board</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['microsites', 'sidebar', 'form-templates', 'submissions'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= ['form-templates', 'submissions'].includes(currentPage) ? 'open' : '' %>">
+          <li><a href="/webdev/form-templates" class="<%= currentPage === 'form-templates' ? 'active' : '' %>"><i class="fas fa-file-lines"></i> Forms</a></li>
+          <li><a href="/webdev/submissions" class="<%= currentPage === 'submissions' ? 'active' : '' %>"><i class="fas fa-inbox"></i> Submissions</a></li>
+        </ul>
+      </li>
+
+      <!-- Connections -->
+      <li class="nav-item has-submenu">
+        <a href="#" class="nav-link submenu-toggle <%= ['microsites', 'sidebar'].includes(currentPage) ? 'active' : '' %>">
+          <i class="fas fa-plug"></i>
+          <span>Connections</span>
+          <i class="fas fa-chevron-down submenu-arrow"></i>
+        </a>
+        <ul class="submenu <%= ['microsites', 'sidebar'].includes(currentPage) ? 'open' : '' %>">
           <li><a href="/webdev/microsites" class="<%= currentPage === 'microsites' ? 'active' : '' %>"><i class="fas fa-globe"></i> Microsites</a></li>
           <li><a href="/webdev/sidebar" class="<%= currentPage === 'sidebar' ? 'active' : '' %>"><i class="fas fa-bars"></i> Sidebar Manager</a></li>
-          <li><a href="/webdev/form-templates" class="<%= currentPage === 'form-templates' ? 'active' : '' %>"><i class="fas fa-file-lines"></i> Form Builder</a></li>
-          <li><a href="/webdev/submissions" class="<%= currentPage === 'submissions' ? 'active' : '' %>"><i class="fas fa-envelope-open-text"></i> Form Submissions</a></li>
         </ul>
       </li>
 
