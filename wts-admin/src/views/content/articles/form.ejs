@@ -3686,13 +3686,13 @@ document.addEventListener('DOMContentLoaded', function() {
       rawValue = contentInputEl.value;
     }
 
-    // Use DOM parsing to strip HTML tags (including script tags) reliably.
+    // Strip HTML tags without interpreting the text as HTML.
     var plain = '';
     if (rawValue) {
-      var tmpDiv = document.createElement('div');
-      tmpDiv.innerHTML = rawValue;
-      plain = tmpDiv.textContent || tmpDiv.innerText || '';
+      // Remove angle-bracketed tags; this avoids using innerHTML on untrusted input.
+      plain = rawValue.replace(/<[^>]*>/g, '');
     }
+
 
     var count = plain.split(/\s+/).filter(function(w) { return w.length > 0; }).length;
     var el = document.getElementById('liveWordCount');
