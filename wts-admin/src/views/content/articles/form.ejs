@@ -3676,8 +3676,24 @@ document.addEventListener('DOMContentLoaded', function() {
   if (contentEl) contentEl.addEventListener('input', function() { updateLiveWordCount(); });
 
   function updateLiveWordCount() {
-    var textContent = (document.getElementById('text_article').value || document.getElementById('content').value || '');
-    var plain = textContent.replace(/<[^>]*>/g, '');
+    var textAreaEl = document.getElementById('text_article');
+    var contentInputEl = document.getElementById('content');
+    var rawValue = '';
+
+    if (textAreaEl && textAreaEl.value) {
+      rawValue = textAreaEl.value;
+    } else if (contentInputEl && contentInputEl.value) {
+      rawValue = contentInputEl.value;
+    }
+
+    // Use DOM parsing to strip HTML tags (including script tags) reliably.
+    var plain = '';
+    if (rawValue) {
+      var tmpDiv = document.createElement('div');
+      tmpDiv.innerHTML = rawValue;
+      plain = tmpDiv.textContent || tmpDiv.innerText || '';
+    }
+
     var count = plain.split(/\s+/).filter(function(w) { return w.length > 0; }).length;
     var el = document.getElementById('liveWordCount');
     if (!el) return;
