@@ -68,12 +68,25 @@
               <label class="org-strip-label">Category</label>
               <select id="category" name="category" class="org-strip-select">
                 <option value="">Select...</option>
-                <option value="marketing" <%= article && article.category === 'marketing' ? 'selected' : '' %>>Marketing</option>
-                <option value="seo" <%= article && article.category === 'seo' ? 'selected' : '' %>>SEO</option>
-                <option value="ai" <%= article && article.category === 'ai' ? 'selected' : '' %>>AI & Automation</option>
-                <option value="social-media" <%= article && article.category === 'social-media' ? 'selected' : '' %>>Social Media</option>
-                <option value="content" <%= article && article.category === 'content' ? 'selected' : '' %>>Content Creation</option>
-                <option value="business" <%= article && article.category === 'business' ? 'selected' : '' %>>Business</option>
+                <option value="Digital Marketing" <%= article && article.category === 'Digital Marketing' ? 'selected' : '' %>>Digital Marketing</option>
+                <option value="SEO" <%= article && article.category === 'SEO' ? 'selected' : '' %>>SEO</option>
+                <option value="AI & Automation" <%= article && article.category === 'AI & Automation' ? 'selected' : '' %>>AI & Automation</option>
+                <option value="Social Media Marketing" <%= article && article.category === 'Social Media Marketing' ? 'selected' : '' %>>Social Media Marketing</option>
+                <option value="Content Strategy" <%= article && article.category === 'Content Strategy' ? 'selected' : '' %>>Content Strategy</option>
+                <option value="Business Growth" <%= article && article.category === 'Business Growth' ? 'selected' : '' %>>Business Growth</option>
+                <option value="Web Development" <%= article && article.category === 'Web Development' ? 'selected' : '' %>>Web Development</option>
+                <option value="E-Commerce" <%= article && article.category === 'E-Commerce' ? 'selected' : '' %>>E-Commerce</option>
+                <option value="Analytics & Data" <%= article && article.category === 'Analytics & Data' ? 'selected' : '' %>>Analytics & Data</option>
+                <option value="Email Marketing" <%= article && article.category === 'Email Marketing' ? 'selected' : '' %>>Email Marketing</option>
+                <option value="PPC & Paid Advertising" <%= article && article.category === 'PPC & Paid Advertising' ? 'selected' : '' %>>PPC & Paid Advertising</option>
+                <option value="Branding & Design" <%= article && article.category === 'Branding & Design' ? 'selected' : '' %>>Branding & Design</option>
+                <%/* Legacy category mapping */%>
+                <option value="marketing" <%= article && article.category === 'marketing' ? 'selected' : '' %> style="display:none">Marketing (legacy)</option>
+                <option value="seo" <%= article && article.category === 'seo' ? 'selected' : '' %> style="display:none">SEO (legacy)</option>
+                <option value="ai" <%= article && article.category === 'ai' ? 'selected' : '' %> style="display:none">AI (legacy)</option>
+                <option value="social-media" <%= article && article.category === 'social-media' ? 'selected' : '' %> style="display:none">Social Media (legacy)</option>
+                <option value="content" <%= article && article.category === 'content' ? 'selected' : '' %> style="display:none">Content (legacy)</option>
+                <option value="business" <%= article && article.category === 'business' ? 'selected' : '' %> style="display:none">Business (legacy)</option>
               </select>
             </div>
             <div class="org-strip-field">
@@ -145,7 +158,10 @@
             <div class="form-group">
               <label class="form-label" for="text_article"><i class="fas fa-file-alt"></i> Text Article</label>
               <textarea id="text_article" name="text_article" class="form-input" rows="15" placeholder="Enter the main article text content here"><%= article ? article.text_article : '' %></textarea>
-              <p class="form-help">The main text content of your article.</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                <p class="form-help" style="margin: 0;">The main text content of your article.</p>
+                <span id="liveWordCount" class="char-counter" style="font-size: 13px;">0 words</span>
+              </div>
             </div>
 
             <div class="form-group">
@@ -190,6 +206,38 @@
               </button>
               <input type="hidden" id="article_images" name="article_images" value="<%= article && article.article_images ? (typeof article.article_images === 'string' ? article.article_images : JSON.stringify(article.article_images)) : '[]' %>">
               <div id="articleImagesList" class="article-images-list"></div>
+            </div>
+          </div>
+
+          <!-- Author Settings -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-user-edit"></i> Author</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="author_type">Author Type</label>
+              <select id="author_type" name="author_type" class="form-input" style="max-width: 300px;">
+                <option value="organization" <%= !article || !article.author_type || article.author_type === 'organization' ? 'selected' : '' %>>Organization (Words That Sells)</option>
+                <option value="person" <%= article && article.author_type === 'person' ? 'selected' : '' %>>Person</option>
+              </select>
+              <p class="form-help">Google prefers Person author for E-E-A-T signals. Organization is default.</p>
+            </div>
+
+            <div id="personAuthorFields" style="display: <%= article && article.author_type === 'person' ? 'block' : 'none' %>;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="author_name">Author Name *</label>
+                  <input type="text" id="author_name" name="author_name" class="form-input" placeholder="e.g. Laurent Laboise" value="<%= article && article.author_name ? article.author_name : '' %>">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="author_job_title">Job Title</label>
+                  <input type="text" id="author_job_title" name="author_job_title" class="form-input" placeholder="e.g. Digital Marketing Director" value="<%= article && article.author_job_title ? article.author_job_title : '' %>">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="author_url">Author URL (LinkedIn / Website)</label>
+                <input type="url" id="author_url" name="author_url" class="form-input" placeholder="https://www.linkedin.com/in/your-profile" value="<%= article && article.author_url ? article.author_url : '' %>">
+                <p class="form-help">Used in schema.org sameAs for author entity linking</p>
+              </div>
             </div>
           </div>
 
@@ -261,8 +309,16 @@
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label" for="canonical_url"><i class="fas fa-link"></i> Canonical URL</label>
-                <input type="url" id="canonical_url" name="canonical_url" class="form-input" placeholder="https://wordsthatsells.website/articles/your-article" value="<%= article && article.canonical_url ? article.canonical_url : '' %>">
-                <p class="form-help">Prevents duplicate content issues. Leave empty to use default URL.</p>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="url" id="canonical_url" name="canonical_url" class="form-input" placeholder="Auto-generated from slug" value="<%= article && article.canonical_url ? article.canonical_url : '' %>">
+                  <button type="button" id="autoCanonicalBtn" class="btn btn-secondary btn-sm" title="Auto-generate from title slug">
+                    <i class="fas fa-sync-alt"></i>
+                  </button>
+                </div>
+                <p class="form-help">Auto-filled from article slug on save. Click sync to regenerate.</p>
+                <div id="canonicalMismatchWarning" style="display: none; margin-top: 6px; padding: 8px 12px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; font-size: 13px; color: #92400e;">
+                  <i class="fas fa-exclamation-triangle"></i> <strong>Mismatch:</strong> Canonical URL slug does not match the article title slug. This may cause SEO issues.
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label" for="robots_meta"><i class="fas fa-robot"></i> Robots Meta</label>
@@ -437,7 +493,10 @@
                 <div class="form-group">
                   <label class="form-label" for="twitter_creator">@Author Handle</label>
                   <input type="text" id="twitter_creator" name="twitter_creator" class="form-input" placeholder="@authorname" value="<%= article && article.twitter_creator ? article.twitter_creator : '' %>">
-                  <p class="form-help">The content creator's X handle</p>
+                  <p class="form-help">The content creator's X handle (must start with @)</p>
+                  <div id="twitterCreatorWarning" style="display: none; margin-top: 4px; font-size: 12px; color: #dc2626;">
+                    <i class="fas fa-exclamation-circle"></i> Handle must start with @ (e.g. @wordsthatsells)
+                  </div>
                 </div>
               </div>
             </div>
@@ -662,6 +721,28 @@
 
           <!-- ===== TAB: PUBLISH ===== -->
           <div class="form-tab-panel" id="panel-publish" style="display:none;">
+
+          <!-- SEO Audit Panel -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-clipboard-check"></i> Pre-Publish SEO Audit</h3>
+            <p class="form-help" style="margin-bottom: 12px;">Review SEO readiness before publishing. Issues are checked in real-time as you edit.</p>
+
+            <div id="seoAuditPanel" class="seo-audit-panel">
+              <div class="seo-audit-header">
+                <span class="seo-audit-score" id="seoAuditScore">0/0</span>
+                <span class="seo-audit-label">SEO checks passed</span>
+                <button type="button" id="refreshAuditBtn" class="btn btn-secondary btn-sm">
+                  <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+              </div>
+              <div class="seo-audit-bar">
+                <div class="seo-audit-fill" id="seoAuditFill" style="width: 0%;"></div>
+              </div>
+              <div id="seoAuditChecks" class="seo-audit-checks">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
 
           <!-- Auto-Hyperlink Section -->
           <div class="form-section">
@@ -1015,6 +1096,66 @@
 .char-counter.good { color: #059669; background: #d1fae5; }
 .char-counter.warn { color: #d97706; background: #fef3c7; }
 .char-counter.over { color: #dc2626; background: #fee2e2; }
+
+/* SEO Audit Panel */
+.seo-audit-panel {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 16px;
+}
+.seo-audit-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.seo-audit-score {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+.seo-audit-label {
+  font-size: 14px;
+  color: var(--gray-600);
+  flex: 1;
+}
+.seo-audit-bar {
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.seo-audit-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: #059669;
+  transition: width 0.4s ease, background-color 0.4s ease;
+}
+.seo-audit-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 13px;
+}
+.seo-audit-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 4px 0;
+}
+.seo-audit-check .check-icon {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+.seo-audit-check.pass .check-icon { color: #059669; }
+.seo-audit-check.fail .check-icon { color: #dc2626; }
+.seo-audit-check.warn .check-icon { color: #d97706; }
+@media (max-width: 640px) {
+  .seo-audit-checks { grid-template-columns: 1fr; }
+}
 
 /* SERP Preview */
 .serp-preview {
@@ -2519,10 +2660,15 @@ function generateSchemaMarkup() {
   var publishedUrl = document.getElementById('published_url').value || document.getElementById('canonical_url').value || '';
   var timeToRead = document.getElementById('time_to_read').value || '';
   var slug = getArticleSlug(title);
-  var articleUrl = publishedUrl || ('https://wordsthatsells.website/en/articles/' + slug + '/');
+  var articleUrl = publishedUrl || ('https://wordsthatsells.website/en/articles/' + slug + '.html');
   var imageObjects = getArticleImageObjects();
   var wordCount = getWordCount();
   var citations = getCitations();
+
+  // Unified image: prefer og_image, then featured_image, then article_images
+  var ogImage = document.getElementById('og_image').value || '';
+  var featuredImage = document.getElementById('featured_image').value || '';
+  var primaryImage = ogImage || featuredImage;
 
   // Build Article object
   var articleObj = {
@@ -2532,19 +2678,38 @@ function generateSchemaMarkup() {
     "description": seoDesc || excerpt
   };
 
-  // 1. Nested ImageObject array
-  if (imageObjects.length > 0) articleObj.image = imageObjects;
+  // Image: use og_image/featured_image as primary, then article_images library
+  if (primaryImage) {
+    var imgObj = { "@type": "ImageObject", "url": primaryImage, "representativeOfPage": true };
+    if (imageObjects.length > 0) {
+      articleObj.image = [imgObj].concat(imageObjects);
+    } else {
+      articleObj.image = [imgObj];
+    }
+  } else if (imageObjects.length > 0) {
+    articleObj.image = imageObjects;
+  }
 
   if (publishedAt) articleObj.datePublished = new Date(publishedAt).toISOString();
   if (updatedAt) articleObj.dateModified = new Date(updatedAt).toISOString();
 
-  // 4. Author + Publisher with sameAs social linking
-  articleObj.author = {
-    "@type": "Organization",
-    "name": "Words That Sells",
-    "url": "https://wordsthatsells.website",
-    "sameAs": SOCIAL_LINKS
-  };
+  // Author: Person or Organization based on selector
+  var authorType = document.getElementById('author_type').value || 'organization';
+  if (authorType === 'person') {
+    var authorName = document.getElementById('author_name').value || '';
+    var authorJobTitle = document.getElementById('author_job_title').value || '';
+    var authorUrl = document.getElementById('author_url').value || '';
+    articleObj.author = { "@type": "Person", "name": authorName || 'Words That Sells' };
+    if (authorJobTitle) articleObj.author.jobTitle = authorJobTitle;
+    if (authorUrl) articleObj.author.sameAs = [authorUrl];
+  } else {
+    articleObj.author = {
+      "@type": "Organization",
+      "name": "Words That Sells",
+      "url": "https://wordsthatsells.website",
+      "sameAs": SOCIAL_LINKS
+    };
+  }
 
   articleObj.publisher = {
     "@type": "Organization",
@@ -2565,23 +2730,25 @@ function generateSchemaMarkup() {
   if (timeToRead) articleObj.timeRequired = 'PT' + timeToRead + 'M';
   if (wordCount > 0) articleObj.wordCount = String(wordCount);
 
-  // 3. About with entity linking (from tags)
+  // About with entity linking (from tags) - normalized to human-readable names
   if (tags) {
     var tagArray = tags.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
     if (tagArray.length > 0) {
       articleObj.about = tagArray.map(function(tag) {
-        return { "@type": "Thing", "name": tag };
+        // Normalize: "ai-marketing" → "AI Marketing"
+        var normalized = tag.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+        return { "@type": "Thing", "name": normalized };
       });
     }
   }
 
-  // 2. Speakable property (voice assistants: Gemini Live, Siri, Alexa)
+  // Speakable property (voice assistants: Gemini Live, Siri, Alexa)
   articleObj.speakable = {
     "@type": "SpeakableSpecification",
     "cssSelector": [".article-summary", ".article-key-insights", ".article-header h1", ".article-excerpt"]
   };
 
-  // 3. Citation / sources (entity linking for AI search engines)
+  // Citation / sources (entity linking for AI search engines)
   var validCitations = citations.filter(function(c) { return c.url; });
   if (validCitations.length > 0) {
     articleObj.citation = validCitations.map(function(c) {
@@ -3434,6 +3601,170 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('twitterCustomizeToggle').checked = true;
     toggleTwitterFields();
   }
+
+  // ==================== SEO IMPROVEMENTS ====================
+
+  // Author type toggle
+  var authorTypeEl = document.getElementById('author_type');
+  if (authorTypeEl) {
+    authorTypeEl.addEventListener('change', function() {
+      document.getElementById('personAuthorFields').style.display = this.value === 'person' ? 'block' : 'none';
+    });
+  }
+
+  // Canonical URL auto-populate
+  bind('autoCanonicalBtn', function() {
+    var title = document.getElementById('title').value || '';
+    var slug = getArticleSlug(title);
+    if (slug) {
+      document.getElementById('canonical_url').value = 'https://wordsthatsells.website/en/articles/' + slug + '.html';
+      checkCanonicalMismatch();
+    }
+  });
+
+  // Check canonical URL mismatch on input
+  var canonicalEl = document.getElementById('canonical_url');
+  if (canonicalEl) canonicalEl.addEventListener('input', function() { checkCanonicalMismatch(); });
+  if (titleEl) titleEl.addEventListener('input', function() { checkCanonicalMismatch(); updateLiveWordCount(); });
+
+  function checkCanonicalMismatch() {
+    var title = document.getElementById('title').value || '';
+    var canonical = document.getElementById('canonical_url').value || '';
+    var warning = document.getElementById('canonicalMismatchWarning');
+    if (!canonical || !title) { warning.style.display = 'none'; return; }
+    var expectedSlug = getArticleSlug(title);
+    var canonicalHasSlug = canonical.indexOf(expectedSlug) !== -1;
+    warning.style.display = canonicalHasSlug ? 'none' : 'block';
+  }
+  checkCanonicalMismatch();
+
+  // Twitter creator validation
+  var twCreatorInput = document.getElementById('twitter_creator');
+  if (twCreatorInput) {
+    twCreatorInput.addEventListener('input', function() {
+      var val = this.value.trim();
+      var warning = document.getElementById('twitterCreatorWarning');
+      if (val && !val.startsWith('@')) {
+        warning.style.display = 'block';
+      } else {
+        warning.style.display = 'none';
+      }
+    });
+    // Also validate twitter_site
+    var twSiteInput = document.getElementById('twitter_site');
+    if (twSiteInput) {
+      twSiteInput.addEventListener('blur', function() {
+        var val = this.value.trim();
+        if (val && !val.startsWith('@')) {
+          this.value = '@' + val;
+        }
+      });
+    }
+    twCreatorInput.addEventListener('blur', function() {
+      var val = this.value.trim();
+      if (val && !val.startsWith('@')) {
+        this.value = '@' + val;
+        document.getElementById('twitterCreatorWarning').style.display = 'none';
+      }
+    });
+  }
+
+  // Live word count
+  var textArticleEl = document.getElementById('text_article');
+  var contentEl = document.getElementById('content');
+  if (textArticleEl) textArticleEl.addEventListener('input', function() { updateLiveWordCount(); });
+  if (contentEl) contentEl.addEventListener('input', function() { updateLiveWordCount(); });
+
+  function updateLiveWordCount() {
+    var textAreaEl = document.getElementById('text_article');
+    var contentInputEl = document.getElementById('content');
+    var rawValue = '';
+
+    if (textAreaEl && textAreaEl.value) {
+      rawValue = textAreaEl.value;
+    } else if (contentInputEl && contentInputEl.value) {
+      rawValue = contentInputEl.value;
+    }
+
+    // Strip HTML tags without interpreting the text as HTML.
+    var plain = '';
+    if (rawValue) {
+      // Remove angle-bracketed tags; this avoids using innerHTML on untrusted input.
+      plain = rawValue.replace(/<[^>]*>/g, '');
+    }
+
+
+    var count = plain.split(/\s+/).filter(function(w) { return w.length > 0; }).length;
+    var el = document.getElementById('liveWordCount');
+    if (!el) return;
+    el.textContent = count.toLocaleString() + ' words';
+    el.className = 'char-counter';
+    if (count >= 1000) el.classList.add('good');
+    else if (count >= 500) el.classList.add('warn');
+    else if (count > 0) el.classList.add('over');
+  }
+  updateLiveWordCount();
+
+  // SEO Audit Panel
+  bind('refreshAuditBtn', function() { runSeoAudit(); });
+
+  function runSeoAudit() {
+    var checks = [];
+    var title = document.getElementById('title').value || '';
+    var seoTitle = document.getElementById('seo_title').value || '';
+    var seoDesc = document.getElementById('seo_description').value || '';
+    var canonical = document.getElementById('canonical_url').value || '';
+    var ogTitle = document.getElementById('og_title').value || '';
+    var ogDesc = document.getElementById('og_description').value || '';
+    var ogImage = document.getElementById('og_image').value || '';
+    var featuredImage = document.getElementById('featured_image').value || '';
+    var twCreator = document.getElementById('twitter_creator').value || '';
+    var category = document.getElementById('category').value || '';
+    var tags = document.getElementById('tags').value || '';
+    var excerpt = document.getElementById('excerpt').value || '';
+    var textContent = (document.getElementById('text_article').value || document.getElementById('content').value || '');
+    var wordCount = textContent.replace(/<[^>]*>/g, '').split(/\s+/).filter(function(w) { return w.length > 0; }).length;
+    var slug = getArticleSlug(title);
+
+    // Checks
+    checks.push({ label: 'Title present', pass: title.length > 0 });
+    checks.push({ label: 'SEO title (50-60 chars)', pass: seoTitle.length >= 50 && seoTitle.length <= 60, warn: seoTitle.length > 0 && (seoTitle.length < 50 || seoTitle.length > 60) });
+    checks.push({ label: 'SEO description (150-160 chars)', pass: seoDesc.length >= 150 && seoDesc.length <= 160, warn: seoDesc.length > 0 && (seoDesc.length < 150 || seoDesc.length > 160) });
+    checks.push({ label: 'Canonical URL set', pass: canonical.length > 0 });
+    checks.push({ label: 'Canonical matches slug', pass: canonical.indexOf(slug) !== -1, warn: canonical.length > 0 && canonical.indexOf(slug) === -1 });
+    checks.push({ label: 'OG title set', pass: ogTitle.length > 0 });
+    checks.push({ label: 'OG description set', pass: ogDesc.length > 0 });
+    checks.push({ label: 'OG image set', pass: ogImage.length > 0 || featuredImage.length > 0 });
+    checks.push({ label: 'Twitter creator format (@)', pass: !twCreator || twCreator.startsWith('@'), warn: twCreator.length > 0 && !twCreator.startsWith('@') });
+    checks.push({ label: 'Category selected', pass: category.length > 0 });
+    checks.push({ label: 'Tags present', pass: tags.length > 0 });
+    checks.push({ label: 'Excerpt present', pass: excerpt.length > 0 });
+    checks.push({ label: 'Word count >= 1000', pass: wordCount >= 1000, warn: wordCount >= 500 && wordCount < 1000 });
+    checks.push({ label: 'Featured image set', pass: featuredImage.length > 0 });
+
+    var passed = checks.filter(function(c) { return c.pass; }).length;
+    var total = checks.length;
+    var pct = Math.round((passed / total) * 100);
+
+    document.getElementById('seoAuditScore').textContent = passed + '/' + total;
+    var fill = document.getElementById('seoAuditFill');
+    fill.style.width = pct + '%';
+    fill.style.backgroundColor = pct >= 80 ? '#059669' : pct >= 50 ? '#d97706' : '#dc2626';
+
+    var html = '';
+    checks.forEach(function(c) {
+      var cls = c.pass ? 'pass' : (c.warn ? 'warn' : 'fail');
+      var icon = c.pass ? 'fa-check-circle' : (c.warn ? 'fa-exclamation-circle' : 'fa-times-circle');
+      html += '<div class="seo-audit-check ' + cls + '">';
+      html += '<span class="check-icon"><i class="fas ' + icon + '"></i></span>';
+      html += '<span>' + c.label + '</span>';
+      html += '</div>';
+    });
+    document.getElementById('seoAuditChecks').innerHTML = html;
+  }
+
+  // Run initial audit
+  runSeoAudit();
 
   // Close modals on outside click
   window.addEventListener('click', function(e) {

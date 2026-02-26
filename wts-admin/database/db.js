@@ -234,6 +234,23 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='audio_files') THEN
             ALTER TABLE articles ADD COLUMN audio_files JSONB DEFAULT '{}'::jsonb;
           END IF;
+          -- SEO fix: word_count for thin content detection
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='word_count') THEN
+            ALTER TABLE articles ADD COLUMN word_count INTEGER;
+          END IF;
+          -- SEO fix: Person author fields
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='author_type') THEN
+            ALTER TABLE articles ADD COLUMN author_type VARCHAR(20) DEFAULT 'organization';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='author_name') THEN
+            ALTER TABLE articles ADD COLUMN author_name VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='author_job_title') THEN
+            ALTER TABLE articles ADD COLUMN author_job_title VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='author_url') THEN
+            ALTER TABLE articles ADD COLUMN author_url TEXT;
+          END IF;
         END $$;
       `);
 
