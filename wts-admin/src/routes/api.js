@@ -27,7 +27,6 @@ router.get('/stats', async (req, res) => {
     const stats = await Promise.all([
       db.query('SELECT COUNT(*) FROM articles'),
       db.query('SELECT COUNT(*) FROM ai_tools'),
-      db.query('SELECT COUNT(*) FROM social_posts'),
       db.query('SELECT COUNT(*) FROM products'),
       db.query('SELECT COUNT(*) FROM glossary'),
       db.query('SELECT COUNT(*) FROM seo_terms'),
@@ -39,12 +38,11 @@ router.get('/stats', async (req, res) => {
       stats: {
         articles: parseInt(stats[0].rows[0].count),
         aiTools: parseInt(stats[1].rows[0].count),
-        socialPosts: parseInt(stats[2].rows[0].count),
-        products: parseInt(stats[3].rows[0].count),
-        glossary: parseInt(stats[4].rows[0].count),
-        seoTerms: parseInt(stats[5].rows[0].count),
-        affiliates: parseInt(stats[6].rows[0].count),
-        agencies: parseInt(stats[7].rows[0].count)
+        products: parseInt(stats[2].rows[0].count),
+        glossary: parseInt(stats[3].rows[0].count),
+        seoTerms: parseInt(stats[4].rows[0].count),
+        affiliates: parseInt(stats[5].rows[0].count),
+        agencies: parseInt(stats[6].rows[0].count)
       }
     });
   } catch (error) {
@@ -139,10 +137,7 @@ router.post('/bulk/delete', async (req, res) => {
     'seo-terms': 'seo_terms',
     products: 'products',
     affiliates: 'affiliate_solutions',
-    agencies: 'agencies',
-    automations: 'automations',
-    'social-posts': 'social_posts',
-    'social-channels': 'social_channels'
+    agencies: 'agencies'
   };
 
   const table = tableMap[type];
@@ -172,10 +167,7 @@ router.post('/bulk/status', async (req, res) => {
     'ai-tools': 'ai_tools',
     products: 'products',
     affiliates: 'affiliate_solutions',
-    agencies: 'agencies',
-    automations: 'automations',
-    'social-posts': 'social_posts',
-    'social-channels': 'social_channels'
+    agencies: 'agencies'
   };
 
   const table = tableMap[type];
