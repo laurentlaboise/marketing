@@ -305,12 +305,24 @@ function generateSchemaMarkup(article) {
     return social.schemaMarkup;
   }
 
-  // 1. Nested ImageObject array from image library
+  // Unified image: prefer og_image → featured_image → article_images library
+  const primaryImage = social.ogImage;
   const imageObjects = [];
+
+  // Add primary image first (og/featured image)
+  if (primaryImage && primaryImage !== 'https://wordsthatsells.website/images/default-blog.jpg') {
+    imageObjects.push({
+      "@type": "ImageObject",
+      "url": primaryImage,
+      "representativeOfPage": true
+    });
+  }
+
+  // Then add article_images library entries
   if (Array.isArray(article.article_images)) {
-    article.article_images.forEach((img, idx) => {
+    article.article_images.forEach((img) => {
       const url = img.cdn_url || img.url || '';
-      if (!url) return;
+      if (!url || url === primaryImage) return;
       const obj = {
         "@type": "ImageObject",
         "url": url,
@@ -319,15 +331,14 @@ function generateSchemaMarkup(article) {
       if (img.alt_text) obj.caption = img.alt_text;
       if (img.width) obj.width = { "@type": "QuantitativeValue", "value": img.width, "unitCode": "E37" };
       if (img.height) obj.height = { "@type": "QuantitativeValue", "value": img.height, "unitCode": "E37" };
-      if (idx === 0) obj.representativeOfPage = true;
       imageObjects.push(obj);
     });
   }
 
-  // Word count from content
+  // Word count from content (use stored word_count if available)
   const content = article.full_article_content || article.content || '';
   const textContent = striptags(content);
-  const wordCount = textContent.split(/\s+/).filter(w => w.length > 0).length;
+  const wordCount = article.word_count || textContent.split(/\s+/).filter(w => w.length > 0).length;
   const readTime = article.time_to_read || calculateReadingTime(content);
 
   // Build Article object
@@ -342,13 +353,24 @@ function generateSchemaMarkup(article) {
   articleObj.datePublished = formatSchemaDate(article.published_at || article.created_at);
   articleObj.dateModified = formatSchemaDate(article.updated_at || article.created_at);
 
-  // 4. Author + Publisher with sameAs social linking
-  articleObj.author = {
-    "@type": "Organization",
-    "name": "Words That Sells",
-    "url": "https://wordsthatsells.website",
-    "sameAs": SOCIAL_LINKS
-  };
+  // Author: Person or Organization based on article.author_type
+  if (article.author_type === 'person' && article.author_name) {
+    const authorObj = {
+      "@type": "Person",
+      "name": article.author_name
+    };
+    if (article.author_job_title) authorObj.jobTitle = article.author_job_title;
+    if (article.author_url) authorObj.sameAs = [article.author_url];
+    articleObj.author = authorObj;
+  } else {
+    articleObj.author = {
+      "@type": "Organization",
+      "name": "Words That Sells",
+      "url": "https://wordsthatsells.website",
+      "sameAs": SOCIAL_LINKS
+    };
+  }
+
   articleObj.publisher = {
     "@type": "Organization",
     "name": "Words That Sells",
@@ -363,22 +385,32 @@ function generateSchemaMarkup(article) {
     "@id": articleUrl
   };
 
-  if (article.categories && article.categories.length > 0) articleObj.articleSection = article.categories[0];
+  // articleSection: use category directly (now human-readable from admin)
+  if (article.category) {
+    articleObj.articleSection = article.category;
+  } else if (article.categories && article.categories.length > 0) {
+    articleObj.articleSection = article.categories[0];
+  }
+
   if (readTime) articleObj.timeRequired = `PT${readTime}M`;
   if (wordCount > 0) articleObj.wordCount = String(wordCount);
 
-  // About (entity linking from tags)
+  // About (entity linking from tags) - normalize slugified tags to human-readable
   if (article.tags && article.tags.length > 0) {
-    articleObj.about = article.tags.map(tag => ({ "@type": "Thing", "name": tag }));
+    articleObj.about = article.tags.map(tag => {
+      // Normalize: "ai-marketing" → "AI Marketing"
+      const normalized = tag.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      return { "@type": "Thing", "name": normalized };
+    });
   }
 
-  // 2. Speakable property (voice assistants: Gemini Live, Siri, Alexa)
+  // Speakable property (voice assistants: Gemini Live, Siri, Alexa)
   articleObj.speakable = {
     "@type": "SpeakableSpecification",
     "cssSelector": [".article-summary", ".article-key-insights", ".article-header h1", ".article-excerpt"]
   };
 
-  // 3. Citations (entity linking for AI search engines)
+  // Citations (entity linking for AI search engines)
   if (Array.isArray(article.citations) && article.citations.length > 0) {
     const validCitations = article.citations.filter(c => c.url);
     if (validCitations.length > 0) {

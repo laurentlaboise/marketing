@@ -38,7 +38,8 @@ router.get('/articles', async (req, res) => {
              og_title, og_description, og_image, og_type,
              twitter_card, twitter_title, twitter_description, twitter_image, twitter_site, twitter_creator,
              canonical_url, robots_meta, schema_markup, article_images, citations,
-             time_to_read, seo_keywords, content_labels, text_article
+             time_to_read, seo_keywords, content_labels, text_article, audio_files,
+             word_count, author_type, author_name, author_job_title, author_url
       FROM articles
       WHERE status = 'published'
     `;
@@ -71,9 +72,16 @@ router.get('/articles', async (req, res) => {
       published_url: article.published_url || '',
       article_images: article.article_images || [],
       citations: article.citations || [],
+      audio_files: article.audio_files || {},
       time_to_read: article.time_to_read || null,
       seo_keywords: article.seo_keywords || [],
       content_labels: article.content_labels || {},
+      word_count: article.word_count || null,
+      author_type: article.author_type || 'organization',
+      author_name: article.author_name || null,
+      author_job_title: article.author_job_title || null,
+      author_url: article.author_url || null,
+      category: article.category || null,
       created_at: article.created_at,
       updated_at: article.updated_at,
       published_at: article.published_at,
@@ -133,6 +141,11 @@ router.get('/articles/:slug', async (req, res) => {
       citations: article.citations || [],
       seo_keywords: article.seo_keywords || [],
       content_labels: article.content_labels || {},
+      word_count: article.word_count || null,
+      author_type: article.author_type || 'organization',
+      author_name: article.author_name || null,
+      author_job_title: article.author_job_title || null,
+      author_url: article.author_url || null,
       created_at: article.created_at,
       updated_at: article.updated_at,
       published_at: article.published_at,
