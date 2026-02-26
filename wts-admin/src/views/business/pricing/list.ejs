@@ -7,83 +7,196 @@
   <div class="page-content">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Pricing Packages</h1>
-        <p class="page-subtitle">Manage subscription tiers and pricing plans</p>
+        <h1 class="page-title">Packages</h1>
+        <p class="page-subtitle">Manage subscription tiers, pricing plans, and feature catalog</p>
       </div>
-      <div class="page-actions">
-        <a href="/business/pricing-features" class="btn btn-secondary"><i class="fas fa-list"></i> Feature Catalog</a>
+      <div class="page-actions" id="packagesActions">
         <a href="/business/pricing/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Package</a>
+      </div>
+      <div class="page-actions" id="featuresActions" style="display: none;">
+        <a href="/business/pricing-features/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Feature</a>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-body" style="padding: 0;">
-        <% if (models.length > 0) { %>
-        <div class="table-container">
-          <table class="table table-responsive-cards">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Package</th>
-                <th>Price</th>
-                <th>Annual Discount</th>
-                <th>Type</th>
-                <th>Highlight</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% models.forEach(function(model) { %>
-              <tr>
-                <td data-label="#"><%= model.sort_order || 0 %></td>
-                <td data-label="Package">
-                  <strong><%= model.name %></strong>
-                  <% if (model.badge_text) { %>
-                  <span class="status-badge active" style="margin-left: 0.5rem; font-size: 0.7rem;"><%= model.badge_text %></span>
-                  <% } %>
-                  <% if (model.description) { %>
-                  <br><small style="color: #666;"><%= model.description.substring(0, 60) %><%= model.description.length > 60 ? '...' : '' %></small>
-                  <% } %>
-                </td>
-                <td data-label="Price">
-                  <%= model.base_price ? '$' + parseFloat(model.base_price).toFixed(0) : 'Free' %>
-                  <% if (model.base_price) { %><small>/mo</small><% } %>
-                </td>
-                <td data-label="Annual Discount"><%= model.annual_discount_pct || 20 %>%</td>
-                <td data-label="Type"><%= model.type || '-' %></td>
-                <td data-label="Highlight">
-                  <% if (model.highlight) { %>
-                  <i class="fas fa-star" style="color: #f59e0b;"></i>
-                  <% } else { %>
-                  <span style="color: #ccc;">-</span>
-                  <% } %>
-                </td>
-                <td data-label="Status"><span class="status-badge <%= model.status %>"><%= model.status %></span></td>
-                <td data-label="Actions">
-                  <div class="table-actions">
-                    <a href="/business/pricing/<%= model.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
-                    <form action="/business/pricing/<%= model.id %>/delete" method="POST" style="display: inline;">
-                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-              <% }); %>
-            </tbody>
-          </table>
+    <!-- Tabs -->
+    <div class="tabs" style="margin-bottom: 1.5rem; display: flex; gap: 0; border-bottom: 2px solid var(--gray-200);">
+      <button class="tab-btn active" data-tab="packages" style="padding: 0.75rem 1.5rem; background: none; border: none; border-bottom: 2px solid var(--primary); margin-bottom: -2px; font-weight: 600; color: var(--primary); cursor: pointer; font-size: 0.95rem;">
+        <i class="fas fa-tags"></i> Packages (<%= models.length %>)
+      </button>
+      <button class="tab-btn" data-tab="features" style="padding: 0.75rem 1.5rem; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; font-weight: 500; color: var(--gray-500); cursor: pointer; font-size: 0.95rem;">
+        <i class="fas fa-list-check"></i> Feature Catalog (<%= features.length %>)
+      </button>
+    </div>
+
+    <!-- Packages Tab -->
+    <div id="tab-packages" class="tab-content">
+      <div class="card">
+        <div class="card-body" style="padding: 0;">
+          <% if (models.length > 0) { %>
+          <div class="table-container">
+            <table class="table table-responsive-cards">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Package</th>
+                  <th>Price</th>
+                  <th>Annual Discount</th>
+                  <th>Type</th>
+                  <th>Highlight</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% models.forEach(function(model) { %>
+                <tr>
+                  <td data-label="#"><%= model.sort_order || 0 %></td>
+                  <td data-label="Package">
+                    <strong><%= model.name %></strong>
+                    <% if (model.badge_text) { %>
+                    <span class="status-badge active" style="margin-left: 0.5rem; font-size: 0.7rem;"><%= model.badge_text %></span>
+                    <% } %>
+                    <% if (model.description) { %>
+                    <br><small style="color: #666;"><%= model.description.substring(0, 60) %><%= model.description.length > 60 ? '...' : '' %></small>
+                    <% } %>
+                  </td>
+                  <td data-label="Price">
+                    <%= model.base_price ? '$' + parseFloat(model.base_price).toFixed(0) : 'Free' %>
+                    <% if (model.base_price) { %><small>/mo</small><% } %>
+                  </td>
+                  <td data-label="Annual Discount"><%= model.annual_discount_pct || 20 %>%</td>
+                  <td data-label="Type"><%= model.type || '-' %></td>
+                  <td data-label="Highlight">
+                    <% if (model.highlight) { %>
+                    <i class="fas fa-star" style="color: #f59e0b;"></i>
+                    <% } else { %>
+                    <span style="color: #ccc;">-</span>
+                    <% } %>
+                  </td>
+                  <td data-label="Status"><span class="status-badge <%= model.status %>"><%= model.status %></span></td>
+                  <td data-label="Actions">
+                    <div class="table-actions">
+                      <a href="/business/pricing/<%= model.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                      <form action="/business/pricing/<%= model.id %>/delete" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% } else { %>
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-tags"></i></div>
+            <h3>No Packages</h3>
+            <p>Create subscription tiers and pricing plans for the website.</p>
+            <a href="/business/pricing/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Package</a>
+          </div>
+          <% } %>
         </div>
-        <% } else { %>
-        <div class="empty-state">
-          <div class="empty-state-icon"><i class="fas fa-tags"></i></div>
-          <h3>No Pricing Packages</h3>
-          <p>Create subscription tiers and pricing plans for the website.</p>
-          <a href="/business/pricing/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Package</a>
-        </div>
-        <% } %>
       </div>
+    </div>
+
+    <!-- Features Tab -->
+    <div id="tab-features" class="tab-content" style="display: none;">
+      <% if (features.length > 0) { %>
+      <% var catNames = Object.keys(categories); catNames.forEach(function(catName) { var catFeatures = categories[catName]; %>
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+          <h3>
+            <i class="<%= catFeatures[0].category_icon %>" style="margin-right: 0.5rem; color: #667eea;"></i>
+            <%= catName %>
+            <small style="color: #999; font-weight: 400; margin-left: 0.5rem;">(<%= catFeatures.length %> features)</small>
+          </h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-container">
+            <table class="table table-responsive-cards">
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Feature Name</th>
+                  <th>Description</th>
+                  <th>Order</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% catFeatures.forEach(function(feature) { %>
+                <tr>
+                  <td data-label="Key"><code><%= feature.feature_key %></code></td>
+                  <td data-label="Feature Name"><strong><%= feature.feature_name %></strong></td>
+                  <td data-label="Description"><small style="color: #666;"><%= feature.feature_description || '-' %></small></td>
+                  <td data-label="Order"><%= feature.sort_order %></td>
+                  <td data-label="Status"><span class="status-badge <%= feature.status %>"><%= feature.status %></span></td>
+                  <td data-label="Actions">
+                    <div class="table-actions">
+                      <a href="/business/pricing-features/<%= feature.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                      <form action="/business/pricing-features/<%= feature.id %>/delete" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <% }); %>
+      <% } else { %>
+      <div class="card">
+        <div class="card-body">
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-list"></i></div>
+            <h3>No Features</h3>
+            <p>Create features to build your plan comparison matrix.</p>
+            <a href="/business/pricing-features/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Feature</a>
+          </div>
+        </div>
+      </div>
+      <% } %>
     </div>
   </div>
 </main>
+
+<script>
+(function() {
+  var tabs = document.querySelectorAll('.tab-btn');
+  var packagesActions = document.getElementById('packagesActions');
+  var featuresActions = document.getElementById('featuresActions');
+
+  function switchTab(tabName) {
+    tabs.forEach(function(btn) {
+      var isActive = btn.getAttribute('data-tab') === tabName;
+      btn.style.borderBottomColor = isActive ? 'var(--primary)' : 'transparent';
+      btn.style.color = isActive ? 'var(--primary)' : 'var(--gray-500)';
+      btn.style.fontWeight = isActive ? '600' : '500';
+      if (isActive) btn.classList.add('active'); else btn.classList.remove('active');
+    });
+    document.getElementById('tab-packages').style.display = tabName === 'packages' ? '' : 'none';
+    document.getElementById('tab-features').style.display = tabName === 'features' ? '' : 'none';
+    packagesActions.style.display = tabName === 'packages' ? '' : 'none';
+    featuresActions.style.display = tabName === 'features' ? '' : 'none';
+  }
+
+  tabs.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tab = this.getAttribute('data-tab');
+      switchTab(tab);
+      history.replaceState(null, '', tab === 'features' ? '?tab=features' : '/business/pricing');
+    });
+  });
+
+  // Check URL for initial tab
+  if (new URLSearchParams(window.location.search).get('tab') === 'features') {
+    switchTab('features');
+  }
+})();
+</script>
 
 <%- include('../../partials/footer') %>

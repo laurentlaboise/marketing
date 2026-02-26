@@ -359,18 +359,30 @@ router.post('/products/:id/delete', async (req, res) => {
 
 router.get('/pricing', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM price_models ORDER BY sort_order ASC, name ASC');
+    const [modelsResult, featuresResult] = await Promise.all([
+      db.query('SELECT * FROM price_models ORDER BY sort_order ASC, name ASC'),
+      db.query('SELECT * FROM pricing_features ORDER BY category_sort_order ASC, sort_order ASC')
+    ]);
+    const categories = {};
+    featuresResult.rows.forEach(f => {
+      if (!categories[f.category_name]) categories[f.category_name] = [];
+      categories[f.category_name].push(f);
+    });
     res.render('business/pricing/list', {
-      title: 'Pricing Packages - WTS Admin',
-      models: result.rows,
+      title: 'Packages - WTS Admin',
+      models: modelsResult.rows,
+      features: featuresResult.rows,
+      categories,
       currentPage: 'pricing'
     });
   } catch (error) {
     res.render('business/pricing/list', {
-      title: 'Pricing Packages - WTS Admin',
+      title: 'Packages - WTS Admin',
       models: [],
+      features: [],
+      categories: {},
       currentPage: 'pricing',
-      error: 'Failed to load pricing packages'
+      error: 'Failed to load packages'
     });
   }
 });
@@ -536,36 +548,15 @@ router.post('/pricing/:id/delete', async (req, res) => {
 
 // ==================== PRICING FEATURES CATALOG ====================
 
-router.get('/pricing-features', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM pricing_features ORDER BY category_sort_order ASC, sort_order ASC');
-    const categories = {};
-    result.rows.forEach(f => {
-      if (!categories[f.category_name]) categories[f.category_name] = [];
-      categories[f.category_name].push(f);
-    });
-    res.render('business/pricing/features-list', {
-      title: 'Pricing Features Catalog - WTS Admin',
-      features: result.rows,
-      categories,
-      currentPage: 'pricing-features'
-    });
-  } catch (error) {
-    res.render('business/pricing/features-list', {
-      title: 'Pricing Features Catalog - WTS Admin',
-      features: [],
-      categories: {},
-      currentPage: 'pricing-features',
-      error: 'Failed to load pricing features'
-    });
-  }
+router.get('/pricing-features', (req, res) => {
+  res.redirect('/business/pricing?tab=features');
 });
 
 router.get('/pricing-features/new', (req, res) => {
   res.render('business/pricing/features-form', {
     title: 'New Pricing Feature - WTS Admin',
     feature: null,
-    currentPage: 'pricing-features'
+    currentPage: 'pricing'
   });
 });
 
@@ -580,13 +571,13 @@ router.post('/pricing-features', async (req, res) => {
        parseInt(sort_order) || 0, parseInt(category_sort_order) || 0, status || 'active']
     );
     req.session.successMessage = 'Pricing feature created successfully';
-    res.redirect('/business/pricing-features');
+    res.redirect('/business/pricing?tab=features');
   } catch (error) {
     console.error('Create pricing feature error:', error);
     res.render('business/pricing/features-form', {
       title: 'New Pricing Feature - WTS Admin',
       feature: req.body,
-      currentPage: 'pricing-features',
+      currentPage: 'pricing',
       error: 'Failed to create pricing feature. ' + (error.detail || error.message)
     });
   }
@@ -596,15 +587,15 @@ router.get('/pricing-features/:id/edit', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM pricing_features WHERE id = $1', [req.params.id]);
     if (result.rows.length === 0) {
-      return res.redirect('/business/pricing-features');
+      return res.redirect('/business/pricing?tab=features');
     }
     res.render('business/pricing/features-form', {
       title: 'Edit Pricing Feature - WTS Admin',
       feature: result.rows[0],
-      currentPage: 'pricing-features'
+      currentPage: 'pricing'
     });
   } catch (error) {
-    res.redirect('/business/pricing-features');
+    res.redirect('/business/pricing?tab=features');
   }
 });
 
@@ -620,7 +611,7 @@ router.post('/pricing-features/:id', async (req, res) => {
        parseInt(sort_order) || 0, parseInt(category_sort_order) || 0, status, req.params.id]
     );
     req.session.successMessage = 'Pricing feature updated successfully';
-    res.redirect('/business/pricing-features');
+    res.redirect('/business/pricing?tab=features');
   } catch (error) {
     req.session.errorMessage = 'Failed to update pricing feature';
     res.redirect(`/business/pricing-features/${req.params.id}/edit`);
@@ -634,7 +625,7 @@ router.post('/pricing-features/:id/delete', async (req, res) => {
   } catch (error) {
     req.session.errorMessage = 'Failed to delete pricing feature';
   }
-  res.redirect('/business/pricing-features');
+  res.redirect('/business/pricing?tab=features');
 });
 
 module.exports = router;
