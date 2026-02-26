@@ -8,6 +8,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { parse } = require('csv-parse/sync');
+const striptags = require('striptags');
 
 const router = express.Router();
 router.use(ensureAuthenticated);
@@ -335,9 +336,7 @@ router.post('/articles/:id', async (req, res) => {
 
     // Compute word count from text_article or content
     const rawTextSource = text_article || content || '';
-    const rawText = rawTextSource
-      .replace(/<[^>]*>/g, '')  // remove HTML tags
-      .replace(/[<>]/g, '');    // remove any leftover angle brackets
+    const rawText = striptags(rawTextSource);
     const wordCount = rawText.split(/\s+/).filter(w => w.length > 0).length || null;
 
     // Normalize tags to human-readable names
