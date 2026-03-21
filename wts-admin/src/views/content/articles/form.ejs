@@ -95,6 +95,12 @@
                 <span>Featured</span>
               </label>
             </div>
+            <div class="org-strip-field">
+              <label class="org-strip-checkbox">
+                <input type="checkbox" name="ads_enabled" value="true" <%= article && article.ads_enabled ? 'checked' : '' %>>
+                <span>Ads</span>
+              </label>
+            </div>
             <div class="org-strip-field" style="flex: 2;">
               <label class="org-strip-label">Tags</label>
               <input type="text" id="tags" name="tags" class="org-strip-select" placeholder="marketing, seo, tips" value="<%= article && article.tags ? article.tags.join(', ') : '' %>">
@@ -4152,6 +4158,7 @@ function generateFullArticleHTML() {
   var category = document.getElementById('category').value || '';
   var tags = (document.getElementById('tags').value || '').split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
   var textArticle = document.getElementById('text_article').value || document.getElementById('content').value || '';
+  var adsEnabled = document.querySelector('input[name="ads_enabled"]').checked;
 
   // Calculate reading time if not set
   if (!timeToRead) {
@@ -4362,6 +4369,10 @@ function generateFullArticleHTML() {
     + '            if (btt) btt.addEventListener(\'click\', function(e) { e.preventDefault(); window.scrollTo({ top: 0, behavior: \'smooth\' }); });\n'
     + '        });\n'
     + '    <\/script>\n'
+    + (adsEnabled
+      ? '    <script>window.WTS_ADSENSE={publisherId:"ca-pub-XXXXXXXXXXXXXXXXX",slots:{belowTitle:"SLOT_ID_1",midArticle:"SLOT_ID_2",endArticle:"SLOT_ID_3"},enabled:true};<\/script>\n'
+      + '    <script src="/js/modules/adsense.js"><\/script>\n'
+      : '')
     + '    <script src="/js/services/page-sidebar.js"><\/script>\n'
     + '</body>\n</html>';
 

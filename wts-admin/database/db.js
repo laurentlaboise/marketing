@@ -251,6 +251,10 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='author_url') THEN
             ALTER TABLE articles ADD COLUMN author_url TEXT;
           END IF;
+          -- AdSense monetization toggle per article
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='ads_enabled') THEN
+            ALTER TABLE articles ADD COLUMN ads_enabled BOOLEAN DEFAULT FALSE;
+          END IF;
         END $$;
       `);
 
