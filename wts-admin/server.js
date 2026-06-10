@@ -74,7 +74,7 @@ app.use('/api/', limiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10, // limit auth attempts
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX) || 10, // limit auth attempts (env-tunable for tests)
   message: 'Too many authentication attempts, please try again later.'
 });
 app.use('/auth/login', authLimiter);
