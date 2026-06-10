@@ -17,6 +17,20 @@ router.use(ensureAuthenticated);
 
 // Main dashboard
 router.get('/', async (req, res) => {
+  // Non-admin users get a restricted dashboard without content stats,
+  // activity logs (which include other users' emails) or site data.
+  if (!req.user || req.user.role !== 'admin') {
+    return res.render('dashboard/index', {
+      title: 'Dashboard - WTS Admin',
+      stats: { articles: 0, aiTools: 0, products: 0, glossary: 0, seoTerms: 0, images: 0, microsites: 0, drafts: 0, activeSites: 0, unreadNotifications: 0 },
+      recentActivity: [],
+      recentArticles: [],
+      activeMicrosites: [],
+      currentPage: 'dashboard',
+      error: 'Your account does not have admin access. Contact an administrator to request access.'
+    });
+  }
+
   try {
     // Get statistics
     const stats = await Promise.all([

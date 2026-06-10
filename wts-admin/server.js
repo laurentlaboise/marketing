@@ -23,6 +23,9 @@ const webhooksApiRoutes = require('./src/routes/webhooks-api');
 // Import passport configuration
 require('./src/utils/passport-config');
 
+// Import auth guards
+const { ensureAuthenticated, ensureAdmin } = require('./src/middleware/auth');
+
 // Import database
 const db = require('./database/db');
 
@@ -161,14 +164,17 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/webhooks', webhooksApiRoutes);
 
 // Routes
+// Admin surfaces require an authenticated session with role === 'admin'.
+// /dashboard stays reachable by any authenticated user (it renders a
+// restricted view for non-admins) so ensureAdmin has a safe redirect target.
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
-app.use('/content', contentRoutes);
-app.use('/business', businessRoutes);
-app.use('/api', apiRoutes);
-app.use('/api/proxy', proxyApiRoutes);
-app.use('/images', imagesRoutes);
-app.use('/webdev', webdevRoutes);
+app.use('/content', ensureAuthenticated, ensureAdmin, contentRoutes);
+app.use('/business', ensureAuthenticated, ensureAdmin, businessRoutes);
+app.use('/api', ensureAuthenticated, ensureAdmin, apiRoutes);
+app.use('/api/proxy', ensureAuthenticated, ensureAdmin, proxyApiRoutes);
+app.use('/images', ensureAuthenticated, ensureAdmin, imagesRoutes);
+app.use('/webdev', ensureAuthenticated, ensureAdmin, webdevRoutes);
 
 // Serve images from the main marketing repo for preview
 const imagesServePath = require('path').resolve(__dirname, '../images');

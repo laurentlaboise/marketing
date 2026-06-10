@@ -804,7 +804,7 @@ router.post('/submissions', formLimiter, async (req, res) => {
     const notifTitle = `New ${typeLabels[form_type] || form_type}`;
     const notifMessage = `${name} (${email})${company ? ' from ' + company : ''} submitted a ${typeLabels[form_type].toLowerCase()}.`;
 
-    const admins = await db.query("SELECT id FROM users");
+    const admins = await db.query("SELECT id FROM users WHERE role = 'admin'");
     for (const admin of admins.rows) {
       await db.query(
         `INSERT INTO notifications (user_id, type, title, message, link)
