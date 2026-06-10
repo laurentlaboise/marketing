@@ -1,4 +1,11 @@
 require('dotenv').config();
+
+// Fail fast on missing secrets — a hardcoded fallback would silently sign
+// every session cookie with a publicly-known value.
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET environment variable is required. Generate one with: openssl rand -hex 32');
+}
+
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
@@ -94,7 +101,7 @@ app.set('views', path.join(__dirname, 'src/views'));
 
 // Session configuration
 const sessionConfig = {
-  secret: process.env.SESSION_SECRET || 'wts-admin-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
