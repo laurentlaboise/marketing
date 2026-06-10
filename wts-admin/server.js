@@ -12,6 +12,7 @@ const passport = require('passport');
 const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 
 // Import routes
@@ -43,13 +44,30 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 // Security middleware
+// Per-request CSP nonce: inline <script> blocks in views carry
+// nonce="<%= cspNonce %>" instead of relying on 'unsafe-inline'.
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
+      // styleSrc keeps 'unsafe-inline': views use inline style attributes
+      // pervasively; the high-value target (script injection) is nonced.
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://ka-f.fontawesome.com", "https://cdn.jsdelivr.net"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://ka-f.fontawesome.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com", "https://connect.facebook.net", "https://kit.fontawesome.com", "https://ka-f.fontawesome.com", "https://cdn.jsdelivr.net"],
+      scriptSrc: [
+        "'self'",
+        (req, res) => `'nonce-${res.locals.cspNonce}'`,
+        "https://accounts.google.com",
+        "https://connect.facebook.net",
+        "https://kit.fontawesome.com",
+        "https://ka-f.fontawesome.com",
+        "https://cdn.jsdelivr.net"
+      ],
       workerSrc: ["'self'", "blob:"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       connectSrc: ["'self'", "https://accounts.google.com", "https://www.facebook.com", "https://ka-f.fontawesome.com", "https://checkout.stripe.com", "https://cdn.jsdelivr.net", "wss:", "ws:"],

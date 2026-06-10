@@ -441,7 +441,7 @@
   </div><!-- close page-content -->
 </main>
 
-<script>
+<script nonce="<%= cspNonce %>">
 function openRenameFolderModal(folderId, folderName) {
   document.getElementById('renameFolderForm').action = '/images/folders/' + folderId + '/rename';
   document.getElementById('renameFolderInput').value = folderName;

@@ -292,7 +292,7 @@
   }
 </style>
 
-<script>
+<script nonce="<%= cspNonce %>">
 document.addEventListener('DOMContentLoaded', () => {
   const editor = document.getElementById('html-editor');
   const source = document.getElementById('html-source');
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- Link Verifier Script -->
-<script>
+<script nonce="<%= cspNonce %>">
 (function() {
   var verifyBtn = document.getElementById('verifyLinkBtn');
   var pageUrlInput = document.getElementById('page_url');

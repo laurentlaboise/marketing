@@ -609,7 +609,7 @@
   }
 </style>
 
-<script>
+<script nonce="<%= cspNonce %>">
 (function() {
   const container = document.getElementById('fieldsContainer');
   const noFieldsMsg = document.getElementById('noFieldsMsg');
@@ -817,7 +817,7 @@
 </script>
 
 <!-- Linked Buttons interaction script -->
-<script>
+<script nonce="<%= cspNonce %>">
 (function() {
   // Toggle edit panels
   document.querySelectorAll('.btn-toggle-edit').forEach(function(btn) {

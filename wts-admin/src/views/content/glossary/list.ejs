@@ -86,7 +86,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="<%= cspNonce %>">
   // Close modal on background click
   document.getElementById('importModal').addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';
