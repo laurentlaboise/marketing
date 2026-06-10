@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const db = require('../../database/db');
 
 const router = express.Router();
@@ -6,9 +7,43 @@ const router = express.Router();
 // ==================== POST /api/webhooks/telemetry ====================
 // High-throughput ingest endpoint for n8n/Make webhooks.
 // Writes directly to the execution_telemetry partitioned table.
-// No authentication required (webhook source).
+// Authenticated via HMAC-SHA256 over the raw request body: the sender
+// must set X-Telemetry-Signature to hex(HMAC_SHA256(TELEMETRY_WEBHOOK_SECRET, body)).
+// Fails closed: without TELEMETRY_WEBHOOK_SECRET configured, all
+// requests are rejected with 503.
 
-router.post('/telemetry', express.json(), async (req, res) => {
+if (!process.env.TELEMETRY_WEBHOOK_SECRET) {
+  console.warn('TELEMETRY_WEBHOOK_SECRET is not set — /api/webhooks/telemetry will reject all requests with 503');
+}
+
+const verifyTelemetrySignature = (req, res, next) => {
+  const secret = process.env.TELEMETRY_WEBHOOK_SECRET;
+  if (!secret) {
+    return res.status(503).json({ success: false, error: 'Telemetry ingest is not configured' });
+  }
+
+  const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+  const signature = req.get('x-telemetry-signature') || '';
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(rawBody)
+    .digest('hex');
+
+  const sigBuf = Buffer.from(signature, 'utf8');
+  const expBuf = Buffer.from(expected, 'utf8');
+  if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+    return res.status(401).json({ success: false, error: 'Invalid telemetry signature' });
+  }
+
+  try {
+    req.body = JSON.parse(rawBody.toString('utf8'));
+  } catch (e) {
+    return res.status(400).json({ success: false, error: 'Invalid JSON payload' });
+  }
+  next();
+};
+
+router.post('/telemetry', express.raw({ type: '*/*', limit: '1mb' }), verifyTelemetrySignature, async (req, res) => {
   try {
     const events = Array.isArray(req.body) ? req.body : [req.body];
 

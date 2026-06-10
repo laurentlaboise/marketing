@@ -74,9 +74,10 @@ app.use('/auth/login', authLimiter);
 app.use('/auth/signup', authLimiter);
 
 // Body parsing - increased limit for large content
-// Exclude Stripe webhook path from JSON parsing (needs raw body for signature verification)
+// Exclude webhook paths from JSON parsing — they verify signatures over
+// the raw body (Stripe signature / telemetry HMAC) before parsing.
 app.use((req, res, next) => {
-  if (req.originalUrl === '/api/payments/webhook') {
+  if (req.originalUrl === '/api/payments/webhook' || req.originalUrl === '/api/webhooks/telemetry') {
     next();
   } else {
     express.json({ limit: '10mb' })(req, res, next);
