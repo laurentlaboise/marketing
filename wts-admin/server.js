@@ -25,7 +25,6 @@ const publicApiRoutes = require('./src/routes/public-api');
 const imagesRoutes = require('./src/routes/images');
 const webdevRoutes = require('./src/routes/webdev');
 const paymentsRoutes = require('./src/routes/payments');
-const proxyApiRoutes = require('./src/routes/proxy-api');
 const webhooksApiRoutes = require('./src/routes/webhooks-api');
 
 // Import passport configuration
@@ -174,7 +173,9 @@ app.use(async (req, res, next) => {
   delete req.session.successMessage;
   delete req.session.errorMessage;
 
-  // Attach unread notification count for authenticated users
+  // Attach unread notification count for authenticated users.
+  // Non-critical: failures degrade to a zero badge, but are logged
+  // (rate-limited to one warning per minute) instead of swallowed.
   res.locals.unreadCount = 0;
   if (req.user && req.user.id) {
     try {
@@ -183,7 +184,12 @@ app.use(async (req, res, next) => {
         [req.user.id]
       );
       res.locals.unreadCount = parseInt(result.rows[0].count) || 0;
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      if (!app.locals.lastNotifCountWarn || Date.now() - app.locals.lastNotifCountWarn > 60000) {
+        app.locals.lastNotifCountWarn = Date.now();
+        console.warn('Notification count query failed (badge degraded to 0):', e.message);
+      }
+    }
   }
 
   next();
@@ -208,7 +214,6 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/content', ensureAuthenticated, ensureAdmin, contentRoutes);
 app.use('/business', ensureAuthenticated, ensureAdmin, businessRoutes);
 app.use('/api', ensureAuthenticated, ensureAdmin, apiRoutes);
-app.use('/api/proxy', ensureAuthenticated, ensureAdmin, proxyApiRoutes);
 app.use('/images', ensureAuthenticated, ensureAdmin, imagesRoutes);
 app.use('/webdev', ensureAuthenticated, ensureAdmin, webdevRoutes);
 

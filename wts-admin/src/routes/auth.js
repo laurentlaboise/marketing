@@ -5,16 +5,12 @@ const { v4: uuidv4 } = require('uuid');
 const { body, validationResult } = require('express-validator');
 const db = require('../../database/db');
 const { sendPasswordResetEmail } = require('../utils/email');
-const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 auth requests per windowMs
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
+// Rate limiting for /auth/login and /auth/signup lives in server.js
+// (10 attempts / 15 min); the looser duplicate limiter that used to be
+// defined here never took effect.
 
 // Public self-signup is disabled unless explicitly enabled, because any
 // account created here gets access to the admin app's authenticated areas.
@@ -43,7 +39,7 @@ const validateLogin = [
 ];
 
 // Login page
-router.get('/login', authLimiter, (req, res) => {
+router.get('/login', (req, res) => {
   if (req.isAuthenticated()) {
     return res.redirect('/dashboard');
   }
@@ -55,7 +51,7 @@ router.get('/login', authLimiter, (req, res) => {
 });
 
 // Login POST
-router.post('/login', authLimiter, validateLogin, (req, res, next) => {
+router.post('/login', validateLogin, (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.render('auth/login', {
@@ -100,7 +96,7 @@ router.get('/signup', (req, res) => {
 });
 
 // Signup POST
-router.post('/signup', authLimiter, validateSignup, async (req, res) => {
+router.post('/signup', validateSignup, async (req, res) => {
   if (!signupEnabled()) {
     return res.redirect('/auth/login?error=signup_disabled');
   }

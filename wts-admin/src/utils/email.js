@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const escapeHtml = require('escape-html');
 
 // Create transporter
 const createTransporter = () => {
@@ -52,7 +53,7 @@ const sendPasswordResetEmail = async (email, token, firstName) => {
           <tr>
             <td style="padding: 40px 30px;">
               <h2 style="color: #333; margin: 0 0 20px 0;">Reset Your Password</h2>
-              <p style="color: #666; margin: 0 0 20px 0;">Hi ${firstName || 'there'},</p>
+              <p style="color: #666; margin: 0 0 20px 0;">Hi ${escapeHtml(firstName || 'there')},</p>
               <p style="color: #666; margin: 0 0 20px 0;">We received a request to reset your password. Click the button below to create a new password:</p>
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
@@ -127,7 +128,7 @@ const sendWelcomeEmail = async (email, firstName) => {
           </tr>
           <tr>
             <td style="padding: 40px 30px;">
-              <p style="color: #666;">Hi ${firstName},</p>
+              <p style="color: #666;">Hi ${escapeHtml(firstName || 'there')},</p>
               <p style="color: #666;">Your account has been created successfully. You can now access the Words That Sells admin dashboard.</p>
               <p style="color: #666;">Happy marketing!</p>
             </td>

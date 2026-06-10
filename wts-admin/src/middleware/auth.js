@@ -50,7 +50,9 @@ const ensureGuest = (req, res, next) => {
   res.redirect('/dashboard');
 };
 
-// Log activity
+// Log activity. Failures never block the request; they are logged at
+// most once per minute so a DB outage doesn't flood the logs.
+let lastActivityLogWarn = 0;
 const logActivity = (action) => {
   return async (req, res, next) => {
     if (req.user) {
@@ -67,7 +69,10 @@ const logActivity = (action) => {
           ]
         );
       } catch (error) {
-        console.error('Failed to log activity:', error);
+        if (Date.now() - lastActivityLogWarn > 60000) {
+          lastActivityLogWarn = Date.now();
+          console.warn(`Activity logging failed (action: ${action}):`, error.message);
+        }
       }
     }
     next();

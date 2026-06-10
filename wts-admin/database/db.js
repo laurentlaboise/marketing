@@ -864,6 +864,25 @@ const db = {
         END $$;
       `);
 
+      // Execution telemetry table (written by POST /api/webhooks/telemetry).
+      // Previously this table had no schema here, so every ingest failed.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS execution_telemetry (
+          id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+          automation_id TEXT NOT NULL,
+          execution_status VARCHAR(50) DEFAULT 'unknown',
+          error_log TEXT,
+          anomaly_score NUMERIC,
+          latency_ms INTEGER,
+          executed_at TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_execution_telemetry_automation_executed
+          ON execution_telemetry (automation_id, executed_at DESC)
+      `);
+
       // Indexes for slug lookups, foreign keys and common sort/filter
       // columns. UNIQUE columns (articles.slug, guides.slug,
       // microsites.slug, users.email) already have implicit indexes.

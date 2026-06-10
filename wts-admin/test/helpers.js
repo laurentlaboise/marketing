@@ -38,8 +38,8 @@ async function ensureDatabase() {
   }
 }
 
-// Seed an admin and a regular user; create the telemetry table the
-// webhook writes to (it has no schema in db.js).
+// Seed an admin and a regular user (schema itself is created by the
+// server's db.initialize() during boot).
 async function seedDatabase() {
   const pool = new Pool({ connectionString: TEST_DB_URL });
   const hash = await bcrypt.hash('Password123!', 10);
@@ -55,16 +55,6 @@ async function seedDatabase() {
      ON CONFLICT (email) DO UPDATE SET password_hash = $1, role = 'user'`,
     [hash]
   );
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS execution_telemetry (
-      automation_id TEXT,
-      execution_status TEXT,
-      error_log TEXT,
-      anomaly_score NUMERIC,
-      latency_ms INTEGER,
-      executed_at TIMESTAMP
-    )
-  `);
   await pool.end();
 }
 
