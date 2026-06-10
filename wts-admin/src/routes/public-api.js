@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
+const { isOriginAllowed } = require('../utils/origins');
 
 const router = express.Router();
 
@@ -766,6 +767,11 @@ const formLimiter = rateLimit({
 });
 
 router.post('/submissions', formLimiter, async (req, res) => {
+  // CSRF does not apply here (no session auth), but block cross-site
+  // browser posts from origins outside the allow-list.
+  if (!isOriginAllowed(req)) {
+    return respond(res, { error: 'Origin not allowed.' }, 403);
+  }
   try {
     const { form_type, name, email, company, phone, message, metadata } = req.body;
 

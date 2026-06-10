@@ -16,6 +16,7 @@
     </div>
 
     <form action="<%= product ? '/business/products/' + product.id : '/business/products' %>" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
       <!-- Basic Information -->
       <div class="card form-card" style="margin-bottom: 1.5rem;">

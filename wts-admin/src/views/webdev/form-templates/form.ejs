@@ -16,6 +16,7 @@
     </div>
 
     <form method="POST" action="<%= template ? '/webdev/form-templates/' + template.id : '/webdev/form-templates' %>">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
       <!-- Form Settings -->
       <div class="card" style="margin-bottom: 1.5rem;">
@@ -131,6 +132,7 @@
                 <div class="linked-btn-actions">
                   <button type="button" class="btn-toggle-edit" title="Edit"><i class="fas fa-pen"></i></button>
                   <form action="/webdev/form-buttons/<%= btn.id %>/delete" method="POST" style="display:inline;">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <button type="submit" class="btn-remove" data-confirm-delete title="Delete"><i class="fas fa-trash"></i></button>
                   </form>
                 </div>
@@ -148,6 +150,7 @@
               <!-- Expandable edit form -->
               <div class="linked-btn-edit" style="display:none;">
                 <form action="/webdev/form-buttons/<%= btn.id %>" method="POST">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                     <div class="form-group" style="margin:0;">
                       <label class="form-label">Button Label</label>
@@ -235,6 +238,7 @@
           <div class="linked-btn-card" style="border:2px dashed var(--primary);background:#f0f9ff;">
             <h4 style="margin:0 0 0.75rem;font-size:0.95rem;color:var(--primary);"><i class="fas fa-plus-circle"></i> New Button</h4>
             <form action="/webdev/form-buttons" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <input type="hidden" name="form_type" value="<%= template.form_type %>">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                 <div class="form-group" style="margin:0;">

@@ -39,6 +39,7 @@
         </a>
         <% } %>
         <form action="/webdev/microsites/<%= microsite.id %>/deploy" method="POST" style="display: inline;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <input type="hidden" name="commit_message" value="Manual deploy from admin">
           <button type="submit" class="btn btn-primary">
             <i class="fas fa-rocket"></i> Deploy
@@ -182,6 +183,7 @@
       </div>
       <div class="card-body">
         <form action="/webdev/microsites/<%= microsite.id %>/domains" method="POST" class="domain-add-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <div class="form-group">
             <label class="form-label">Domain</label>
             <input type="text" name="domain" class="form-input" placeholder="subdomain.example.com" required>
@@ -237,11 +239,13 @@
               </td>
               <td data-label="Actions">
                 <form action="/webdev/microsites/<%= microsite.id %>/domains/<%= d.id %>/verify" method="POST" style="display: inline;">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <button type="submit" class="btn btn-sm btn-secondary" title="Toggle DNS verification">
                     <i class="fas fa-check"></i>
                   </button>
                 </form>
                 <form action="/webdev/microsites/<%= microsite.id %>/domains/<%= d.id %>/delete" method="POST" style="display: inline;">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <button type="submit" class="btn btn-sm btn-danger" title="Remove domain">
                     <i class="fas fa-trash"></i>
                   </button>
@@ -369,6 +373,7 @@
     <div class="card" style="margin-bottom: 20px;">
       <div class="card-body">
         <form action="/webdev/microsites/<%= microsite.id %>/deploy" method="POST" class="deploy-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <div class="form-group">
             <label class="form-label">Deployment Note</label>
             <input type="text" name="commit_message" class="form-input" placeholder="What's being deployed?" value="">
@@ -431,6 +436,7 @@
         </div>
         <div class="card-body">
           <form action="/webdev/microsites/<%= microsite.id %>" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <input type="hidden" name="name" value="<%= microsite.name %>">
             <input type="hidden" name="status" value="<%= microsite.status %>">
             <div class="form-group">
@@ -469,6 +475,7 @@ Sitemap: https://example.com/sitemap.xml"><%= microsite.robots_txt || '' %></tex
               <p class="form-help">This will permanently remove the microsite and all associated data.</p>
             </div>
             <form action="/webdev/microsites/<%= microsite.id %>/delete" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure? This cannot be undone.')">
                 <i class="fas fa-trash"></i> Delete
               </button>

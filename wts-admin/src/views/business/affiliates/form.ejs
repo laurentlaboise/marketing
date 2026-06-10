@@ -15,6 +15,7 @@
     <div class="card form-card">
       <div class="card-body">
         <form action="<%= affiliate ? '/business/affiliates/' + affiliate.id : '/business/affiliates' %>" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="name">Name *</label>

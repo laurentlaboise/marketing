@@ -39,6 +39,7 @@
                   <div class="table-actions">
                     <a href="/content/glossary/<%= item.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                     <form action="/content/glossary/<%= item.id %>/delete" method="POST" style="display: inline;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
                     </form>
                   </div>
@@ -69,7 +70,8 @@
         <h3 style="margin:0;"><i class="fas fa-upload"></i> Import Glossary Terms</h3>
         <button type="button" onclick="document.getElementById('importModal').style.display='none'" aria-label="Close import dialog" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--gray-500);">&times;</button>
       </div>
-      <form action="/content/glossary/import" method="POST" enctype="multipart/form-data" id="importForm">
+      <form action="/content/glossary/import?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data" id="importForm">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="form-group">
           <label class="form-label" for="importFile">CSV File</label>
           <input type="file" id="importFile" name="file" class="form-input" accept=".csv" required>

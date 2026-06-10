@@ -13,6 +13,7 @@
     </div>
 
     <form action="<%= model ? '/business/pricing/' + model.id : '/business/pricing' %>" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
       <!-- Basic Info -->
       <div class="card form-card" style="margin-bottom: 1.5rem;">

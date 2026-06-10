@@ -51,16 +51,9 @@ app.use(helmet({
   }
 }));
 
+const { getAllowedOrigins } = require('./src/utils/origins');
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : [
-        'http://localhost:3000',
-        'http://localhost:5500',
-        'http://127.0.0.1:5500',
-        'https://wordsthatsells.website',
-        'https://www.wordsthatsells.website'
-      ],
+  origin: getAllowedOrigins(),
   credentials: true
 }));
 
@@ -126,6 +119,10 @@ app.use(session(sessionConfig));
 // Passport initialization (must come after session, before routes)
 app.use(passport.initialize());
 app.use(passport.session());
+
+// CSRF protection for session-authenticated, state-changing routes
+const { csrfProtection } = require('./src/middleware/csrf');
+app.use(csrfProtection);
 
 // Global variables for views
 app.use(async (req, res, next) => {

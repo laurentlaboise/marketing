@@ -15,6 +15,7 @@
     <div class="card form-card">
       <div class="card-body">
         <form action="<%= agency ? '/business/agencies/' + agency.id : '/business/agencies' %>" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="name">Agency Name *</label>

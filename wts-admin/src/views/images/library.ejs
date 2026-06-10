@@ -13,6 +13,7 @@
       </div>
       <div class="page-actions">
         <form action="/images/sync" method="POST" style="display: inline;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button type="submit" class="btn btn-secondary btn-sm">
             <i class="fas fa-sync-alt"></i> Sync from Disk
           </button>
@@ -59,6 +60,7 @@
                   <i class="fas fa-pen" style="font-size: 10px;"></i>
                 </button>
                 <form action="/images/folders/<%= folder.id %>/delete" method="POST" style="display: inline;">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <button type="submit" class="folder-action-btn" data-confirm-delete="Delete this folder? Images will be unassigned." title="Delete">
                     <i class="fas fa-trash" style="font-size: 10px;"></i>
                   </button>
@@ -229,6 +231,7 @@
                         <i class="fas fa-edit"></i>
                       </a>
                       <form action="/images/<%= image.id %>/delete" method="POST" style="display: inline;">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <button type="submit" class="btn btn-sm btn-danger" title="Archive" data-confirm-delete="Archive this image?">
                           <i class="fas fa-trash"></i>
                         </button>
@@ -276,6 +279,7 @@
               <i class="fas fa-cloud-upload-alt"></i> Upload Image
             </a>
             <form action="/images/sync" method="POST" style="display: inline;">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <button type="submit" class="btn btn-secondary">
                 <i class="fas fa-sync-alt"></i> Sync from Disk
               </button>
@@ -296,6 +300,7 @@
         <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="modal-close">&times;</button>
       </div>
       <form action="/images/folders" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="modal-body">
           <div class="form-group">
             <label class="form-label">Folder Name *</label>
@@ -334,6 +339,7 @@
         <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="modal-close">&times;</button>
       </div>
       <form id="renameFolderForm" action="" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="modal-body">
           <div class="form-group">
             <label class="form-label">New Name *</label>
@@ -356,6 +362,7 @@
         <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="modal-close">&times;</button>
       </div>
       <form id="moveToFolderForm" action="/images/move-to-folder" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="modal-body">
           <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">
             Moving <strong id="moveImageCount">0</strong> image(s) to:
@@ -390,6 +397,7 @@
         <button type="button" onclick="this.closest('.modal-overlay').style.display='none'" class="modal-close">&times;</button>
       </div>
       <form id="bulkOptimizeForm" action="/images/bulk-optimize" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="modal-body">
           <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">
             Optimizing <strong id="bulkOptimizeCount">0</strong> image(s). SVGs will be skipped.

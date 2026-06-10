@@ -29,7 +29,8 @@
 
     <div class="card form-card">
       <div class="card-body">
-        <form action="/images/upload-multiple" method="POST" enctype="multipart/form-data" id="multiUploadForm">
+        <form action="/images/upload-multiple?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data" id="multiUploadForm">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
           <div class="form-section">
             <h3 class="form-section-title">Select Images</h3>

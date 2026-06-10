@@ -25,6 +25,7 @@
     <div class="card" style="max-width: 1100px; overflow: visible;">
       <div class="card-body" style="padding: 0;">
         <form id="articleForm" action="<%= article ? '/content/articles/' + article.id : '/content/articles' %>" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
           <!-- ===== STICKY ACTION BAR ===== -->
           <div class="sticky-action-bar" id="stickyActionBar">

@@ -63,6 +63,7 @@
                   <div class="table-actions">
                     <a href="/webdev/form-templates/<%= tpl.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
                     <form action="/webdev/form-templates/<%= tpl.id %>/delete" method="POST" style="display:inline;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
                     </form>
                   </div>
