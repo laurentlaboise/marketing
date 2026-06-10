@@ -98,17 +98,28 @@ const authLimiter = rateLimit({
 app.use('/auth/login', authLimiter);
 app.use('/auth/signup', authLimiter);
 
-// Body parsing - increased limit for large content
-// Exclude webhook paths from JSON parsing — they verify signatures over
-// the raw body (Stripe signature / telemetry HMAC) before parsing.
+// Body parsing.
+// Webhook paths are excluded from JSON parsing — they verify signatures
+// over the raw body (Stripe signature / telemetry HMAC) before parsing.
+// Only the admin content editors legitimately submit large payloads
+// (full article HTML); everything else — including all public endpoints —
+// gets a 1 MB cap so the body parser is not a DoS lever.
+const LARGE_BODY_PREFIXES = ['/content', '/webdev', '/business'];
+const allowsLargeBody = (req) => LARGE_BODY_PREFIXES.some(p => req.originalUrl.startsWith(p));
+const jsonLarge = express.json({ limit: '10mb' });
+const jsonDefault = express.json({ limit: '1mb' });
+const urlencodedLarge = express.urlencoded({ extended: true, limit: '10mb' });
+const urlencodedDefault = express.urlencoded({ extended: true, limit: '1mb' });
+
 app.use((req, res, next) => {
   if (req.originalUrl === '/api/payments/webhook' || req.originalUrl === '/api/webhooks/telemetry') {
-    next();
-  } else {
-    express.json({ limit: '10mb' })(req, res, next);
+    return next();
   }
+  (allowsLargeBody(req) ? jsonLarge : jsonDefault)(req, res, next);
 });
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use((req, res, next) => {
+  (allowsLargeBody(req) ? urlencodedLarge : urlencodedDefault)(req, res, next);
+});
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -263,13 +274,22 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
+// Error handler. Respects the status of client errors raised by
+// middleware (413 payload-too-large, 400 invalid JSON, …) instead of
+// flattening everything to 500, and answers JSON on API paths.
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).render('error', {
-    title: 'Server Error',
-    message: process.env.NODE_ENV === 'production' ? 'Something went wrong.' : err.message,
-    code: 500
+  const status = Number.isInteger(err.status || err.statusCode) ? (err.status || err.statusCode) : 500;
+  const message = status >= 500 && process.env.NODE_ENV === 'production'
+    ? 'Something went wrong.'
+    : err.message;
+  if (req.originalUrl.startsWith('/api/')) {
+    return res.status(status).json({ success: false, error: message });
+  }
+  res.status(status).render('error', {
+    title: status >= 500 ? 'Server Error' : 'Request Error',
+    message,
+    code: status
   });
 });
 
