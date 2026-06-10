@@ -1,4 +1,44 @@
 const { Pool } = require('pg');
+const fs = require('fs');
+
+// TLS configuration for the database connection.
+//
+// Production requires verified TLS: set PGSSLROOTCERT to the server's CA
+// certificate (a file path, or the PEM content itself — Railway exposes it
+// in the Postgres service variables) so certificates are actually
+// validated. rejectUnauthorized:false (the previous behavior) accepts any
+// certificate and allows man-in-the-middle interception of credentials
+// and data.
+//
+// Outside production, PGSSL_INSECURE=true opts into unverified TLS for
+// ad-hoc connections to managed databases; plain local connections use no
+// TLS at all.
+function getSslConfig() {
+  const rootCert = process.env.PGSSLROOTCERT;
+  if (rootCert) {
+    const ca = rootCert.includes('-----BEGIN CERTIFICATE-----')
+      ? rootCert
+      : fs.readFileSync(rootCert, 'utf8');
+    return { ca, rejectUnauthorized: true };
+  }
+
+  if (process.env.PGSSL_INSECURE === 'true') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('PGSSL_INSECURE is not allowed in production. Set PGSSLROOTCERT to the database CA certificate instead.');
+    }
+    return { rejectUnauthorized: false };
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'Database TLS is not configured. Set PGSSLROOTCERT to the CA certificate ' +
+      '(file path or PEM content) of your PostgreSQL server so certificates can be verified.'
+    );
+  }
+
+  // Local development: plain connection
+  return false;
+}
 
 // Database connection configuration
 function getConnectionConfig() {
@@ -6,7 +46,7 @@ function getConnectionConfig() {
   if (process.env.DATABASE_URL) {
     return {
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: getSslConfig()
     };
   }
 
@@ -18,7 +58,7 @@ function getConnectionConfig() {
       user: process.env.PGUSER,
       password: process.env.PGPASSWORD,
       database: process.env.PGDATABASE,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: getSslConfig()
     };
   }
 
@@ -41,6 +81,10 @@ pool.on('error', (err) => {
 
 // Database operations
 const db = {
+  // Underlying pool (shared with connect-pg-simple so the session store
+  // uses the same TLS configuration)
+  pool,
+
   // Query helper
   query: async (text, params) => {
     const start = Date.now();

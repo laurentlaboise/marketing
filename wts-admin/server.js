@@ -112,11 +112,13 @@ const sessionConfig = {
   }
 };
 
-// Use PostgreSQL session store in production
+// Use PostgreSQL session store in production.
+// Reuses the app pool so the session store gets the same TLS settings
+// instead of opening its own unverified connections from the raw URL.
 if (process.env.DATABASE_URL) {
   const pgSession = require('connect-pg-simple')(session);
   sessionConfig.store = new pgSession({
-    conString: process.env.DATABASE_URL,
+    pool: db.pool,
     tableName: 'user_sessions',
     createTableIfMissing: true
   });
