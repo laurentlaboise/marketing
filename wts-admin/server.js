@@ -233,9 +233,25 @@ app.get('/', (req, res) => {
   }
 });
 
-// Health check for Railway
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check for Railway.
+// The server deliberately listens even when the DB is down (the listener
+// must bind for the platform to route at all), but /health reports the
+// truth: 503 + db:"down" instead of a hollow 200. Railway health checks
+// run at deploy time, so a DB outage during a deploy fails that deploy
+// rather than shipping an instance that can only serve errors; at
+// runtime the status code feeds external monitors.
+app.get('/health', async (req, res) => {
+  const timestamp = new Date().toISOString();
+  try {
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('db ping timeout')), 2000);
+      timer.unref();
+      db.query('SELECT 1').then((r) => { clearTimeout(timer); resolve(r); }, (e) => { clearTimeout(timer); reject(e); });
+    });
+    res.status(200).json({ status: 'ok', db: 'ok', timestamp });
+  } catch (e) {
+    res.status(503).json({ status: 'degraded', db: 'down', timestamp });
+  }
 });
 
 // 404 handler
