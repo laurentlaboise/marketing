@@ -28,8 +28,8 @@ const respond = (res, data, status = 200) => {
 // Get all published articles
 router.get('/articles', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(200, Math.max(1, Number.parseInt(req.query.limit, 10) || 50));
     const offset = (page - 1) * limit;
     const category = req.query.category || '';
 
@@ -51,7 +51,8 @@ router.get('/articles', async (req, res) => {
       params.push(category);
     }
 
-    query += ` ORDER BY published_at DESC NULLS LAST, created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    query += ` ORDER BY published_at DESC NULLS LAST, created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
 
     const result = await db.query(query, params);
 
