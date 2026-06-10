@@ -28,11 +28,9 @@ const createSlug = (title) => {
     .replace(/^-+|-+$/g, '');
 };
 
-// Multer config for CSV/XLSX file uploads
-const UPLOAD_TEMP_DIR = path.join(__dirname, '../../uploads/temp');
-if (!fs.existsSync(UPLOAD_TEMP_DIR)) {
-  fs.mkdirSync(UPLOAD_TEMP_DIR, { recursive: true });
-}
+// Multer config for CSV/XLSX file uploads (shared temp dir from storage module)
+const { UPLOAD_TEMP_DIR, ensureDirs } = require('../utils/storage');
+ensureDirs();
 
 const csvUpload = multer({
   dest: UPLOAD_TEMP_DIR,

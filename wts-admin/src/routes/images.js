@@ -8,45 +8,16 @@ const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
-
-// Root directory for uploaded files handled by this router.
-const UPLOAD_ROOT = path.join(__dirname, '../../../uploads');
-
-/**
- * Validate that a redirect path is a safe, application-local path.
- *
- * Rules:
- * - Must be a string.
- * - Must start with a single "/" (application-relative).
- * - Must not start with "//" (protocol-relative external URL).
- * - Must not contain a URL scheme like "http:" or "https:" at the start.
- */
-function isSafeRedirectPath(p) {
-  if (typeof p !== 'string') {
-    return false;
-  }
-
-  // Trim whitespace to avoid hiding unsafe prefixes
-  const trimmed = p.trim();
-
-  // Must start with "/" (app-relative)
-  if (!trimmed.startsWith('/')) {
-    return false;
-  }
-
-  // Reject protocol-relative URLs (e.g., "//evil.com")
-  if (trimmed.startsWith('//')) {
-    return false;
-  }
-
-  // Reject explicit URL schemes (e.g., "http://", "https://")
-  const lower = trimmed.toLowerCase();
-  if (lower.startsWith('http://') || lower.startsWith('https://')) {
-    return false;
-  }
-
-  return true;
-}
+const {
+  IMAGES_DIR,
+  UPLOAD_TEMP_DIR,
+  CDN_CONFIG,
+  buildCdnUrl,
+  localPathFor,
+  isTempUpload,
+  cleanupTempFile,
+  ensureDirs,
+} = require('../utils/storage');
 
 /**
  * Ensure a redirect target is a safe local path.
@@ -85,24 +56,9 @@ const imagesLimiter = rateLimit({
 });
 router.use(imagesLimiter);
 
-// CDN configuration
-const CDN_CONFIG = {
-  baseUrl: 'https://cdn.jsdelivr.net/gh',
-  user: 'laurentlaboise',
-  repo: 'marketing',
-  branch: 'main',
-};
-
-function buildCdnUrl(filePath) {
-  const clean = filePath.replace(/^\/+/, '');
-  // Encode each path segment to handle spaces and special chars in filenames
-  const encoded = clean.split('/').map(segment => encodeURIComponent(segment)).join('/');
-  return `${CDN_CONFIG.baseUrl}/${CDN_CONFIG.user}/${CDN_CONFIG.repo}@${CDN_CONFIG.branch}/${encoded}`;
-}
-
-// Image directory in the main marketing repo
-const IMAGES_DIR = path.resolve(__dirname, '../../../images');
-const UPLOAD_TEMP_DIR = path.resolve(__dirname, '../../uploads/temp');
+// CDN config, image/upload roots and path helpers come from the shared
+// storage module (env-configurable roots; see src/utils/storage.js).
+ensureDirs();
 
 // Fetch image from CDN to local disk (Railway has ephemeral storage)
 function fetchImageFromCdn(image) {
@@ -125,7 +81,7 @@ function fetchImageFromCdn(image) {
         res.on('end', () => {
           const buffer = Buffer.concat(chunks);
           // Save to local path
-          const localPath = path.resolve(__dirname, '../../../', image.file_path);
+          const localPath = localPathFor(image.file_path);
           const dir = path.dirname(localPath);
           if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
           fs.writeFileSync(localPath, buffer);
@@ -138,27 +94,9 @@ function fetchImageFromCdn(image) {
   });
 }
 
-// Validate a resolved path stays within an allowed parent directory (prevents path traversal)
-function assertPathWithin(filePath, parentDir) {
-  const resolved = path.resolve(filePath);
-  if (!resolved.startsWith(parentDir + path.sep) && resolved !== parentDir) {
-    throw new Error('Invalid file path');
-  }
-  return resolved;
-}
-
-// Safely remove a temp upload file after validating its path
-function cleanupTempFile(filePath) {
-  if (!filePath) return;
-  const resolved = path.resolve(filePath);
-  if (resolved.startsWith(UPLOAD_TEMP_DIR + path.sep) && fs.existsSync(resolved)) {
-    fs.unlinkSync(resolved);
-  }
-}
-
 // Multer config for temp uploads
 const upload = multer({
-  dest: path.join(__dirname, '../../uploads/temp'),
+  dest: UPLOAD_TEMP_DIR,
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
   fileFilter: (req, file, cb) => {
     const allowed = /\.(jpg|jpeg|png|gif|webp|svg|avif)$/i;
@@ -877,7 +815,7 @@ router.post('/:id/optimize', async (req, res) => {
     const fitMode = ['cover', 'contain', 'fill', 'inside', 'outside'].includes(fit) ? fit : 'inside';
 
     // Read source file (fetch from CDN if not on disk - Railway ephemeral storage)
-    let sourcePath = path.resolve(__dirname, '../../../', image.file_path);
+    let sourcePath = localPathFor(image.file_path);
     if (!fs.existsSync(sourcePath)) {
       try {
         sourcePath = await fetchImageFromCdn(image);
@@ -936,7 +874,7 @@ router.post('/:id/optimize', async (req, res) => {
     const newFilename = baseName + newExt;
     const dir = path.dirname(image.file_path);
     const newRelPath = path.join(dir, newFilename);
-    const newFullPath = assertPathWithin(path.resolve(__dirname, '../../../', newRelPath), IMAGES_DIR);
+    const newFullPath = localPathFor(newRelPath);
 
     // Process and save
     const destDir = path.dirname(newFullPath);
@@ -948,7 +886,7 @@ router.post('/:id/optimize', async (req, res) => {
     const newSize = fs.statSync(newFullPath).size;
 
     // If format changed, delete old file (if different path)
-    const oldFullPath = path.resolve(__dirname, '../../../', image.file_path);
+    const oldFullPath = localPathFor(image.file_path);
     if (oldFullPath !== newFullPath && fs.existsSync(oldFullPath)) {
       fs.unlinkSync(oldFullPath);
     }
@@ -1011,7 +949,7 @@ router.post('/:id/optimize-preview', async (req, res) => {
     const maxH = parseInt(max_height) || 0;
     const fitMode = ['cover', 'contain', 'fill', 'inside', 'outside'].includes(fit) ? fit : 'inside';
 
-    let sourcePath = path.resolve(__dirname, '../../../', image.file_path);
+    let sourcePath = localPathFor(image.file_path);
     if (!fs.existsSync(sourcePath)) {
       try {
         sourcePath = await fetchImageFromCdn(image);
@@ -1084,7 +1022,7 @@ router.post('/bulk-optimize', async (req, res) => {
 
         if (image.mime_type === 'image/svg+xml') continue;
 
-        let sourcePath = path.resolve(__dirname, '../../../', image.file_path);
+        let sourcePath = localPathFor(image.file_path);
         if (!fs.existsSync(sourcePath)) {
           try { sourcePath = await fetchImageFromCdn(image); } catch (e) { continue; }
         }
@@ -1111,7 +1049,7 @@ router.post('/bulk-optimize', async (req, res) => {
         const newFilename = baseName + newExt;
         const dir = path.dirname(image.file_path);
         const newRelPath = path.join(dir, newFilename);
-        const newFullPath = assertPathWithin(path.resolve(__dirname, '../../../', newRelPath), IMAGES_DIR);
+        const newFullPath = localPathFor(newRelPath);
 
         const destDir = path.dirname(newFullPath);
         if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
@@ -1121,7 +1059,7 @@ router.post('/bulk-optimize', async (req, res) => {
         const newSize = fs.statSync(newFullPath).size;
 
         // Delete old file if name changed
-        const oldFullPath = path.resolve(__dirname, '../../../', image.file_path);
+        const oldFullPath = localPathFor(image.file_path);
         if (oldFullPath !== newFullPath && fs.existsSync(oldFullPath)) {
           fs.unlinkSync(oldFullPath);
         }
@@ -1275,7 +1213,7 @@ router.post('/:id/analyze', async (req, res) => {
     const image = result.rows[0];
 
     // Read image from disk (fetch from CDN if not on disk - Railway ephemeral storage)
-    const imagePath = path.join(__dirname, '../../../', image.file_path);
+    const imagePath = localPathFor(image.file_path);
     let imageBuffer;
     if (fs.existsSync(imagePath)) {
       imageBuffer = fs.readFileSync(imagePath);
@@ -1317,7 +1255,7 @@ router.post('/analyze-upload', upload.single('image'), async (req, res) => {
     } else if (req.file.path) {
       // Resolve and validate the file path to ensure it is under the upload root
       const resolvedPath = path.resolve(req.file.path);
-      if (!resolvedPath.startsWith(UPLOAD_ROOT)) {
+      if (!isTempUpload(resolvedPath)) {
         return res.status(400).json({ error: 'Invalid file path' });
       }
       if (!fs.existsSync(resolvedPath)) {
@@ -1336,7 +1274,7 @@ router.post('/analyze-upload', upload.single('image'), async (req, res) => {
     // Clean up temp file if multer saved to disk
     if (req.file.path) {
       const resolvedPath = path.resolve(req.file.path);
-      if (resolvedPath.startsWith(UPLOAD_ROOT) && fs.existsSync(resolvedPath)) {
+      if (isTempUpload(resolvedPath) && fs.existsSync(resolvedPath)) {
         fs.unlinkSync(resolvedPath);
       }
     }
@@ -1353,7 +1291,7 @@ router.post('/analyze-upload', upload.single('image'), async (req, res) => {
     // Clean up temp file on error
     if (req.file && req.file.path) {
       const resolvedPath = path.resolve(req.file.path);
-      if (resolvedPath.startsWith(UPLOAD_ROOT) && fs.existsSync(resolvedPath)) {
+      if (isTempUpload(resolvedPath) && fs.existsSync(resolvedPath)) {
         fs.unlinkSync(resolvedPath);
       }
     }
@@ -1434,7 +1372,7 @@ router.post('/:id/rename', async (req, res) => {
     }
 
     const image = result.rows[0];
-    const oldFullPath = path.resolve(__dirname, '../../../', image.file_path);
+    const oldFullPath = localPathFor(image.file_path);
     const ext = path.extname(image.filename);
     const slugged = slugifyFilename(new_filename + ext);
     const newFilename = slugged + ext;
@@ -1442,7 +1380,7 @@ router.post('/:id/rename', async (req, res) => {
     // Build new paths
     const dir = path.dirname(image.file_path);
     const newRelPath = path.join(dir, newFilename);
-    const newFullPath = path.resolve(__dirname, '../../../', newRelPath);
+    const newFullPath = localPathFor(newRelPath);
 
     // Rename on filesystem
     if (fs.existsSync(oldFullPath)) {
@@ -1488,7 +1426,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
     let finalPath, fileSize, width, height, mimeType;
 
     // Determine where the file should go (validate paths to prevent traversal)
-    const fullPath = assertPathWithin(path.resolve(__dirname, '../../../', image.file_path), IMAGES_DIR);
+    const fullPath = localPathFor(image.file_path);
     assertPathWithin(req.file.path, UPLOAD_TEMP_DIR);
     const destDir = path.dirname(fullPath);
     if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
@@ -1531,7 +1469,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
         const newFilename = baseName + '.webp';
         const dir = path.dirname(image.file_path);
         const newRelPath = path.join(dir, newFilename);
-        const newFullPath = assertPathWithin(path.resolve(__dirname, '../../../', newRelPath), IMAGES_DIR);
+        const newFullPath = localPathFor(newRelPath);
 
         const sharpInstance = sharp(req.file.path);
         const meta = await sharpInstance.metadata();
@@ -1611,7 +1549,7 @@ router.get('/:id/download', async (req, res) => {
     }
 
     const image = result.rows[0];
-    const fullPath = path.resolve(__dirname, '../../../', image.file_path);
+    const fullPath = localPathFor(image.file_path);
 
     // Try local file first, fall back to CDN redirect
     if (fs.existsSync(fullPath)) {

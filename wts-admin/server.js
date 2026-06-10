@@ -183,14 +183,27 @@ app.use('/api/proxy', ensureAuthenticated, ensureAdmin, proxyApiRoutes);
 app.use('/images', ensureAuthenticated, ensureAdmin, imagesRoutes);
 app.use('/webdev', ensureAuthenticated, ensureAdmin, webdevRoutes);
 
-// Serve images from the main marketing repo for preview
-const imagesServePath = require('path').resolve(__dirname, '../images');
-app.use('/images-serve', (req, res, next) => {
+// Serve images from the local working copy for admin previews.
+// The local copy is env-configurable (IMAGES_DIR, e.g. a Railway volume);
+// when a file is missing locally — typical after a redeploy on an
+// ephemeral filesystem — redirect to the durable CDN copy instead.
+const storage = require('./src/utils/storage');
+const fsLocal = require('fs');
+app.use('/images-serve', (req, res) => {
   const filePath = req.query.path;
-  if (!filePath || filePath.includes('..')) return res.status(400).send('Invalid path');
-  const fullPath = require('path').resolve(__dirname, '..', filePath);
-  if (!fullPath.startsWith(imagesServePath)) return res.status(403).send('Forbidden');
-  res.sendFile(fullPath);
+  if (!filePath || typeof filePath !== 'string' || filePath.includes('..') || !filePath.startsWith('images/')) {
+    return res.status(400).send('Invalid path');
+  }
+  let fullPath;
+  try {
+    fullPath = storage.localPathFor(filePath);
+  } catch (e) {
+    return res.status(403).send('Forbidden');
+  }
+  if (fsLocal.existsSync(fullPath)) {
+    return res.sendFile(fullPath);
+  }
+  return res.redirect(302, storage.buildCdnUrl(filePath));
 });
 
 // Home route - redirect to login or dashboard
