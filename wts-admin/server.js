@@ -209,13 +209,22 @@ app.use('/api/webhooks', webhooksApiRoutes);
 // Admin surfaces require an authenticated session with role === 'admin'.
 // /dashboard stays reachable by any authenticated user (it renders a
 // restricted view for non-admins) so ensureAdmin has a safe redirect target.
+// Each admin mount gets its own rate limiter ahead of the auth guards so
+// the pre-auth path is limited too; the per-router limiters inside use
+// the same 100/15min budget, so legitimate admin traffic is unaffected.
+const adminSurfaceLimiter = () => rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
+});
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
-app.use('/content', ensureAuthenticated, ensureAdmin, contentRoutes);
-app.use('/business', ensureAuthenticated, ensureAdmin, businessRoutes);
-app.use('/api', ensureAuthenticated, ensureAdmin, apiRoutes);
-app.use('/images', ensureAuthenticated, ensureAdmin, imagesRoutes);
-app.use('/webdev', ensureAuthenticated, ensureAdmin, webdevRoutes);
+app.use('/content', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, contentRoutes);
+app.use('/business', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, businessRoutes);
+app.use('/api', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, apiRoutes);
+app.use('/images', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, imagesRoutes);
+app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webdevRoutes);
 
 // Serve images from the local working copy for admin previews.
 // The local copy is env-configurable (IMAGES_DIR, e.g. a Railway volume);

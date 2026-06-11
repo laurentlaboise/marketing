@@ -5,12 +5,22 @@ const { v4: uuidv4 } = require('uuid');
 const { body, validationResult } = require('express-validator');
 const db = require('../../database/db');
 const { sendPasswordResetEmail } = require('../utils/email');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
-// Rate limiting for /auth/login and /auth/signup lives in server.js
-// (10 attempts / 15 min); the looser duplicate limiter that used to be
-// defined here never took effect.
+// Router-wide rate limit covering every auth route — including OAuth
+// callbacks, forgot/reset password (email sending, token guessing) and
+// logout. The stricter 10/15min limiter in server.js still applies on
+// top of this for /auth/login and /auth/signup.
+const authRouterLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX) || 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many requests, please try again later.'
+});
+router.use(authRouterLimiter);
 
 // Public self-signup is disabled unless explicitly enabled, because any
 // account created here gets access to the admin app's authenticated areas.
