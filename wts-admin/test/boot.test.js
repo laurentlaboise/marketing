@@ -18,6 +18,15 @@ test('production boot fails fast without database TLS configuration', async () =
   assert.match(output, /Database TLS is not configured/);
 });
 
+test('boot rejects an invalid PGSSL_VERIFY value', async () => {
+  const { code, output } = await runServerExpectingExit({
+    PGSSLROOTCERT: '-----BEGIN CERTIFICATE-----\nnot-validated-at-config-time\n-----END CERTIFICATE-----',
+    PGSSL_VERIFY: 'verify-nothing',
+  });
+  assert.notEqual(code, 0);
+  assert.match(output, /Invalid PGSSL_VERIFY value/);
+});
+
 test('telemetry endpoint fails closed when its secret is missing', async () => {
   const server = await startServer(3204, { TELEMETRY_WEBHOOK_SECRET: undefined });
   try {
