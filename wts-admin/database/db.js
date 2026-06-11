@@ -1,4 +1,44 @@
 const { Pool } = require('pg');
+const fs = require('fs');
+
+// TLS configuration for the database connection.
+//
+// Production requires verified TLS: set PGSSLROOTCERT to the server's CA
+// certificate (a file path, or the PEM content itself — Railway exposes it
+// in the Postgres service variables) so certificates are actually
+// validated. rejectUnauthorized:false (the previous behavior) accepts any
+// certificate and allows man-in-the-middle interception of credentials
+// and data.
+//
+// Outside production, PGSSL_INSECURE=true opts into unverified TLS for
+// ad-hoc connections to managed databases; plain local connections use no
+// TLS at all.
+function getSslConfig() {
+  const rootCert = process.env.PGSSLROOTCERT;
+  if (rootCert) {
+    const ca = rootCert.includes('-----BEGIN CERTIFICATE-----')
+      ? rootCert
+      : fs.readFileSync(rootCert, 'utf8');
+    return { ca, rejectUnauthorized: true };
+  }
+
+  if (process.env.PGSSL_INSECURE === 'true') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('PGSSL_INSECURE is not allowed in production. Set PGSSLROOTCERT to the database CA certificate instead.');
+    }
+    return { rejectUnauthorized: false };
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'Database TLS is not configured. Set PGSSLROOTCERT to the CA certificate ' +
+      '(file path or PEM content) of your PostgreSQL server so certificates can be verified.'
+    );
+  }
+
+  // Local development: plain connection
+  return false;
+}
 
 // Database connection configuration
 function getConnectionConfig() {
@@ -6,7 +46,7 @@ function getConnectionConfig() {
   if (process.env.DATABASE_URL) {
     return {
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: getSslConfig()
     };
   }
 
@@ -18,7 +58,7 @@ function getConnectionConfig() {
       user: process.env.PGUSER,
       password: process.env.PGPASSWORD,
       database: process.env.PGDATABASE,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: getSslConfig()
     };
   }
 
@@ -32,7 +72,12 @@ function getConnectionConfig() {
   };
 }
 
-const pool = new Pool(getConnectionConfig());
+const pool = new Pool({
+  ...getConnectionConfig(),
+  max: Number(process.env.PG_POOL_MAX) || 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
 
 // Handle pool errors
 pool.on('error', (err) => {
@@ -41,6 +86,10 @@ pool.on('error', (err) => {
 
 // Database operations
 const db = {
+  // Underlying pool (shared with connect-pg-simple so the session store
+  // uses the same TLS configuration)
+  pool,
+
   // Query helper
   query: async (text, params) => {
     const start = Date.now();
@@ -813,6 +862,87 @@ const db = {
             ALTER TABLE images ADD COLUMN folder_id UUID REFERENCES image_folders(id) ON DELETE SET NULL;
           END IF;
         END $$;
+      `);
+
+      // Execution telemetry table (written by POST /api/webhooks/telemetry).
+      // Previously this table had no schema here, so every ingest failed.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS execution_telemetry (
+          id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+          automation_id TEXT NOT NULL,
+          execution_status VARCHAR(50) DEFAULT 'unknown',
+          error_log TEXT,
+          anomaly_score NUMERIC,
+          latency_ms INTEGER,
+          executed_at TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_execution_telemetry_automation_executed
+          ON execution_telemetry (automation_id, executed_at DESC)
+      `);
+
+      // Indexes for slug lookups, foreign keys and common sort/filter
+      // columns. UNIQUE columns (articles.slug, guides.slug,
+      // microsites.slug, users.email) already have implicit indexes.
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_users_provider ON users (provider, provider_id);
+        CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users (reset_token);
+
+        CREATE INDEX IF NOT EXISTS idx_articles_status_published_at ON articles (status, published_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_articles_category ON articles (category);
+        CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles (created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_articles_author_id ON articles (author_id);
+
+        CREATE INDEX IF NOT EXISTS idx_guides_status_published_at ON guides (status, published_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_guides_category ON guides (category);
+        CREATE INDEX IF NOT EXISTS idx_guides_author_id ON guides (author_id);
+
+        CREATE INDEX IF NOT EXISTS idx_glossary_slug ON glossary (slug);
+        CREATE INDEX IF NOT EXISTS idx_glossary_letter ON glossary (letter);
+        CREATE INDEX IF NOT EXISTS idx_glossary_term ON glossary (term);
+
+        CREATE INDEX IF NOT EXISTS idx_seo_terms_slug ON seo_terms (slug);
+        CREATE INDEX IF NOT EXISTS idx_seo_terms_category ON seo_terms (category);
+        CREATE INDEX IF NOT EXISTS idx_seo_terms_term ON seo_terms (term);
+
+        CREATE INDEX IF NOT EXISTS idx_ai_tools_status_category ON ai_tools (status, category);
+        CREATE INDEX IF NOT EXISTS idx_ai_tools_name ON ai_tools (name);
+
+        CREATE INDEX IF NOT EXISTS idx_products_slug ON products (slug);
+        CREATE INDEX IF NOT EXISTS idx_products_status_service_page ON products (status, service_page);
+        CREATE INDEX IF NOT EXISTS idx_products_category ON products (category);
+
+        CREATE INDEX IF NOT EXISTS idx_price_models_status_sort ON price_models (status, sort_order);
+        CREATE INDEX IF NOT EXISTS idx_price_models_slug ON price_models (slug);
+        CREATE INDEX IF NOT EXISTS idx_pricing_features_status_sort ON pricing_features (status, category_sort_order, sort_order);
+
+        CREATE INDEX IF NOT EXISTS idx_sidebar_items_section_visible ON sidebar_items (section, is_visible);
+        CREATE INDEX IF NOT EXISTS idx_sidebar_items_parent_id ON sidebar_items (parent_id);
+
+        CREATE INDEX IF NOT EXISTS idx_orders_stripe_session_id ON orders (stripe_session_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_product_id ON orders (product_id);
+
+        CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications (user_id, read);
+        CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications (user_id, created_at DESC);
+
+        CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs (created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs (user_id);
+
+        CREATE INDEX IF NOT EXISTS idx_form_submissions_created_at ON form_submissions (created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_form_submissions_form_type ON form_submissions (form_type);
+        CREATE INDEX IF NOT EXISTS idx_form_buttons_form_type_status ON form_buttons (form_type, status);
+
+        CREATE INDEX IF NOT EXISTS idx_microsites_status ON microsites (status);
+        CREATE INDEX IF NOT EXISTS idx_microsite_domains_microsite_id ON microsite_domains (microsite_id);
+        CREATE INDEX IF NOT EXISTS idx_microsite_deployments_microsite_created ON microsite_deployments (microsite_id, created_at DESC);
+
+        CREATE INDEX IF NOT EXISTS idx_images_file_path ON images (file_path);
+        CREATE INDEX IF NOT EXISTS idx_images_folder_id ON images (folder_id);
+        CREATE INDEX IF NOT EXISTS idx_images_status_created ON images (status, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_images_category ON images (category);
+        CREATE INDEX IF NOT EXISTS idx_image_folders_parent_id ON image_folders (parent_id);
       `);
 
       await client.query('COMMIT');

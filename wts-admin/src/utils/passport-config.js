@@ -5,6 +5,18 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 const bcrypt = require('bcryptjs');
 const db = require('../../database/db');
 
+// OAuth logins may only auto-create accounts for emails on the
+// OAUTH_ALLOWED_EMAILS allow-list (comma-separated). Without the list,
+// no new accounts are created via OAuth — existing users can still log in.
+const isOAuthEmailAllowed = (email) => {
+  if (!email) return false;
+  const allowList = (process.env.OAUTH_ALLOWED_EMAILS || '')
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean);
+  return allowList.includes(email.toLowerCase());
+};
+
 // Serialize user for session
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -92,6 +104,11 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         }
       }
 
+      // Only auto-create accounts for allow-listed emails
+      if (!isOAuthEmailAllowed(email)) {
+        return done(null, false, { message: 'This account is not authorized to access the admin dashboard.' });
+      }
+
       // Create new user
       const newUser = await db.query(
         `INSERT INTO users (email, first_name, last_name, avatar_url, provider, provider_id, email_verified, last_login)
@@ -148,6 +165,11 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
           const updatedUser = await db.query('SELECT * FROM users WHERE id = $1', [result.rows[0].id]);
           return done(null, updatedUser.rows[0]);
         }
+      }
+
+      // Only auto-create accounts for allow-listed emails
+      if (!isOAuthEmailAllowed(email)) {
+        return done(null, false, { message: 'This account is not authorized to access the admin dashboard.' });
       }
 
       // Create new user

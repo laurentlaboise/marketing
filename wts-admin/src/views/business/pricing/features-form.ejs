@@ -15,6 +15,7 @@
     <div class="card form-card">
       <div class="card-body">
         <form action="<%= feature ? '/business/pricing-features/' + feature.id : '/business/pricing-features' %>" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
           <div class="form-row">
             <div class="form-group">

@@ -1,5 +1,33 @@
 // WTS Admin - Main JavaScript
 
+// Attach the CSRF token (from the <meta> tag rendered by partials/head.ejs)
+// to every same-origin mutating fetch, so admin XHR calls pass the
+// server-side CSRF check without each call site handling it.
+(function () {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  const token = meta && meta.content;
+  if (!token || !window.fetch) return;
+  const originalFetch = window.fetch;
+  window.fetch = function (input, init) {
+    try {
+      const url = typeof input === 'string' ? input : (input && input.url) || '';
+      const method = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+      const sameOrigin = url.startsWith('/')
+        ? !url.startsWith('//')
+        : url.startsWith(window.location.origin + '/');
+      if (sameOrigin && method !== 'GET' && method !== 'HEAD') {
+        init = init || {};
+        const headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+        if (!headers.has('X-CSRF-Token')) headers.set('X-CSRF-Token', token);
+        init.headers = headers;
+      }
+    } catch (e) {
+      // Never block the request because of header plumbing
+    }
+    return originalFetch.call(this, input, init);
+  };
+})();
+
 // Body scroll lock helpers (iOS-safe)
 let _scrollY = 0;
 function lockBody() {

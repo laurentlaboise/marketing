@@ -78,6 +78,7 @@
                     <div class="table-actions">
                       <a href="/business/pricing/<%= model.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                       <form action="/business/pricing/<%= model.id %>/delete" method="POST" style="display: inline;">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
                       </form>
                     </div>
@@ -136,6 +137,7 @@
                     <div class="table-actions">
                       <a href="/business/pricing-features/<%= feature.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
                       <form action="/business/pricing-features/<%= feature.id %>/delete" method="POST" style="display: inline;">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
                       </form>
                     </div>
@@ -164,7 +166,7 @@
   </div>
 </main>
 
-<script>
+<script nonce="<%= cspNonce %>">
 (function() {
   var tabs = document.querySelectorAll('.tab-btn');
   var packagesActions = document.getElementById('packagesActions');

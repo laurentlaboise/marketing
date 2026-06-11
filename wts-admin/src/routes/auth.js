@@ -9,12 +9,31 @@ const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 auth requests per windowMs
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+// Router-wide rate limit covering every auth route — including OAuth
+// callbacks, forgot/reset password (email sending, token guessing) and
+// logout. The stricter 10/15min limiter in server.js still applies on
+// top of this for /auth/login and /auth/signup.
+const authRouterLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX) || 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many requests, please try again later.'
 });
+router.use(authRouterLimiter);
+
+// Public self-signup is disabled unless explicitly enabled, because any
+// account created here gets access to the admin app's authenticated areas.
+const signupEnabled = () => process.env.ALLOW_SIGNUP === 'true';
+
+// Map OAuth/redirect error codes to fixed messages so arbitrary query
+// strings can't be reflected into the login alert box.
+const LOGIN_ERROR_MESSAGES = {
+  google_auth_failed: 'Google sign-in failed. Please try again or use email login.',
+  facebook_auth_failed: 'Facebook sign-in failed. Please try again or use email login.',
+  signup_disabled: 'Account registration is disabled. Contact an administrator for access.',
+  oauth_not_allowed: 'This account is not authorized to access the admin dashboard.'
+};
 
 // Validation middleware
 const validateSignup = [
@@ -30,18 +49,19 @@ const validateLogin = [
 ];
 
 // Login page
-router.get('/login', authLimiter, (req, res) => {
+router.get('/login', (req, res) => {
   if (req.isAuthenticated()) {
     return res.redirect('/dashboard');
   }
   res.render('auth/login', {
     title: 'Login - WTS Admin',
-    error: req.query.error
+    error: req.query.error ? (LOGIN_ERROR_MESSAGES[req.query.error] || 'Authentication failed. Please try again.') : undefined,
+    signupEnabled: signupEnabled()
   });
 });
 
 // Login POST
-router.post('/login', authLimiter, validateLogin, (req, res, next) => {
+router.post('/login', validateLogin, (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.render('auth/login', {
@@ -74,6 +94,9 @@ router.post('/login', authLimiter, validateLogin, (req, res, next) => {
 
 // Signup page
 router.get('/signup', (req, res) => {
+  if (!signupEnabled()) {
+    return res.redirect('/auth/login?error=signup_disabled');
+  }
   if (req.isAuthenticated()) {
     return res.redirect('/dashboard');
   }
@@ -83,7 +106,10 @@ router.get('/signup', (req, res) => {
 });
 
 // Signup POST
-router.post('/signup', authLimiter, validateSignup, async (req, res) => {
+router.post('/signup', validateSignup, async (req, res) => {
+  if (!signupEnabled()) {
+    return res.redirect('/auth/login?error=signup_disabled');
+  }
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.render('auth/signup', {
@@ -297,26 +323,40 @@ router.get('/google', passport.authenticate('google', {
   scope: ['profile', 'email']
 }));
 
-router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/auth/login?error=google_auth_failed' }),
-  (req, res) => {
-    req.session.successMessage = 'Welcome!';
-    res.redirect('/dashboard');
-  }
-);
+router.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      const code = info?.message?.includes('not authorized') ? 'oauth_not_allowed' : 'google_auth_failed';
+      return res.redirect(`/auth/login?error=${code}`);
+    }
+    req.logIn(user, (loginErr) => {
+      if (loginErr) return next(loginErr);
+      req.session.successMessage = 'Welcome!';
+      res.redirect('/dashboard');
+    });
+  })(req, res, next);
+});
 
 // Facebook OAuth
 router.get('/facebook', passport.authenticate('facebook', {
   scope: ['email', 'public_profile']
 }));
 
-router.get('/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: '/auth/login?error=facebook_auth_failed' }),
-  (req, res) => {
-    req.session.successMessage = 'Welcome!';
-    res.redirect('/dashboard');
-  }
-);
+router.get('/facebook/callback', (req, res, next) => {
+  passport.authenticate('facebook', (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      const code = info?.message?.includes('not authorized') ? 'oauth_not_allowed' : 'facebook_auth_failed';
+      return res.redirect(`/auth/login?error=${code}`);
+    }
+    req.logIn(user, (loginErr) => {
+      if (loginErr) return next(loginErr);
+      req.session.successMessage = 'Welcome!';
+      res.redirect('/dashboard');
+    });
+  })(req, res, next);
+});
 
 // Logout
 router.get('/logout', (req, res) => {

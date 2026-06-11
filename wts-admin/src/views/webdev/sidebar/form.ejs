@@ -19,6 +19,7 @@
         <div class="card-body">
           <h3 style="margin-bottom:1rem;"><i class="fas fa-cog"></i> Settings</h3>
           <form id="sidebar-form" action="<%= item ? '/webdev/sidebar/' + item.id : '/webdev/sidebar' %>" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="form-group">
               <label class="form-label" for="label">Label / Title *</label>
               <input type="text" id="label" name="label" class="form-input" value="<%= item ? item.label : '' %>" required>
@@ -291,7 +292,7 @@
   }
 </style>
 
-<script>
+<script nonce="<%= cspNonce %>">
 document.addEventListener('DOMContentLoaded', () => {
   const editor = document.getElementById('html-editor');
   const source = document.getElementById('html-source');
@@ -396,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- Link Verifier Script -->
-<script>
+<script nonce="<%= cspNonce %>">
 (function() {
   var verifyBtn = document.getElementById('verifyLinkBtn');
   var pageUrlInput = document.getElementById('page_url');

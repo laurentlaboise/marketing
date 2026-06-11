@@ -20,6 +20,7 @@
       <div class="page-actions">
         <% if (notifications.some(n => !n.read)) { %>
         <form action="/webdev/notifications/read-all" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button type="submit" class="btn btn-secondary btn-sm">
             <i class="fas fa-check-double"></i> Mark All Read
           </button>
@@ -48,6 +49,7 @@
           <% } %>
           <% if (!n.read) { %>
           <form action="/webdev/notifications/<%= n.id %>/read" method="POST" style="display: inline;">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button type="submit" class="btn btn-sm btn-secondary" title="Mark as read"><i class="fas fa-check"></i></button>
           </form>
           <% } %>

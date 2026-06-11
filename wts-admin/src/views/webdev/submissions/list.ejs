@@ -86,6 +86,7 @@
                 <td data-label="Company"><%= sub.company || '-' %></td>
                 <td data-label="Status">
                   <form action="/webdev/submissions/<%= sub.id %>/status" method="POST" style="display:inline;">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <select name="status" class="form-input" style="width: auto; min-width: 110px; padding: 0.25rem 0.5rem; font-size: 0.85rem;" onchange="this.form.submit()">
                       <option value="new" <%= sub.status === 'new' ? 'selected' : '' %>>New</option>
                       <option value="reviewed" <%= sub.status === 'reviewed' ? 'selected' : '' %>>Reviewed</option>
@@ -98,6 +99,7 @@
                   <div class="table-actions">
                     <button type="button" class="btn btn-sm btn-secondary" onclick="toggleDetail(this)" title="View details"><i class="fas fa-eye"></i></button>
                     <form action="/webdev/submissions/<%= sub.id %>/delete" method="POST" style="display: inline;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
                     </form>
                   </div>
@@ -144,7 +146,7 @@
   </div>
 </main>
 
-<script>
+<script nonce="<%= cspNonce %>">
 function toggleDetail(btn) {
   const row = btn.closest('tr');
   const detailRow = row.nextElementSibling;

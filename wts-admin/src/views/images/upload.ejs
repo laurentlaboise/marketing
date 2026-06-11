@@ -29,7 +29,8 @@
 
     <div class="card form-card">
       <div class="card-body">
-        <form action="/images/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+        <form action="/images/upload?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data" id="uploadForm">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
           <div class="form-section">
             <h3 class="form-section-title">Image File</h3>
@@ -149,7 +150,7 @@
   </div>
 </main>
 
-<script>
+<script nonce="<%= cspNonce %>">
 document.addEventListener('DOMContentLoaded', () => {
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('image');

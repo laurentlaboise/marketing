@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
+const { isOriginAllowed } = require('../utils/origins');
 
 const router = express.Router();
 
@@ -27,8 +28,8 @@ const respond = (res, data, status = 200) => {
 // Get all published articles
 router.get('/articles', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(200, Math.max(1, Number.parseInt(req.query.limit, 10) || 50));
     const offset = (page - 1) * limit;
     const category = req.query.category || '';
 
@@ -50,7 +51,8 @@ router.get('/articles', async (req, res) => {
       params.push(category);
     }
 
-    query += ` ORDER BY published_at DESC NULLS LAST, created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    query += ` ORDER BY published_at DESC NULLS LAST, created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
 
     const result = await db.query(query, params);
 
@@ -766,6 +768,11 @@ const formLimiter = rateLimit({
 });
 
 router.post('/submissions', formLimiter, async (req, res) => {
+  // CSRF does not apply here (no session auth), but block cross-site
+  // browser posts from origins outside the allow-list.
+  if (!isOriginAllowed(req)) {
+    return respond(res, { error: 'Origin not allowed.' }, 403);
+  }
   try {
     const { form_type, name, email, company, phone, message, metadata } = req.body;
 
@@ -804,7 +811,7 @@ router.post('/submissions', formLimiter, async (req, res) => {
     const notifTitle = `New ${typeLabels[form_type] || form_type}`;
     const notifMessage = `${name} (${email})${company ? ' from ' + company : ''} submitted a ${typeLabels[form_type].toLowerCase()}.`;
 
-    const admins = await db.query("SELECT id FROM users");
+    const admins = await db.query("SELECT id FROM users WHERE role = 'admin'");
     for (const admin of admins.rows) {
       await db.query(
         `INSERT INTO notifications (user_id, type, title, message, link)

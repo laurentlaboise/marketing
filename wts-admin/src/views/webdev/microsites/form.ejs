@@ -22,6 +22,7 @@
     </div>
 
     <form action="<%= microsite ? '/webdev/microsites/' + microsite.id : '/webdev/microsites' %>" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="responsive-grid-2" style="gap: 24px;">
         <!-- Left Column: Main Settings -->
         <div>

@@ -15,6 +15,7 @@
     <div class="card form-card">
       <div class="card-body">
         <form action="<%= term ? '/content/seo-terms/' + term.id : '/content/seo-terms' %>" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
           <div class="form-section">
             <h3 class="form-section-title"><i class="fas fa-book"></i> Term Details</h3>

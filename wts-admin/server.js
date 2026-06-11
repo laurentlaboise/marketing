@@ -1,10 +1,18 @@
 require('dotenv').config();
+
+// Fail fast on missing secrets — a hardcoded fallback would silently sign
+// every session cookie with a publicly-known value.
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET environment variable is required. Generate one with: openssl rand -hex 32');
+}
+
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 
 // Import routes
@@ -17,11 +25,13 @@ const publicApiRoutes = require('./src/routes/public-api');
 const imagesRoutes = require('./src/routes/images');
 const webdevRoutes = require('./src/routes/webdev');
 const paymentsRoutes = require('./src/routes/payments');
-const proxyApiRoutes = require('./src/routes/proxy-api');
 const webhooksApiRoutes = require('./src/routes/webhooks-api');
 
 // Import passport configuration
 require('./src/utils/passport-config');
+
+// Import auth guards
+const { ensureAuthenticated, ensureAdmin } = require('./src/middleware/auth');
 
 // Import database
 const db = require('./database/db');
@@ -33,13 +43,30 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 // Security middleware
+// Per-request CSP nonce: inline <script> blocks in views carry
+// nonce="<%= cspNonce %>" instead of relying on 'unsafe-inline'.
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
+      // styleSrc keeps 'unsafe-inline': views use inline style attributes
+      // pervasively; the high-value target (script injection) is nonced.
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://ka-f.fontawesome.com", "https://cdn.jsdelivr.net"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://ka-f.fontawesome.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com", "https://connect.facebook.net", "https://kit.fontawesome.com", "https://ka-f.fontawesome.com", "https://cdn.jsdelivr.net"],
+      scriptSrc: [
+        "'self'",
+        (req, res) => `'nonce-${res.locals.cspNonce}'`,
+        "https://accounts.google.com",
+        "https://connect.facebook.net",
+        "https://kit.fontawesome.com",
+        "https://ka-f.fontawesome.com",
+        "https://cdn.jsdelivr.net"
+      ],
       workerSrc: ["'self'", "blob:"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       connectSrc: ["'self'", "https://accounts.google.com", "https://www.facebook.com", "https://ka-f.fontawesome.com", "https://checkout.stripe.com", "https://cdn.jsdelivr.net", "wss:", "ws:"],
@@ -48,16 +75,9 @@ app.use(helmet({
   }
 }));
 
+const { getAllowedOrigins } = require('./src/utils/origins');
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : [
-        'http://localhost:3000',
-        'http://localhost:5500',
-        'http://127.0.0.1:5500',
-        'https://wordsthatsells.website',
-        'https://www.wordsthatsells.website'
-      ],
+  origin: getAllowedOrigins(),
   credentials: true
 }));
 
@@ -71,22 +91,34 @@ app.use('/api/', limiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10, // limit auth attempts
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX) || 10, // limit auth attempts (env-tunable for tests)
   message: 'Too many authentication attempts, please try again later.'
 });
 app.use('/auth/login', authLimiter);
 app.use('/auth/signup', authLimiter);
 
-// Body parsing - increased limit for large content
-// Exclude Stripe webhook path from JSON parsing (needs raw body for signature verification)
+// Body parsing.
+// Webhook paths are excluded from JSON parsing — they verify signatures
+// over the raw body (Stripe signature / telemetry HMAC) before parsing.
+// Only the admin content editors legitimately submit large payloads
+// (full article HTML); everything else — including all public endpoints —
+// gets a 1 MB cap so the body parser is not a DoS lever.
+const LARGE_BODY_PREFIXES = ['/content', '/webdev', '/business'];
+const allowsLargeBody = (req) => LARGE_BODY_PREFIXES.some(p => req.originalUrl.startsWith(p));
+const jsonLarge = express.json({ limit: '10mb' });
+const jsonDefault = express.json({ limit: '1mb' });
+const urlencodedLarge = express.urlencoded({ extended: true, limit: '10mb' });
+const urlencodedDefault = express.urlencoded({ extended: true, limit: '1mb' });
+
 app.use((req, res, next) => {
-  if (req.originalUrl === '/api/payments/webhook') {
-    next();
-  } else {
-    express.json({ limit: '10mb' })(req, res, next);
+  if (req.originalUrl === '/api/payments/webhook' || req.originalUrl === '/api/webhooks/telemetry') {
+    return next();
   }
+  (allowsLargeBody(req) ? jsonLarge : jsonDefault)(req, res, next);
 });
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use((req, res, next) => {
+  (allowsLargeBody(req) ? urlencodedLarge : urlencodedDefault)(req, res, next);
+});
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -97,7 +129,7 @@ app.set('views', path.join(__dirname, 'src/views'));
 
 // Session configuration
 const sessionConfig = {
-  secret: process.env.SESSION_SECRET || 'wts-admin-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -108,11 +140,13 @@ const sessionConfig = {
   }
 };
 
-// Use PostgreSQL session store in production
+// Use PostgreSQL session store in production.
+// Reuses the app pool so the session store gets the same TLS settings
+// instead of opening its own unverified connections from the raw URL.
 if (process.env.DATABASE_URL) {
   const pgSession = require('connect-pg-simple')(session);
   sessionConfig.store = new pgSession({
-    conString: process.env.DATABASE_URL,
+    pool: db.pool,
     tableName: 'user_sessions',
     createTableIfMissing: true
   });
@@ -123,6 +157,10 @@ app.use(session(sessionConfig));
 // Passport initialization (must come after session, before routes)
 app.use(passport.initialize());
 app.use(passport.session());
+
+// CSRF protection for session-authenticated, state-changing routes
+const { csrfProtection } = require('./src/middleware/csrf');
+app.use(csrfProtection);
 
 // Global variables for views
 app.use(async (req, res, next) => {
@@ -135,7 +173,9 @@ app.use(async (req, res, next) => {
   delete req.session.successMessage;
   delete req.session.errorMessage;
 
-  // Attach unread notification count for authenticated users
+  // Attach unread notification count for authenticated users.
+  // Non-critical: failures degrade to a zero badge, but are logged
+  // (rate-limited to one warning per minute) instead of swallowed.
   res.locals.unreadCount = 0;
   if (req.user && req.user.id) {
     try {
@@ -144,7 +184,12 @@ app.use(async (req, res, next) => {
         [req.user.id]
       );
       res.locals.unreadCount = parseInt(result.rows[0].count) || 0;
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      if (!app.locals.lastNotifCountWarn || Date.now() - app.locals.lastNotifCountWarn > 60000) {
+        app.locals.lastNotifCountWarn = Date.now();
+        console.warn('Notification count query failed (badge degraded to 0):', e.message);
+      }
+    }
   }
 
   next();
@@ -161,23 +206,47 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/webhooks', webhooksApiRoutes);
 
 // Routes
+// Admin surfaces require an authenticated session with role === 'admin'.
+// /dashboard stays reachable by any authenticated user (it renders a
+// restricted view for non-admins) so ensureAdmin has a safe redirect target.
+// Each admin mount gets its own rate limiter ahead of the auth guards so
+// the pre-auth path is limited too; the per-router limiters inside use
+// the same 100/15min budget, so legitimate admin traffic is unaffected.
+const adminSurfaceLimiter = () => rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
+});
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
-app.use('/content', contentRoutes);
-app.use('/business', businessRoutes);
-app.use('/api', apiRoutes);
-app.use('/api/proxy', proxyApiRoutes);
-app.use('/images', imagesRoutes);
-app.use('/webdev', webdevRoutes);
+app.use('/content', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, contentRoutes);
+app.use('/business', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, businessRoutes);
+app.use('/api', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, apiRoutes);
+app.use('/images', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, imagesRoutes);
+app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webdevRoutes);
 
-// Serve images from the main marketing repo for preview
-const imagesServePath = require('path').resolve(__dirname, '../images');
-app.use('/images-serve', (req, res, next) => {
+// Serve images from the local working copy for admin previews.
+// The local copy is env-configurable (IMAGES_DIR, e.g. a Railway volume);
+// when a file is missing locally — typical after a redeploy on an
+// ephemeral filesystem — redirect to the durable CDN copy instead.
+const storage = require('./src/utils/storage');
+const fsLocal = require('fs');
+app.use('/images-serve', (req, res) => {
   const filePath = req.query.path;
-  if (!filePath || filePath.includes('..')) return res.status(400).send('Invalid path');
-  const fullPath = require('path').resolve(__dirname, '..', filePath);
-  if (!fullPath.startsWith(imagesServePath)) return res.status(403).send('Forbidden');
-  res.sendFile(fullPath);
+  if (!filePath || typeof filePath !== 'string' || filePath.includes('..') || !filePath.startsWith('images/')) {
+    return res.status(400).send('Invalid path');
+  }
+  let fullPath;
+  try {
+    fullPath = storage.localPathFor(filePath);
+  } catch (e) {
+    return res.status(403).send('Forbidden');
+  }
+  if (fsLocal.existsSync(fullPath)) {
+    return res.sendFile(fullPath);
+  }
+  return res.redirect(302, storage.buildCdnUrl(filePath));
 });
 
 // Home route - redirect to login or dashboard
@@ -189,9 +258,25 @@ app.get('/', (req, res) => {
   }
 });
 
-// Health check for Railway
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check for Railway.
+// The server deliberately listens even when the DB is down (the listener
+// must bind for the platform to route at all), but /health reports the
+// truth: 503 + db:"down" instead of a hollow 200. Railway health checks
+// run at deploy time, so a DB outage during a deploy fails that deploy
+// rather than shipping an instance that can only serve errors; at
+// runtime the status code feeds external monitors.
+app.get('/health', async (req, res) => {
+  const timestamp = new Date().toISOString();
+  try {
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('db ping timeout')), 2000);
+      timer.unref();
+      db.query('SELECT 1').then((r) => { clearTimeout(timer); resolve(r); }, (e) => { clearTimeout(timer); reject(e); });
+    });
+    res.status(200).json({ status: 'ok', db: 'ok', timestamp });
+  } catch (e) {
+    res.status(503).json({ status: 'degraded', db: 'down', timestamp });
+  }
 });
 
 // 404 handler
@@ -203,13 +288,22 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
+// Error handler. Respects the status of client errors raised by
+// middleware (413 payload-too-large, 400 invalid JSON, …) instead of
+// flattening everything to 500, and answers JSON on API paths.
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).render('error', {
-    title: 'Server Error',
-    message: process.env.NODE_ENV === 'production' ? 'Something went wrong.' : err.message,
-    code: 500
+  const status = Number.isInteger(err.status || err.statusCode) ? (err.status || err.statusCode) : 500;
+  const message = status >= 500 && process.env.NODE_ENV === 'production'
+    ? 'Something went wrong.'
+    : err.message;
+  if (req.originalUrl.startsWith('/api/')) {
+    return res.status(status).json({ success: false, error: message });
+  }
+  res.status(status).render('error', {
+    title: status >= 500 ? 'Server Error' : 'Request Error',
+    message,
+    code: status
   });
 });
 

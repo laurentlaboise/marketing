@@ -28,11 +28,9 @@ const createSlug = (title) => {
     .replace(/^-+|-+$/g, '');
 };
 
-// Multer config for CSV/XLSX file uploads
-const UPLOAD_TEMP_DIR = path.join(__dirname, '../../uploads/temp');
-if (!fs.existsSync(UPLOAD_TEMP_DIR)) {
-  fs.mkdirSync(UPLOAD_TEMP_DIR, { recursive: true });
-}
+// Multer config for CSV/XLSX file uploads (shared temp dir from storage module)
+const { UPLOAD_TEMP_DIR, ensureDirs } = require('../utils/storage');
+ensureDirs();
 
 const csvUpload = multer({
   dest: UPLOAD_TEMP_DIR,
@@ -52,7 +50,7 @@ const csvUpload = multer({
 // List articles
 router.get('/articles', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
     const limit = 20;
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
@@ -84,10 +82,10 @@ router.get('/articles', async (req, res) => {
       countQuery += ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
 
     const [articles, count] = await Promise.all([
-      db.query(query, params),
+      db.query(query, [...params, limit, offset]),
       db.query(countQuery, params)
     ]);
 
@@ -105,6 +103,7 @@ router.get('/articles', async (req, res) => {
       title: 'Articles - WTS Admin',
       articles: [],
       currentPage: 'articles',
+      pagination: { page: 1, totalPages: 0, search: '', status: '', category: '' },
       error: 'Failed to load articles'
     });
   }
@@ -963,7 +962,7 @@ router.post('/glossary/:id/delete', async (req, res) => {
 
 router.get('/guides', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
     const limit = 20;
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
@@ -989,10 +988,10 @@ router.get('/guides', async (req, res) => {
       countQuery += ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
 
     const [guides, count] = await Promise.all([
-      db.query(query, params),
+      db.query(query, [...params, limit, offset]),
       db.query(countQuery, params)
     ]);
 
@@ -1010,6 +1009,7 @@ router.get('/guides', async (req, res) => {
       title: 'E-Guides - WTS Admin',
       guides: [],
       currentPage: 'guides',
+      pagination: { page: 1, totalPages: 0, search: '', status: '' },
       error: 'Failed to load guides'
     });
   }

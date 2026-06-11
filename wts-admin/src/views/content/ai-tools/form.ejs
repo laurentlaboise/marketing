@@ -15,6 +15,7 @@
     <div class="card form-card">
       <div class="card-body">
         <form action="<%= tool ? '/content/ai-tools/' + tool.id : '/content/ai-tools' %>" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <div class="form-section">
             <h3 class="form-section-title">Basic Information</h3>
 
