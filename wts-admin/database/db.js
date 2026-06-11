@@ -19,7 +19,24 @@ function getSslConfig() {
     const ca = rootCert.includes('-----BEGIN CERTIFICATE-----')
       ? rootCert
       : fs.readFileSync(rootCert, 'utf8');
-    return { ca, rejectUnauthorized: true };
+    // PGSSL_VERIFY:
+    //   verify-full (default) — validate the CA chain AND that the
+    //     certificate matches the host we dialed.
+    //   verify-ca — validate the chain against the CA but skip hostname
+    //     matching (Postgres sslmode=verify-ca semantics). Needed for
+    //     managed databases (e.g. Railway's TCP proxy) whose self-signed
+    //     certificates don't carry the proxy hostname in their SANs.
+    //     Never falls back automatically — downgrading is an explicit,
+    //     visible choice.
+    const mode = process.env.PGSSL_VERIFY || 'verify-full';
+    if (mode !== 'verify-full' && mode !== 'verify-ca') {
+      throw new Error(`Invalid PGSSL_VERIFY value "${mode}". Use "verify-full" (default) or "verify-ca".`);
+    }
+    const ssl = { ca, rejectUnauthorized: true };
+    if (mode === 'verify-ca') {
+      ssl.checkServerIdentity = () => undefined;
+    }
+    return ssl;
   }
 
   if (process.env.PGSSL_INSECURE === 'true') {
