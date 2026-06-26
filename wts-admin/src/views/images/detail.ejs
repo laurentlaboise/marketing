@@ -242,17 +242,33 @@
         </div>
         <% } %>
 
-        <!-- Delete -->
-        <div class="card" style="margin-top: 20px; border: 1px solid var(--danger);">
+        <!-- Archive -->
+        <div class="card" style="margin-top: 20px;">
           <div class="card-body delete-card-body">
             <div>
-              <p style="font-weight: 600; color: var(--danger);">Archive this image</p>
-              <p class="form-help">Removes from library. The file remains on disk.</p>
+              <p style="font-weight: 600;">Archive this image</p>
+              <p class="form-help">Hides it from the library. The file is kept and can be restored.</p>
             </div>
             <form action="/images/<%= image.id %>/delete" method="POST">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete="Are you sure you want to archive this image?">
-                <i class="fas fa-trash"></i> Archive
+              <button type="submit" class="btn btn-sm btn-secondary" data-confirm-delete="Archive this image? It will be hidden but the file is kept and can be restored.">
+                <i class="fas fa-box-archive"></i> Archive
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Permanent delete -->
+        <div class="card" style="margin-top: 20px; border: 1px solid var(--danger);">
+          <div class="card-body delete-card-body">
+            <div>
+              <p style="font-weight: 600; color: var(--danger);">Delete permanently</p>
+              <p class="form-help">Removes the image from the library and the CDN. This cannot be undone.</p>
+            </div>
+            <form action="/images/<%= image.id %>/destroy" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete="Permanently delete this image? This removes it from the library AND the CDN and cannot be undone.">
+                <i class="fas fa-trash"></i> Delete permanently
               </button>
             </form>
           </div>
