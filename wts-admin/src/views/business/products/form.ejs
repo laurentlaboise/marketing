@@ -62,12 +62,16 @@
       <!-- Pricing & Category -->
       <div class="card form-card" style="margin-bottom: 1.5rem;">
         <div class="card-body">
-          <h3 style="margin-bottom: 1rem; color: var(--text-primary, #1a1a2e);"><i class="fas fa-tags"></i> Pricing & Category</h3>
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary, #1a1a2e);"><i class="fas fa-tags"></i> Pricing & Billing</h3>
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="price">Price</label>
-              <input type="number" id="price" name="price" class="form-input" step="0.01" value="<%= product ? (product.price || '') : '' %>">
+              <label class="form-label" for="pricing_type">Pricing Type</label>
+              <select id="pricing_type" name="pricing_type" class="form-input">
+                <option value="one_time" <%= !product || (product.pricing_type || 'one_time') === 'one_time' ? 'selected' : '' %>>One-Time Payment</option>
+                <option value="subscription" <%= product && product.pricing_type === 'subscription' ? 'selected' : '' %>>Subscription</option>
+              </select>
+              <small style="color:#666;">Choose how this product is billed.</small>
             </div>
             <div class="form-group">
               <label class="form-label" for="currency">Currency</label>
@@ -78,6 +82,71 @@
                 <option value="THB" <%= product && product.currency === 'THB' ? 'selected' : '' %>>THB</option>
                 <option value="LAK" <%= product && product.currency === 'LAK' ? 'selected' : '' %>>LAK</option>
               </select>
+            </div>
+          </div>
+
+          <!-- One-Time pricing -->
+          <div id="one-time-pricing" class="pricing-block">
+            <div class="form-group">
+              <label class="form-label" for="price">One-Time Price</label>
+              <input type="number" id="price" name="price" class="form-input" step="0.01" min="0" value="<%= product ? (product.price || '') : '' %>" placeholder="e.g. 99.00">
+              <small style="color:#666;">Single purchase amount. Example: Product A — $99.</small>
+            </div>
+          </div>
+
+          <!-- Subscription pricing -->
+          <div id="subscription-pricing" class="pricing-block" style="border-left:3px solid var(--accent-color,#d62b83);padding-left:1rem;margin-top:0.5rem;">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="monthly_price">Monthly Price</label>
+                <input type="number" id="monthly_price" name="monthly_price" class="form-input" step="0.01" min="0" value="<%= product && product.monthly_price != null ? product.monthly_price : '' %>" placeholder="e.g. 19.00">
+                <small style="color:#666;">Leave blank to offer yearly only.</small>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="yearly_price">Yearly Price</label>
+                <input type="number" id="yearly_price" name="yearly_price" class="form-input" step="0.01" min="0" value="<%= product && product.yearly_price != null ? product.yearly_price : '' %>" placeholder="e.g. 190.00">
+                <small style="color:#666;">Leave blank to offer monthly only.</small>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="annual_discount_pct">Annual Discount % (optional)</label>
+                <input type="number" id="annual_discount_pct" name="annual_discount_pct" class="form-input" min="0" max="100" value="<%= product && product.annual_discount_pct != null ? product.annual_discount_pct : '' %>" placeholder="auto">
+                <small style="color:#666;">Override the “Save X%” badge. Leave blank to auto-calculate from the prices above.</small>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="default_billing">Default Billing Selection</label>
+                <select id="default_billing" name="default_billing" class="form-input">
+                  <option value="monthly" <%= !product || (product.default_billing || 'monthly') === 'monthly' ? 'selected' : '' %>>Monthly</option>
+                  <option value="yearly" <%= product && product.default_billing === 'yearly' ? 'selected' : '' %>>Yearly</option>
+                </select>
+                <small style="color:#666;">Which option is pre-selected on the product page.</small>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                <input type="hidden" name="allow_billing_toggle" value="false">
+                <input type="checkbox" name="allow_billing_toggle" value="true" style="width:auto;margin:0;"
+                  <%= !product || product.allow_billing_toggle !== false ? 'checked' : '' %>>
+                Allow customers to switch between Monthly and Yearly on the product page
+              </label>
+            </div>
+
+            <div id="savings-preview" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:0.6rem 0.9rem;border-radius:8px;font-size:0.9rem;margin-top:0.25rem;">
+              <i class="fas fa-piggy-bank"></i> <span id="savings-preview-text"></span>
+            </div>
+
+            <div class="form-row" style="margin-top:1rem;">
+              <div class="form-group">
+                <label class="form-label" for="stripe_price_id_monthly">Stripe Price ID (Monthly)</label>
+                <input type="text" id="stripe_price_id_monthly" name="stripe_price_id_monthly" class="form-input" value="<%= product ? (product.stripe_price_id_monthly || '') : '' %>" placeholder="price_...">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="stripe_price_id_yearly">Stripe Price ID (Yearly)</label>
+                <input type="text" id="stripe_price_id_yearly" name="stripe_price_id_yearly" class="form-input" value="<%= product ? (product.stripe_price_id_yearly || '') : '' %>" placeholder="price_...">
+              </div>
             </div>
           </div>
 
@@ -249,6 +318,56 @@ document.getElementById('slug').addEventListener('input', function() {
 document.getElementById('slug').dataset.manual = 'true';
 <% } %>
 
+// ── Pricing type toggle + annual savings preview ────────────
+(function() {
+  var pricingType   = document.getElementById('pricing_type');
+  var oneTimeBlock  = document.getElementById('one-time-pricing');
+  var subBlock      = document.getElementById('subscription-pricing');
+  var monthlyInput  = document.getElementById('monthly_price');
+  var yearlyInput   = document.getElementById('yearly_price');
+  var discountInput = document.getElementById('annual_discount_pct');
+  var currencySel   = document.getElementById('currency');
+  var previewBox    = document.getElementById('savings-preview');
+  var previewText   = document.getElementById('savings-preview-text');
+
+  function syncBlocks() {
+    var isSub = pricingType.value === 'subscription';
+    oneTimeBlock.style.display = isSub ? 'none' : '';
+    subBlock.style.display = isSub ? '' : 'none';
+    if (isSub) updateSavings();
+  }
+
+  function updateSavings() {
+    var monthly = parseFloat(monthlyInput.value);
+    var yearly  = parseFloat(yearlyInput.value);
+    var manual  = parseInt(discountInput.value, 10);
+    var cur     = currencySel ? currencySel.value : 'USD';
+
+    if (!(monthly > 0) || !(yearly >= 0) || isNaN(yearly)) {
+      previewBox.style.display = 'none';
+      return;
+    }
+    var annualizedMonthly = monthly * 12;
+    var savings = annualizedMonthly - yearly;
+    if (savings <= 0) {
+      previewBox.style.display = 'none';
+      return;
+    }
+    var pct = !isNaN(manual) ? manual : Math.round((savings / annualizedMonthly) * 100);
+    previewText.textContent =
+      'Save ' + savings.toFixed(2) + ' ' + cur + ' (' + pct + '%) with annual billing vs paying monthly.';
+    previewBox.style.display = '';
+  }
+
+  if (pricingType) {
+    pricingType.addEventListener('change', syncBlocks);
+    [monthlyInput, yearlyInput, discountInput, currencySel].forEach(function(el) {
+      if (el) el.addEventListener('input', updateSavings);
+    });
+    syncBlocks();
+  }
+})();
+
 // ── Sidebar Preview Logic ───────────────────────────────────
 (function() {
   const btnOpen    = document.getElementById('btn-preview-sidebar');
@@ -309,8 +428,23 @@ document.getElementById('slug').dataset.manual = 'true';
 
     // Price + Add to My Services button
     html += '<div style="text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid #e2e8f0;">';
-    if (price) {
-      html += '<p style="font-size:1.3rem;font-weight:700;color:#d62b83;margin-bottom:1rem;">$' + parseFloat(price).toFixed(2) + ' ' + esc(currency || 'USD') + '</p>';
+    var pType = val('pricing_type');
+    if (pType === 'subscription') {
+      var m = parseFloat(val('monthly_price'));
+      var y = parseFloat(val('yearly_price'));
+      if (m > 0) {
+        html += '<p style="font-size:1.3rem;font-weight:700;color:#d62b83;margin-bottom:0.25rem;">' + m.toFixed(2) + ' ' + esc(currency || 'USD') + '<span style="font-size:0.9rem;color:#64748b;font-weight:500;">/month</span></p>';
+      }
+      if (y > 0) {
+        html += '<p style="font-size:1.1rem;font-weight:600;color:#1a1a2e;margin-bottom:0.5rem;">' + y.toFixed(2) + ' ' + esc(currency || 'USD') + '<span style="font-size:0.9rem;color:#64748b;font-weight:500;">/year</span></p>';
+      }
+      if (m > 0 && y > 0 && (m * 12 - y) > 0) {
+        var manualPct = parseInt(val('annual_discount_pct'), 10);
+        var savePct = !isNaN(manualPct) ? manualPct : Math.round(((m * 12 - y) / (m * 12)) * 100);
+        html += '<p style="font-size:0.9rem;color:#166534;margin-bottom:1rem;"><i class="fas fa-piggy-bank"></i> Save ' + savePct + '% with annual billing</p>';
+      }
+    } else if (price) {
+      html += '<p style="font-size:1.3rem;font-weight:700;color:#d62b83;margin-bottom:1rem;">' + parseFloat(price).toFixed(2) + ' ' + esc(currency || 'USD') + '</p>';
     }
     html += '<button type="button" style="background:#d62b83;color:#fff;border:none;padding:0.8rem 2rem;border-radius:8px;font-size:1.05rem;cursor:pointer;font-weight:600;"><i class="fas fa-plus"></i> Add to My Services</button>';
     html += '</div>';

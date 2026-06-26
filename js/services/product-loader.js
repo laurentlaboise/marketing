@@ -72,6 +72,62 @@
       });
   }
 
+  // ── Pricing helpers ──────────────────────────────────────────
+
+  function fmtMoney(amount, currency) {
+    if (amount === null || amount === undefined || isNaN(amount)) return '';
+    return Number(amount).toFixed(2) + ' ' + esc(currency || 'USD');
+  }
+
+  // Normalize a product into a pricing object. Falls back to the legacy
+  // single-price shape when the API hasn't supplied a `pricing` block.
+  function getPricing(product) {
+    if (product.pricing && typeof product.pricing === 'object') return product.pricing;
+    return {
+      type: 'one_time',
+      currency: product.currency || 'USD',
+      one_time_price: product.price != null ? parseFloat(product.price) : null,
+      monthly_price: null,
+      yearly_price: null,
+      default_billing: 'monthly',
+      allow_billing_toggle: false,
+      annual_savings: null,
+      annual_discount_pct: null
+    };
+  }
+
+  // Compact price line shown on the service card.
+  function cardPriceHTML(product) {
+    var pr = getPricing(product);
+    var style = 'display:block;margin:0.5rem 0;font-weight:600;color:var(--accent-color,#d62b83);';
+
+    if (pr.type === 'subscription') {
+      var useYearly = pr.default_billing === 'yearly' && pr.yearly_price != null;
+      var amount, suffix;
+      if (useYearly) {
+        amount = pr.yearly_price; suffix = '/year';
+      } else if (pr.monthly_price != null) {
+        amount = pr.monthly_price; suffix = '/month';
+      } else if (pr.yearly_price != null) {
+        amount = pr.yearly_price; suffix = '/year';
+      } else {
+        return '';
+      }
+      var html = '<span class="product-price" style="' + style + '">' + fmtMoney(amount, pr.currency) +
+        '<span style="font-size:0.85em;font-weight:500;color:var(--color-slate-500,#64748b);">' + suffix + '</span></span>';
+      if (pr.annual_discount_pct) {
+        html += '<span class="product-savings" style="display:block;font-size:0.8rem;color:#16a34a;font-weight:600;">Save ' +
+          pr.annual_discount_pct + '% yearly</span>';
+      }
+      return html;
+    }
+
+    if (pr.one_time_price != null) {
+      return '<span class="product-price" style="' + style + '">' + fmtMoney(pr.one_time_price, pr.currency) + '</span>';
+    }
+    return '';
+  }
+
   // ── Render product cards ─────────────────────────────────────
 
   function renderCards(products, container) {
@@ -83,13 +139,7 @@
       var anim = esc(product.animation_class || 'kinetic-pulse-float');
       var slug = product.slug || product.id;
 
-      var priceHTML = '';
-      if (product.price) {
-        priceHTML =
-          '<span class="product-price" style="display:block;margin:0.5rem 0;font-weight:600;color:var(--accent-color,#d62b83);">$' +
-          product.price.toFixed(2) + ' ' + esc(product.currency || 'USD') +
-          '</span>';
-      }
+      var priceHTML = cardPriceHTML(product);
 
       var card = document.createElement('div');
       card.className = 'service-card reveal' + delay;
@@ -130,6 +180,7 @@
         features: product.features || [],
         price: product.price ? parseFloat(product.price) : null,
         currency: product.currency || 'USD',
+        pricing: getPricing(product),
         has_stripe: product.has_stripe
       };
     });
@@ -178,16 +229,8 @@
       html += '</ul></div>';
     }
 
-    // Price + Add to My Services
-    html += '<div style="text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--color-border,#e2e8f0);">';
-    if (data.price) {
-      html += '<p style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:1rem;">$' +
-        data.price.toFixed(2) + ' ' + esc(data.currency) + '</p>';
-    }
-    html += '<button class="btn btn-accent-magenta btn-add-service" data-product-id="' + esc(String(data.id)) +
-      '" data-product-name="' + esc(data.name) + '" style="font-size:1.1rem;padding:0.8rem 2rem;">' +
-      (isSaved(data.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
-      '</button></div>';
+    // Price + billing selector + Add to My Services
+    html += buildPricingBlock(data);
 
     // Set panel content
     if (elTitle) elTitle.textContent = data.title;
@@ -214,6 +257,118 @@
 
     // Bind the add-service button inside the panel
     bindAddServiceButtons();
+
+    // Bind the monthly/yearly billing toggle (subscriptions only)
+    bindBillingToggle(data);
+  }
+
+  // ── Slide-in pricing block (one-time or subscription toggle) ──
+
+  function buildPricingBlock(data) {
+    var pr = data.pricing || getPricing(data);
+    var html = '<div class="product-pricing-block" style="text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--color-border,#e2e8f0);">';
+
+    if (pr.type === 'subscription') {
+      var hasMonthly = pr.monthly_price != null;
+      var hasYearly = pr.yearly_price != null;
+      var showToggle = pr.allow_billing_toggle && hasMonthly && hasYearly;
+      var initial = pr.default_billing === 'yearly' && hasYearly ? 'yearly'
+        : (hasMonthly ? 'monthly' : 'yearly');
+
+      if (showToggle) {
+        html += '<div class="billing-toggle" role="group" aria-label="Billing period" ' +
+          'style="display:inline-flex;border:1px solid var(--color-border,#e2e8f0);border-radius:999px;padding:0.25rem;margin-bottom:1rem;gap:0.25rem;">' +
+          '<button type="button" class="billing-option" data-billing="monthly" ' +
+          'style="border:none;background:none;cursor:pointer;padding:0.4rem 1.1rem;border-radius:999px;font-weight:600;font-size:0.95rem;">Monthly</button>' +
+          '<button type="button" class="billing-option" data-billing="yearly" ' +
+          'style="border:none;background:none;cursor:pointer;padding:0.4rem 1.1rem;border-radius:999px;font-weight:600;font-size:0.95rem;">Yearly' +
+          (pr.annual_discount_pct ? ' <span style="font-size:0.75rem;color:#16a34a;">-' + pr.annual_discount_pct + '%</span>' : '') +
+          '</button></div>';
+      }
+
+      html += '<p class="billing-price" style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:0.25rem;"></p>';
+      html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
+
+      html += addServiceButtonHTML(data, initial);
+      html += '</div>';
+      return html;
+    }
+
+    // One-time
+    if (pr.one_time_price != null) {
+      html += '<p style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:1rem;">' +
+        fmtMoney(pr.one_time_price, pr.currency) + '</p>';
+    }
+    html += addServiceButtonHTML(data, null);
+    html += '</div>';
+    return html;
+  }
+
+  function addServiceButtonHTML(data, billing) {
+    return '<button class="btn btn-accent-magenta btn-add-service" data-product-id="' + esc(String(data.id)) +
+      '" data-product-name="' + esc(data.name) + '"' +
+      (billing ? ' data-billing-period="' + esc(billing) + '"' : '') +
+      ' style="font-size:1.1rem;padding:0.8rem 2rem;">' +
+      (isSaved(data.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
+      '</button>';
+  }
+
+  function bindBillingToggle(data) {
+    if (!elContent) return;
+    var pr = data.pricing || getPricing(data);
+    if (pr.type !== 'subscription') return;
+
+    var block = elContent.querySelector('.product-pricing-block');
+    if (!block) return;
+
+    var hasMonthly = pr.monthly_price != null;
+    var initial = pr.default_billing === 'yearly' && pr.yearly_price != null ? 'yearly'
+      : (hasMonthly ? 'monthly' : 'yearly');
+
+    applyBilling(block, pr, initial);
+
+    var options = block.querySelectorAll('.billing-option');
+    for (var i = 0; i < options.length; i++) {
+      options[i].addEventListener('click', function () {
+        applyBilling(block, pr, this.getAttribute('data-billing'));
+      });
+    }
+  }
+
+  // Update the displayed price, savings line, active toggle state and the
+  // add-service button's billing attribute for the chosen period.
+  function applyBilling(block, pr, billing) {
+    var priceEl = block.querySelector('.billing-price');
+    var savingsEl = block.querySelector('.billing-savings');
+    var addBtn = block.querySelector('.btn-add-service');
+
+    var isYearly = billing === 'yearly';
+    var amount = isYearly ? pr.yearly_price : pr.monthly_price;
+    var suffix = isYearly ? '/year' : '/month';
+
+    if (priceEl) {
+      priceEl.innerHTML = fmtMoney(amount, pr.currency) +
+        '<span style="font-size:0.65em;font-weight:500;color:var(--color-slate-500,#64748b);">' + suffix + '</span>';
+    }
+    if (savingsEl) {
+      if (isYearly && pr.annual_savings) {
+        savingsEl.innerHTML = '<i class="fas fa-piggy-bank"></i> Save ' + fmtMoney(pr.annual_savings, pr.currency) +
+          (pr.annual_discount_pct ? ' (' + pr.annual_discount_pct + '%)' : '') + ' with annual billing';
+      } else if (!isYearly && pr.annual_discount_pct) {
+        savingsEl.innerHTML = 'Switch to annual and save ' + pr.annual_discount_pct + '%';
+      } else {
+        savingsEl.innerHTML = '';
+      }
+    }
+    if (addBtn) addBtn.setAttribute('data-billing-period', billing);
+
+    // Active button styling
+    var options = block.querySelectorAll('.billing-option');
+    for (var i = 0; i < options.length; i++) {
+      var active = options[i].getAttribute('data-billing') === billing;
+      options[i].style.background = active ? 'var(--accent-color,#d62b83)' : 'none';
+      options[i].style.color = active ? '#fff' : 'inherit';
+    }
   }
 
   // ── Close panel handlers ─────────────────────────────────────
@@ -259,15 +414,16 @@
     var btn = this;
     var productId = btn.getAttribute('data-product-id');
     var productName = btn.getAttribute('data-product-name') || '';
+    var billingPeriod = btn.getAttribute('data-billing-period') || null;
 
     if (isSaved(productId)) {
       removeService(productId);
       btn.innerHTML = '<i class="fas fa-plus"></i> Add to My Services';
       console.log('[ProductLoader] Removed service:', productName);
     } else {
-      saveService(productId, productName);
+      saveService(productId, productName, billingPeriod);
       btn.innerHTML = '<i class="fas fa-check"></i> Added to My Services';
-      console.log('[ProductLoader] Added service:', productName);
+      console.log('[ProductLoader] Added service:', productName, billingPeriod || '');
     }
   }
 
@@ -283,9 +439,13 @@
     return !!getSavedServices()[String(productId)];
   }
 
-  function saveService(productId, productName) {
+  function saveService(productId, productName, billingPeriod) {
     var saved = getSavedServices();
-    saved[String(productId)] = { name: productName, added_at: new Date().toISOString() };
+    saved[String(productId)] = {
+      name: productName,
+      billing_period: billingPeriod || null,
+      added_at: new Date().toISOString()
+    };
     localStorage.setItem(SAVED_SERVICES_KEY, JSON.stringify(saved));
   }
 

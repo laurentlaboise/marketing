@@ -521,6 +521,36 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='is_featured') THEN
             ALTER TABLE products ADD COLUMN is_featured BOOLEAN DEFAULT FALSE;
           END IF;
+          -- Flexible pricing & billing options
+          -- pricing_type: one_time (single purchase, uses the price column) or subscription (uses monthly/yearly prices)
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='pricing_type') THEN
+            ALTER TABLE products ADD COLUMN pricing_type VARCHAR(50) DEFAULT 'one_time';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='monthly_price') THEN
+            ALTER TABLE products ADD COLUMN monthly_price DECIMAL(10,2);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='yearly_price') THEN
+            ALTER TABLE products ADD COLUMN yearly_price DECIMAL(10,2);
+          END IF;
+          -- Optional manual override for the displayed annual discount; if NULL it is computed from monthly vs yearly price
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='annual_discount_pct') THEN
+            ALTER TABLE products ADD COLUMN annual_discount_pct INTEGER;
+          END IF;
+          -- Which billing period is selected by default on the product page ('monthly' or 'yearly')
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='default_billing') THEN
+            ALTER TABLE products ADD COLUMN default_billing VARCHAR(20) DEFAULT 'monthly';
+          END IF;
+          -- Allow customers to switch between monthly/yearly on the product page
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='allow_billing_toggle') THEN
+            ALTER TABLE products ADD COLUMN allow_billing_toggle BOOLEAN DEFAULT TRUE;
+          END IF;
+          -- Separate Stripe Price IDs for recurring billing periods
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='stripe_price_id_monthly') THEN
+            ALTER TABLE products ADD COLUMN stripe_price_id_monthly VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='stripe_price_id_yearly') THEN
+            ALTER TABLE products ADD COLUMN stripe_price_id_yearly VARCHAR(255);
+          END IF;
         END $$;
       `);
 

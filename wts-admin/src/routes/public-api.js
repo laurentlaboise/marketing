@@ -398,6 +398,67 @@ router.get('/seo-terms', async (req, res) => {
 
 // ==================== PRODUCTS ====================
 
+// Build a normalized pricing object for a product row, including computed
+// annual savings so the frontend can render a billing toggle and a
+// "Save X%" highlight without duplicating the math.
+function buildProductPricing(p) {
+  const num = (v) => (v === null || v === undefined || v === '') ? null : parseFloat(v);
+  const type = p.pricing_type === 'subscription' ? 'subscription' : 'one_time';
+  const currency = p.currency || 'USD';
+
+  if (type !== 'subscription') {
+    return {
+      type: 'one_time',
+      currency,
+      one_time_price: num(p.price),
+      monthly_price: null,
+      yearly_price: null,
+      default_billing: 'monthly',
+      allow_billing_toggle: false,
+      annual_savings: null,
+      annual_discount_pct: null
+    };
+  }
+
+  const monthly = num(p.monthly_price);
+  const yearly = num(p.yearly_price);
+
+  // Default billing must land on a period that has a price.
+  let defaultBilling = p.default_billing === 'yearly' ? 'yearly' : 'monthly';
+  if (defaultBilling === 'monthly' && monthly === null && yearly !== null) defaultBilling = 'yearly';
+  if (defaultBilling === 'yearly' && yearly === null && monthly !== null) defaultBilling = 'monthly';
+
+  // Savings only make sense when both periods exist and yearly beats annualized monthly.
+  let annualSavings = null;
+  let discountPct = null;
+  if (monthly !== null && monthly > 0 && yearly !== null) {
+    const annualized = monthly * 12;
+    if (annualized - yearly > 0) {
+      annualSavings = Math.round((annualized - yearly) * 100) / 100;
+      discountPct = (p.annual_discount_pct !== null && p.annual_discount_pct !== undefined)
+        ? p.annual_discount_pct
+        : Math.round((annualSavings / annualized) * 100);
+    }
+  } else if (p.annual_discount_pct !== null && p.annual_discount_pct !== undefined) {
+    discountPct = p.annual_discount_pct;
+  }
+
+  // Only allow toggling if both periods are actually available.
+  const bothAvailable = monthly !== null && yearly !== null;
+
+  return {
+    type: 'subscription',
+    currency,
+    one_time_price: null,
+    monthly_price: monthly,
+    yearly_price: yearly,
+    default_billing: defaultBilling,
+    allow_billing_toggle: bothAvailable && p.allow_billing_toggle !== false,
+    annual_savings: annualSavings,
+    annual_discount_pct: discountPct
+  };
+}
+
 // Get all active products (optionally filtered by service_page)
 router.get('/products', async (req, res) => {
   try {
@@ -436,7 +497,11 @@ router.get('/products', async (req, res) => {
       icon_class: p.icon_class || 'fas fa-box',
       animation_class: p.animation_class || 'kinetic-pulse-float',
       is_featured: p.is_featured || false,
-      has_stripe: !!(p.stripe_price_id || (p.price && parseFloat(p.price) > 0)),
+      pricing: buildProductPricing(p),
+      has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
+        (p.price && parseFloat(p.price) > 0) ||
+        (p.monthly_price && parseFloat(p.monthly_price) > 0) ||
+        (p.yearly_price && parseFloat(p.yearly_price) > 0)),
       slide_in: {
         title: p.slide_in_title || p.name,
         subtitle: p.slide_in_subtitle || '',
@@ -481,7 +546,11 @@ router.get('/products/:slug', async (req, res) => {
       icon_class: p.icon_class || 'fas fa-box',
       animation_class: p.animation_class || 'kinetic-pulse-float',
       is_featured: p.is_featured || false,
-      has_stripe: !!(p.stripe_price_id || (p.price && parseFloat(p.price) > 0)),
+      pricing: buildProductPricing(p),
+      has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
+        (p.price && parseFloat(p.price) > 0) ||
+        (p.monthly_price && parseFloat(p.monthly_price) > 0) ||
+        (p.yearly_price && parseFloat(p.yearly_price) > 0)),
       slide_in: {
         title: p.slide_in_title || p.name,
         subtitle: p.slide_in_subtitle || '',
