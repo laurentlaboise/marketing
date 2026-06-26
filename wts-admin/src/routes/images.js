@@ -16,6 +16,7 @@ const {
   localPathFor,
   isTempUpload,
   cleanupTempFile,
+  assertPathWithin,
   ensureDirs,
 } = require('../utils/storage');
 
@@ -227,6 +228,24 @@ async function pushToGitHub(repoPath, fileBuffer, commitMessage, sha) {
     req.write(body);
     req.end();
   });
+}
+
+// Turn a pushToGitHub() failure reason into an actionable warning for the UI.
+function describePushFailure(reason) {
+  switch (reason) {
+    case 'no_token':
+      return 'GITHUB_TOKEN not configured - image is stored locally only and will not appear on CDN.';
+    case 'github_401':
+      return 'GitHub rejected the token (401). The GITHUB_TOKEN is invalid or expired - generate a new token with "contents: write" permission on the repo and update it in the Railway environment variables.';
+    case 'github_403':
+      return 'GitHub denied the request (403). The GITHUB_TOKEN lacks write access to the repo (or hit a rate limit) - ensure it has "contents: write" permission.';
+    case 'github_404':
+      return 'GitHub returned 404 - check the repo/branch in CDN_CONFIG and that the token can see the repository.';
+    case 'network_error':
+      return 'Could not reach GitHub (network error) - image is stored locally only.';
+    default:
+      return `Failed to push to GitHub (${reason}) - image may not appear on CDN.`;
+  }
 }
 
 // ==================== IMAGE FOLDERS ====================
@@ -781,10 +800,8 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     let msg = `Image uploaded successfully${optimize === 'on' && !isSvg ? ' (optimized to WebP)' : ''}`;
     if (ghResult.pushed) {
       msg += ' and pushed to GitHub CDN';
-    } else if (ghResult.reason === 'no_token') {
-      msg += '. Warning: GITHUB_TOKEN not configured - image is stored locally only and will not appear on CDN.';
     } else {
-      msg += `. Warning: Failed to push to GitHub (${ghResult.reason}) - image may not appear on CDN.`;
+      msg += '. Warning: ' + describePushFailure(ghResult.reason);
     }
     req.session.successMessage = msg;
     res.redirect('/images/' + result.rows[0].id);
@@ -1506,7 +1523,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
 
         let msg = 'Image replaced successfully (converted to WebP)';
         if (ghResult.pushed) msg += ' and pushed to CDN';
-        else if (ghResult.reason === 'no_token') msg += '. Warning: not pushed to CDN (no GITHUB_TOKEN)';
+        else msg += '. Warning: ' + describePushFailure(ghResult.reason);
         req.session.successMessage = msg;
         return res.redirect('/images/' + req.params.id);
       }
@@ -1528,8 +1545,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
 
     let msg = 'Image replaced successfully';
     if (ghResult.pushed) msg += ' and pushed to CDN';
-    else if (ghResult.reason === 'no_token') msg += '. Warning: not pushed to CDN (no GITHUB_TOKEN)';
-    else msg += `. Warning: CDN push failed (${ghResult.reason})`;
+    else msg += '. Warning: ' + describePushFailure(ghResult.reason);
     req.session.successMessage = msg;
     res.redirect('/images/' + req.params.id);
   } catch (error) {
