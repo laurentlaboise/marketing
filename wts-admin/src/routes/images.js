@@ -304,6 +304,67 @@ function describePushFailure(reason) {
   }
 }
 
+// Verify the GITHUB_TOKEN actually works (and can write), so the UI can warn
+// about a present-but-invalid/expired/read-only token instead of only checking
+// that the env var exists. Cached briefly to avoid an API call on every page
+// load / rapid navigation.
+let _ghStatusCache = { at: 0, value: null };
+function verifyGitHubToken() {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return Promise.resolve({ configured: false, ok: false, reason: 'no_token' });
+
+  const now = Date.now();
+  if (_ghStatusCache.value && now - _ghStatusCache.at < 60000) {
+    return Promise.resolve(_ghStatusCache.value);
+  }
+
+  return new Promise((resolve) => {
+    const finish = (value) => { _ghStatusCache = { at: now, value }; resolve(value); };
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}`,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'WTS-Admin-ImageLibrary',
+        'Accept': 'application/vnd.github.v3+json',
+      },
+      timeout: 8000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          let canPush = null;
+          try {
+            const json = JSON.parse(data);
+            if (json.permissions) canPush = !!json.permissions.push;
+          } catch (e) { /* ignore parse error, treat as unknown */ }
+          if (canPush === false) finish({ configured: true, ok: false, reason: 'no_write', canPush });
+          else finish({ configured: true, ok: true, reason: 'ok', canPush });
+        } else {
+          finish({ configured: true, ok: false, reason: `github_${res.statusCode}` });
+        }
+      });
+    });
+    req.on('error', () => finish({ configured: true, ok: false, reason: 'network_error' }));
+    req.on('timeout', () => { req.destroy(); finish({ configured: true, ok: false, reason: 'network_error' }); });
+    req.end();
+  });
+}
+
+// Human-readable summary of a verifyGitHubToken() result for the UI banner.
+function describeGitHubStatus(status) {
+  if (status.ok) return 'GitHub CDN publishing is connected and ready.';
+  if (status.reason === 'no_token') {
+    return 'GITHUB_TOKEN is not set. Uploads are stored locally only and will not appear on the CDN (and are lost on the next Railway redeploy). Add GITHUB_TOKEN to your Railway environment variables.';
+  }
+  if (status.reason === 'no_write') {
+    return 'The GITHUB_TOKEN can read the repo but lacks write access. Give it "contents: write" permission so uploads can publish to the CDN.';
+  }
+  return describePushFailure(status.reason);
+}
+
 // ==================== IMAGE FOLDERS ====================
 
 // Helper: slugify folder name
@@ -638,13 +699,23 @@ router.post('/sync', async (req, res) => {
   }
 });
 
+// JSON health check for the GitHub/CDN publishing path (verifies the token
+// actually works, not just that it's set). Handy for an on-demand "test
+// connection" check without doing a throwaway upload.
+router.get('/github-status', async (req, res) => {
+  const status = await verifyGitHubToken();
+  res.json({ ...status, message: describeGitHubStatus(status) });
+});
+
 // Upload form
 router.get('/upload', async (req, res) => {
   const folders = await getFolderTree();
+  const githubStatus = await verifyGitHubToken();
   res.render('images/upload', {
     title: 'Upload Image - WTS Admin',
     currentPage: 'images',
-    githubConfigured: !!process.env.GITHUB_TOKEN,
+    githubConfigured: githubStatus.ok,
+    githubMessage: describeGitHubStatus(githubStatus),
     folders,
     preselectedFolder: req.query.folder || '',
   });
@@ -653,10 +724,12 @@ router.get('/upload', async (req, res) => {
 // Multi-upload form
 router.get('/upload-multiple', async (req, res) => {
   const folders = await getFolderTree();
+  const githubStatus = await verifyGitHubToken();
   res.render('images/upload-multiple', {
     title: 'Upload Multiple Images - WTS Admin',
     currentPage: 'images',
-    githubConfigured: !!process.env.GITHUB_TOKEN,
+    githubConfigured: githubStatus.ok,
+    githubMessage: describeGitHubStatus(githubStatus),
     folders,
     preselectedFolder: req.query.folder || '',
   });
