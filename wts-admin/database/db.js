@@ -1027,6 +1027,33 @@ const db = {
 
       await client.query('COMMIT');
       console.log('Database tables initialized successfully');
+
+      // Admin bootstrap: promote any existing users whose email is listed in
+      // ADMIN_EMAILS (comma-separated) to the admin role. Idempotent and safe
+      // to run on every boot — it only touches accounts that already exist and
+      // aren't admin yet. Failures are logged but never block startup, so a bad
+      // value can't turn into a deploy-failing crash loop.
+      if (process.env.ADMIN_EMAILS) {
+        try {
+          const emails = process.env.ADMIN_EMAILS
+            .split(',')
+            .map((e) => e.trim().toLowerCase())
+            .filter(Boolean);
+          if (emails.length) {
+            const promoted = await client.query(
+              `UPDATE users SET role = 'admin', updated_at = CURRENT_TIMESTAMP
+               WHERE lower(email) = ANY($1::text[]) AND role IS DISTINCT FROM 'admin'
+               RETURNING email`,
+              [emails]
+            );
+            if (promoted.rows.length) {
+              console.log('Admin bootstrap promoted:', promoted.rows.map((r) => r.email).join(', '));
+            }
+          }
+        } catch (e) {
+          console.warn('Admin bootstrap (ADMIN_EMAILS) failed:', e.message);
+        }
+      }
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('Database initialization error:', error);
