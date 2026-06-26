@@ -13,6 +13,32 @@ const fs = require('fs');
 // Outside production, PGSSL_INSECURE=true opts into unverified TLS for
 // ad-hoc connections to managed databases; plain local connections use no
 // TLS at all.
+// Resolve the database host from whichever connection style is configured.
+function getDbHost() {
+  if (process.env.PGHOST) return process.env.PGHOST;
+  if (process.env.DATABASE_URL) {
+    try {
+      return new URL(process.env.DATABASE_URL).hostname;
+    } catch (_) {
+      return null;
+    }
+  }
+  return null;
+}
+
+// Trusted private links where Postgres is reached without crossing the public
+// internet and does not present a TLS certificate: Railway's private network
+// (*.railway.internal) and loopback. A plaintext connection here is the
+// platform-recommended setup; forcing TLS fails because no certificate is
+// offered. Public / proxy hosts are NOT trusted and still require verified TLS.
+function isTrustedPrivateHost(host) {
+  if (!host) return false;
+  return host === 'localhost'
+    || host === '127.0.0.1'
+    || host === '::1'
+    || host.endsWith('.railway.internal');
+}
+
 function getSslConfig() {
   const rootCert = process.env.PGSSLROOTCERT;
   if (rootCert) {
@@ -46,10 +72,19 @@ function getSslConfig() {
     return { rejectUnauthorized: false };
   }
 
+  // Trusted private network (Railway internal / loopback): connect without TLS.
+  // This is the recommended Railway setup — the app and Postgres talk over the
+  // private network where no certificate is presented — so it is allowed even
+  // in production. Public hosts fall through to the requirement below.
+  if (isTrustedPrivateHost(getDbHost())) {
+    return false;
+  }
+
   if (process.env.NODE_ENV === 'production') {
     throw new Error(
       'Database TLS is not configured. Set PGSSLROOTCERT to the CA certificate ' +
-      '(file path or PEM content) of your PostgreSQL server so certificates can be verified.'
+      '(file path or PEM content) of your PostgreSQL server so certificates can be verified, ' +
+      'or connect over the private network (e.g. *.railway.internal) where TLS is not required.'
     );
   }
 
