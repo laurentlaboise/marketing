@@ -21,7 +21,7 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
       return res.status(503).json({ error: 'Payment processing is not configured' });
     }
 
-    const { product_id } = req.body;
+    const { product_id, billing_period } = req.body;
     if (!product_id) {
       return res.status(400).json({ error: 'product_id is required' });
     }
@@ -37,17 +37,22 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
     }
 
     const product = result.rows[0];
+    const num = (v) => (v === null || v === undefined || v === '') ? null : parseFloat(v);
 
-    if (!product.price || parseFloat(product.price) <= 0) {
-      return res.status(400).json({ error: 'Product has no valid price' });
-    }
-
+    // A product is a subscription if its pricing_type says so, or (legacy) its product_type does.
+    const isSubscription = product.pricing_type === 'subscription' || product.product_type === 'subscription';
+    const currency = (product.currency || 'USD').toLowerCase();
     const baseUrl = process.env.APP_URL || 'https://wordsthatsells.website';
 
-    // Build the checkout session configuration
+    const productData = {
+      name: product.name,
+      description: product.description || undefined,
+      images: product.image_url ? [product.image_url] : undefined
+    };
+
     const sessionConfig = {
       payment_method_types: ['card'],
-      mode: product.product_type === 'subscription' ? 'subscription' : 'payment',
+      mode: isSubscription ? 'subscription' : 'payment',
       success_url: `${baseUrl}/en/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/en/checkout/cancel`,
       metadata: {
@@ -57,26 +62,62 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
       }
     };
 
-    // If the product has a Stripe Price ID, use it directly
-    if (product.stripe_price_id) {
-      sessionConfig.line_items = [{
-        price: product.stripe_price_id,
-        quantity: 1
-      }];
-    } else {
-      // Create a one-time price inline
-      sessionConfig.line_items = [{
-        price_data: {
-          currency: (product.currency || 'USD').toLowerCase(),
-          product_data: {
-            name: product.name,
-            description: product.description || undefined,
-            images: product.image_url ? [product.image_url] : undefined
+    // `orderAmount` is recorded on the order row (null when a Stripe Price ID is used).
+    let orderAmount = null;
+
+    if (isSubscription) {
+      const monthly = num(product.monthly_price);
+      const yearly = num(product.yearly_price);
+
+      // Pick the requested period, defaulting to the product's configured default,
+      // then fall back to whichever period actually has a price.
+      let period = (billing_period === 'yearly' || billing_period === 'monthly')
+        ? billing_period
+        : (product.default_billing === 'yearly' ? 'yearly' : 'monthly');
+      if (period === 'monthly' && monthly === null) period = 'yearly';
+      if (period === 'yearly' && yearly === null) period = 'monthly';
+
+      const amount = period === 'yearly' ? yearly : monthly;
+      const stripePriceId = period === 'yearly' ? product.stripe_price_id_yearly : product.stripe_price_id_monthly;
+      const interval = period === 'yearly' ? 'year' : 'month';
+      sessionConfig.metadata.billing_period = period;
+
+      if (stripePriceId) {
+        sessionConfig.line_items = [{ price: stripePriceId, quantity: 1 }];
+      } else {
+        if (!(amount > 0)) {
+          return res.status(400).json({ error: 'Product has no valid price for the selected billing period' });
+        }
+        orderAmount = amount;
+        sessionConfig.line_items = [{
+          price_data: {
+            currency,
+            product_data: productData,
+            recurring: { interval },
+            unit_amount: Math.round(amount * 100)
           },
-          unit_amount: Math.round(parseFloat(product.price) * 100) // Convert to cents
-        },
-        quantity: 1
-      }];
+          quantity: 1
+        }];
+      }
+    } else {
+      // One-time purchase
+      const amount = num(product.price);
+      if (product.stripe_price_id) {
+        sessionConfig.line_items = [{ price: product.stripe_price_id, quantity: 1 }];
+      } else {
+        if (!(amount > 0)) {
+          return res.status(400).json({ error: 'Product has no valid price' });
+        }
+        orderAmount = amount;
+        sessionConfig.line_items = [{
+          price_data: {
+            currency,
+            product_data: productData,
+            unit_amount: Math.round(amount * 100) // Convert to cents
+          },
+          quantity: 1
+        }];
+      }
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
@@ -85,7 +126,7 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
     await db.query(
       `INSERT INTO orders (product_id, customer_email, amount, currency, stripe_session_id, status)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [product.id, 'pending@checkout.com', product.price, product.currency || 'USD', session.id, 'pending']
+      [product.id, 'pending@checkout.com', orderAmount, product.currency || 'USD', session.id, 'pending']
     );
 
     res.json({ url: session.url, session_id: session.id });

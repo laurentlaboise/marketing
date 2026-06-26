@@ -72,7 +72,15 @@
                     </div>
                   </div>
                 </td>
-                <td data-label="Price"><%= product.price ? '$' + parseFloat(product.price).toFixed(2) : '-' %></td>
+                <td data-label="Price">
+                  <% if (product.pricing_type === 'subscription') { %>
+                    <% if (product.monthly_price != null) { %><div><%= parseFloat(product.monthly_price).toFixed(2) %> <small style="color:#888;">/mo</small></div><% } %>
+                    <% if (product.yearly_price != null) { %><div><%= parseFloat(product.yearly_price).toFixed(2) %> <small style="color:#888;">/yr</small></div><% } %>
+                    <% if (product.monthly_price == null && product.yearly_price == null) { %><span style="color:#999;">-</span><% } %>
+                  <% } else { %>
+                    <%= product.price ? '$' + parseFloat(product.price).toFixed(2) : '-' %>
+                  <% } %>
+                </td>
                 <td data-label="Service Page">
                   <% if (product.service_page) { %>
                   <span class="status-badge active" style="font-size: 0.7rem;"><%= product.service_page %></span>
@@ -83,7 +91,7 @@
                 <td data-label="Type"><span style="text-transform: capitalize; font-size: 0.85rem;"><%= product.product_type || 'service' %></span></td>
                 <td data-label="Status"><span class="status-badge <%= product.status %>"><%= product.status %></span></td>
                 <td data-label="Stripe">
-                  <% if (product.stripe_price_id) { %>
+                  <% if (product.stripe_price_id || product.stripe_price_id_monthly || product.stripe_price_id_yearly) { %>
                   <i class="fab fa-stripe" style="color: #635bff; font-size: 1.2rem;" title="Stripe connected"></i>
                   <% } else { %>
                   <span style="color: #ccc;">-</span>

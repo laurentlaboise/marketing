@@ -200,6 +200,54 @@ router.post('/agencies/:id/delete', async (req, res) => {
 
 // ==================== PRODUCTS ====================
 
+// Normalize flexible-pricing form fields into clean DB values.
+// Subscription products must keep at least one billing period; otherwise we
+// fall back to one-time pricing so the product still has a usable price.
+function normalizePricing(body) {
+  const toNum = (v) => {
+    if (v === undefined || v === null || v === '') return null;
+    const n = parseFloat(v);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+  const toInt = (v) => {
+    if (v === undefined || v === null || v === '') return null;
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : null;
+  };
+
+  let pricingType = body.pricing_type === 'subscription' ? 'subscription' : 'one_time';
+  const monthly = toNum(body.monthly_price);
+  const yearly = toNum(body.yearly_price);
+
+  // A subscription with no monthly or yearly price isn't sellable — treat as one-time.
+  if (pricingType === 'subscription' && monthly === null && yearly === null) {
+    pricingType = 'one_time';
+  }
+
+  let defaultBilling = body.default_billing === 'yearly' ? 'yearly' : 'monthly';
+  // Keep the default billing on a period that actually has a price.
+  if (pricingType === 'subscription') {
+    if (defaultBilling === 'monthly' && monthly === null) defaultBilling = 'yearly';
+    if (defaultBilling === 'yearly' && yearly === null) defaultBilling = 'monthly';
+  }
+
+  // Checkbox: present (or "true") => allow toggling between monthly/yearly.
+  const allowToggle = body.allow_billing_toggle === undefined
+    ? true
+    : (Array.isArray(body.allow_billing_toggle)
+        ? body.allow_billing_toggle.includes('true')
+        : (body.allow_billing_toggle === 'true' || body.allow_billing_toggle === 'on'));
+
+  return {
+    pricing_type: pricingType,
+    monthly_price: pricingType === 'subscription' ? monthly : null,
+    yearly_price: pricingType === 'subscription' ? yearly : null,
+    annual_discount_pct: pricingType === 'subscription' ? toInt(body.annual_discount_pct) : null,
+    default_billing: defaultBilling,
+    allow_billing_toggle: allowToggle
+  };
+}
+
 router.get('/products', async (req, res) => {
   try {
     const { service_page, status } = req.query;
@@ -255,26 +303,37 @@ router.post('/products', async (req, res) => {
       name, slug, description, price, currency, category, features, image_url, status,
       service_page, icon_class, animation_class, sort_order, product_type, download_url,
       slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
-      stripe_product_id, stripe_price_id, is_featured
+      stripe_product_id, stripe_price_id, is_featured,
+      pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
+      allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly
     } = req.body;
 
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
     const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const pricing = normalizePricing({
+      pricing_type, monthly_price, yearly_price, annual_discount_pct,
+      default_billing, allow_billing_toggle
+    });
 
     await db.query(
       `INSERT INTO products (
         name, slug, description, price, currency, category, features, image_url, status,
         service_page, icon_class, animation_class, sort_order, product_type, download_url,
         slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
-        stripe_product_id, stripe_price_id, is_featured
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
+        stripe_product_id, stripe_price_id, is_featured,
+        pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
+        allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31)`,
       [
         name, productSlug, description, price || null, currency || 'USD', category, featuresArray, image_url, status || 'active',
         service_page || null, icon_class || 'fas fa-box', animation_class || 'kinetic-pulse-float',
         parseInt(sort_order) || 0, product_type || 'service', download_url || null,
         slide_in_title || null, slide_in_subtitle || null, slide_in_content || null,
         slide_in_image || null, slide_in_video || null,
-        stripe_product_id || null, stripe_price_id || null, is_featured === 'true'
+        stripe_product_id || null, stripe_price_id || null, is_featured === 'true',
+        pricing.pricing_type, pricing.monthly_price, pricing.yearly_price, pricing.annual_discount_pct,
+        pricing.default_billing, pricing.allow_billing_toggle,
+        stripe_price_id_monthly || null, stripe_price_id_yearly || null
       ]
     );
     req.session.successMessage = 'Product created successfully';
@@ -312,11 +371,17 @@ router.post('/products/:id', async (req, res) => {
       name, slug, description, price, currency, category, features, image_url, status,
       service_page, icon_class, animation_class, sort_order, product_type, download_url,
       slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
-      stripe_product_id, stripe_price_id, is_featured
+      stripe_product_id, stripe_price_id, is_featured,
+      pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
+      allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly
     } = req.body;
 
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
     const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const pricing = normalizePricing({
+      pricing_type, monthly_price, yearly_price, annual_discount_pct,
+      default_billing, allow_billing_toggle
+    });
 
     await db.query(
       `UPDATE products SET
@@ -324,8 +389,11 @@ router.post('/products/:id', async (req, res) => {
         image_url=$8, status=$9, service_page=$10, icon_class=$11, animation_class=$12,
         sort_order=$13, product_type=$14, download_url=$15, slide_in_title=$16,
         slide_in_subtitle=$17, slide_in_content=$18, slide_in_image=$19, slide_in_video=$20,
-        stripe_product_id=$21, stripe_price_id=$22, is_featured=$23, updated_at=CURRENT_TIMESTAMP
-      WHERE id=$24`,
+        stripe_product_id=$21, stripe_price_id=$22, is_featured=$23,
+        pricing_type=$24, monthly_price=$25, yearly_price=$26, annual_discount_pct=$27,
+        default_billing=$28, allow_billing_toggle=$29,
+        stripe_price_id_monthly=$30, stripe_price_id_yearly=$31, updated_at=CURRENT_TIMESTAMP
+      WHERE id=$32`,
       [
         name, productSlug, description, price || null, currency, category, featuresArray,
         image_url, status, service_page || null, icon_class || 'fas fa-box',
@@ -334,6 +402,9 @@ router.post('/products/:id', async (req, res) => {
         slide_in_title || null, slide_in_subtitle || null, slide_in_content || null,
         slide_in_image || null, slide_in_video || null,
         stripe_product_id || null, stripe_price_id || null, is_featured === 'true',
+        pricing.pricing_type, pricing.monthly_price, pricing.yearly_price, pricing.annual_discount_pct,
+        pricing.default_billing, pricing.allow_billing_toggle,
+        stripe_price_id_monthly || null, stripe_price_id_yearly || null,
         req.params.id
       ]
     );
