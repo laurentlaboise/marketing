@@ -165,6 +165,18 @@
                   <a href="/images/<%= image.id %>" class="btn btn-sm btn-secondary" title="Edit SEO">
                     <i class="fas fa-edit"></i>
                   </a>
+                  <form action="/images/<%= image.id %>/delete" method="POST" style="display: inline;" onclick="event.stopPropagation()">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-sm btn-secondary" title="Archive (hide, keeps file)" data-confirm-delete="Archive this image? It will be hidden but the file is kept and can be restored.">
+                      <i class="fas fa-box-archive"></i>
+                    </button>
+                  </form>
+                  <form action="/images/<%= image.id %>/destroy" method="POST" style="display: inline;" onclick="event.stopPropagation()">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-sm btn-danger" title="Delete permanently" data-confirm-delete="Permanently delete this image? This removes it from the library AND the CDN and cannot be undone.">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
                 </div>
               </div>
               <% if (!image.alt_text) { %>
@@ -232,7 +244,13 @@
                       </a>
                       <form action="/images/<%= image.id %>/delete" method="POST" style="display: inline;">
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                        <button type="submit" class="btn btn-sm btn-danger" title="Archive" data-confirm-delete="Archive this image?">
+                        <button type="submit" class="btn btn-sm btn-secondary" title="Archive (hide, keeps file)" data-confirm-delete="Archive this image? It will be hidden but the file is kept and can be restored.">
+                          <i class="fas fa-box-archive"></i>
+                        </button>
+                      </form>
+                      <form action="/images/<%= image.id %>/destroy" method="POST" style="display: inline;">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Delete permanently" data-confirm-delete="Permanently delete this image? This removes it from the library AND the CDN and cannot be undone.">
                           <i class="fas fa-trash"></i>
                         </button>
                       </form>

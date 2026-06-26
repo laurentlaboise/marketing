@@ -286,6 +286,63 @@ async function pushToGitHub(repoPath, fileBuffer, commitMessage, sha) {
   return last;
 }
 
+// Remove a file from the GitHub repo via the Contents DELETE API so it leaves
+// the CDN. Requires the file's current sha (fetch with getGitHubFileSha).
+// Retries transient failures; treats a 404 as already-gone. Purges jsDelivr on
+// success. (Pushing an empty file does NOT delete it - it leaves a 0-byte blob,
+// so a real DELETE is required.)
+async function deleteFromGitHub(repoPath, sha, commitMessage) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return { deleted: false, reason: 'no_token' };
+  if (!sha) return { deleted: false, reason: 'no_sha' };
+
+  const encodedPath = String(repoPath).replace(/^\/+/, '').split('/').map((s) => encodeURIComponent(s)).join('/');
+  const body = JSON.stringify({ message: commitMessage, sha, branch: CDN_CONFIG.branch });
+
+  const attempt = () => new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/contents/${encodedPath}`,
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'WTS-Admin-ImageLibrary',
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => resolve({ statusCode: res.statusCode, data }));
+    });
+    req.on('error', (err) => resolve({ networkError: err.message }));
+    req.write(body);
+    req.end();
+  });
+
+  const maxAttempts = 3;
+  let last = null;
+  for (let i = 1; i <= maxAttempts; i++) {
+    const res = await attempt();
+    if (res.networkError) {
+      last = { deleted: false, reason: 'network_error', details: res.networkError };
+    } else if (res.statusCode === 200) {
+      await purgeJsDelivr(repoPath);
+      return { deleted: true };
+    } else if (res.statusCode === 404) {
+      return { deleted: true, reason: 'already_absent' };
+    } else {
+      console.error('GitHub delete error:', res.statusCode, String(res.data).substring(0, 300));
+      last = { deleted: false, reason: `github_${res.statusCode}` };
+    }
+    const transient = res.networkError || res.statusCode >= 500 || res.statusCode === 403;
+    if (!transient || i === maxAttempts) break;
+    await sleep(i * 1000);
+  }
+  return last;
+}
+
 // Turn a pushToGitHub() failure reason into an actionable warning for the UI.
 function describePushFailure(reason) {
   switch (reason) {
@@ -1056,7 +1113,7 @@ router.post('/:id/optimize', async (req, res) => {
       try {
         const oldSha = await getGitHubFileSha(image.file_path);
         if (oldSha) {
-          await pushToGitHub(image.file_path, Buffer.from(''), `Remove old image: ${image.filename}`, oldSha);
+          await deleteFromGitHub(image.file_path, oldSha, `Remove old image: ${image.filename}`);
         }
       } catch (e) { /* ignore cleanup errors */ }
     }
@@ -1722,7 +1779,7 @@ router.get('/:id/download', async (req, res) => {
   }
 });
 
-// Delete image
+// Archive image (soft delete: keeps the row and the file, just hides it)
 router.post('/:id/delete', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
@@ -1739,8 +1796,51 @@ router.post('/:id/delete', async (req, res) => {
     req.session.successMessage = `Image "${image.filename}" archived`;
     res.redirect('/images');
   } catch (error) {
-    console.error('Delete image error:', error);
-    req.session.errorMessage = 'Failed to delete image';
+    console.error('Archive image error:', error);
+    req.session.errorMessage = 'Failed to archive image';
+    res.redirect('/images');
+  }
+});
+
+// Permanently delete image (removes the DB row, the local working copy, and the
+// file from the GitHub repo / CDN). This is irreversible, unlike archiving.
+router.post('/:id/destroy', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      req.session.errorMessage = 'Image not found';
+      return res.redirect('/images');
+    }
+
+    const image = result.rows[0];
+
+    // Remove the local working copy if it's present.
+    try {
+      const fullPath = localPathFor(image.file_path);
+      if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    } catch (e) {
+      console.error('Local file delete failed:', e.message);
+    }
+
+    // Remove from the GitHub repo so it leaves the CDN.
+    let ghNote = '';
+    const sha = await getGitHubFileSha(image.file_path);
+    if (sha) {
+      const ghDel = await deleteFromGitHub(image.file_path, sha, `Delete image: ${image.filename}`);
+      if (!ghDel.deleted) ghNote = '. Warning: removed from library but not from CDN - ' + describePushFailure(ghDel.reason);
+    } else if (process.env.GITHUB_TOKEN) {
+      // No sha found (already gone or unreadable) - purge cache just in case.
+      await purgeJsDelivr(image.file_path);
+    }
+
+    // Remove the database row last, so a failure above doesn't orphan the file.
+    await db.query('DELETE FROM images WHERE id = $1', [req.params.id]);
+
+    req.session.successMessage = `Image "${image.filename}" permanently deleted${ghNote}`;
+    res.redirect('/images');
+  } catch (error) {
+    console.error('Permanent delete error:', error);
+    req.session.errorMessage = 'Failed to delete image: ' + error.message;
     res.redirect('/images');
   }
 });
