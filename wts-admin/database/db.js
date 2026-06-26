@@ -26,17 +26,15 @@ function getDbHost() {
   return null;
 }
 
-// Trusted private links where Postgres is reached without crossing the public
-// internet and does not present a TLS certificate: Railway's private network
-// (*.railway.internal) and loopback. A plaintext connection here is the
-// platform-recommended setup; forcing TLS fails because no certificate is
-// offered. Public / proxy hosts are NOT trusted and still require verified TLS.
+// Railway's private network (*.railway.internal) reaches Postgres without
+// crossing the public internet, and Postgres there presents no TLS
+// certificate — so a plaintext connection is the platform-recommended setup
+// and forcing TLS fails. Public / proxy hosts (and loopback, per the
+// fail-fast contract enforced in boot.test.js) are NOT exempt and still
+// require verified TLS in production.
 function isTrustedPrivateHost(host) {
   if (!host) return false;
-  return host === 'localhost'
-    || host === '127.0.0.1'
-    || host === '::1'
-    || host.endsWith('.railway.internal');
+  return host.endsWith('.railway.internal');
 }
 
 function getSslConfig() {
@@ -72,10 +70,10 @@ function getSslConfig() {
     return { rejectUnauthorized: false };
   }
 
-  // Trusted private network (Railway internal / loopback): connect without TLS.
-  // This is the recommended Railway setup — the app and Postgres talk over the
-  // private network where no certificate is presented — so it is allowed even
-  // in production. Public hosts fall through to the requirement below.
+  // Railway private network: connect without TLS. This is the recommended
+  // Railway setup — the app and Postgres talk over the private network where
+  // no certificate is presented — so it is allowed even in production. Public
+  // and loopback hosts fall through to the requirement below.
   if (isTrustedPrivateHost(getDbHost())) {
     return false;
   }
