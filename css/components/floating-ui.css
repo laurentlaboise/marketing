@@ -60,6 +60,53 @@
     background-color: #f90784;
 }
 
+/* Admin-managed sticky side tabs (form buttons with Show on = Sticky side tab).
+   Stacked on the right edge, vertical text, below the hard-coded quote/help tabs. */
+.wts-sticky-tabs {
+    position: fixed;
+    right: 0;
+    top: 62%;
+    transform: translateY(-50%);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.wts-sticky-tab {
+    background-color: var(--color-accent-magenta);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    padding: 14px 12px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    writing-mode: vertical-rl;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, padding 0.2s;
+}
+
+.wts-sticky-tab:hover {
+    background-color: #f90784;
+    padding-right: 16px;
+}
+
+@media (max-width: 576px) {
+    .wts-sticky-tabs {
+        top: auto;
+        bottom: 90px;
+        transform: none;
+    }
+    .wts-sticky-tab {
+        font-size: 0.78rem;
+        padding: 11px 9px;
+    }
+}
+
 /* Help / Page Sidebar floating button — positioned above the quote tab */
 .help-tab {
     position: fixed;

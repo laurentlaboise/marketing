@@ -218,6 +218,62 @@ export async function openQuoteModal(formType, prefill) {
   document.body.classList.add('no-scroll');
 }
 
+// ============================================================
+// Sticky side-tab form buttons (admin "Show on" = Sticky side tab)
+// ============================================================
+
+// Mirror of product-loader's page matcher: '*' (site-wide), comma/newline
+// lists, exact paths (trailing-slash tolerant) and '/*' suffix wildcards.
+function stickyTabMatchesPage(target, pagePath) {
+  if (!target) return false;
+  const patterns = String(target).split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+  for (const p of patterns) {
+    if (p === '*') return true;
+    if (p === pagePath) return true;
+    if (p.endsWith('/') && p.slice(0, -1) === pagePath) return true;
+    if (pagePath.endsWith('/') && pagePath.slice(0, -1) === p) return true;
+    if (p.endsWith('*') && pagePath.indexOf(p.slice(0, -1)) === 0) return true;
+  }
+  return false;
+}
+
+/**
+ * Render admin form buttons whose placement is "sticky" as floating tabs on the
+ * right edge of the page. Each opens its linked form. Runs on every page.
+ */
+export async function initStickyFormTabs() {
+  try {
+    const res = await fetch(`${API_BASE}/form-buttons`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const path = window.location.pathname;
+    const tabs = (data.buttons || []).filter(
+      (b) => b.placement === 'sticky' && stickyTabMatchesPage(b.page_url, path)
+    );
+    if (!tabs.length) return;
+
+    let container = document.getElementById('wts-sticky-tabs');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'wts-sticky-tabs';
+      container.className = 'wts-sticky-tabs';
+      document.body.appendChild(container);
+    }
+
+    tabs.forEach((btn) => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'wts-sticky-tab';
+      el.textContent = btn.button_label || 'Contact us';
+      if (btn.custom_css) el.setAttribute('style', btn.custom_css);
+      el.addEventListener('click', () => openQuoteModal(btn.form_type, {}));
+      container.appendChild(el);
+    });
+  } catch (e) {
+    /* non-fatal — sticky tabs just won't render */
+  }
+}
+
 // Expose a small global API for classic (non-module) scripts.
 if (typeof window !== 'undefined') {
   window.WTSQuote = { open: openQuoteModal, close: closeQuoteModal };

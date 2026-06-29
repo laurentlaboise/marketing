@@ -181,7 +181,7 @@
               <div class="linked-btn-edit" style="display:none;">
                 <form action="/webdev/form-buttons/<%= btn.id %>" method="POST">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                  <% var sc = btn.product_slug ? 'product' : (btn.page_url === '*' ? 'all' : (btn.page_url === '/en/digital-marketing-services/*' ? 'service-pages' : 'specific')); %>
+                  <% var sc = btn.placement === 'sticky' ? 'sticky' : (btn.product_slug ? 'product' : (btn.page_url === '*' ? 'all' : (btn.page_url === '/en/digital-marketing-services/*' ? 'service-pages' : 'specific'))); %>
                   <% var btnPaths = (btn.page_url || '').split(/[\n,]+/).map(function(s){ return s.trim(); }).filter(Boolean); %>
                   <% var knownUrls = linkablePages.map(function(p){ return p.url; }); %>
                   <% var extraPaths = btnPaths.filter(function(p){ return knownUrls.indexOf(p) === -1; }); %>
@@ -197,6 +197,7 @@
                         <option value="service-pages" <%= sc==='service-pages'?'selected':'' %>>All service pages</option>
                         <option value="specific" <%= sc==='specific'?'selected':'' %>>Specific pages</option>
                         <option value="product" <%= sc==='product'?'selected':'' %>>A specific product</option>
+                        <option value="sticky" <%= sc==='sticky'?'selected':'' %>>Sticky side tab (all pages)</option>
                       </select>
                     </div>
                   </div>
@@ -312,6 +313,7 @@
                     <option value="all">All pages (site-wide)</option>
                     <option value="specific">Specific pages</option>
                     <option value="product">A specific product</option>
+                    <option value="sticky">Sticky side tab (all pages)</option>
                   </select>
                 </div>
               </div>

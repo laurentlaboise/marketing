@@ -730,7 +730,9 @@
         return res.json();
       })
       .then(function (data) {
-        var buttons = data.buttons || [];
+        // Only inline buttons go into page slots; sticky buttons are rendered
+        // as floating side tabs by the site-wide loader (firebase.js).
+        var buttons = (data.buttons || []).filter(function (btn) { return btn.placement !== 'sticky'; });
         for (var s = 0; s < sections.length; s++) {
           var section = sections[s];
           // A slot may declare its page path; a generic placeholder uses the
