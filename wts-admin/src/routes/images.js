@@ -16,6 +16,7 @@ const {
   localPathFor,
   isTempUpload,
   cleanupTempFile,
+  assertPathWithin,
   ensureDirs,
 } = require('../utils/storage');
 
@@ -118,6 +119,21 @@ function slugifyFilename(name) {
     .replace(/^-+|-+$/g, '');
 }
 
+// Build a filename that doesn't collide with an existing file in destDir.
+// Without this, two uploads with the same name resolve to the same path and
+// the second silently overwrites the first locally and 422s on the GitHub
+// push (which requires the existing file's sha to replace it). At volume this
+// is a real data-loss/dedupe hazard, so we suffix -2, -3, ... as needed.
+function uniqueFilename(destDir, base, ext) {
+  let candidate = `${base}${ext}`;
+  let n = 2;
+  while (fs.existsSync(path.join(destDir, candidate))) {
+    candidate = `${base}-${n}${ext}`;
+    n++;
+  }
+  return candidate;
+}
+
 // Helper: get category subdirectory
 function getCategoryDir(category) {
   const dirs = {
@@ -152,7 +168,7 @@ function getGitHubFileSha(repoPath) {
       path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/contents/${repoPath}?ref=${CDN_CONFIG.branch}`,
       method: 'GET',
       headers: {
-        'Authorization': `token ${token}`,
+        'Authorization': `Bearer ${token}`,
         'User-Agent': 'WTS-Admin-ImageLibrary',
         'Accept': 'application/vnd.github.v3+json',
       },
@@ -174,33 +190,43 @@ function getGitHubFileSha(repoPath) {
   });
 }
 
-// Push a file to the GitHub repo so it's available on the CDN
-// Pass sha to update an existing file (required by GitHub API for replacements)
-async function pushToGitHub(repoPath, fileBuffer, commitMessage, sha) {
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) {
-    console.warn('GITHUB_TOKEN not set - image will not be pushed to repo/CDN');
-    return { pushed: false, reason: 'no_token' };
-  }
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  const content = fileBuffer.toString('base64');
+// Purge jsDelivr's cache for a path so a freshly pushed/updated file is served
+// immediately. jsDelivr caches @branch refs aggressively, so without this an
+// updated image keeps serving the stale bytes (the classic "I re-uploaded but
+// the site still shows the old image"). Fire-and-forget: never fail an upload
+// over a purge miss.
+function purgeJsDelivr(repoPath) {
+  const clean = String(repoPath).replace(/^\/+/, '');
+  const encoded = clean.split('/').map((s) => encodeURIComponent(s)).join('/');
+  const purgePath = `/gh/${CDN_CONFIG.user}/${CDN_CONFIG.repo}@${CDN_CONFIG.branch}/${encoded}`;
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'purge.jsdelivr.net',
+      path: purgePath,
+      method: 'GET',
+      headers: { 'User-Agent': 'WTS-Admin-ImageLibrary' },
+      timeout: 8000,
+    }, (res) => {
+      res.on('data', () => {});
+      res.on('end', () => resolve(res.statusCode >= 200 && res.statusCode < 300));
+    });
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+    req.end();
+  });
+}
 
-  const payload = {
-    message: commitMessage,
-    content,
-    branch: CDN_CONFIG.branch,
-  };
-  if (sha) payload.sha = sha;
-
-  const body = JSON.stringify(payload);
-
-  return new Promise((resolve, reject) => {
+// One PUT attempt against the GitHub Contents API.
+function putToGitHubOnce(repoPath, body, token) {
+  return new Promise((resolve) => {
     const req = https.request({
       hostname: 'api.github.com',
       path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/contents/${repoPath}`,
       method: 'PUT',
       headers: {
-        'Authorization': `token ${token}`,
+        'Authorization': `Bearer ${token}`,
         'User-Agent': 'WTS-Admin-ImageLibrary',
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
@@ -208,25 +234,192 @@ async function pushToGitHub(repoPath, fileBuffer, commitMessage, sha) {
       },
     }, (res) => {
       let data = '';
-      res.on('data', chunk => { data += chunk; });
-      res.on('end', () => {
-        if (res.statusCode === 201 || res.statusCode === 200) {
-          resolve({ pushed: true });
-        } else {
-          console.error('GitHub API error:', res.statusCode, data.substring(0, 500));
-          resolve({ pushed: false, reason: `github_${res.statusCode}`, details: data.substring(0, 200) });
-        }
-      });
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => resolve({ statusCode: res.statusCode, data }));
     });
-
-    req.on('error', (err) => {
-      console.error('GitHub API request error:', err.message);
-      resolve({ pushed: false, reason: 'network_error', details: err.message });
-    });
-
+    req.on('error', (err) => resolve({ networkError: err.message }));
     req.write(body);
     req.end();
   });
+}
+
+// Push a file to the GitHub repo so it's available on the CDN.
+// Pass sha to update an existing file (required by GitHub API for replacements).
+// Retries transient failures (network, 5xx, 403 rate-limit) with backoff; bad
+// credentials / not-found / validation errors fail fast since they won't
+// self-heal. On success, purges jsDelivr so the new bytes are served at once.
+async function pushToGitHub(repoPath, fileBuffer, commitMessage, sha) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.warn('GITHUB_TOKEN not set - image will not be pushed to repo/CDN');
+    return { pushed: false, reason: 'no_token' };
+  }
+
+  const payload = {
+    message: commitMessage,
+    content: fileBuffer.toString('base64'),
+    branch: CDN_CONFIG.branch,
+  };
+  if (sha) payload.sha = sha;
+  const body = JSON.stringify(payload);
+
+  const maxAttempts = 3;
+  let last = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const res = await putToGitHubOnce(repoPath, body, token);
+
+    if (res.networkError) {
+      console.error('GitHub API request error:', res.networkError);
+      last = { pushed: false, reason: 'network_error', details: res.networkError };
+    } else if (res.statusCode === 201 || res.statusCode === 200) {
+      const purged = await purgeJsDelivr(repoPath);
+      return { pushed: true, purged };
+    } else {
+      console.error('GitHub API error:', res.statusCode, String(res.data).substring(0, 500));
+      last = { pushed: false, reason: `github_${res.statusCode}`, details: String(res.data).substring(0, 200) };
+    }
+
+    const transient = res.networkError || res.statusCode >= 500 || res.statusCode === 403;
+    if (!transient || attempt === maxAttempts) break;
+    await sleep(attempt * 1000); // 1s, then 2s
+  }
+  return last;
+}
+
+// Remove a file from the GitHub repo via the Contents DELETE API so it leaves
+// the CDN. Requires the file's current sha (fetch with getGitHubFileSha).
+// Retries transient failures; treats a 404 as already-gone. Purges jsDelivr on
+// success. (Pushing an empty file does NOT delete it - it leaves a 0-byte blob,
+// so a real DELETE is required.)
+async function deleteFromGitHub(repoPath, sha, commitMessage) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return { deleted: false, reason: 'no_token' };
+  if (!sha) return { deleted: false, reason: 'no_sha' };
+
+  const encodedPath = String(repoPath).replace(/^\/+/, '').split('/').map((s) => encodeURIComponent(s)).join('/');
+  const body = JSON.stringify({ message: commitMessage, sha, branch: CDN_CONFIG.branch });
+
+  const attempt = () => new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/contents/${encodedPath}`,
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'WTS-Admin-ImageLibrary',
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => resolve({ statusCode: res.statusCode, data }));
+    });
+    req.on('error', (err) => resolve({ networkError: err.message }));
+    req.write(body);
+    req.end();
+  });
+
+  const maxAttempts = 3;
+  let last = null;
+  for (let i = 1; i <= maxAttempts; i++) {
+    const res = await attempt();
+    if (res.networkError) {
+      last = { deleted: false, reason: 'network_error', details: res.networkError };
+    } else if (res.statusCode === 200) {
+      await purgeJsDelivr(repoPath);
+      return { deleted: true };
+    } else if (res.statusCode === 404) {
+      return { deleted: true, reason: 'already_absent' };
+    } else {
+      console.error('GitHub delete error:', res.statusCode, String(res.data).substring(0, 300));
+      last = { deleted: false, reason: `github_${res.statusCode}` };
+    }
+    const transient = res.networkError || res.statusCode >= 500 || res.statusCode === 403;
+    if (!transient || i === maxAttempts) break;
+    await sleep(i * 1000);
+  }
+  return last;
+}
+
+// Turn a pushToGitHub() failure reason into an actionable warning for the UI.
+function describePushFailure(reason) {
+  switch (reason) {
+    case 'no_token':
+      return 'GITHUB_TOKEN not configured - image is stored locally only and will not appear on CDN.';
+    case 'github_401':
+      return 'GitHub rejected the token (401). The GITHUB_TOKEN is invalid or expired - generate a new token with "contents: write" permission on the repo and update it in the Railway environment variables.';
+    case 'github_403':
+      return 'GitHub denied the request (403). The GITHUB_TOKEN lacks write access to the repo (or hit a rate limit) - ensure it has "contents: write" permission.';
+    case 'github_404':
+      return 'GitHub returned 404 - check the repo/branch in CDN_CONFIG and that the token can see the repository.';
+    case 'network_error':
+      return 'Could not reach GitHub (network error) - image is stored locally only.';
+    default:
+      return `Failed to push to GitHub (${reason}) - image may not appear on CDN.`;
+  }
+}
+
+// Verify the GITHUB_TOKEN actually works (and can write), so the UI can warn
+// about a present-but-invalid/expired/read-only token instead of only checking
+// that the env var exists. Cached briefly to avoid an API call on every page
+// load / rapid navigation.
+let _ghStatusCache = { at: 0, value: null };
+function verifyGitHubToken() {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return Promise.resolve({ configured: false, ok: false, reason: 'no_token' });
+
+  const now = Date.now();
+  if (_ghStatusCache.value && now - _ghStatusCache.at < 60000) {
+    return Promise.resolve(_ghStatusCache.value);
+  }
+
+  return new Promise((resolve) => {
+    const finish = (value) => { _ghStatusCache = { at: now, value }; resolve(value); };
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}`,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'WTS-Admin-ImageLibrary',
+        'Accept': 'application/vnd.github.v3+json',
+      },
+      timeout: 8000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          let canPush = null;
+          try {
+            const json = JSON.parse(data);
+            if (json.permissions) canPush = !!json.permissions.push;
+          } catch (e) { /* ignore parse error, treat as unknown */ }
+          if (canPush === false) finish({ configured: true, ok: false, reason: 'no_write', canPush });
+          else finish({ configured: true, ok: true, reason: 'ok', canPush });
+        } else {
+          finish({ configured: true, ok: false, reason: `github_${res.statusCode}` });
+        }
+      });
+    });
+    req.on('error', () => finish({ configured: true, ok: false, reason: 'network_error' }));
+    req.on('timeout', () => { req.destroy(); finish({ configured: true, ok: false, reason: 'network_error' }); });
+    req.end();
+  });
+}
+
+// Human-readable summary of a verifyGitHubToken() result for the UI banner.
+function describeGitHubStatus(status) {
+  if (status.ok) return 'GitHub CDN publishing is connected and ready.';
+  if (status.reason === 'no_token') {
+    return 'GITHUB_TOKEN is not set. Uploads are stored locally only and will not appear on the CDN (and are lost on the next Railway redeploy). Add GITHUB_TOKEN to your Railway environment variables.';
+  }
+  if (status.reason === 'no_write') {
+    return 'The GITHUB_TOKEN can read the repo but lacks write access. Give it "contents: write" permission so uploads can publish to the CDN.';
+  }
+  return describePushFailure(status.reason);
 }
 
 // ==================== IMAGE FOLDERS ====================
@@ -563,13 +756,23 @@ router.post('/sync', async (req, res) => {
   }
 });
 
+// JSON health check for the GitHub/CDN publishing path (verifies the token
+// actually works, not just that it's set). Handy for an on-demand "test
+// connection" check without doing a throwaway upload.
+router.get('/github-status', async (req, res) => {
+  const status = await verifyGitHubToken();
+  res.json({ ...status, message: describeGitHubStatus(status) });
+});
+
 // Upload form
 router.get('/upload', async (req, res) => {
   const folders = await getFolderTree();
+  const githubStatus = await verifyGitHubToken();
   res.render('images/upload', {
     title: 'Upload Image - WTS Admin',
     currentPage: 'images',
-    githubConfigured: !!process.env.GITHUB_TOKEN,
+    githubConfigured: githubStatus.ok,
+    githubMessage: describeGitHubStatus(githubStatus),
     folders,
     preselectedFolder: req.query.folder || '',
   });
@@ -578,10 +781,12 @@ router.get('/upload', async (req, res) => {
 // Multi-upload form
 router.get('/upload-multiple', async (req, res) => {
   const folders = await getFolderTree();
+  const githubStatus = await verifyGitHubToken();
   res.render('images/upload-multiple', {
     title: 'Upload Multiple Images - WTS Admin',
     currentPage: 'images',
-    githubConfigured: !!process.env.GITHUB_TOKEN,
+    githubConfigured: githubStatus.ok,
+    githubMessage: describeGitHubStatus(githubStatus),
     folders,
     preselectedFolder: req.query.folder || '',
   });
@@ -601,7 +806,9 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
     let uploaded = 0;
     let failed = 0;
     let totalSize = 0;
+    let notPushed = 0;
     const errors = [];
+    const pushReasons = new Set();
 
     for (const file of req.files) {
       try {
@@ -612,9 +819,9 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
 
         if (isSvg || !shouldOptimize) {
           const ext = path.extname(file.originalname).toLowerCase();
-          finalFilename = seoFilename + ext;
           const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
           if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+          finalFilename = uniqueFilename(destDir, seoFilename, ext);
           finalPath = path.join(destDir, finalFilename);
           fs.copyFileSync(file.path, finalPath);
           fileSize = fs.statSync(finalPath).size;
@@ -628,9 +835,9 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
             } catch (e) { /* ignore */ }
           }
         } else {
-          finalFilename = seoFilename + '.webp';
           const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
           if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+          finalFilename = uniqueFilename(destDir, seoFilename, '.webp');
           finalPath = path.join(destDir, finalFilename);
 
           const sharpInstance = sharp(file.path);
@@ -660,7 +867,11 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
 
         // Push to GitHub CDN
         const fileBuffer = fs.readFileSync(finalPath);
-        await pushToGitHub(relPath, fileBuffer, `Upload image: ${finalFilename}`);
+        const ghResult = await pushToGitHub(relPath, fileBuffer, `Upload image: ${finalFilename}`);
+        if (!ghResult.pushed) {
+          notPushed++;
+          if (ghResult.reason) pushReasons.add(ghResult.reason);
+        }
 
         // Save to database
         await db.query(
@@ -686,6 +897,9 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
     let msg = `${uploaded} image${uploaded !== 1 ? 's' : ''} uploaded (${sizeFormatted})`;
     if (shouldOptimize) msg += ', optimized to WebP';
     if (failed > 0) msg += `. ${failed} failed: ${errors.join(', ')}`;
+    if (notPushed > 0) {
+      msg += `. Warning: ${notPushed} not pushed to CDN - ${describePushFailure([...pushReasons][0])}`;
+    }
     req.session.successMessage = msg;
     res.redirect('/images' + (folder_id ? '?folder=' + folder_id : ''));
   } catch (error) {
@@ -714,9 +928,9 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     if (isSvg || optimize !== 'on') {
       // Save as-is (SVGs cannot be processed by sharp)
       const ext = path.extname(req.file.originalname).toLowerCase();
-      finalFilename = seoFilename + ext;
       const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+      finalFilename = uniqueFilename(destDir, seoFilename, ext);
       finalPath = path.join(destDir, finalFilename);
       fs.copyFileSync(req.file.path, finalPath);
       const stats = fs.statSync(finalPath);
@@ -732,9 +946,9 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       }
     } else {
       // Optimize: convert to WebP
-      finalFilename = seoFilename + '.webp';
       const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+      finalFilename = uniqueFilename(destDir, seoFilename, '.webp');
       finalPath = path.join(destDir, finalFilename);
 
       const sharpInstance = sharp(req.file.path);
@@ -781,10 +995,8 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     let msg = `Image uploaded successfully${optimize === 'on' && !isSvg ? ' (optimized to WebP)' : ''}`;
     if (ghResult.pushed) {
       msg += ' and pushed to GitHub CDN';
-    } else if (ghResult.reason === 'no_token') {
-      msg += '. Warning: GITHUB_TOKEN not configured - image is stored locally only and will not appear on CDN.';
     } else {
-      msg += `. Warning: Failed to push to GitHub (${ghResult.reason}) - image may not appear on CDN.`;
+      msg += '. Warning: ' + describePushFailure(ghResult.reason);
     }
     req.session.successMessage = msg;
     res.redirect('/images/' + result.rows[0].id);
@@ -901,7 +1113,7 @@ router.post('/:id/optimize', async (req, res) => {
       try {
         const oldSha = await getGitHubFileSha(image.file_path);
         if (oldSha) {
-          await pushToGitHub(image.file_path, Buffer.from(''), `Remove old image: ${image.filename}`, oldSha);
+          await deleteFromGitHub(image.file_path, oldSha, `Remove old image: ${image.filename}`);
         }
       } catch (e) { /* ignore cleanup errors */ }
     }
@@ -1506,7 +1718,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
 
         let msg = 'Image replaced successfully (converted to WebP)';
         if (ghResult.pushed) msg += ' and pushed to CDN';
-        else if (ghResult.reason === 'no_token') msg += '. Warning: not pushed to CDN (no GITHUB_TOKEN)';
+        else msg += '. Warning: ' + describePushFailure(ghResult.reason);
         req.session.successMessage = msg;
         return res.redirect('/images/' + req.params.id);
       }
@@ -1528,8 +1740,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
 
     let msg = 'Image replaced successfully';
     if (ghResult.pushed) msg += ' and pushed to CDN';
-    else if (ghResult.reason === 'no_token') msg += '. Warning: not pushed to CDN (no GITHUB_TOKEN)';
-    else msg += `. Warning: CDN push failed (${ghResult.reason})`;
+    else msg += '. Warning: ' + describePushFailure(ghResult.reason);
     req.session.successMessage = msg;
     res.redirect('/images/' + req.params.id);
   } catch (error) {
@@ -1568,7 +1779,7 @@ router.get('/:id/download', async (req, res) => {
   }
 });
 
-// Delete image
+// Archive image (soft delete: keeps the row and the file, just hides it)
 router.post('/:id/delete', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
@@ -1585,8 +1796,51 @@ router.post('/:id/delete', async (req, res) => {
     req.session.successMessage = `Image "${image.filename}" archived`;
     res.redirect('/images');
   } catch (error) {
-    console.error('Delete image error:', error);
-    req.session.errorMessage = 'Failed to delete image';
+    console.error('Archive image error:', error);
+    req.session.errorMessage = 'Failed to archive image';
+    res.redirect('/images');
+  }
+});
+
+// Permanently delete image (removes the DB row, the local working copy, and the
+// file from the GitHub repo / CDN). This is irreversible, unlike archiving.
+router.post('/:id/destroy', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      req.session.errorMessage = 'Image not found';
+      return res.redirect('/images');
+    }
+
+    const image = result.rows[0];
+
+    // Remove the local working copy if it's present.
+    try {
+      const fullPath = localPathFor(image.file_path);
+      if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    } catch (e) {
+      console.error('Local file delete failed:', e.message);
+    }
+
+    // Remove from the GitHub repo so it leaves the CDN.
+    let ghNote = '';
+    const sha = await getGitHubFileSha(image.file_path);
+    if (sha) {
+      const ghDel = await deleteFromGitHub(image.file_path, sha, `Delete image: ${image.filename}`);
+      if (!ghDel.deleted) ghNote = '. Warning: removed from library but not from CDN - ' + describePushFailure(ghDel.reason);
+    } else if (process.env.GITHUB_TOKEN) {
+      // No sha found (already gone or unreadable) - purge cache just in case.
+      await purgeJsDelivr(image.file_path);
+    }
+
+    // Remove the database row last, so a failure above doesn't orphan the file.
+    await db.query('DELETE FROM images WHERE id = $1', [req.params.id]);
+
+    req.session.successMessage = `Image "${image.filename}" permanently deleted${ghNote}`;
+    res.redirect('/images');
+  } catch (error) {
+    console.error('Permanent delete error:', error);
+    req.session.errorMessage = 'Failed to delete image: ' + error.message;
     res.redirect('/images');
   }
 });
