@@ -956,6 +956,9 @@ router.post('/form-templates/:id/delete', async (req, res) => {
 function resolvePageUrl(body) {
   switch (body.page_scope) {
     case 'all':
+    case 'sticky':
+      // A sticky side tab shows site-wide; placement (stored separately) is what
+      // makes it render as a floating tab rather than into a page slot.
       return '*';
     case 'service-pages':
       return '/en/digital-marketing-services/*';
@@ -1028,10 +1031,11 @@ router.post('/form-buttons', async (req, res) => {
     }
 
     const target = await resolveButtonTarget(req.body);
+    const placement = req.body.page_scope === 'sticky' ? 'sticky' : 'inline';
     await db.query(
       `INSERT INTO form_buttons (form_type, button_label, page_url, style_preset, custom_css, custom_js,
-        rel_nofollow, rel_noopener, rel_noreferrer, target_blank, sort_order, product_slug, product_name)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+        rel_nofollow, rel_noopener, rel_noreferrer, target_blank, sort_order, product_slug, product_name, placement)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
         form_type.trim(),
         button_label.trim(),
@@ -1045,7 +1049,8 @@ router.post('/form-buttons', async (req, res) => {
         target_blank === 'on' || target_blank === 'true',
         parseInt(sort_order) || 0,
         target.product_slug,
-        target.product_name
+        target.product_name,
+        placement
       ]
     );
     req.session.successMessage = 'Button added successfully';
@@ -1064,12 +1069,13 @@ router.post('/form-buttons/:id', async (req, res) => {
     } = req.body;
 
     const target = await resolveButtonTarget(req.body);
+    const placement = req.body.page_scope === 'sticky' ? 'sticky' : 'inline';
     await db.query(
       `UPDATE form_buttons SET
         button_label=$1, page_url=$2, style_preset=$3, custom_css=$4, custom_js=$5,
         rel_nofollow=$6, rel_noopener=$7, rel_noreferrer=$8, target_blank=$9,
-        sort_order=$10, status=$11, product_slug=$12, product_name=$13, updated_at=CURRENT_TIMESTAMP
-       WHERE id=$14`,
+        sort_order=$10, status=$11, product_slug=$12, product_name=$13, placement=$14, updated_at=CURRENT_TIMESTAMP
+       WHERE id=$15`,
       [
         (button_label || '').trim(),
         target.page_url,
@@ -1084,6 +1090,7 @@ router.post('/form-buttons/:id', async (req, res) => {
         status || 'active',
         target.product_slug,
         target.product_name,
+        placement,
         req.params.id
       ]
     );

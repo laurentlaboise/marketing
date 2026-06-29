@@ -991,6 +991,11 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='form_buttons' AND column_name='product_name') THEN
             ALTER TABLE form_buttons ADD COLUMN product_name VARCHAR(500);
           END IF;
+          -- placement: 'inline' (rendered into a page button slot) or 'sticky'
+          -- (rendered as a floating side tab on the right edge of every page).
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='form_buttons' AND column_name='placement') THEN
+            ALTER TABLE form_buttons ADD COLUMN placement VARCHAR(20) DEFAULT 'inline';
+          END IF;
         END $$;
       `);
 
