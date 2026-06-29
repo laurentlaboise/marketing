@@ -113,6 +113,19 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label" for="cta_form_type"><i class="fas fa-wpforms"></i> Request-a-Quote form</label>
+            <% const fts = (typeof formTemplates !== 'undefined' && formTemplates) ? formTemplates : []; %>
+            <% const curForm = product ? (product.cta_form_type || '') : ''; %>
+            <select id="cta_form_type" name="cta_form_type" class="form-input">
+              <option value="">Default — Consultation form</option>
+              <% fts.forEach(function(ft){ %>
+              <option value="<%= ft.form_type %>" <%= curForm === ft.form_type ? 'selected' : '' %>><%= ft.title %> (<%= ft.form_type %>)</option>
+              <% }); %>
+            </select>
+            <small style="color:#666;">Which form opens when a visitor clicks this product's “Request a Quote” / enquiry button. Create forms under Message Board → Forms. One form can serve many products.</small>
+          </div>
+
+          <div class="form-group">
             <label class="form-label">Industries / Ideal For</label>
             <div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;padding:0.5rem 0;">
               <% tx.INDUSTRIES.forEach(function(ind){ %>
