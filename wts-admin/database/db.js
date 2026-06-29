@@ -885,6 +885,78 @@ const db = {
         )
       `);
 
+      // Seed the core front-end forms as editable templates so every modal form
+      // on the site is controllable from the admin (Message Board → Forms).
+      // Idempotent: ON CONFLICT keeps any edits an admin has already made — this
+      // only fills in a form that doesn't exist yet, it never overwrites.
+      const BASE_FORM_TEMPLATES = [
+        {
+          form_type: 'general-inquiry',
+          title: 'Send Us a Message',
+          subtitle: "Have a question? Send us a message and we'll get back to you shortly.",
+          submit: 'Send Message',
+          success: "Thank you! Your message has been sent — we'll be in touch soon.",
+          fields: [
+            { name: 'name', label: 'Your Name', type: 'text', placeholder: 'Your Name', required: true },
+            { name: 'email', label: 'Your Email', type: 'email', placeholder: 'Your Email', required: true },
+            { name: 'company', label: 'Company', type: 'text', placeholder: 'Company (optional)', required: false },
+            { name: 'message', label: 'Message', type: 'textarea', placeholder: 'How can we help?', required: true },
+          ],
+        },
+        {
+          form_type: 'consultation',
+          title: 'Request a Quote',
+          subtitle: "Tell us what you need — we'll tailor a plan and quote.",
+          submit: 'Request a Quote',
+          success: "Thank you! We've received your request and will reply with a tailored quote.",
+          fields: [
+            { name: 'name', label: 'Your Name', type: 'text', placeholder: 'Your Name', required: true },
+            { name: 'email', label: 'Your Email', type: 'email', placeholder: 'Your Email', required: true },
+            { name: 'company', label: 'Company', type: 'text', placeholder: 'Company (optional)', required: false },
+            { name: 'phone', label: 'Phone', type: 'tel', placeholder: 'Phone (optional)', required: false },
+            { name: 'service', label: 'Service of Interest', type: 'text', placeholder: 'Which service?', required: false },
+            { name: 'message', label: 'Details', type: 'textarea', placeholder: 'Tell us about your project...', required: false },
+          ],
+        },
+        {
+          form_type: 'affiliate',
+          title: 'Apply for Affiliate Program',
+          subtitle: "Let's discuss how we can help your business grow. Fill out the form below and we'll get back to you shortly.",
+          submit: 'Submit Request',
+          success: "Thank you for applying! We'll review your application and get back to you.",
+          fields: [
+            { name: 'name', label: 'Your Name', type: 'text', placeholder: 'Your Name', required: true },
+            { name: 'email', label: 'Your Email', type: 'email', placeholder: 'Your Email', required: true },
+            { name: 'company', label: 'Company Name', type: 'text', placeholder: 'Company Name', required: false },
+            { name: 'service', label: 'Service of Interest', type: 'select', placeholder: 'Select a Service of Interest', required: true,
+              options: ['Digital Marketing Strategy', 'SEO Content Creation', 'Social Media Management', 'Web Development', 'Graphic Design', 'App Development', 'AI Marketing Hub'] },
+            { name: 'message', label: 'Message', type: 'textarea', placeholder: 'Tell us about your project...', required: false },
+          ],
+        },
+        {
+          form_type: 'contact',
+          title: 'Contact Us',
+          subtitle: "We'd love to hear from you. Send us a message and we'll respond as soon as we can.",
+          submit: 'Send',
+          success: "Thank you for reaching out — we'll be in touch shortly.",
+          fields: [
+            { name: 'name', label: 'Your Name', type: 'text', placeholder: 'Your Name', required: true },
+            { name: 'email', label: 'Your Email', type: 'email', placeholder: 'Your Email', required: true },
+            { name: 'company', label: 'Company', type: 'text', placeholder: 'Company (optional)', required: false },
+            { name: 'phone', label: 'Phone', type: 'tel', placeholder: 'Phone (optional)', required: false },
+            { name: 'message', label: 'Message', type: 'textarea', placeholder: 'Your message...', required: true },
+          ],
+        },
+      ];
+      for (const t of BASE_FORM_TEMPLATES) {
+        await client.query(
+          `INSERT INTO form_templates (form_type, title, subtitle, fields, submit_button_text, success_message, status)
+           VALUES ($1, $2, $3, $4, $5, $6, 'active')
+           ON CONFLICT (form_type) DO NOTHING`,
+          [t.form_type, t.title, t.subtitle, JSON.stringify(t.fields), t.submit, t.success]
+        );
+      }
+
       // Form buttons table (linked buttons for form templates)
       await client.query(`
         CREATE TABLE IF NOT EXISTS form_buttons (
