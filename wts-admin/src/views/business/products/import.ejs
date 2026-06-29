@@ -1,0 +1,87 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <h1 class="page-title">Import Products</h1>
+        <p class="page-subtitle"><a href="/business/products"><i class="fas fa-arrow-left"></i> Back to Products</a></p>
+      </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:0.85rem 1rem;border-radius:8px;margin-bottom:1.25rem;">
+      <i class="fas fa-exclamation-triangle"></i> <%= error %>
+    </div>
+    <% } %>
+
+    <% if (results) { %>
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-body">
+        <h3 style="margin-bottom:0.75rem;"><i class="fas fa-clipboard-check"></i> Import Summary</h3>
+        <p style="margin-bottom:1rem;">
+          <span style="color:#16a34a;font-weight:600;"><%= results.created %> created</span> ·
+          <span style="color:#a16207;font-weight:600;"><%= results.skipped %> skipped</span> ·
+          <span style="color:#dc2626;font-weight:600;"><%= results.failed %> failed</span>
+          <span style="color:#666;">of <%= results.total %> parsed</span>
+        </p>
+        <div class="table-container">
+          <table class="table">
+            <thead><tr><th>Product</th><th>Status</th><th>Detail</th></tr></thead>
+            <tbody>
+              <% results.items.forEach(function(it){ %>
+              <tr>
+                <td><strong><%= it.name %></strong></td>
+                <td>
+                  <% if (it.status === 'created') { %><span class="status-badge active">created</span>
+                  <% } else if (it.status === 'skipped') { %><span class="status-badge draft">skipped</span>
+                  <% } else { %><span class="status-badge inactive">error</span><% } %>
+                </td>
+                <td>
+                  <span style="color:#555;font-size:0.9rem;"><%= it.message %></span>
+                  <% if (it.warnings && it.warnings.length) { %>
+                  <div style="color:#a16207;font-size:0.82rem;margin-top:0.25rem;">
+                    <i class="fas fa-triangle-exclamation"></i> <%= it.warnings.join(' ') %>
+                  </div>
+                  <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:1rem;">
+          <a href="/business/products?status=draft" class="btn btn-primary"><i class="fas fa-list"></i> Review imported drafts</a>
+        </p>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="card">
+      <div class="card-body">
+        <h3 style="margin-bottom:0.5rem;"><i class="fas fa-file-import"></i> Paste product listings</h3>
+        <p style="color:#666;margin-bottom:1rem;font-size:0.92rem;">
+          Paste the full product-listings text (the <code>## 1. Name</code> / <strong>Category</strong> / <strong>Price</strong> / <strong>Features</strong> format).
+          Every product is created as a <strong>draft</strong> in lead-first <em>“Request a quote”</em> mode — review, add images, set any to “Buy Now”, then publish.
+          Re-running is safe: products whose slug already exists are skipped.
+        </p>
+        <form action="/business/products/import" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div class="form-group">
+            <textarea id="text" name="text" class="form-input" rows="18"
+              style="font-family:'Fira Code','Consolas',monospace;font-size:13px;line-height:1.5;"
+              placeholder="## 1. Virtual Card Pro+&#10;&#10;Category: Digital Business Services&#10;SKU: 10259403&#10;Price: $58.60 one-time&#10;&#10;Description:&#10;A modern digital business card...&#10;&#10;Features:&#10;  - Digital business card setup&#10;  - QR-friendly sharing&#10;&#10;Ideal For:&#10;Entrepreneurs, sales teams..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-file-import"></i> Parse &amp; Import as Drafts</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>
