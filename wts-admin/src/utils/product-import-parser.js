@@ -131,8 +131,9 @@ function parseProductListings(rawText) {
   const text = String(rawText || '').replace(/\*/g, '').replace(/\r\n?/g, '\n');
   const lines = text.split('\n').map((l) => l.replace(/\s+$/, ''));
 
-  // Product blocks start at "## N. Name".
-  const headingRe = /^##\s+\d+\.\s+(.+?)\s*$/;
+  // Product blocks start at a numbered heading: "## 2. Name" (Docs export) or
+  // just "2. Name" (plain paste). The Markdown hashes are optional.
+  const headingRe = /^(?:#{1,6}\s*)?\d+\.\s+(.+?)\s*$/;
   const starts = [];
   lines.forEach((l, idx) => { if (headingRe.test(l)) starts.push(idx); });
 
@@ -142,6 +143,12 @@ function parseProductListings(rawText) {
     const end = s + 1 < starts.length ? starts[s + 1] : lines.length;
     const name = lines[start].match(headingRe)[1].trim();
     const block = lines.slice(start + 1, end);
+
+    // A real product block carries labelled fields. This rejects prose
+    // numbered lists (e.g. a "1. Launch Ready Starter" bullet in trailing
+    // strategy notes) that happen to start with "N.".
+    if (!block.some((l) => LABEL_RE.test(l))) continue;
+
     const fields = readFields(block);
 
     const warnings = [];
@@ -157,9 +164,10 @@ function parseProductListings(rawText) {
     const subcategory = resolveSubcategory(servicePage, haystack);
     if (servicePage && !subcategory) warnings.push('Could not infer subcategory — set it manually.');
 
+    // Features may be "- item" (Docs export) or plain lines (paste). Strip any
+    // leading bullet character and keep every non-empty line.
     const features = (fields['features'] || [])
-      .filter((l) => /^-\s+/.test(l))
-      .map((l) => l.replace(/^-\s+/, '').trim())
+      .map((l) => l.replace(/^[-*•·]\s*/, '').trim())
       .filter(Boolean);
 
     const idealFor = joined('ideal for');
