@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
 const { isOriginAllowed } = require('../utils/origins');
+const { normalizeTiers } = require('../utils/pricing');
 
 const router = express.Router();
 
@@ -405,6 +406,26 @@ function buildProductPricing(p) {
   const num = (v) => (v === null || v === undefined || v === '') ? null : parseFloat(v);
   const type = p.pricing_type === 'subscription' ? 'subscription' : 'one_time';
   const currency = p.currency || 'USD';
+
+  // Volume-discount tiers: unit price drops with quantity.
+  if (p.pricing_type === 'tiered') {
+    const tiers = normalizeTiers(p.quantity_tiers);
+    const fromUnit = tiers.length ? Math.min.apply(null, tiers.map((t) => t.unit_price)) : null;
+    return {
+      type: 'tiered',
+      currency,
+      tiers,
+      from_unit_price: fromUnit,
+      min_qty: tiers.length ? tiers[0].min_qty : 1,
+      one_time_price: null,
+      monthly_price: null,
+      yearly_price: null,
+      default_billing: 'monthly',
+      allow_billing_toggle: false,
+      annual_savings: null,
+      annual_discount_pct: null
+    };
+  }
 
   if (type !== 'subscription') {
     return {

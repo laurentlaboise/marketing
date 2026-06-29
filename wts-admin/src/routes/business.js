@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 const taxonomy = require('../config/product-taxonomy');
 const slugify = require('../utils/slugify');
 const { parseProductListings } = require('../utils/product-import-parser');
+const { normalizeTiers } = require('../utils/pricing');
 
 const router = express.Router();
 
@@ -218,9 +219,22 @@ function normalizePricing(body) {
     return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : null;
   };
 
-  let pricingType = body.pricing_type === 'subscription' ? 'subscription' : 'one_time';
+  let pricingType = 'one_time';
+  if (body.pricing_type === 'subscription') pricingType = 'subscription';
+  else if (body.pricing_type === 'tiered') pricingType = 'tiered';
   const monthly = toNum(body.monthly_price);
   const yearly = toNum(body.yearly_price);
+
+  // Volume-discount tiers come from parallel form arrays tier_min_qty[] /
+  // tier_unit_price[]. A tiered product with no valid tiers falls back to
+  // one-time so it can never end up unsellable/blank.
+  let quantityTiers = [];
+  if (pricingType === 'tiered') {
+    const mins = Array.isArray(body.tier_min_qty) ? body.tier_min_qty : (body.tier_min_qty != null ? [body.tier_min_qty] : []);
+    const prices = Array.isArray(body.tier_unit_price) ? body.tier_unit_price : (body.tier_unit_price != null ? [body.tier_unit_price] : []);
+    quantityTiers = normalizeTiers(mins.map((m, i) => ({ min_qty: m, unit_price: prices[i] })));
+    if (quantityTiers.length === 0) pricingType = 'one_time';
+  }
 
   // A subscription with no monthly or yearly price isn't sellable — treat as one-time.
   if (pricingType === 'subscription' && monthly === null && yearly === null) {
@@ -247,7 +261,8 @@ function normalizePricing(body) {
     yearly_price: pricingType === 'subscription' ? yearly : null,
     annual_discount_pct: pricingType === 'subscription' ? toInt(body.annual_discount_pct) : null,
     default_billing: defaultBilling,
-    allow_billing_toggle: allowToggle
+    allow_billing_toggle: allowToggle,
+    quantity_tiers: quantityTiers
   };
 }
 
@@ -286,10 +301,14 @@ function validateProduct(body) {
   // Self-serve "Buy now" products must have something to charge.
   if (mode === 'buy') {
     const isSub = body.pricing_type === 'subscription';
+    const isTiered = body.pricing_type === 'tiered';
     const hasOneTime = parseFloat(body.price) > 0;
     const hasSub = parseFloat(body.monthly_price) > 0 || parseFloat(body.yearly_price) > 0;
-    if (isSub ? !hasSub : !hasOneTime) {
-      errors.push('Buy-now products need a price (a one-time price, or a monthly/yearly price for subscriptions).');
+    const tierPrices = Array.isArray(body.tier_unit_price) ? body.tier_unit_price : (body.tier_unit_price != null ? [body.tier_unit_price] : []);
+    const hasTier = tierPrices.some((v) => parseFloat(v) > 0);
+    const ok = isSub ? hasSub : (isTiered ? hasTier : hasOneTime);
+    if (!ok) {
+      errors.push('Buy-now products need a price (a one-time price, monthly/yearly for subscriptions, or at least one quantity tier).');
     }
   }
   return errors;
@@ -469,10 +488,8 @@ router.post('/products', async (req, res) => {
 
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
     const productSlug = slug && slug.trim() ? slugify(slug) : slugify(name);
-    const pricing = normalizePricing({
-      pricing_type, monthly_price, yearly_price, annual_discount_pct,
-      default_billing, allow_billing_toggle
-    });
+    // Pass the whole body so normalizePricing can also read the tier arrays.
+    const pricing = normalizePricing(req.body);
     const mode = taxonomy.PURCHASE_MODE_VALUES.includes(purchase_mode) ? purchase_mode : 'consult';
     const unit = taxonomy.PRICE_UNIT_VALUES.includes(price_unit) ? price_unit : 'fixed';
 
@@ -485,8 +502,8 @@ router.post('/products', async (req, res) => {
         pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
         allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
         subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
-        cta_form_type
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38)`,
+        cta_form_type, quantity_tiers
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39)`,
       [
         name, productSlug, description, price || null, currency || 'USD', category, featuresArray, image_url, status || 'active',
         service_page || null, icon_class || 'fas fa-box', animation_class || 'kinetic-pulse-float',
@@ -498,7 +515,8 @@ router.post('/products', async (req, res) => {
         pricing.default_billing, pricing.allow_billing_toggle,
         stripe_price_id_monthly || null, stripe_price_id_yearly || null,
         subcategory || null, mode, unit, normalizeIndustries(industries), sku || null, stripe_payment_link || null,
-        (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null
+        (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null,
+        JSON.stringify(pricing.quantity_tiers || [])
       ]
     );
     req.session.successMessage = 'Product created successfully';
@@ -564,10 +582,8 @@ router.post('/products/:id', async (req, res) => {
 
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
     const productSlug = slug && slug.trim() ? slugify(slug) : slugify(name);
-    const pricing = normalizePricing({
-      pricing_type, monthly_price, yearly_price, annual_discount_pct,
-      default_billing, allow_billing_toggle
-    });
+    // Pass the whole body so normalizePricing can also read the tier arrays.
+    const pricing = normalizePricing(req.body);
     const mode = taxonomy.PURCHASE_MODE_VALUES.includes(purchase_mode) ? purchase_mode : 'consult';
     const unit = taxonomy.PRICE_UNIT_VALUES.includes(price_unit) ? price_unit : 'fixed';
 
@@ -582,8 +598,8 @@ router.post('/products/:id', async (req, res) => {
         default_billing=$28, allow_billing_toggle=$29,
         stripe_price_id_monthly=$30, stripe_price_id_yearly=$31,
         subcategory=$32, purchase_mode=$33, price_unit=$34, industries=$35, sku=$36,
-        stripe_payment_link=$37, cta_form_type=$38, updated_at=CURRENT_TIMESTAMP
-      WHERE id=$39`,
+        stripe_payment_link=$37, cta_form_type=$38, quantity_tiers=$39, updated_at=CURRENT_TIMESTAMP
+      WHERE id=$40`,
       [
         name, productSlug, description, price || null, currency, category, featuresArray,
         image_url, status, service_page || null, icon_class || 'fas fa-box',
@@ -598,6 +614,7 @@ router.post('/products/:id', async (req, res) => {
         subcategory || null, mode, unit, normalizeIndustries(industries), sku || null,
         stripe_payment_link || null,
         (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null,
+        JSON.stringify(pricing.quantity_tiers || []),
         req.params.id
       ]
     );
