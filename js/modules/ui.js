@@ -36,6 +36,17 @@ export function initModalsAndButtons() {
 
   window.addEventListener('scroll', handleFloatingButtons);
   if (quoteTab) quoteTab.addEventListener('click', openModal);
+
+  // Back to top: scroll smoothly and hide the button immediately. Relying only
+  // on a trailing scroll event left it visible over the hero header in some
+  // cases; this guarantees it disappears and doesn't leave a #top hash behind.
+  if (backToTopButton) {
+    backToTopButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      backToTopButton.classList.remove('show');
+    });
+  }
   if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
   if (modalOverlay) {
     modalOverlay.addEventListener('click', (e) => {
