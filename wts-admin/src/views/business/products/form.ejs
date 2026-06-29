@@ -18,6 +18,12 @@
     <form action="<%= product ? '/business/products/' + product.id : '/business/products' %>" method="POST">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
+      <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-danger" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:0.85rem 1rem;border-radius:8px;margin-bottom:1.25rem;">
+        <i class="fas fa-exclamation-triangle"></i> <%= error %>
+      </div>
+      <% } %>
+
       <!-- Basic Information -->
       <div class="card form-card" style="margin-bottom: 1.5rem;">
         <div class="card-body">
@@ -59,6 +65,68 @@
         </div>
       </div>
 
+      <!-- Classification & Audience -->
+      <% const tx = (typeof taxonomy !== 'undefined' && taxonomy) ? taxonomy : { SERVICE_PAGES: [], SUBCATEGORIES: {}, PURCHASE_MODES: [], INDUSTRIES: [], PRICE_UNITS: [] }; %>
+      <% const curSP = (product && product.service_page) || ''; %>
+      <% const curInd = (product && Array.isArray(product.industries)) ? product.industries : []; %>
+      <div class="card form-card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary, #1a1a2e);"><i class="fas fa-sitemap"></i> Classification &amp; Audience</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="service_page">Service Page (Category) *</label>
+              <select id="service_page" name="service_page" class="form-input" required>
+                <option value="">-- Select --</option>
+                <% tx.SERVICE_PAGES.forEach(function(sp){ %>
+                <option value="<%= sp.value %>" <%= curSP === sp.value ? 'selected' : '' %>><%= sp.label %></option>
+                <% }); %>
+              </select>
+              <small style="color:#666;">The authoritative top-level category.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="subcategory">Subcategory *</label>
+              <select id="subcategory" name="subcategory" class="form-input" required>
+                <option value="">-- Select a Service Page first --</option>
+                <% (tx.SUBCATEGORIES[curSP] || []).forEach(function(sc){ %>
+                <option value="<%= sc.value %>" <%= product && product.subcategory === sc.value ? 'selected' : '' %>><%= sc.label %></option>
+                <% }); %>
+              </select>
+              <small style="color:#666;">Options update based on the Service Page.</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="purchase_mode">How customers acquire this</label>
+              <select id="purchase_mode" name="purchase_mode" class="form-input">
+                <% tx.PURCHASE_MODES.forEach(function(pm){ %>
+                <option value="<%= pm.value %>" <%= (product ? product.purchase_mode : 'consult') === pm.value ? 'selected' : (!product && pm.value === 'consult' ? 'selected' : '') %>><%= pm.label %></option>
+                <% }); %>
+              </select>
+              <small style="color:#666;">Most services start with a strategy call; reserve “Buy Now” for self-serve products.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="sku">SKU (optional)</label>
+              <input type="text" id="sku" name="sku" class="form-input" value="<%= product ? (product.sku || '') : '' %>" placeholder="e.g. 10259403">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Industries / Ideal For</label>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;padding:0.5rem 0;">
+              <% tx.INDUSTRIES.forEach(function(ind){ %>
+              <label style="display:inline-flex;align-items:center;gap:0.35rem;font-weight:400;cursor:pointer;">
+                <input type="checkbox" name="industries" value="<%= ind.value %>" style="width:auto;margin:0;" <%= curInd.indexOf(ind.value) !== -1 ? 'checked' : '' %>>
+                <%= ind.label %>
+              </label>
+              <% }); %>
+            </div>
+            <small style="color:#666;">Cross-cutting audience tags — power the “browse by industry” tiers.</small>
+          </div>
+        </div>
+      </div>
+
       <!-- Pricing & Category -->
       <div class="card form-card" style="margin-bottom: 1.5rem;">
         <div class="card-body">
@@ -87,10 +155,21 @@
 
           <!-- One-Time pricing -->
           <div id="one-time-pricing" class="pricing-block">
-            <div class="form-group">
-              <label class="form-label" for="price">One-Time Price</label>
-              <input type="number" id="price" name="price" class="form-input" step="0.01" min="0" value="<%= product ? (product.price || '') : '' %>" placeholder="e.g. 99.00">
-              <small style="color:#666;">Single purchase amount. Example: Product A — $99.</small>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="price">One-Time Price</label>
+                <input type="number" id="price" name="price" class="form-input" step="0.01" min="0" value="<%= product ? (product.price || '') : '' %>" placeholder="e.g. 99.00">
+                <small style="color:#666;">The amount; leave blank for “Custom Quote”.</small>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="price_unit">Price Unit</label>
+                <select id="price_unit" name="price_unit" class="form-input">
+                  <% tx.PRICE_UNITS && tx.PRICE_UNITS.forEach(function(u){ %>
+                  <option value="<%= u.value %>" <%= (product ? (product.price_unit || 'fixed') : 'fixed') === u.value ? 'selected' : '' %>><%= u.label %></option>
+                  <% }); %>
+                </select>
+                <small style="color:#666;">e.g. “Per hour” ($33/hr) or “Per agreed quantity”.</small>
+              </div>
             </div>
           </div>
 
@@ -150,21 +229,10 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="category">Category</label>
-              <input type="text" id="category" name="category" class="form-input" value="<%= product ? (product.category || '') : '' %>" placeholder="e.g. copywriting, design, automation">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="service_page">Service Page</label>
-              <select id="service_page" name="service_page" class="form-input">
-                <option value="" <%= !product || !product.service_page ? 'selected' : '' %>>-- None --</option>
-                <option value="content-creation" <%= product && product.service_page === 'content-creation' ? 'selected' : '' %>>Content Creation</option>
-                <option value="social-media-management" <%= product && product.service_page === 'social-media-management' ? 'selected' : '' %>>Social Media Management</option>
-                <option value="web-development" <%= product && product.service_page === 'web-development' ? 'selected' : '' %>>Web Development</option>
-                <option value="business-tools" <%= product && product.service_page === 'business-tools' ? 'selected' : '' %>>Business Tools</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label class="form-label" for="category">Legacy Category (optional)</label>
+            <input type="text" id="category" name="category" class="form-input" value="<%= product ? (product.category || '') : '' %>" placeholder="free-text — superseded by Service Page + Subcategory above">
+            <small style="color:#666;">Kept for backward compatibility. Classification now comes from Service Page + Subcategory.</small>
           </div>
 
           <div class="form-row">
@@ -274,6 +342,12 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label" for="stripe_payment_link">Stripe Payment Link (optional)</label>
+            <input type="url" id="stripe_payment_link" name="stripe_payment_link" class="form-input" value="<%= product ? (product.stripe_payment_link || '') : '' %>" placeholder="https://buy.stripe.com/...">
+            <small style="color:#666;">A ready-made Stripe checkout link, used directly for “Buy Now” products.</small>
+          </div>
+
+          <div class="form-group">
             <label class="form-label" for="download_url">Download URL (for digital products)</label>
             <input type="url" id="download_url" name="download_url" class="form-input" value="<%= product ? (product.download_url || '') : '' %>" placeholder="URL to downloadable file after purchase">
           </div>
@@ -317,6 +391,24 @@ document.getElementById('slug').addEventListener('input', function() {
 <% if (product && product.slug) { %>
 document.getElementById('slug').dataset.manual = 'true';
 <% } %>
+
+// ── Dependent subcategory dropdown ──────────────────────────
+(function() {
+  var SUBCATS = <%- JSON.stringify((typeof taxonomy !== 'undefined' && taxonomy && taxonomy.SUBCATEGORIES) || {}) %>;
+  var sp = document.getElementById('service_page');
+  var sub = document.getElementById('subcategory');
+  if (!sp || !sub) return;
+  sp.addEventListener('change', function() {
+    var list = SUBCATS[sp.value] || [];
+    sub.innerHTML = '<option value="">-- Select --</option>';
+    list.forEach(function(sc) {
+      var o = document.createElement('option');
+      o.value = sc.value;
+      o.textContent = sc.label;
+      sub.appendChild(o);
+    });
+  });
+})();
 
 // ── Pricing type toggle + annual savings preview ────────────
 (function() {
