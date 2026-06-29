@@ -336,12 +336,27 @@ router.get('/products', async (req, res) => {
   }
 });
 
-router.get('/products/new', (req, res) => {
+// Active form templates offered in the product editor's "Request-a-Quote form"
+// dropdown. Each product can point its consult CTA at one of these; the front
+// end falls back to the generic 'consultation' form when none is set.
+async function getActiveFormTemplates() {
+  try {
+    const r = await db.query(
+      "SELECT form_type, title FROM form_templates WHERE status = 'active' ORDER BY title ASC"
+    );
+    return r.rows;
+  } catch (e) {
+    return [];
+  }
+}
+
+router.get('/products/new', async (req, res) => {
   res.render('business/products/form', {
     title: 'New Product - WTS Admin',
     product: null,
     currentPage: 'products',
-    taxonomy
+    taxonomy,
+    formTemplates: await getActiveFormTemplates()
   });
 });
 
@@ -435,7 +450,8 @@ router.post('/products', async (req, res) => {
       stripe_product_id, stripe_price_id, is_featured,
       pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
       allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
-      subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link
+      subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
+      cta_form_type
     } = req.body;
 
     const errors = validateProduct(req.body);
@@ -446,6 +462,7 @@ router.post('/products', async (req, res) => {
         product: req.body,
         currentPage: 'products',
         taxonomy,
+        formTemplates: await getActiveFormTemplates(),
         error: errors.join(' ')
       });
     }
@@ -467,8 +484,9 @@ router.post('/products', async (req, res) => {
         stripe_product_id, stripe_price_id, is_featured,
         pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
         allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
-        subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37)`,
+        subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
+        cta_form_type
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38)`,
       [
         name, productSlug, description, price || null, currency || 'USD', category, featuresArray, image_url, status || 'active',
         service_page || null, icon_class || 'fas fa-box', animation_class || 'kinetic-pulse-float',
@@ -479,7 +497,8 @@ router.post('/products', async (req, res) => {
         pricing.pricing_type, pricing.monthly_price, pricing.yearly_price, pricing.annual_discount_pct,
         pricing.default_billing, pricing.allow_billing_toggle,
         stripe_price_id_monthly || null, stripe_price_id_yearly || null,
-        subcategory || null, mode, unit, normalizeIndustries(industries), sku || null, stripe_payment_link || null
+        subcategory || null, mode, unit, normalizeIndustries(industries), sku || null, stripe_payment_link || null,
+        (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null
       ]
     );
     req.session.successMessage = 'Product created successfully';
@@ -492,6 +511,7 @@ router.post('/products', async (req, res) => {
       product: req.body,
       currentPage: 'products',
       taxonomy,
+      formTemplates: await getActiveFormTemplates(),
       error: 'Failed to create product'
     });
   }
@@ -507,7 +527,8 @@ router.get('/products/:id/edit', async (req, res) => {
       title: 'Edit Product - WTS Admin',
       product: result.rows[0],
       currentPage: 'products',
-      taxonomy
+      taxonomy,
+      formTemplates: await getActiveFormTemplates()
     });
   } catch (error) {
     res.redirect('/business/products');
@@ -523,7 +544,8 @@ router.post('/products/:id', async (req, res) => {
       stripe_product_id, stripe_price_id, is_featured,
       pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
       allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
-      subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link
+      subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
+      cta_form_type
     } = req.body;
 
     const errors = validateProduct(req.body);
@@ -535,6 +557,7 @@ router.post('/products/:id', async (req, res) => {
         product: req.body,
         currentPage: 'products',
         taxonomy,
+        formTemplates: await getActiveFormTemplates(),
         error: errors.join(' ')
       });
     }
@@ -559,8 +582,8 @@ router.post('/products/:id', async (req, res) => {
         default_billing=$28, allow_billing_toggle=$29,
         stripe_price_id_monthly=$30, stripe_price_id_yearly=$31,
         subcategory=$32, purchase_mode=$33, price_unit=$34, industries=$35, sku=$36,
-        stripe_payment_link=$37, updated_at=CURRENT_TIMESTAMP
-      WHERE id=$38`,
+        stripe_payment_link=$37, cta_form_type=$38, updated_at=CURRENT_TIMESTAMP
+      WHERE id=$39`,
       [
         name, productSlug, description, price || null, currency, category, featuresArray,
         image_url, status, service_page || null, icon_class || 'fas fa-box',
@@ -574,6 +597,7 @@ router.post('/products/:id', async (req, res) => {
         stripe_price_id_monthly || null, stripe_price_id_yearly || null,
         subcategory || null, mode, unit, normalizeIndustries(industries), sku || null,
         stripe_payment_link || null,
+        (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null,
         req.params.id
       ]
     );

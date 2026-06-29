@@ -608,6 +608,13 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='stripe_payment_link') THEN
             ALTER TABLE products ADD COLUMN stripe_payment_link TEXT;
           END IF;
+          -- cta_form_type: which form_template the product's "Request a Quote" CTA
+          -- opens. NULL falls back to the generic 'consultation' form. Kept as a
+          -- plain column (not an FK) so deleting a form can't block product edits;
+          -- the front end falls back if the referenced form is gone/inactive.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='cta_form_type') THEN
+            ALTER TABLE products ADD COLUMN cta_form_type VARCHAR(100);
+          END IF;
         END $$;
       `);
 

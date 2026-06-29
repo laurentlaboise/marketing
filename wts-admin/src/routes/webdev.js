@@ -881,13 +881,23 @@ router.get('/form-templates/:id/edit', async (req, res) => {
     );
     let products = [];
     try { products = await getLinkableProducts(); } catch (e) { products = []; }
+    // Bidirectional view: products whose "Request a Quote" CTA opens this form.
+    let ctaProducts = [];
+    try {
+      const r = await db.query(
+        'SELECT name, slug, service_page FROM products WHERE cta_form_type = $1 ORDER BY name ASC',
+        [template.form_type]
+      );
+      ctaProducts = r.rows;
+    } catch (e) { ctaProducts = []; }
     res.render('webdev/form-templates/form', {
       title: 'Edit Form Template - WTS Admin',
       currentPage: 'form-templates',
       template,
       buttons: btnResult.rows,
       linkablePages: LINKABLE_PAGES,
-      linkableProducts: products
+      linkableProducts: products,
+      ctaProducts
     });
   } catch (error) {
     res.redirect('/webdev/form-templates');

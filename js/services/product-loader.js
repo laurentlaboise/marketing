@@ -190,6 +190,7 @@
         currency: product.currency || 'USD',
         pricing: getPricing(product),
         purchase_mode: product.purchase_mode || 'consult',
+        cta_form_type: product.cta_form_type || null,
         stripe_payment_link: product.stripe_payment_link || null,
         has_stripe: product.has_stripe
       };
@@ -295,17 +296,19 @@
 
   function onRequestQuote(e) {
     e.preventDefault();
-    openQuote(this.getAttribute('data-product-name') || '');
+    openQuote(this.getAttribute('data-product-name') || '', this.getAttribute('data-cta-form-type') || '');
   }
 
   // Open the on-page enquiry modal pre-filled with the product, or fall back
-  // to the contact page if this page has no modal.
-  function openQuote(productName) {
-    // Prefer the shared modal API (loads the admin "consultation" form on
-    // demand). Falls back to direct DOM handling if it isn't available.
+  // to the contact page if this page has no modal. formType lets each product
+  // route its CTA to a specific admin form; it defaults to 'consultation'.
+  function openQuote(productName, formType) {
+    var ft = formType || 'consultation';
+    // Prefer the shared modal API (loads the chosen admin form on demand).
+    // Falls back to direct DOM handling if it isn't available.
     if (window.WTSQuote && typeof window.WTSQuote.open === 'function') {
       closePanel();
-      window.WTSQuote.open('consultation', {
+      window.WTSQuote.open(ft, {
         service: productName,
         message: productName ? 'I would like a quote / consultation about: ' + productName : ''
       });
@@ -316,9 +319,9 @@
     if (overlay) {
       closePanel();
 
-      // Mark the enquiry as a consultation so it lands in Submissions tagged
+      // Tag the enquiry with the chosen form type so it lands in Submissions
       // correctly (the form handlers read this dataset / hidden input).
-      overlay.dataset.formType = 'consultation';
+      overlay.dataset.formType = ft;
       overlay.classList.add('active');
       document.body.classList.add('no-scroll');
 
@@ -329,15 +332,15 @@
       // form — handle whichever is present.
       var form = overlay.querySelector('form');
       if (form) {
-        var ft = form.querySelector('input[name="form_type"]');
-        if (!ft) {
-          ft = document.createElement('input');
-          ft.type = 'hidden';
-          ft.name = 'form_type';
-          form.appendChild(ft);
+        var ftInput = form.querySelector('input[name="form_type"]');
+        if (!ftInput) {
+          ftInput = document.createElement('input');
+          ftInput.type = 'hidden';
+          ftInput.name = 'form_type';
+          form.appendChild(ftInput);
         }
-        ft.value = 'consultation';
-        form.dataset.formType = 'consultation';
+        ftInput.value = ft;
+        form.dataset.formType = ft;
 
         var msg = form.querySelector('[name="message"]');
         if (msg && productName && !msg.value) {
@@ -361,7 +364,7 @@
 
     var productId = btn.getAttribute('data-product-id');
     var billing = btn.getAttribute('data-billing-period');
-    if (!productId) { openQuote(btn.getAttribute('data-product-name') || ''); return; }
+    if (!productId) { openQuote(btn.getAttribute('data-product-name') || '', btn.getAttribute('data-cta-form-type') || ''); return; }
 
     var original = btn.innerHTML;
     btn.disabled = true;
@@ -383,13 +386,13 @@
         } else {
           btn.disabled = false;
           btn.innerHTML = original;
-          openQuote(btn.getAttribute('data-product-name') || '');
+          openQuote(btn.getAttribute('data-product-name') || '', btn.getAttribute('data-cta-form-type') || '');
         }
       })
       .catch(function () {
         btn.disabled = false;
         btn.innerHTML = original;
-        openQuote(btn.getAttribute('data-product-name') || '');
+        openQuote(btn.getAttribute('data-product-name') || '', btn.getAttribute('data-cta-form-type') || '');
       });
   }
 
@@ -451,10 +454,12 @@
     var billingAttr = billing ? ' data-billing-period="' + esc(billing) + '"' : '';
     var idAttr = ' data-product-id="' + esc(String(data.id)) + '"';
     var nameAttr = ' data-product-name="' + esc(data.name) + '"';
+    // Which form the enquiry CTA opens (admin-configurable per product).
+    var formAttr = data.cta_form_type ? ' data-cta-form-type="' + esc(data.cta_form_type) + '"' : '';
     var ctaStyle = ' style="font-size:1.1rem;padding:0.8rem 2rem;"';
 
     if (data.purchase_mode === 'buy') {
-      var buy = '<button class="btn btn-accent-magenta product-cta btn-buy-now"' + idAttr + nameAttr + billingAttr +
+      var buy = '<button class="btn btn-accent-magenta product-cta btn-buy-now"' + idAttr + nameAttr + formAttr + billingAttr +
         (data.stripe_payment_link ? ' data-stripe-link="' + esc(data.stripe_payment_link) + '"' : '') +
         ctaStyle + '><i class="fas fa-bolt"></i> Buy Now</button>';
       var save = '<div style="margin-top:0.6rem;"><button class="btn-add-service"' + idAttr + nameAttr +
@@ -465,7 +470,7 @@
     }
 
     // consult (default for most services)
-    return '<button class="btn btn-accent-magenta product-cta btn-request-quote"' + idAttr + nameAttr + billingAttr +
+    return '<button class="btn btn-accent-magenta product-cta btn-request-quote"' + idAttr + nameAttr + formAttr + billingAttr +
       ctaStyle + '><i class="fas fa-comments"></i> Request a Quote</button>' +
       '<p style="font-size:0.82rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">Tell us what you need — we\'ll tailor a plan and quote.</p>';
   }

@@ -147,6 +147,22 @@
           <i class="fas fa-circle-info"></i> Use <strong>Show on</strong> to target all pages, all service pages, or specific paths — no need to pick one URL. A button appears wherever a button slot (or a <code>data-wts-buttons</code> block) sits on a matching page.
         </p>
 
+        <% var ctaP = (typeof ctaProducts !== 'undefined' && ctaProducts) ? ctaProducts : []; %>
+        <div style="margin-bottom:1rem;padding:0.6rem 0.85rem;border:1px solid var(--gray-200);border-radius:8px;background:var(--gray-50);">
+          <div style="font-size:0.82rem;font-weight:600;color:var(--gray-700);margin-bottom:0.35rem;">
+            <i class="fas fa-box-open" style="color:var(--primary);"></i> Products whose “Request a Quote” opens this form
+          </div>
+          <% if (ctaP.length) { %>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+              <% ctaP.forEach(function(p){ %>
+                <span class="linked-btn-preset-badge"><%= p.name %><%= p.service_page ? ' · ' + p.service_page : '' %></span>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <p style="font-size:0.8rem;color:var(--gray-500);margin:0;">No products point their CTA here yet. Set a product's <strong>Request-a-Quote form</strong> to this form under Business → Products.</p>
+          <% } %>
+        </div>
+
         <!-- Existing Buttons -->
         <div id="linkedButtonsList">
           <% if (buttons && buttons.length > 0) { %>
