@@ -134,9 +134,9 @@ export async function loadQuoteFormTemplate() {
     closeBtn.className = 'modal-close';
     closeBtn.setAttribute('aria-label', 'Close quote form');
     closeBtn.textContent = '\u00d7';
-    closeBtn.addEventListener('click', () => {
-      document.getElementById('quote-modal-overlay').style.display = 'none';
-    });
+    // Use the full cleanup (clears .active and body.no-scroll); setting only
+    // display:none here left the page scroll-locked after closing.
+    closeBtn.addEventListener('click', closeQuoteModal);
 
     container.innerHTML = '';
     container.appendChild(closeBtn);
@@ -417,13 +417,15 @@ export async function handleFormSubmit(event) {
     const container = document.getElementById('quote-modal-container');
     if (container) {
       container.innerHTML = `
-        <button id="modal-close-btn" class="modal-close" aria-label="Close" onclick="document.getElementById('quote-modal-overlay').style.display='none'">\u00d7</button>
+        <button id="modal-close-btn" class="modal-close" aria-label="Close">\u00d7</button>
         <div style="text-align:center;padding:2rem 1rem;">
           <i class="fas fa-check-circle" style="font-size:3rem;color:#10b981;margin-bottom:1rem;display:block;"></i>
           <h2 style="margin-bottom:0.5rem;">Thank You!</h2>
           <p style="color:#64748b;">Your request has been submitted successfully. Our team will get back to you shortly.</p>
         </div>
       `;
+      const successClose = container.querySelector('#modal-close-btn');
+      if (successClose) successClose.addEventListener('click', closeQuoteModal);
     }
 
     form.reset();
