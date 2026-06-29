@@ -322,6 +322,9 @@
       // Tag the enquiry with the chosen form type so it lands in Submissions
       // correctly (the form handlers read this dataset / hidden input).
       overlay.dataset.formType = ft;
+      // .modal-overlay defaults to display:none with no .active rule, so show
+      // it explicitly with flex (matches firebase.js / ui.js).
+      overlay.style.display = 'flex';
       overlay.classList.add('active');
       document.body.classList.add('no-scroll');
 

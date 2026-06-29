@@ -210,7 +210,10 @@ export async function openQuoteModal(formType, prefill) {
     }
   }
 
-  overlay.style.display = '';
+  // The modal is shown via inline display:flex (the .modal-overlay stylesheet
+  // default is display:none and there is no .active rule). Setting '' here would
+  // revert to none and leave the form invisible — so set flex explicitly.
+  overlay.style.display = 'flex';
   overlay.classList.add('active');
   document.body.classList.add('no-scroll');
 }
