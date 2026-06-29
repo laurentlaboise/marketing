@@ -638,14 +638,16 @@ router.post('/form-templates', async (req, res) => {
       fields.push(field);
     }
 
-    await db.query(
+    const inserted = await db.query(
       `INSERT INTO form_templates (form_type, title, subtitle, fields, submit_button_text, success_message, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
       [form_type.trim(), title.trim(), subtitle || null, JSON.stringify(fields),
        submit_button_text || 'Submit', success_message || null, status || 'active']
     );
-    req.session.successMessage = 'Form template created successfully';
-    res.redirect('/webdev/form-templates');
+    // Land on the edit page so the admin can immediately add the CTA buttons
+    // that place this form on the website.
+    req.session.successMessage = 'Form template created. Now add the buttons that open it on the website.';
+    res.redirect(`/webdev/form-templates/${inserted.rows[0].id}/edit`);
   } catch (error) {
     console.error('Create form template error:', error);
     req.session.errorMessage = 'Failed to create form template. ' + (error.detail || error.message);

@@ -297,6 +297,17 @@
   // Open the on-page enquiry modal pre-filled with the product, or fall back
   // to the contact page if this page has no modal.
   function openQuote(productName) {
+    // Prefer the shared modal API (loads the admin "consultation" form on
+    // demand). Falls back to direct DOM handling if it isn't available.
+    if (window.WTSQuote && typeof window.WTSQuote.open === 'function') {
+      closePanel();
+      window.WTSQuote.open('consultation', {
+        service: productName,
+        message: productName ? 'I would like a quote / consultation about: ' + productName : ''
+      });
+      return;
+    }
+
     var overlay = document.getElementById('quote-modal-overlay');
     if (overlay) {
       closePanel();
@@ -768,6 +779,12 @@
   function onFormButtonClick(e) {
     e.preventDefault();
     var formType = this.getAttribute('data-form-type');
+
+    // Prefer the shared modal API so the button loads its own form template.
+    if (window.WTSQuote && typeof window.WTSQuote.open === 'function') {
+      window.WTSQuote.open(formType, {});
+      return;
+    }
 
     var overlay = document.getElementById('quote-modal-overlay');
     if (overlay) {
