@@ -147,6 +147,10 @@
 
       var card = document.createElement('div');
       card.className = 'service-card reveal' + delay;
+      // Stable anchor so a product-targeted button (or a deep link) can scroll
+      // to this exact card.
+      card.id = 'wts-product-' + slug;
+      card.setAttribute('data-product-slug', slug);
       card.innerHTML =
         '<div class="icon ' + anim + '"><i class="' + icon + '"></i></div>' +
         '<h3 class="service-title">' + esc(product.name) + '</h3>' +
@@ -757,9 +761,15 @@
         onclickAttr = ' onclick="' + esc(btn.custom_js) + '"';
       }
 
+      // A button can be tied to a specific product so the enquiry is attributed
+      // to it (and we can scroll to its card when present).
+      var productAttr = '';
+      if (btn.product_slug) productAttr += ' data-product-slug="' + esc(btn.product_slug) + '"';
+      if (btn.product_name) productAttr += ' data-product-name="' + esc(btn.product_name) + '"';
+
       // Render as a button that triggers the form modal with the appropriate form_type
       html += '<button type="button" class="' + cssClass + '" data-form-type="' + esc(btn.form_type) + '"' +
-        customStyle + relAttr + targetAttr + onclickAttr + '>' +
+        productAttr + customStyle + relAttr + targetAttr + onclickAttr + '>' +
         label + '</button>';
     });
 
@@ -775,13 +785,47 @@
     triggerRevealAnimations(container);
   }
 
+  // Briefly highlight a product card so the visitor's eye lands on it.
+  function ensureFlashStyle() {
+    if (document.getElementById('wts-product-flash-style')) return;
+    var st = document.createElement('style');
+    st.id = 'wts-product-flash-style';
+    st.textContent =
+      '@keyframes wtsProductFlash{0%,100%{box-shadow:0 0 0 0 rgba(214,42,131,0);}' +
+      '15%{box-shadow:0 0 0 4px rgba(214,42,131,0.55);}}' +
+      '.wts-product-flash{animation:wtsProductFlash 1s ease-in-out 2;border-radius:12px;}';
+    document.head.appendChild(st);
+  }
+
+  function flashProductCard(slug) {
+    var card = document.getElementById('wts-product-' + slug);
+    if (!card) return false;
+    ensureFlashStyle();
+    try { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (err) { card.scrollIntoView(); }
+    card.classList.add('wts-product-flash');
+    setTimeout(function () { card.classList.remove('wts-product-flash'); }, 2000);
+    return true;
+  }
+
   function onFormButtonClick(e) {
     e.preventDefault();
     var formType = this.getAttribute('data-form-type');
+    var productName = this.getAttribute('data-product-name') || '';
+    var productSlug = this.getAttribute('data-product-slug') || '';
+
+    // If the targeted product's card is on this page, scroll to it as a cue.
+    if (productSlug) flashProductCard(productSlug);
+
+    // Pre-tag the enquiry with the product so the submission is attributed to it.
+    var prefill = {};
+    if (productName) {
+      prefill.service = productName;
+      prefill.message = 'I\'m interested in ' + productName + '.';
+    }
 
     // Prefer the shared modal API so the button loads its own form template.
     if (window.WTSQuote && typeof window.WTSQuote.open === 'function') {
-      window.WTSQuote.open(formType, {});
+      window.WTSQuote.open(formType, prefill);
       return;
     }
 
@@ -805,6 +849,12 @@
         }
         ft.value = formType;
         form.dataset.formType = formType;
+
+        // Carry the product into the legacy form too, so the lead is tagged.
+        if (productName) {
+          var svc = form.querySelector('[name="service"]');
+          if (svc && !svc.value) svc.value = productName;
+        }
       }
     }
 

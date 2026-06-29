@@ -615,13 +615,16 @@ router.get('/form-templates', async (req, res) => {
   }
 });
 
-router.get('/form-templates/new', (req, res) => {
+router.get('/form-templates/new', async (req, res) => {
+  let products = [];
+  try { products = await getLinkableProducts(); } catch (e) { products = []; }
   res.render('webdev/form-templates/form', {
     title: 'Create Form Template - WTS Admin',
     currentPage: 'form-templates',
     template: null,
     buttons: [],
-    linkablePages: LINKABLE_PAGES
+    linkablePages: LINKABLE_PAGES,
+    linkableProducts: products
   });
 });
 
@@ -876,12 +879,15 @@ router.get('/form-templates/:id/edit', async (req, res) => {
       'SELECT * FROM form_buttons WHERE form_type = $1 ORDER BY sort_order ASC, created_at ASC',
       [template.form_type]
     );
+    let products = [];
+    try { products = await getLinkableProducts(); } catch (e) { products = []; }
     res.render('webdev/form-templates/form', {
       title: 'Edit Form Template - WTS Admin',
       currentPage: 'form-templates',
       template,
       buttons: btnResult.rows,
-      linkablePages: LINKABLE_PAGES
+      linkablePages: LINKABLE_PAGES,
+      linkableProducts: products
     });
   } catch (error) {
     res.redirect('/webdev/form-templates');
@@ -975,6 +981,40 @@ function resolvePageUrl(body) {
   }
 }
 
+// Products available to link a button to (Stage 2). Any product with a slug,
+// most-recently relevant first within each service page.
+async function getLinkableProducts() {
+  const r = await db.query(
+    `SELECT slug, name, service_page, status
+       FROM products
+      WHERE slug IS NOT NULL
+      ORDER BY service_page NULLS LAST, name ASC`
+  );
+  return r.rows;
+}
+
+// Resolve the stored {page_url, product_slug, product_name} for a button,
+// honouring page_scope. For the "product" scope we look the product up so the
+// button auto-targets that product's service page and carries its name for
+// front-end lead-tagging. Every other scope clears the product association.
+async function resolveButtonTarget(body) {
+  if (body.page_scope === 'product' && body.product_slug) {
+    const r = await db.query(
+      'SELECT slug, name, service_page FROM products WHERE slug = $1 LIMIT 1',
+      [String(body.product_slug).trim()]
+    );
+    if (r.rows.length) {
+      const p = r.rows[0];
+      return {
+        page_url: p.service_page ? `/en/digital-marketing-services/${p.service_page}` : null,
+        product_slug: p.slug,
+        product_name: p.name || null,
+      };
+    }
+  }
+  return { page_url: resolvePageUrl(body), product_slug: null, product_name: null };
+}
+
 router.post('/form-buttons', async (req, res) => {
   try {
     const {
@@ -987,14 +1027,15 @@ router.post('/form-buttons', async (req, res) => {
       return res.redirect('back');
     }
 
+    const target = await resolveButtonTarget(req.body);
     await db.query(
       `INSERT INTO form_buttons (form_type, button_label, page_url, style_preset, custom_css, custom_js,
-        rel_nofollow, rel_noopener, rel_noreferrer, target_blank, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        rel_nofollow, rel_noopener, rel_noreferrer, target_blank, sort_order, product_slug, product_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
       [
         form_type.trim(),
         button_label.trim(),
-        resolvePageUrl(req.body),
+        target.page_url,
         style_preset || 'primary',
         custom_css || null,
         custom_js || null,
@@ -1002,7 +1043,9 @@ router.post('/form-buttons', async (req, res) => {
         rel_noopener !== 'off' && rel_noopener !== 'false',
         rel_noreferrer === 'on' || rel_noreferrer === 'true',
         target_blank === 'on' || target_blank === 'true',
-        parseInt(sort_order) || 0
+        parseInt(sort_order) || 0,
+        target.product_slug,
+        target.product_name
       ]
     );
     req.session.successMessage = 'Button added successfully';
@@ -1020,15 +1063,16 @@ router.post('/form-buttons/:id', async (req, res) => {
       rel_nofollow, rel_noopener, rel_noreferrer, target_blank, sort_order, status
     } = req.body;
 
+    const target = await resolveButtonTarget(req.body);
     await db.query(
       `UPDATE form_buttons SET
         button_label=$1, page_url=$2, style_preset=$3, custom_css=$4, custom_js=$5,
         rel_nofollow=$6, rel_noopener=$7, rel_noreferrer=$8, target_blank=$9,
-        sort_order=$10, status=$11, updated_at=CURRENT_TIMESTAMP
-       WHERE id=$12`,
+        sort_order=$10, status=$11, product_slug=$12, product_name=$13, updated_at=CURRENT_TIMESTAMP
+       WHERE id=$14`,
       [
         (button_label || '').trim(),
-        resolvePageUrl(req.body),
+        target.page_url,
         style_preset || 'primary',
         custom_css || null,
         custom_js || null,
@@ -1038,6 +1082,8 @@ router.post('/form-buttons/:id', async (req, res) => {
         target_blank === 'on' || target_blank === 'true',
         parseInt(sort_order) || 0,
         status || 'active',
+        target.product_slug,
+        target.product_name,
         req.params.id
       ]
     );

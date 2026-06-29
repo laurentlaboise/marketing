@@ -808,7 +808,7 @@ router.get('/form-buttons/:type', async (req, res) => {
   try {
     const result = await db.query(
       `SELECT id, form_type, button_label, page_url, style_preset, custom_css, custom_js,
-              rel_nofollow, rel_noopener, rel_noreferrer, target_blank
+              rel_nofollow, rel_noopener, rel_noreferrer, target_blank, product_slug, product_name
        FROM form_buttons
        WHERE form_type = $1 AND status = 'active'
        ORDER BY sort_order ASC, created_at ASC`,
@@ -827,7 +827,7 @@ router.get('/form-buttons', async (req, res) => {
     const result = await db.query(
       `SELECT fb.id, fb.form_type, fb.button_label, fb.page_url, fb.style_preset,
               fb.custom_css, fb.custom_js, fb.rel_nofollow, fb.rel_noopener,
-              fb.rel_noreferrer, fb.target_blank
+              fb.rel_noreferrer, fb.target_blank, fb.product_slug, fb.product_name
        FROM form_buttons fb
        JOIN form_templates ft ON ft.form_type = fb.form_type
        WHERE fb.status = 'active' AND ft.status = 'active'
