@@ -82,7 +82,10 @@
   // Normalize a product into a pricing object. Falls back to the legacy
   // single-price shape when the API hasn't supplied a `pricing` block.
   function getPricing(product) {
-    if (product.pricing && typeof product.pricing === 'object') return product.pricing;
+    if (product.pricing && typeof product.pricing === 'object') {
+      if (product.pricing.unit == null) product.pricing.unit = product.price_unit || 'fixed';
+      return product.pricing;
+    }
     return {
       type: 'one_time',
       currency: product.currency || 'USD',
@@ -92,7 +95,8 @@
       default_billing: 'monthly',
       allow_billing_toggle: false,
       annual_savings: null,
-      annual_discount_pct: null
+      annual_discount_pct: null,
+      unit: product.price_unit || 'fixed'
     };
   }
 
@@ -181,6 +185,8 @@
         price: product.price ? parseFloat(product.price) : null,
         currency: product.currency || 'USD',
         pricing: getPricing(product),
+        purchase_mode: product.purchase_mode || 'consult',
+        stripe_payment_link: product.stripe_payment_link || null,
         has_stripe: product.has_stripe
       };
     });
@@ -258,8 +264,95 @@
     // Bind the add-service button inside the panel
     bindAddServiceButtons();
 
+    // Bind the purchase-mode CTA (Request a Quote / Buy Now)
+    bindCtaButtons();
+
     // Bind the monthly/yearly billing toggle (subscriptions only)
     bindBillingToggle(data);
+  }
+
+  // ── Purchase-mode CTA handlers ───────────────────────────────
+
+  function bindCtaButtons() {
+    if (!elContent) return;
+    var quoteBtns = elContent.querySelectorAll('.btn-request-quote');
+    for (var i = 0; i < quoteBtns.length; i++) {
+      if (quoteBtns[i].dataset.bound) continue;
+      quoteBtns[i].dataset.bound = '1';
+      quoteBtns[i].addEventListener('click', onRequestQuote);
+    }
+    var buyBtns = elContent.querySelectorAll('.btn-buy-now');
+    for (var j = 0; j < buyBtns.length; j++) {
+      if (buyBtns[j].dataset.bound) continue;
+      buyBtns[j].dataset.bound = '1';
+      buyBtns[j].addEventListener('click', onBuyNow);
+    }
+  }
+
+  function onRequestQuote(e) {
+    e.preventDefault();
+    openQuote(this.getAttribute('data-product-name') || '');
+  }
+
+  // Open the on-page enquiry modal pre-filled with the product, or fall back
+  // to the contact page if this page has no modal.
+  function openQuote(productName) {
+    var overlay = document.getElementById('quote-modal-overlay');
+    if (overlay) {
+      closePanel();
+      overlay.classList.add('active');
+      document.body.classList.add('no-scroll');
+      var ft = document.querySelector('#quote-form input[name="form_type"]');
+      if (ft) ft.value = 'consultation';
+      var msg = document.querySelector('#quote-form [name="message"]');
+      if (msg && productName && !msg.value) {
+        msg.value = 'I would like a quote / consultation about: ' + productName;
+      }
+      return;
+    }
+    window.location.href = '/en/company/contact-us/?service=' + encodeURIComponent(productName);
+  }
+
+  function onBuyNow(e) {
+    e.preventDefault();
+    var btn = this;
+
+    // A ready-made Stripe Payment Link is the simplest path.
+    var link = btn.getAttribute('data-stripe-link');
+    if (link) { window.location.href = link; return; }
+
+    var productId = btn.getAttribute('data-product-id');
+    var billing = btn.getAttribute('data-billing-period');
+    if (!productId) { openQuote(btn.getAttribute('data-product-name') || ''); return; }
+
+    var original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting…';
+
+    var payBase = API_BASE.replace('/api/public', '/api/payments');
+    var body = { product_id: productId };
+    if (billing) body.billing_period = billing;
+
+    fetch(payBase + '/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.url) {
+          window.location.href = d.url;
+        } else {
+          btn.disabled = false;
+          btn.innerHTML = original;
+          openQuote(btn.getAttribute('data-product-name') || '');
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        openQuote(btn.getAttribute('data-product-name') || '');
+      });
   }
 
   // ── Slide-in pricing block (one-time or subscription toggle) ──
@@ -289,7 +382,7 @@
       html += '<p class="billing-price" style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:0.25rem;"></p>';
       html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
 
-      html += addServiceButtonHTML(data, initial);
+      html += buildCtaHTML(data, initial);
       html += '</div>';
       return html;
     }
@@ -297,20 +390,46 @@
     // One-time
     if (pr.one_time_price != null) {
       html += '<p style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:1rem;">' +
-        fmtMoney(pr.one_time_price, pr.currency) + '</p>';
+        fmtMoney(pr.one_time_price, pr.currency) +
+        (pr.unit && pr.unit !== 'fixed' ? '<span style="font-size:0.6em;font-weight:500;color:var(--color-slate-500,#64748b);">' + esc(unitSuffix(pr.unit)) + '</span>' : '') +
+        '</p>';
     }
-    html += addServiceButtonHTML(data, null);
+    html += buildCtaHTML(data, null);
     html += '</div>';
     return html;
   }
 
-  function addServiceButtonHTML(data, billing) {
-    return '<button class="btn btn-accent-magenta btn-add-service" data-product-id="' + esc(String(data.id)) +
-      '" data-product-name="' + esc(data.name) + '"' +
-      (billing ? ' data-billing-period="' + esc(billing) + '"' : '') +
-      ' style="font-size:1.1rem;padding:0.8rem 2rem;">' +
-      (isSaved(data.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
-      '</button>';
+  function unitSuffix(unit) {
+    if (unit === 'hour') return ' / hour';
+    if (unit === 'quantity') return ' / unit';
+    if (unit === 'item') return ' / item';
+    return '';
+  }
+
+  // Render the call-to-action based on how the product is sold:
+  //   consult (default) → "Request a Quote" (opens the enquiry form)
+  //   buy               → "Buy Now" (Stripe), with a secondary "save to plan"
+  function buildCtaHTML(data, billing) {
+    var billingAttr = billing ? ' data-billing-period="' + esc(billing) + '"' : '';
+    var idAttr = ' data-product-id="' + esc(String(data.id)) + '"';
+    var nameAttr = ' data-product-name="' + esc(data.name) + '"';
+    var ctaStyle = ' style="font-size:1.1rem;padding:0.8rem 2rem;"';
+
+    if (data.purchase_mode === 'buy') {
+      var buy = '<button class="btn btn-accent-magenta product-cta btn-buy-now"' + idAttr + nameAttr + billingAttr +
+        (data.stripe_payment_link ? ' data-stripe-link="' + esc(data.stripe_payment_link) + '"' : '') +
+        ctaStyle + '><i class="fas fa-bolt"></i> Buy Now</button>';
+      var save = '<div style="margin-top:0.6rem;"><button class="btn-add-service"' + idAttr + nameAttr +
+        ' style="background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.45rem 1.1rem;border-radius:8px;cursor:pointer;color:var(--color-slate-500,#64748b);font-size:0.95rem;">' +
+        (isSaved(data.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
+        '</button></div>';
+      return buy + save;
+    }
+
+    // consult (default for most services)
+    return '<button class="btn btn-accent-magenta product-cta btn-request-quote"' + idAttr + nameAttr + billingAttr +
+      ctaStyle + '><i class="fas fa-comments"></i> Request a Quote</button>' +
+      '<p style="font-size:0.82rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">Tell us what you need — we\'ll tailor a plan and quote.</p>';
   }
 
   function bindBillingToggle(data) {
@@ -341,6 +460,7 @@
     var priceEl = block.querySelector('.billing-price');
     var savingsEl = block.querySelector('.billing-savings');
     var addBtn = block.querySelector('.btn-add-service');
+    var ctaBtn = block.querySelector('.product-cta');
 
     var isYearly = billing === 'yearly';
     var amount = isYearly ? pr.yearly_price : pr.monthly_price;
@@ -361,6 +481,7 @@
       }
     }
     if (addBtn) addBtn.setAttribute('data-billing-period', billing);
+    if (ctaBtn) ctaBtn.setAttribute('data-billing-period', billing);
 
     // Active button styling
     var options = block.querySelectorAll('.billing-option');
