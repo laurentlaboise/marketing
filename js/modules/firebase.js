@@ -9,6 +9,10 @@ const API_BASE = 'https://admin.wordsthatsells.website/api/public';
  * "leave a quick message" / anything else → general-inquiry
  */
 function detectFormType() {
+  // An explicit form_type set by a CTA (e.g. "Request a Quote") wins.
+  const overlay = document.getElementById('quote-modal-overlay');
+  if (overlay && overlay.dataset.formType) return overlay.dataset.formType;
+
   const modalTitle = document.querySelector('#quote-modal-container .modal-title');
   if (modalTitle) {
     const text = modalTitle.textContent.toLowerCase();
@@ -155,7 +159,7 @@ async function handleDynamicFormSubmit(event) {
   event.preventDefault();
   const form = event.target;
   const submitBtn = form.querySelector('button[type="submit"]');
-  const formType = form.dataset.formType;
+  const formType = ((new FormData(form)).get('form_type') || '').trim() || form.dataset.formType;
   const successMessage = form.dataset.successMessage;
 
   const formData = new FormData(form);
@@ -251,7 +255,7 @@ export async function handleFormSubmit(event) {
     return;
   }
 
-  const formType = detectFormType();
+  const formType = (formData.get('form_type') || '').trim() || detectFormType();
   const payload = {
     form_type: formType,
     name,

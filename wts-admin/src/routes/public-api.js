@@ -864,8 +864,23 @@ router.post('/submissions', formLimiter, async (req, res) => {
       return respond(res, { error: 'form_type, name, and email are required.' }, 400);
     }
 
-    const allowedTypes = ['consultation', 'free-support', 'affiliate', 'white-label', 'general-inquiry', 'newsletter'];
-    if (!allowedTypes.includes(form_type)) {
+    // Accept the built-in site form types, OR any form_type backed by an
+    // active admin-defined template (Message Board → Forms). This keeps the
+    // admin's custom forms connected to the public submission endpoint instead
+    // of silently rejecting them.
+    const BASE_TYPES = ['consultation', 'free-support', 'affiliate', 'white-label', 'general-inquiry', 'newsletter'];
+    let allowed = BASE_TYPES.includes(form_type);
+    if (!allowed) {
+      if (!/^[a-z0-9][a-z0-9-]{0,59}$/.test(form_type)) {
+        return respond(res, { error: 'Invalid form_type.' }, 400);
+      }
+      const tpl = await db.query(
+        "SELECT 1 FROM form_templates WHERE form_type = $1 AND status = 'active' LIMIT 1",
+        [form_type]
+      );
+      allowed = tpl.rows.length > 0;
+    }
+    if (!allowed) {
       return respond(res, { error: 'Invalid form_type.' }, 400);
     }
 
@@ -891,8 +906,11 @@ router.post('/submissions', formLimiter, async (req, res) => {
       'general-inquiry': 'General Inquiry',
       'newsletter': 'Newsletter Signup'
     };
-    const notifTitle = `New ${typeLabels[form_type] || form_type}`;
-    const notifMessage = `${name} (${email})${company ? ' from ' + company : ''} submitted a ${typeLabels[form_type].toLowerCase()}.`;
+    // Fall back to a generic label for admin-defined types not in the map,
+    // so the notification builder never throws on an unlabeled form_type.
+    const typeLabel = typeLabels[form_type] || 'Form Submission';
+    const notifTitle = `New ${typeLabel}`;
+    const notifMessage = `${name} (${email})${company ? ' from ' + company : ''} submitted a ${typeLabel.toLowerCase()}.`;
 
     const admins = await db.query("SELECT id FROM users WHERE role = 'admin'");
     for (const admin of admins.rows) {
