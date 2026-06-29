@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../../database/db');
+const { normalizeTiers, unitPriceForQuantity } = require('../utils/pricing');
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
       return res.status(503).json({ error: 'Payment processing is not configured' });
     }
 
-    const { product_id, billing_period } = req.body;
+    const { product_id, billing_period, quantity } = req.body;
     if (!product_id) {
       return res.status(400).json({ error: 'product_id is required' });
     }
@@ -99,6 +100,29 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
           quantity: 1
         }];
       }
+    } else if (product.pricing_type === 'tiered') {
+      // Volume-discount: the unit price depends on the chosen quantity.
+      const tiers = normalizeTiers(product.quantity_tiers);
+      if (!tiers.length) {
+        return res.status(400).json({ error: 'Product has no valid quantity pricing' });
+      }
+      const minQty = tiers[0].min_qty || 1;
+      const qty = Math.max(minQty, parseInt(quantity, 10) || minQty);
+      const unitPrice = unitPriceForQuantity(tiers, qty);
+      if (!(unitPrice > 0)) {
+        return res.status(400).json({ error: 'Product has no valid price for that quantity' });
+      }
+      orderAmount = Math.round(unitPrice * qty * 100) / 100;
+      sessionConfig.metadata.quantity = String(qty);
+      sessionConfig.metadata.unit_price = String(unitPrice);
+      sessionConfig.line_items = [{
+        price_data: {
+          currency,
+          product_data: productData,
+          unit_amount: Math.round(unitPrice * 100)
+        },
+        quantity: qty
+      }];
     } else {
       // One-time purchase
       const amount = num(product.price);

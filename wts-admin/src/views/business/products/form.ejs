@@ -151,6 +151,7 @@
               <select id="pricing_type" name="pricing_type" class="form-input">
                 <option value="one_time" <%= !product || (product.pricing_type || 'one_time') === 'one_time' ? 'selected' : '' %>>One-Time Payment</option>
                 <option value="subscription" <%= product && product.pricing_type === 'subscription' ? 'selected' : '' %>>Subscription</option>
+                <option value="tiered" <%= product && product.pricing_type === 'tiered' ? 'selected' : '' %>>Quantity / Volume Pricing</option>
               </select>
               <small style="color:#666;">Choose how this product is billed.</small>
             </div>
@@ -240,6 +241,37 @@
                 <input type="text" id="stripe_price_id_yearly" name="stripe_price_id_yearly" class="form-input" value="<%= product ? (product.stripe_price_id_yearly || '') : '' %>" placeholder="price_...">
               </div>
             </div>
+          </div>
+
+          <!-- Quantity / Volume pricing -->
+          <div id="tiered-pricing" class="pricing-block" style="border-left:3px solid #7c3aed;padding-left:1rem;margin-top:0.5rem;">
+            <p style="font-size:0.85rem;color:#666;margin:0 0 0.6rem;">
+              Set the <strong>unit price</strong> at each quantity threshold. Each price applies from that quantity up to the next — the per-unit price drops as customers buy more.
+            </p>
+            <%
+              var curTiers = [];
+              if (product && product.quantity_tiers) {
+                try { curTiers = typeof product.quantity_tiers === 'string' ? JSON.parse(product.quantity_tiers) : product.quantity_tiers; } catch (e) { curTiers = []; }
+              }
+              if (!Array.isArray(curTiers) || curTiers.length === 0) { curTiers = [{ min_qty: 1, unit_price: '' }]; }
+            %>
+            <div id="tier-rows">
+              <% curTiers.forEach(function(t){ %>
+              <div class="tier-row" style="display:grid;grid-template-columns:1fr 1fr auto;gap:0.5rem;align-items:end;margin-bottom:0.5rem;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-size:0.78rem;">Min quantity</label>
+                  <input type="number" name="tier_min_qty" class="form-input" min="1" step="1" value="<%= t.min_qty != null ? t.min_qty : '' %>" placeholder="e.g. 1">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-size:0.78rem;">Unit price</label>
+                  <input type="number" name="tier_unit_price" class="form-input" min="0" step="0.01" value="<%= t.unit_price != null ? t.unit_price : '' %>" placeholder="e.g. 9.00">
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm tier-remove" title="Remove tier" style="padding:0.4rem 0.6rem;">&times;</button>
+              </div>
+              <% }); %>
+            </div>
+            <button type="button" id="tier-add" class="btn btn-secondary btn-sm" style="margin-top:0.25rem;"><i class="fas fa-plus"></i> Add tier</button>
+            <div id="tier-preview" style="display:none;background:#f5f3ff;border:1px solid #ddd6fe;color:#5b21b6;padding:0.6rem 0.9rem;border-radius:8px;font-size:0.85rem;margin-top:0.6rem;"></div>
           </div>
 
           <div class="form-group">
@@ -435,11 +467,17 @@ document.getElementById('slug').dataset.manual = 'true';
   var previewBox    = document.getElementById('savings-preview');
   var previewText   = document.getElementById('savings-preview-text');
 
+  var tieredBlock = document.getElementById('tiered-pricing');
+
   function syncBlocks() {
-    var isSub = pricingType.value === 'subscription';
-    oneTimeBlock.style.display = isSub ? 'none' : '';
+    var v = pricingType.value;
+    var isSub = v === 'subscription';
+    var isTiered = v === 'tiered';
+    oneTimeBlock.style.display = (isSub || isTiered) ? 'none' : '';
     subBlock.style.display = isSub ? '' : 'none';
+    if (tieredBlock) tieredBlock.style.display = isTiered ? '' : 'none';
     if (isSub) updateSavings();
+    if (isTiered) updateTierPreview();
   }
 
   function updateSavings() {
@@ -464,11 +502,57 @@ document.getElementById('slug').dataset.manual = 'true';
     previewBox.style.display = '';
   }
 
+  // ── Quantity tier builder ──
+  var tierRows = document.getElementById('tier-rows');
+  var tierAdd  = document.getElementById('tier-add');
+  var tierPreview = document.getElementById('tier-preview');
+
+  function updateTierPreview() {
+    if (!tierRows || !tierPreview) return;
+    var cur = currencySel ? currencySel.value : 'USD';
+    var rows = Array.prototype.slice.call(tierRows.querySelectorAll('.tier-row'));
+    var tiers = rows.map(function(r) {
+      return {
+        min: parseInt(r.querySelector('[name="tier_min_qty"]').value, 10),
+        price: parseFloat(r.querySelector('[name="tier_unit_price"]').value)
+      };
+    }).filter(function(t){ return t.min >= 1 && t.price >= 0 && !isNaN(t.price); })
+      .sort(function(a,b){ return a.min - b.min; });
+    if (!tiers.length) { tierPreview.style.display = 'none'; return; }
+    var parts = tiers.map(function(t){ return t.min + '+: ' + t.price.toFixed(2) + ' ' + cur + '/unit'; });
+    tierPreview.innerHTML = '<i class="fas fa-layer-group"></i> ' + parts.join(' &nbsp;·&nbsp; ');
+    tierPreview.style.display = '';
+  }
+
+  function wireTierRow(row) {
+    var rm = row.querySelector('.tier-remove');
+    if (rm) rm.addEventListener('click', function() {
+      if (tierRows.querySelectorAll('.tier-row').length > 1) row.remove();
+      else { row.querySelectorAll('input').forEach(function(i){ i.value = ''; }); }
+      updateTierPreview();
+    });
+    row.querySelectorAll('input').forEach(function(i){ i.addEventListener('input', updateTierPreview); });
+  }
+
+  if (tierRows) {
+    tierRows.querySelectorAll('.tier-row').forEach(wireTierRow);
+  }
+  if (tierAdd && tierRows) {
+    tierAdd.addEventListener('click', function() {
+      var first = tierRows.querySelector('.tier-row');
+      var clone = first.cloneNode(true);
+      clone.querySelectorAll('input').forEach(function(i){ i.value = ''; });
+      tierRows.appendChild(clone);
+      wireTierRow(clone);
+    });
+  }
+
   if (pricingType) {
     pricingType.addEventListener('change', syncBlocks);
     [monthlyInput, yearlyInput, discountInput, currencySel].forEach(function(el) {
       if (el) el.addEventListener('input', updateSavings);
     });
+    if (currencySel) currencySel.addEventListener('input', updateTierPreview);
     syncBlocks();
   }
 })();

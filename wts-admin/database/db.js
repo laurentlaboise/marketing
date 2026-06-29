@@ -615,6 +615,12 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='cta_form_type') THEN
             ALTER TABLE products ADD COLUMN cta_form_type VARCHAR(100);
           END IF;
+          -- quantity_tiers: volume-discount pricing for pricing_type='tiered'.
+          -- JSONB array of { min_qty, unit_price } sorted ascending by min_qty;
+          -- the unit price applies from that quantity up to the next tier.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='quantity_tiers') THEN
+            ALTER TABLE products ADD COLUMN quantity_tiers JSONB DEFAULT '[]'::jsonb;
+          END IF;
         END $$;
       `);
 

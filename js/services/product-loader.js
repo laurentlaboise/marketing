@@ -126,6 +126,14 @@
       return html;
     }
 
+    if (pr.type === 'tiered' && Array.isArray(pr.tiers) && pr.tiers.length) {
+      var from = pr.from_unit_price != null ? pr.from_unit_price
+        : Math.min.apply(null, pr.tiers.map(function (t) { return t.unit_price; }));
+      return '<span class="product-price" style="' + style + '">From ' + fmtMoney(from, pr.currency) +
+        '<span style="font-size:0.85em;font-weight:500;color:var(--color-slate-500,#64748b);">/unit</span></span>' +
+        '<span style="display:block;font-size:0.8rem;color:#16a34a;font-weight:600;">Buy more, save more</span>';
+    }
+
     if (pr.one_time_price != null) {
       return '<span class="product-price" style="' + style + '">' + fmtMoney(pr.one_time_price, pr.currency) + '</span>';
     }
@@ -274,6 +282,53 @@
 
     // Bind the monthly/yearly billing toggle (subscriptions only)
     bindBillingToggle(data);
+
+    // Bind the quantity selector + live total (tiered pricing only)
+    bindQuantitySelector(data);
+  }
+
+  // Live total + active-tier highlight for volume pricing. Also syncs the chosen
+  // quantity onto the CTA buttons so Buy Now / Request a Quote carry it.
+  function bindQuantitySelector(data) {
+    if (!elContent) return;
+    var pr = data.pricing || getPricing(data);
+    if (pr.type !== 'tiered' || !Array.isArray(pr.tiers) || !pr.tiers.length) return;
+
+    var input = elContent.querySelector('.qty-input');
+    var totalEl = elContent.querySelector('.qty-total');
+    var rows = elContent.querySelectorAll('.qty-tier-row');
+    var tiers = pr.tiers.slice().sort(function (a, b) { return a.min_qty - b.min_qty; });
+    var minQty = tiers[0].min_qty || 1;
+
+    function unitFor(q) {
+      var p = tiers[0].unit_price;
+      tiers.forEach(function (t) { if (q >= t.min_qty) p = t.unit_price; });
+      return p;
+    }
+
+    function update() {
+      var q = parseInt(input && input.value, 10);
+      if (isNaN(q) || q < minQty) q = minQty;
+      var unit = unitFor(q);
+      var total = unit * q;
+      if (totalEl) {
+        totalEl.innerHTML = q + ' × ' + fmtMoney(unit, pr.currency) + '/ea = ' + fmtMoney(total, pr.currency);
+      }
+      var activeMin = tiers[0].min_qty;
+      tiers.forEach(function (t) { if (q >= t.min_qty) activeMin = t.min_qty; });
+      for (var i = 0; i < rows.length; i++) {
+        rows[i].style.background = parseInt(rows[i].getAttribute('data-min'), 10) === activeMin
+          ? 'rgba(214,42,131,0.08)' : '';
+      }
+      var ctas = elContent.querySelectorAll('.product-cta');
+      for (var j = 0; j < ctas.length; j++) ctas[j].setAttribute('data-quantity', q);
+    }
+
+    if (input) {
+      input.addEventListener('input', update);
+      input.addEventListener('change', update);
+    }
+    update();
   }
 
   // ── Purchase-mode CTA handlers ───────────────────────────────
@@ -296,21 +351,24 @@
 
   function onRequestQuote(e) {
     e.preventDefault();
-    openQuote(this.getAttribute('data-product-name') || '', this.getAttribute('data-cta-form-type') || '');
+    openQuote(this.getAttribute('data-product-name') || '', this.getAttribute('data-cta-form-type') || '', this.getAttribute('data-quantity') || '');
   }
 
   // Open the on-page enquiry modal pre-filled with the product, or fall back
   // to the contact page if this page has no modal. formType lets each product
   // route its CTA to a specific admin form; it defaults to 'consultation'.
-  function openQuote(productName, formType) {
+  // quantity (optional) is appended to the message for volume-priced products.
+  function openQuote(productName, formType, quantity) {
     var ft = formType || 'consultation';
+    var msg = productName ? 'I would like a quote / consultation about: ' + productName : '';
+    if (quantity && msg) msg += ' (quantity: ' + quantity + ')';
     // Prefer the shared modal API (loads the chosen admin form on demand).
     // Falls back to direct DOM handling if it isn't available.
     if (window.WTSQuote && typeof window.WTSQuote.open === 'function') {
       closePanel();
       window.WTSQuote.open(ft, {
         service: productName,
-        message: productName ? 'I would like a quote / consultation about: ' + productName : ''
+        message: msg
       });
       return;
     }
@@ -345,9 +403,9 @@
         ftInput.value = ft;
         form.dataset.formType = ft;
 
-        var msg = form.querySelector('[name="message"]');
-        if (msg && productName && !msg.value) {
-          msg.value = 'I would like a quote / consultation about: ' + productName;
+        var msgEl = form.querySelector('[name="message"]');
+        if (msgEl && msg && !msgEl.value) {
+          msgEl.value = msg;
         }
         var svc = form.querySelector('input[name="service"]');
         if (svc && productName) svc.value = productName;
@@ -376,6 +434,8 @@
     var payBase = API_BASE.replace('/api/public', '/api/payments');
     var body = { product_id: productId };
     if (billing) body.billing_period = billing;
+    var qty = btn.getAttribute('data-quantity');
+    if (qty) body.quantity = parseInt(qty, 10);
 
     fetch(payBase + '/create-checkout-session', {
       method: 'POST',
@@ -427,6 +487,32 @@
       html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
 
       html += buildCtaHTML(data, initial);
+      html += '</div>';
+      return html;
+    }
+
+    // Volume / quantity pricing: tier table + quantity selector + live total.
+    if (pr.type === 'tiered' && Array.isArray(pr.tiers) && pr.tiers.length) {
+      var tiers = pr.tiers.slice().sort(function (a, b) { return a.min_qty - b.min_qty; });
+      var minQty = tiers[0].min_qty || 1;
+
+      html += '<div class="qty-tier-table" style="max-width:340px;margin:0 auto 1rem;border:1px solid var(--color-border,#e2e8f0);border-radius:10px;overflow:hidden;font-size:0.92rem;">';
+      tiers.forEach(function (t, i) {
+        var next = tiers[i + 1];
+        var label = next ? (t.min_qty + '–' + (next.min_qty - 1)) : (t.min_qty + '+');
+        html += '<div class="qty-tier-row" data-min="' + t.min_qty + '" data-unit="' + t.unit_price + '" ' +
+          'style="display:flex;justify-content:space-between;padding:0.5rem 0.85rem;' + (i ? 'border-top:1px solid var(--color-border,#e2e8f0);' : '') + '">' +
+          '<span>' + label + ' units</span><strong>' + fmtMoney(t.unit_price, pr.currency) + '/ea</strong></div>';
+      });
+      html += '</div>';
+
+      html += '<div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin-bottom:0.5rem;">' +
+        '<label style="font-weight:600;">Quantity</label>' +
+        '<input type="number" class="qty-input" min="' + minQty + '" step="1" value="' + minQty + '" ' +
+        'style="width:90px;padding:0.45rem 0.6rem;border:1px solid var(--color-border,#d1d5db);border-radius:8px;text-align:center;font-size:1rem;"></div>';
+      html += '<p class="qty-total" style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:1rem;"></p>';
+
+      html += buildCtaHTML(data, null);
       html += '</div>';
       return html;
     }
