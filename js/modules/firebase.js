@@ -152,6 +152,74 @@ export async function loadQuoteFormTemplate() {
   }
 }
 
+function closeQuoteModal() {
+  const overlay = document.getElementById('quote-modal-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('active');
+  overlay.style.display = 'none';
+  document.body.classList.remove('no-scroll');
+}
+
+/**
+ * Open the quote modal for a specific form_type, loading that form's
+ * admin-built template on demand (falling back to whatever form is already
+ * mounted). Exposed on window so non-module scripts (product-loader.js,
+ * form buttons) can trigger the right form.
+ */
+export async function openQuoteModal(formType, prefill) {
+  const overlay = document.getElementById('quote-modal-overlay');
+  const container = document.getElementById('quote-modal-container');
+  if (!overlay) return;
+
+  if (formType) overlay.dataset.formType = formType;
+
+  // Load the matching admin template into the modal, if one exists.
+  if (formType && container) {
+    try {
+      const res = await fetch(`${API_BASE}/form-template/${encodeURIComponent(formType)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.fields && data.fields.length) {
+          container.innerHTML = '';
+          const closeBtn = document.createElement('button');
+          closeBtn.id = 'modal-close-btn';
+          closeBtn.className = 'modal-close';
+          closeBtn.setAttribute('aria-label', 'Close form');
+          closeBtn.textContent = '×';
+          closeBtn.addEventListener('click', closeQuoteModal);
+          container.appendChild(closeBtn);
+          const wrapper = document.createElement('div');
+          container.appendChild(wrapper);
+          renderFormTemplate(data, wrapper);
+        }
+      }
+    } catch (e) { /* keep whatever form is already mounted */ }
+  }
+
+  // Ensure the mounted form carries the form_type and any prefill.
+  const form = overlay.querySelector('form');
+  if (form) {
+    let ft = form.querySelector('input[name="form_type"]');
+    if (!ft) { ft = document.createElement('input'); ft.type = 'hidden'; ft.name = 'form_type'; form.appendChild(ft); }
+    if (formType) { ft.value = formType; form.dataset.formType = formType; }
+    if (prefill) {
+      const msg = form.querySelector('[name="message"]');
+      if (msg && prefill.message && !msg.value) msg.value = prefill.message;
+      const svc = form.querySelector('input[name="service"]');
+      if (svc && prefill.service) svc.value = prefill.service;
+    }
+  }
+
+  overlay.style.display = '';
+  overlay.classList.add('active');
+  document.body.classList.add('no-scroll');
+}
+
+// Expose a small global API for classic (non-module) scripts.
+if (typeof window !== 'undefined') {
+  window.WTSQuote = { open: openQuoteModal, close: closeQuoteModal };
+}
+
 /**
  * Submit handler for dynamically rendered forms
  */
