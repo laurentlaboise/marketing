@@ -70,6 +70,33 @@
         </div>
       </div>
 
+      <!-- AI Assistant -->
+      <div class="card" id="aiAssistantCard" style="margin-bottom: 1.5rem; border: 1px solid #c7d2fe; background: linear-gradient(180deg,#f5f3ff 0%, #ffffff 60%);">
+        <div class="card-body">
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.6rem;">
+            <h3 style="margin:0; font-size:1.1rem;"><i class="fas fa-wand-magic-sparkles" style="margin-right:0.4rem; color:#7c3aed;"></i> AI Assistant</h3>
+            <span style="background:#ede9fe;color:#6d28d9;font-size:0.68rem;font-weight:700;padding:0.1rem 0.5rem;border-radius:10px;letter-spacing:0.02em;">BETA</span>
+          </div>
+          <p style="margin:0 0 0.75rem; font-size:0.88rem; color:var(--gray-600);">
+            Describe the form you need and AI will draft the fields, title and copy for you. Review everything, tweak as needed, then Save.
+          </p>
+          <div class="form-group" style="margin-bottom:0.6rem;">
+            <textarea id="aiPrompt" class="form-input" rows="3"
+              placeholder="e.g. A consultation request form for SEO services — collect name, work email, phone, company website, monthly budget range, and what they want to improve."></textarea>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <button type="button" id="aiGenerateBtn" class="btn btn-sm" style="background:#7c3aed;color:#fff;">
+              <i class="fas fa-wand-magic-sparkles"></i> Generate fields
+            </button>
+            <label class="checkbox-label" style="font-size:0.82rem;">
+              <input type="checkbox" id="aiReplaceFields"> Replace existing fields
+            </label>
+            <span style="font-size:0.78rem;color:var(--gray-400);">Uses your Anthropic API key. AI drafts — you review &amp; Save.</span>
+          </div>
+          <div id="aiStatus" style="display:none; margin-top:0.75rem;"></div>
+        </div>
+      </div>
+
       <!-- Form Fields Builder -->
       <div class="card" style="margin-bottom: 1.5rem;">
         <div class="card-body">
@@ -836,6 +863,23 @@
 
   addBtn.addEventListener('click', () => addField());
 
+  // Remove every field row (used by the AI generator before injecting a fresh set).
+  function clearFields() {
+    container.querySelectorAll('.field-row').forEach(row => row.remove());
+    fieldIndex = 0;
+    updateNoFieldsMsg();
+    updatePreview();
+  }
+
+  // Expose a small API so the AI Assistant panel (separate script block) can
+  // drive the builder without reaching into its internals.
+  window.WTSFormBuilder = {
+    addField,
+    clearFields,
+    fieldCount: () => container.querySelectorAll('.field-row').length,
+    updatePreview,
+  };
+
   // Also update preview when settings change
   document.querySelectorAll('input[name="title"], textarea[name="subtitle"], input[name="submit_button_text"]').forEach(el => {
     el.addEventListener('input', updatePreview);
@@ -847,6 +891,108 @@
   }
   updateNoFieldsMsg();
   updatePreview();
+})();
+</script>
+
+<!-- AI Assistant script -->
+<script nonce="<%= cspNonce %>">
+(function() {
+  var btn = document.getElementById('aiGenerateBtn');
+  var promptEl = document.getElementById('aiPrompt');
+  var statusEl = document.getElementById('aiStatus');
+  var replaceEl = document.getElementById('aiReplaceFields');
+  if (!btn || !promptEl) return;
+
+  var DEFAULT_LABEL = '<i class="fas fa-wand-magic-sparkles"></i> Generate fields';
+
+  function showStatus(kind, msg) {
+    var palette = {
+      info:    { bg: '#ede9fe', border: 'rgba(124,58,237,0.35)', color: '#5b21b6', icon: 'fa-wand-magic-sparkles fa-fade' },
+      success: { bg: '#d4edda', border: '#28a745', color: '#155724', icon: 'fa-check-circle' },
+      warn:    { bg: '#fff3cd', border: '#ffc107', color: '#856404', icon: 'fa-exclamation-triangle' },
+      error:   { bg: '#f8d7da', border: '#dc3545', color: '#721c24', icon: 'fa-times-circle' }
+    };
+    var p = palette[kind] || palette.info;
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = '<div style="padding:12px;background:' + p.bg + ';border:1px solid ' + p.border +
+      ';border-radius:8px;font-size:13px;color:' + p.color + ';"><i class="fas ' + p.icon + '"></i> ' + msg + '</div>';
+  }
+
+  // Set a settings input only if the user hasn't filled it, or if "Replace" is on.
+  function applySetting(selector, value) {
+    if (!value) return;
+    var el = document.querySelector(selector);
+    if (!el) return;
+    if (replaceEl.checked || !el.value.trim()) {
+      el.value = value;
+      el.dispatchEvent(new Event('input'));
+    }
+  }
+
+  btn.addEventListener('click', function() {
+    var description = (promptEl.value || '').trim();
+    if (description.length < 5) {
+      showStatus('warn', 'Please describe the form you want first.');
+      promptEl.focus();
+      return;
+    }
+
+    var formTypeEl = document.querySelector('input[name="form_type"]');
+    var formType = formTypeEl ? formTypeEl.value.trim() : '';
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    showStatus('info', 'AI is drafting your form fields and copy...');
+
+    fetch('/webdev/form-templates/ai-generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': '<%= csrfToken %>'
+      },
+      body: JSON.stringify({ description: description, form_type: formType })
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      btn.disabled = false;
+      btn.innerHTML = DEFAULT_LABEL;
+
+      if (!res.ok || res.data.error) {
+        showStatus('error', (res.data && res.data.error) || 'Failed to generate the form.');
+        return;
+      }
+
+      var builder = window.WTSFormBuilder;
+      if (!builder) {
+        showStatus('error', 'Form builder not ready. Please refresh the page.');
+        return;
+      }
+
+      var fields = Array.isArray(res.data.fields) ? res.data.fields : [];
+      if (fields.length === 0) {
+        showStatus('warn', 'No usable fields were returned. Try rephrasing your description.');
+        return;
+      }
+
+      if (replaceEl.checked) builder.clearFields();
+      fields.forEach(function(f) { builder.addField(f); });
+
+      // Fill the surrounding copy (title/subtitle/submit/success).
+      applySetting('input[name="title"]', res.data.title);
+      applySetting('textarea[name="subtitle"]', res.data.subtitle);
+      applySetting('input[name="submit_button_text"]', res.data.submit_button_text);
+      applySetting('input[name="success_message"]', res.data.success_message);
+      builder.updatePreview();
+
+      showStatus('success', 'Added ' + fields.length + ' field' + (fields.length !== 1 ? 's' : '') +
+        '. Review everything below, edit as needed, then click <strong>Save</strong>.');
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      btn.innerHTML = DEFAULT_LABEL;
+      showStatus('error', 'Request failed: ' + err.message);
+    });
+  });
 })();
 </script>
 

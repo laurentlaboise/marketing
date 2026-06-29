@@ -1,4 +1,5 @@
 const express = require('express');
+const https = require('https');
 const { ensureAuthenticated } = require('../middleware/auth');
 const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
@@ -652,6 +653,202 @@ router.post('/form-templates', async (req, res) => {
     console.error('Create form template error:', error);
     req.session.errorMessage = 'Failed to create form template. ' + (error.detail || error.message);
     res.redirect('/webdev/form-templates/new');
+  }
+});
+
+// ==================== AI FORM FIELD GENERATOR ====================
+//
+// Mirrors the AI pattern already used in the image library (src/routes/images.js:
+// analyzeImageWithAI): same ANTHROPIC_API_KEY, same raw https.request to
+// api.anthropic.com, same 30s timeout and "AI drafts -> human reviews -> human
+// saves" flow. The upgrade here is structured output via forced tool use, so
+// Claude returns a guaranteed-shaped object instead of free-text JSON we have to
+// fence-strip and hope parses. Registered before the "/:id" routes so the literal
+// path is not swallowed by the ":id" param.
+
+// The only field types the builder UI (and the front-end renderer) understand.
+const ALLOWED_FIELD_TYPES = ['text', 'email', 'tel', 'textarea', 'select'];
+
+// Model for form generation. Field generation is simple + structured, so the
+// fast/cheap Haiku tier is plenty. Swap to 'claude-sonnet-4-5-20250929' to match
+// the image library's pin if you'd rather keep every AI call on one model.
+const AI_FORM_MODEL = 'claude-haiku-4-5';
+
+// Stricter limiter than the page limiter — these calls cost money per request.
+const aiFormLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 20,
+  message: { error: 'Too many AI requests. Please wait a minute and try again.' },
+});
+
+// Coerce a single AI-proposed field into a safe builder field. Returns null for
+// anything we cannot make sense of so the caller can drop it.
+function sanitizeAiField(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  // Field name: lowercase token, letters/numbers/underscore only (used as the
+  // submission key). Fall back to the label if name is missing.
+  let name = typeof raw.name === 'string' ? raw.name : '';
+  if (!name && typeof raw.label === 'string') name = raw.label;
+  name = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  if (!name) return null;
+
+  const type = ALLOWED_FIELD_TYPES.includes(raw.type) ? raw.type : 'text';
+
+  const field = {
+    name,
+    label: typeof raw.label === 'string' ? raw.label.trim() : '',
+    type,
+    placeholder: typeof raw.placeholder === 'string' ? raw.placeholder.trim() : '',
+    required: raw.required === true || raw.required === 'true',
+  };
+
+  if (type === 'select') {
+    const opts = Array.isArray(raw.options) ? raw.options : [];
+    field.options = opts
+      .filter(o => typeof o === 'string' && o.trim())
+      .map(o => o.trim())
+      .slice(0, 25);
+  }
+
+  return field;
+}
+
+// Call Claude with a forced tool so the response is a structured form spec.
+function generateFormSpecWithAI(description, hint) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return Promise.reject(new Error('ANTHROPIC_API_KEY is not configured. Add it to your environment variables.'));
+  }
+
+  const tool = {
+    name: 'build_form',
+    description: 'Return the fields and copy for a website form based on the description.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Short, action-oriented form heading.' },
+        subtitle: { type: 'string', description: 'One sentence shown under the title. May be empty.' },
+        submit_button_text: { type: 'string', description: 'Submit button label, e.g. "Request a Quote".' },
+        success_message: { type: 'string', description: 'Friendly confirmation shown after submission.' },
+        fields: {
+          type: 'array',
+          description: 'The form fields, in display order.',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'Lowercase snake_case key, e.g. full_name, work_email.' },
+              label: { type: 'string', description: 'Human-readable field label.' },
+              type: { type: 'string', enum: ALLOWED_FIELD_TYPES, description: 'The input type.' },
+              placeholder: { type: 'string', description: 'Placeholder/help text. May be empty.' },
+              required: { type: 'boolean', description: 'Whether the field is mandatory.' },
+              options: { type: 'array', items: { type: 'string' }, description: 'Choices — only for type "select".' },
+            },
+            required: ['name', 'label', 'type', 'required'],
+          },
+        },
+      },
+      required: ['title', 'fields'],
+    },
+  };
+
+  const systemPrompt =
+    'You design lead-capture and contact forms for WordsThatSells.website, a digital ' +
+    'marketing agency that works on a consult-first model (clients meet a strategist ' +
+    'before buying). Generate concise, conversion-focused forms. Keep them short — ask ' +
+    'only for what is genuinely needed. Always use type "email" for email and "tel" for ' +
+    'phone. Use "select" with sensible options for choices like budget or industry. ' +
+    'Write friendly, professional copy.';
+
+  const userText =
+    `Build a form for this request:\n"${description}"` +
+    (hint ? `\n\nThe form's internal key/type is "${hint}" — tailor it accordingly.` : '');
+
+  const requestBody = JSON.stringify({
+    model: AI_FORM_MODEL,
+    max_tokens: 1500,
+    system: systemPrompt,
+    tools: [tool],
+    tool_choice: { type: 'tool', name: 'build_form' },
+    messages: [{ role: 'user', content: userText }],
+  });
+
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.anthropic.com',
+      port: 443,
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(requestBody),
+      },
+    };
+
+    const apiReq = https.request(options, (apiRes) => {
+      let data = '';
+      apiRes.on('data', chunk => { data += chunk; });
+      apiRes.on('end', () => {
+        try {
+          const response = JSON.parse(data);
+          if (response.error) {
+            reject(new Error(response.error.message || 'Anthropic API error'));
+            return;
+          }
+          const toolBlock = (response.content || []).find(b => b.type === 'tool_use' && b.name === 'build_form');
+          if (!toolBlock || !toolBlock.input) {
+            reject(new Error('AI did not return a structured form.'));
+            return;
+          }
+          resolve(toolBlock.input);
+        } catch (e) {
+          reject(new Error('Failed to parse AI response: ' + e.message));
+        }
+      });
+    });
+
+    apiReq.on('error', (e) => reject(new Error('API request failed: ' + e.message)));
+    apiReq.setTimeout(30000, () => { apiReq.destroy(); reject(new Error('API request timed out')); });
+    apiReq.write(requestBody);
+    apiReq.end();
+  });
+}
+
+router.post('/form-templates/ai-generate', aiFormLimiter, async (req, res) => {
+  try {
+    const description = (req.body && typeof req.body.description === 'string') ? req.body.description.trim() : '';
+    if (description.length < 5) {
+      return res.status(400).json({ error: 'Please describe the form you want (at least a few words).' });
+    }
+    if (description.length > 2000) {
+      return res.status(400).json({ error: 'Description is too long. Keep it under 2000 characters.' });
+    }
+    const hint = (req.body && typeof req.body.form_type === 'string') ? req.body.form_type.trim().slice(0, 60) : '';
+
+    const spec = await generateFormSpecWithAI(description, hint);
+
+    const fields = (Array.isArray(spec.fields) ? spec.fields : [])
+      .map(sanitizeAiField)
+      .filter(Boolean)
+      .slice(0, 25);
+
+    if (fields.length === 0) {
+      return res.status(422).json({ error: 'The AI could not produce usable fields. Try rephrasing your description.' });
+    }
+
+    res.json({
+      success: true,
+      title: typeof spec.title === 'string' ? spec.title.trim() : '',
+      subtitle: typeof spec.subtitle === 'string' ? spec.subtitle.trim() : '',
+      submit_button_text: typeof spec.submit_button_text === 'string' ? spec.submit_button_text.trim() : '',
+      success_message: typeof spec.success_message === 'string' ? spec.success_message.trim() : '',
+      fields,
+    });
+  } catch (error) {
+    console.error('AI form generation error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate form' });
   }
 });
 
