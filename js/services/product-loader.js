@@ -300,13 +300,36 @@
     var overlay = document.getElementById('quote-modal-overlay');
     if (overlay) {
       closePanel();
+
+      // Mark the enquiry as a consultation so it lands in Submissions tagged
+      // correctly (the form handlers read this dataset / hidden input).
+      overlay.dataset.formType = 'consultation';
       overlay.classList.add('active');
       document.body.classList.add('no-scroll');
-      var ft = document.querySelector('#quote-form input[name="form_type"]');
-      if (ft) ft.value = 'consultation';
-      var msg = document.querySelector('#quote-form [name="message"]');
-      if (msg && productName && !msg.value) {
-        msg.value = 'I would like a quote / consultation about: ' + productName;
+
+      var title = overlay.querySelector('.modal-title');
+      if (title) title.textContent = 'Request a Quote';
+
+      // The mounted form may be the static #quote-form or an admin template
+      // form — handle whichever is present.
+      var form = overlay.querySelector('form');
+      if (form) {
+        var ft = form.querySelector('input[name="form_type"]');
+        if (!ft) {
+          ft = document.createElement('input');
+          ft.type = 'hidden';
+          ft.name = 'form_type';
+          form.appendChild(ft);
+        }
+        ft.value = 'consultation';
+        form.dataset.formType = 'consultation';
+
+        var msg = form.querySelector('[name="message"]');
+        if (msg && productName && !msg.value) {
+          msg.value = 'I would like a quote / consultation about: ' + productName;
+        }
+        var svc = form.querySelector('input[name="service"]');
+        if (svc && productName) svc.value = productName;
       }
       return;
     }
@@ -746,17 +769,27 @@
     e.preventDefault();
     var formType = this.getAttribute('data-form-type');
 
-    // Try to open the existing quote modal
     var overlay = document.getElementById('quote-modal-overlay');
     if (overlay) {
+      // Tag the enquiry with the button's configured form_type so the
+      // submission lands under the right form in the admin (the handlers read
+      // this dataset / hidden input).
+      overlay.dataset.formType = formType;
       overlay.classList.add('active');
       document.body.classList.add('no-scroll');
-    }
 
-    // If the modal has a hidden form_type field, set it
-    var hiddenField = document.querySelector('#quote-form input[name="form_type"]');
-    if (hiddenField) {
-      hiddenField.value = formType;
+      var form = overlay.querySelector('form');
+      if (form) {
+        var ft = form.querySelector('input[name="form_type"]');
+        if (!ft) {
+          ft = document.createElement('input');
+          ft.type = 'hidden';
+          ft.name = 'form_type';
+          form.appendChild(ft);
+        }
+        ft.value = formType;
+        form.dataset.formType = formType;
+      }
     }
 
     console.log('[ProductLoader] Form button clicked, form_type=' + formType);
