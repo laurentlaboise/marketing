@@ -5,6 +5,13 @@ import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
 import { initSlidePanel } from './modules/slide.js';
 
+// Enable the scroll-reveal hidden start-state only once this module is actually
+// running. If main.js ever fails to load/execute, .js-reveal is never set and
+// every .reveal element stays at its visible default — content is never trapped
+// invisible. Set at module top level (before DOMContentLoaded) to minimise any
+// flash of the pre-animation state.
+document.documentElement.classList.add('js-reveal');
+
 document.addEventListener('DOMContentLoaded', async () => {
   initScrollReveal();
   initModalsAndButtons();
