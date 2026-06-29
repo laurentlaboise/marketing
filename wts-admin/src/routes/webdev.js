@@ -3,6 +3,18 @@ const https = require('https');
 const { ensureAuthenticated } = require('../middleware/auth');
 const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
+const taxonomy = require('../config/product-taxonomy');
+
+// Pages that actually have a button slot (.form-buttons-section) on the live
+// site, so a button targeted here will really render. Derived from the taxonomy
+// service pages, which map 1:1 to /en/digital-marketing-services/{value}. The
+// editor shows these as a checklist so admins pick a page instead of typing a
+// URL. URLs are the canonical, no-trailing-slash form that the front-end slot's
+// data-buttons-page attribute uses.
+const LINKABLE_PAGES = taxonomy.SERVICE_PAGES.map((s) => ({
+  label: s.label,
+  url: `/en/digital-marketing-services/${s.value}`,
+}));
 
 const router = express.Router();
 
@@ -608,7 +620,8 @@ router.get('/form-templates/new', (req, res) => {
     title: 'Create Form Template - WTS Admin',
     currentPage: 'form-templates',
     template: null,
-    buttons: []
+    buttons: [],
+    linkablePages: LINKABLE_PAGES
   });
 });
 
@@ -867,7 +880,8 @@ router.get('/form-templates/:id/edit', async (req, res) => {
       title: 'Edit Form Template - WTS Admin',
       currentPage: 'form-templates',
       template,
-      buttons: btnResult.rows
+      buttons: btnResult.rows,
+      linkablePages: LINKABLE_PAGES
     });
   } catch (error) {
     res.redirect('/webdev/form-templates');
@@ -939,9 +953,23 @@ function resolvePageUrl(body) {
       return '*';
     case 'service-pages':
       return '/en/digital-marketing-services/*';
-    case 'specific':
-      return (body.page_urls || body.page_url || '')
-        .split(/[\n,]+/).map(s => s.trim()).filter(Boolean).join(',') || null;
+    case 'specific': {
+      // Merge the page checklist (page_select — one value per checked box) with
+      // any custom paths typed in the textarea (page_urls), de-duplicated.
+      const picks = [];
+      if (body.page_select) {
+        picks.push(...(Array.isArray(body.page_select) ? body.page_select : [body.page_select]));
+      }
+      if (body.page_urls || body.page_url) {
+        picks.push(...String(body.page_urls || body.page_url).split(/[\n,]+/));
+      }
+      const seen = new Set();
+      const out = [];
+      picks.map(s => String(s).trim()).filter(Boolean).forEach(p => {
+        if (!seen.has(p)) { seen.add(p); out.push(p); }
+      });
+      return out.join(',') || null;
+    }
     default:
       return body.page_url || null;
   }
