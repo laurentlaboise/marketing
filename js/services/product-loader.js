@@ -687,47 +687,46 @@
   // .form-buttons-section[data-buttons-page] containers, filtered
   // by the current page URL path.
 
+  // Does a button's page_url target string match this page path?
+  // Supports: '*' (site-wide), comma/newline lists, exact paths (trailing-slash
+  // tolerant) and '/*' / '*' suffix wildcards.
+  function buttonMatchesPage(target, pagePath) {
+    if (!target) return false;
+    var patterns = String(target).split(/[\n,]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+    for (var i = 0; i < patterns.length; i++) {
+      var p = patterns[i];
+      if (p === '*') return true;
+      if (p === pagePath) return true;
+      if (p.endsWith('/') && p.slice(0, -1) === pagePath) return true;
+      if (pagePath.endsWith('/') && pagePath.slice(0, -1) === p) return true;
+      if (p.endsWith('*')) {
+        var prefix = p.slice(0, -1); // handles both '/*' and '*' suffixes
+        if (pagePath.indexOf(prefix) === 0) return true;
+      }
+    }
+    return false;
+  }
+
   function loadFormButtons() {
-    var section = document.querySelector('.form-buttons-section[data-buttons-page]');
-    if (!section) return;
+    // Render into the page's dedicated slot(s) and any drop-in placeholder.
+    var sections = document.querySelectorAll('.form-buttons-section[data-buttons-page], [data-wts-buttons]');
+    if (!sections.length) return;
 
-    var pagePath = section.getAttribute('data-buttons-page');
-    if (!pagePath) return;
-
-    var url = API_BASE + '/form-buttons';
-    console.log('[ProductLoader] Fetching form buttons: ' + url);
-
-    fetch(url)
+    fetch(API_BASE + '/form-buttons')
       .then(function (res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       })
       .then(function (data) {
         var buttons = data.buttons || [];
-        console.log('[ProductLoader] Received ' + buttons.length + ' form button(s)');
-
-        // Filter buttons matching this page URL
-        var matched = buttons.filter(function (btn) {
-          if (!btn.page_url) return false;
-          var p = btn.page_url;
-          if (p === pagePath) return true;
-          // Trailing-slash tolerance
-          if (p.endsWith('/') && p.slice(0, -1) === pagePath) return true;
-          if (pagePath.endsWith('/') && pagePath.slice(0, -1) === p) return true;
-          // Wildcard: /en/digital-marketing-services/* matches all sub-pages
-          if (p.endsWith('/*')) {
-            var prefix = p.slice(0, -1);
-            return pagePath.startsWith(prefix);
-          }
-          return false;
-        });
-
-        if (matched.length === 0) {
-          console.log('[ProductLoader] No form buttons matched for ' + pagePath);
-          return;
+        for (var s = 0; s < sections.length; s++) {
+          var section = sections[s];
+          // A slot may declare its page path; a generic placeholder uses the
+          // current page's path.
+          var pagePath = section.getAttribute('data-buttons-page') || window.location.pathname;
+          var matched = buttons.filter(function (btn) { return buttonMatchesPage(btn.page_url, pagePath); });
+          if (matched.length) renderFormButtons(matched, section);
         }
-
-        renderFormButtons(matched, section);
       })
       .catch(function (err) {
         console.warn('[ProductLoader] Form buttons API error:', err.message);

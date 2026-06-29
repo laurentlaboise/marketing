@@ -117,15 +117,8 @@
           Buttons on the website that trigger this form. The <code>form_type</code> key <code style="background:#e0f2fe;padding:0.15rem 0.4rem;border-radius:4px;"><%= template.form_type %></code> links them.
         </p>
         <p style="font-size: 0.8rem; color: var(--gray-600); margin: -0.5rem 0 1rem; background:#fffbeb; border:1px solid #fde68a; padding:0.5rem 0.75rem; border-radius:6px;">
-          <i class="fas fa-circle-info"></i> A button only appears where its <strong>Page URL</strong> matches a page's button slot. Pick a suggested path below (use the <code>/*</code> option to show on all service pages).
+          <i class="fas fa-circle-info"></i> Use <strong>Show on</strong> to target all pages, all service pages, or specific paths — no need to pick one URL. A button appears wherever a button slot (or a <code>data-wts-buttons</code> block) sits on a matching page.
         </p>
-        <datalist id="wts-page-urls">
-          <option value="/en/digital-marketing-services/*">All service pages</option>
-          <option value="/en/digital-marketing-services/content-creation">Content Creation</option>
-          <option value="/en/digital-marketing-services/social-media-management">Social Media Management</option>
-          <option value="/en/digital-marketing-services/web-development">Web Development</option>
-          <option value="/en/digital-marketing-services/business-tools">Business Tools</option>
-        </datalist>
 
         <!-- Existing Buttons -->
         <div id="linkedButtonsList">
@@ -161,15 +154,26 @@
               <div class="linked-btn-edit" style="display:none;">
                 <form action="/webdev/form-buttons/<%= btn.id %>" method="POST">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <% var sc = btn.page_url === '*' ? 'all' : (btn.page_url === '/en/digital-marketing-services/*' ? 'service-pages' : 'specific'); %>
+                  <% var specificVal = sc === 'specific' ? (btn.page_url || '').split(',').join('\n') : ''; %>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                     <div class="form-group" style="margin:0;">
                       <label class="form-label">Button Label</label>
                       <input type="text" name="button_label" class="form-input" value="<%= btn.button_label %>" required>
                     </div>
                     <div class="form-group" style="margin:0;">
-                      <label class="form-label">Page URL</label>
-                      <input type="text" name="page_url" class="form-input" list="wts-page-urls" value="<%= btn.page_url || '' %>" placeholder="/en/digital-marketing-services/...">
+                      <label class="form-label">Show on</label>
+                      <select name="page_scope" class="form-input page-scope-select">
+                        <option value="all" <%= sc==='all'?'selected':'' %>>All pages (site-wide)</option>
+                        <option value="service-pages" <%= sc==='service-pages'?'selected':'' %>>All service pages</option>
+                        <option value="specific" <%= sc==='specific'?'selected':'' %>>Specific pages</option>
+                      </select>
                     </div>
+                  </div>
+                  <div class="form-group page-specific-row" style="margin-bottom:0.75rem;<%= sc==='specific'?'':'display:none;' %>">
+                    <label class="form-label">Specific page paths <small style="color:var(--gray-400);">(one per line)</small></label>
+                    <textarea name="page_urls" class="form-input" rows="2" placeholder="/en/digital-marketing-services/business-tools"><%= specificVal %></textarea>
+                    <small style="color:var(--gray-500);">Exact paths, or wildcards like <code>/en/digital-marketing-services/*</code>. Buttons appear wherever a button slot (or a <code>data-wts-buttons</code> block) exists on a matching page.</small>
                   </div>
                   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                     <div class="form-group" style="margin:0;">
@@ -256,9 +260,18 @@
                   <input type="text" name="button_label" class="form-input" required placeholder="e.g. Get Free Consultation">
                 </div>
                 <div class="form-group" style="margin:0;">
-                  <label class="form-label">Page URL</label>
-                  <input type="text" name="page_url" class="form-input" list="wts-page-urls" placeholder="/en/digital-marketing-services/...">
+                  <label class="form-label">Show on</label>
+                  <select name="page_scope" class="form-input page-scope-select">
+                    <option value="service-pages">All service pages</option>
+                    <option value="all">All pages (site-wide)</option>
+                    <option value="specific">Specific pages</option>
+                  </select>
                 </div>
+              </div>
+              <div class="form-group page-specific-row" style="margin-bottom:0.75rem;display:none;">
+                <label class="form-label">Specific page paths <small style="color:var(--gray-400);">(one per line)</small></label>
+                <textarea name="page_urls" class="form-input" rows="2" placeholder="/en/digital-marketing-services/business-tools"></textarea>
+                <small style="color:var(--gray-500);">Exact paths, or wildcards like <code>/en/digital-marketing-services/*</code>.</small>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                 <div class="form-group" style="margin:0;">
@@ -883,6 +896,17 @@
       addButtonForm.style.display = 'none';
     });
   }
+
+  // Show the "specific paths" box only when the "Specific pages" scope is chosen.
+  document.querySelectorAll('.page-scope-select').forEach(function(sel) {
+    var sync = function() {
+      var form = sel.closest('form');
+      var row = form && form.querySelector('.page-specific-row');
+      if (row) row.style.display = sel.value === 'specific' ? 'block' : 'none';
+    };
+    sel.addEventListener('change', sync);
+    sync();
+  });
 })();
 </script>
 
