@@ -182,7 +182,9 @@
                 <form action="/webdev/form-buttons/<%= btn.id %>" method="POST">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <% var sc = btn.page_url === '*' ? 'all' : (btn.page_url === '/en/digital-marketing-services/*' ? 'service-pages' : 'specific'); %>
-                  <% var specificVal = sc === 'specific' ? (btn.page_url || '').split(',').join('\n') : ''; %>
+                  <% var btnPaths = (btn.page_url || '').split(/[\n,]+/).map(function(s){ return s.trim(); }).filter(Boolean); %>
+                  <% var knownUrls = linkablePages.map(function(p){ return p.url; }); %>
+                  <% var extraPaths = btnPaths.filter(function(p){ return knownUrls.indexOf(p) === -1; }); %>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                     <div class="form-group" style="margin:0;">
                       <label class="form-label">Button Label</label>
@@ -198,9 +200,15 @@
                     </div>
                   </div>
                   <div class="form-group page-specific-row" style="margin-bottom:0.75rem;<%= sc==='specific'?'':'display:none;' %>">
-                    <label class="form-label">Specific page paths <small style="color:var(--gray-400);">(one per line)</small></label>
-                    <textarea name="page_urls" class="form-input" rows="2" placeholder="/en/digital-marketing-services/business-tools"><%= specificVal %></textarea>
-                    <small style="color:var(--gray-500);">Exact paths, or wildcards like <code>/en/digital-marketing-services/*</code>. Buttons appear wherever a button slot (or a <code>data-wts-buttons</code> block) exists on a matching page.</small>
+                    <label class="form-label">Pages to show this button on</label>
+                    <div class="page-pick-grid">
+                      <% linkablePages.forEach(function(p){ %>
+                        <label class="checkbox-label"><input type="checkbox" name="page_select" value="<%= p.url %>" <%= btnPaths.indexOf(p.url) !== -1 ? 'checked' : '' %>> <%= p.label %></label>
+                      <% }); %>
+                    </div>
+                    <label class="form-label" style="margin-top:0.6rem;">Other custom paths <small style="color:var(--gray-400);">(optional, one per line)</small></label>
+                    <textarea name="page_urls" class="form-input" rows="2" placeholder="/en/some-other-page"><%= extraPaths.join('\n') %></textarea>
+                    <small style="color:var(--gray-500);">For pages not in the list above. The target page needs a button slot (or a <code>data-wts-buttons</code> block). Wildcards like <code>/en/blog/*</code> work too.</small>
                   </div>
                   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                     <div class="form-group" style="margin:0;">
@@ -296,9 +304,15 @@
                 </div>
               </div>
               <div class="form-group page-specific-row" style="margin-bottom:0.75rem;display:none;">
-                <label class="form-label">Specific page paths <small style="color:var(--gray-400);">(one per line)</small></label>
-                <textarea name="page_urls" class="form-input" rows="2" placeholder="/en/digital-marketing-services/business-tools"></textarea>
-                <small style="color:var(--gray-500);">Exact paths, or wildcards like <code>/en/digital-marketing-services/*</code>.</small>
+                <label class="form-label">Pages to show this button on</label>
+                <div class="page-pick-grid">
+                  <% linkablePages.forEach(function(p){ %>
+                    <label class="checkbox-label"><input type="checkbox" name="page_select" value="<%= p.url %>"> <%= p.label %></label>
+                  <% }); %>
+                </div>
+                <label class="form-label" style="margin-top:0.6rem;">Other custom paths <small style="color:var(--gray-400);">(optional, one per line)</small></label>
+                <textarea name="page_urls" class="form-input" rows="2" placeholder="/en/some-other-page"></textarea>
+                <small style="color:var(--gray-500);">For pages not in the list above. The target page needs a button slot (or a <code>data-wts-buttons</code> block).</small>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                 <div class="form-group" style="margin:0;">
@@ -589,6 +603,15 @@
     margin-top: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--gray-200);
+  }
+  .page-pick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.4rem 1rem;
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
   }
   .checkbox-label {
     display: flex;
