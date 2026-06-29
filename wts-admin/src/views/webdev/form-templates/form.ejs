@@ -650,7 +650,9 @@
   // Load existing fields if editing
   let existingFields = [];
   <% if (template && template.fields) { %>
-    existingFields = <%= JSON.stringify(typeof template.fields === 'string' ? JSON.parse(template.fields) : template.fields) %>;
+    // Raw JSON (not HTML-escaped) so it parses as valid JS; `<` is escaped to
+    // < so a value containing "</script>" can't break out of this block.
+    existingFields = <%- JSON.stringify(typeof template.fields === 'string' ? JSON.parse(template.fields) : template.fields).replace(/</g, '\\u003c') %>;
   <% } %>
 
   let fieldIndex = 0;
