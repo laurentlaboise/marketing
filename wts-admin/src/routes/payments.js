@@ -65,6 +65,10 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
 
     // `orderAmount` is recorded on the order row (null when a Stripe Price ID is used).
     let orderAmount = null;
+    // SKU, quantity and unit price are stamped onto the order + Stripe metadata
+    // so receipts/exports show "SKU × N at $X/ea".
+    let orderQuantity = 1;
+    let orderUnitPrice = null;
 
     if (isSubscription) {
       const monthly = num(product.monthly_price);
@@ -82,6 +86,7 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
       const stripePriceId = period === 'yearly' ? product.stripe_price_id_yearly : product.stripe_price_id_monthly;
       const interval = period === 'yearly' ? 'year' : 'month';
       sessionConfig.metadata.billing_period = period;
+      orderUnitPrice = amount;
 
       if (stripePriceId) {
         sessionConfig.line_items = [{ price: stripePriceId, quantity: 1 }];
@@ -113,8 +118,8 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
         return res.status(400).json({ error: 'Product has no valid price for that quantity' });
       }
       orderAmount = Math.round(unitPrice * qty * 100) / 100;
-      sessionConfig.metadata.quantity = String(qty);
-      sessionConfig.metadata.unit_price = String(unitPrice);
+      orderQuantity = qty;
+      orderUnitPrice = unitPrice;
       sessionConfig.line_items = [{
         price_data: {
           currency,
@@ -126,6 +131,7 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
     } else {
       // One-time purchase
       const amount = num(product.price);
+      orderUnitPrice = amount;
       if (product.stripe_price_id) {
         sessionConfig.line_items = [{ price: product.stripe_price_id, quantity: 1 }];
       } else {
@@ -144,13 +150,20 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
       }
     }
 
+    // Stamp SKU + quantity + unit price onto the session metadata (shows on the
+    // Stripe dashboard / receipts) and the order row.
+    sessionConfig.metadata.sku = product.sku || '';
+    sessionConfig.metadata.quantity = String(orderQuantity);
+    if (orderUnitPrice != null) sessionConfig.metadata.unit_price = String(orderUnitPrice);
+
     const session = await stripe.checkout.sessions.create(sessionConfig);
 
     // Create order record
     await db.query(
-      `INSERT INTO orders (product_id, customer_email, amount, currency, stripe_session_id, status)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [product.id, 'pending@checkout.com', orderAmount, product.currency || 'USD', session.id, 'pending']
+      `INSERT INTO orders (product_id, customer_email, amount, currency, stripe_session_id, status, sku, quantity, unit_price)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [product.id, 'pending@checkout.com', orderAmount, product.currency || 'USD', session.id, 'pending',
+       product.sku || null, orderQuantity, orderUnitPrice]
     );
 
     res.json({ url: session.url, session_id: session.id });
