@@ -31,7 +31,12 @@ export function initModalsAndButtons() {
     if (modalOverlay) modalOverlay.style.display = 'flex';
   };
   const closeModal = () => {
-    if (modalOverlay) modalOverlay.style.display = 'none';
+    if (!modalOverlay) return;
+    // Full cleanup so the page never stays scroll-locked after closing: clear
+    // the .active class and release the body scroll-lock as well as hiding.
+    modalOverlay.classList.remove('active');
+    modalOverlay.style.display = 'none';
+    document.body.classList.remove('no-scroll');
   };
 
   window.addEventListener('scroll', handleFloatingButtons);
@@ -53,4 +58,10 @@ export function initModalsAndButtons() {
       if (e.target === modalOverlay) closeModal();
     });
   }
+
+  // Escape closes the quote modal when it's open (covers the third close path).
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !modalOverlay) return;
+    if (getComputedStyle(modalOverlay).display !== 'none') closeModal();
+  });
 }
