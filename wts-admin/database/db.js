@@ -899,6 +899,22 @@ const db = {
         )
       `);
 
+      // Optional product association for a button (Stage 2 of button targeting):
+      // when set, clicking the button opens the form pre-tagged with this
+      // product so the lead is attributed to it. Stored as the product slug
+      // (stable) plus a denormalized display name for the front end.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='form_buttons' AND column_name='product_slug') THEN
+            ALTER TABLE form_buttons ADD COLUMN product_slug VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='form_buttons' AND column_name='product_name') THEN
+            ALTER TABLE form_buttons ADD COLUMN product_name VARCHAR(500);
+          END IF;
+        END $$;
+      `);
+
       // Image folders table
       await client.query(`
         CREATE TABLE IF NOT EXISTS image_folders (

@@ -181,7 +181,7 @@
               <div class="linked-btn-edit" style="display:none;">
                 <form action="/webdev/form-buttons/<%= btn.id %>" method="POST">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                  <% var sc = btn.page_url === '*' ? 'all' : (btn.page_url === '/en/digital-marketing-services/*' ? 'service-pages' : 'specific'); %>
+                  <% var sc = btn.product_slug ? 'product' : (btn.page_url === '*' ? 'all' : (btn.page_url === '/en/digital-marketing-services/*' ? 'service-pages' : 'specific')); %>
                   <% var btnPaths = (btn.page_url || '').split(/[\n,]+/).map(function(s){ return s.trim(); }).filter(Boolean); %>
                   <% var knownUrls = linkablePages.map(function(p){ return p.url; }); %>
                   <% var extraPaths = btnPaths.filter(function(p){ return knownUrls.indexOf(p) === -1; }); %>
@@ -196,6 +196,7 @@
                         <option value="all" <%= sc==='all'?'selected':'' %>>All pages (site-wide)</option>
                         <option value="service-pages" <%= sc==='service-pages'?'selected':'' %>>All service pages</option>
                         <option value="specific" <%= sc==='specific'?'selected':'' %>>Specific pages</option>
+                        <option value="product" <%= sc==='product'?'selected':'' %>>A specific product</option>
                       </select>
                     </div>
                   </div>
@@ -209,6 +210,16 @@
                     <label class="form-label" style="margin-top:0.6rem;">Other custom paths <small style="color:var(--gray-400);">(optional, one per line)</small></label>
                     <textarea name="page_urls" class="form-input" rows="2" placeholder="/en/some-other-page"><%= extraPaths.join('\n') %></textarea>
                     <small style="color:var(--gray-500);">For pages not in the list above. The target page needs a button slot (or a <code>data-wts-buttons</code> block). Wildcards like <code>/en/blog/*</code> work too.</small>
+                  </div>
+                  <div class="form-group page-product-row" style="margin-bottom:0.75rem;<%= sc==='product'?'':'display:none;' %>">
+                    <label class="form-label">Product</label>
+                    <select name="product_slug" class="form-input">
+                      <option value="">— Select a product —</option>
+                      <% (linkableProducts || []).forEach(function(pr){ %>
+                        <option value="<%= pr.slug %>" <%= btn.product_slug === pr.slug ? 'selected' : '' %>><%= pr.name %><%= pr.service_page ? ' (' + pr.service_page + ')' : '' %></option>
+                      <% }); %>
+                    </select>
+                    <small style="color:var(--gray-500);">The button shows on this product's service page and opens the form pre-tagged with the product, so the lead is attributed to it.</small>
                   </div>
                   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                     <div class="form-group" style="margin:0;">
@@ -300,6 +311,7 @@
                     <option value="service-pages">All service pages</option>
                     <option value="all">All pages (site-wide)</option>
                     <option value="specific">Specific pages</option>
+                    <option value="product">A specific product</option>
                   </select>
                 </div>
               </div>
@@ -313,6 +325,16 @@
                 <label class="form-label" style="margin-top:0.6rem;">Other custom paths <small style="color:var(--gray-400);">(optional, one per line)</small></label>
                 <textarea name="page_urls" class="form-input" rows="2" placeholder="/en/some-other-page"></textarea>
                 <small style="color:var(--gray-500);">For pages not in the list above. The target page needs a button slot (or a <code>data-wts-buttons</code> block).</small>
+              </div>
+              <div class="form-group page-product-row" style="margin-bottom:0.75rem;display:none;">
+                <label class="form-label">Product</label>
+                <select name="product_slug" class="form-input">
+                  <option value="">— Select a product —</option>
+                  <% (linkableProducts || []).forEach(function(pr){ %>
+                    <option value="<%= pr.slug %>"><%= pr.name %><%= pr.service_page ? ' (' + pr.service_page + ')' : '' %></option>
+                  <% }); %>
+                </select>
+                <small style="color:var(--gray-500);">The button shows on this product's service page and opens the form pre-tagged with the product.</small>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                 <div class="form-group" style="margin:0;">
@@ -1069,12 +1091,15 @@
     });
   }
 
-  // Show the "specific paths" box only when the "Specific pages" scope is chosen.
+  // Reveal the matching extra row for the chosen scope: the page checklist for
+  // "Specific pages", the product picker for "A specific product".
   document.querySelectorAll('.page-scope-select').forEach(function(sel) {
     var sync = function() {
       var form = sel.closest('form');
-      var row = form && form.querySelector('.page-specific-row');
-      if (row) row.style.display = sel.value === 'specific' ? 'block' : 'none';
+      var specRow = form && form.querySelector('.page-specific-row');
+      var prodRow = form && form.querySelector('.page-product-row');
+      if (specRow) specRow.style.display = sel.value === 'specific' ? 'block' : 'none';
+      if (prodRow) prodRow.style.display = sel.value === 'product' ? 'block' : 'none';
     };
     sel.addEventListener('change', sync);
     sync();
