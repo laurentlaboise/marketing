@@ -732,6 +732,24 @@ router.post('/form-templates/:id/delete', async (req, res) => {
 
 // ==================== FORM BUTTONS (Linked Buttons) ====================
 
+// Resolve the admin "Show on" choice into a page_url pattern. A button can
+// target all pages ('*'), all service pages, or a list of specific paths /
+// wildcards (stored comma-separated). Falls back to a directly-provided
+// page_url for backward compatibility.
+function resolvePageUrl(body) {
+  switch (body.page_scope) {
+    case 'all':
+      return '*';
+    case 'service-pages':
+      return '/en/digital-marketing-services/*';
+    case 'specific':
+      return (body.page_urls || body.page_url || '')
+        .split(/[\n,]+/).map(s => s.trim()).filter(Boolean).join(',') || null;
+    default:
+      return body.page_url || null;
+  }
+}
+
 router.post('/form-buttons', async (req, res) => {
   try {
     const {
@@ -751,7 +769,7 @@ router.post('/form-buttons', async (req, res) => {
       [
         form_type.trim(),
         button_label.trim(),
-        page_url || null,
+        resolvePageUrl(req.body),
         style_preset || 'primary',
         custom_css || null,
         custom_js || null,
@@ -785,7 +803,7 @@ router.post('/form-buttons/:id', async (req, res) => {
        WHERE id=$12`,
       [
         (button_label || '').trim(),
-        page_url || null,
+        resolvePageUrl(req.body),
         style_preset || 'primary',
         custom_css || null,
         custom_js || null,
