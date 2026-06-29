@@ -497,8 +497,15 @@ router.get('/products', async (req, res) => {
       icon_class: p.icon_class || 'fas fa-box',
       animation_class: p.animation_class || 'kinetic-pulse-float',
       is_featured: p.is_featured || false,
+      subcategory: p.subcategory || null,
+      purchase_mode: p.purchase_mode || 'consult',
+      price_unit: p.price_unit || 'fixed',
+      industries: p.industries || [],
+      sku: p.sku || null,
       pricing: buildProductPricing(p),
+      stripe_payment_link: p.stripe_payment_link || null,
       has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
+        p.stripe_payment_link ||
         (p.price && parseFloat(p.price) > 0) ||
         (p.monthly_price && parseFloat(p.monthly_price) > 0) ||
         (p.yearly_price && parseFloat(p.yearly_price) > 0)),
@@ -546,8 +553,15 @@ router.get('/products/:slug', async (req, res) => {
       icon_class: p.icon_class || 'fas fa-box',
       animation_class: p.animation_class || 'kinetic-pulse-float',
       is_featured: p.is_featured || false,
+      subcategory: p.subcategory || null,
+      purchase_mode: p.purchase_mode || 'consult',
+      price_unit: p.price_unit || 'fixed',
+      industries: p.industries || [],
+      sku: p.sku || null,
       pricing: buildProductPricing(p),
+      stripe_payment_link: p.stripe_payment_link || null,
       has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
+        p.stripe_payment_link ||
         (p.price && parseFloat(p.price) > 0) ||
         (p.monthly_price && parseFloat(p.monthly_price) > 0) ||
         (p.yearly_price && parseFloat(p.yearly_price) > 0)),

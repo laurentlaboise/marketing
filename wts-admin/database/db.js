@@ -584,6 +584,30 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='stripe_price_id_yearly') THEN
             ALTER TABLE products ADD COLUMN stripe_price_id_yearly VARCHAR(255);
           END IF;
+          -- Catalog taxonomy & lead-first commerce model
+          -- subcategory: constrained child of service_page (see src/config/product-taxonomy.js)
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='subcategory') THEN
+            ALTER TABLE products ADD COLUMN subcategory VARCHAR(120);
+          END IF;
+          -- purchase_mode: 'consult' (request a quote / book a call) or 'buy' (self-serve checkout)
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='purchase_mode') THEN
+            ALTER TABLE products ADD COLUMN purchase_mode VARCHAR(20) DEFAULT 'consult';
+          END IF;
+          -- price_unit: how a one-time price is quoted ('fixed','hour','item','quantity')
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='price_unit') THEN
+            ALTER TABLE products ADD COLUMN price_unit VARCHAR(30) DEFAULT 'fixed';
+          END IF;
+          -- industries: cross-cutting audience tags (from the "Ideal For" lines)
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='industries') THEN
+            ALTER TABLE products ADD COLUMN industries TEXT[];
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='sku') THEN
+            ALTER TABLE products ADD COLUMN sku VARCHAR(100);
+          END IF;
+          -- stripe_payment_link: a Stripe Payment Link (buy.stripe.com/...) for self-serve items
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='stripe_payment_link') THEN
+            ALTER TABLE products ADD COLUMN stripe_payment_link TEXT;
+          END IF;
         END $$;
       `);
 

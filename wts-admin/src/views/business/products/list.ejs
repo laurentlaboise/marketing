@@ -100,6 +100,10 @@
                 <td data-label="Actions">
                   <div class="table-actions">
                     <a href="/business/products/<%= product.id %>/edit" class="btn btn-sm btn-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                    <form action="/business/products/<%= product.id %>/duplicate" method="POST" style="display: inline;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-sm btn-secondary" title="Duplicate as draft"><i class="fas fa-copy"></i></button>
+                    </form>
                     <form action="/business/products/<%= product.id %>/delete" method="POST" style="display: inline;">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete title="Delete"><i class="fas fa-trash"></i></button>

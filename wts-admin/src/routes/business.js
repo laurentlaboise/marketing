@@ -2,6 +2,7 @@ const express = require('express');
 const { ensureAuthenticated } = require('../middleware/auth');
 const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
+const taxonomy = require('../config/product-taxonomy');
 
 const router = express.Router();
 
@@ -248,6 +249,63 @@ function normalizePricing(body) {
   };
 }
 
+// Build a stable, URL-safe slug from a name. Always derived (never trusted from
+// input) so a product's slug can't drift from its name — and so "Pro+" keeps
+// its meaning as "pro-plus" instead of collapsing to "pro".
+function slugify(value) {
+  return String(value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/\+/g, '-plus')
+    .replace(/&/g, '-and-')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+// Keep only recognized industry tags. Accepts a single value or an array
+// (express.urlencoded parses repeated checkbox names as arrays).
+function normalizeIndustries(raw) {
+  if (!raw) return [];
+  const arr = Array.isArray(raw) ? raw : [raw];
+  return arr
+    .map((v) => String(v).trim())
+    .filter((v) => taxonomy.INDUSTRY_VALUES.includes(v));
+}
+
+// Server-side validation gate. Returns an array of human-readable errors;
+// empty means valid. Enforces the metadata standard so a bulk load can't
+// create products with no category, no subcategory, or an unsellable price.
+function validateProduct(body) {
+  const errors = [];
+  const name = (body.name || '').trim();
+  if (name.length < 3 || name.length > 80) errors.push('Name must be 3–80 characters.');
+
+  const desc = (body.description || '').trim();
+  if (desc.length < 20) errors.push('Description should be at least 20 characters.');
+  if (desc.length > 2000) errors.push('Description is too long (max 2000 characters).');
+
+  const sp = body.service_page || '';
+  if (!taxonomy.SERVICE_PAGE_VALUES.includes(sp)) {
+    errors.push('Select a valid Service Page.');
+  } else if (!taxonomy.isValidSubcategory(sp, body.subcategory)) {
+    errors.push('Select a Subcategory that belongs to the chosen Service Page.');
+  }
+
+  const mode = body.purchase_mode || 'consult';
+  if (!taxonomy.PURCHASE_MODE_VALUES.includes(mode)) errors.push('Invalid purchase mode.');
+
+  // Self-serve "Buy now" products must have something to charge.
+  if (mode === 'buy') {
+    const isSub = body.pricing_type === 'subscription';
+    const hasOneTime = parseFloat(body.price) > 0;
+    const hasSub = parseFloat(body.monthly_price) > 0 || parseFloat(body.yearly_price) > 0;
+    if (isSub ? !hasSub : !hasOneTime) {
+      errors.push('Buy-now products need a price (a one-time price, or a monthly/yearly price for subscriptions).');
+    }
+  }
+  return errors;
+}
+
 router.get('/products', async (req, res) => {
   try {
     const { service_page, status } = req.query;
@@ -293,7 +351,8 @@ router.get('/products/new', (req, res) => {
   res.render('business/products/form', {
     title: 'New Product - WTS Admin',
     product: null,
-    currentPage: 'products'
+    currentPage: 'products',
+    taxonomy
   });
 });
 
@@ -305,15 +364,30 @@ router.post('/products', async (req, res) => {
       slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
       stripe_product_id, stripe_price_id, is_featured,
       pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
-      allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly
+      allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
+      subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link
     } = req.body;
 
+    const errors = validateProduct(req.body);
+    if (errors.length) {
+      req.body.industries = normalizeIndustries(industries);
+      return res.render('business/products/form', {
+        title: 'New Product - WTS Admin',
+        product: req.body,
+        currentPage: 'products',
+        taxonomy,
+        error: errors.join(' ')
+      });
+    }
+
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
-    const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const productSlug = slug && slug.trim() ? slugify(slug) : slugify(name);
     const pricing = normalizePricing({
       pricing_type, monthly_price, yearly_price, annual_discount_pct,
       default_billing, allow_billing_toggle
     });
+    const mode = taxonomy.PURCHASE_MODE_VALUES.includes(purchase_mode) ? purchase_mode : 'consult';
+    const unit = taxonomy.PRICE_UNIT_VALUES.includes(price_unit) ? price_unit : 'fixed';
 
     await db.query(
       `INSERT INTO products (
@@ -322,8 +396,9 @@ router.post('/products', async (req, res) => {
         slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
         stripe_product_id, stripe_price_id, is_featured,
         pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
-        allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31)`,
+        allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
+        subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37)`,
       [
         name, productSlug, description, price || null, currency || 'USD', category, featuresArray, image_url, status || 'active',
         service_page || null, icon_class || 'fas fa-box', animation_class || 'kinetic-pulse-float',
@@ -333,17 +408,20 @@ router.post('/products', async (req, res) => {
         stripe_product_id || null, stripe_price_id || null, is_featured === 'true',
         pricing.pricing_type, pricing.monthly_price, pricing.yearly_price, pricing.annual_discount_pct,
         pricing.default_billing, pricing.allow_billing_toggle,
-        stripe_price_id_monthly || null, stripe_price_id_yearly || null
+        stripe_price_id_monthly || null, stripe_price_id_yearly || null,
+        subcategory || null, mode, unit, normalizeIndustries(industries), sku || null, stripe_payment_link || null
       ]
     );
     req.session.successMessage = 'Product created successfully';
     res.redirect('/business/products');
   } catch (error) {
     console.error('Create product error:', error);
+    req.body.industries = normalizeIndustries(req.body.industries);
     res.render('business/products/form', {
       title: 'New Product - WTS Admin',
       product: req.body,
       currentPage: 'products',
+      taxonomy,
       error: 'Failed to create product'
     });
   }
@@ -358,7 +436,8 @@ router.get('/products/:id/edit', async (req, res) => {
     res.render('business/products/form', {
       title: 'Edit Product - WTS Admin',
       product: result.rows[0],
-      currentPage: 'products'
+      currentPage: 'products',
+      taxonomy
     });
   } catch (error) {
     res.redirect('/business/products');
@@ -373,15 +452,31 @@ router.post('/products/:id', async (req, res) => {
       slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
       stripe_product_id, stripe_price_id, is_featured,
       pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
-      allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly
+      allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
+      subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link
     } = req.body;
 
+    const errors = validateProduct(req.body);
+    if (errors.length) {
+      req.body.id = req.params.id;
+      req.body.industries = normalizeIndustries(industries);
+      return res.render('business/products/form', {
+        title: 'Edit Product - WTS Admin',
+        product: req.body,
+        currentPage: 'products',
+        taxonomy,
+        error: errors.join(' ')
+      });
+    }
+
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
-    const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const productSlug = slug && slug.trim() ? slugify(slug) : slugify(name);
     const pricing = normalizePricing({
       pricing_type, monthly_price, yearly_price, annual_discount_pct,
       default_billing, allow_billing_toggle
     });
+    const mode = taxonomy.PURCHASE_MODE_VALUES.includes(purchase_mode) ? purchase_mode : 'consult';
+    const unit = taxonomy.PRICE_UNIT_VALUES.includes(price_unit) ? price_unit : 'fixed';
 
     await db.query(
       `UPDATE products SET
@@ -392,8 +487,10 @@ router.post('/products/:id', async (req, res) => {
         stripe_product_id=$21, stripe_price_id=$22, is_featured=$23,
         pricing_type=$24, monthly_price=$25, yearly_price=$26, annual_discount_pct=$27,
         default_billing=$28, allow_billing_toggle=$29,
-        stripe_price_id_monthly=$30, stripe_price_id_yearly=$31, updated_at=CURRENT_TIMESTAMP
-      WHERE id=$32`,
+        stripe_price_id_monthly=$30, stripe_price_id_yearly=$31,
+        subcategory=$32, purchase_mode=$33, price_unit=$34, industries=$35, sku=$36,
+        stripe_payment_link=$37, updated_at=CURRENT_TIMESTAMP
+      WHERE id=$38`,
       [
         name, productSlug, description, price || null, currency, category, featuresArray,
         image_url, status, service_page || null, icon_class || 'fas fa-box',
@@ -405,6 +502,8 @@ router.post('/products/:id', async (req, res) => {
         pricing.pricing_type, pricing.monthly_price, pricing.yearly_price, pricing.annual_discount_pct,
         pricing.default_billing, pricing.allow_billing_toggle,
         stripe_price_id_monthly || null, stripe_price_id_yearly || null,
+        subcategory || null, mode, unit, normalizeIndustries(industries), sku || null,
+        stripe_payment_link || null,
         req.params.id
       ]
     );
@@ -424,6 +523,47 @@ router.post('/products/:id/delete', async (req, res) => {
     req.session.errorMessage = 'Failed to delete product';
   }
   res.redirect('/business/products');
+});
+
+// Clone a product to speed up entering a catalog of similar items. The copy
+// starts as a draft with a fresh name/slug and never inherits Stripe IDs —
+// pointing two products at one Stripe price would be a billing hazard.
+router.post('/products/:id/duplicate', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      req.session.errorMessage = 'Product not found';
+      return res.redirect('/business/products');
+    }
+    const src = { ...result.rows[0] };
+    const originalName = src.name;
+    delete src.id;
+    delete src.created_at;
+    delete src.updated_at;
+    src.name = `${originalName} (Copy)`;
+    src.slug = slugify(`${originalName}-copy-${Date.now().toString(36)}`);
+    src.status = 'draft';
+    src.is_featured = false;
+    src.stripe_product_id = null;
+    src.stripe_price_id = null;
+    src.stripe_price_id_monthly = null;
+    src.stripe_price_id_yearly = null;
+    src.stripe_payment_link = null;
+
+    const cols = Object.keys(src);
+    const placeholders = cols.map((_, i) => `$${i + 1}`).join(',');
+    const values = cols.map((c) => src[c]);
+    const insert = await db.query(
+      `INSERT INTO products (${cols.join(',')}) VALUES (${placeholders}) RETURNING id`,
+      values
+    );
+    req.session.successMessage = 'Product duplicated as a draft. Review and publish when ready.';
+    res.redirect(`/business/products/${insert.rows[0].id}/edit`);
+  } catch (error) {
+    console.error('Duplicate product error:', error);
+    req.session.errorMessage = 'Failed to duplicate product';
+    res.redirect('/business/products');
+  }
 });
 
 // ==================== PRICE MODELS (Subscription Packages) ====================
