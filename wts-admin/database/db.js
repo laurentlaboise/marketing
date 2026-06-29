@@ -677,6 +677,24 @@ const db = {
         )
       `);
 
+      // Record the product SKU, purchased quantity and per-unit price on each
+      // order so receipts/exports read "SKU × N at $X/ea" — important now that a
+      // single product (one SKU) can be bought at volume-tiered quantities.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='sku') THEN
+            ALTER TABLE orders ADD COLUMN sku VARCHAR(100);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='quantity') THEN
+            ALTER TABLE orders ADD COLUMN quantity INTEGER DEFAULT 1;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='unit_price') THEN
+            ALTER TABLE orders ADD COLUMN unit_price DECIMAL(10,2);
+          END IF;
+        END $$;
+      `);
+
       // Price Models table
       await client.query(`
         CREATE TABLE IF NOT EXISTS price_models (
