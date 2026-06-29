@@ -3,6 +3,8 @@ const { ensureAuthenticated } = require('../middleware/auth');
 const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
 const taxonomy = require('../config/product-taxonomy');
+const slugify = require('../utils/slugify');
+const { parseProductListings } = require('../utils/product-import-parser');
 
 const router = express.Router();
 
@@ -249,19 +251,6 @@ function normalizePricing(body) {
   };
 }
 
-// Build a stable, URL-safe slug from a name. Always derived (never trusted from
-// input) so a product's slug can't drift from its name — and so "Pro+" keeps
-// its meaning as "pro-plus" instead of collapsing to "pro".
-function slugify(value) {
-  return String(value || '')
-    .toLowerCase()
-    .trim()
-    .replace(/\+/g, '-plus')
-    .replace(/&/g, '-and-')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
-
 // Keep only recognized industry tags. Accepts a single value or an array
 // (express.urlencoded parses repeated checkbox names as arrays).
 function normalizeIndustries(raw) {
@@ -353,6 +342,87 @@ router.get('/products/new', (req, res) => {
     product: null,
     currentPage: 'products',
     taxonomy
+  });
+});
+
+// ---- Bulk import (must be registered before the /products/:id routes) ----
+
+const IMPORT_ICON_BY_PAGE = {
+  'content-creation': 'fas fa-pen-nib',
+  'social-media-management': 'fas fa-hashtag',
+  'web-development': 'fas fa-code',
+  'business-tools': 'fas fa-briefcase',
+};
+
+router.get('/products/import', (req, res) => {
+  res.render('business/products/import', {
+    title: 'Import Products - WTS Admin',
+    currentPage: 'products',
+    results: null
+  });
+});
+
+// Parse the product-listings document and create each entry as a draft.
+// Idempotent: existing slugs are skipped, so re-running is safe. Each row is
+// inserted independently so one bad entry can't abort the whole batch.
+router.post('/products/import', async (req, res) => {
+  let parsed;
+  try {
+    parsed = parseProductListings(req.body.text || '');
+  } catch (e) {
+    return res.render('business/products/import', {
+      title: 'Import Products - WTS Admin',
+      currentPage: 'products',
+      results: null,
+      error: 'Could not parse the document: ' + e.message
+    });
+  }
+
+  const items = [];
+  let created = 0, skipped = 0, failed = 0;
+  for (const p of parsed.products) {
+    try {
+      if (!p.name) { failed++; items.push({ name: '(unnamed)', status: 'error', message: 'Missing name', warnings: [] }); continue; }
+      const existing = await db.query('SELECT id FROM products WHERE slug = $1', [p.slug]);
+      if (existing.rows.length) {
+        skipped++;
+        items.push({ name: p.name, status: 'skipped', message: 'A product with this slug already exists', warnings: p.warnings });
+        continue;
+      }
+      const monthly = p.monthly_price;
+      const yearly = p.yearly_price;
+      const defaultBilling = monthly != null ? 'monthly' : (yearly != null ? 'yearly' : 'monthly');
+      const allowToggle = monthly != null && yearly != null;
+      await db.query(
+        `INSERT INTO products (
+          name, slug, description, price, currency, features, status,
+          service_page, subcategory, icon_class, animation_class, sort_order,
+          product_type, slide_in_subtitle,
+          pricing_type, monthly_price, yearly_price, default_billing, allow_billing_toggle,
+          purchase_mode, price_unit, industries, sku, stripe_payment_link
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)`,
+        [
+          p.name, p.slug, p.description || null, p.price, p.currency || 'USD', p.features || [], 'draft',
+          p.service_page || null, p.subcategory || null,
+          IMPORT_ICON_BY_PAGE[p.service_page] || 'fas fa-box', 'kinetic-pulse-float', 0,
+          p.pricing_type === 'subscription' ? 'subscription' : 'service', p.slide_in_subtitle || null,
+          p.pricing_type, monthly, yearly, defaultBilling, allowToggle,
+          'consult', p.price_unit || 'fixed', normalizeIndustries(p.industries), p.sku || null, p.stripe_payment_link || null
+        ]
+      );
+      created++;
+      items.push({ name: p.name, status: 'created', message: `${p.service_page || '?'} / ${p.subcategory || '?'}`, warnings: p.warnings });
+    } catch (e) {
+      failed++;
+      items.push({ name: p.name, status: 'error', message: e.message, warnings: p.warnings || [] });
+    }
+  }
+
+  req.session.successMessage = `Import complete: ${created} created, ${skipped} skipped, ${failed} failed.`;
+  res.render('business/products/import', {
+    title: 'Import Products - WTS Admin',
+    currentPage: 'products',
+    results: { items, created, skipped, failed, total: parsed.products.length }
   });
 });
 
