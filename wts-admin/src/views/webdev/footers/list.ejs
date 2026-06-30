@@ -1,0 +1,110 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Footer Manager</h1>
+        <p class="page-subtitle">Manage footer <strong>variants</strong> and which pages use them, then <strong>Publish</strong> to the live site. The footer is rendered into the page HTML at build time (SEO-safe).</p>
+      </div>
+      <div class="page-actions">
+        <form action="/webdev/footer-settings/publish" method="POST" style="margin:0;" onsubmit="return confirm('Publish all footer variants to the live site? This triggers a rebuild.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-rocket"></i> Publish to site</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Variants -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-body">
+        <h3 style="margin-bottom:1rem;"><i class="fas fa-layer-group"></i> Variants</h3>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead><tr><th>Name</th><th>Slug</th><th>Edit</th><th>Actions</th></tr></thead>
+            <tbody>
+              <% variants.forEach(function(v){ %>
+              <tr>
+                <td data-label="Name"><strong><%= v.name %></strong> <% if (v.is_default) { %><span class="status-badge active">default</span><% } %></td>
+                <td data-label="Slug"><code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.8rem;"><%= v.slug %></code></td>
+                <td data-label="Edit">
+                  <a href="/webdev/footer-settings?variant=<%= v.slug %>" class="btn btn-sm btn-secondary"><i class="fas fa-sliders-h"></i> Content</a>
+                  <a href="/webdev/menus" class="btn btn-sm btn-secondary"><i class="fas fa-list"></i> Columns</a>
+                </td>
+                <td data-label="Actions">
+                  <% if (!v.is_default) { %>
+                  <form action="/webdev/footers/variants/<%= v.slug %>/delete" method="POST" style="display:inline;">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                  </form>
+                  <% } else { %><small style="color:#999;">—</small><% } %>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <form action="/webdev/footers/variants" method="POST" style="margin-top:1rem;display:flex;gap:0.5rem;align-items:flex-end;flex-wrap:wrap;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" for="newVariantName">New variant name</label>
+            <input type="text" id="newVariantName" name="name" class="form-input" placeholder="e.g. Resources" required>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add variant</button>
+        </form>
+        <small style="color:#64748b;display:block;margin-top:0.5rem;">After adding a variant, set its content (Content) and add its link columns in Menu Manager using location <em>footer:&lt;slug&gt;</em> / <em>footer-legal:&lt;slug&gt;</em>.</small>
+      </div>
+    </div>
+
+    <!-- Assignments -->
+    <div class="card">
+      <div class="card-body">
+        <h3 style="margin-bottom:0.5rem;"><i class="fas fa-map-signs"></i> Page assignments</h3>
+        <p style="color:#64748b;margin-bottom:1rem;font-size:0.9rem;">Pages are matched top-to-bottom. Use an exact path or a <code>/*</code> suffix wildcard. Choose <strong>keep</strong> to leave a page's existing footer untouched. Pages with no match use the default variant.</p>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead><tr><th>#</th><th>URL pattern</th><th>Variant</th><th></th></tr></thead>
+            <tbody>
+              <% if (assignments.length === 0) { %>
+              <tr><td colspan="4"><small style="color:#999;">No assignments — every page uses the default variant (except the built-in <code>/en/resources/*</code> → keep protection).</small></td></tr>
+              <% } %>
+              <% assignments.forEach(function(a, i){ %>
+              <tr>
+                <td data-label="#" style="color:#999;"><%= i + 1 %></td>
+                <td data-label="URL pattern"><code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.8rem;"><%= a.pattern %></code></td>
+                <td data-label="Variant"><%= a.variant_slug %></td>
+                <td data-label="">
+                  <form action="/webdev/footers/assignments/<%= a.id %>/delete" method="POST" style="display:inline;">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <form action="/webdev/footers/assignments" method="POST" style="margin-top:1rem;display:flex;gap:0.5rem;align-items:flex-end;flex-wrap:wrap;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div class="form-group" style="margin:0;flex:1;min-width:220px;">
+            <label class="form-label" for="newPattern">URL pattern</label>
+            <input type="text" id="newPattern" name="pattern" class="form-input" placeholder="/en/resources/*" required>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" for="newVariant">Variant</label>
+            <select id="newVariant" name="variant_slug" class="form-input" required>
+              <% variants.forEach(function(v){ %><option value="<%= v.slug %>"><%= v.name %> (<%= v.slug %>)</option><% }); %>
+              <option value="keep">keep (leave page's footer as-is)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

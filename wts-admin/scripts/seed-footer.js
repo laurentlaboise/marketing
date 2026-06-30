@@ -117,9 +117,30 @@ async function seedMenus() {
   console.log(`Footer menus: seeded ${COLUMNS.length} columns + ${LEGAL.length} legal links.`);
 }
 
+async function seedAssignments() {
+  const existing = await db.query(`SELECT COUNT(*)::int AS n FROM footer_assignments`);
+  if (existing.rows[0].n > 0) {
+    console.log(`Assignments: ${existing.rows[0].n} already present — skipping.`);
+    return;
+  }
+  const rows = [
+    { pattern: '/en/resources', variant: 'keep' },
+    { pattern: '/en/resources/*', variant: 'keep' },
+  ];
+  let i = 0;
+  for (const a of rows) {
+    await db.query(
+      `INSERT INTO footer_assignments (pattern, variant_slug, sort_order) VALUES ($1, $2, $3)`,
+      [a.pattern, a.variant, i++]
+    );
+  }
+  console.log(`Assignments: seeded ${rows.length} (resources → keep).`);
+}
+
 async function main() {
   await seedSettings();
   await seedMenus();
+  await seedAssignments();
   console.log('\nDone.');
   await db.close();
 }

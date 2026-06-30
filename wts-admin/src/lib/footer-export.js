@@ -1,61 +1,74 @@
 /**
- * Footer export — turn the admin's footer data (menu_items + site_settings)
- * into the build-time footers.json structure consumed by
- * scripts/inject-footers.js. Used by the Footer Settings "Publish" action.
+ * Footer export — turn the admin's footer data (footer_variants +
+ * footer_assignments + menu_items + site_settings) into the build-time
+ * footers.json structure consumed by scripts/inject-footers.js. Used by the
+ * Footer Settings "Publish" action.
  *
- * Slice 1 produces the default `main` variant from the current admin footer.
- * It merges into any existing footers.json so other variants and the
- * page→variant assignments (e.g. /en/resources/* → keep) are preserved.
+ * Storage scheme (so the default footer needs no migration):
+ *   - variant 'main' → columns location 'footer' / 'footer-legal',
+ *                      settings keys 'footer_<field>'.
+ *   - variant <slug> → columns location 'footer:<slug>' / 'footer-legal:<slug>',
+ *                      settings keys 'footer:<slug>:<field>'.
  */
 const db = require('../../database/db');
 
 const SOCIAL_FIELDS = [
-  { key: 'footer_social_instagram', icon: 'fab fa-instagram', label: 'Instagram' },
-  { key: 'footer_social_linkedin', icon: 'fab fa-linkedin', label: 'LinkedIn' },
-  { key: 'footer_social_facebook', icon: 'fab fa-facebook-square', label: 'Facebook' },
-  { key: 'footer_social_twitter', icon: 'fab fa-twitter-square', label: 'Twitter' },
-  { key: 'footer_social_youtube', icon: 'fab fa-youtube-square', label: 'YouTube' },
+  { field: 'social_instagram', icon: 'fab fa-instagram', label: 'Instagram' },
+  { field: 'social_linkedin', icon: 'fab fa-linkedin', label: 'LinkedIn' },
+  { field: 'social_facebook', icon: 'fab fa-facebook-square', label: 'Facebook' },
+  { field: 'social_twitter', icon: 'fab fa-twitter-square', label: 'Twitter' },
+  { field: 'social_youtube', icon: 'fab fa-youtube-square', label: 'YouTube' },
 ];
 
-async function getSettings() {
-  const r = await db.query(`SELECT key, value FROM site_settings WHERE key LIKE 'footer_%'`);
-  const s = {};
-  r.rows.forEach(row => { s[row.key] = row.value || ''; });
-  return s;
+// Resolve where a variant's content lives. The 'main' variant uses the legacy
+// (unprefixed) locations/keys; every other slug is namespaced.
+function variantStorage(slug) {
+  if (slug === 'main') {
+    return { colLocation: 'footer', legalLocation: 'footer-legal', prefix: 'footer_' };
+  }
+  return { colLocation: `footer:${slug}`, legalLocation: `footer-legal:${slug}`, prefix: `footer:${slug}:` };
+}
+
+// Read a variant's settings as { <field>: value }. Filtered with startsWith (not
+// SQL LIKE) so the '_' in 'footer_' can't wildcard-match 'footer:<slug>:' keys.
+async function getSettings(prefix) {
+  const r = await db.query(`SELECT key, value FROM site_settings WHERE key LIKE 'footer%'`);
+  const out = {};
+  r.rows.forEach(row => {
+    if (row.key.startsWith(prefix)) out[row.key.slice(prefix.length)] = row.value || '';
+  });
+  return out;
 }
 
 function buildSocial(s) {
-  return SOCIAL_FIELDS
-    .filter(f => s[f.key])
-    .map(f => ({ icon: f.icon, href: s[f.key], label: f.label }));
+  return SOCIAL_FIELDS.filter(f => s[f.field]).map(f => ({ icon: f.icon, href: s[f.field], label: f.label }));
 }
 
 function buildContact(s) {
   const items = [];
-  if (s.footer_contact_address) {
-    items.push({ icon: 'fas fa-map-marker-alt', text: s.footer_contact_address });
+  if (s.contact_address) {
+    items.push({ icon: 'fas fa-map-marker-alt', text: s.contact_address });
   }
-  if (s.footer_contact_maps_url) {
-    items.push({ icon: 'fab fa-google', href: s.footer_contact_maps_url, external: true, text: 'Find us on Google' });
+  if (s.contact_maps_url) {
+    items.push({ icon: 'fab fa-google', href: s.contact_maps_url, external: true, text: 'Find us on Google' });
   }
-  if (s.footer_contact_whatsapp) {
-    const digits = s.footer_contact_whatsapp.replace(/[^0-9]/g, '');
+  if (s.contact_whatsapp) {
+    const digits = s.contact_whatsapp.replace(/[^0-9]/g, '');
     let href = 'https://wa.me/' + digits;
-    if (s.footer_contact_whatsapp_text) href += '?text=' + encodeURIComponent(s.footer_contact_whatsapp_text);
-    items.push({ icon: 'fab fa-whatsapp', href, external: true, text: s.footer_contact_whatsapp });
+    if (s.contact_whatsapp_text) href += '?text=' + encodeURIComponent(s.contact_whatsapp_text);
+    items.push({ icon: 'fab fa-whatsapp', href, external: true, text: s.contact_whatsapp });
   }
-  if (s.footer_contact_email) {
-    let href = 'mailto:' + s.footer_contact_email;
+  if (s.contact_email) {
+    let href = 'mailto:' + s.contact_email;
     const params = [];
-    if (s.footer_contact_email_subject) params.push('subject=' + encodeURIComponent(s.footer_contact_email_subject));
-    if (s.footer_contact_email_body) params.push('body=' + encodeURIComponent(s.footer_contact_email_body));
+    if (s.contact_email_subject) params.push('subject=' + encodeURIComponent(s.contact_email_subject));
+    if (s.contact_email_body) params.push('body=' + encodeURIComponent(s.contact_email_body));
     if (params.length) href += '?' + params.join('&');
-    items.push({ icon: 'fas fa-envelope', href, external: true, text: s.footer_contact_email });
+    items.push({ icon: 'fas fa-envelope', href, external: true, text: s.contact_email });
   }
   return items;
 }
 
-// Build the nested columns from menu_items at the given location.
 async function buildColumns(location) {
   const r = await db.query(
     `SELECT id, label, url, parent_id, sort_order, open_in_new_tab
@@ -94,12 +107,13 @@ async function buildLegal(location) {
   });
 }
 
-// Build the `main` footer variant object from the current admin data.
-async function buildMainVariant() {
-  const s = await getSettings();
-  const [columns, legal] = await Promise.all([
-    buildColumns('footer'),
-    buildLegal('footer-legal'),
+// Build one variant object from its admin data.
+async function buildVariant(slug) {
+  const { colLocation, legalLocation, prefix } = variantStorage(slug);
+  const [s, columns, legal] = await Promise.all([
+    getSettings(prefix),
+    buildColumns(colLocation),
+    buildLegal(legalLocation),
   ]);
   return {
     social: buildSocial(s),
@@ -107,15 +121,42 @@ async function buildMainVariant() {
     contact: buildContact(s),
     columns,
     legal,
-    copyright: s.footer_copyright || '',
+    copyright: s.copyright || '',
   };
 }
 
-// Merge a freshly built variant into an existing footers.json object (or create
-// a fresh skeleton), preserving assignments and any other variants.
+// Back-compat helper retained for the simple single-variant path.
+async function buildMainVariant() {
+  return buildVariant('main');
+}
+
+// Build the complete footers.json from the variant + assignment tables.
+async function buildAllConfig() {
+  const [vRes, aRes] = await Promise.all([
+    db.query(`SELECT slug, is_default FROM footer_variants ORDER BY sort_order ASC, slug ASC`),
+    db.query(`SELECT pattern, variant_slug FROM footer_assignments ORDER BY sort_order ASC, created_at ASC`),
+  ]);
+  const variants = {};
+  let def = 'main';
+  for (const v of vRes.rows) {
+    variants[v.slug] = await buildVariant(v.slug);
+    if (v.is_default) def = v.slug;
+  }
+  if (!variants[def]) variants.main = variants.main || (await buildVariant('main'));
+  let assignments = aRes.rows.map(a => ({ match: a.pattern, variant: a.variant_slug }));
+  // Never silently wipe the article-page protection if no assignments are set.
+  if (assignments.length === 0) {
+    assignments = [
+      { match: '/en/resources', variant: 'keep' },
+      { match: '/en/resources/*', variant: 'keep' },
+    ];
+  }
+  return { default: def, assignments, variants };
+}
+
+// Merge a single variant into an existing footers.json (preserves the rest).
 function mergeFootersConfig(existing, variantName, variant) {
-  const base = (existing && typeof existing === 'object') ? existing : null;
-  const config = base || {
+  const config = (existing && typeof existing === 'object') ? existing : {
     default: 'main',
     assignments: [
       { match: '/en/resources', variant: 'keep' },
@@ -129,4 +170,4 @@ function mergeFootersConfig(existing, variantName, variant) {
   return config;
 }
 
-module.exports = { buildMainVariant, mergeFootersConfig };
+module.exports = { buildVariant, buildMainVariant, buildAllConfig, mergeFootersConfig, variantStorage };

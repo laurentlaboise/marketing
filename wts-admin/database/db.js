@@ -708,6 +708,40 @@ const db = {
         )
       `);
 
+      // Footer variants — named footers (e.g. 'main', 'resources') that pages
+      // can be assigned to. A variant's content is stored in the same places as
+      // the default footer, namespaced by slug: link columns in menu_items at
+      // location 'footer:<slug>' / 'footer-legal:<slug>' (the 'main' variant uses
+      // the legacy 'footer' / 'footer-legal'), and social/contact/copyright in
+      // site_settings keyed 'footer:<slug>:<field>' ('main' uses 'footer_<field>').
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS footer_variants (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          slug VARCHAR(60) UNIQUE NOT NULL,
+          name VARCHAR(120) NOT NULL,
+          is_default BOOLEAN DEFAULT FALSE,
+          sort_order INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      // Page → variant assignments (URL pattern, evaluated in sort order; exact
+      // path or '/*' suffix wildcard; variant 'keep' leaves a page's footer as-is).
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS footer_assignments (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          pattern VARCHAR(300) NOT NULL,
+          variant_slug VARCHAR(60) NOT NULL,
+          sort_order INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      // Ensure the default 'main' variant exists.
+      await client.query(
+        `INSERT INTO footer_variants (slug, name, is_default, sort_order)
+         VALUES ('main', 'Main', TRUE, 0) ON CONFLICT (slug) DO NOTHING`
+      );
+
       // Orders table (for Stripe payment tracking)
       await client.query(`
         CREATE TABLE IF NOT EXISTS orders (

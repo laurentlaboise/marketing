@@ -67,10 +67,29 @@ The admin stores a plain WhatsApp number and email, so Publish writes
 hand-tuned prefilled WhatsApp message / email subject+body in the current
 homepage footer. (Add fields for those later if needed.)
 
-## Stage 2 — still to do
-- Admin UI to manage **multiple named variants** and edit **per-page
-  assignments** (the data model + injector already support them; only the
-  default `main` variant is editable in the admin today).
+## Footer Manager (named variants + per-page assignments)
+
+**Connections → Footer Manager** (`/webdev/footers`) is the hub:
+
+- **Variants** — create named footers (e.g. *Main*, *Resources*). Each variant's
+  content is edited in place:
+  - social / contact / copyright via **Footer Settings** (`?variant=<slug>`),
+    stored as `footer:<slug>:<field>` (the `main` variant uses the legacy
+    `footer_<field>` keys);
+  - link columns via **Menu Manager** at location `footer:<slug>` /
+    `footer-legal:<slug>` (`main` uses `footer` / `footer-legal`).
+- **Page assignments** — URL pattern → variant, evaluated top-to-bottom. Exact
+  paths and `/*` suffix wildcards (a `/foo/*` rule also matches the section root
+  `/foo`). `keep` leaves a page's existing footer untouched; unmatched pages use
+  the default variant. If no assignments exist, `/en/resources/*` defaults to
+  `keep` so the article pages are never clobbered.
+- **Publish** — renders **all** variants + assignments into `footers.json` and
+  commits it (triggering the rebuild).
+
+Verified end-to-end: creating a `resources` variant, assigning `/en/resources/*`
+to it, editing its content, then publishing produces a `footers.json` that the
+build injects so the homepage gets the `main` footer and `/en/resources` pages
+get the `resources` footer — with no cross-variant leakage.
 
 ## Scripts
 

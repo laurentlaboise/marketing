@@ -140,7 +140,9 @@ function pickVariant(config, urlPath) {
     const pat = a.match;
     if (!pat) continue;
     if (pat.endsWith('/*')) {
-      if (urlPath.startsWith(pat.slice(0, -1))) return a.variant;
+      // '/foo/*' matches the section root '/foo' as well as '/foo/<anything>'.
+      const base = pat.slice(0, -2);
+      if (urlPath === base || urlPath.startsWith(base + '/')) return a.variant;
     } else if (pat === urlPath) {
       return a.variant;
     }
