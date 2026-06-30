@@ -69,12 +69,12 @@
           "heading": "Solutions",
           "links": [
             {
-              "text": "Web Development",
-              "href": "https://wordsthatsells.website/en/digital-marketing-services/web-development"
-            },
-            {
               "text": "Digital Marketing",
               "href": "https://wordsthatsells.website/en/digital-marketing-services"
+            },
+            {
+              "text": "Web Development",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/web-development"
             },
             {
               "text": "Content Creation",
