@@ -524,14 +524,15 @@ router.get('/sidebar/verify-link', async (req, res) => {
 
 router.post('/sidebar', async (req, res) => {
   try {
-    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label } = req.body;
+    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label, action_type, target_form_type } = req.body;
 
     await db.query(
-      `INSERT INTO sidebar_items (label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      `INSERT INTO sidebar_items (label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label, action_type, target_form_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
       [label, url || null, icon_class || 'fas fa-question-circle', section, parseInt(sort_order) || 0,
        is_visible !== 'false', open_in_new_tab === 'true', css_class || null,
-       page_url || null, content_html || null, button_label || 'Help']
+       page_url || null, content_html || null, button_label || 'Help',
+       action_type || 'panel', target_form_type || null]
     );
     req.session.successMessage = 'Sidebar item created successfully';
     res.redirect('/webdev/sidebar');
@@ -564,15 +565,16 @@ router.get('/sidebar/:id/edit', async (req, res) => {
 
 router.post('/sidebar/:id', async (req, res) => {
   try {
-    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label } = req.body;
+    const { label, url, icon_class, section, sort_order, is_visible, open_in_new_tab, css_class, page_url, content_html, button_label, action_type, target_form_type } = req.body;
 
     await db.query(
       `UPDATE sidebar_items SET label=$1, url=$2, icon_class=$3, section=$4, sort_order=$5,
        is_visible=$6, open_in_new_tab=$7, css_class=$8, page_url=$9, content_html=$10, button_label=$11,
-       updated_at=CURRENT_TIMESTAMP WHERE id=$12`,
+       action_type=$12, target_form_type=$13, updated_at=CURRENT_TIMESTAMP WHERE id=$14`,
       [label, url || null, icon_class || 'fas fa-question-circle', section, parseInt(sort_order) || 0,
        is_visible !== 'false', open_in_new_tab === 'true', css_class || null,
-       page_url || null, content_html || null, button_label || 'Help', req.params.id]
+       page_url || null, content_html || null, button_label || 'Help',
+       action_type || 'panel', target_form_type || null, req.params.id]
     );
     req.session.successMessage = 'Sidebar item updated successfully';
     res.redirect('/webdev/sidebar');
@@ -590,6 +592,139 @@ router.post('/sidebar/:id/delete', async (req, res) => {
     req.session.errorMessage = 'Failed to delete sidebar item';
   }
   res.redirect('/webdev/sidebar');
+});
+
+// ==================== MENU ITEMS (Top navigation) ====================
+
+// List menu items grouped by location. Top-level items carry their children
+// so the admin can see the dropdown structure at a glance.
+router.get('/menus', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM menu_items ORDER BY location ASC, parent_id ASC NULLS FIRST, sort_order ASC');
+    const byId = {};
+    result.rows.forEach(item => { item.children = []; byId[item.id] = item; });
+
+    const locations = {};
+    result.rows.forEach(item => {
+      if (item.parent_id && byId[item.parent_id]) {
+        byId[item.parent_id].children.push(item);
+        return;
+      }
+      if (!locations[item.location]) locations[item.location] = [];
+      locations[item.location].push(item);
+    });
+
+    res.render('webdev/menus/list', {
+      title: 'Menu Management - WTS Admin',
+      items: result.rows,
+      locations,
+      currentPage: 'menus'
+    });
+  } catch (error) {
+    console.error('Menu list error:', error);
+    res.render('webdev/menus/list', {
+      title: 'Menu Management - WTS Admin',
+      items: [],
+      locations: {},
+      currentPage: 'menus',
+      error: 'Failed to load menu items'
+    });
+  }
+});
+
+// Provide the list of possible parents (top-level items only) so the form can
+// offer a dropdown picker without allowing two levels of nesting.
+async function getMenuParents(excludeId) {
+  const result = await db.query(
+    `SELECT id, label, location FROM menu_items WHERE parent_id IS NULL ORDER BY location ASC, sort_order ASC`
+  );
+  return result.rows.filter(r => r.id !== excludeId);
+}
+
+router.get('/menus/new', async (req, res) => {
+  let parents = [];
+  try { parents = await getMenuParents(null); } catch (e) { parents = []; }
+  res.render('webdev/menus/form', {
+    title: 'New Menu Item - WTS Admin',
+    item: null,
+    parents,
+    currentPage: 'menus'
+  });
+});
+
+router.post('/menus', async (req, res) => {
+  try {
+    const { label, url, icon_class, parent_id, location, sort_order, is_visible, open_in_new_tab, css_class } = req.body;
+    await db.query(
+      `INSERT INTO menu_items (label, url, icon_class, parent_id, location, sort_order, is_visible, open_in_new_tab, css_class)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [label, url || null, icon_class || null, parent_id || null, location || 'header',
+       parseInt(sort_order) || 0, is_visible !== 'false', open_in_new_tab === 'true', css_class || null]
+    );
+    req.session.successMessage = 'Menu item created successfully';
+    res.redirect('/webdev/menus');
+  } catch (error) {
+    console.error('Create menu item error:', error);
+    let parents = [];
+    try { parents = await getMenuParents(null); } catch (e) { parents = []; }
+    res.render('webdev/menus/form', {
+      title: 'New Menu Item - WTS Admin',
+      item: req.body,
+      parents,
+      currentPage: 'menus',
+      error: 'Failed to create menu item'
+    });
+  }
+});
+
+router.get('/menus/:id/edit', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM menu_items WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.redirect('/webdev/menus');
+    }
+    let parents = [];
+    try { parents = await getMenuParents(req.params.id); } catch (e) { parents = []; }
+    res.render('webdev/menus/form', {
+      title: 'Edit Menu Item - WTS Admin',
+      item: result.rows[0],
+      parents,
+      currentPage: 'menus'
+    });
+  } catch (error) {
+    res.redirect('/webdev/menus');
+  }
+});
+
+router.post('/menus/:id', async (req, res) => {
+  try {
+    const { label, url, icon_class, parent_id, location, sort_order, is_visible, open_in_new_tab, css_class } = req.body;
+    // Guard against an item being made its own parent.
+    const parent = (parent_id && parent_id !== req.params.id) ? parent_id : null;
+    await db.query(
+      `UPDATE menu_items SET label=$1, url=$2, icon_class=$3, parent_id=$4, location=$5,
+       sort_order=$6, is_visible=$7, open_in_new_tab=$8, css_class=$9,
+       updated_at=CURRENT_TIMESTAMP WHERE id=$10`,
+      [label, url || null, icon_class || null, parent, location || 'header',
+       parseInt(sort_order) || 0, is_visible !== 'false', open_in_new_tab === 'true', css_class || null,
+       req.params.id]
+    );
+    req.session.successMessage = 'Menu item updated successfully';
+    res.redirect('/webdev/menus');
+  } catch (error) {
+    req.session.errorMessage = 'Failed to update menu item';
+    res.redirect(`/webdev/menus/${req.params.id}/edit`);
+  }
+});
+
+router.post('/menus/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM menu_items WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Menu item deleted successfully';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to delete menu item';
+  }
+  res.redirect('/webdev/menus');
 });
 
 // ==================== FORM TEMPLATES (Form Builder) ====================

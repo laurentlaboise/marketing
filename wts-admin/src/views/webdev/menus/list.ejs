@@ -1,0 +1,135 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Menu Management</h1>
+        <p class="page-subtitle">Manage the top navigation and footer menus shown across the website</p>
+      </div>
+      <div class="page-actions">
+        <a href="/webdev/menus/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Menu Item</a>
+      </div>
+    </div>
+
+    <% const locationNames = Object.keys(locations); %>
+    <% if (locationNames.length > 0) { %>
+      <% locationNames.forEach(locationName => { %>
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+          <h3 style="margin-bottom: 1rem; text-transform: capitalize; color: var(--text-primary, #1a1a2e);">
+            <i class="fas <%= locationName === 'footer' ? 'fa-shoe-prints' : 'fa-bars' %>"></i> <%= locationName %> menu
+          </h3>
+          <div class="table-container">
+            <table class="table table-responsive-cards">
+              <thead>
+                <tr>
+                  <th style="width:40px;">#</th>
+                  <th>Label</th>
+                  <th>URL</th>
+                  <th>Children</th>
+                  <th>Visible</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% locations[locationName].forEach(item => { %>
+                <tr style="<%= !item.is_visible ? 'opacity: 0.5;' : '' %>">
+                  <td data-label="#" style="color: #999;"><%= item.sort_order %></td>
+                  <td data-label="Label">
+                    <% if (item.icon_class) { %><i class="<%= item.icon_class %>" style="margin-right: 0.5rem; color: var(--primary-color, #667eea);"></i><% } %>
+                    <strong><%= item.label %></strong>
+                    <% if (item.open_in_new_tab) { %><i class="fas fa-external-link-alt" style="font-size:0.7rem;color:#94a3b8;margin-left:0.3rem;" title="Opens in new tab"></i><% } %>
+                  </td>
+                  <td data-label="URL">
+                    <% if (item.url) { %>
+                    <code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.8rem;"><%= item.url %></code>
+                    <% } else { %>
+                    <small style="color: #999;">— (dropdown parent)</small>
+                    <% } %>
+                  </td>
+                  <td data-label="Children">
+                    <% if (item.children && item.children.length) { %>
+                    <span class="status-badge active"><%= item.children.length %> item<%= item.children.length > 1 ? 's' : '' %></span>
+                    <% } else { %>
+                    <small style="color: #999;">-</small>
+                    <% } %>
+                  </td>
+                  <td data-label="Visible">
+                    <% if (item.is_visible) { %>
+                    <span class="status-badge active">Visible</span>
+                    <% } else { %>
+                    <span class="status-badge inactive">Hidden</span>
+                    <% } %>
+                  </td>
+                  <td data-label="Actions">
+                    <div class="table-actions">
+                      <a href="/webdev/menus/<%= item.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                      <form action="/webdev/menus/<%= item.id %>/delete" method="POST" style="display: inline;">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% (item.children || []).forEach(child => { %>
+                <tr style="<%= !child.is_visible ? 'opacity: 0.5;' : '' %>">
+                  <td data-label="#" style="color: #999;"><%= child.sort_order %></td>
+                  <td data-label="Label" style="padding-left:1.5rem;">
+                    <i class="fas fa-level-up-alt fa-rotate-90" style="margin-right:0.4rem;color:#cbd5e1;"></i>
+                    <% if (child.icon_class) { %><i class="<%= child.icon_class %>" style="margin-right: 0.5rem; color: var(--primary-color, #667eea);"></i><% } %>
+                    <%= child.label %>
+                    <% if (child.open_in_new_tab) { %><i class="fas fa-external-link-alt" style="font-size:0.7rem;color:#94a3b8;margin-left:0.3rem;" title="Opens in new tab"></i><% } %>
+                  </td>
+                  <td data-label="URL">
+                    <% if (child.url) { %>
+                    <code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.8rem;"><%= child.url %></code>
+                    <% } else { %>
+                    <small style="color: #999;">-</small>
+                    <% } %>
+                  </td>
+                  <td data-label="Children"><small style="color:#999;">-</small></td>
+                  <td data-label="Visible">
+                    <% if (child.is_visible) { %>
+                    <span class="status-badge active">Visible</span>
+                    <% } else { %>
+                    <span class="status-badge inactive">Hidden</span>
+                    <% } %>
+                  </td>
+                  <td data-label="Actions">
+                    <div class="table-actions">
+                      <a href="/webdev/menus/<%= child.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                      <form action="/webdev/menus/<%= child.id %>/delete" method="POST" style="display: inline;">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% }); %>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <% }); %>
+    <% } else { %>
+    <div class="card">
+      <div class="card-body">
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-bars"></i></div>
+          <h3>No Menu Items</h3>
+          <p>Create your first navigation item. Top-level items appear in the header (or footer); give an item a parent to make it a dropdown entry.</p>
+          <a href="/webdev/menus/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Menu Item</a>
+        </div>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

@@ -655,8 +655,46 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sidebar_items' AND column_name='button_label') THEN
             ALTER TABLE sidebar_items ADD COLUMN button_label VARCHAR(255) DEFAULT 'Help';
           END IF;
+          -- action_type: what the floating button does when clicked.
+          --   'panel' (default) — opens the slide-in HTML panel (legacy behaviour)
+          --   'link'  — navigates to the url column (honouring open_in_new_tab)
+          --   'modal' — opens the shared quote/contact modal for target_form_type
+          -- This lets the hard-coded "Affiliate Application"/"leave a message" tab be
+          -- reproduced as an admin-managed sidebar item instead of static markup.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sidebar_items' AND column_name='action_type') THEN
+            ALTER TABLE sidebar_items ADD COLUMN action_type VARCHAR(20) DEFAULT 'panel';
+          END IF;
+          -- target_form_type: which form_template the 'modal' action opens. Kept as a
+          -- plain column (not an FK) so deleting a form can't block sidebar edits; the
+          -- front end falls back to whatever form is mounted if it's gone.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sidebar_items' AND column_name='target_form_type') THEN
+            ALTER TABLE sidebar_items ADD COLUMN target_form_type VARCHAR(100);
+          END IF;
         END $$;
       `);
+
+      // Top navigation menus (header/footer) — admin-managed replacement for the
+      // hard-coded nav markup duplicated across the static site. Mirrors the
+      // sidebar_items pattern: a self-referencing parent_id supports dropdowns,
+      // and `location` groups items into a named menu (e.g. 'header', 'footer').
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS menu_items (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          label VARCHAR(255) NOT NULL,
+          url VARCHAR(500),
+          icon_class VARCHAR(100),
+          parent_id UUID REFERENCES menu_items(id) ON DELETE CASCADE,
+          location VARCHAR(100) NOT NULL DEFAULT 'header',
+          sort_order INTEGER DEFAULT 0,
+          is_visible BOOLEAN DEFAULT TRUE,
+          open_in_new_tab BOOLEAN DEFAULT FALSE,
+          css_class VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_menu_items_location ON menu_items(location, is_visible)`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_menu_items_parent ON menu_items(parent_id)`);
 
       // Orders table (for Stripe payment tracking)
       await client.query(`

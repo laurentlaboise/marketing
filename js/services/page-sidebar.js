@@ -30,7 +30,11 @@
         var panel = panels[0];
         injectStyles();
         buildHelpButton(panel);
-        buildHelpPanel(panel);
+        // Only the slide-in "panel" action needs the panel DOM built; the
+        // "link" and "modal" actions navigate / open the shared quote modal.
+        if ((panel.action_type || 'panel') === 'panel') {
+          buildHelpPanel(panel);
+        }
       })
       .catch(function (err) {
         // Silently fail — no sidebar configured for this page
@@ -121,7 +125,27 @@
       if (!shown) { shown = true; btn.classList.add('show'); }
     }, 1500);
 
-    btn.addEventListener('click', openHelpPanel);
+    btn.addEventListener('click', function () {
+      var action = panel.action_type || 'panel';
+      if (action === 'link' && panel.url) {
+        if (panel.open_in_new_tab) {
+          window.open(panel.url, '_blank', 'noopener');
+        } else {
+          window.location.href = panel.url;
+        }
+        return;
+      }
+      if (action === 'modal') {
+        // Open the shared quote/contact modal (rendered by js/modules/firebase.js).
+        if (window.WTSQuote && typeof window.WTSQuote.open === 'function') {
+          window.WTSQuote.open(panel.target_form_type || '', {});
+        } else if (panel.url) {
+          window.location.href = panel.url;
+        }
+        return;
+      }
+      openHelpPanel();
+    });
   }
 
   // ── Build slide-in panel ──────────────────────────────────

@@ -15,21 +15,21 @@ export function initScrollReveal() {
 }
 
 // --- Floating Buttons & Quote Modal ---
+// The floating "quote / Affiliate Application" tab is no longer hard-coded in the
+// page markup — it is now an admin-managed sticky form button rendered by
+// js/modules/firebase.js (initStickyFormTabs). This keeps the back-to-top button
+// and the shared quote modal's close handlers, which the dynamic system still
+// opens via window.WTSQuote.open().
 export function initModalsAndButtons() {
   const backToTopButton = document.querySelector('.back-to-top');
-  const quoteTab = document.getElementById('quote-tab');
   const modalOverlay = document.getElementById('quote-modal-overlay');
   const closeModalBtn = document.getElementById('modal-close-btn');
 
   const handleFloatingButtons = () => {
     const shouldShow = window.scrollY > 300;
     if (backToTopButton) backToTopButton.classList.toggle('show', shouldShow);
-    if (quoteTab) quoteTab.classList.toggle('show', shouldShow);
   };
 
-  const openModal = () => {
-    if (modalOverlay) modalOverlay.style.display = 'flex';
-  };
   const closeModal = () => {
     if (!modalOverlay) return;
     // Full cleanup so the page never stays scroll-locked after closing: clear
@@ -40,7 +40,6 @@ export function initModalsAndButtons() {
   };
 
   window.addEventListener('scroll', handleFloatingButtons);
-  if (quoteTab) quoteTab.addEventListener('click', openModal);
 
   // Back to top: scroll smoothly and hide the button immediately. Relying only
   // on a trailing scroll event left it visible over the hero header in some
