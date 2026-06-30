@@ -80,9 +80,17 @@ homepage footer. (Add fields for those later if needed.)
     `footer-legal:<slug>` (`main` uses `footer` / `footer-legal`).
 - **Page assignments** — URL pattern → variant, evaluated top-to-bottom. Exact
   paths and `/*` suffix wildcards (a `/foo/*` rule also matches the section root
-  `/foo`). `keep` leaves a page's existing footer untouched; unmatched pages use
-  the default variant. If no assignments exist, `/en/resources/*` defaults to
-  `keep` so the article pages are never clobbered.
+  `/foo`). Patterns may be pasted as full URLs (e.g.
+  `https://wordsthatsells.website/en/resources/guides/`) — they're normalized to
+  a path automatically. `keep` leaves a page's existing footer untouched;
+  unmatched pages use the default variant. If no assignments exist,
+  `/en/resources/*` defaults to `keep` so the article pages are never clobbered.
+- **Pages with no footer** — if a page is *explicitly assigned* a variant but has
+  no `<footer>` of its own (e.g. the standalone resource pages), the build
+  **creates** a complete, self-styled footer (the footer CSS is inlined with the
+  design tokens resolved, so it renders even on pages that don't load the site
+  stylesheet). Pages that only fall through to the default variant are left
+  untouched — a footer is only added where you asked for one.
 - **Publish** — renders **all** variants + assignments into `footers.json` and
   commits it (triggering the rebuild).
 

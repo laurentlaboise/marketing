@@ -164,6 +164,70 @@ function injectIntoFooter(footerHtml, variant) {
   return changed ? footerHtml : null;
 }
 
+// ── Create a footer on pages that have none ────────────────────
+
+// Static brand block (logo + divider + tagline). The logo/brand are not admin-
+// managed, so they live here as the shared footer header.
+var BRAND_HTML =
+  '<img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" ' +
+  'alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async">' +
+  '<div class="footer-brand-divider"></div>' +
+  '<p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p>';
+
+// Build a complete <footer class="footer"> from a variant (used when a page has
+// no footer of its own).
+function buildWholeFooter(variant) {
+  return '<footer class="footer" data-i18n-links>' +
+    '<div class="container">' +
+      '<div class="footer-top">' +
+        '<div class="footer-brand">' + BRAND_HTML +
+          '<div class="social-links">' + (renderSocial(variant.social) || '') + '</div>' +
+        '</div>' +
+        '<div class="footer-grid">' + (renderGrid(variant) || '') + '</div>' +
+      '</div>' +
+      '<div class="footer-bottom">' + (renderBottom(variant) || '') + '</div>' +
+    '</div>' +
+  '</footer>';
+}
+
+// Resolve the footer stylesheet with the design tokens inlined, so a created
+// footer is fully styled even on standalone pages that don't load the site CSS.
+var _footerCss = null;
+function footerCss() {
+  if (_footerCss != null) return _footerCss;
+  try {
+    const vars = {};
+    const varsCss = fs.readFileSync(path.join(ROOT, 'css/base/variables.css'), 'utf8');
+    const re = /--([a-z0-9-]+)\s*:\s*([^;]+);/gi;
+    let m;
+    while ((m = re.exec(varsCss)) !== null) vars[m[1]] = m[2].trim();
+    let css = fs.readFileSync(path.join(ROOT, 'css/layout/footer.css'), 'utf8');
+    css = css.replace(/var\(--([a-z0-9-]+)\)/gi, (full, name) => (vars[name] != null ? vars[name] : full));
+    _footerCss = css;
+  } catch (e) {
+    _footerCss = '';
+  }
+  return _footerCss;
+}
+
+// Insert the inlined footer CSS once, before </head> (or </body> as a fallback).
+function ensureFooterCss(html) {
+  if (html.indexOf('id="wts-footer-css"') !== -1) return html;
+  if (/href="[^"]*\/css\/layout\/footer\.css"/i.test(html)) return html; // already linked
+  const css = footerCss();
+  if (!css) return html;
+  const styleTag = '<style id="wts-footer-css">' + css + '</style>';
+  const headClose = html.search(/<\/head>/i);
+  if (headClose !== -1) return html.slice(0, headClose) + styleTag + html.slice(headClose);
+  return html; // no head; createFooter prepends the style instead
+}
+
+function insertBeforeBodyClose(html, snippet) {
+  const idx = html.toLowerCase().lastIndexOf('</body>');
+  if (idx === -1) return html + snippet;
+  return html.slice(0, idx) + snippet + html.slice(idx);
+}
+
 // ── Variant selection ──────────────────────────────────────────
 
 function urlPathFor(file) {
@@ -174,19 +238,38 @@ function urlPathFor(file) {
   return p || '/';
 }
 
+// Normalize an assignment pattern the same way urlPathFor normalizes a page
+// path: accept a full URL (strip scheme + host), drop a trailing slash and a
+// .html extension, preserving any '/*' suffix. So a pattern pasted as
+// "https://wordsthatsells.website/en/resources/guides/" matches "/en/resources/guides".
+function normalizePattern(pat) {
+  let p = String(pat || '').trim();
+  p = p.replace(/^https?:\/\/[^/]+/i, '');     // full URL → path
+  if (!p.startsWith('/')) p = '/' + p;
+  let wildcard = false;
+  if (p.endsWith('/*')) { wildcard = true; p = p.slice(0, -2); }
+  p = p.replace(/index\.html$/, '');
+  p = p.replace(/\.html$/, '');
+  if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
+  if (!p) p = '/';
+  return wildcard ? p + '/*' : p;
+}
+
+// Returns { variant, explicit } — explicit is true when an assignment matched
+// (vs. falling back to the default).
 function pickVariant(config, urlPath) {
   for (const a of config.assignments || []) {
-    const pat = a.match;
-    if (!pat) continue;
+    if (!a.match) continue;
+    const pat = normalizePattern(a.match);
     if (pat.endsWith('/*')) {
       // '/foo/*' matches the section root '/foo' as well as '/foo/<anything>'.
       const base = pat.slice(0, -2);
-      if (urlPath === base || urlPath.startsWith(base + '/')) return a.variant;
+      if (urlPath === base || urlPath.startsWith(base + '/')) return { variant: a.variant, explicit: true };
     } else if (pat === urlPath) {
-      return a.variant;
+      return { variant: a.variant, explicit: true };
     }
   }
-  return config.default;
+  return { variant: config.default, explicit: false };
 }
 
 // ── Walk dist + apply ──────────────────────────────────────────
@@ -210,34 +293,48 @@ function main() {
   }
   const config = JSON.parse(fs.readFileSync(CONFIG, 'utf8')); // throws on malformed → fails build
 
-  const stats = { injected: 0, kept: 0, noFooter: 0, errored: 0 };
+  const stats = { injected: 0, created: 0, kept: 0, noFooter: 0, errored: 0 };
   const byVariant = {};
 
   for (const file of htmlFiles(DIST)) {
     try {
       const urlPath = urlPathFor(file);
-      const variantName = pickVariant(config, urlPath);
+      const pick = pickVariant(config, urlPath);
+      const variantName = pick.variant;
       if (!variantName || variantName === 'keep' || !config.variants || !config.variants[variantName]) {
         stats.kept++;
         continue;
       }
+      const variant = config.variants[variantName];
       const html = fs.readFileSync(file, 'utf8');
       const fm = findFooterBlock(html);
-      if (!fm) { stats.noFooter++; continue; }
 
-      const newFooter = injectIntoFooter(fm.block, config.variants[variantName]);
-      if (newFooter == null) { stats.noFooter++; continue; }
-
-      fs.writeFileSync(file, html.slice(0, fm.start) + newFooter + html.slice(fm.end));
-      stats.injected++;
-      byVariant[variantName] = (byVariant[variantName] || 0) + 1;
+      if (fm) {
+        // Page already has a footer: replace its dynamic regions in place.
+        const newFooter = injectIntoFooter(fm.block, variant);
+        if (newFooter == null) { stats.noFooter++; continue; }
+        fs.writeFileSync(file, html.slice(0, fm.start) + newFooter + html.slice(fm.end));
+        stats.injected++;
+        byVariant[variantName] = (byVariant[variantName] || 0) + 1;
+      } else if (pick.explicit) {
+        // Page was explicitly assigned a variant but has no footer — build one
+        // (self-styled so it works even on standalone pages) and insert it.
+        const created = buildWholeFooter(variant);
+        const withCss = ensureFooterCss(html);
+        fs.writeFileSync(file, insertBeforeBodyClose(withCss, created));
+        stats.created++;
+        byVariant[variantName] = (byVariant[variantName] || 0) + 1;
+      } else {
+        // Default variant and no footer to fill — leave the page untouched.
+        stats.noFooter++;
+      }
     } catch (e) {
       stats.errored++;
       console.error(`[inject-footers] skipped ${path.relative(DIST, file)}: ${e.message}`);
     }
   }
 
-  console.log(`[inject-footers] injected ${stats.injected} (${Object.entries(byVariant).map(([k, v]) => `${k}:${v}`).join(', ') || 'none'}), ` +
+  console.log(`[inject-footers] injected ${stats.injected}, created ${stats.created} (${Object.entries(byVariant).map(([k, v]) => `${k}:${v}`).join(', ') || 'none'}), ` +
     `kept ${stats.kept}, no-footer ${stats.noFooter}, errors ${stats.errored}`);
 }
 
