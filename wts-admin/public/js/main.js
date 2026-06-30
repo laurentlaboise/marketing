@@ -295,6 +295,15 @@ function initConfirmDelete() {
       }
     });
   });
+
+  // Generic (non-delete) confirmation prompts.
+  document.querySelectorAll('[data-confirm]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (!confirm(btn.dataset.confirm || 'Are you sure?')) {
+        e.preventDefault();
+      }
+    });
+  });
 }
 
 // Helper functions
