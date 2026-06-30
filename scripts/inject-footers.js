@@ -235,6 +235,25 @@ function ensureFooterCss(html) {
   return html; // no head; createFooter prepends the style instead
 }
 
+// The footer's social/contact icons are Font Awesome glyphs. Many pages load no
+// Font Awesome at all (glossary, legal) or only a Font Awesome kit that doesn't
+// render the footer icons (some resource pages), so the icons disappear. Ensure
+// every footer-bearing page loads the same cdnjs stylesheet the home page uses
+// (proven to render all the footer icons), unless it already loads it.
+const FA_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css';
+function ensureFontAwesome(html) {
+  if (html.indexOf('font-awesome/6.0.0-beta3/css/all.min.css') !== -1) return html; // already linked
+  if (html.indexOf('id="wts-footer-fa"') !== -1) return html; // already injected
+  const link = '<link id="wts-footer-fa" rel="stylesheet" href="' + FA_CDN + '" crossorigin="anonymous">';
+  const headClose = html.search(/<\/head>/i);
+  if (headClose !== -1) return html.slice(0, headClose) + link + html.slice(headClose);
+  // No <head> (e.g. stub/fragment pages) — a stylesheet <link> is valid in the
+  // body too, so place it just before the footer that needs it.
+  const footerOpen = html.search(/<footer[\s>]/i);
+  if (footerOpen !== -1) return html.slice(0, footerOpen) + link + html.slice(footerOpen);
+  return html; // no head and no footer — nothing to do
+}
+
 function insertBeforeBodyClose(html, snippet) {
   const idx = html.toLowerCase().lastIndexOf('</body>');
   if (idx === -1) return html + snippet;
@@ -333,12 +352,13 @@ function main() {
       const variantName = pick.variant;
       if (!variantName || variantName === 'keep' || !config.variants || !config.variants[variantName]) {
         // Even on kept pages, refresh an inline footer-CSS block (a previously
-        // created self-styled footer) so footer.css edits re-bake everywhere.
+        // created self-styled footer) so footer.css edits re-bake everywhere,
+        // and make sure a footer with icons can load Font Awesome.
         const keptHtml = fs.readFileSync(file, 'utf8');
-        if (keptHtml.indexOf('<style id="wts-footer-css">') !== -1) {
-          const refreshed = ensureFooterCss(keptHtml);
-          if (refreshed !== keptHtml) fs.writeFileSync(file, refreshed);
-        }
+        let keptOut = keptHtml;
+        if (keptOut.indexOf('<style id="wts-footer-css">') !== -1) keptOut = ensureFooterCss(keptOut);
+        if (keptOut.indexOf('class="social-links"') !== -1) keptOut = ensureFontAwesome(keptOut);
+        if (keptOut !== keptHtml) fs.writeFileSync(file, keptOut);
         stats.kept++;
         continue;
       }
@@ -355,6 +375,7 @@ function main() {
         // footer.css edits re-bake. Region-edited pages have no such block and
         // are left to the site stylesheet.
         if (out.indexOf('<style id="wts-footer-css">') !== -1) out = ensureFooterCss(out);
+        out = ensureFontAwesome(out); // footer has icon glyphs — guarantee Font Awesome
         fs.writeFileSync(file, out);
         stats.injected++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
@@ -362,7 +383,7 @@ function main() {
         // Content page (or explicitly assigned) with no footer — build one
         // (self-styled so it works even on standalone pages) and insert it.
         const created = buildWholeFooter(variant);
-        const withCss = ensureFooterCss(html);
+        const withCss = ensureFontAwesome(ensureFooterCss(html));
         fs.writeFileSync(file, insertBeforeBodyClose(withCss, created));
         stats.created++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
