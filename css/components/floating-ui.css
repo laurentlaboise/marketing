@@ -30,38 +30,12 @@
     color: white; 
 }
 
-.quote-tab { 
-    position: fixed; 
-    top: 40%; 
-    right: 0; 
-    transform: translateY(-50%) rotate(270deg); 
-    transform-origin: bottom right; 
-    background-color: var(--color-accent-magenta); 
-    color: white; 
-    padding: 10px 20px; 
-    border-top-left-radius: 8px; 
-    border-top-right-radius: 8px; 
-    cursor: pointer; 
-    z-index: 999; 
-    font-weight: bold; 
-    transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
-    opacity: 0;
-    transform: translateY(-50%) rotate(270deg) translateX(20px);
-    pointer-events: none;
-}
-
-.quote-tab.show {
-    opacity: 1;
-    transform: translateY(-50%) rotate(270deg) translateX(0);
-    pointer-events: auto;
-}
-
-.quote-tab:hover {
-    background-color: #f90784;
-}
+/* The hard-coded `.quote-tab` floating tab has been retired. Its admin-managed
+   replacement is the sticky form button (`.wts-sticky-tab`, below), rendered
+   dynamically by js/modules/firebase.js from the Form Builder. */
 
 /* Admin-managed sticky side tabs (form buttons with Show on = Sticky side tab).
-   Stacked on the right edge, vertical text, below the hard-coded quote/help tabs. */
+   Stacked on the right edge, vertical text, below the help tab. */
 .wts-sticky-tabs {
     position: fixed;
     right: 0;

@@ -670,7 +670,7 @@ router.get('/page-sidebar', async (req, res) => {
     // Supports exact match and wildcard patterns (e.g. /en/articles/*)
     const result = await db.query(
       `SELECT id, label, url, icon_class, section, sort_order, open_in_new_tab, css_class,
-              page_url, content_html, button_label
+              page_url, content_html, button_label, action_type, target_form_type
        FROM sidebar_items
        WHERE is_visible = TRUE AND section = 'page-sidebar' AND page_url IS NOT NULL
        ORDER BY sort_order ASC`
@@ -699,13 +699,63 @@ router.get('/page-sidebar', async (req, res) => {
       icon_class: item.icon_class || 'fas fa-question-circle',
       button_label: item.button_label || 'Help',
       content_html: item.content_html || '',
-      css_class: item.css_class
+      css_class: item.css_class,
+      action_type: item.action_type || 'panel',
+      target_form_type: item.target_form_type || null,
+      open_in_new_tab: item.open_in_new_tab || false
     }));
 
     respond(res, panels);
   } catch (error) {
     console.error('Public API - Page sidebar error:', error);
     respond(res, { error: 'Failed to load page sidebar' }, 500);
+  }
+});
+
+// ==================== TOP NAVIGATION MENUS ====================
+
+// Get a nested menu tree for a location (default 'header'). Top-level items
+// each carry a `children` array so the frontend can render dropdowns. Mirrors
+// the page-matching style used elsewhere but keyed on `location`, not path.
+router.get('/menu', async (req, res) => {
+  try {
+    const location = req.query.location || 'header';
+
+    const result = await db.query(
+      `SELECT id, label, url, icon_class, parent_id, location, sort_order, open_in_new_tab, css_class
+       FROM menu_items
+       WHERE is_visible = TRUE AND location = $1
+       ORDER BY sort_order ASC, label ASC`,
+      [location]
+    );
+
+    const byId = {};
+    result.rows.forEach(row => {
+      byId[row.id] = {
+        id: row.id,
+        label: row.label,
+        url: row.url,
+        icon_class: row.icon_class || null,
+        open_in_new_tab: row.open_in_new_tab || false,
+        css_class: row.css_class || null,
+        children: []
+      };
+    });
+
+    const tree = [];
+    result.rows.forEach(row => {
+      const node = byId[row.id];
+      if (row.parent_id && byId[row.parent_id]) {
+        byId[row.parent_id].children.push(node);
+      } else {
+        tree.push(node);
+      }
+    });
+
+    respond(res, tree);
+  } catch (error) {
+    console.error('Public API - Menu error:', error);
+    respond(res, { error: 'Failed to load menu' }, 500);
   }
 });
 

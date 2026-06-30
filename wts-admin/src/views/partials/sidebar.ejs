@@ -63,14 +63,15 @@
 
       <!-- Connections -->
       <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['microsites', 'sidebar'].includes(currentPage) ? 'active' : '' %>">
+        <a href="#" class="nav-link submenu-toggle <%= ['microsites', 'sidebar', 'menus'].includes(currentPage) ? 'active' : '' %>">
           <i class="fas fa-plug"></i>
           <span>Connections</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['microsites', 'sidebar'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= ['microsites', 'sidebar', 'menus'].includes(currentPage) ? 'open' : '' %>">
           <li><a href="/webdev/microsites" class="<%= currentPage === 'microsites' ? 'active' : '' %>"><i class="fas fa-globe"></i> Microsites</a></li>
-          <li><a href="/webdev/sidebar" class="<%= currentPage === 'sidebar' ? 'active' : '' %>"><i class="fas fa-bars"></i> Sidebar Manager</a></li>
+          <li><a href="/webdev/menus" class="<%= currentPage === 'menus' ? 'active' : '' %>"><i class="fas fa-bars"></i> Menu Manager</a></li>
+          <li><a href="/webdev/sidebar" class="<%= currentPage === 'sidebar' ? 'active' : '' %>"><i class="fas fa-window-restore"></i> Sidebar Manager</a></li>
         </ul>
       </li>
 
