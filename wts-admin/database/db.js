@@ -696,6 +696,18 @@ const db = {
       await client.query(`CREATE INDEX IF NOT EXISTS idx_menu_items_location ON menu_items(location, is_visible)`);
       await client.query(`CREATE INDEX IF NOT EXISTS idx_menu_items_parent ON menu_items(parent_id)`);
 
+      // Site settings — simple key/value store for editable, non-link content.
+      // Used by Footer Settings (social URLs, contact details, copyright). The
+      // footer's link columns themselves are managed as menu_items (location
+      // 'footer' / 'footer-legal'); this table holds everything that isn't a link.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS site_settings (
+          key VARCHAR(120) PRIMARY KEY,
+          value TEXT,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Orders table (for Stripe payment tracking)
       await client.query(`
         CREATE TABLE IF NOT EXISTS orders (

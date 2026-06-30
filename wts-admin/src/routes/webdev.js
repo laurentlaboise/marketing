@@ -744,6 +744,59 @@ router.post('/menus/:id/delete', async (req, res) => {
   res.redirect('/webdev/menus');
 });
 
+// ==================== FOOTER SETTINGS (non-link content) ====================
+
+// The editable, non-link parts of the footer, stored in site_settings. The
+// link columns are managed under Menu Manager (location 'footer'/'footer-legal').
+const FOOTER_SETTING_KEYS = [
+  'footer_social_instagram', 'footer_social_linkedin', 'footer_social_facebook',
+  'footer_social_twitter', 'footer_social_youtube',
+  'footer_contact_address', 'footer_contact_maps_url',
+  'footer_contact_whatsapp', 'footer_contact_email',
+  'footer_copyright'
+];
+
+async function getFooterSettings() {
+  const result = await db.query(
+    `SELECT key, value FROM site_settings WHERE key = ANY($1)`,
+    [FOOTER_SETTING_KEYS]
+  );
+  const settings = {};
+  FOOTER_SETTING_KEYS.forEach(k => { settings[k] = ''; });
+  result.rows.forEach(r => { settings[r.key] = r.value || ''; });
+  return settings;
+}
+
+router.get('/footer-settings', async (req, res) => {
+  let settings = {};
+  try { settings = await getFooterSettings(); } catch (e) { settings = {}; }
+  res.render('webdev/footer-settings/form', {
+    title: 'Footer Settings - WTS Admin',
+    settings,
+    currentPage: 'footer-settings'
+  });
+});
+
+router.post('/footer-settings', async (req, res) => {
+  try {
+    for (const key of FOOTER_SETTING_KEYS) {
+      const value = (req.body[key] || '').trim();
+      await db.query(
+        `INSERT INTO site_settings (key, value, updated_at)
+         VALUES ($1, $2, CURRENT_TIMESTAMP)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
+        [key, value || null]
+      );
+    }
+    req.session.successMessage = 'Footer settings saved successfully';
+    res.redirect('/webdev/footer-settings');
+  } catch (error) {
+    console.error('Save footer settings error:', error);
+    req.session.errorMessage = 'Failed to save footer settings';
+    res.redirect('/webdev/footer-settings');
+  }
+});
+
 // ==================== FORM TEMPLATES (Form Builder) ====================
 
 router.get('/form-templates', async (req, res) => {

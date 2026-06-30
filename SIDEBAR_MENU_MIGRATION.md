@@ -49,7 +49,34 @@ Management"* analysis report.
   includes `page-sidebar.js` (no dependency on the quote modal). For `modal` it
   calls `window.WTSQuote.open(target_form_type)`.
 
-### 3. Hard-coded "quote / Affiliate Application" tab — retired
+### 3. Footer — admin-managed (links + social/contact/copyright)
+
+The site footer is now editable from the backend (the logo and brand paragraph
+stay hard-coded). Two places manage it:
+
+- **Connections → Menu Manager** manages the footer **link columns**
+  (`location = footer`, where a top-level item is a column heading and its
+  children are the links) and the **bottom legal bar** (`location = footer-legal`).
+- **Connections → Footer Settings** (`/webdev/footer-settings`) manages the
+  non-link content via a new `site_settings` key/value table: the social URLs,
+  contact details (address / Google Maps / WhatsApp / email), and the copyright
+  line.
+
+Public delivery: `GET /api/public/footer` returns `{ columns, legal, social,
+contact, copyright }` in one call. `js/services/footer-loader.js` fills those
+regions into the existing `<footer class="footer">` using the same CSS classes,
+so styling is unchanged; any region with no data keeps its static markup as a
+fallback. The loader is wired into `en/index.html` as a demo (add the
+`<script src="/js/services/footer-loader.js"></script>` tag to roll it out to
+more pages).
+
+Seeding: `node scripts/seed-footer.js` loads today's footer values (social URLs,
+contact details, copyright, and the Services/Solutions/Resources columns +
+About/Contact/Legal bar) so the dynamic footer renders identically out of the
+box. It is idempotent — settings use `ON CONFLICT DO NOTHING` and the menu
+columns are only seeded when no footer menu items exist yet.
+
+### 4. Hard-coded "quote / Affiliate Application" tab — retired
 
 - The `<div id="quote-tab">` floating tab (and the already-hidden `<a>` variant
   on resources pages) was removed from **14 live HTML pages** (15 elements).

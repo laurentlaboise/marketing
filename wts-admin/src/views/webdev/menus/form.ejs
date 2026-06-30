@@ -33,7 +33,8 @@
               <label class="form-label" for="location">Location *</label>
               <select id="location" name="location" class="form-input" required>
                 <option value="header" <%= !item || item.location === 'header' ? 'selected' : '' %>>Header (top nav)</option>
-                <option value="footer" <%= item && item.location === 'footer' ? 'selected' : '' %>>Footer</option>
+                <option value="footer" <%= item && item.location === 'footer' ? 'selected' : '' %>>Footer (link columns)</option>
+                <option value="footer-legal" <%= item && item.location === 'footer-legal' ? 'selected' : '' %>>Footer (bottom legal bar)</option>
               </select>
             </div>
             <div class="form-group">
