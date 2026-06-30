@@ -82,15 +82,21 @@
                 <label class="form-label" for="action_type">Button Action</label>
                 <select id="action_type" name="action_type" class="form-input">
                   <option value="panel" <%= !item || !item.action_type || item.action_type === 'panel' ? 'selected' : '' %>>Open slide-in panel (HTML content)</option>
+                  <option value="form" <%= item && item.action_type === 'form' ? 'selected' : '' %>>Open slide-in panel with a form</option>
                   <option value="link" <%= item && item.action_type === 'link' ? 'selected' : '' %>>Go to link (uses Link URL)</option>
                   <option value="modal" <%= item && item.action_type === 'modal' ? 'selected' : '' %>>Open contact/quote modal</option>
                 </select>
                 <small style="color:#64748b;">Choose what happens when a visitor clicks the floating button.</small>
               </div>
               <div class="form-group">
-                <label class="form-label" for="target_form_type">Modal Form Type</label>
-                <input type="text" id="target_form_type" name="target_form_type" class="form-input" value="<%= item ? (item.target_form_type || '') : '' %>" placeholder="e.g. general-inquiry, affiliate-application">
-                <small style="color:#64748b;">Only used when the action is &ldquo;Open contact/quote modal&rdquo;. Matches a Form Template&rsquo;s type.</small>
+                <label class="form-label" for="target_form_type">Linked Form</label>
+                <select id="target_form_type" name="target_form_type" class="form-input">
+                  <option value="">— None —</option>
+                  <% (formTemplates || []).forEach(function(tpl) { %>
+                  <option value="<%= tpl.form_type %>" <%= item && item.target_form_type === tpl.form_type ? 'selected' : '' %>><%= tpl.title %> (<%= tpl.form_type %>)</option>
+                  <% }); %>
+                </select>
+                <small style="color:#64748b;">Used by the &ldquo;form&rdquo; and &ldquo;contact/quote modal&rdquo; actions. Manage forms under <a href="/webdev/form-templates" target="_blank">Message Board &rarr; Forms</a>.</small>
               </div>
             </div>
 
@@ -524,6 +530,23 @@ document.addEventListener('DOMContentLoaded', () => {
     d.textContent = str || '';
     return d.innerHTML;
   }
+})();
+</script>
+
+<!-- Action ↔ field relevance: only show the Linked Form picker for form/modal actions -->
+<script nonce="<%= cspNonce %>">
+(function() {
+  var action = document.getElementById('action_type');
+  var formGroup = document.getElementById('target_form_type');
+  if (!action || !formGroup) return;
+  var group = formGroup.closest('.form-group');
+
+  function sync() {
+    var usesForm = action.value === 'form' || action.value === 'modal';
+    if (group) group.style.display = usesForm ? '' : 'none';
+  }
+  action.addEventListener('change', sync);
+  sync();
 })();
 </script>
 

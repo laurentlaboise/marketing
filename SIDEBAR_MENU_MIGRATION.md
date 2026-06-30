@@ -29,16 +29,25 @@ Management"* analysis report.
   menu is configured (or the API is unreachable) the mount's existing static
   markup is left in place as a fallback.
 
-### 2. Sidebar consolidation — `action_type`
+### 2. Sidebar consolidation — `action_type` & linked forms
 
-- `sidebar_items` gained `action_type` (`panel` | `link` | `modal`, default
-  `panel`) and `target_form_type`. This lets a floating sidebar button open the
-  slide-in panel (legacy), navigate to a link, or open the shared quote/contact
-  modal — so the old hard-coded tabs can be reproduced as admin records.
-- The admin sidebar form, the create/update routes, and the
-  `/api/public/page-sidebar` response were all extended accordingly.
-- `js/services/page-sidebar.js` now honours `action_type` (modal actions call
-  `window.WTSQuote.open(target_form_type)`).
+- `sidebar_items` gained `action_type` (`panel` | `form` | `link` | `modal`,
+  default `panel`) and `target_form_type`. This lets a floating sidebar button
+  open the slide-in panel (legacy HTML), **render a Form Builder form inside the
+  panel** (`form`), navigate to a link (`link`), or open the shared quote/contact
+  modal (`modal`).
+- **Linking a form to the sidebar**: in **Connections → Sidebar Manager**, set
+  *Button Action* to "Open slide-in panel with a form" (or "Open contact/quote
+  modal") and pick a form from the **Linked Form** dropdown. The dropdown lists
+  every active template from **Message Board → Forms**. The admin sidebar form,
+  the create/update routes, and the `/api/public/page-sidebar` response were all
+  extended accordingly (the form picker is populated by `getActiveFormTemplates`).
+- `js/services/page-sidebar.js` honours `action_type`. For `form` it fetches the
+  template from `/api/public/form-template/:type` and renders the fields +
+  submit handler directly into the slide-in panel, posting to
+  `/api/public/submissions` — self-contained, so it works on every page that
+  includes `page-sidebar.js` (no dependency on the quote modal). For `modal` it
+  calls `window.WTSQuote.open(target_form_type)`.
 
 ### 3. Hard-coded "quote / Affiliate Application" tab — retired
 
