@@ -435,10 +435,25 @@ router.get('/sidebar', async (req, res) => {
   }
 });
 
-router.get('/sidebar/new', (req, res) => {
+// Active forms built in the Form Builder, offered as a dropdown so a sidebar
+// item can be linked to a form (action_type 'form' or 'modal'). Returns [] on
+// error so the form still renders.
+async function getActiveFormTemplates() {
+  try {
+    const result = await db.query(
+      "SELECT form_type, title FROM form_templates WHERE status = 'active' ORDER BY title ASC"
+    );
+    return result.rows;
+  } catch (e) {
+    return [];
+  }
+}
+
+router.get('/sidebar/new', async (req, res) => {
   res.render('webdev/sidebar/form', {
     title: 'New Sidebar Item - WTS Admin',
     item: null,
+    formTemplates: await getActiveFormTemplates(),
     currentPage: 'sidebar'
   });
 });
@@ -541,6 +556,7 @@ router.post('/sidebar', async (req, res) => {
     res.render('webdev/sidebar/form', {
       title: 'New Sidebar Item - WTS Admin',
       item: req.body,
+      formTemplates: await getActiveFormTemplates(),
       currentPage: 'sidebar',
       error: 'Failed to create sidebar item'
     });
@@ -556,6 +572,7 @@ router.get('/sidebar/:id/edit', async (req, res) => {
     res.render('webdev/sidebar/form', {
       title: 'Edit Sidebar Item - WTS Admin',
       item: result.rows[0],
+      formTemplates: await getActiveFormTemplates(),
       currentPage: 'sidebar'
     });
   } catch (error) {

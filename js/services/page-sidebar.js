@@ -30,9 +30,10 @@
         var panel = panels[0];
         injectStyles();
         buildHelpButton(panel);
-        // Only the slide-in "panel" action needs the panel DOM built; the
-        // "link" and "modal" actions navigate / open the shared quote modal.
-        if ((panel.action_type || 'panel') === 'panel') {
+        // The slide-in panel is built for the "panel" (HTML) and "form" actions;
+        // the "link" and "modal" actions navigate / open the shared quote modal.
+        var act = panel.action_type || 'panel';
+        if (act === 'panel' || act === 'form') {
           buildHelpPanel(panel);
         }
       })
@@ -90,6 +91,24 @@
       '.help-sidebar-body img{max-width:100%;border-radius:8px;margin:.75rem 0;}' +
       '.help-sidebar-body a{color:#d62b83;text-decoration:underline;}' +
       '.help-sidebar-body p{margin-bottom:.75rem;}' +
+
+      /* Linked form (action_type "form") */
+      '.help-form-subtitle{color:#475569;margin-bottom:1rem;}' +
+      '.help-form-row{margin-bottom:.85rem;display:flex;flex-direction:column;gap:.3rem;}' +
+      '.help-form-label{font-size:.85rem;font-weight:600;color:#334155;}' +
+      '.help-form-field{width:100%;padding:.6rem .75rem;border:1px solid #cbd5e1;border-radius:8px;' +
+      'font-size:.95rem;font-family:inherit;background:#fff;color:#1a1a2e;box-sizing:border-box;}' +
+      '.help-form-field:focus{outline:none;border-color:#d62b83;box-shadow:0 0 0 3px rgba(214,43,131,.15);}' +
+      'textarea.help-form-field{resize:vertical;min-height:90px;}' +
+      '.help-form-submit{margin-top:.5rem;width:100%;background:#d62b83;color:#fff;border:none;' +
+      'padding:.75rem 1rem;border-radius:8px;font-weight:700;font-size:.95rem;cursor:pointer;' +
+      'display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background-color .3s;}' +
+      '.help-form-submit:hover{background:#f90784;}' +
+      '.help-form-submit:disabled{opacity:.7;cursor:default;}' +
+      '.help-form-success{text-align:center;padding:2rem 1rem;}' +
+      '.help-form-success i{font-size:3rem;color:#10b981;margin-bottom:1rem;display:block;}' +
+      '.help-form-success h2{margin-bottom:.5rem;}' +
+      '.help-form-loading{color:#94a3b8;}' +
 
       /* Mobile */
       '@media(max-width:767px){#help-sidebar-panel{width:100%;max-width:none;}' +
@@ -157,6 +176,11 @@
     document.body.appendChild(overlay);
 
     // Panel
+    var isForm = (panel.action_type || 'panel') === 'form' && panel.target_form_type;
+    var bodyHtml = isForm
+      ? '<p class="help-form-loading">Loading form…</p>'
+      : (panel.content_html || '<p>No content available.</p>');
+
     var panelEl = document.createElement('div');
     panelEl.id = 'help-sidebar-panel';
     panelEl.innerHTML =
@@ -165,9 +189,15 @@
         '<button class="help-sidebar-close" aria-label="Close">&times;</button>' +
       '</div>' +
       '<div class="help-sidebar-body">' +
-        (panel.content_html || '<p>No content available.</p>') +
+        bodyHtml +
       '</div>';
     document.body.appendChild(panelEl);
+
+    // For the "form" action, fetch the admin-built form template and render it
+    // (with submission) directly into the panel body.
+    if (isForm) {
+      loadFormIntoPanel(panel.target_form_type, panelEl.querySelector('.help-sidebar-body'));
+    }
 
     // Close handlers
     panelEl.querySelector('.help-sidebar-close').addEventListener('click', closeHelpPanel);
@@ -177,6 +207,148 @@
         closeHelpPanel();
       }
     });
+  }
+
+  // ── Linked form rendering (action_type 'form') ─────────────
+
+  function loadFormIntoPanel(formType, bodyEl) {
+    if (!bodyEl) return;
+    fetch(API_BASE + '/form-template/' + encodeURIComponent(formType))
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (tpl) {
+        if (!tpl || !Array.isArray(tpl.fields) || tpl.fields.length === 0) {
+          throw new Error('empty template');
+        }
+        renderForm(tpl, bodyEl);
+      })
+      .catch(function () {
+        bodyEl.innerHTML = '<p>Sorry, this form is unavailable right now.</p>';
+      });
+  }
+
+  function renderForm(tpl, bodyEl) {
+    bodyEl.innerHTML = '';
+
+    if (tpl.subtitle) {
+      var sub = document.createElement('p');
+      sub.className = 'help-form-subtitle';
+      sub.textContent = tpl.subtitle;
+      bodyEl.appendChild(sub);
+    }
+
+    var form = document.createElement('form');
+    form.className = 'help-form';
+    form.setAttribute('novalidate', '');
+
+    (tpl.fields || []).forEach(function (field) {
+      var el;
+      if (field.type === 'textarea') {
+        el = document.createElement('textarea');
+        el.rows = 4;
+      } else if (field.type === 'select') {
+        el = document.createElement('select');
+        var def = document.createElement('option');
+        def.value = '';
+        def.textContent = field.placeholder || 'Select…';
+        el.appendChild(def);
+        (field.options || []).forEach(function (opt) {
+          var o = document.createElement('option');
+          o.value = opt;
+          o.textContent = opt;
+          el.appendChild(o);
+        });
+      } else {
+        el = document.createElement('input');
+        el.type = field.type || 'text';
+      }
+      el.name = field.name;
+      el.className = 'help-form-field';
+      if (field.placeholder && field.type !== 'select') el.placeholder = field.placeholder;
+      if (field.required) el.required = true;
+
+      var row = document.createElement('div');
+      row.className = 'help-form-row';
+      if (field.label) {
+        var lbl = document.createElement('label');
+        lbl.className = 'help-form-label';
+        lbl.textContent = field.label + (field.required ? ' *' : '');
+        row.appendChild(lbl);
+      }
+      row.appendChild(el);
+      form.appendChild(row);
+    });
+
+    var submit = document.createElement('button');
+    submit.type = 'submit';
+    submit.className = 'help-form-submit';
+    submit.innerHTML = '<i class="fas fa-paper-plane"></i> ' + esc(tpl.submit_button_text || 'Submit');
+    form.appendChild(submit);
+
+    bodyEl.appendChild(form);
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      submitForm(tpl, form, submit, bodyEl);
+    });
+  }
+
+  function submitForm(tpl, form, submitBtn, bodyEl) {
+    var fd = new FormData(form);
+    var known = ['name', 'email', 'company', 'phone', 'message'];
+    var data = {};
+    var metadata = {};
+    fd.forEach(function (value, key) {
+      var val = (value || '').toString().trim();
+      if (!val) return;
+      if (known.indexOf(key) !== -1) { data[key] = val; } else { metadata[key] = val; }
+    });
+
+    if (!data.name || !data.email) {
+      window.alert('Please fill in the required fields.');
+      return;
+    }
+
+    var payload = {
+      form_type: tpl.form_type,
+      name: data.name,
+      email: data.email,
+      company: data.company,
+      phone: data.phone,
+      message: data.message,
+      metadata: Object.keys(metadata).length ? metadata : undefined
+    };
+
+    var original = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
+
+    fetch(API_BASE + '/submissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        if (!res.ok) return res.json().catch(function () { return {}; }).then(function (d) {
+          throw new Error(d.error || 'Submission failed.');
+        });
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'form_submit', { event_category: 'Forms', event_label: tpl.form_type });
+        }
+        bodyEl.innerHTML =
+          '<div class="help-form-success">' +
+            '<i class="fas fa-check-circle"></i>' +
+            '<h2>Thank You!</h2>' +
+            '<p>' + esc(tpl.success_message || 'Your request has been submitted.') + '</p>' +
+          '</div>';
+      })
+      .catch(function (err) {
+        window.alert(err.message || 'There was an error. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = original;
+      });
   }
 
   function openHelpPanel() {
