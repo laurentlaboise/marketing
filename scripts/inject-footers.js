@@ -272,6 +272,13 @@ function pickVariant(config, urlPath) {
   return { variant: config.default, explicit: false };
 }
 
+// Content pages (under a language directory) should always get a footer, even
+// without an explicit assignment. Utility/root files (the language-router
+// index.html, 404.html, google-verification files) are left alone.
+function isContentPage(urlPath) {
+  return /^\/(en|lo|th|fr)(\/|$)/.test(urlPath);
+}
+
 // ── Walk dist + apply ──────────────────────────────────────────
 
 function* htmlFiles(dir) {
@@ -316,8 +323,8 @@ function main() {
         fs.writeFileSync(file, html.slice(0, fm.start) + newFooter + html.slice(fm.end));
         stats.injected++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
-      } else if (pick.explicit) {
-        // Page was explicitly assigned a variant but has no footer — build one
+      } else if (pick.explicit || isContentPage(urlPath)) {
+        // Content page (or explicitly assigned) with no footer — build one
         // (self-styled so it works even on standalone pages) and insert it.
         const created = buildWholeFooter(variant);
         const withCss = ensureFooterCss(html);
@@ -325,7 +332,7 @@ function main() {
         stats.created++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
       } else {
-        // Default variant and no footer to fill — leave the page untouched.
+        // Non-content/root page with no footer — leave it untouched.
         stats.noFooter++;
       }
     } catch (e) {
