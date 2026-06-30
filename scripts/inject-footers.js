@@ -26,6 +26,13 @@ const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const CONFIG = path.join(ROOT, 'footers.json');
 
+// --source rewrites the committed SOURCE HTML (en/, lo/, th/, fr/) in place, so
+// the footer is correct even when GitHub Pages serves the branch source rather
+// than the built dist artifact. Default (no flag) rewrites ./dist after webpack.
+const SOURCE_MODE = process.argv.includes('--source');
+const LANG_DIRS = ['en', 'lo', 'th', 'fr'];
+const BASE = SOURCE_MODE ? ROOT : DIST;
+
 function esc(s) {
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -231,7 +238,7 @@ function insertBeforeBodyClose(html, snippet) {
 // ── Variant selection ──────────────────────────────────────────
 
 function urlPathFor(file) {
-  let p = '/' + path.relative(DIST, file).split(path.sep).join('/');
+  let p = '/' + path.relative(BASE, file).split(path.sep).join('/');
   p = p.replace(/index\.html$/, '');        // /en/index.html -> /en/
   p = p.replace(/\.html$/, '');             // /x/page.html   -> /x/page
   if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1); // normalize trailing slash
@@ -282,15 +289,25 @@ function isContentPage(urlPath) {
 // ── Walk dist + apply ──────────────────────────────────────────
 
 function* htmlFiles(dir) {
+  if (!fs.existsSync(dir)) return;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) yield* htmlFiles(full);
-    else if (entry.isFile() && entry.name.endsWith('.html')) yield full;
+    else if (entry.isFile() && entry.name.endsWith('.html') && !/backup|dynamic/i.test(entry.name)) yield full;
+  }
+}
+
+// The files to process: the language dirs in source mode, else all of dist.
+function* targetFiles() {
+  if (SOURCE_MODE) {
+    for (const d of LANG_DIRS) yield* htmlFiles(path.join(ROOT, d));
+  } else {
+    yield* htmlFiles(DIST);
   }
 }
 
 function main() {
-  if (!fs.existsSync(DIST)) {
+  if (!SOURCE_MODE && !fs.existsSync(DIST)) {
     console.error('[inject-footers] dist/ not found — run the webpack build first. Skipping.');
     return;
   }
@@ -303,7 +320,7 @@ function main() {
   const stats = { injected: 0, created: 0, kept: 0, noFooter: 0, errored: 0 };
   const byVariant = {};
 
-  for (const file of htmlFiles(DIST)) {
+  for (const file of targetFiles()) {
     try {
       const urlPath = urlPathFor(file);
       const pick = pickVariant(config, urlPath);
@@ -341,7 +358,7 @@ function main() {
     }
   }
 
-  console.log(`[inject-footers] injected ${stats.injected}, created ${stats.created} (${Object.entries(byVariant).map(([k, v]) => `${k}:${v}`).join(', ') || 'none'}), ` +
+  console.log(`[inject-footers${SOURCE_MODE ? ' --source' : ''}] injected ${stats.injected}, created ${stats.created} (${Object.entries(byVariant).map(([k, v]) => `${k}:${v}`).join(', ') || 'none'}), ` +
     `kept ${stats.kept}, no-footer ${stats.noFooter}, errors ${stats.errored}`);
 }
 

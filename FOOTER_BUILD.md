@@ -1,4 +1,15 @@
-# Build-time footer (SEO-safe)
+# Footer rendering (SEO-safe)
+
+> **Important — GitHub Pages serves the committed source HTML for this repo, not
+> the webpack `dist` artifact.** So the footer must be baked into the **source**
+> files. `npm run inject-footers -- --source` (and the `footer-sync` workflow)
+> rewrite `en/**` (and other language dirs) in place; the dist-mode injection in
+> `npm run build` remains as a no-op safety net in case Pages is ever switched to
+> deploy the Actions build. When the admin **Publishes** (commits `footers.json`),
+> the `.github/workflows/footer-sync.yml` workflow re-bakes the footer into the
+> source HTML and commits it, so the live site reflects the back-end.
+
+
 
 The site footer is rendered into every page's HTML **at build time** so search
 engines and no-JS clients get a real, fully-linked footer in the raw HTML.
