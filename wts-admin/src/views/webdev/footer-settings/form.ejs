@@ -69,8 +69,23 @@
             </div>
           </div>
           <div class="form-group">
+            <label class="form-label" for="footer_contact_whatsapp_text">WhatsApp Prefilled Message (optional)</label>
+            <input type="text" id="footer_contact_whatsapp_text" name="footer_contact_whatsapp_text" class="form-input" value="<%= settings.footer_contact_whatsapp_text || '' %>" placeholder="Hello! I'm interested in your services.">
+            <small style="color:#64748b;">Pre-fills the chat when a visitor taps WhatsApp.</small>
+          </div>
+          <div class="form-group">
             <label class="form-label" for="footer_contact_email">Email</label>
             <input type="email" id="footer_contact_email" name="footer_contact_email" class="form-input" value="<%= settings.footer_contact_email || '' %>" placeholder="info@wordsthatsells.website">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="footer_contact_email_subject">Email Subject (optional)</label>
+              <input type="text" id="footer_contact_email_subject" name="footer_contact_email_subject" class="form-input" value="<%= settings.footer_contact_email_subject || '' %>" placeholder="Inquiry About Your Services">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="footer_contact_email_body">Email Body (optional)</label>
+              <textarea id="footer_contact_email_body" name="footer_contact_email_body" class="form-input" rows="2" placeholder="Hello, I saw your website and I'm interested in learning more."><%= settings.footer_contact_email_body || '' %></textarea>
+            </div>
           </div>
         </div>
       </div>

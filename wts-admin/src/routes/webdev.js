@@ -752,7 +752,8 @@ const FOOTER_SETTING_KEYS = [
   'footer_social_instagram', 'footer_social_linkedin', 'footer_social_facebook',
   'footer_social_twitter', 'footer_social_youtube',
   'footer_contact_address', 'footer_contact_maps_url',
-  'footer_contact_whatsapp', 'footer_contact_email',
+  'footer_contact_whatsapp', 'footer_contact_whatsapp_text',
+  'footer_contact_email', 'footer_contact_email_subject', 'footer_contact_email_body',
   'footer_copyright'
 ];
 

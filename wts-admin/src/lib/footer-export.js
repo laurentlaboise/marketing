@@ -40,10 +40,17 @@ function buildContact(s) {
   }
   if (s.footer_contact_whatsapp) {
     const digits = s.footer_contact_whatsapp.replace(/[^0-9]/g, '');
-    items.push({ icon: 'fab fa-whatsapp', href: 'https://wa.me/' + digits, external: true, text: s.footer_contact_whatsapp });
+    let href = 'https://wa.me/' + digits;
+    if (s.footer_contact_whatsapp_text) href += '?text=' + encodeURIComponent(s.footer_contact_whatsapp_text);
+    items.push({ icon: 'fab fa-whatsapp', href, external: true, text: s.footer_contact_whatsapp });
   }
   if (s.footer_contact_email) {
-    items.push({ icon: 'fas fa-envelope', href: 'mailto:' + s.footer_contact_email, external: true, text: s.footer_contact_email });
+    let href = 'mailto:' + s.footer_contact_email;
+    const params = [];
+    if (s.footer_contact_email_subject) params.push('subject=' + encodeURIComponent(s.footer_contact_email_subject));
+    if (s.footer_contact_email_body) params.push('body=' + encodeURIComponent(s.footer_contact_email_body));
+    if (params.length) href += '?' + params.join('&');
+    items.push({ icon: 'fas fa-envelope', href, external: true, text: s.footer_contact_email });
   }
   return items;
 }

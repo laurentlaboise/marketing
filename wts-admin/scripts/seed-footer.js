@@ -27,7 +27,10 @@ const SETTINGS = {
   footer_contact_address: '20 Rue Samsenthai, Vientiane,\nVientiane Province',
   footer_contact_maps_url: 'https://www.google.com/maps/search/?api=1&query=Words+That+Sells+20+Rue+Samsenthai+Vientiane+Laos',
   footer_contact_whatsapp: '+856 20 5552 8034',
+  footer_contact_whatsapp_text: "Hello! I'm interested in your services.",
   footer_contact_email: 'info@wordsthatsells.website',
+  footer_contact_email_subject: 'Inquiry About Your Services',
+  footer_contact_email_body: "Hello,\n\nI saw your website and I'm interested in learning more.\n\nThank you!",
   footer_copyright: '© 2025 Laboise eworker Laos enterprise. All rights reserved.\nTax ID: 275618471000 | Reg ID: 08/04 – 000001253'
 };
 
