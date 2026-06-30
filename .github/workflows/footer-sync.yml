@@ -1,0 +1,48 @@
+name: Sync footer into source HTML
+
+# GitHub Pages serves the committed source HTML, so the footer must live in the
+# source files (not only the build-time dist). When the admin publishes the
+# footer (committing footers.json), re-render it into every page's source HTML
+# and commit the result so the live site reflects the back-end.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'footers.json'
+      - 'scripts/inject-footers.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: footer-sync
+  cancel-in-progress: false
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # inject-footers.js uses only Node's fs/path — no dependencies to install.
+      - name: Bake footer into source HTML
+        run: node scripts/inject-footers.js --source
+
+      - name: Commit changes (if any)
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "Bake footer into source HTML [auto]"
+            git push
+          else
+            echo "No footer changes to commit."
+          fi
