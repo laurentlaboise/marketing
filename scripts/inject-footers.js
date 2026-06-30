@@ -219,11 +219,17 @@ function footerCss() {
 
 // Insert the inlined footer CSS once, before </head> (or </body> as a fallback).
 function ensureFooterCss(html) {
-  if (html.indexOf('id="wts-footer-css"') !== -1) return html;
-  if (/href="[^"]*\/css\/layout\/footer\.css"/i.test(html)) return html; // already linked
   const css = footerCss();
   if (!css) return html;
   const styleTag = '<style id="wts-footer-css">' + css + '</style>';
+  // If the block already exists, replace its contents so CSS edits re-bake.
+  const open = html.indexOf('<style id="wts-footer-css">');
+  if (open !== -1) {
+    const close = html.indexOf('</style>', open);
+    if (close !== -1) return html.slice(0, open) + styleTag + html.slice(close + '</style>'.length);
+    return html;
+  }
+  if (/href="[^"]*\/css\/layout\/footer\.css"/i.test(html)) return html; // already linked
   const headClose = html.search(/<\/head>/i);
   if (headClose !== -1) return html.slice(0, headClose) + styleTag + html.slice(headClose);
   return html; // no head; createFooter prepends the style instead
@@ -326,6 +332,13 @@ function main() {
       const pick = pickVariant(config, urlPath);
       const variantName = pick.variant;
       if (!variantName || variantName === 'keep' || !config.variants || !config.variants[variantName]) {
+        // Even on kept pages, refresh an inline footer-CSS block (a previously
+        // created self-styled footer) so footer.css edits re-bake everywhere.
+        const keptHtml = fs.readFileSync(file, 'utf8');
+        if (keptHtml.indexOf('<style id="wts-footer-css">') !== -1) {
+          const refreshed = ensureFooterCss(keptHtml);
+          if (refreshed !== keptHtml) fs.writeFileSync(file, refreshed);
+        }
         stats.kept++;
         continue;
       }
@@ -337,7 +350,12 @@ function main() {
         // Page already has a footer: replace its dynamic regions in place.
         const newFooter = injectIntoFooter(fm.block, variant);
         if (newFooter == null) { stats.noFooter++; continue; }
-        fs.writeFileSync(file, html.slice(0, fm.start) + newFooter + html.slice(fm.end));
+        let out = html.slice(0, fm.start) + newFooter + html.slice(fm.end);
+        // Self-styled (created) footers carry an inline CSS block — refresh it so
+        // footer.css edits re-bake. Region-edited pages have no such block and
+        // are left to the site stylesheet.
+        if (out.indexOf('<style id="wts-footer-css">') !== -1) out = ensureFooterCss(out);
+        fs.writeFileSync(file, out);
         stats.injected++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
       } else if (pick.explicit || isContentPage(urlPath)) {
