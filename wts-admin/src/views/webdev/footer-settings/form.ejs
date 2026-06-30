@@ -7,13 +7,25 @@
   <div class="page-content">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Footer Settings</h1>
-        <p class="page-subtitle">Edit the non-link parts of the site footer. The footer <strong>link columns</strong> are managed under <a href="/webdev/menus">Menu Manager</a> (location <em>footer</em> and <em>footer-legal</em>).</p>
+        <h1 class="page-title">Footer Settings &mdash; <%= variantName || variant %></h1>
+        <p class="page-subtitle"><a href="/webdev/footers"><i class="fas fa-arrow-left"></i> Footer Manager</a> &nbsp;·&nbsp; Editing the <strong><%= variantName || variant %></strong> footer. Link columns for this variant are managed in <a href="/webdev/menus">Menu Manager</a> (location <em><%= variant === 'main' ? 'footer' : 'footer:' + variant %></em> / <em><%= variant === 'main' ? 'footer-legal' : 'footer-legal:' + variant %></em>).</p>
       </div>
+      <% if ((variants || []).length > 1) { %>
+      <div class="page-actions">
+        <form method="GET" action="/webdev/footer-settings" style="margin:0;">
+          <select name="variant" class="form-input" onchange="this.form.submit()">
+            <% variants.forEach(function(v){ %>
+            <option value="<%= v.slug %>" <%= v.slug === variant ? 'selected' : '' %>><%= v.name %></option>
+            <% }); %>
+          </select>
+        </form>
+      </div>
+      <% } %>
     </div>
 
     <form action="/webdev/footer-settings" method="POST">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="variant" value="<%= variant %>">
 
       <div class="card form-card" style="margin-bottom:1.5rem;">
         <div class="card-body">
@@ -69,8 +81,23 @@
             </div>
           </div>
           <div class="form-group">
+            <label class="form-label" for="footer_contact_whatsapp_text">WhatsApp Prefilled Message (optional)</label>
+            <input type="text" id="footer_contact_whatsapp_text" name="footer_contact_whatsapp_text" class="form-input" value="<%= settings.footer_contact_whatsapp_text || '' %>" placeholder="Hello! I'm interested in your services.">
+            <small style="color:#64748b;">Pre-fills the chat when a visitor taps WhatsApp.</small>
+          </div>
+          <div class="form-group">
             <label class="form-label" for="footer_contact_email">Email</label>
             <input type="email" id="footer_contact_email" name="footer_contact_email" class="form-input" value="<%= settings.footer_contact_email || '' %>" placeholder="info@wordsthatsells.website">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="footer_contact_email_subject">Email Subject (optional)</label>
+              <input type="text" id="footer_contact_email_subject" name="footer_contact_email_subject" class="form-input" value="<%= settings.footer_contact_email_subject || '' %>" placeholder="Inquiry About Your Services">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="footer_contact_email_body">Email Body (optional)</label>
+              <textarea id="footer_contact_email_body" name="footer_contact_email_body" class="form-input" rows="2" placeholder="Hello, I saw your website and I'm interested in learning more."><%= settings.footer_contact_email_body || '' %></textarea>
+            </div>
           </div>
         </div>
       </div>

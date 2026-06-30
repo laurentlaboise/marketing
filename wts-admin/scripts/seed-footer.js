@@ -27,7 +27,10 @@ const SETTINGS = {
   footer_contact_address: '20 Rue Samsenthai, Vientiane,\nVientiane Province',
   footer_contact_maps_url: 'https://www.google.com/maps/search/?api=1&query=Words+That+Sells+20+Rue+Samsenthai+Vientiane+Laos',
   footer_contact_whatsapp: '+856 20 5552 8034',
+  footer_contact_whatsapp_text: "Hello! I'm interested in your services.",
   footer_contact_email: 'info@wordsthatsells.website',
+  footer_contact_email_subject: 'Inquiry About Your Services',
+  footer_contact_email_body: "Hello,\n\nI saw your website and I'm interested in learning more.\n\nThank you!",
   footer_copyright: '© 2025 Laboise eworker Laos enterprise. All rights reserved.\nTax ID: 275618471000 | Reg ID: 08/04 – 000001253'
 };
 
@@ -114,9 +117,30 @@ async function seedMenus() {
   console.log(`Footer menus: seeded ${COLUMNS.length} columns + ${LEGAL.length} legal links.`);
 }
 
+async function seedAssignments() {
+  const existing = await db.query(`SELECT COUNT(*)::int AS n FROM footer_assignments`);
+  if (existing.rows[0].n > 0) {
+    console.log(`Assignments: ${existing.rows[0].n} already present — skipping.`);
+    return;
+  }
+  const rows = [
+    { pattern: '/en/resources', variant: 'keep' },
+    { pattern: '/en/resources/*', variant: 'keep' },
+  ];
+  let i = 0;
+  for (const a of rows) {
+    await db.query(
+      `INSERT INTO footer_assignments (pattern, variant_slug, sort_order) VALUES ($1, $2, $3)`,
+      [a.pattern, a.variant, i++]
+    );
+  }
+  console.log(`Assignments: seeded ${rows.length} (resources → keep).`);
+}
+
 async function main() {
   await seedSettings();
   await seedMenus();
+  await seedAssignments();
   console.log('\nDone.');
   await db.close();
 }

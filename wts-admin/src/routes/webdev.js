@@ -665,6 +665,8 @@ router.get('/menus/new', async (req, res) => {
     title: 'New Menu Item - WTS Admin',
     item: null,
     parents,
+    footerVariants: await listFooterVariants().catch(() => []),
+    presetLocation: req.query.location || '',
     currentPage: 'menus'
   });
 });
@@ -688,6 +690,7 @@ router.post('/menus', async (req, res) => {
       title: 'New Menu Item - WTS Admin',
       item: req.body,
       parents,
+      footerVariants: await listFooterVariants().catch(() => []),
       currentPage: 'menus',
       error: 'Failed to create menu item'
     });
@@ -706,6 +709,7 @@ router.get('/menus/:id/edit', async (req, res) => {
       title: 'Edit Menu Item - WTS Admin',
       item: result.rows[0],
       parents,
+      footerVariants: await listFooterVariants().catch(() => []),
       currentPage: 'menus'
     });
   } catch (error) {
@@ -744,57 +748,184 @@ router.post('/menus/:id/delete', async (req, res) => {
   res.redirect('/webdev/menus');
 });
 
-// ==================== FOOTER SETTINGS (non-link content) ====================
+// ==================== FOOTER MANAGER (variants + settings) ====================
 
-// The editable, non-link parts of the footer, stored in site_settings. The
-// link columns are managed under Menu Manager (location 'footer'/'footer-legal').
-const FOOTER_SETTING_KEYS = [
-  'footer_social_instagram', 'footer_social_linkedin', 'footer_social_facebook',
-  'footer_social_twitter', 'footer_social_youtube',
-  'footer_contact_address', 'footer_contact_maps_url',
-  'footer_contact_whatsapp', 'footer_contact_email',
-  'footer_copyright'
+// Non-link footer content lives in site_settings; the link columns live in
+// menu_items. Both are namespaced per variant: 'main' uses the legacy
+// 'footer_<field>' keys and 'footer'/'footer-legal' locations; other variants
+// use 'footer:<slug>:<field>' and 'footer:<slug>'/'footer-legal:<slug>'.
+const FOOTER_SETTING_FIELDS = [
+  'social_instagram', 'social_linkedin', 'social_facebook', 'social_twitter', 'social_youtube',
+  'contact_address', 'contact_maps_url',
+  'contact_whatsapp', 'contact_whatsapp_text',
+  'contact_email', 'contact_email_subject', 'contact_email_body',
+  'copyright'
 ];
 
-async function getFooterSettings() {
-  const result = await db.query(
-    `SELECT key, value FROM site_settings WHERE key = ANY($1)`,
-    [FOOTER_SETTING_KEYS]
-  );
+function footerSettingPrefix(slug) {
+  return (slug === 'main') ? 'footer_' : `footer:${slug}:`;
+}
+function footerColumnLocation(slug) {
+  return (slug === 'main') ? 'footer' : `footer:${slug}`;
+}
+function footerLegalLocation(slug) {
+  return (slug === 'main') ? 'footer-legal' : `footer-legal:${slug}`;
+}
+function slugify(s) {
+  return String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+}
+
+async function listFooterVariants() {
+  const r = await db.query(`SELECT slug, name, is_default FROM footer_variants ORDER BY sort_order ASC, slug ASC`);
+  return r.rows;
+}
+
+// Read a variant's settings, exposed to the form under the legacy 'footer_<field>'
+// input names regardless of the variant's storage prefix.
+async function getFooterSettings(slug) {
+  const prefix = footerSettingPrefix(slug);
+  const r = await db.query(`SELECT key, value FROM site_settings WHERE key LIKE 'footer%'`);
   const settings = {};
-  FOOTER_SETTING_KEYS.forEach(k => { settings[k] = ''; });
-  result.rows.forEach(r => { settings[r.key] = r.value || ''; });
+  FOOTER_SETTING_FIELDS.forEach(f => { settings['footer_' + f] = ''; });
+  r.rows.forEach(row => {
+    if (row.key.startsWith(prefix)) {
+      const field = row.key.slice(prefix.length);
+      if (FOOTER_SETTING_FIELDS.includes(field)) settings['footer_' + field] = row.value || '';
+    }
+  });
   return settings;
 }
 
 router.get('/footer-settings', async (req, res) => {
+  const variant = slugify(req.query.variant) || 'main';
   let settings = {};
-  try { settings = await getFooterSettings(); } catch (e) { settings = {}; }
+  let variants = [];
+  try { settings = await getFooterSettings(variant); } catch (e) { settings = {}; }
+  try { variants = await listFooterVariants(); } catch (e) { variants = []; }
+  const current = variants.find(v => v.slug === variant) || { slug: variant, name: variant };
   res.render('webdev/footer-settings/form', {
     title: 'Footer Settings - WTS Admin',
     settings,
-    currentPage: 'footer-settings'
+    variant,
+    variantName: current.name,
+    variants,
+    currentPage: 'footers'
   });
 });
 
 router.post('/footer-settings', async (req, res) => {
+  const variant = slugify(req.body.variant) || 'main';
+  const prefix = footerSettingPrefix(variant);
   try {
-    for (const key of FOOTER_SETTING_KEYS) {
-      const value = (req.body[key] || '').trim();
+    for (const field of FOOTER_SETTING_FIELDS) {
+      const value = (req.body['footer_' + field] || '').trim();
       await db.query(
         `INSERT INTO site_settings (key, value, updated_at)
          VALUES ($1, $2, CURRENT_TIMESTAMP)
          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-        [key, value || null]
+        [prefix + field, value || null]
       );
     }
     req.session.successMessage = 'Footer settings saved successfully';
-    res.redirect('/webdev/footer-settings');
   } catch (error) {
     console.error('Save footer settings error:', error);
     req.session.errorMessage = 'Failed to save footer settings';
-    res.redirect('/webdev/footer-settings');
   }
+  res.redirect('/webdev/footer-settings?variant=' + encodeURIComponent(variant));
+});
+
+// ---- Footer Manager hub: variants + page assignments ----
+
+router.get('/footers', async (req, res) => {
+  try {
+    const variants = await listFooterVariants();
+    const assignments = (await db.query(
+      `SELECT id, pattern, variant_slug, sort_order FROM footer_assignments ORDER BY sort_order ASC, created_at ASC`
+    )).rows;
+    res.render('webdev/footers/list', {
+      title: 'Footer Manager - WTS Admin',
+      variants, assignments,
+      currentPage: 'footers'
+    });
+  } catch (error) {
+    console.error('Footer manager error:', error);
+    req.session.errorMessage = 'Failed to load footers';
+    res.redirect('/webdev/menus');
+  }
+});
+
+router.post('/footers/variants', async (req, res) => {
+  try {
+    const name = (req.body.name || '').trim();
+    const slug = slugify(req.body.slug || name);
+    if (!slug || slug === 'keep') {
+      req.session.errorMessage = 'Invalid variant name.';
+      return res.redirect('/webdev/footers');
+    }
+    await db.query(
+      `INSERT INTO footer_variants (slug, name, is_default, sort_order)
+       VALUES ($1, $2, FALSE, (SELECT COALESCE(MAX(sort_order),0)+1 FROM footer_variants))
+       ON CONFLICT (slug) DO NOTHING`,
+      [slug, name || slug]
+    );
+    req.session.successMessage = 'Variant created.';
+  } catch (error) {
+    console.error('Create footer variant error:', error);
+    req.session.errorMessage = 'Failed to create variant.';
+  }
+  res.redirect('/webdev/footers');
+});
+
+router.post('/footers/variants/:slug/delete', async (req, res) => {
+  const slug = slugify(req.params.slug);
+  try {
+    if (slug === 'main') {
+      req.session.errorMessage = 'The Main variant cannot be deleted.';
+      return res.redirect('/webdev/footers');
+    }
+    // Remove the variant and all of its namespaced content + assignments.
+    await db.query(`DELETE FROM menu_items WHERE location IN ($1, $2)`,
+      [footerColumnLocation(slug), footerLegalLocation(slug)]);
+    await db.query(`DELETE FROM site_settings WHERE key LIKE $1`, [footerSettingPrefix(slug) + '%']);
+    await db.query(`DELETE FROM footer_assignments WHERE variant_slug = $1`, [slug]);
+    await db.query(`DELETE FROM footer_variants WHERE slug = $1`, [slug]);
+    req.session.successMessage = 'Variant deleted.';
+  } catch (error) {
+    console.error('Delete footer variant error:', error);
+    req.session.errorMessage = 'Failed to delete variant.';
+  }
+  res.redirect('/webdev/footers');
+});
+
+router.post('/footers/assignments', async (req, res) => {
+  try {
+    const pattern = (req.body.pattern || '').trim();
+    const variant_slug = (req.body.variant_slug || '').trim();
+    if (!pattern || !variant_slug) {
+      req.session.errorMessage = 'Pattern and variant are required.';
+      return res.redirect('/webdev/footers');
+    }
+    await db.query(
+      `INSERT INTO footer_assignments (pattern, variant_slug, sort_order)
+       VALUES ($1, $2, (SELECT COALESCE(MAX(sort_order),0)+1 FROM footer_assignments))`,
+      [pattern, variant_slug]
+    );
+    req.session.successMessage = 'Assignment added.';
+  } catch (error) {
+    console.error('Create footer assignment error:', error);
+    req.session.errorMessage = 'Failed to add assignment.';
+  }
+  res.redirect('/webdev/footers');
+});
+
+router.post('/footers/assignments/:id/delete', async (req, res) => {
+  try {
+    await db.query(`DELETE FROM footer_assignments WHERE id = $1`, [req.params.id]);
+    req.session.successMessage = 'Assignment removed.';
+  } catch (error) {
+    req.session.errorMessage = 'Failed to remove assignment.';
+  }
+  res.redirect('/webdev/footers');
 });
 
 // Publish the footer to the live site: render the admin footer into the
@@ -802,21 +933,15 @@ router.post('/footer-settings', async (req, res) => {
 // GitHub Pages rebuild, which injects the footer into the static HTML.
 router.post('/footer-settings/publish', async (req, res) => {
   try {
-    const { buildMainVariant, mergeFootersConfig } = require('../lib/footer-export');
+    const { buildAllConfig } = require('../lib/footer-export');
     const { getFile, putFile } = require('../lib/github-content');
 
-    const variant = await buildMainVariant();
-
-    // Preserve existing variants/assignments by merging into the current file.
-    const current = await getFile('footers.json');
-    let existing = null;
-    if (current && current.content) {
-      try { existing = JSON.parse(current.content); } catch (e) { existing = null; }
-    }
-    const config = mergeFootersConfig(existing, 'main', variant);
+    // The variant + assignment tables are the full source of truth.
+    const config = await buildAllConfig();
     const json = JSON.stringify(config, null, 2) + '\n';
 
-    const result = await putFile('footers.json', json, 'Update footer (main) via admin', current ? current.sha : null);
+    const current = await getFile('footers.json');
+    const result = await putFile('footers.json', json, 'Update footer via admin', current ? current.sha : null);
 
     if (result.ok) {
       req.session.successMessage = 'Footer published. The site will rebuild and update shortly.';

@@ -31,10 +31,15 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="location">Location *</label>
+              <% var curLoc = item ? item.location : (typeof presetLocation !== 'undefined' && presetLocation ? presetLocation : 'header'); %>
               <select id="location" name="location" class="form-input" required>
-                <option value="header" <%= !item || item.location === 'header' ? 'selected' : '' %>>Header (top nav)</option>
-                <option value="footer" <%= item && item.location === 'footer' ? 'selected' : '' %>>Footer (link columns)</option>
-                <option value="footer-legal" <%= item && item.location === 'footer-legal' ? 'selected' : '' %>>Footer (bottom legal bar)</option>
+                <option value="header" <%= curLoc === 'header' ? 'selected' : '' %>>Header (top nav)</option>
+                <% (footerVariants || []).forEach(function(v){
+                     var colLoc = v.slug === 'main' ? 'footer' : 'footer:' + v.slug;
+                     var legalLoc = v.slug === 'main' ? 'footer-legal' : 'footer-legal:' + v.slug; %>
+                <option value="<%= colLoc %>" <%= curLoc === colLoc ? 'selected' : '' %>>Footer columns — <%= v.name %></option>
+                <option value="<%= legalLoc %>" <%= curLoc === legalLoc ? 'selected' : '' %>>Footer legal bar — <%= v.name %></option>
+                <% }); %>
               </select>
             </div>
             <div class="form-group">
