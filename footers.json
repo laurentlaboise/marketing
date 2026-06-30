@@ -1,53 +1,140 @@
 {
-  "_comment": "Build-time footer source. scripts/inject-footers.js renders each variant into the matching pages' footer at build time (SEO-safe, real HTML). 'keep' leaves a page's existing footer untouched. In Stage 2 the admin 'Publish' action regenerates this file and commits it, triggering a rebuild.",
   "default": "main",
   "assignments": [
-    { "match": "/en/resources", "variant": "keep" },
-    { "match": "/en/resources/*", "variant": "keep" }
+    {
+      "match": "/en/resources",
+      "variant": "keep"
+    },
+    {
+      "match": "/en/resources/*",
+      "variant": "keep"
+    }
   ],
   "variants": {
     "main": {
       "social": [
-        { "icon": "fab fa-instagram", "href": "https://www.instagram.com/wordsthatsells.website.laos/", "label": "Instagram" },
-        { "icon": "fab fa-linkedin", "href": "https://www.linkedin.com/company/wordsthatsells", "label": "LinkedIn" },
-        { "icon": "fab fa-facebook-square", "href": "https://www.facebook.com/wordsthatsells/", "label": "Facebook" },
-        { "icon": "fab fa-twitter-square", "href": "https://x.com/wordsthatsells/", "label": "Twitter" },
-        { "icon": "fab fa-youtube-square", "href": "https://www.youtube.com/@wordsthatsells942", "label": "YouTube" }
+        {
+          "icon": "fab fa-instagram",
+          "href": "https://www.instagram.com/wordsthatsells.website.laos/",
+          "label": "Instagram"
+        },
+        {
+          "icon": "fab fa-linkedin",
+          "href": "https://www.linkedin.com/company/wordsthatsells",
+          "label": "LinkedIn"
+        },
+        {
+          "icon": "fab fa-facebook-square",
+          "href": "https://www.facebook.com/wordsthatsells/",
+          "label": "Facebook"
+        },
+        {
+          "icon": "fab fa-twitter-square",
+          "href": "https://x.com/wordsthatsells/",
+          "label": "Twitter"
+        },
+        {
+          "icon": "fab fa-youtube-square",
+          "href": "https://www.youtube.com/@wordsthatsells942",
+          "label": "YouTube"
+        }
       ],
       "contactHeading": "Contact Us",
       "contact": [
-        { "icon": "fas fa-map-marker-alt", "text": "20 Rue Samsenthai, Vientiane,\nVientiane Province" },
-        { "icon": "fab fa-google", "href": "https://www.google.com/maps/search/?api=1&query=Words+That+Sells+20+Rue+Samsenthai+Vientiane+Laos", "external": true, "text": "Find us on Google" },
-        { "icon": "fab fa-whatsapp", "href": "https://wa.me/8562055528034?text=Hello!%20I'm%20interested%20in%20your%20services.", "external": true, "text": "+856 20 5552 8034" },
-        { "icon": "fas fa-envelope", "href": "mailto:info@wordsthatsells.website?subject=Inquiry%20About%20Your%20Services&body=Hello,%0D%0A%0D%0AI%20saw%20your%20website%20and%20I'm%20interested%20in%20learning%20more.%0D%0A%0D%0AThank%20you!", "external": true, "text": "info@wordsthatsells.website" }
+        {
+          "icon": "fas fa-map-marker-alt",
+          "text": "20 Rue Samsenthai, Vientiane, \r\nVientiane Province"
+        },
+        {
+          "icon": "fab fa-google",
+          "href": "https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6",
+          "external": true,
+          "text": "Find us on Google"
+        },
+        {
+          "icon": "fab fa-whatsapp",
+          "href": "https://wa.me/02055528034",
+          "external": true,
+          "text": "02055528034"
+        },
+        {
+          "icon": "fas fa-envelope",
+          "href": "mailto:info@wordsthatsells.website",
+          "external": true,
+          "text": "info@wordsthatsells.website"
+        }
       ],
       "columns": [
-        { "heading": "Services", "links": [
-          { "text": "Digital Marketing", "href": "/digital-marketing-services", "external": true },
-          { "text": "Content Creation", "href": "/digital-marketing-services/content-creation" },
-          { "text": "Social Media", "href": "/digital-marketing-services/social-media-management" },
-          { "text": "Web Development", "href": "/digital-marketing-services/web-development" },
-          { "text": "Business Tools", "href": "/digital-marketing-services/business-tools" }
-        ] },
-        { "heading": "Solutions", "links": [
-          { "text": "Pricing", "href": "/digital-marketing-services/prices" },
-          { "text": "Affiliates", "href": "/company/affiliate-sales" },
-          { "text": "Agencies", "href": "/company/digital-agencies" },
-          { "text": "Automation", "href": "/resources/ai-tools", "external": true }
-        ] },
-        { "heading": "Resources", "links": [
-          { "text": "Articles", "href": "/resources/articles", "external": true },
-          { "text": "Glossary", "href": "/resources/glossary", "external": true },
-          { "text": "Ai Tools", "href": "/resources/ai-tools", "external": true },
-          { "text": "E-Guides", "href": "/resources/guides", "external": true }
-        ] }
+        {
+          "heading": "Solutions",
+          "links": [
+            {
+              "text": "Web Development",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/web-development"
+            },
+            {
+              "text": "Digital Marketing",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services"
+            },
+            {
+              "text": "Content Creation",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/content-creation"
+            },
+            {
+              "text": "Social Media",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/social-media-management"
+            },
+            {
+              "text": "Business Tools",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/business-tools"
+            }
+          ]
+        },
+        {
+          "heading": "Services",
+          "links": [
+            {
+              "text": "Pricing",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/prices"
+            },
+            {
+              "text": "affiliate-sales",
+              "href": "https://wordsthatsells.website/en/company/affiliate-sales"
+            },
+            {
+              "text": "Agencies",
+              "href": "https://wordsthatsells.website/en/company/digital-agencies"
+            },
+            {
+              "text": "Automation",
+              "href": "https://wordsthatsells.website/en/resources/ai-tools"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Articles",
+              "href": "https://wordsthatsells.website/en/resources/articles"
+            },
+            {
+              "text": "Glossary",
+              "href": "https://wordsthatsells.website/en/resources/glossary"
+            },
+            {
+              "text": "Ai Tools",
+              "href": "https://wordsthatsells.website/en/resources/ai-tools"
+            },
+            {
+              "text": "E-Guides",
+              "href": "https://wordsthatsells.website/en/resources/guides"
+            }
+          ]
+        }
       ],
-      "legal": [
-        { "text": "About Us", "href": "/company/about-us" },
-        { "text": "Contact Us", "href": "/company/contact-us" },
-        { "text": "Legal", "href": "/company/legal" }
-      ],
-      "copyright": "© 2025 Laboise eworker Laos enterprise. All rights reserved.\nTax ID: 275618471000 | Reg ID: 08/04 – 000001253"
+      "legal": [],
+      "copyright": "© 2025 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253"
     }
   }
 }
