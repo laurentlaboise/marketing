@@ -742,20 +742,86 @@ router.get('/menu', async (req, res) => {
       };
     });
 
-    const tree = [];
-    result.rows.forEach(row => {
-      const node = byId[row.id];
-      if (row.parent_id && byId[row.parent_id]) {
-        byId[row.parent_id].children.push(node);
-      } else {
-        tree.push(node);
-      }
-    });
-
-    respond(res, tree);
+    respond(res, buildMenuTree(result.rows));
   } catch (error) {
     console.error('Public API - Menu error:', error);
     respond(res, { error: 'Failed to load menu' }, 500);
+  }
+});
+
+// Build a nested tree (top-level items carry a `children` array) from flat rows.
+function buildMenuTree(rows) {
+  const byId = {};
+  rows.forEach(row => {
+    byId[row.id] = {
+      id: row.id,
+      label: row.label,
+      url: row.url,
+      icon_class: row.icon_class || null,
+      open_in_new_tab: row.open_in_new_tab || false,
+      css_class: row.css_class || null,
+      children: []
+    };
+  });
+  const tree = [];
+  rows.forEach(row => {
+    const node = byId[row.id];
+    if (row.parent_id && byId[row.parent_id]) {
+      byId[row.parent_id].children.push(node);
+    } else {
+      tree.push(node);
+    }
+  });
+  return tree;
+}
+
+// ==================== FOOTER (columns + settings) ====================
+
+// Everything the footer needs in one call: the link columns (menu_items
+// location 'footer'), the bottom legal links ('footer-legal'), plus the
+// admin-editable social / contact / copyright values from site_settings.
+// Any region with no data is returned empty/null so the front end can keep the
+// existing static markup as a fallback.
+router.get('/footer', async (req, res) => {
+  try {
+    const [columns, legal, settingsRows] = await Promise.all([
+      db.query(
+        `SELECT id, label, url, icon_class, parent_id, sort_order, open_in_new_tab, css_class
+         FROM menu_items WHERE is_visible = TRUE AND location = 'footer'
+         ORDER BY sort_order ASC, label ASC`
+      ),
+      db.query(
+        `SELECT id, label, url, icon_class, parent_id, sort_order, open_in_new_tab, css_class
+         FROM menu_items WHERE is_visible = TRUE AND location = 'footer-legal'
+         ORDER BY sort_order ASC, label ASC`
+      ),
+      db.query(`SELECT key, value FROM site_settings WHERE key LIKE 'footer_%'`)
+    ]);
+
+    const s = {};
+    settingsRows.rows.forEach(r => { s[r.key] = r.value || ''; });
+
+    respond(res, {
+      columns: buildMenuTree(columns.rows),
+      legal: buildMenuTree(legal.rows),
+      social: {
+        instagram: s.footer_social_instagram || '',
+        linkedin: s.footer_social_linkedin || '',
+        facebook: s.footer_social_facebook || '',
+        twitter: s.footer_social_twitter || '',
+        youtube: s.footer_social_youtube || ''
+      },
+      contact: {
+        address: s.footer_contact_address || '',
+        maps_url: s.footer_contact_maps_url || '',
+        whatsapp: s.footer_contact_whatsapp || '',
+        email: s.footer_contact_email || ''
+      },
+      copyright: s.footer_copyright || ''
+    });
+  } catch (error) {
+    console.error('Public API - Footer error:', error);
+    respond(res, { error: 'Failed to load footer' }, 500);
   }
 });
 

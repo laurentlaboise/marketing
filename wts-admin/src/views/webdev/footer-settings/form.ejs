@@ -1,0 +1,97 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Footer Settings</h1>
+        <p class="page-subtitle">Edit the non-link parts of the site footer. The footer <strong>link columns</strong> are managed under <a href="/webdev/menus">Menu Manager</a> (location <em>footer</em> and <em>footer-legal</em>).</p>
+      </div>
+    </div>
+
+    <form action="/webdev/footer-settings" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="card form-card" style="margin-bottom:1.5rem;">
+        <div class="card-body">
+          <h3 style="margin-bottom:1rem;"><i class="fas fa-share-nodes"></i> Social Links</h3>
+          <p style="color:#64748b;margin-bottom:1rem;font-size:.9rem;">Full URLs. Leave a field blank to hide that icon.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="footer_social_instagram"><i class="fab fa-instagram"></i> Instagram</label>
+              <input type="url" id="footer_social_instagram" name="footer_social_instagram" class="form-input" value="<%= settings.footer_social_instagram || '' %>" placeholder="https://www.instagram.com/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="footer_social_linkedin"><i class="fab fa-linkedin"></i> LinkedIn</label>
+              <input type="url" id="footer_social_linkedin" name="footer_social_linkedin" class="form-input" value="<%= settings.footer_social_linkedin || '' %>" placeholder="https://www.linkedin.com/company/...">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="footer_social_facebook"><i class="fab fa-facebook-square"></i> Facebook</label>
+              <input type="url" id="footer_social_facebook" name="footer_social_facebook" class="form-input" value="<%= settings.footer_social_facebook || '' %>" placeholder="https://www.facebook.com/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="footer_social_twitter"><i class="fab fa-twitter-square"></i> X / Twitter</label>
+              <input type="url" id="footer_social_twitter" name="footer_social_twitter" class="form-input" value="<%= settings.footer_social_twitter || '' %>" placeholder="https://x.com/...">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="footer_social_youtube"><i class="fab fa-youtube-square"></i> YouTube</label>
+              <input type="url" id="footer_social_youtube" name="footer_social_youtube" class="form-input" value="<%= settings.footer_social_youtube || '' %>" placeholder="https://www.youtube.com/@...">
+            </div>
+            <div class="form-group"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card form-card" style="margin-bottom:1.5rem;">
+        <div class="card-body">
+          <h3 style="margin-bottom:1rem;"><i class="fas fa-address-book"></i> Contact Details</h3>
+          <div class="form-group">
+            <label class="form-label" for="footer_contact_address">Address</label>
+            <textarea id="footer_contact_address" name="footer_contact_address" class="form-input" rows="2" placeholder="20 Rue Samsenthai, Vientiane, Vientiane Province"><%= settings.footer_contact_address || '' %></textarea>
+            <small style="color:#64748b;">Line breaks are preserved.</small>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="footer_contact_maps_url">Google Maps URL</label>
+              <input type="url" id="footer_contact_maps_url" name="footer_contact_maps_url" class="form-input" value="<%= settings.footer_contact_maps_url || '' %>" placeholder="https://www.google.com/maps/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="footer_contact_whatsapp">WhatsApp Number</label>
+              <input type="text" id="footer_contact_whatsapp" name="footer_contact_whatsapp" class="form-input" value="<%= settings.footer_contact_whatsapp || '' %>" placeholder="+856 20 5552 8034">
+              <small style="color:#64748b;">Displayed as-is; the wa.me link uses the digits only.</small>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="footer_contact_email">Email</label>
+            <input type="email" id="footer_contact_email" name="footer_contact_email" class="form-input" value="<%= settings.footer_contact_email || '' %>" placeholder="info@wordsthatsells.website">
+          </div>
+        </div>
+      </div>
+
+      <div class="card form-card" style="margin-bottom:1.5rem;">
+        <div class="card-body">
+          <h3 style="margin-bottom:1rem;"><i class="fas fa-copyright"></i> Copyright</h3>
+          <div class="form-group">
+            <label class="form-label" for="footer_copyright">Copyright / legal line</label>
+            <textarea id="footer_copyright" name="footer_copyright" class="form-input" rows="2" placeholder="© 2025 Your Company. All rights reserved. Tax ID: ... | Reg ID: ..."><%= settings.footer_copyright || '' %></textarea>
+            <small style="color:#64748b;">Line breaks are preserved.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions form-actions-sticky">
+        <a href="/webdev/menus" class="btn btn-secondary">Back to Menu Manager</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Footer Settings</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>
