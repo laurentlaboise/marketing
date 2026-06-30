@@ -3,8 +3,9 @@
     color: var(--color-white); 
     padding: var(--spacing-3xl) 0; 
 }
-.footer a { 
-    color: var(--color-white); 
+.footer a {
+    color: var(--color-white);
+    text-decoration: none;
 }
 .footer a:hover, .footer-contact-item:hover span, .footer-contact-item:hover i { 
     color: var(--color-accent-magenta); 
