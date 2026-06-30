@@ -876,6 +876,70 @@ router.post('/footers/variants', async (req, res) => {
   res.redirect('/webdev/footers');
 });
 
+// Seed a (non-main) variant's content from Main, so a freshly-created variant
+// starts as a working copy the user can customize — instead of being empty
+// (an empty variant renders nothing, so the build leaves the page's existing
+// footer in place, which looks like "the change didn't take"). Copies the
+// footer settings, the column items and the legal-bar items, preserving the
+// parent/child (heading → links) structure. Idempotent: replaces any existing
+// content at the destination locations.
+router.post('/footers/variants/:slug/seed-from-main', async (req, res) => {
+  const slug = slugify(req.params.slug);
+  try {
+    if (!slug || slug === 'main') {
+      req.session.errorMessage = 'Pick a non-main variant to copy into.';
+      return res.redirect('/webdev/footers');
+    }
+    // 1) Settings: footer_<field>  ->  footer:<slug>:<field>
+    const srcPrefix = footerSettingPrefix('main');
+    const dstPrefix = footerSettingPrefix(slug);
+    for (const field of FOOTER_SETTING_FIELDS) {
+      const r = await db.query(`SELECT value FROM site_settings WHERE key = $1`, [srcPrefix + field]);
+      const value = r.rows[0] ? r.rows[0].value : null;
+      await db.query(
+        `INSERT INTO site_settings (key, value, updated_at)
+         VALUES ($1, $2, CURRENT_TIMESTAMP)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
+        [dstPrefix + field, value]
+      );
+    }
+    // 2) Menu items: footer/footer-legal  ->  footer:<slug>/footer-legal:<slug>
+    const locPairs = [
+      [footerColumnLocation('main'), footerColumnLocation(slug)],
+      [footerLegalLocation('main'), footerLegalLocation(slug)],
+    ];
+    for (const [srcLoc, dstLoc] of locPairs) {
+      await db.query(`DELETE FROM menu_items WHERE location = $1`, [dstLoc]); // avoid duplicates
+      const src = (await db.query(
+        `SELECT * FROM menu_items WHERE location = $1 ORDER BY parent_id NULLS FIRST, sort_order ASC`,
+        [srcLoc]
+      )).rows;
+      const idMap = {};
+      // Parents (column headings) first, so children can point at the new ids.
+      for (const it of src.filter(r => r.parent_id == null)) {
+        const ins = await db.query(
+          `INSERT INTO menu_items (label, url, icon_class, parent_id, location, sort_order, is_visible, open_in_new_tab, css_class)
+           VALUES ($1, $2, $3, NULL, $4, $5, $6, $7, $8) RETURNING id`,
+          [it.label, it.url, it.icon_class, dstLoc, it.sort_order, it.is_visible, it.open_in_new_tab, it.css_class]
+        );
+        idMap[it.id] = ins.rows[0].id;
+      }
+      for (const it of src.filter(r => r.parent_id != null)) {
+        await db.query(
+          `INSERT INTO menu_items (label, url, icon_class, parent_id, location, sort_order, is_visible, open_in_new_tab, css_class)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [it.label, it.url, it.icon_class, idMap[it.parent_id] || null, dstLoc, it.sort_order, it.is_visible, it.open_in_new_tab, it.css_class]
+        );
+      }
+    }
+    req.session.successMessage = `Copied the Main footer into "${slug}". Edit it under Content / Columns, then Publish.`;
+  } catch (error) {
+    console.error('Seed footer variant error:', error);
+    req.session.errorMessage = 'Failed to copy from Main.';
+  }
+  res.redirect('/webdev/footers');
+});
+
 router.post('/footers/variants/:slug/delete', async (req, res) => {
   const slug = slugify(req.params.slug);
   try {
