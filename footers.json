@@ -2,12 +2,8 @@
   "default": "main",
   "assignments": [
     {
-      "match": "/en/resources",
-      "variant": "keep"
-    },
-    {
-      "match": "/en/resources/*",
-      "variant": "keep"
+      "match": "https://wordsthatsells.website/en/resources/guides/",
+      "variant": "main"
     }
   ],
   "variants": {
