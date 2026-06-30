@@ -92,14 +92,34 @@ function renderBottom(variant) {
 
 // ── Footer-scoped DOM-lite surgery (no parser dependency) ──────
 
+// Does a start tag carry the given class? Uses a single-quantifier regex (no
+// nested unbounded quantifiers) so it can't backtrack pathologically.
+function tagHasClass(tag, className) {
+  const m = /class\s*=\s*"([^"]*)"/i.exec(tag);
+  return !!m && m[1].split(/\s+/).indexOf(className) !== -1;
+}
+
+// Find the first <div ...> whose class contains className, scanning by index
+// (no HTML-matching regex). Returns { innerStart } or null.
+function findOpenDiv(html, className, fromIndex) {
+  let i = fromIndex || 0;
+  for (;;) {
+    const open = html.indexOf('<div', i);
+    if (open === -1) return null;
+    const tagEnd = html.indexOf('>', open);
+    if (tagEnd === -1) return null;
+    if (tagHasClass(html.slice(open, tagEnd + 1), className)) return { innerStart: tagEnd + 1 };
+    i = tagEnd + 1;
+  }
+}
+
 // Replace the inner HTML of the first <div class="<className>"> ... </div> in
 // `html`, matching div nesting so the correct closing tag is found. Returns the
 // new html, or null if the region was not found.
 function replaceDivInner(html, className, newInner) {
-  const open = new RegExp('<div[^>]*class="[^"]*\\b' + className + '\\b[^"]*"[^>]*>', 'i');
-  const m = open.exec(html);
-  if (!m) return null;
-  const innerStart = m.index + m[0].length;
+  const found = findOpenDiv(html, className, 0);
+  if (!found) return null;
+  const innerStart = found.innerStart;
   // Walk forward tracking <div ...> / </div> depth (starting at depth 1).
   const tagRe = /<\/?div\b[^>]*>/gi;
   tagRe.lastIndex = innerStart;
@@ -110,6 +130,25 @@ function replaceDivInner(html, className, newInner) {
   }
   if (innerEnd === -1) return null;
   return html.slice(0, innerStart) + newInner + html.slice(innerEnd);
+}
+
+// Locate the site footer block (<footer class="footer"> … </footer>) by index,
+// without a backtracking-prone HTML regex. Returns { start, end, block } or null.
+function findFooterBlock(html) {
+  let i = 0;
+  for (;;) {
+    const open = html.indexOf('<footer', i);
+    if (open === -1) return null;
+    const tagEnd = html.indexOf('>', open);
+    if (tagEnd === -1) return null;
+    if (tagHasClass(html.slice(open, tagEnd + 1), 'footer')) {
+      const close = html.indexOf('</footer>', tagEnd + 1);
+      if (close === -1) return null;
+      const end = close + '</footer>'.length;
+      return { start: open, end, block: html.slice(open, end) };
+    }
+    i = tagEnd + 1;
+  }
 }
 
 function injectIntoFooter(footerHtml, variant) {
@@ -171,7 +210,6 @@ function main() {
   }
   const config = JSON.parse(fs.readFileSync(CONFIG, 'utf8')); // throws on malformed → fails build
 
-  const footerRe = /<footer\b[^>]*class="[^"]*\bfooter\b[^"]*"[^>]*>[\s\S]*?<\/footer>/i;
   const stats = { injected: 0, kept: 0, noFooter: 0, errored: 0 };
   const byVariant = {};
 
@@ -184,13 +222,13 @@ function main() {
         continue;
       }
       const html = fs.readFileSync(file, 'utf8');
-      const fm = footerRe.exec(html);
+      const fm = findFooterBlock(html);
       if (!fm) { stats.noFooter++; continue; }
 
-      const newFooter = injectIntoFooter(fm[0], config.variants[variantName]);
+      const newFooter = injectIntoFooter(fm.block, config.variants[variantName]);
       if (newFooter == null) { stats.noFooter++; continue; }
 
-      fs.writeFileSync(file, html.slice(0, fm.index) + newFooter + html.slice(fm.index + fm[0].length));
+      fs.writeFileSync(file, html.slice(0, fm.start) + newFooter + html.slice(fm.end));
       stats.injected++;
       byVariant[variantName] = (byVariant[variantName] || 0) + 1;
     } catch (e) {
