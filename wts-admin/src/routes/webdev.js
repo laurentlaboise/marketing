@@ -838,7 +838,18 @@ router.post('/footer-settings', async (req, res) => {
 
 router.get('/footers', async (req, res) => {
   try {
+    const { buildVariant } = require('../lib/footer-export');
     const variants = await listFooterVariants();
+    // Flag empty variants — an empty variant renders nothing, so the build
+    // leaves a page's existing footer in place (looks like "no change"). The
+    // view warns and points the user at "Copy from Main".
+    for (const v of variants) {
+      try {
+        const b = await buildVariant(v.slug);
+        v.isEmpty = !((b.social && b.social.length) || (b.contact && b.contact.length) ||
+                      (b.columns && b.columns.length) || (b.legal && b.legal.length) || b.copyright);
+      } catch (e) { v.isEmpty = false; }
+    }
     const assignments = (await db.query(
       `SELECT id, pattern, variant_slug, sort_order FROM footer_assignments ORDER BY sort_order ASC, created_at ASC`
     )).rows;

@@ -28,7 +28,7 @@
             <tbody>
               <% variants.forEach(function(v){ %>
               <tr>
-                <td data-label="Name"><strong><%= v.name %></strong> <% if (v.is_default) { %><span class="status-badge active">default</span><% } %></td>
+                <td data-label="Name"><strong><%= v.name %></strong> <% if (v.is_default) { %><span class="status-badge active">default</span><% } %><% if (v.isEmpty) { %> <span class="status-badge" style="background:#fef3c7;color:#92400e;" title="This variant has no content, so pages assigned to it keep their existing footer. Use 'Copy from Main' to start.">empty</span><% } %></td>
                 <td data-label="Slug"><code style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.8rem;"><%= v.slug %></code></td>
                 <% var colLoc = v.slug === 'main' ? 'footer' : 'footer:' + v.slug; %>
                 <td data-label="Edit">
