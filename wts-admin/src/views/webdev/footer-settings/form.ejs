@@ -91,6 +91,22 @@
         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Footer Settings</button>
       </div>
     </form>
+
+    <div class="card" style="margin-top:1.5rem;">
+      <div class="card-body">
+        <h3 style="margin-bottom:0.5rem;"><i class="fas fa-rocket"></i> Publish to the live site</h3>
+        <p style="color:#64748b;margin-bottom:1rem;font-size:0.9rem;">
+          The footer is rendered into the site's HTML at build time (for SEO). After you
+          <strong>Save</strong> your changes here and in <a href="/webdev/menus">Menu Manager</a>,
+          click <strong>Publish</strong> to push them to the live site. This commits the footer to the
+          repository and triggers a rebuild &mdash; changes appear in a few minutes.
+        </p>
+        <form action="/webdev/footer-settings/publish" method="POST" onsubmit="return confirm('Publish the current footer to the live site? This will trigger a site rebuild.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-rocket"></i> Publish footer to site</button>
+        </form>
+      </div>
+    </div>
   </div>
 </main>
 

@@ -797,6 +797,43 @@ router.post('/footer-settings', async (req, res) => {
   }
 });
 
+// Publish the footer to the live site: render the admin footer into the
+// build-time footers.json and commit it to the repo. The commit triggers the
+// GitHub Pages rebuild, which injects the footer into the static HTML.
+router.post('/footer-settings/publish', async (req, res) => {
+  try {
+    const { buildMainVariant, mergeFootersConfig } = require('../lib/footer-export');
+    const { getFile, putFile } = require('../lib/github-content');
+
+    const variant = await buildMainVariant();
+
+    // Preserve existing variants/assignments by merging into the current file.
+    const current = await getFile('footers.json');
+    let existing = null;
+    if (current && current.content) {
+      try { existing = JSON.parse(current.content); } catch (e) { existing = null; }
+    }
+    const config = mergeFootersConfig(existing, 'main', variant);
+    const json = JSON.stringify(config, null, 2) + '\n';
+
+    const result = await putFile('footers.json', json, 'Update footer (main) via admin', current ? current.sha : null);
+
+    if (result.ok) {
+      req.session.successMessage = 'Footer published. The site will rebuild and update shortly.';
+    } else if (result.reason === 'no_token') {
+      req.session.errorMessage = 'Footer not published: GITHUB_TOKEN is not configured on the server.';
+    } else if (result.reason === 'auth') {
+      req.session.errorMessage = 'Footer not published: the GitHub token is invalid or lacks write access.';
+    } else {
+      req.session.errorMessage = 'Footer not published: ' + (result.reason || 'unknown error') + '.';
+    }
+  } catch (error) {
+    console.error('Publish footer error:', error);
+    req.session.errorMessage = 'Failed to publish footer.';
+  }
+  res.redirect('/webdev/footer-settings');
+});
+
 // ==================== FORM TEMPLATES (Form Builder) ====================
 
 router.get('/form-templates', async (req, res) => {

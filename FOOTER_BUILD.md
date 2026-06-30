@@ -40,12 +40,37 @@ existing footer. Verified with a real `npm run build`:
 
 ## Editing the footer
 
-- Today: edit `footers.json` and redeploy (the build re-injects).
-- **Stage 2 (planned):** manage variants and per-page assignments in the admin,
-  with a **Publish** button that regenerates `footers.json` and commits it via
-  the GitHub API (the same mechanism the admin already uses to push images to
-  the CDN). That commit triggers the Pages rebuild, so edits go live on the next
-  build — the standard trade-off for crawlable, server-delivered HTML.
+- **From the admin (recommended):** edit the footer under **Connections →
+  Footer Settings** (social / contact / copyright) and **Menu Manager** (the
+  footer link columns), then click **Publish footer to site**. That renders the
+  admin data into `footers.json` and commits it to the repo via the GitHub API
+  (the same mechanism the admin uses to push images to the CDN). The commit
+  triggers the Pages rebuild, so the footer goes live on the next build — the
+  standard trade-off for crawlable, server-delivered HTML.
+  - Requires `GITHUB_TOKEN` (Contents: read & write) in the admin's Railway env
+    — the same token used for image uploads. Without it, Publish reports that
+    the token is missing and changes nothing.
+  - Publish updates the `main` variant and **preserves** the `assignments` and
+    any other variants already in `footers.json`.
+- **By hand:** edit `footers.json` directly and redeploy.
+
+### Implementation
+- `wts-admin/src/lib/footer-export.js` — builds the `main` variant from the
+  admin data (`menu_items` + `site_settings`) and merges it into the existing
+  `footers.json`.
+- `wts-admin/src/lib/github-content.js` — minimal GitHub Contents API get/put.
+- `POST /webdev/footer-settings/publish` — wires the two together.
+
+### Known limitation
+The admin stores a plain WhatsApp number and email, so Publish writes
+`https://wa.me/<digits>` and `mailto:<email>` — it does **not** reproduce the
+hand-tuned prefilled WhatsApp message / email subject+body in the current
+homepage footer. (Add fields for those later if needed.)
+
+## Stage 2 — still to do
+- Admin UI to manage **multiple named variants** and edit **per-page
+  assignments** (the data model + injector already support them; only the
+  default `main` variant is editable in the admin today).
 
 ## Scripts
 
