@@ -55,6 +55,24 @@
       </div>
     </div>
 
+    <% var saved = (typeof savedServices !== 'undefined' && savedServices) ? savedServices : []; %>
+    <% if (saved.length > 0) { %>
+    <!-- Saved services: what this client is interested in -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0.85rem 1rem;">
+        <h3 style="margin:0 0 0.6rem;color:var(--text-primary,#1a1a2e);font-size:1.05rem;"><i class="fas fa-star" style="color:#d62b83;"></i> Saved Services (<%= saved.length %>)</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+          <% saved.forEach((s) => { %>
+          <span style="display:inline-flex;align-items:center;gap:0.35rem;background:#fdf2f8;border:1px solid #fbcfe8;border-radius:999px;padding:0.3rem 0.8rem;font-size:0.82rem;font-weight:600;color:#9d174d;">
+            <%= s.name %><%= s.billing_period ? ' · ' + s.billing_period : '' %>
+          </span>
+          <% }); %>
+        </div>
+        <p style="margin:0.6rem 0 0;font-size:0.78rem;color:#888;">Services this client added to their plan — a ready-made talking point for your next follow-up.</p>
+      </div>
+    </div>
+    <% } %>
+
     <!-- Orders -->
     <div class="card">
       <div class="card-body" style="padding:0;">

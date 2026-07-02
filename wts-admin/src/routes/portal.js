@@ -139,7 +139,7 @@ router.get('/auth', loginLimiter, async (req, res) => {
 
 router.get('/', requireCustomer, async (req, res) => {
   try {
-    const [customer, orders] = await Promise.all([
+    const [customer, orders, saved] = await Promise.all([
       db.query('SELECT * FROM customers WHERE id = $1', [req.session.customerId]),
       db.query(
         `SELECT o.*, p.name AS product_name, p.download_url, p.product_type
@@ -148,16 +148,24 @@ router.get('/', requireCustomer, async (req, res) => {
          ORDER BY o.created_at DESC
          LIMIT 100`,
         [req.session.customerId]
-      )
+      ),
+      db.query(
+        `SELECT s.billing_period, p.name, p.slug, p.service_page
+         FROM saved_services s JOIN products p ON p.id = s.product_id
+         WHERE s.customer_id = $1
+         ORDER BY s.created_at DESC`,
+        [req.session.customerId]
+      ).catch(() => ({ rows: [] }))
     ]);
     if (!customer.rows.length) {
       req.session.destroy(() => {});
       return res.redirect('/portal/login');
     }
     res.render('portal/orders', {
-      title: 'My Orders - Words That Sells',
+      title: 'My Account - Words That Sells',
       customer: customer.rows[0],
-      orders: orders.rows
+      orders: orders.rows,
+      savedServices: saved.rows
     });
   } catch (e) {
     console.error('Portal orders error:', e);

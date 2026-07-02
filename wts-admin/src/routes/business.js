@@ -827,7 +827,8 @@ router.get('/customers', async (req, res) => {
         `SELECT c.*,
                 COUNT(o.id) AS order_count,
                 COUNT(o.id) FILTER (WHERE o.status = 'awaiting_payment') AS awaiting_count,
-                COALESCE(SUM(o.amount) FILTER (WHERE o.status = 'completed'), 0) AS total_spent
+                COALESCE(SUM(o.amount) FILTER (WHERE o.status = 'completed'), 0) AS total_spent,
+                (SELECT COUNT(*) FROM saved_services s WHERE s.customer_id = c.id) AS saved_count
          FROM customers c
          LEFT JOIN orders o ON o.customer_id = c.id
          ${where}
@@ -899,18 +900,28 @@ router.get('/customers/:id', async (req, res) => {
       req.session.errorMessage = 'Client not found';
       return res.redirect('/business/customers');
     }
-    const orders = await db.query(
-      `SELECT o.*, p.name AS product_name
-       FROM orders o LEFT JOIN products p ON o.product_id = p.id
-       WHERE o.customer_id = $1
-       ORDER BY o.created_at DESC
-       LIMIT 100`,
-      [req.params.id]
-    );
+    const [orders, saved] = await Promise.all([
+      db.query(
+        `SELECT o.*, p.name AS product_name
+         FROM orders o LEFT JOIN products p ON o.product_id = p.id
+         WHERE o.customer_id = $1
+         ORDER BY o.created_at DESC
+         LIMIT 100`,
+        [req.params.id]
+      ),
+      db.query(
+        `SELECT s.billing_period, s.created_at, p.name, p.slug
+         FROM saved_services s JOIN products p ON p.id = s.product_id
+         WHERE s.customer_id = $1
+         ORDER BY s.created_at DESC`,
+        [req.params.id]
+      ).catch(() => ({ rows: [] }))
+    ]);
     res.render('business/customers/detail', {
       title: `${customer.rows[0].email} - WTS Admin`,
       customer: customer.rows[0],
       orders: orders.rows,
+      savedServices: saved.rows,
       currentPage: 'customers'
     });
   } catch (error) {

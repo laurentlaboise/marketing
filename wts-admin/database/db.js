@@ -859,6 +859,20 @@ const db = {
         )
       `);
 
+      // Services a signed-in customer saved to their plan ("Add to My
+      // Services"). One row per customer/product; billing_period remembers
+      // which option they were looking at.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS saved_services (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+          product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+          billing_period VARCHAR(20),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE (customer_id, product_id)
+        )
+      `);
+
       // Price Models table
       await client.query(`
         CREATE TABLE IF NOT EXISTS price_models (

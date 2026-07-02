@@ -81,6 +81,9 @@
                   <% if (parseInt(c.awaiting_count) > 0) { %>
                   <span style="font-size:0.72rem;color:#92400e;background:#fef3c7;border-radius:999px;padding:0.1rem 0.5rem;margin-left:0.3rem;"><%= c.awaiting_count %> awaiting</span>
                   <% } %>
+                  <% if (typeof c.saved_count !== 'undefined' && parseInt(c.saved_count) > 0) { %>
+                  <br><small style="color:#d62b83;font-weight:600;"><i class="fas fa-star" style="font-size:0.65rem;"></i> <%= c.saved_count %> saved</small>
+                  <% } %>
                 </td>
                 <td data-label="Total Spent" style="white-space:nowrap;">
                   <%= parseFloat(c.total_spent) > 0 ? parseFloat(c.total_spent).toFixed(2) + ' USD' : '-' %>

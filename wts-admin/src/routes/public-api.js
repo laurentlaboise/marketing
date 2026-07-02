@@ -1018,6 +1018,77 @@ router.get('/portal-me', (req, res) => {
   respond(res, { signed_in: false });
 });
 
+// ==================== MY SERVICES (signed-in customers) ====================
+
+// These endpoints authenticate by the portal session cookie. /api/public is
+// exempt from the synchronizer-token CSRF check, so every mutating route
+// here MUST pass the Origin allow-list — that is what blocks cross-site
+// browser posts against the session.
+const requirePortalSession = (req, res) => {
+  if (req.session && req.session.customerId) return true;
+  respond(res, { error: 'Sign in required' }, 401);
+  return false;
+};
+
+router.get('/my-services', async (req, res) => {
+  if (!requirePortalSession(req, res)) return;
+  try {
+    const result = await db.query(
+      `SELECT s.product_id, s.billing_period, s.created_at,
+              p.name, p.slug, p.service_page
+       FROM saved_services s
+       JOIN products p ON p.id = s.product_id
+       WHERE s.customer_id = $1
+       ORDER BY s.created_at DESC`,
+      [req.session.customerId]
+    );
+    respond(res, { services: result.rows });
+  } catch (e) {
+    console.error('My services list error:', e);
+    respond(res, { error: 'Failed to load services' }, 500);
+  }
+});
+
+router.post('/my-services', async (req, res) => {
+  if (!isOriginAllowed(req)) return respond(res, { error: 'Origin not allowed.' }, 403);
+  if (!requirePortalSession(req, res)) return;
+  try {
+    const { product_id, billing_period } = req.body;
+    if (!product_id) return respond(res, { error: 'product_id is required' }, 400);
+    const product = await db.query(
+      "SELECT id FROM products WHERE id = $1 AND status = 'active'", [product_id]
+    );
+    if (!product.rows.length) return respond(res, { error: 'Product not found' }, 404);
+    const period = (billing_period === 'monthly' || billing_period === 'yearly') ? billing_period : null;
+    await db.query(
+      `INSERT INTO saved_services (customer_id, product_id, billing_period)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (customer_id, product_id) DO UPDATE SET billing_period = EXCLUDED.billing_period`,
+      [req.session.customerId, product_id, period]
+    );
+    respond(res, { ok: true });
+  } catch (e) {
+    console.error('My services save error:', e);
+    respond(res, { error: 'Failed to save service' }, 500);
+  }
+});
+
+router.post('/my-services/remove', async (req, res) => {
+  if (!isOriginAllowed(req)) return respond(res, { error: 'Origin not allowed.' }, 403);
+  if (!requirePortalSession(req, res)) return;
+  try {
+    if (!req.body.product_id) return respond(res, { error: 'product_id is required' }, 400);
+    await db.query(
+      'DELETE FROM saved_services WHERE customer_id = $1 AND product_id = $2',
+      [req.session.customerId, req.body.product_id]
+    );
+    respond(res, { ok: true });
+  } catch (e) {
+    console.error('My services remove error:', e);
+    respond(res, { error: 'Failed to remove service' }, 500);
+  }
+});
+
 // ==================== PORTAL SIGNUP ====================
 
 // Public account creation from the website (e.g. the Request-a-Quote modal's
