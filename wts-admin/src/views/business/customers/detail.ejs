@@ -1,0 +1,109 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" style="word-break:break-all;"><%= customer.email %></h1>
+        <p class="page-subtitle">
+          <%= customer.name ? customer.name + ' · ' : '' %>
+          Client since <%= new Date(customer.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+          · Last sign-in: <%= customer.last_login_at ? new Date(customer.last_login_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'never' %>
+          · <span class="status-badge <%= customer.status === 'active' ? 'active' : 'inactive' %>"><%= customer.status %></span>
+        </p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/customers" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> All Clients</a>
+      </div>
+    </div>
+
+    <!-- Account actions -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0.85rem 1rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+        <form method="POST" action="/business/customers/<%= customer.id %>/send-login" style="display:inline;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-primary btn-sm" <%= customer.status !== 'active' ? 'disabled' : '' %>>
+            <i class="fas fa-envelope"></i> Email Sign-in Link
+          </button>
+        </form>
+        <% if (customer.status === 'active') { %>
+        <form method="POST" action="/business/customers/<%= customer.id %>/status" style="display:inline;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="status" value="disabled">
+          <button type="submit" class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;">
+            <i class="fas fa-user-slash"></i> Disable Account
+          </button>
+        </form>
+        <% } else { %>
+        <form method="POST" action="/business/customers/<%= customer.id %>/status" style="display:inline;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="status" value="active">
+          <button type="submit" class="btn btn-sm" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0;">
+            <i class="fas fa-user-check"></i> Enable Account
+          </button>
+        </form>
+        <% } %>
+        <form method="POST" action="/business/customers/<%= customer.id %>/delete" style="display:inline;margin-left:auto;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-sm" data-confirm-delete style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;">
+            <i class="fas fa-trash"></i> Delete Account
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Orders -->
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <h3 style="padding:1rem 1rem 0.25rem;color:var(--text-primary,#1a1a2e);font-size:1.05rem;"><i class="fas fa-receipt"></i> Orders (<%= orders.length %>)</h3>
+        <% if (orders.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr><th>Date</th><th>Product</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <% orders.forEach((order) => {
+                const meta = order.metadata || {};
+                const statusColors = { completed: '#16a34a', awaiting_payment: '#d97706', pending: '#64748b', expired: '#94a3b8', cancelled: '#b91c1c' };
+              %>
+              <tr>
+                <td data-label="Date" style="white-space:nowrap;font-size:0.85rem;"><%= new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+                <td data-label="Product"><strong><%= order.product_name || '(deleted product)' %></strong></td>
+                <td data-label="Amount" style="white-space:nowrap;">
+                  <%= order.amount != null ? parseFloat(order.amount).toFixed(2) + ' ' + order.currency : '-' %>
+                  <% if (meta.price_lak) { %><br><small style="color:#c8102e;font-weight:600;"><%= Math.round(meta.price_lak).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') %> LAK</small><% } %>
+                </td>
+                <td data-label="Method">
+                  <% if (order.payment_method === 'bcel_qr') { %>
+                    <span style="font-weight:800;color:#c8102e;font-size:0.72rem;border:1.5px solid #c8102e;border-radius:4px;padding:0.1rem 0.35rem;white-space:nowrap;">BCEL OnePay</span>
+                  <% } else { %>
+                    <i class="fab fa-stripe" style="color:#635bff;font-size:1.4rem;" title="Stripe"></i>
+                  <% } %>
+                </td>
+                <td data-label="Reference">
+                  <% if (meta.reference) { %><code style="background:#fef2f2;color:#c8102e;padding:0.15rem 0.4rem;border-radius:4px;font-weight:700;"><%= meta.reference %></code><% } else { %><span style="color:#999;">-</span><% } %>
+                </td>
+                <td data-label="Status">
+                  <span style="color:<%= statusColors[order.status] || '#64748b' %>;font-weight:600;font-size:0.85rem;white-space:nowrap;">
+                    <%= order.status === 'awaiting_payment' ? 'Awaiting payment' : order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                  </span>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <p style="padding:0.5rem 1rem 1rem;font-size:0.82rem;color:#888;">Mark BCEL payments as paid from the <a href="/business/orders?method=bcel_qr&status=awaiting_payment" style="color:#d62b83;">Orders page</a>.</p>
+        <% } else { %>
+        <p style="padding:0 1rem 1.5rem;color:#888;">No orders linked to this account yet. Orders placed with <strong><%= customer.email %></strong> attach automatically.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>
