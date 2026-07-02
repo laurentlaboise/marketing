@@ -1005,6 +1005,39 @@ router.get('/form-buttons', async (req, res) => {
   }
 });
 
+// ==================== PORTAL SIGNUP ====================
+
+// Public account creation from the website (e.g. the Request-a-Quote modal's
+// "create an account" path): upsert the customer and email a magic sign-in
+// link. Response is intentionally neutral — it never reveals whether the
+// address already had an account.
+const portalSignupLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 6,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many sign-up attempts, please try again later.' }
+});
+
+router.post('/portal-signup', portalSignupLimiter, async (req, res) => {
+  if (!isOriginAllowed(req)) {
+    return respond(res, { error: 'Origin not allowed.' }, 403);
+  }
+  const email = String(req.body.email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 255) {
+    return respond(res, { error: 'A valid email is required.' }, 400);
+  }
+  try {
+    const { upsertCustomer, issueLoginLink } = require('./portal');
+    const customer = await upsertCustomer(email, String(req.body.name || '').trim().slice(0, 255) || null);
+    await issueLoginLink(customer);
+  } catch (e) {
+    console.error('Portal signup error:', e);
+    // Fall through to the neutral response.
+  }
+  respond(res, { ok: true });
+});
+
 // ==================== FORM SUBMISSIONS ====================
 
 // Stricter rate limit for form submissions (10 per 15 min per IP)

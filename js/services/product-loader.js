@@ -399,68 +399,229 @@
 
   function onRequestQuote(e) {
     e.preventDefault();
-    openQuote(this.getAttribute('data-product-name') || '', this.getAttribute('data-cta-form-type') || '', this.getAttribute('data-quantity') || '');
+    openQuote(
+      this.getAttribute('data-product-name') || '',
+      this.getAttribute('data-cta-form-type') || '',
+      this.getAttribute('data-quantity') || '',
+      this.getAttribute('data-billing-period') || ''
+    );
   }
 
-  // Open the on-page enquiry modal pre-filled with the product, or fall back
-  // to the contact page if this page has no modal. formType lets each product
-  // route its CTA to a specific admin form; it defaults to 'consultation'.
-  // quantity (optional) is appended to the message for volume-priced products.
-  function openQuote(productName, formType, quantity) {
+  // ── Request-a-Quote modal ────────────────────────────────────
+  // Self-contained two-path popup: (1) quick quote form that lands in the
+  // admin Message Board, or (2) create a portal account via magic link and
+  // build a services plan. Injected styles so it works on every page.
+
+  var QUOTE_MODAL_CSS =
+    '.wts-qm-overlay{position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:10060;display:flex;align-items:center;justify-content:center;padding:1rem;animation:wtsQmFade .18s ease;}' +
+    '@keyframes wtsQmFade{from{opacity:0}to{opacity:1}}' +
+    '@keyframes wtsQmUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}' +
+    '.wts-qm-card{background:#fff;border-radius:18px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto;padding:1.6rem;box-shadow:0 25px 60px rgba(0,0,0,.35);animation:wtsQmUp .22s ease;}' +
+    '.wts-qm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem;margin-bottom:.25rem;}' +
+    '.wts-qm-head h3{margin:0;font-size:1.2rem;color:#1a1a2e;line-height:1.3;}' +
+    '.wts-qm-close{background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;line-height:1;padding:0 0 .25rem .25rem;flex:none;}' +
+    '.wts-qm-close:hover{color:#334155;}' +
+    '.wts-qm-product{font-size:.9rem;color:#64748b;margin:0 0 1.1rem;}' +
+    '.wts-qm-product strong{color:#334155;}' +
+    '.wts-qm-choices{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}' +
+    '@media (max-width:440px){.wts-qm-choices{grid-template-columns:1fr;}}' +
+    '.wts-qm-choice{border:1.5px solid #e2e8f0;border-radius:14px;background:#fff;padding:1.1rem .9rem;text-align:left;cursor:pointer;font-family:inherit;transition:border-color .15s,box-shadow .15s,transform .15s;}' +
+    '.wts-qm-choice:hover{border-color:var(--accent-color,#d62b83);box-shadow:0 6px 18px rgba(214,43,131,.12);transform:translateY(-1px);}' +
+    '.wts-qm-choice .qm-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:.6rem;}' +
+    '.wts-qm-choice h4{margin:0 0 .3rem;font-size:.98rem;color:#1a1a2e;}' +
+    '.wts-qm-choice p{margin:0;font-size:.8rem;color:#64748b;line-height:1.5;}' +
+    '.wts-qm-label{display:block;font-size:.83rem;font-weight:600;color:#334155;margin:0 0 .3rem;}' +
+    '.wts-qm-input,.wts-qm-textarea{width:100%;box-sizing:border-box;padding:.65rem .8rem;border:1px solid #cbd5e1;border-radius:10px;font-size:.95rem;font-family:inherit;color:#1a1a2e;background:#fff;margin-bottom:.85rem;}' +
+    '.wts-qm-input:focus,.wts-qm-textarea:focus{outline:2px solid var(--accent-color,#d62b83);outline-offset:-1px;border-color:transparent;}' +
+    '.wts-qm-textarea{resize:vertical;min-height:84px;}' +
+    '.wts-qm-submit{width:100%;border:none;border-radius:10px;padding:.8rem;font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;background:var(--accent-color,#d62b83);color:#fff;transition:background .15s;}' +
+    '.wts-qm-submit:hover{background:#b91c6f;}' +
+    '.wts-qm-submit:disabled{opacity:.65;cursor:default;}' +
+    '.wts-qm-back{background:none;border:none;color:#64748b;font-size:.85rem;cursor:pointer;font-family:inherit;padding:0;margin-bottom:.9rem;}' +
+    '.wts-qm-back:hover{color:var(--accent-color,#d62b83);}' +
+    '.wts-qm-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:10px;padding:.6rem .85rem;font-size:.85rem;margin-bottom:.85rem;display:none;}' +
+    '.wts-qm-success{text-align:center;padding:1rem 0 .5rem;}' +
+    '.wts-qm-success .qm-check{width:56px;height:56px;border-radius:50%;background:#dcfce7;color:#16a34a;font-size:1.6rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;}' +
+    '.wts-qm-success h4{margin:0 0 .5rem;font-size:1.1rem;color:#1a1a2e;}' +
+    '.wts-qm-success p{margin:0 0 1.25rem;font-size:.9rem;color:#64748b;line-height:1.6;}' +
+    '.wts-qm-hint{font-size:.78rem;color:#94a3b8;margin:.6rem 0 0;line-height:1.5;text-align:center;}';
+
+  function ensureQuoteStyles() {
+    if (document.getElementById('wts-quote-modal-styles')) return;
+    var st = document.createElement('style');
+    st.id = 'wts-quote-modal-styles';
+    st.textContent = QUOTE_MODAL_CSS;
+    document.head.appendChild(st);
+  }
+
+  function closeQuoteModal() {
+    var overlay = document.getElementById('wts-qm-overlay');
+    if (overlay) overlay.remove();
+    document.removeEventListener('keydown', quoteEscHandler);
+  }
+  function quoteEscHandler(e) { if (e.key === 'Escape') closeQuoteModal(); }
+
+  // quantity/billing (optional) travel into the message + metadata so the
+  // submission tells you exactly what was being looked at.
+  function openQuote(productName, formType, quantity, billing) {
+    ensureQuoteStyles();
+    closeQuoteModal();
+    closePanel();
+
     var ft = formType || 'consultation';
-    var msg = productName ? 'I would like a quote / consultation about: ' + productName : '';
-    if (quantity && msg) msg += ' (quantity: ' + quantity + ')';
-    // Prefer the shared modal API (loads the chosen admin form on demand).
-    // Falls back to direct DOM handling if it isn't available.
-    if (window.WTSQuote && typeof window.WTSQuote.open === 'function') {
-      closePanel();
-      window.WTSQuote.open(ft, {
-        service: productName,
-        message: msg
+    var overlay = document.createElement('div');
+    overlay.id = 'wts-qm-overlay';
+    overlay.className = 'wts-qm-overlay';
+    overlay.innerHTML =
+      '<div class="wts-qm-card" role="dialog" aria-label="Request a quote">' +
+        '<div class="wts-qm-head"><h3 id="wts-qm-title">Request a Quote</h3>' +
+        '<button type="button" class="wts-qm-close" aria-label="Close">&times;</button></div>' +
+        (productName ? '<p class="wts-qm-product">For <strong>' + esc(productName) + '</strong>' +
+          (quantity ? ' · quantity ' + esc(String(quantity)) : '') + '</p>' : '') +
+        '<div id="wts-qm-body"></div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    var body = overlay.querySelector('#wts-qm-body');
+    var titleEl = overlay.querySelector('#wts-qm-title');
+    overlay.querySelector('.wts-qm-close').addEventListener('click', closeQuoteModal);
+    overlay.addEventListener('click', function (ev) { if (ev.target === overlay) closeQuoteModal(); });
+    document.addEventListener('keydown', quoteEscHandler);
+
+    function showChoice() {
+      titleEl.textContent = 'Request a Quote';
+      body.innerHTML =
+        '<div class="wts-qm-choices">' +
+          '<button type="button" class="wts-qm-choice" id="wts-qm-pick-quick">' +
+            '<span class="qm-ico" style="background:#fdf2f8;color:var(--accent-color,#d62b83);"><i class="fas fa-paper-plane"></i></span>' +
+            '<h4>Quick quote</h4>' +
+            '<p>Leave your details — we reply with a tailored quotation within one business day.</p>' +
+          '</button>' +
+          '<button type="button" class="wts-qm-choice" id="wts-qm-pick-account">' +
+            '<span class="qm-ico" style="background:#eff6ff;color:#2563eb;"><i class="fas fa-user-plus"></i></span>' +
+            '<h4>Create a free account</h4>' +
+            '<p>Sign in with just your email — build your services plan, request quotes and track orders.</p>' +
+          '</button>' +
+        '</div>' +
+        '<p class="wts-qm-hint">No pressure, no spam — both options are free.</p>';
+      body.querySelector('#wts-qm-pick-quick').addEventListener('click', showQuickForm);
+      body.querySelector('#wts-qm-pick-account').addEventListener('click', showAccountForm);
+    }
+
+    function showSuccess(heading, text) {
+      titleEl.textContent = 'All set';
+      body.innerHTML =
+        '<div class="wts-qm-success">' +
+          '<div class="qm-check"><i class="fas fa-check"></i></div>' +
+          '<h4>' + heading + '</h4>' +
+          '<p>' + text + '</p>' +
+          '<button type="button" class="wts-qm-submit" id="wts-qm-done">Done</button>' +
+        '</div>';
+      body.querySelector('#wts-qm-done').addEventListener('click', closeQuoteModal);
+    }
+
+    function showQuickForm() {
+      titleEl.textContent = 'Get your quotation';
+      var defaultMsg = productName ? 'I would like a quote for: ' + productName +
+        (quantity ? ' (quantity: ' + quantity + ')' : '') +
+        (billing ? ' — ' + billing + ' billing' : '') : '';
+      body.innerHTML =
+        '<button type="button" class="wts-qm-back"><i class="fas fa-arrow-left"></i> Back</button>' +
+        '<div class="wts-qm-error" id="wts-qm-err"></div>' +
+        '<label class="wts-qm-label" for="wts-qm-name">Your name *</label>' +
+        '<input class="wts-qm-input" id="wts-qm-name" type="text" maxlength="120" autocomplete="name" required>' +
+        '<label class="wts-qm-label" for="wts-qm-mail">Email *</label>' +
+        '<input class="wts-qm-input" id="wts-qm-mail" type="email" maxlength="255" autocomplete="email" required>' +
+        '<label class="wts-qm-label" for="wts-qm-phone">Phone / WhatsApp <span style="font-weight:400;color:#94a3b8;">(optional)</span></label>' +
+        '<input class="wts-qm-input" id="wts-qm-phone" type="tel" maxlength="40" autocomplete="tel">' +
+        '<label class="wts-qm-label" for="wts-qm-msg">What do you need?</label>' +
+        '<textarea class="wts-qm-textarea" id="wts-qm-msg" maxlength="2000">' + esc(defaultMsg) + '</textarea>' +
+        '<button type="button" class="wts-qm-submit" id="wts-qm-send"><i class="fas fa-paper-plane"></i> Send my request</button>';
+      body.querySelector('.wts-qm-back').addEventListener('click', showChoice);
+
+      var sendBtn = body.querySelector('#wts-qm-send');
+      sendBtn.addEventListener('click', function () {
+        var errEl = body.querySelector('#wts-qm-err');
+        var name = body.querySelector('#wts-qm-name').value.trim();
+        var email = body.querySelector('#wts-qm-mail').value.trim();
+        if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          errEl.textContent = 'Please enter your name and a valid email address.';
+          errEl.style.display = 'block';
+          return;
+        }
+        errEl.style.display = 'none';
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+        fetch(API_BASE + '/submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            form_type: ft,
+            name: name,
+            email: email,
+            phone: body.querySelector('#wts-qm-phone').value.trim() || null,
+            message: body.querySelector('#wts-qm-msg').value.trim() || null,
+            metadata: { product: productName || null, quantity: quantity || null, billing_period: billing || null, source: 'quote-modal' }
+          })
+        })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function () {
+            showSuccess('Request received!',
+              'Thanks ' + esc(name.split(' ')[0]) + ' — we’ll get back to you at <strong>' + esc(email) + '</strong> with your quotation within one business day.');
+          })
+          .catch(function () {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send my request';
+            errEl.textContent = 'Something went wrong sending your request. Please try again.';
+            errEl.style.display = 'block';
+          });
       });
-      return;
     }
 
-    var overlay = document.getElementById('quote-modal-overlay');
-    if (overlay) {
-      closePanel();
+    function showAccountForm() {
+      titleEl.textContent = 'Create your free account';
+      body.innerHTML =
+        '<button type="button" class="wts-qm-back"><i class="fas fa-arrow-left"></i> Back</button>' +
+        '<p style="font-size:.88rem;color:#64748b;line-height:1.6;margin:0 0 1rem;">No password needed. We’ll email you a sign-in link — then you can save services to your plan, request quotes and track your orders in one place.</p>' +
+        '<div class="wts-qm-error" id="wts-qm-err"></div>' +
+        '<label class="wts-qm-label" for="wts-qm-acc-mail">Email address *</label>' +
+        '<input class="wts-qm-input" id="wts-qm-acc-mail" type="email" maxlength="255" autocomplete="email" required placeholder="you@example.com">' +
+        '<button type="button" class="wts-qm-submit" id="wts-qm-signup"><i class="fas fa-envelope"></i> Email me a sign-in link</button>' +
+        '<p class="wts-qm-hint">The link works once and expires in 15 minutes.</p>';
+      body.querySelector('.wts-qm-back').addEventListener('click', showChoice);
 
-      // Tag the enquiry with the chosen form type so it lands in Submissions
-      // correctly (the form handlers read this dataset / hidden input).
-      overlay.dataset.formType = ft;
-      // .modal-overlay defaults to display:none with no .active rule, so show
-      // it explicitly with flex (matches firebase.js / ui.js).
-      overlay.style.display = 'flex';
-      overlay.classList.add('active');
-      document.body.classList.add('no-scroll');
-
-      var title = overlay.querySelector('.modal-title');
-      if (title) title.textContent = 'Request a Quote';
-
-      // The mounted form may be the static #quote-form or an admin template
-      // form — handle whichever is present.
-      var form = overlay.querySelector('form');
-      if (form) {
-        var ftInput = form.querySelector('input[name="form_type"]');
-        if (!ftInput) {
-          ftInput = document.createElement('input');
-          ftInput.type = 'hidden';
-          ftInput.name = 'form_type';
-          form.appendChild(ftInput);
+      var signupBtn = body.querySelector('#wts-qm-signup');
+      signupBtn.addEventListener('click', function () {
+        var errEl = body.querySelector('#wts-qm-err');
+        var email = body.querySelector('#wts-qm-acc-mail').value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          errEl.textContent = 'Please enter a valid email address.';
+          errEl.style.display = 'block';
+          return;
         }
-        ftInput.value = ft;
-        form.dataset.formType = ft;
-
-        var msgEl = form.querySelector('[name="message"]');
-        if (msgEl && msg && !msgEl.value) {
-          msgEl.value = msg;
-        }
-        var svc = form.querySelector('input[name="service"]');
-        if (svc && productName) svc.value = productName;
-      }
-      return;
+        errEl.style.display = 'none';
+        signupBtn.disabled = true;
+        signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+        fetch(API_BASE + '/portal-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function () {
+            showSuccess('Check your email',
+              'A sign-in link is on its way to <strong>' + esc(email) + '</strong>. Click it to open your account and start building your services plan.');
+          })
+          .catch(function () {
+            signupBtn.disabled = false;
+            signupBtn.innerHTML = '<i class="fas fa-envelope"></i> Email me a sign-in link';
+            errEl.textContent = 'Something went wrong. Please try again.';
+            errEl.style.display = 'block';
+          });
+      });
     }
-    window.location.href = '/en/company/contact-us/?service=' + encodeURIComponent(productName);
+
+    showChoice();
   }
 
   function onBuyNow(e) {

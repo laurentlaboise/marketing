@@ -6,6 +6,7 @@ const taxonomy = require('../config/product-taxonomy');
 const slugify = require('../utils/slugify');
 const { parseProductListings } = require('../utils/product-import-parser');
 const { normalizeTiers } = require('../utils/pricing');
+const { upsertCustomer, linkOrdersByEmail, issueLoginLink } = require('./portal');
 
 const router = express.Router();
 
@@ -803,6 +804,174 @@ router.post('/orders/:id/status', async (req, res) => {
   if (req.body.filter_status) qs.set('status', req.body.filter_status);
   if (req.body.filter_method) qs.set('method', req.body.filter_method);
   res.redirect('/business/orders' + (qs.toString() ? '?' + qs.toString() : ''));
+});
+
+// ==================== CUSTOMERS (portal accounts) ====================
+
+const normalizeCustomerEmail = (raw) => {
+  const email = String(raw || '').trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 255 ? email : null;
+};
+
+router.get('/customers', async (req, res) => {
+  const q = (req.query.q || '').trim();
+  try {
+    const params = [];
+    let where = '';
+    if (q) {
+      where = `WHERE c.email ILIKE $1 OR c.name ILIKE $1`;
+      params.push(`%${q}%`);
+    }
+    const [list, stats] = await Promise.all([
+      db.query(
+        `SELECT c.*,
+                COUNT(o.id) AS order_count,
+                COUNT(o.id) FILTER (WHERE o.status = 'awaiting_payment') AS awaiting_count,
+                COALESCE(SUM(o.amount) FILTER (WHERE o.status = 'completed'), 0) AS total_spent
+         FROM customers c
+         LEFT JOIN orders o ON o.customer_id = c.id
+         ${where}
+         GROUP BY c.id
+         ORDER BY c.created_at DESC
+         LIMIT 200`,
+        params
+      ),
+      db.query(
+        `SELECT
+           COUNT(*) AS total,
+           COUNT(*) FILTER (WHERE created_at > CURRENT_TIMESTAMP - INTERVAL '30 days') AS new_30d,
+           COUNT(*) FILTER (WHERE last_login_at IS NOT NULL) AS signed_in,
+           (SELECT COUNT(DISTINCT customer_id) FROM orders WHERE customer_id IS NOT NULL) AS with_orders
+         FROM customers`
+      )
+    ]);
+    res.render('business/customers/list', {
+      title: 'Clients - WTS Admin',
+      customers: list.rows,
+      stats: stats.rows[0],
+      currentPage: 'customers',
+      q
+    });
+  } catch (error) {
+    console.error('Customers list error:', error);
+    res.render('business/customers/list', {
+      title: 'Clients - WTS Admin',
+      customers: [],
+      stats: { total: 0, new_30d: 0, signed_in: 0, with_orders: 0 },
+      currentPage: 'customers',
+      q,
+      error: 'Failed to load clients'
+    });
+  }
+});
+
+// Manually add a client (e.g. onboarding someone you met) and optionally
+// send them a portal sign-in invite straight away.
+router.post('/customers', async (req, res) => {
+  const email = normalizeCustomerEmail(req.body.email);
+  if (!email) {
+    req.session.errorMessage = 'A valid email is required';
+    return res.redirect('/business/customers');
+  }
+  try {
+    const customer = await upsertCustomer(email, (req.body.name || '').trim().slice(0, 255) || null);
+    await linkOrdersByEmail(customer.id, email);
+    if (req.body.send_invite === 'true') {
+      const sent = await issueLoginLink(customer);
+      req.session.successMessage = sent.sent
+        ? `Client added — sign-in link emailed to ${email}`
+        : `Client added, but the invite email could not be sent (check Brevo configuration)`;
+    } else {
+      req.session.successMessage = 'Client added';
+    }
+    res.redirect(`/business/customers/${customer.id}`);
+  } catch (error) {
+    console.error('Create customer error:', error);
+    req.session.errorMessage = 'Failed to add client';
+    res.redirect('/business/customers');
+  }
+});
+
+router.get('/customers/:id', async (req, res) => {
+  try {
+    const customer = await db.query('SELECT * FROM customers WHERE id = $1', [req.params.id]);
+    if (!customer.rows.length) {
+      req.session.errorMessage = 'Client not found';
+      return res.redirect('/business/customers');
+    }
+    const orders = await db.query(
+      `SELECT o.*, p.name AS product_name
+       FROM orders o LEFT JOIN products p ON o.product_id = p.id
+       WHERE o.customer_id = $1
+       ORDER BY o.created_at DESC
+       LIMIT 100`,
+      [req.params.id]
+    );
+    res.render('business/customers/detail', {
+      title: `${customer.rows[0].email} - WTS Admin`,
+      customer: customer.rows[0],
+      orders: orders.rows,
+      currentPage: 'customers'
+    });
+  } catch (error) {
+    console.error('Customer detail error:', error);
+    req.session.errorMessage = 'Failed to load client';
+    res.redirect('/business/customers');
+  }
+});
+
+// Email the client a fresh portal sign-in link.
+router.post('/customers/:id/send-login', async (req, res) => {
+  try {
+    const customer = await db.query('SELECT * FROM customers WHERE id = $1', [req.params.id]);
+    if (!customer.rows.length) {
+      req.session.errorMessage = 'Client not found';
+      return res.redirect('/business/customers');
+    }
+    if (customer.rows[0].status !== 'active') {
+      req.session.errorMessage = 'This account is disabled — enable it before sending a sign-in link';
+      return res.redirect(`/business/customers/${req.params.id}`);
+    }
+    const sent = await issueLoginLink(customer.rows[0]);
+    req.session.successMessage = sent.sent
+      ? `Sign-in link emailed to ${customer.rows[0].email}`
+      : 'Could not send the email — check the Brevo configuration (BREVO_API_KEY / BREVO_FROM_EMAIL)';
+  } catch (error) {
+    console.error('Send login link error:', error);
+    req.session.errorMessage = 'Failed to send sign-in link';
+  }
+  res.redirect(`/business/customers/${req.params.id}`);
+});
+
+// Enable / disable the account. Disabled customers cannot sign in (the
+// portal checks status === 'active') but their history is kept.
+router.post('/customers/:id/status', async (req, res) => {
+  const next = req.body.status === 'disabled' ? 'disabled' : 'active';
+  try {
+    await db.query(
+      'UPDATE customers SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [next, req.params.id]
+    );
+    req.session.successMessage = next === 'disabled' ? 'Account disabled — the client can no longer sign in' : 'Account enabled';
+  } catch (error) {
+    console.error('Customer status error:', error);
+    req.session.errorMessage = 'Failed to update account';
+  }
+  res.redirect(`/business/customers/${req.params.id}`);
+});
+
+// Delete the account. Orders are kept for bookkeeping — they detach from
+// the account but retain the customer email on the order row.
+router.post('/customers/:id/delete', async (req, res) => {
+  try {
+    await db.query('UPDATE orders SET customer_id = NULL WHERE customer_id = $1', [req.params.id]);
+    await db.query('DELETE FROM customers WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'Client account deleted (orders kept for bookkeeping)';
+  } catch (error) {
+    console.error('Delete customer error:', error);
+    req.session.errorMessage = 'Failed to delete client';
+  }
+  res.redirect('/business/customers');
 });
 
 // ==================== PRICE MODELS (Subscription Packages) ====================

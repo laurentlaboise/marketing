@@ -1,0 +1,117 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Clients</h1>
+        <p class="page-subtitle">Customer portal accounts — created automatically on purchase, or add one manually and send an invite</p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.75rem;margin-bottom:1rem;">
+      <div class="card"><div class="card-body" style="padding:0.85rem 1rem;">
+        <div style="font-size:1.6rem;font-weight:700;color:#1a1a2e;"><%= stats.total %></div>
+        <div style="font-size:0.8rem;color:#64748b;">Total clients</div>
+      </div></div>
+      <div class="card"><div class="card-body" style="padding:0.85rem 1rem;">
+        <div style="font-size:1.6rem;font-weight:700;color:#16a34a;">+<%= stats.new_30d %></div>
+        <div style="font-size:0.8rem;color:#64748b;">New (30 days)</div>
+      </div></div>
+      <div class="card"><div class="card-body" style="padding:0.85rem 1rem;">
+        <div style="font-size:1.6rem;font-weight:700;color:#d62b83;"><%= stats.with_orders %></div>
+        <div style="font-size:0.8rem;color:#64748b;">With orders</div>
+      </div></div>
+      <div class="card"><div class="card-body" style="padding:0.85rem 1rem;">
+        <div style="font-size:1.6rem;font-weight:700;color:#635bff;"><%= stats.signed_in %></div>
+        <div style="font-size:0.8rem;color:#64748b;">Signed in at least once</div>
+      </div></div>
+    </div>
+
+    <!-- Add client + search -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0.75rem 1rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+        <form method="POST" action="/business/customers" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="email" name="email" class="form-input" required placeholder="client@email.com" style="padding:0.4rem 0.6rem;width:220px;">
+          <input type="text" name="name" class="form-input" placeholder="Name (optional)" maxlength="255" style="padding:0.4rem 0.6rem;width:170px;">
+          <label style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:#475569;cursor:pointer;">
+            <input type="checkbox" name="send_invite" value="true" checked style="width:auto;margin:0;"> Email sign-in invite
+          </label>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-user-plus"></i> Add Client</button>
+        </form>
+        <form method="GET" action="/business/customers" style="display:flex;gap:0.5rem;align-items:center;">
+          <input type="text" name="q" class="form-input" value="<%= q %>" placeholder="Search email or name…" style="padding:0.4rem 0.6rem;width:200px;">
+          <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-search"></i></button>
+          <% if (q) { %><a href="/business/customers" class="btn btn-sm" style="color:#666;"><i class="fas fa-times"></i></a><% } %>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <% if (typeof error !== 'undefined' && error) { %><p style="padding:1rem;color:#b91c1c;"><%= error %></p><% } %>
+        <% if (customers.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Orders</th>
+                <th>Total Spent</th>
+                <th>Last Sign-in</th>
+                <th>Joined</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% customers.forEach((c) => { %>
+              <tr>
+                <td data-label="Client">
+                  <strong><%= c.email %></strong>
+                  <% if (c.name) { %><br><small style="color:#888;"><%= c.name %></small><% } %>
+                </td>
+                <td data-label="Orders">
+                  <%= c.order_count %>
+                  <% if (parseInt(c.awaiting_count) > 0) { %>
+                  <span style="font-size:0.72rem;color:#92400e;background:#fef3c7;border-radius:999px;padding:0.1rem 0.5rem;margin-left:0.3rem;"><%= c.awaiting_count %> awaiting</span>
+                  <% } %>
+                </td>
+                <td data-label="Total Spent" style="white-space:nowrap;">
+                  <%= parseFloat(c.total_spent) > 0 ? parseFloat(c.total_spent).toFixed(2) + ' USD' : '-' %>
+                </td>
+                <td data-label="Last Sign-in" style="font-size:0.85rem;color:#475569;">
+                  <%= c.last_login_at ? new Date(c.last_login_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Never' %>
+                </td>
+                <td data-label="Joined" style="font-size:0.85rem;color:#475569;">
+                  <%= new Date(c.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                </td>
+                <td data-label="Status">
+                  <span class="status-badge <%= c.status === 'active' ? 'active' : 'inactive' %>"><%= c.status %></span>
+                </td>
+                <td data-label="Actions" style="white-space:nowrap;">
+                  <a href="/business/customers/<%= c.id %>" class="btn btn-secondary btn-sm" title="View & manage"><i class="fas fa-user-gear"></i> Manage</a>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div style="text-align:center;padding:3rem 1rem;color:#888;">
+          <i class="fas fa-user-group" style="font-size:2.5rem;color:#cbd5e1;"></i>
+          <p style="margin-top:0.75rem;"><%= q ? 'No clients match your search.' : 'No clients yet.' %></p>
+          <p style="font-size:0.85rem;">Accounts are created automatically when someone buys or enters their email at a BCEL checkout — or add one above and send them an invite.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

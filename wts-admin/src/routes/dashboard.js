@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
   if (!req.user || req.user.role !== 'admin') {
     return res.render('dashboard/index', {
       title: 'Dashboard - WTS Admin',
-      stats: { articles: 0, aiTools: 0, products: 0, glossary: 0, seoTerms: 0, images: 0, microsites: 0, drafts: 0, activeSites: 0, unreadNotifications: 0 },
+      stats: { articles: 0, aiTools: 0, products: 0, glossary: 0, seoTerms: 0, images: 0, microsites: 0, drafts: 0, activeSites: 0, unreadNotifications: 0, customers: 0 },
       recentActivity: [],
       recentArticles: [],
       activeMicrosites: [],
@@ -43,7 +43,8 @@ router.get('/', async (req, res) => {
       db.query("SELECT COUNT(*) FROM microsites").catch(() => ({ rows: [{ count: 0 }] })),
       db.query("SELECT COUNT(*) FROM articles WHERE status = 'draft'").catch(() => ({ rows: [{ count: 0 }] })),
       db.query("SELECT COUNT(*) FROM microsites WHERE status = 'active'").catch(() => ({ rows: [{ count: 0 }] })),
-      db.query("SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND read = false", [req.user.id]).catch(() => ({ rows: [{ count: 0 }] }))
+      db.query("SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND read = false", [req.user.id]).catch(() => ({ rows: [{ count: 0 }] })),
+      db.query('SELECT COUNT(*) FROM customers').catch(() => ({ rows: [{ count: 0 }] }))
     ]);
 
     // Get recent activity
@@ -83,7 +84,8 @@ router.get('/', async (req, res) => {
         microsites: parseInt(stats[6].rows[0].count),
         drafts: parseInt(stats[7].rows[0].count),
         activeSites: parseInt(stats[8].rows[0].count),
-        unreadNotifications: parseInt(stats[9].rows[0].count)
+        unreadNotifications: parseInt(stats[9].rows[0].count),
+        customers: parseInt(stats[10].rows[0].count)
       },
       recentActivity: recentActivity.rows,
       recentArticles: recentArticles.rows,
@@ -94,7 +96,7 @@ router.get('/', async (req, res) => {
     console.error('Dashboard error:', error);
     res.render('dashboard/index', {
       title: 'Dashboard - WTS Admin',
-      stats: { articles: 0, aiTools: 0, products: 0, glossary: 0, seoTerms: 0, images: 0, microsites: 0, drafts: 0, activeSites: 0, unreadNotifications: 0 },
+      stats: { articles: 0, aiTools: 0, products: 0, glossary: 0, seoTerms: 0, images: 0, microsites: 0, drafts: 0, activeSites: 0, unreadNotifications: 0, customers: 0 },
       recentActivity: [],
       recentArticles: [],
       activeMicrosites: [],
