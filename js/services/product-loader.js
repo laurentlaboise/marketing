@@ -550,31 +550,28 @@
 
       var hasSetupFee = pr.setup_fee != null && pr.setup_fee > 0;
 
-      if (hasSetupFee) {
-        // Itemized order summary: subscription + one-time fee + "Due today"
-        // total, so the first payment is never a surprise. The fee row has a
-        // checkbox (checked by default) the customer can untick.
-        html += '<div class="price-breakdown" style="' + BREAKDOWN_BOX_STYLE + '">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;">' +
-            '<span class="pb-sub-label" style="color:var(--color-slate-700,#334155);"></span>' +
-            '<strong class="pb-sub-amount" style="white-space:nowrap;"></strong>' +
-          '</div>' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;margin-top:0.55rem;">' +
-            '<label style="display:inline-flex;align-items:flex-start;gap:0.5rem;cursor:pointer;color:var(--color-slate-700,#334155);">' +
-              '<input type="checkbox" class="setup-fee-checkbox" checked style="width:auto;margin:0.2em 0 0;flex:none;accent-color:var(--accent-color,#d62b83);">' +
-              '<span>' + esc(pr.setup_fee_label || 'Setup fee') + ' <span style="font-size:0.82em;color:var(--color-slate-500,#64748b);white-space:nowrap;">(one-time)</span></span>' +
-            '</label>' +
-            '<strong class="pb-fee-amount" style="white-space:nowrap;">' + fmtMoney(pr.setup_fee, pr.currency) + '</strong>' +
-          '</div>' +
-          BREAKDOWN_DIVIDER +
-          breakdownTotalRow(totalLabel(data), 'pb-total-amount') +
-          '<p class="pb-renew-note" style="font-size:0.8rem;color:var(--color-slate-500,#64748b);margin:0.45rem 0 0;"></p>' +
+      // Itemized order summary for every subscription: subscription row,
+      // optional one-time fee row (checkbox to untick), and the total —
+      // one calm grey box that hands the eye to the CTA below it.
+      html += '<div class="price-breakdown" style="' + BREAKDOWN_BOX_STYLE + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;">' +
+          '<span class="pb-sub-label" style="color:var(--color-slate-700,#334155);"></span>' +
+          '<strong class="pb-sub-amount" style="white-space:nowrap;"></strong>' +
         '</div>';
-        html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
-      } else {
-        html += '<p class="billing-price" style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:0.25rem;"></p>';
-        html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
+      if (hasSetupFee) {
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;margin-top:0.55rem;">' +
+          '<label style="display:inline-flex;align-items:flex-start;gap:0.5rem;cursor:pointer;color:var(--color-slate-700,#334155);">' +
+            '<input type="checkbox" class="setup-fee-checkbox" checked style="width:auto;margin:0.2em 0 0;flex:none;accent-color:var(--accent-color,#d62b83);">' +
+            '<span>' + esc(pr.setup_fee_label || 'Setup fee') + ' <span style="font-size:0.82em;color:var(--color-slate-500,#64748b);white-space:nowrap;">(one-time)</span></span>' +
+          '</label>' +
+          '<strong class="pb-fee-amount" style="white-space:nowrap;">' + fmtMoney(pr.setup_fee, pr.currency) + '</strong>' +
+        '</div>';
       }
+      html += BREAKDOWN_DIVIDER +
+        breakdownTotalRow(totalLabel(data), 'pb-total-amount') +
+        '<p class="pb-renew-note" style="font-size:0.8rem;color:var(--color-slate-500,#64748b);margin:0.45rem 0 0;"></p>' +
+      '</div>';
+      html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
 
       html += buildCtaHTML(data, initial);
       html += '</div>';
@@ -712,7 +709,6 @@
   // Update the displayed price, savings line, active toggle state and the
   // add-service button's billing attribute for the chosen period.
   function applyBilling(block, pr, billing) {
-    var priceEl = block.querySelector('.billing-price');
     var savingsEl = block.querySelector('.billing-savings');
     var addBtn = block.querySelector('.btn-add-service');
     var ctaBtn = block.querySelector('.product-cta');
@@ -721,13 +717,7 @@
     var amount = isYearly ? pr.yearly_price : pr.monthly_price;
     var suffix = isYearly ? '/year' : '/month';
 
-    if (priceEl) {
-      priceEl.innerHTML = fmtMoney(amount, pr.currency) +
-        '<span style="font-size:0.65em;font-weight:500;color:var(--color-slate-500,#64748b);">' + suffix + '</span>';
-    }
-
-    // Itemized breakdown (rendered when the product has a setup fee):
-    // subscription row, fee row and the "Due today" total.
+    // Itemized breakdown: subscription row, optional fee row and the total.
     var subLabelEl = block.querySelector('.pb-sub-label');
     var subAmountEl = block.querySelector('.pb-sub-amount');
     var totalEl = block.querySelector('.pb-total-amount');
