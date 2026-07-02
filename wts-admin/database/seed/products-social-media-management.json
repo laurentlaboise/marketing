@@ -5,13 +5,13 @@
     "sku": "19385831",
     "service_page": "social-media-management",
     "subcategory": "page-setup",
-    "description": "A professional social media page setup service that gives your business a cleaner and more complete presence on social platforms. This service helps prepare your profile information, branding, and basic page structure.",
+    "description": "A professional social media page setup service that gives your business a cleaner, more complete presence on social platforms. We prepare your profile information, branding, and basic page structure so your page looks credible from day one. For SMEs in Laos and Thailand, where customers discover local businesses mainly through Facebook and TikTok, a well-prepared page is often your first impression.",
     "features": [
-      "Social media page setup",
-      "Profile information support",
-      "Brand presentation",
-      "Page structure setup",
-      "Useful for new or inactive accounts"
+      "Complete social media page setup",
+      "Profile information preparation",
+      "Consistent brand presentation",
+      "Clear page structure setup",
+      "Ideal for new or inactive accounts"
     ],
     "industries": [
       "smes",
@@ -35,8 +35,8 @@
     "sort_order": 10,
     "slide_in_title": "Social Media Page Setup",
     "slide_in_subtitle": "Ideal for: SMEs, restaurants, shops, service providers, consultants, entrepreneurs, and local businesses.",
-    "slide_in_content": "<p>A professional social media page setup service that gives your business a cleaner and more complete presence on social platforms. This service helps prepare your profile information, branding, and basic page structure.</p><p><strong>Order your social media page setup today and give your business a cleaner online presence.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a professionally prepared social media page: profile information, branding, and basic page structure set up so your business looks complete and trustworthy on social platforms.</p><p>For restaurants, shops, and service providers across Laos and Southeast Asia, social pages are where customers look first — a clean, complete page helps local businesses turn that first visit into trust.</p><p><strong>Order your social media page setup today and give your business a cleaner online presence.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Social Media Post Generator - Starter",
@@ -44,13 +44,13 @@
     "sku": "19385832",
     "service_page": "social-media-management",
     "subcategory": "post-generators",
-    "description": "A starter social media post generator service that helps your business create content ideas, captions, and post structures more efficiently. This option is ideal for businesses that need help producing regular social media content.",
+    "description": "A starter social media post generator service that helps your business create content ideas, captions, and post structures more efficiently. It is ideal for businesses that need support producing regular social media content, and for local brands in Laos and Thailand where consistent posting keeps you visible to social-first customers.",
     "features": [
       "Starter post generator setup",
       "Social media content ideas",
-      "Caption support",
+      "Caption writing support",
       "Brand-aligned post structure",
-      "Useful for faster content creation"
+      "Helps speed up content creation"
     ],
     "industries": [
       "smes",
@@ -72,8 +72,8 @@
     "sort_order": 20,
     "slide_in_title": "Social Media Post Generator - Starter",
     "slide_in_subtitle": "Ideal for: Small businesses, entrepreneurs, creators, local brands, service providers, and social media beginners.",
-    "slide_in_content": "<p>A starter social media post generator service that helps your business create content ideas, captions, and post structures more efficiently. This option is ideal for businesses that need help producing regular social media content.</p><p><strong>Order the Starter Social Media Post Generator today and make content creation easier.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a starter post generator setup that helps you produce content ideas, captions, and post structures more efficiently, so publishing regular social media content takes less effort.</p><p>It suits small businesses, entrepreneurs, and social media beginners in Laos and across Southeast Asia, where staying present on Facebook and TikTok is how local brands stay in front of customers.</p><p><strong>Order the Starter Social Media Post Generator today and make content creation easier.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Social Media Post Generator - Growth",
@@ -81,13 +81,13 @@
     "sku": "19385833",
     "service_page": "social-media-management",
     "subcategory": "post-generators",
-    "description": "A growth-level social media post generator service for businesses that need a stronger system for producing ongoing social media content. This package supports more structured content creation, better consistency, and clearer messaging.",
+    "description": "A growth-level social media post generator service for businesses that need a stronger system for producing ongoing social media content. This package supports more structured content creation, better consistency, and clearer messaging — a real advantage for growing brands in Laos and Thailand competing for attention on social-first channels.",
     "features": [
       "Growth-level content generator",
       "Social media caption support",
       "Content planning assistance",
       "Brand and offer alignment",
-      "Useful for regular publishing"
+      "Built for regular publishing"
     ],
     "industries": [
       "smes",
@@ -109,8 +109,8 @@
     "sort_order": 30,
     "slide_in_title": "Social Media Post Generator - Growth",
     "slide_in_subtitle": "Ideal for: Growing SMEs, agencies, local businesses, service providers, online brands, and marketing teams.",
-    "slide_in_content": "<p>A growth-level social media post generator service for businesses that need a stronger system for producing ongoing social media content. This package supports more structured content creation, better consistency, and clearer messaging.</p><p><strong>Order the Growth Social Media Post Generator today and build a stronger content system.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a growth-level content generator: a stronger system for producing ongoing social media content, with more structured creation, better consistency, and clearer messaging.</p><p>Growing SMEs, agencies, and marketing teams in Laos and Southeast Asia rely on consistent, well-organized posting to stay visible where their customers actually spend time — on social platforms.</p><p><strong>Order the Growth Social Media Post Generator today and build a stronger content system.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Social Media Post Generator - Premium",
@@ -118,13 +118,13 @@
     "sku": "19385834",
     "service_page": "social-media-management",
     "subcategory": "post-generators",
-    "description": "A premium social media post generator service for businesses that need a deeper and more complete content creation system. This option is designed to help brands develop higher-volume, more organized, and more strategic social media content.",
+    "description": "A premium social media post generator service for businesses that need a deeper, more complete content creation system. This option is designed to help brands develop higher-volume, better-organized, and more strategic social media content — the kind of steady output that keeps content-heavy brands in Laos, Thailand, and the wider region in front of their social-first audiences.",
     "features": [
       "Premium post generator setup",
       "Advanced content structure",
       "Caption and idea support",
       "Brand messaging alignment",
-      "Suitable for larger content needs"
+      "Suited to larger content needs"
     ],
     "industries": [
       "agencies",
@@ -148,8 +148,8 @@
     "sort_order": 40,
     "slide_in_title": "Social Media Post Generator - Premium",
     "slide_in_subtitle": "Ideal for: Agencies, active SMEs, content-heavy businesses, online brands, consultants, and teams that need consistent social output.",
-    "slide_in_content": "<p>A premium social media post generator service for businesses that need a deeper and more complete content creation system. This option is designed to help brands develop higher-volume, more organized, and more strategic social media content.</p><p><strong>Order the Premium Social Media Post Generator today and create a stronger engine for your social media content.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a premium post generator setup: a deeper, more complete content creation system with advanced structure, caption and idea support, and brand messaging alignment for higher-volume, more strategic output.</p><p>Agencies, active SMEs, and content-heavy teams across Laos and Southeast Asia need consistent social output to compete on the platforms where their customers discover brands — this system is built for that pace.</p><p><strong>Order the Premium Social Media Post Generator today and create a stronger engine for your social media content.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Cross Platform Publishing",
@@ -157,13 +157,13 @@
     "sku": "19385835",
     "service_page": "social-media-management",
     "subcategory": "publishing",
-    "description": "A cross-platform publishing service that helps prepare or distribute content across multiple channels. This service is useful for businesses that want to save time and keep their message consistent across different social media platforms.",
+    "description": "A cross-platform publishing service that helps prepare or distribute content across multiple channels. It is useful for businesses that want to save time and keep their message consistent across different social media platforms — especially in Laos and Thailand, where customers may follow you on Facebook, TikTok, and other channels at once.",
     "features": [
       "Cross-platform publishing support",
       "Multi-channel content preparation",
       "Consistent message distribution",
       "Time-saving content workflow",
-      "Useful for social media management"
+      "Practical for social media management"
     ],
     "industries": [
       "smes",
@@ -186,8 +186,8 @@
     "sort_order": 50,
     "slide_in_title": "Cross Platform Publishing",
     "slide_in_subtitle": "Ideal for: SMEs, creators, service businesses, agencies, consultants, and brands publishing across multiple platforms.",
-    "slide_in_content": "<p>A cross-platform publishing service that helps prepare or distribute content across multiple channels. This service is useful for businesses that want to save time and keep their message consistent across different social media platforms.</p><p><strong>Order cross-platform publishing support today and make your content easier to share across channels.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get cross-platform publishing support: your content prepared and distributed across multiple channels, keeping your message consistent while saving you time.</p><p>SMEs, creators, and agencies in Laos and Southeast Asia often reach different customers on different platforms — publishing once and staying consistent everywhere keeps local brands easy to find and recognize.</p><p><strong>Order cross-platform publishing support today and make your content easier to share across channels.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Sponsored Social Ads",
@@ -195,13 +195,13 @@
     "sku": "19385836",
     "service_page": "social-media-management",
     "subcategory": "social-ads",
-    "description": "A targeted social advertising service built to help your business promote offers, products, events, or services through sponsored posts. This service supports basic campaign preparation and paid social visibility.",
+    "description": "A targeted social advertising service built to help your business promote offers, products, events, or services through sponsored posts. This service covers basic campaign preparation and paid social visibility — a practical way for local businesses in Laos and Thailand to reach the social-first customers who discover offers on Facebook and TikTok.",
     "features": [
       "Sponsored social ad support",
       "Campaign content preparation",
       "Offer promotion",
       "Audience visibility support",
-      "Useful for local campaigns"
+      "Well suited to local campaigns"
     ],
     "industries": [
       "restaurants-bars",
@@ -224,7 +224,7 @@
     "sort_order": 60,
     "slide_in_title": "Sponsored Social Ads",
     "slide_in_subtitle": "Ideal for: Local businesses, restaurants, shops, events, service providers, online offers, and promotional campaigns.",
-    "slide_in_content": "<p>A targeted social advertising service built to help your business promote offers, products, events, or services through sponsored posts. This service supports basic campaign preparation and paid social visibility.</p><p><strong>Order sponsored social ads support today and help your offer reach more people.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get targeted sponsored social ad support: campaign content preparation and paid visibility to promote your offers, products, events, or services through sponsored posts.</p><p>Restaurants, shops, and event organizers in Laos and Southeast Asia reach customers where they already scroll — sponsored posts put your local offer in front of the right audience.</p><p><strong>Order sponsored social ads support today and help your offer reach more people.</strong></p>",
+    "status": "active"
   }
 ]

@@ -295,7 +295,7 @@ function parseSeedProducts(rawText) {
       slide_in_title: e.slide_in_title ? String(e.slide_in_title).trim().slice(0, 500) : null,
       slide_in_subtitle: e.slide_in_subtitle ? String(e.slide_in_subtitle).trim() : null,
       slide_in_content: e.slide_in_content ? String(e.slide_in_content).trim() : null,
-      status: 'draft',
+      status: e.status === 'active' ? 'active' : 'draft',
       warnings,
     };
   });

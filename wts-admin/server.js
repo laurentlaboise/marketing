@@ -328,6 +328,16 @@ async function startServer() {
     await db.initialize();
     console.log('Database connected successfully');
 
+    // Populate a near-empty catalog from database/seed/products-all.json so a
+    // fresh deploy comes up with the full product range. Never runs once the
+    // catalog is populated; failures must not block startup.
+    try {
+      const { seedCatalogIfSparse } = require('./src/utils/product-seeder');
+      await seedCatalogIfSparse();
+    } catch (e) {
+      console.error('Catalog seed skipped:', e.message);
+    }
+
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`WTS Admin server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
