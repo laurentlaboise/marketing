@@ -26,6 +26,7 @@ const imagesRoutes = require('./src/routes/images');
 const webdevRoutes = require('./src/routes/webdev');
 const paymentsRoutes = require('./src/routes/payments');
 const webhooksApiRoutes = require('./src/routes/webhooks-api');
+const portalRoutes = require('./src/routes/portal');
 
 // Import passport configuration
 require('./src/utils/passport-config');
@@ -204,6 +205,20 @@ app.use('/api/payments', paymentsRoutes);
 
 // Webhook ingest routes (no authentication - external webhook sources)
 app.use('/api/webhooks', webhooksApiRoutes);
+
+// Customer portal (passwordless magic-link sessions, fully separate from
+// the admin's passport auth — a customer session only ever carries
+// req.session.customerId, which no admin guard accepts).
+app.use('/portal', portalRoutes);
+
+// On the customer subdomain (my.wordsthatsells.website → same service),
+// the portal is the site root.
+app.use((req, res, next) => {
+  if (req.hostname && req.hostname.startsWith('my.') && req.path === '/') {
+    return res.redirect('/portal');
+  }
+  next();
+});
 
 // Routes
 // Admin surfaces require an authenticated session with role === 'admin'.

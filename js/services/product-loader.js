@@ -614,6 +614,14 @@
           '<li>Scan this QR and confirm the amount' + (order && order.reference ? ' with the reference in the note' : '') + '.</li>' +
           '<li>Keep your payment slip — we confirm every order by email.</li>' +
         '</ol>' +
+        (order && order.order_id
+          ? '<div style="border-top:1px solid #e2e8f0;padding-top:0.9rem;margin-bottom:0.9rem;text-align:left;">' +
+              '<label for="bcel-email" style="display:block;font-size:0.82rem;font-weight:600;color:#334155;margin-bottom:0.3rem;">Your email — for confirmation and order tracking</label>' +
+              '<input type="email" id="bcel-email" maxlength="255" placeholder="you@example.com" autocomplete="email" ' +
+                'style="width:100%;padding:0.6rem 0.75rem;border:1px solid #cbd5e1;border-radius:8px;font-size:0.95rem;box-sizing:border-box;">' +
+              '<p id="bcel-email-note" style="font-size:0.75rem;color:#94a3b8;margin:0.3rem 0 0;">We’ll email your reference and a link to track this order.</p>' +
+            '</div>'
+          : '') +
         '<button type="button" id="bcel-modal-done" class="btn btn-accent-magenta" style="width:100%;padding:0.7rem;">Done</button>' +
       '</div>';
 
@@ -652,7 +660,27 @@
 
     overlay.addEventListener('click', function (ev) { if (ev.target === overlay) closeBcelModal(); });
     document.getElementById('bcel-modal-close').addEventListener('click', closeBcelModal);
-    document.getElementById('bcel-modal-done').addEventListener('click', closeBcelModal);
+
+    // Done: if the customer left an email, attach it to the order (creates
+    // their portal account + sends the reference by email), then close.
+    document.getElementById('bcel-modal-done').addEventListener('click', function () {
+      var emailInput = document.getElementById('bcel-email');
+      var email = emailInput ? emailInput.value.trim() : '';
+      if (order && order.order_id && email) {
+        var doneBtn = this;
+        doneBtn.disabled = true;
+        doneBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+        var payBase = API_BASE.replace('/api/public', '/api/payments');
+        fetch(payBase + '/bcel-order/' + encodeURIComponent(order.order_id) + '/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        }).catch(function () { /* best-effort */ })
+          .finally(function () { closeBcelModal(); });
+      } else {
+        closeBcelModal();
+      }
+    });
     document.addEventListener('keydown', bcelEscHandler);
   }
 

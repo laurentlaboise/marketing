@@ -817,6 +817,11 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='payment_method') THEN
             ALTER TABLE orders ADD COLUMN payment_method VARCHAR(30) DEFAULT 'stripe';
           END IF;
+          -- Customer-portal account this order belongs to. Linked lazily: on
+          -- checkout when the email is known, and on portal login by email.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='customer_id') THEN
+            ALTER TABLE orders ADD COLUMN customer_id UUID;
+          END IF;
           -- amount was created NOT NULL but is legitimately unknown when a
           -- saved Stripe Price ID is charged (Stripe owns the amount), so
           -- those checkouts violated the constraint and failed to record.
@@ -824,6 +829,34 @@ const db = {
             ALTER TABLE orders ALTER COLUMN amount DROP NOT NULL;
           END IF;
         END $$;
+      `);
+
+      // Customer portal accounts — completely separate from the admin `users`
+      // table. Passwordless: customers sign in via emailed magic links, so
+      // there is no password column at all.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS customers (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          email VARCHAR(255) NOT NULL UNIQUE,
+          name VARCHAR(255),
+          status VARCHAR(30) DEFAULT 'active',
+          last_login_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Magic-link login tokens: single-use, short-lived, stored hashed so a
+      // database leak cannot be replayed into a session.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS customer_login_tokens (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+          token_hash VARCHAR(64) NOT NULL UNIQUE,
+          expires_at TIMESTAMP NOT NULL,
+          used_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
       `);
 
       // Price Models table
