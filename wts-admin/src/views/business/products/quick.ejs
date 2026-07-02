@@ -1,0 +1,155 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Quick Add Product</h1>
+        <p class="page-subtitle">The six essentials — everything else can be filled in later from the full editor.</p>
+      </div>
+      <div class="page-actions">
+        <a href="/business/products" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Products</a>
+      </div>
+    </div>
+
+    <% const tx = (typeof taxonomy !== 'undefined' && taxonomy) ? taxonomy : { SERVICE_PAGES: [], SUBCATEGORIES: {} }; %>
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="/business/products" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="status" value="draft">
+
+          <!-- 1. Name -->
+          <div class="form-group">
+            <label class="form-label" for="name">Product Name *</label>
+            <input type="text" id="name" name="name" class="form-input" required minlength="3" maxlength="80" placeholder="e.g. Landing Page Starter">
+            <small style="color:#666;">3&ndash;80 characters. The URL slug is generated automatically.</small>
+          </div>
+
+          <!-- 2. Service Page + Subcategory -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="service_page">Service Page (Category) *</label>
+              <select id="service_page" name="service_page" class="form-input" required>
+                <option value="">-- Select --</option>
+                <% tx.SERVICE_PAGES.forEach(function(sp){ %>
+                <option value="<%= sp.value %>"><%= sp.label %></option>
+                <% }); %>
+              </select>
+              <small style="color:#666;">The authoritative top-level category.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="subcategory">Subcategory *</label>
+              <select id="subcategory" name="subcategory" class="form-input" required>
+                <option value="">-- Select a Service Page first --</option>
+              </select>
+              <small style="color:#666;">Options update based on the Service Page.</small>
+            </div>
+          </div>
+
+          <!-- 3. Short description -->
+          <div class="form-group">
+            <label class="form-label" for="description">Short Description *</label>
+            <textarea id="description" name="description" class="form-input" rows="3" required minlength="20"></textarea>
+            <small style="color:#666;">At least 20 characters — shows on the service card.</small>
+          </div>
+
+          <!-- 4. Pricing -->
+          <div class="form-group">
+            <label class="form-label" for="pricing_type">Pricing Type</label>
+            <select id="pricing_type" name="pricing_type" class="form-input">
+              <option value="one_time" selected>One-Time Payment</option>
+              <option value="subscription">Subscription</option>
+              <option value="tiered">Quantity / Volume Pricing</option>
+            </select>
+          </div>
+
+          <div id="one-time-pricing" class="pricing-block">
+            <div class="form-group">
+              <label class="form-label" for="price">Price</label>
+              <input type="number" id="price" name="price" class="form-input" step="0.01" min="0" placeholder="e.g. 99.00">
+              <small style="color:#666;">Leave blank for &ldquo;Custom Quote&rdquo; (required when selling online).</small>
+            </div>
+          </div>
+
+          <div id="subscription-pricing" class="pricing-block" style="display:none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="monthly_price">Monthly Price</label>
+                <input type="number" id="monthly_price" name="monthly_price" class="form-input" step="0.01" min="0" placeholder="e.g. 19.00">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="yearly_price">Yearly Price</label>
+                <input type="number" id="yearly_price" name="yearly_price" class="form-input" step="0.01" min="0" placeholder="e.g. 190.00">
+              </div>
+            </div>
+          </div>
+
+          <div id="tiered-pricing" class="pricing-block" style="display:none;">
+            <p style="color:#666;margin:0 0 1rem;"><i class="fas fa-info-circle"></i> Set the quantity tiers in the full editor after creating.</p>
+          </div>
+
+          <!-- 5. Sell online -->
+          <div class="form-group">
+            <label class="form-label" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+              <input type="checkbox" id="purchase_mode" name="purchase_mode" value="buy" style="width:auto;margin:0;">
+              Sell online
+            </label>
+            <small style="color:#666;">On: signed-in clients can buy directly by card or BCEL OnePay. Needs a price. Off: quote requests (default).</small>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:1rem;margin-top:1.5rem;">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-bolt"></i> Create Draft</button>
+            <a href="/business/products/new" class="btn btn-secondary">Open full editor instead</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+// ── Dependent subcategory dropdown ──────────────────────────
+(function() {
+  var SUBCATS = <%- JSON.stringify((typeof taxonomy !== 'undefined' && taxonomy && taxonomy.SUBCATEGORIES) || {}) %>;
+  var sp = document.getElementById('service_page');
+  var sub = document.getElementById('subcategory');
+  if (!sp || !sub) return;
+  sp.addEventListener('change', function() {
+    var list = SUBCATS[sp.value] || [];
+    sub.innerHTML = '<option value="">-- Select --</option>';
+    list.forEach(function(sc) {
+      var o = document.createElement('option');
+      o.value = sc.value;
+      o.textContent = sc.label;
+      sub.appendChild(o);
+    });
+  });
+})();
+
+// ── Pricing type toggle ─────────────────────────────────────
+(function() {
+  var pricingType  = document.getElementById('pricing_type');
+  var oneTimeBlock = document.getElementById('one-time-pricing');
+  var subBlock     = document.getElementById('subscription-pricing');
+  var tieredBlock  = document.getElementById('tiered-pricing');
+  if (!pricingType) return;
+
+  function syncBlocks() {
+    var v = pricingType.value;
+    var isSub = v === 'subscription';
+    var isTiered = v === 'tiered';
+    oneTimeBlock.style.display = (isSub || isTiered) ? 'none' : '';
+    subBlock.style.display = isSub ? '' : 'none';
+    tieredBlock.style.display = isTiered ? '' : 'none';
+  }
+
+  pricingType.addEventListener('change', syncBlocks);
+  syncBlocks();
+})();
+</script>
+
+<%- include('../../partials/footer') %>

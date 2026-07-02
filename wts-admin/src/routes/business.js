@@ -425,6 +425,16 @@ router.get('/products/new', async (req, res) => {
   });
 });
 
+// Quick Add — a trimmed-down create form (the six essentials); POSTs to the
+// existing POST /products handler. Registered before the /products/:id routes.
+router.get('/products/quick', async (req, res) => {
+  res.render('business/products/quick', {
+    title: 'Quick Add Product - WTS Admin',
+    currentPage: 'products',
+    taxonomy
+  });
+});
+
 // ---- Bulk import (must be registered before the /products/:id routes) ----
 
 const IMPORT_ICON_BY_PAGE = {
