@@ -222,27 +222,45 @@ function footerCss() {
   return _footerCss;
 }
 
+// Does the page link a stylesheet that carries footer.css AND actually applies
+// on screen? A link is only counted when it's not print-only and not inside a
+// <noscript> — e.g. `main.css media="print"` (a broken async-load snippet) or a
+// <noscript> fallback does NOT style the footer for a normal visitor, so such a
+// page still needs the inline block.
+function linksScreenFooterStylesheet(html) {
+  const noNoscript = html.replace(/<noscript[\s\S]*?<\/noscript>/gi, '');
+  const re = /<link\b[^>]*href="[^"]*\/css\/(?:main|layout\/footer)\.css"[^>]*>/gi;
+  let m;
+  while ((m = re.exec(noNoscript)) !== null) {
+    const tag = m[0];
+    // A plain (non-print) stylesheet link applies on screen. A `media="print"`
+    // link only applies on screen if its onload flips media to all (the correct
+    // async-load trick) — the broken variant (onload sets rel, not media) stays
+    // print-only and does NOT style the footer on screen.
+    if (!/media="print"/i.test(tag)) return true;
+    if (/onload="[^"]*media\s*=\s*['"]?all/i.test(tag)) return true;
+  }
+  return false;
+}
+
 // Insert the inlined footer CSS once, before </head> (or </body> as a fallback).
 function ensureFooterCss(html) {
   const css = footerCss();
   if (!css) return html;
   const styleTag = '<style id="wts-footer-css">' + css + '</style>';
+  const styledOnScreen = linksScreenFooterStylesheet(html);
   // If the block already exists: refresh its contents so footer.css edits
-  // re-bake — or strip it entirely if the page also links a stylesheet that
-  // already carries footer.css (main.css / footer.css), where it's redundant.
+  // re-bake — or strip it if a screen-applied stylesheet already carries
+  // footer.css, where the block is redundant.
   const open = html.indexOf('<style id="wts-footer-css">');
   if (open !== -1) {
     const close = html.indexOf('</style>', open);
     if (close === -1) return html;
-    const linksFooterStylesheet = /href="[^"]*\/css\/layout\/footer\.css"/i.test(html) ||
-      /href="[^"]*\/css\/main\.css"/i.test(html);
-    const replacement = linksFooterStylesheet ? '' : styleTag;
+    const replacement = styledOnScreen ? '' : styleTag;
     return html.slice(0, open) + replacement + html.slice(close + '</style>'.length);
   }
-  // Already styled by a linked stylesheet (footer.css directly, or the bundled
-  // site stylesheet main.css which contains it) — leave it alone.
-  if (/href="[^"]*\/css\/layout\/footer\.css"/i.test(html)) return html;
-  if (/href="[^"]*\/css\/main\.css"/i.test(html)) return html;
+  // Already styled on screen by a linked stylesheet — leave it alone.
+  if (styledOnScreen) return html;
   const headClose = html.search(/<\/head>/i);
   if (headClose !== -1) return html.slice(0, headClose) + styleTag + html.slice(headClose);
   // No <head> (stub/fragment pages) — a <style> is valid in the body too, so
