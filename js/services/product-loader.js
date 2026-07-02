@@ -21,17 +21,89 @@
   // visitors get Request a Quote plus a sign-in unlock. Resolved once at
   // load via a credentialed same-site fetch.
   var customerState = { signedIn: false, email: null };
+  // Signed-in customers' saved services live on the server; this mirrors
+  // them (product_id → true) for instant isSaved() checks.
+  var serverSaved = {};
 
   function checkCustomerSession() {
-    fetch(API_BASE + '/portal-me', { credentials: 'include' })
+    return fetch(API_BASE + '/portal-me', { credentials: 'include' })
       .then(function (r) { return r.json(); })
       .then(function (d) {
+        var wasSignedIn = customerState.signedIn;
         if (d && d.signed_in) {
           customerState.signedIn = true;
           customerState.email = d.email || null;
         }
+        if (customerState.signedIn && !wasSignedIn) {
+          loadMyServices();
+          // Unlock the buy buttons in an already-open panel (e.g. the
+          // customer signed in from the emailed link and switched back).
+          refreshOpenPanel();
+        }
+        renderAccountPill();
       })
-      .catch(function () { /* treated as signed out */ });
+      .catch(function () { renderAccountPill(); });
+  }
+
+  // Re-check the session whenever the tab comes back into focus so signing
+  // in (which happens in another tab via the magic link) unlocks this one.
+  function watchSessionChanges() {
+    var recheck = function () {
+      if (!customerState.signedIn && document.visibilityState === 'visible') checkCustomerSession();
+    };
+    document.addEventListener('visibilitychange', recheck);
+    window.addEventListener('focus', recheck);
+  }
+
+  function loadMyServices() {
+    fetch(API_BASE + '/my-services', { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        serverSaved = {};
+        ((d && d.services) || []).forEach(function (s) { serverSaved[String(s.product_id)] = true; });
+        migrateLocalSaved();
+      })
+      .catch(function () { /* keep whatever we had */ });
+  }
+
+  // One-time migration: services saved to localStorage before the account
+  // existed move onto the account, then the local copy is cleared.
+  function migrateLocalSaved() {
+    var local = getSavedServices();
+    var ids = Object.keys(local);
+    if (!ids.length) return;
+    ids.forEach(function (id) {
+      if (serverSaved[id]) return;
+      fetch(API_BASE + '/my-services', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: id, billing_period: (local[id] && local[id].billing_period) || null })
+      }).then(function (r) { if (r.ok) serverSaved[id] = true; }).catch(function () {});
+    });
+    try { localStorage.removeItem(SAVED_SERVICES_KEY); } catch (_) {}
+  }
+
+  // Floating account pill on service pages: "Sign in" for visitors (opens
+  // the account step of the quote modal), "My account" once signed in.
+  function renderAccountPill() {
+    var pill = document.getElementById('wts-account-pill');
+    if (!pill) {
+      if (!document.querySelector('.service-grid[data-service-page]')) return;
+      pill = document.createElement('div');
+      pill.id = 'wts-account-pill';
+      pill.style.cssText = 'position:fixed;bottom:1.1rem;left:1.1rem;z-index:9000;';
+      document.body.appendChild(pill);
+    }
+    var pillStyle = 'display:inline-flex;align-items:center;gap:0.45rem;background:#fff;border:1px solid #e2e8f0;box-shadow:0 4px 14px rgba(15,23,42,0.15);border-radius:999px;padding:0.5rem 1.05rem;font-size:0.85rem;font-weight:600;color:#334155;font-family:inherit;';
+    if (customerState.signedIn) {
+      pill.innerHTML = '<a href="' + PORTAL_URL + '" rel="noopener" style="' + pillStyle + 'text-decoration:none;">' +
+        '<i class="fas fa-circle-check" style="color:#16a34a;"></i> My account</a>';
+    } else {
+      pill.innerHTML = '<button type="button" style="' + pillStyle + 'cursor:pointer;">' +
+        '<i class="fas fa-user" style="color:var(--accent-color,#d62b83);"></i> Sign in</button>';
+      pill.firstChild.addEventListener('click', function () { openQuote('', '', '', '', 'account'); });
+    }
   }
 
   // ── Slide-in DOM references (set once) ─────────────────────
@@ -52,6 +124,7 @@
     cacheSlideInElements();
     bindCloseHandlers();
     checkCustomerSession();
+    watchSessionChanges();
 
     var grid = document.querySelector('.service-grid[data-service-page]');
     if (!grid) return;
@@ -281,9 +354,22 @@
 
   function onLearnMore(e) {
     e.preventDefault();
-    var key = this.getAttribute('data-service');
+    renderDetail(this.getAttribute('data-service'));
+  }
+
+  // Rebuild the open panel in place (used when the sign-in state flips so
+  // the CTA stack unlocks without the customer refreshing).
+  var currentDetailKey = null;
+  function refreshOpenPanel() {
+    if (elPanel && elPanel.classList.contains('is-open') && currentDetailKey) {
+      renderDetail(currentDetailKey);
+    }
+  }
+
+  function renderDetail(key) {
     var data = detailMap[key];
     if (!data || !elPanel) return;
+    currentDetailKey = key;
 
     // Build panel content
     var html = '';
@@ -1225,6 +1311,32 @@
     var productName = btn.getAttribute('data-product-name') || '';
     var billingPeriod = btn.getAttribute('data-billing-period') || null;
 
+    // Signed-in: the plan lives on the account so it follows the customer
+    // across devices and shows up in the portal + admin.
+    if (customerState.signedIn) {
+      var adding = !serverSaved[String(productId)];
+      btn.disabled = true;
+      fetch(API_BASE + '/my-services' + (adding ? '' : '/remove'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(adding
+          ? { product_id: productId, billing_period: billingPeriod }
+          : { product_id: productId })
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          if (adding) serverSaved[String(productId)] = true;
+          else delete serverSaved[String(productId)];
+          btn.innerHTML = adding
+            ? '<i class="fas fa-check"></i> Added to My Services'
+            : '<i class="fas fa-plus"></i> Add to My Services';
+        })
+        .catch(function () { /* leave the button as it was */ })
+        .then(function () { btn.disabled = false; });
+      return;
+    }
+
     if (isSaved(productId)) {
       removeService(productId);
       btn.innerHTML = '<i class="fas fa-plus"></i> Add to My Services';
@@ -1245,6 +1357,7 @@
   }
 
   function isSaved(productId) {
+    if (customerState.signedIn) return !!serverSaved[String(productId)];
     return !!getSavedServices()[String(productId)];
   }
 

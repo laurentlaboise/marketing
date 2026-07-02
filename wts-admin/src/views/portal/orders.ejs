@@ -45,8 +45,23 @@
     </form>
   </div>
   <div class="wrap">
-    <h1>My Orders</h1>
+    <h1>My Account</h1>
     <p class="sub">Signed in as <strong><%= customer.email %></strong></p>
+
+    <% var saved = (typeof savedServices !== 'undefined' && savedServices) ? savedServices : []; %>
+    <% if (saved.length > 0) { %>
+    <h2 style="font-size:1.05rem;color:#1a1a2e;margin:0 0 0.6rem;">My Services plan</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.5rem;">
+      <% saved.forEach((s) => { %>
+      <a href="https://wordsthatsells.website/en/digital-marketing-services/<%= s.service_page %>/#wts-product-<%= s.slug %>"
+         style="display:inline-flex;align-items:center;gap:0.4rem;background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:0.4rem 0.9rem;font-size:0.85rem;font-weight:600;color:#334155;text-decoration:none;">
+        <span style="color:#d62b83;">&#9733;</span> <%= s.name %><%= s.billing_period ? ' · ' + s.billing_period : '' %>
+      </a>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <h2 style="font-size:1.05rem;color:#1a1a2e;margin:0 0 0.6rem;">My Orders</h2>
 
     <% if (orders.length === 0) { %>
       <div class="empty">
