@@ -637,6 +637,18 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='stripe_price_id_setup') THEN
             ALTER TABLE products ADD COLUMN stripe_price_id_setup VARCHAR(255);
           END IF;
+          -- BCEL OnePay (Laos): URL of the merchant QR image customers scan in
+          -- the BCEL One app. Setting it offers "Pay with BCEL OnePay" on the
+          -- product page alongside (or instead of) Stripe.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='bcel_qr_url') THEN
+            ALTER TABLE products ADD COLUMN bcel_qr_url TEXT;
+          END IF;
+          -- LAK amount to show next to the BCEL QR (kip has no decimals and
+          -- runs to millions, hence DECIMAL(14,0)). NULL shows the product's
+          -- own currency with a "pay the LAK equivalent" note instead.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='price_lak') THEN
+            ALTER TABLE products ADD COLUMN price_lak DECIMAL(14,0);
+          END IF;
         END $$;
       `);
 
@@ -791,6 +803,17 @@ const db = {
           END IF;
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='unit_price') THEN
             ALTER TABLE orders ADD COLUMN unit_price DECIMAL(10,2);
+          END IF;
+          -- How the customer paid: 'stripe' (checkout session) or 'bcel_qr'
+          -- (manual BCEL OnePay transfer, verified against the bank statement).
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='payment_method') THEN
+            ALTER TABLE orders ADD COLUMN payment_method VARCHAR(30) DEFAULT 'stripe';
+          END IF;
+          -- amount was created NOT NULL but is legitimately unknown when a
+          -- saved Stripe Price ID is charged (Stripe owns the amount), so
+          -- those checkouts violated the constraint and failed to record.
+          IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='amount' AND is_nullable='NO') THEN
+            ALTER TABLE orders ALTER COLUMN amount DROP NOT NULL;
           END IF;
         END $$;
       `);
