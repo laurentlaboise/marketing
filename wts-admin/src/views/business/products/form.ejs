@@ -241,6 +241,27 @@
                 <input type="text" id="stripe_price_id_yearly" name="stripe_price_id_yearly" class="form-input" value="<%= product ? (product.stripe_price_id_yearly || '') : '' %>" placeholder="price_...">
               </div>
             </div>
+
+            <!-- One-time setup fee charged with the first subscription payment -->
+            <div style="margin-top:1rem;padding-top:0.85rem;border-top:1px dashed #e2e8f0;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="setup_fee">Setup Fee (one-time, optional)</label>
+                  <input type="number" id="setup_fee" name="setup_fee" class="form-input" step="0.01" min="0" value="<%= product && product.setup_fee != null ? product.setup_fee : '' %>" placeholder="e.g. 54.00">
+                  <small style="color:#666;">Charged once, in the same checkout as the first subscription payment. Customers can untick it on the product page.</small>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setup_fee_label">Setup Fee Label</label>
+                  <input type="text" id="setup_fee_label" name="setup_fee_label" class="form-input" maxlength="120" value="<%= product ? (product.setup_fee_label || '') : '' %>" placeholder="e.g. Custom design">
+                  <small style="color:#666;">Shown on the product page and Stripe receipt. Blank shows “Setup fee”.</small>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="stripe_price_id_setup">Stripe Price ID (Setup Fee)</label>
+                <input type="text" id="stripe_price_id_setup" name="stripe_price_id_setup" class="form-input" value="<%= product ? (product.stripe_price_id_setup || '') : '' %>" placeholder="price_... (one-time price — optional)">
+                <small style="color:#666;">Optional. When set, checkout uses this one-time Price instead of the amount above.</small>
+              </div>
+            </div>
           </div>
 
           <!-- Quantity / Volume pricing -->

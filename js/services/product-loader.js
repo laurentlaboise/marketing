@@ -96,6 +96,8 @@
       allow_billing_toggle: false,
       annual_savings: null,
       annual_discount_pct: null,
+      setup_fee: null,
+      setup_fee_label: null,
       unit: product.price_unit || 'fixed'
     };
   }
@@ -122,6 +124,10 @@
       if (pr.annual_discount_pct) {
         html += '<span class="product-savings" style="display:block;font-size:0.8rem;color:#16a34a;font-weight:600;">Save ' +
           pr.annual_discount_pct + '% yearly</span>';
+      }
+      if (pr.setup_fee != null && pr.setup_fee > 0) {
+        html += '<span class="product-setup-fee" style="display:block;font-size:0.78rem;color:var(--color-slate-500,#64748b);">+ ' +
+          fmtMoney(pr.setup_fee, pr.currency) + ' ' + esc(pr.setup_fee_label || 'setup fee') + ' (one-time)</span>';
       }
       return html;
     }
@@ -437,6 +443,11 @@
     var qty = btn.getAttribute('data-quantity');
     if (qty) body.quantity = parseInt(qty, 10);
 
+    // Pass the setup-fee opt-out along when the pricing block offers one.
+    var pricingBlock = btn.closest ? btn.closest('.product-pricing-block') : null;
+    var feeBox = pricingBlock ? pricingBlock.querySelector('.setup-fee-checkbox') : null;
+    if (feeBox) body.include_setup_fee = feeBox.checked;
+
     fetch(payBase + '/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -485,6 +496,15 @@
 
       html += '<p class="billing-price" style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:0.25rem;"></p>';
       html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
+
+      // Optional one-time setup fee (e.g. custom design) — included by
+      // default, customer can untick it before checkout.
+      if (pr.setup_fee != null && pr.setup_fee > 0) {
+        html += '<label class="setup-fee-option" style="display:inline-flex;align-items:center;gap:0.5rem;font-size:0.92rem;margin-bottom:1rem;cursor:pointer;color:var(--color-slate-700,#334155);">' +
+          '<input type="checkbox" class="setup-fee-checkbox" checked style="width:auto;margin:0;accent-color:var(--accent-color,#d62b83);">' +
+          'Add ' + esc(pr.setup_fee_label || 'setup fee') + ' — ' + fmtMoney(pr.setup_fee, pr.currency) + ' one-time' +
+          '</label>';
+      }
 
       html += buildCtaHTML(data, initial);
       html += '</div>';

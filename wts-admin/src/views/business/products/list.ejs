@@ -77,6 +77,7 @@
                   <% if (product.pricing_type === 'subscription') { %>
                     <% if (product.monthly_price != null) { %><div><%= parseFloat(product.monthly_price).toFixed(2) %> <small style="color:#888;">/mo</small></div><% } %>
                     <% if (product.yearly_price != null) { %><div><%= parseFloat(product.yearly_price).toFixed(2) %> <small style="color:#888;">/yr</small></div><% } %>
+                    <% if (product.setup_fee != null) { %><div style="font-size:0.75rem;color:#888;">+ <%= parseFloat(product.setup_fee).toFixed(2) %> <%= product.setup_fee_label || 'setup' %></div><% } %>
                     <% if (product.monthly_price == null && product.yearly_price == null) { %><span style="color:#999;">-</span><% } %>
                   <% } else { %>
                     <%= product.price ? '$' + parseFloat(product.price).toFixed(2) : '-' %>

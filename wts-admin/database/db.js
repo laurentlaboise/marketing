@@ -621,6 +621,22 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='quantity_tiers') THEN
             ALTER TABLE products ADD COLUMN quantity_tiers JSONB DEFAULT '[]'::jsonb;
           END IF;
+          -- setup_fee: optional one-time fee charged alongside the first
+          -- subscription payment (e.g. onboarding or custom design work).
+          -- Subscription products only; one-time products fold it into price.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='setup_fee') THEN
+            ALTER TABLE products ADD COLUMN setup_fee DECIMAL(10,2);
+          END IF;
+          -- setup_fee_label: what the fee is called on the product page and
+          -- Stripe receipt (e.g. 'Custom design'). NULL renders as 'Setup fee'.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='setup_fee_label') THEN
+            ALTER TABLE products ADD COLUMN setup_fee_label VARCHAR(120);
+          END IF;
+          -- Stripe Price ID (one-time price) for the setup fee; when set it is
+          -- used at checkout instead of ad-hoc price_data.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='stripe_price_id_setup') THEN
+            ALTER TABLE products ADD COLUMN stripe_price_id_setup VARCHAR(255);
+          END IF;
         END $$;
       `);
 

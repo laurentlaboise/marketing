@@ -255,6 +255,14 @@ function normalizePricing(body) {
         ? body.allow_billing_toggle.includes('true')
         : (body.allow_billing_toggle === 'true' || body.allow_billing_toggle === 'on'));
 
+  // Optional one-time setup fee charged with the first subscription payment
+  // (e.g. custom design). Only meaningful on subscriptions; the label is only
+  // kept when there's a fee to label.
+  const setupFee = pricingType === 'subscription' ? toNum(body.setup_fee) : null;
+  const setupFeeLabel = (setupFee !== null && body.setup_fee_label && body.setup_fee_label.trim())
+    ? body.setup_fee_label.trim().slice(0, 120)
+    : null;
+
   return {
     pricing_type: pricingType,
     monthly_price: pricingType === 'subscription' ? monthly : null,
@@ -262,7 +270,9 @@ function normalizePricing(body) {
     annual_discount_pct: pricingType === 'subscription' ? toInt(body.annual_discount_pct) : null,
     default_billing: defaultBilling,
     allow_billing_toggle: allowToggle,
-    quantity_tiers: quantityTiers
+    quantity_tiers: quantityTiers,
+    setup_fee: setupFee,
+    setup_fee_label: setupFeeLabel
   };
 }
 
@@ -470,7 +480,7 @@ router.post('/products', async (req, res) => {
       pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
       allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
       subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
-      cta_form_type
+      cta_form_type, stripe_price_id_setup
     } = req.body;
 
     const errors = validateProduct(req.body);
@@ -502,8 +512,8 @@ router.post('/products', async (req, res) => {
         pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
         allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
         subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
-        cta_form_type, quantity_tiers
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39)`,
+        cta_form_type, quantity_tiers, setup_fee, setup_fee_label, stripe_price_id_setup
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42)`,
       [
         name, productSlug, description, price || null, currency || 'USD', category, featuresArray, image_url, status || 'active',
         service_page || null, icon_class || 'fas fa-box', animation_class || 'kinetic-pulse-float',
@@ -516,7 +526,8 @@ router.post('/products', async (req, res) => {
         stripe_price_id_monthly || null, stripe_price_id_yearly || null,
         subcategory || null, mode, unit, normalizeIndustries(industries), sku || null, stripe_payment_link || null,
         (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null,
-        JSON.stringify(pricing.quantity_tiers || [])
+        JSON.stringify(pricing.quantity_tiers || []),
+        pricing.setup_fee, pricing.setup_fee_label, stripe_price_id_setup || null
       ]
     );
     req.session.successMessage = 'Product created successfully';
@@ -563,7 +574,7 @@ router.post('/products/:id', async (req, res) => {
       pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
       allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
       subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
-      cta_form_type
+      cta_form_type, stripe_price_id_setup
     } = req.body;
 
     const errors = validateProduct(req.body);
@@ -598,8 +609,9 @@ router.post('/products/:id', async (req, res) => {
         default_billing=$28, allow_billing_toggle=$29,
         stripe_price_id_monthly=$30, stripe_price_id_yearly=$31,
         subcategory=$32, purchase_mode=$33, price_unit=$34, industries=$35, sku=$36,
-        stripe_payment_link=$37, cta_form_type=$38, quantity_tiers=$39, updated_at=CURRENT_TIMESTAMP
-      WHERE id=$40`,
+        stripe_payment_link=$37, cta_form_type=$38, quantity_tiers=$39,
+        setup_fee=$40, setup_fee_label=$41, stripe_price_id_setup=$42, updated_at=CURRENT_TIMESTAMP
+      WHERE id=$43`,
       [
         name, productSlug, description, price || null, currency, category, featuresArray,
         image_url, status, service_page || null, icon_class || 'fas fa-box',
@@ -615,6 +627,7 @@ router.post('/products/:id', async (req, res) => {
         stripe_payment_link || null,
         (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null,
         JSON.stringify(pricing.quantity_tiers || []),
+        pricing.setup_fee, pricing.setup_fee_label, stripe_price_id_setup || null,
         req.params.id
       ]
     );
@@ -659,6 +672,7 @@ router.post('/products/:id/duplicate', async (req, res) => {
     src.stripe_price_id = null;
     src.stripe_price_id_monthly = null;
     src.stripe_price_id_yearly = null;
+    src.stripe_price_id_setup = null;
     src.stripe_payment_link = null;
 
     const cols = Object.keys(src);
