@@ -271,11 +271,12 @@ function ensureFontAwesome(html) {
   return html; // no head and no footer — nothing to do
 }
 
-// Canonical favicon block (mirrors the homepage). Many pages carry no favicon
-// link (glossary stubs, checkout, etc.); the browser then falls back to the
-// root /favicon.ico, but the explicit multi-size set is better for search and
-// mobile. Ensure every page has it. Idempotent: skipped if any favicon link is
-// already present.
+// Canonical favicon block (mirrors the homepage, all under /favicon/). Pages
+// vary: many carry no favicon at all (glossary stubs, checkout — they fall back
+// to the root /favicon.ico), and a few (the /en/company/ pages) carry a legacy
+// set pointing at /favicon.svg and /apple-touch-icon.png, which don't exist
+// (404). Normalize every page to the canonical set: skip pages that already use
+// /favicon/, otherwise strip any legacy favicon links and insert the block.
 const FAVICON_HTML =
   '<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">' +
   '<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">' +
@@ -284,16 +285,20 @@ const FAVICON_HTML =
   '<link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png">' +
   '<link rel="shortcut icon" href="/favicon/favicon.ico">' +
   '<link rel="manifest" href="/favicon/site.webmanifest">';
+// Matches a single favicon <link> tag. rel is restricted to icon variants so it
+// never touches other <link>s (stylesheets, preconnect, manifest, etc.). Uses
+// [^>]* bounded by the tag's own '>' — no nested quantifiers, so no ReDoS.
+const FAVICON_LINK_RE = /[ \t]*<link\b[^>]*\brel="(?:shortcut icon|icon|apple-touch-icon|mask-icon)"[^>]*>\r?\n?/gi;
 function ensureFavicon(html) {
-  if (/rel="(shortcut )?icon"/i.test(html) || html.indexOf('/favicon/') !== -1 ||
-      html.indexOf('apple-touch-icon') !== -1) return html; // already has a favicon
-  const headClose = html.search(/<\/head>/i);
-  if (headClose !== -1) return html.slice(0, headClose) + FAVICON_HTML + html.slice(headClose);
+  if (html.indexOf('/favicon/') !== -1) return html; // already the canonical set
+  const out = html.replace(FAVICON_LINK_RE, ''); // drop any legacy/broken favicon links
+  const headClose = out.search(/<\/head>/i);
+  if (headClose !== -1) return out.slice(0, headClose) + FAVICON_HTML + out.slice(headClose);
   // No <head> (stub/fragment pages) — icon links are honored in the body too;
   // place them before the footer. (Same-origin /favicon.ico is the fallback.)
-  const footerOpen = html.search(/<footer[\s>]/i);
-  if (footerOpen !== -1) return html.slice(0, footerOpen) + FAVICON_HTML + html.slice(footerOpen);
-  return html;
+  const footerOpen = out.search(/<footer[\s>]/i);
+  if (footerOpen !== -1) return out.slice(0, footerOpen) + FAVICON_HTML + out.slice(footerOpen);
+  return out;
 }
 
 function insertBeforeBodyClose(html, snippet) {
