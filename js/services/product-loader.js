@@ -151,9 +151,32 @@
     }
 
     if (pr.one_time_price != null) {
-      return '<span class="product-price" style="' + style + '">' + fmtMoney(pr.one_time_price, pr.currency) + '</span>';
+      return '<span class="product-price" style="' + style + '">' + fmtMoney(pr.one_time_price, pr.currency) +
+        (pr.unit && pr.unit !== 'fixed' ? '<span style="font-size:0.85em;font-weight:500;color:var(--color-slate-500,#64748b);">' + esc(unitSuffix(pr.unit)) + '</span>' : '') +
+        '</span>';
     }
     return '';
+  }
+
+  // Compact checkmark list of the product's features for the service card.
+  // The admin enters these in the "Appearance (Service Card)" section; show
+  // up to four with a "+N more" hint pointing at the Learn More panel.
+  function cardFeaturesHTML(product) {
+    var feats = (Array.isArray(product.features) ? product.features : [])
+      .filter(function (f) { return f && String(f).trim(); });
+    if (!feats.length) return '';
+
+    var html = '<ul class="product-features" style="list-style:none;padding:0;margin:0.25rem auto 0.5rem;max-width:280px;text-align:left;font-size:0.88rem;color:var(--color-slate-700,#334155);">';
+    feats.slice(0, 4).forEach(function (f) {
+      html += '<li style="display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.35rem;">' +
+        '<i class="fas fa-check" style="color:#16a34a;margin-top:0.25em;flex:none;font-size:0.8em;"></i>' +
+        '<span>' + esc(f) + '</span></li>';
+    });
+    if (feats.length > 4) {
+      html += '<li style="color:var(--color-slate-500,#64748b);font-size:0.82rem;padding-left:1.35rem;">+ ' +
+        (feats.length - 4) + ' more</li>';
+    }
+    return html + '</ul>';
   }
 
   // ── Render product cards ─────────────────────────────────────
@@ -168,6 +191,7 @@
       var slug = product.slug || product.id;
 
       var priceHTML = cardPriceHTML(product);
+      var featuresHTML = cardFeaturesHTML(product);
 
       var card = document.createElement('div');
       card.className = 'service-card reveal' + delay;
@@ -179,6 +203,7 @@
         '<div class="icon ' + anim + '"><i class="' + icon + '"></i></div>' +
         '<h3 class="service-title">' + esc(product.name) + '</h3>' +
         '<p class="service-description">' + esc(product.description || '') + '</p>' +
+        featuresHTML +
         priceHTML +
         '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;margin-top:auto;">' +
           '<button class="btn btn-premium btn-learn-more" data-service="' + esc(slug) + '">Learn More</button>' +
@@ -312,6 +337,7 @@
 
     var input = elContent.querySelector('.qty-input');
     var totalEl = elContent.querySelector('.qty-total');
+    var lineEl = elContent.querySelector('.qty-line');
     var rows = elContent.querySelectorAll('.qty-tier-row');
     var tiers = pr.tiers.slice().sort(function (a, b) { return a.min_qty - b.min_qty; });
     var minQty = tiers[0].min_qty || 1;
@@ -327,9 +353,8 @@
       if (isNaN(q) || q < minQty) q = minQty;
       var unit = unitFor(q);
       var total = unit * q;
-      if (totalEl) {
-        totalEl.innerHTML = q + ' × ' + fmtMoney(unit, pr.currency) + '/ea = ' + fmtMoney(total, pr.currency);
-      }
+      if (lineEl) lineEl.textContent = q + ' × ' + fmtMoney(unit, pr.currency) + ' each';
+      if (totalEl) totalEl.textContent = fmtMoney(total, pr.currency);
       var activeMin = tiers[0].min_qty;
       tiers.forEach(function (t) { if (q >= t.min_qty) activeMin = t.min_qty; });
       for (var i = 0; i < rows.length; i++) {
@@ -482,6 +507,25 @@
 
   // ── Slide-in pricing block (one-time or subscription toggle) ──
 
+  // Shared style for the itemized order-summary box used by every pricing
+  // type, so subscription, one-time and quantity products all read the same.
+  var BREAKDOWN_BOX_STYLE = 'max-width:380px;margin:0 auto 0.75rem;border:1px solid var(--color-border,#e2e8f0);border-radius:12px;padding:1rem 1.15rem;text-align:left;font-size:0.95rem;background:var(--color-slate-50,#f8fafc);';
+  var BREAKDOWN_DIVIDER = '<div style="border-top:1px dashed var(--color-border,#cbd5e1);margin:0.8rem 0 0.6rem;"></div>';
+
+  // "Due today" is only honest when the CTA actually charges; quote-based
+  // products get "Estimated total" instead.
+  function totalLabel(data) {
+    return data.purchase_mode === 'buy' ? 'Due today' : 'Estimated total';
+  }
+
+  // `value` is optional — omit it when a bound updater fills the amount in.
+  function breakdownTotalRow(label, cls, value) {
+    return '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.75rem;">' +
+      '<span style="font-weight:700;color:var(--text-primary,#1a1a2e);">' + esc(label) + '</span>' +
+      '<strong class="' + cls + '" style="font-size:1.3rem;color:var(--accent-color,#d62b83);white-space:nowrap;">' + (value || '') + '</strong>' +
+      '</div>';
+  }
+
   function buildPricingBlock(data) {
     var pr = data.pricing || getPricing(data);
     var html = '<div class="product-pricing-block" style="text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--color-border,#e2e8f0);">';
@@ -510,7 +554,7 @@
         // Itemized order summary: subscription + one-time fee + "Due today"
         // total, so the first payment is never a surprise. The fee row has a
         // checkbox (checked by default) the customer can untick.
-        html += '<div class="price-breakdown" style="max-width:380px;margin:0 auto 0.75rem;border:1px solid var(--color-border,#e2e8f0);border-radius:12px;padding:1rem 1.15rem;text-align:left;font-size:0.95rem;background:var(--color-slate-50,#f8fafc);">' +
+        html += '<div class="price-breakdown" style="' + BREAKDOWN_BOX_STYLE + '">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;">' +
             '<span class="pb-sub-label" style="color:var(--color-slate-700,#334155);"></span>' +
             '<strong class="pb-sub-amount" style="white-space:nowrap;"></strong>' +
@@ -522,11 +566,8 @@
             '</label>' +
             '<strong class="pb-fee-amount" style="white-space:nowrap;">' + fmtMoney(pr.setup_fee, pr.currency) + '</strong>' +
           '</div>' +
-          '<div style="border-top:1px dashed var(--color-border,#cbd5e1);margin:0.8rem 0 0.6rem;"></div>' +
-          '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.75rem;">' +
-            '<span style="font-weight:700;color:var(--text-primary,#1a1a2e);">Due today</span>' +
-            '<strong class="pb-total-amount" style="font-size:1.3rem;color:var(--accent-color,#d62b83);white-space:nowrap;"></strong>' +
-          '</div>' +
+          BREAKDOWN_DIVIDER +
+          breakdownTotalRow(totalLabel(data), 'pb-total-amount') +
           '<p class="pb-renew-note" style="font-size:0.8rem;color:var(--color-slate-500,#64748b);margin:0.45rem 0 0;"></p>' +
         '</div>';
         html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
@@ -555,11 +596,19 @@
       });
       html += '</div>';
 
-      html += '<div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin-bottom:0.5rem;">' +
+      html += '<div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin-bottom:0.75rem;">' +
         '<label style="font-weight:600;">Quantity</label>' +
         '<input type="number" class="qty-input" min="' + minQty + '" step="1" value="' + minQty + '" ' +
         'style="width:90px;padding:0.45rem 0.6rem;border:1px solid var(--color-border,#d1d5db);border-radius:8px;text-align:center;font-size:1rem;"></div>';
-      html += '<p class="qty-total" style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:1rem;"></p>';
+
+      html += '<div class="price-breakdown" style="' + BREAKDOWN_BOX_STYLE + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;">' +
+          '<span style="color:var(--color-slate-700,#334155);">Your quantity</span>' +
+          '<strong class="qty-line" style="white-space:nowrap;"></strong>' +
+        '</div>' +
+        BREAKDOWN_DIVIDER +
+        breakdownTotalRow(totalLabel(data), 'qty-total') +
+      '</div>';
 
       html += buildCtaHTML(data, null);
       html += '</div>';
@@ -568,10 +617,25 @@
 
     // One-time
     if (pr.one_time_price != null) {
-      html += '<p style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:1rem;">' +
-        fmtMoney(pr.one_time_price, pr.currency) +
-        (pr.unit && pr.unit !== 'fixed' ? '<span style="font-size:0.6em;font-weight:500;color:var(--color-slate-500,#64748b);">' + esc(unitSuffix(pr.unit)) + '</span>' : '') +
-        '</p>';
+      if (data.purchase_mode === 'buy' && (!pr.unit || pr.unit === 'fixed')) {
+        // Same order-summary treatment as subscriptions, so the checkout
+        // amount is stated explicitly.
+        html += '<div class="price-breakdown" style="' + BREAKDOWN_BOX_STYLE + '">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;">' +
+            '<span style="color:var(--color-slate-700,#334155);">One-time payment</span>' +
+            '<strong style="white-space:nowrap;">' + fmtMoney(pr.one_time_price, pr.currency) + '</strong>' +
+          '</div>' +
+          BREAKDOWN_DIVIDER +
+          breakdownTotalRow('Due today', 'pb-onetime-total', fmtMoney(pr.one_time_price, pr.currency)) +
+        '</div>';
+      } else {
+        // Per-hour / per-unit rates and quote-first products keep the simple
+        // headline price; a "Due today" total would be misleading.
+        html += '<p style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:1rem;">' +
+          fmtMoney(pr.one_time_price, pr.currency) +
+          (pr.unit && pr.unit !== 'fixed' ? '<span style="font-size:0.6em;font-weight:500;color:var(--color-slate-500,#64748b);">' + esc(unitSuffix(pr.unit)) + '</span>' : '') +
+          '</p>';
+      }
     }
     html += buildCtaHTML(data, null);
     html += '</div>';
