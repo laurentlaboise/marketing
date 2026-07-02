@@ -22,7 +22,7 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
       return res.status(503).json({ error: 'Payment processing is not configured' });
     }
 
-    const { product_id, billing_period, quantity } = req.body;
+    const { product_id, billing_period, quantity, include_setup_fee } = req.body;
     if (!product_id) {
       return res.status(400).json({ error: 'product_id is required' });
     }
@@ -104,6 +104,33 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
           },
           quantity: 1
         }];
+      }
+
+      // Optional one-time setup fee (e.g. custom design) billed on the first
+      // invoice alongside the subscription. Included by default; the product
+      // page lets the customer opt out via include_setup_fee: false.
+      const setupFee = num(product.setup_fee);
+      const skipSetupFee = include_setup_fee === false || include_setup_fee === 'false';
+      if (!skipSetupFee && (setupFee > 0 || product.stripe_price_id_setup)) {
+        const feeLabel = product.setup_fee_label || 'Setup fee';
+        if (product.stripe_price_id_setup) {
+          sessionConfig.line_items.push({ price: product.stripe_price_id_setup, quantity: 1 });
+        } else {
+          sessionConfig.line_items.push({
+            price_data: {
+              currency,
+              product_data: { name: `${product.name} — ${feeLabel} (one-time)` },
+              unit_amount: Math.round(setupFee * 100)
+            },
+            quantity: 1
+          });
+        }
+        sessionConfig.metadata.setup_fee = setupFee > 0 ? String(setupFee) : 'stripe_price';
+        sessionConfig.metadata.setup_fee_label = feeLabel;
+        // Keep the recorded order amount in sync when we control both prices.
+        if (orderAmount !== null && setupFee > 0) {
+          orderAmount = Math.round((orderAmount + setupFee) * 100) / 100;
+        }
       }
     } else if (product.pricing_type === 'tiered') {
       // Volume-discount: the unit price depends on the chosen quantity.

@@ -423,7 +423,9 @@ function buildProductPricing(p) {
       default_billing: 'monthly',
       allow_billing_toggle: false,
       annual_savings: null,
-      annual_discount_pct: null
+      annual_discount_pct: null,
+      setup_fee: null,
+      setup_fee_label: null
     };
   }
 
@@ -437,7 +439,9 @@ function buildProductPricing(p) {
       default_billing: 'monthly',
       allow_billing_toggle: false,
       annual_savings: null,
-      annual_discount_pct: null
+      annual_discount_pct: null,
+      setup_fee: null,
+      setup_fee_label: null
     };
   }
 
@@ -467,6 +471,9 @@ function buildProductPricing(p) {
   // Only allow toggling if both periods are actually available.
   const bothAvailable = monthly !== null && yearly !== null;
 
+  // Optional one-time setup fee charged with the first payment.
+  const setupFee = num(p.setup_fee);
+
   return {
     type: 'subscription',
     currency,
@@ -476,7 +483,9 @@ function buildProductPricing(p) {
     default_billing: defaultBilling,
     allow_billing_toggle: bothAvailable && p.allow_billing_toggle !== false,
     annual_savings: annualSavings,
-    annual_discount_pct: discountPct
+    annual_discount_pct: discountPct,
+    setup_fee: setupFee,
+    setup_fee_label: setupFee !== null ? (p.setup_fee_label || 'Setup fee') : null
   };
 }
 
