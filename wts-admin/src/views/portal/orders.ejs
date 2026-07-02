@@ -39,10 +39,13 @@
 <body>
   <div class="topbar">
     <a class="brand" href="https://wordsthatsells.website">Words That Sells</a>
-    <form method="POST" action="/portal/logout">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <button type="submit">Sign out</button>
-    </form>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <a href="/portal/profile" style="background:none;border:1px solid rgba(255,255,255,0.35);color:#e2e8f0;border-radius:8px;padding:0.35rem 0.9rem;font-size:0.85rem;text-decoration:none;">My Profile</a>
+      <form method="POST" action="/portal/logout">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit">Sign out</button>
+      </form>
+    </div>
   </div>
   <div class="wrap">
     <h1>My Account</h1>

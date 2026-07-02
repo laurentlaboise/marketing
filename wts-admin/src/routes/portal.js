@@ -1,5 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
 const db = require('../../database/db');
 const { sendMagicLink } = require('../utils/mailer');
@@ -47,6 +48,20 @@ async function linkOrdersByEmail(customerId, email) {
   );
 }
 
+// Fresh session id on privilege change (session-fixation hygiene), and a
+// 30-day cookie so customers stay signed in on each device they use.
+// (The admin's own sessions keep the global 24h default — this override
+// only applies to sessions minted here.)
+const CUSTOMER_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
+async function establishCustomerSession(req, customer) {
+  await new Promise((resolve, reject) => req.session.regenerate((err) => err ? reject(err) : resolve()));
+  req.session.customerId = customer.id;
+  req.session.customerEmail = customer.email;
+  req.session.cookie.maxAge = CUSTOMER_SESSION_MS;
+  await db.query('UPDATE customers SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1', [customer.id]);
+  await linkOrdersByEmail(customer.id, customer.email);
+}
+
 // Mint a single-use magic-link token and email it. The one token path for
 // self-serve login, admin invites and public portal signups alike.
 async function issueLoginLink(customer) {
@@ -81,8 +96,32 @@ router.get('/login', (req, res) => {
 
 router.post('/login', loginLimiter, async (req, res) => {
   const email = normalizeEmail(req.body.email);
-  // Always render the same "check your email" page — never reveal whether
-  // an address exists (no account enumeration).
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
+
+  // Password sign-in — only possible once the customer set a password in
+  // their profile. A wrong/unset password never reveals which it was.
+  if (password) {
+    try {
+      if (email) {
+        const result = await db.query('SELECT * FROM customers WHERE email = $1', [email]);
+        const customer = result.rows[0];
+        if (customer && customer.status === 'active' && customer.password_hash &&
+            await bcrypt.compare(password, customer.password_hash)) {
+          await establishCustomerSession(req, customer);
+          return res.redirect('/portal');
+        }
+      }
+    } catch (e) {
+      console.error('Portal password login error:', e);
+    }
+    return res.status(401).render('portal/login', {
+      title: 'Sign in - Words That Sells', sent: false, email: email || '',
+      error: 'Email or password incorrect — or this account has no password yet. Leave the password empty and we’ll email you a sign-in link instead.'
+    });
+  }
+
+  // Magic-link flow. Always render the same "check your email" page — never
+  // reveal whether an address exists (no account enumeration).
   if (!email) {
     return res.render('portal/login', { title: 'Sign in - Words That Sells', sent: true, email: String(req.body.email || '').slice(0, 100) });
   }
@@ -121,13 +160,7 @@ router.get('/auth', loginLimiter, async (req, res) => {
       return res.status(403).render('portal/login', { title: 'Sign in - Words That Sells', sent: false, email: '', error: 'This account is not active. Contact us if you think this is a mistake.' });
     }
 
-    // Fresh session id on privilege change (session-fixation hygiene).
-    await new Promise((resolve, reject) => req.session.regenerate((err) => err ? reject(err) : resolve()));
-    req.session.customerId = customer.id;
-    req.session.customerEmail = customer.email;
-
-    await db.query('UPDATE customers SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1', [customer.id]);
-    await linkOrdersByEmail(customer.id, customer.email);
+    await establishCustomerSession(req, customer);
     res.redirect('/portal');
   } catch (e) {
     console.error('Portal auth error:', e);
@@ -170,6 +203,84 @@ router.get('/', requireCustomer, async (req, res) => {
   } catch (e) {
     console.error('Portal orders error:', e);
     res.status(500).render('error', { title: 'Error', message: 'Failed to load your orders. Please try again.', code: 500 });
+  }
+});
+
+// ── Profile ─────────────────────────────────────────────────────
+
+router.get('/profile', requireCustomer, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM customers WHERE id = $1', [req.session.customerId]);
+    if (!result.rows.length) {
+      req.session.destroy(() => {});
+      return res.redirect('/portal/login');
+    }
+    res.render('portal/profile', {
+      title: 'My Profile - Words That Sells',
+      customer: result.rows[0],
+      saved: false
+    });
+  } catch (e) {
+    console.error('Portal profile error:', e);
+    res.status(500).render('error', { title: 'Error', message: 'Failed to load your profile.', code: 500 });
+  }
+});
+
+router.post('/profile', requireCustomer, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM customers WHERE id = $1', [req.session.customerId]);
+    if (!result.rows.length) {
+      req.session.destroy(() => {});
+      return res.redirect('/portal/login');
+    }
+    const customer = result.rows[0];
+    const clean = (v, max) => {
+      const s = String(v || '').trim().slice(0, max);
+      return s || null;
+    };
+    const name = clean(req.body.name, 255);
+    const company = clean(req.body.company, 255);
+    const phone = clean(req.body.phone, 50);
+
+    // Optional password change: both fields must match, minimum 8 chars.
+    // Leaving them blank keeps the current setting (including "no password").
+    const newPassword = typeof req.body.new_password === 'string' ? req.body.new_password : '';
+    const confirm = typeof req.body.confirm_password === 'string' ? req.body.confirm_password : '';
+    let passwordHash;
+    if (newPassword || confirm) {
+      if (newPassword.length < 8) {
+        return res.status(400).render('portal/profile', {
+          title: 'My Profile - Words That Sells', customer: { ...customer, name, company, phone },
+          saved: false, error: 'The password must be at least 8 characters.'
+        });
+      }
+      if (newPassword !== confirm) {
+        return res.status(400).render('portal/profile', {
+          title: 'My Profile - Words That Sells', customer: { ...customer, name, company, phone },
+          saved: false, error: 'The two passwords don’t match.'
+        });
+      }
+      passwordHash = await bcrypt.hash(newPassword, 10);
+    }
+
+    const updated = await db.query(
+      `UPDATE customers SET
+         name = $1, company = $2, phone = $3,
+         password_hash = COALESCE($4, password_hash),
+         updated_at = CURRENT_TIMESTAMP
+       WHERE id = $5
+       RETURNING *`,
+      [name, company, phone, passwordHash || null, customer.id]
+    );
+    res.render('portal/profile', {
+      title: 'My Profile - Words That Sells',
+      customer: updated.rows[0],
+      saved: true,
+      passwordChanged: !!passwordHash
+    });
+  } catch (e) {
+    console.error('Portal profile update error:', e);
+    res.status(500).render('error', { title: 'Error', message: 'Failed to save your profile.', code: 500 });
   }
 });
 

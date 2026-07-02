@@ -846,6 +846,24 @@ const db = {
         )
       `);
 
+      // Profile + optional password. password_hash stays NULL until the
+      // customer chooses to set one in their profile — magic links always
+      // keep working either way.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customers' AND column_name='password_hash') THEN
+            ALTER TABLE customers ADD COLUMN password_hash VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customers' AND column_name='company') THEN
+            ALTER TABLE customers ADD COLUMN company VARCHAR(255);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customers' AND column_name='phone') THEN
+            ALTER TABLE customers ADD COLUMN phone VARCHAR(50);
+          END IF;
+        END $$;
+      `);
+
       // Magic-link login tokens: single-use, short-lived, stored hashed so a
       // database leak cannot be replayed into a session.
       await client.query(`

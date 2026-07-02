@@ -15,8 +15,8 @@
     h1 { font-size: 1.35rem; color: #1a1a2e; margin-bottom: 0.4rem; }
     p.sub { color: #64748b; font-size: 0.92rem; line-height: 1.55; margin-bottom: 1.25rem; }
     label { display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; }
-    input[type=email] { width: 100%; padding: 0.7rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 1rem; font-family: inherit; }
-    input[type=email]:focus { outline: 2px solid #d62b83; border-color: transparent; }
+    input[type=email], input[type=password] { width: 100%; padding: 0.7rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 1rem; font-family: inherit; box-sizing: border-box; }
+    input[type=email]:focus, input[type=password]:focus { outline: 2px solid #d62b83; border-color: transparent; }
     button { width: 100%; margin-top: 1rem; background: #d62b83; color: #fff; border: none; border-radius: 10px; padding: 0.8rem; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
     button:hover { background: #b91c6f; }
     .notice { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 10px; padding: 0.8rem 1rem; font-size: 0.9rem; line-height: 1.5; }
@@ -37,14 +37,16 @@
         <p class="hint"><a href="/portal/login" style="color:#d62b83;">← Use a different email</a></p>
       <% } else { %>
         <h1>Sign in to your account</h1>
-        <p class="sub">No password needed — enter the email you used for your order (or any email to create an account) and we'll send you a sign-in link.</p>
+        <p class="sub">Enter your email — and your password if you've set one in your profile. Leave the password empty and we'll email you a sign-in link instead.</p>
         <form method="POST" action="/portal/login">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <label for="email">Email address</label>
-          <input type="email" id="email" name="email" required maxlength="255" placeholder="you@example.com" autocomplete="email" autofocus>
-          <button type="submit">Email me a sign-in link</button>
+          <input type="email" id="email" name="email" required maxlength="255" placeholder="you@example.com" autocomplete="email" autofocus <%= email ? 'value="' + email + '"' : '' %>>
+          <label for="password" style="margin-top:0.85rem;">Password <span style="font-weight:400;color:#94a3b8;">(optional)</span></label>
+          <input type="password" id="password" name="password" maxlength="200" placeholder="Leave empty for an email link" autocomplete="current-password">
+          <button type="submit">Sign in</button>
         </form>
-        <p class="hint">Your account is created automatically the first time you buy or sign in — track orders, BCEL payments and downloads in one place.</p>
+        <p class="hint">No account yet? Just enter your email — your account is created automatically. You stay signed in on this device for 30 days.</p>
       <% } %>
     </div>
   </div>

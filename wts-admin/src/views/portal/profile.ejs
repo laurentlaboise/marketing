@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', Arial, sans-serif; background: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar { background: #122a3f; padding: 0.9rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
+    .topbar a.brand { color: #fff; font-weight: 700; text-decoration: none; font-size: 1.05rem; }
+    .topbar .actions { display: flex; gap: 0.5rem; align-items: center; }
+    .topbar a.link, .topbar form button { background: none; border: 1px solid rgba(255,255,255,0.35); color: #e2e8f0; border-radius: 8px; padding: 0.35rem 0.9rem; font-size: 0.85rem; cursor: pointer; font-family: inherit; text-decoration: none; }
+    .wrap { flex: 1; max-width: 560px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
+    h1 { font-size: 1.35rem; color: #1a1a2e; margin: 0.5rem 0 0.15rem; }
+    p.sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1.25rem; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.35rem; margin-bottom: 1rem; }
+    h2 { font-size: 1rem; color: #1a1a2e; margin: 0 0 0.9rem; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; }
+    input { width: 100%; padding: 0.65rem 0.8rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.98rem; font-family: inherit; margin-bottom: 0.95rem; }
+    input:focus { outline: 2px solid #d62b83; border-color: transparent; }
+    input[disabled] { background: #f8fafc; color: #64748b; }
+    .note { font-size: 0.78rem; color: #94a3b8; margin: -0.6rem 0 0.95rem; line-height: 1.5; }
+    button.save { width: 100%; background: #d62b83; color: #fff; border: none; border-radius: 10px; padding: 0.8rem; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    button.save:hover { background: #b91c6f; }
+    .banner { border-radius: 10px; padding: 0.8rem 1rem; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
+    .banner.ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .banner.err { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+    .pw-state { display: inline-block; font-size: 0.75rem; font-weight: 600; border-radius: 999px; padding: 0.15rem 0.7rem; margin-left: 0.4rem; }
+    .pw-state.set { background: #dcfce7; color: #166534; }
+    .pw-state.unset { background: #e2e8f0; color: #475569; }
+    .foot { text-align: center; color: #94a3b8; font-size: 0.78rem; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="https://wordsthatsells.website">Words That Sells</a>
+    <div class="actions">
+      <a class="link" href="/portal">My Account</a>
+      <form method="POST" action="/portal/logout" style="display:inline;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit">Sign out</button>
+      </form>
+    </div>
+  </div>
+  <div class="wrap">
+    <h1>My Profile</h1>
+    <p class="sub"><%= customer.email %></p>
+
+    <% if (typeof saved !== 'undefined' && saved) { %>
+    <div class="banner ok">Profile saved<%= (typeof passwordChanged !== 'undefined' && passwordChanged) ? ' — your password is set. You can now sign in with it on any device.' : '.' %></div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="banner err"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/portal/profile">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="card">
+        <h2>Contact details</h2>
+        <label for="pf-email">Email</label>
+        <input type="email" id="pf-email" value="<%= customer.email %>" disabled>
+        <p class="note">Your email is your account — contact us if you need to change it.</p>
+        <label for="pf-name">Full name</label>
+        <input type="text" id="pf-name" name="name" maxlength="255" value="<%= customer.name || '' %>" autocomplete="name" placeholder="e.g. Somchai Vongsa">
+        <label for="pf-company">Company <span style="font-weight:400;color:#94a3b8;">(optional)</span></label>
+        <input type="text" id="pf-company" name="company" maxlength="255" value="<%= customer.company || '' %>" autocomplete="organization" placeholder="Your business name">
+        <label for="pf-phone">Phone / WhatsApp <span style="font-weight:400;color:#94a3b8;">(optional)</span></label>
+        <input type="tel" id="pf-phone" name="phone" maxlength="50" value="<%= customer.phone || '' %>" autocomplete="tel" placeholder="+856 20 …">
+      </div>
+
+      <div class="card">
+        <h2>Password
+          <% if (customer.password_hash) { %><span class="pw-state set">set</span><% } else { %><span class="pw-state unset">not set — sign-in links only</span><% } %>
+        </h2>
+        <label for="pf-pass"><%= customer.password_hash ? 'New password' : 'Choose a password' %></label>
+        <input type="password" id="pf-pass" name="new_password" maxlength="200" autocomplete="new-password" placeholder="Minimum 8 characters">
+        <label for="pf-pass2">Confirm password</label>
+        <input type="password" id="pf-pass2" name="confirm_password" maxlength="200" autocomplete="new-password" placeholder="Type it again">
+        <p class="note">With a password you can sign in instantly on any device. Email sign-in links keep working either way — leave both fields empty to keep things as they are.</p>
+      </div>
+
+      <button type="submit" class="save">Save profile</button>
+    </form>
+  </div>
+  <div class="foot">Words That Sells · wordsthatsells.website</div>
+</body>
+</html>
