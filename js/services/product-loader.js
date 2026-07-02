@@ -14,7 +14,25 @@
   'use strict';
 
   var API_BASE = 'https://admin.wordsthatsells.website/api/public';
+  var PORTAL_URL = 'https://admin.wordsthatsells.website/portal';
   var SAVED_SERVICES_KEY = 'wts_saved_services';
+
+  // Portal session state: signed-in customers get the full buy/save CTAs;
+  // visitors get Request a Quote plus a sign-in unlock. Resolved once at
+  // load via a credentialed same-site fetch.
+  var customerState = { signedIn: false, email: null };
+
+  function checkCustomerSession() {
+    fetch(API_BASE + '/portal-me', { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.signed_in) {
+          customerState.signedIn = true;
+          customerState.email = d.email || null;
+        }
+      })
+      .catch(function () { /* treated as signed out */ });
+  }
 
   // ── Slide-in DOM references (set once) ─────────────────────
   var elPanel, elOverlay, elTitle, elImage, elContent, elCloseBtn;
@@ -33,6 +51,7 @@
   function init() {
     cacheSlideInElements();
     bindCloseHandlers();
+    checkCustomerSession();
 
     var grid = document.querySelector('.service-grid[data-service-page]');
     if (!grid) return;
@@ -395,6 +414,16 @@
       bcelBtns[k].dataset.bound = '1';
       bcelBtns[k].addEventListener('click', onBcelPay);
     }
+    var signBtns = elContent.querySelectorAll('.btn-signin-to-buy');
+    for (var m = 0; m < signBtns.length; m++) {
+      if (signBtns[m].dataset.bound) continue;
+      signBtns[m].dataset.bound = '1';
+      signBtns[m].addEventListener('click', function (e) {
+        e.preventDefault();
+        // Jump straight to the account step of the quote modal.
+        openQuote(this.getAttribute('data-product-name') || '', '', '', '', 'account');
+      });
+    }
   }
 
   function onRequestQuote(e) {
@@ -462,8 +491,9 @@
   function quoteEscHandler(e) { if (e.key === 'Escape') closeQuoteModal(); }
 
   // quantity/billing (optional) travel into the message + metadata so the
-  // submission tells you exactly what was being looked at.
-  function openQuote(productName, formType, quantity, billing) {
+  // submission tells you exactly what was being looked at. start='account'
+  // opens directly on the create-account step (the sign-in-to-buy unlock).
+  function openQuote(productName, formType, quantity, billing, start) {
     ensureQuoteStyles();
     closeQuoteModal();
     closePanel();
@@ -610,7 +640,7 @@
           .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
           .then(function () {
             showSuccess('Check your email',
-              'A sign-in link is on its way to <strong>' + esc(email) + '</strong>. Click it to open your account and start building your services plan.');
+              'A sign-in link is on its way to <strong>' + esc(email) + '</strong>. Click it to open your account — then come back and refresh this page to unlock online checkout.');
           })
           .catch(function () {
             signupBtn.disabled = false;
@@ -621,7 +651,7 @@
       });
     }
 
-    showChoice();
+    if (start === 'account') { showAccountForm(); } else { showChoice(); }
   }
 
   function onBuyNow(e) {
@@ -1008,6 +1038,29 @@
     var ctaStyle = ' style="font-size:1.1rem;padding:0.8rem 2rem;"';
 
     if (data.purchase_mode === 'buy') {
+      // Payment-method logos: Stripe wordmark + card brands, and the BCEL
+      // OnePay badge when QR payment is available.
+      var logos = '<div style="margin-top:0.8rem;display:flex;gap:0.6rem;justify-content:center;align-items:center;color:#94a3b8;" aria-label="Accepted payment methods">' +
+        '<i class="fab fa-stripe" style="font-size:1.9rem;" title="Payments by Stripe"></i>' +
+        '<i class="fab fa-cc-visa" style="font-size:1.35rem;" title="Visa"></i>' +
+        '<i class="fab fa-cc-mastercard" style="font-size:1.35rem;" title="Mastercard"></i>' +
+        (data.bcel
+          ? '<span title="BCEL OnePay (Laos)" style="font-weight:800;color:#c8102e;font-size:0.72rem;letter-spacing:0.02em;border:1.5px solid #c8102e;border-radius:4px;padding:0.12rem 0.4rem;white-space:nowrap;">BCEL <span style="font-weight:600;">OnePay</span></span>'
+          : '') +
+        '</div>';
+
+      // Signed-out visitors: quote first; a sign-in unlock keeps the path to
+      // online checkout open without exposing the buy buttons themselves.
+      if (!customerState.signedIn) {
+        return '<button class="btn btn-accent-magenta product-cta btn-request-quote"' + idAttr + nameAttr + formAttr + billingAttr +
+          ctaStyle + '><i class="fas fa-comments"></i> Request a Quote</button>' +
+          '<div style="margin-top:0.6rem;"><button class="btn-signin-to-buy"' + nameAttr +
+          ' style="background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.55rem 1.2rem;border-radius:8px;cursor:pointer;color:var(--color-slate-700,#334155);font-size:0.95rem;font-weight:600;">' +
+          '<i class="fas fa-unlock" style="color:var(--accent-color,#d62b83);"></i> Sign in to buy online</button></div>' +
+          '<p style="font-size:0.8rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">Free account — buy instantly with card or BCEL OnePay, save services and track orders.</p>' +
+          logos;
+      }
+
       var buy = '<button class="btn btn-accent-magenta product-cta btn-buy-now"' + idAttr + nameAttr + formAttr + billingAttr +
         (data.stripe_payment_link ? ' data-stripe-link="' + esc(data.stripe_payment_link) + '"' : '') +
         ctaStyle + '><i class="fas fa-bolt"></i> Buy Now</button>';
@@ -1021,17 +1074,11 @@
         ' style="background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.45rem 1.1rem;border-radius:8px;cursor:pointer;color:var(--color-slate-500,#64748b);font-size:0.95rem;">' +
         (isSaved(data.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
         '</button></div>';
-      // Payment-method logos: Stripe wordmark + card brands, and the BCEL
-      // OnePay badge when QR payment is available.
-      var logos = '<div style="margin-top:0.8rem;display:flex;gap:0.6rem;justify-content:center;align-items:center;color:#94a3b8;" aria-label="Accepted payment methods">' +
-        '<i class="fab fa-stripe" style="font-size:1.9rem;" title="Payments by Stripe"></i>' +
-        '<i class="fab fa-cc-visa" style="font-size:1.35rem;" title="Visa"></i>' +
-        '<i class="fab fa-cc-mastercard" style="font-size:1.35rem;" title="Mastercard"></i>' +
-        (data.bcel
-          ? '<span title="BCEL OnePay (Laos)" style="font-weight:800;color:#c8102e;font-size:0.72rem;letter-spacing:0.02em;border:1.5px solid #c8102e;border-radius:4px;padding:0.12rem 0.4rem;white-space:nowrap;">BCEL <span style="font-weight:600;">OnePay</span></span>'
-          : '') +
-        '</div>';
-      return buy + save + logos;
+      var signedIn = '<p style="font-size:0.78rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">' +
+        '<i class="fas fa-circle-check" style="color:#16a34a;"></i> Signed in' +
+        (customerState.email ? ' as ' + esc(customerState.email) : '') +
+        ' · <a href="' + PORTAL_URL + '" style="color:var(--accent-color,#d62b83);text-decoration:none;font-weight:600;" rel="noopener">My account</a></p>';
+      return buy + save + logos + signedIn;
     }
 
     // consult (default for most services)

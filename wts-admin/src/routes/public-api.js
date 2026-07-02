@@ -1005,6 +1005,19 @@ router.get('/form-buttons', async (req, res) => {
   }
 });
 
+// ==================== PORTAL SESSION CHECK ====================
+
+// Lets the public site tailor its buttons to the visitor's portal state.
+// admin.wordsthatsells.website and wordsthatsells.website are the same
+// registrable site, so the SameSite=Lax session cookie rides along on a
+// credentialed fetch; CORS already restricts which origins may read this.
+router.get('/portal-me', (req, res) => {
+  if (req.session && req.session.customerId) {
+    return respond(res, { signed_in: true, email: req.session.customerEmail || null });
+  }
+  respond(res, { signed_in: false });
+});
+
 // ==================== PORTAL SIGNUP ====================
 
 // Public account creation from the website (e.g. the Request-a-Quote modal's
