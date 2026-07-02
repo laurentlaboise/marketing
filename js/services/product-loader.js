@@ -500,16 +500,6 @@
       bcelBtns[k].dataset.bound = '1';
       bcelBtns[k].addEventListener('click', onBcelPay);
     }
-    var signBtns = elContent.querySelectorAll('.btn-signin-to-buy');
-    for (var m = 0; m < signBtns.length; m++) {
-      if (signBtns[m].dataset.bound) continue;
-      signBtns[m].dataset.bound = '1';
-      signBtns[m].addEventListener('click', function (e) {
-        e.preventDefault();
-        // Jump straight to the account step of the quote modal.
-        openQuote(this.getAttribute('data-product-name') || '', '', '', '', 'account');
-      });
-    }
   }
 
   function onRequestQuote(e) {
@@ -1135,15 +1125,12 @@
           : '') +
         '</div>';
 
-      // Signed-out visitors: quote first; a sign-in unlock keeps the path to
-      // online checkout open without exposing the buy buttons themselves.
+      // Signed-out visitors: Request a Quote only. The quote modal's second
+      // option covers account creation, and the floating pill lets returning
+      // customers sign in — no separate sign-in button in the CTA stack.
       if (!customerState.signedIn) {
         return '<button class="btn btn-accent-magenta product-cta btn-request-quote"' + idAttr + nameAttr + formAttr + billingAttr +
           ctaStyle + '><i class="fas fa-comments"></i> Request a Quote</button>' +
-          '<div style="margin-top:0.6rem;"><button class="btn-signin-to-buy"' + nameAttr +
-          ' style="background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.55rem 1.2rem;border-radius:8px;cursor:pointer;color:var(--color-slate-700,#334155);font-size:0.95rem;font-weight:600;">' +
-          '<i class="fas fa-unlock" style="color:var(--accent-color,#d62b83);"></i> Sign in to buy online</button></div>' +
-          '<p style="font-size:0.8rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">Free account — buy instantly with card or BCEL OnePay, save services and track orders.</p>' +
           logos;
       }
 
