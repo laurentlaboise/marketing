@@ -6,9 +6,7 @@ const taxonomy = require('../config/product-taxonomy');
 const slugify = require('../utils/slugify');
 const { parseProductListings } = require('../utils/product-import-parser');
 const { normalizeTiers } = require('../utils/pricing');
-const crypto = require('crypto');
-const { sendMagicLink } = require('../utils/mailer');
-const { upsertCustomer, linkOrdersByEmail } = require('./portal');
+const { upsertCustomer, linkOrdersByEmail, issueLoginLink } = require('./portal');
 
 const router = express.Router();
 
@@ -815,19 +813,6 @@ const normalizeCustomerEmail = (raw) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 255 ? email : null;
 };
 
-// Issue a portal magic link for a customer — the same single-use hashed
-// token the self-serve login mints, so inviting a client and their own
-// login are one code path from the token onwards.
-async function sendCustomerLoginLink(customer) {
-  const token = crypto.randomBytes(32).toString('hex');
-  await db.query(
-    'INSERT INTO customer_login_tokens (customer_id, token_hash, expires_at) VALUES ($1, $2, $3)',
-    [customer.id, crypto.createHash('sha256').update(token).digest('hex'), new Date(Date.now() + 15 * 60 * 1000)]
-  );
-  const base = (process.env.PORTAL_URL || process.env.APP_ADMIN_URL || 'https://admin.wordsthatsells.website').replace(/\/$/, '');
-  return sendMagicLink(customer.email, `${base}/portal/auth?token=${token}`);
-}
-
 router.get('/customers', async (req, res) => {
   const q = (req.query.q || '').trim();
   try {
@@ -892,7 +877,7 @@ router.post('/customers', async (req, res) => {
     const customer = await upsertCustomer(email, (req.body.name || '').trim().slice(0, 255) || null);
     await linkOrdersByEmail(customer.id, email);
     if (req.body.send_invite === 'true') {
-      const sent = await sendCustomerLoginLink(customer);
+      const sent = await issueLoginLink(customer);
       req.session.successMessage = sent.sent
         ? `Client added — sign-in link emailed to ${email}`
         : `Client added, but the invite email could not be sent (check Brevo configuration)`;
@@ -947,7 +932,7 @@ router.post('/customers/:id/send-login', async (req, res) => {
       req.session.errorMessage = 'This account is disabled — enable it before sending a sign-in link';
       return res.redirect(`/business/customers/${req.params.id}`);
     }
-    const sent = await sendCustomerLoginLink(customer.rows[0]);
+    const sent = await issueLoginLink(customer.rows[0]);
     req.session.successMessage = sent.sent
       ? `Sign-in link emailed to ${customer.rows[0].email}`
       : 'Could not send the email — check the Brevo configuration (BREVO_API_KEY / BREVO_FROM_EMAIL)';

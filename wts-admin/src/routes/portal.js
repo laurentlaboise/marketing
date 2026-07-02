@@ -47,6 +47,17 @@ async function linkOrdersByEmail(customerId, email) {
   );
 }
 
+// Mint a single-use magic-link token and email it. The one token path for
+// self-serve login, admin invites and public portal signups alike.
+async function issueLoginLink(customer) {
+  const token = crypto.randomBytes(32).toString('hex');
+  await db.query(
+    'INSERT INTO customer_login_tokens (customer_id, token_hash, expires_at) VALUES ($1, $2, $3)',
+    [customer.id, hashToken(token), new Date(Date.now() + TOKEN_TTL_MS)]
+  );
+  return sendMagicLink(customer.email, `${PORTAL_BASE()}/portal/auth?token=${token}`);
+}
+
 const requireCustomer = (req, res, next) => {
   if (req.session && req.session.customerId) return next();
   return res.redirect('/portal/login');
@@ -77,12 +88,7 @@ router.post('/login', loginLimiter, async (req, res) => {
   }
   try {
     const customer = await upsertCustomer(email, null);
-    const token = crypto.randomBytes(32).toString('hex');
-    await db.query(
-      'INSERT INTO customer_login_tokens (customer_id, token_hash, expires_at) VALUES ($1, $2, $3)',
-      [customer.id, hashToken(token), new Date(Date.now() + TOKEN_TTL_MS)]
-    );
-    await sendMagicLink(email, `${PORTAL_BASE()}/portal/auth?token=${token}`);
+    await issueLoginLink(customer);
   } catch (e) {
     console.error('Portal login error:', e);
     // Fall through to the neutral response.
@@ -166,3 +172,4 @@ router.post('/logout', requireCustomer, (req, res) => {
 module.exports = router;
 module.exports.upsertCustomer = upsertCustomer;
 module.exports.linkOrdersByEmail = linkOrdersByEmail;
+module.exports.issueLoginLink = issueLoginLink;
