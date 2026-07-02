@@ -489,6 +489,22 @@ function buildProductPricing(p) {
   };
 }
 
+// BCEL OnePay config for a product: the manual price-point list (label +
+// kip amount + QR image per amount), falling back to the legacy single-QR
+// columns. qr_url/price_lak mirror the first option for older consumers.
+function buildBcel(p) {
+  const kip = (v) => (v === null || v === undefined || v === '') ? null : Math.round(parseFloat(v));
+  let options = Array.isArray(p.bcel_options) ? p.bcel_options : [];
+  options = options
+    .filter((o) => o && o.qr_url)
+    .map((o) => ({ label: o.label || '', lak: kip(o.lak), qr_url: o.qr_url }));
+  if (!options.length && p.bcel_qr_url) {
+    options = [{ label: '', lak: kip(p.price_lak), qr_url: p.bcel_qr_url }];
+  }
+  if (!options.length) return null;
+  return { qr_url: options[0].qr_url, price_lak: options[0].lak, options };
+}
+
 // Get all active products (optionally filtered by service_page)
 router.get('/products', async (req, res) => {
   try {
@@ -535,10 +551,7 @@ router.get('/products', async (req, res) => {
       sku: p.sku || null,
       pricing: buildProductPricing(p),
       stripe_payment_link: p.stripe_payment_link || null,
-      bcel: p.bcel_qr_url ? {
-        qr_url: p.bcel_qr_url,
-        price_lak: p.price_lak != null ? Math.round(parseFloat(p.price_lak)) : null
-      } : null,
+      bcel: buildBcel(p),
       has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
         p.stripe_payment_link ||
         (p.price && parseFloat(p.price) > 0) ||
@@ -596,10 +609,7 @@ router.get('/products/:slug', async (req, res) => {
       sku: p.sku || null,
       pricing: buildProductPricing(p),
       stripe_payment_link: p.stripe_payment_link || null,
-      bcel: p.bcel_qr_url ? {
-        qr_url: p.bcel_qr_url,
-        price_lak: p.price_lak != null ? Math.round(parseFloat(p.price_lak)) : null
-      } : null,
+      bcel: buildBcel(p),
       has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
         p.stripe_payment_link ||
         (p.price && parseFloat(p.price) > 0) ||

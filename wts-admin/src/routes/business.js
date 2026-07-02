@@ -272,6 +272,18 @@ function normalizePricing(body) {
     return null;
   };
 
+  // Assemble the BCEL QR price points (see return value below).
+  const toArr = (v) => Array.isArray(v) ? v : (v !== undefined && v !== null ? [v] : []);
+  const bcelLabels = toArr(body.bcel_label);
+  const bcelLaks = toArr(body.bcel_lak);
+  const bcelOptions = toArr(body.bcel_qr)
+    .map((qr, i) => ({
+      label: (bcelLabels[i] || '').toString().trim().slice(0, 80),
+      lak: toKip(bcelLaks[i]),
+      qr_url: toHttpUrl(qr)
+    }))
+    .filter((o) => o.qr_url);
+
   // Optional one-time setup fee charged with the first subscription payment
   // (e.g. custom design). Only meaningful on subscriptions; the label is only
   // kept when there's a fee to label.
@@ -290,9 +302,12 @@ function normalizePricing(body) {
     quantity_tiers: quantityTiers,
     setup_fee: setupFee,
     setup_fee_label: setupFeeLabel,
-    // BCEL OnePay (Laos): merchant QR image + optional LAK display amount.
-    bcel_qr_url: toHttpUrl(body.bcel_qr_url),
-    price_lak: toKip(body.price_lak)
+    // BCEL OnePay (Laos): manual QR price points from parallel form arrays
+    // bcel_label[] / bcel_lak[] / bcel_qr[]. Rows without a valid http(s) QR
+    // URL are dropped. Legacy single-QR columns mirror the first row.
+    bcel_options: bcelOptions,
+    bcel_qr_url: bcelOptions.length ? bcelOptions[0].qr_url : null,
+    price_lak: bcelOptions.length ? bcelOptions[0].lak : null
   };
 }
 
@@ -533,8 +548,8 @@ router.post('/products', async (req, res) => {
         allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
         subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
         cta_form_type, quantity_tiers, setup_fee, setup_fee_label, stripe_price_id_setup,
-        bcel_qr_url, price_lak
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44)`,
+        bcel_qr_url, price_lak, bcel_options
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45)`,
       [
         name, productSlug, description, price || null, currency || 'USD', category, featuresArray, image_url, status || 'active',
         service_page || null, icon_class || 'fas fa-box', animation_class || 'kinetic-pulse-float',
@@ -549,7 +564,7 @@ router.post('/products', async (req, res) => {
         (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null,
         JSON.stringify(pricing.quantity_tiers || []),
         pricing.setup_fee, pricing.setup_fee_label, stripe_price_id_setup || null,
-        pricing.bcel_qr_url, pricing.price_lak
+        pricing.bcel_qr_url, pricing.price_lak, JSON.stringify(pricing.bcel_options || [])
       ]
     );
     req.session.successMessage = 'Product created successfully';
@@ -633,8 +648,8 @@ router.post('/products/:id', async (req, res) => {
         subcategory=$32, purchase_mode=$33, price_unit=$34, industries=$35, sku=$36,
         stripe_payment_link=$37, cta_form_type=$38, quantity_tiers=$39,
         setup_fee=$40, setup_fee_label=$41, stripe_price_id_setup=$42,
-        bcel_qr_url=$43, price_lak=$44, updated_at=CURRENT_TIMESTAMP
-      WHERE id=$45`,
+        bcel_qr_url=$43, price_lak=$44, bcel_options=$45, updated_at=CURRENT_TIMESTAMP
+      WHERE id=$46`,
       [
         name, productSlug, description, price || null, currency, category, featuresArray,
         image_url, status, service_page || null, icon_class || 'fas fa-box',
@@ -651,7 +666,7 @@ router.post('/products/:id', async (req, res) => {
         (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null,
         JSON.stringify(pricing.quantity_tiers || []),
         pricing.setup_fee, pricing.setup_fee_label, stripe_price_id_setup || null,
-        pricing.bcel_qr_url, pricing.price_lak,
+        pricing.bcel_qr_url, pricing.price_lak, JSON.stringify(pricing.bcel_options || []),
         req.params.id
       ]
     );
@@ -713,6 +728,81 @@ router.post('/products/:id/duplicate', async (req, res) => {
     req.session.errorMessage = 'Failed to duplicate product';
     res.redirect('/business/products');
   }
+});
+
+// ==================== ORDERS ====================
+
+// Orders inbox — built for the manual BCEL OnePay workflow: awaiting_payment
+// orders show the transfer reference to match against the bank statement,
+// then get marked paid (or cancelled) here. Stripe orders appear read-only
+// alongside for one view of everything sold.
+const ORDER_STATUSES = ['pending', 'awaiting_payment', 'completed', 'expired', 'cancelled'];
+
+router.get('/orders', async (req, res) => {
+  const { status, method } = req.query;
+  try {
+    const conditions = [];
+    const params = [];
+    if (status && ORDER_STATUSES.includes(status)) {
+      conditions.push(`o.status = $${params.length + 1}`);
+      params.push(status);
+    }
+    if (method === 'stripe' || method === 'bcel_qr') {
+      conditions.push(`o.payment_method = $${params.length + 1}`);
+      params.push(method);
+    }
+    const where = conditions.length ? ' WHERE ' + conditions.join(' AND ') : '';
+    const result = await db.query(
+      `SELECT o.*, p.name AS product_name, p.slug AS product_slug
+       FROM orders o LEFT JOIN products p ON o.product_id = p.id
+       ${where}
+       ORDER BY o.created_at DESC
+       LIMIT 200`,
+      params
+    );
+    res.render('business/orders/list', {
+      title: 'Orders - WTS Admin',
+      orders: result.rows,
+      currentPage: 'orders',
+      filter_status: status || '',
+      filter_method: method || ''
+    });
+  } catch (error) {
+    console.error('Orders list error:', error);
+    res.render('business/orders/list', {
+      title: 'Orders - WTS Admin',
+      orders: [],
+      currentPage: 'orders',
+      filter_status: status || '',
+      filter_method: method || '',
+      error: 'Failed to load orders'
+    });
+  }
+});
+
+router.post('/orders/:id/status', async (req, res) => {
+  const next = req.body.status;
+  if (!ORDER_STATUSES.includes(next)) {
+    req.session.errorMessage = 'Invalid order status';
+    return res.redirect('/business/orders');
+  }
+  try {
+    await db.query(
+      'UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [next, req.params.id]
+    );
+    req.session.successMessage = next === 'completed'
+      ? 'Order marked as paid'
+      : `Order marked as ${next.replace('_', ' ')}`;
+  } catch (error) {
+    console.error('Order status update error:', error);
+    req.session.errorMessage = 'Failed to update order';
+  }
+  // Preserve the active filters on redirect.
+  const qs = new URLSearchParams();
+  if (req.body.filter_status) qs.set('status', req.body.filter_status);
+  if (req.body.filter_method) qs.set('method', req.body.filter_method);
+  res.redirect('/business/orders' + (qs.toString() ? '?' + qs.toString() : ''));
 });
 
 // ==================== PRICE MODELS (Subscription Packages) ====================
