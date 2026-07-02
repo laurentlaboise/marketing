@@ -5,7 +5,7 @@
     "sku": "19106796",
     "service_page": "web-development",
     "subcategory": "landing-pages",
-    "description": "A focused WordPress landing page designed to capture attention, present your offer clearly, and guide visitors toward taking action. This service gives your business a simple, professional page for campaigns, promotions, lead generation, or service introductions.",
+    "description": "A focused WordPress landing page designed to capture attention, present your offer clearly, and guide visitors toward taking action. It gives your business a clean, professional page for campaigns, promotions, lead generation, or introducing a service. Built to work well for mobile-first visitors in Laos and Thailand, it is a practical way for Lao SMEs and tourism businesses to promote a specific offer online.",
     "features": [
       "WordPress landing page",
       "Mobile-responsive layout",
@@ -29,8 +29,8 @@
     "sort_order": 10,
     "slide_in_title": "Landing Page - WordPress",
     "slide_in_subtitle": "Ideal for: Small businesses, service providers, campaigns, consultants, local SMEs, and entrepreneurs launching a specific offer.",
-    "slide_in_content": "<p>A focused WordPress landing page designed to capture attention, present your offer clearly, and guide visitors toward taking action. This service gives your business a simple, professional page for campaigns, promotions, lead generation, or service introductions.</p><p><strong>Order your WordPress landing page today and give your offer a clean place to convert visitors.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a focused WordPress landing page that captures attention, presents your offer clearly, and guides visitors toward taking action — ideal for campaigns, promotions, and lead generation.</p><p>For Lao SMEs, tourism operators, and consultants across Southeast Asia, a single campaign page that reads well on a phone is often the fastest way to turn interest into enquiries.</p><p><strong>Order your WordPress landing page today and give your offer a clean place to convert visitors.</strong></p>",
+    "status": "active"
   },
   {
     "name": "WordPress & Divi Website Setup and Design",
@@ -38,7 +38,7 @@
     "sku": "19106797",
     "service_page": "web-development",
     "subcategory": "wordpress-divi",
-    "description": "A WordPress and Divi website setup and design service for businesses that need a clean, professional online presence. This service helps you build a structured website using WordPress and Divi, with pages and sections designed around your brand, services, and customer journey.",
+    "description": "A WordPress and Divi website setup and design service for businesses that need a clean, professional online presence. We build a structured website using WordPress and Divi, with pages and sections designed around your brand, services, and customer journey. Layouts are designed to present well on phones, where most visitors in Laos and Thailand will first find you.",
     "features": [
       "WordPress website setup",
       "Divi builder design",
@@ -62,8 +62,8 @@
     "sort_order": 20,
     "slide_in_title": "WordPress & Divi Website Setup and Design",
     "slide_in_subtitle": "Ideal for: SMEs, consultants, agencies, local businesses, online brands, and service providers.",
-    "slide_in_content": "<p>A WordPress and Divi website setup and design service for businesses that need a clean, professional online presence. This service helps you build a structured website using WordPress and Divi, with pages and sections designed around your brand, services, and customer journey.</p><p><strong>Order your WordPress and Divi website setup today and give your business a professional online foundation.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a structured WordPress website built with the Divi builder, with pages and sections designed around your brand, your services, and the journey your customers take.</p><p>It suits SMEs, consultants, and local businesses in Laos and the wider region that need a professional presence customers can browse comfortably on their phones.</p><p><strong>Order your WordPress and Divi website setup today and give your business a professional online foundation.</strong></p>",
+    "status": "active"
   },
   {
     "name": "WordPress & Divi Home Page with 3 Modules",
@@ -71,7 +71,7 @@
     "sku": "19106798",
     "service_page": "web-development",
     "subcategory": "wordpress-divi",
-    "description": "A WordPress and Divi home page design service that includes three key modules or content sections. This is ideal for businesses that need a strong homepage foundation without building a full site from scratch.",
+    "description": "A WordPress and Divi home page design service that includes three key modules or content sections. It is ideal for businesses that want a strong homepage foundation without building a full site from scratch — a practical starting point for Lao SMEs and startups introducing themselves online.",
     "features": [
       "WordPress homepage design",
       "Divi-based layout",
@@ -95,8 +95,8 @@
     "sort_order": 30,
     "slide_in_title": "WordPress & Divi Home Page with 3 Modules",
     "slide_in_subtitle": "Ideal for: Small businesses, startups, service providers, consultants, and brands that need a focused homepage.",
-    "slide_in_content": "<p>A WordPress and Divi home page design service that includes three key modules or content sections. This is ideal for businesses that need a strong homepage foundation without building a full site from scratch.</p><p><strong>Order your WordPress and Divi homepage today and give your visitors a clear first impression.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a WordPress and Divi home page with three key modules or content sections — a strong homepage foundation without the cost of building a full site from scratch.</p><p>For small businesses, startups, and consultants in Laos and Southeast Asia, a focused homepage is often all you need to make a clear first impression and point visitors to your offer.</p><p><strong>Order your WordPress and Divi homepage today and give your visitors a clear first impression.</strong></p>",
+    "status": "active"
   },
   {
     "name": "WordPress & Divi Additional Module or Section",
@@ -104,7 +104,7 @@
     "sku": "19106799",
     "service_page": "web-development",
     "subcategory": "wordpress-divi",
-    "description": "An additional WordPress and Divi module or section for expanding an existing page. This service helps you add new content blocks, service sections, calls to action, testimonials, feature areas, or other useful page components.",
+    "description": "An additional WordPress and Divi module or section for expanding an existing page. Use it to add new content blocks, service sections, calls to action, testimonials, feature areas, or other useful page components as your business grows.",
     "features": [
       "Additional Divi module",
       "WordPress section creation",
@@ -128,8 +128,8 @@
     "sort_order": 40,
     "slide_in_title": "WordPress & Divi Additional Module or Section",
     "slide_in_subtitle": "Ideal for: Businesses with existing WordPress pages, service providers, agencies, and website owners who need extra sections added.",
-    "slide_in_content": "<p>An additional WordPress and Divi module or section for expanding an existing page. This service helps you add new content blocks, service sections, calls to action, testimonials, feature areas, or other useful page components.</p><p><strong>Order an additional WordPress and Divi section today and strengthen your existing page.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get an extra WordPress and Divi module or section added to an existing page — new content blocks, service sections, calls to action, testimonials, or feature areas.</p><p>It is a simple way for businesses with an existing site to keep pages current as services change, without commissioning a redesign.</p><p><strong>Order an additional WordPress and Divi section today and strengthen your existing page.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Bubble Web App Development",
@@ -137,7 +137,7 @@
     "sku": "19106800",
     "service_page": "web-development",
     "subcategory": "web-apps",
-    "description": "A no-code Bubble web app development service for turning business ideas into functional digital tools. This hourly service supports app planning, interface building, workflows, databases, and no-code web application development.",
+    "description": "A no-code Bubble web app development service for turning business ideas into functional digital tools. This hourly service covers app planning, interface building, workflows, databases, and no-code web application development — a way for SEA startups and SMEs to build MVPs and internal tools without a big development budget.",
     "features": [
       "Bubble app development",
       "No-code workflow setup",
@@ -161,8 +161,8 @@
     "sort_order": 50,
     "slide_in_title": "Bubble Web App Development",
     "slide_in_subtitle": "Ideal for: Startups, founders, SMEs, entrepreneurs, internal business tools, client portals, MVPs, and custom no-code projects.",
-    "slide_in_content": "<p>A no-code Bubble web app development service for turning business ideas into functional digital tools. This hourly service supports app planning, interface building, workflows, databases, and no-code web application development.</p><p><strong>Book Bubble web app development support today and start turning your digital idea into a working product.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get hourly no-code Bubble development support covering app planning, interface building, workflows, and databases — turning your business idea into a working digital tool.</p><p>For founders and SMEs in Laos and Southeast Asia, no-code is a realistic path to MVPs, client portals, and internal tools without the budget of a full development team.</p><p><strong>Book Bubble web app development support today and start turning your digital idea into a working product.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Standard Website Form",
@@ -170,7 +170,7 @@
     "sku": "19106873",
     "service_page": "web-development",
     "subcategory": "online-forms",
-    "description": "A standard website form solution that helps your business collect enquiries, leads, bookings, or customer information directly from your website. This is a simple and practical tool for turning visitors into contacts.",
+    "description": "A standard website form that helps your business collect enquiries, leads, bookings, or customer information directly from your website. It is a simple, practical tool for turning visitors into contacts — especially useful in Laos and Thailand, where most customers browse and enquire from their phones.",
     "features": [
       "Standard website contact form",
       "Lead capture support",
@@ -194,8 +194,8 @@
     "sort_order": 60,
     "slide_in_title": "Standard Website Form",
     "slide_in_subtitle": "Ideal for: SMEs, service providers, consultants, local businesses, landing pages, and websites that need enquiry forms.",
-    "slide_in_content": "<p>A standard website form solution that helps your business collect enquiries, leads, bookings, or customer information directly from your website. This is a simple and practical tool for turning visitors into contacts.</p><p><strong>Order your standard website form today and make it easier for customers to contact you.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a standard website form that collects enquiries, leads, bookings, or customer information directly from your site — a practical tool for turning visitors into contacts.</p><p>For SMEs and service providers in Laos and Southeast Asia, a clear form that works well on a phone makes it easy for customers to reach you the way they already browse.</p><p><strong>Order your standard website form today and make it easier for customers to contact you.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Additional Website Form",
@@ -203,7 +203,7 @@
     "sku": "19106874",
     "service_page": "web-development",
     "subcategory": "online-forms",
-    "description": "An additional website form for businesses that need more than one way to collect information. This can be used for bookings, surveys, quote requests, contact pages, registrations, or specific service enquiries.",
+    "description": "An additional website form for businesses that need more than one way to collect information. Use it for bookings, surveys, quote requests, contact pages, registrations, or enquiries about a specific service.",
     "features": [
       "Additional website form",
       "Custom field support",
@@ -227,8 +227,8 @@
     "sort_order": 70,
     "slide_in_title": "Additional Website Form",
     "slide_in_subtitle": "Ideal for: Businesses with multiple services, booking needs, quote forms, contact pages, and customer intake processes.",
-    "slide_in_content": "<p>An additional website form for businesses that need more than one way to collect information. This can be used for bookings, surveys, quote requests, contact pages, registrations, or specific service enquiries.</p><p><strong>Order an additional website form today and give your customers the right place to send their information.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get an additional website form for collecting a second type of information — bookings, surveys, quote requests, registrations, or enquiries about a specific service.</p><p>Businesses with more than one service can give each audience its own clear place to submit details, keeping enquiries organized from the start.</p><p><strong>Order an additional website form today and give your customers the right place to send their information.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Video Form",
@@ -236,7 +236,7 @@
     "sku": "19106875",
     "service_page": "web-development",
     "subcategory": "online-forms",
-    "description": "A video form solution that helps your website collect more engaging responses from customers or leads. This is useful when text forms are not enough and you want visitors to send richer, more personal information.",
+    "description": "A video form solution that helps your website collect more engaging responses from customers or leads. It is useful when text forms are not enough and you want visitors to send richer, more personal information — well suited to applications and enquiries from customers who live on their phones.",
     "features": [
       "Video form setup",
       "Customer response collection",
@@ -260,8 +260,8 @@
     "sort_order": 80,
     "slide_in_title": "Video Form",
     "slide_in_subtitle": "Ideal for: Coaches, recruiters, agencies, service businesses, consultants, application processes, and high-value customer enquiries.",
-    "slide_in_content": "<p>A video form solution that helps your website collect more engaging responses from customers or leads. This is useful when text forms are not enough and you want visitors to send richer, more personal information.</p><p><strong>Order your video form today and collect better, more personal responses from your audience.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a video form that lets customers and leads respond in a richer, more personal way than a standard text form — ideal for applications and high-value enquiries.</p><p>Coaches, recruiters, and agencies in Southeast Asia can qualify leads more naturally, since recording a short video is second nature to customers who do everything on their phones.</p><p><strong>Order your video form today and collect better, more personal responses from your audience.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Video Form Business Account",
@@ -269,7 +269,7 @@
     "sku": "19106876",
     "service_page": "web-development",
     "subcategory": "online-forms",
-    "description": "A business account setup for video forms, giving your company a more complete system for collecting, managing, and reviewing video-based responses. This yearly option is suitable for businesses that rely on applications, consultations, or richer customer intake.",
+    "description": "A business account setup for video forms, giving your company a more complete system for collecting, managing, and reviewing video-based responses. This yearly option suits businesses that rely on applications, consultations, or richer customer intake.",
     "features": [
       "Video form business account",
       "Yearly setup and access support",
@@ -293,8 +293,8 @@
     "sort_order": 90,
     "slide_in_title": "Video Form Business Account",
     "slide_in_subtitle": "Ideal for: Agencies, recruiters, coaches, consultants, service providers, application-based businesses, and client intake teams.",
-    "slide_in_content": "<p>A business account setup for video forms, giving your company a more complete system for collecting, managing, and reviewing video-based responses. This yearly option is suitable for businesses that rely on applications, consultations, or richer customer intake.</p><p><strong>Order your video form business account today and upgrade the way you collect customer information.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a business account setup for video forms — a more complete system for collecting, managing, and reviewing video-based responses across your team.</p><p>Agencies, recruiters, and client intake teams handling regular applications or consultations get one organized place to review richer submissions from customers who prefer to respond by phone.</p><p><strong>Order your video form business account today and upgrade the way you collect customer information.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Video Form Business Generator",
@@ -302,7 +302,7 @@
     "sku": "19106877",
     "service_page": "web-development",
     "subcategory": "online-forms",
-    "description": "A video form business generator designed to help create an interactive form experience for your website or campaign. This service gives your audience a more dynamic way to respond, enquire, apply, or submit information.",
+    "description": "A video form business generator that helps create an interactive form experience for your website or campaign. It gives your audience a more dynamic way to respond, enquire, apply, or submit information than a plain text form.",
     "features": [
       "Video form generation",
       "Interactive customer experience",
@@ -326,8 +326,8 @@
     "sort_order": 100,
     "slide_in_title": "Video Form Business Generator",
     "slide_in_subtitle": "Ideal for: Service providers, coaches, agencies, recruiters, consultants, and businesses that need better customer intake.",
-    "slide_in_content": "<p>A video form business generator designed to help create an interactive form experience for your website or campaign. This service gives your audience a more dynamic way to respond, enquire, apply, or submit information.</p><p><strong>Order your video form business generator today and make your forms more engaging.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a video form business generator that creates an interactive form experience for your website or campaign — a more dynamic way for your audience to respond, enquire, or apply.</p><p>It fits service providers, coaches, and agencies in the region that want richer customer intake than a plain text form can offer.</p><p><strong>Order your video form business generator today and make your forms more engaging.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Interactive Website Form",
@@ -335,7 +335,7 @@
     "sku": "19106878",
     "service_page": "web-development",
     "subcategory": "online-forms",
-    "description": "An interactive website form that creates a smoother, more engaging customer experience. This service helps you collect information in a more guided way, improving completion rates and making your website feel more modern.",
+    "description": "An interactive website form that creates a smoother, more engaging customer experience. It collects information in a guided, step-by-step way, helping completion and making your website feel more modern — a good fit for mobile visitors across Laos and Thailand.",
     "features": [
       "Interactive website form",
       "Guided customer experience",
@@ -359,8 +359,8 @@
     "sort_order": 110,
     "slide_in_title": "Interactive Website Form",
     "slide_in_subtitle": "Ideal for: SMEs, service providers, consultants, local businesses, quote forms, surveys, bookings, and customer intake.",
-    "slide_in_content": "<p>An interactive website form that creates a smoother, more engaging customer experience. This service helps you collect information in a more guided way, improving completion rates and making your website feel more modern.</p><p><strong>Order your interactive website form today and give your visitors a better way to connect with you.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get an interactive website form that guides visitors through their answers step by step — a smoother way to collect quote requests, survey responses, bookings, and customer details.</p><p>For SMEs and local businesses whose customers browse on phones, a guided form is easier to complete than a long static one, so more enquiries actually reach you.</p><p><strong>Order your interactive website form today and give your visitors a better way to connect with you.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Gamified Lead Generation Form",
@@ -368,7 +368,7 @@
     "sku": "19106879",
     "service_page": "web-development",
     "subcategory": "online-forms",
-    "description": "A gamified lead generation form designed to make customer interaction more engaging and memorable. This monthly service helps businesses collect leads through a more interactive experience that encourages participation.",
+    "description": "A gamified lead generation form designed to make customer interaction more engaging and memorable. This monthly service helps businesses collect leads through an interactive experience that encourages participation — well suited to campaigns and promotions aimed at mobile audiences in Southeast Asia.",
     "features": [
       "Gamified lead capture",
       "Interactive form experience",
@@ -392,8 +392,8 @@
     "sort_order": 120,
     "slide_in_title": "Gamified Lead Generation Form",
     "slide_in_subtitle": "Ideal for: Campaigns, events, local businesses, agencies, service providers, promotions, and brands that want stronger customer engagement.",
-    "slide_in_content": "<p>A gamified lead generation form designed to make customer interaction more engaging and memorable. This monthly service helps businesses collect leads through a more interactive experience that encourages participation.</p><p><strong>Start your gamified lead generation form today and turn customer interaction into a more engaging experience.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a gamified lead generation form, delivered as a monthly service, that turns collecting leads into an interactive experience customers want to take part in.</p><p>It works well for campaigns, events, and promotions run by local businesses and agencies in the region, where a playful mobile experience stands out and encourages people to leave their details.</p><p><strong>Start your gamified lead generation form today and turn customer interaction into a more engaging experience.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Database and CRM Setup",
@@ -401,7 +401,7 @@
     "sku": "19106880",
     "service_page": "web-development",
     "subcategory": "crm-database",
-    "description": "A CRM and database setup service that helps your business organize contacts, leads, customer information, and follow-up activity. This service is designed to create a clearer system for managing relationships and opportunities.",
+    "description": "A CRM and database setup service that helps your business organize contacts, leads, customer information, and follow-up activity. It creates a clearer system for managing relationships and opportunities — practical structure for growing Lao businesses that are outgrowing spreadsheets and chat threads.",
     "features": [
       "CRM setup",
       "Customer database structure",
@@ -425,7 +425,7 @@
     "sort_order": 130,
     "slide_in_title": "Database and CRM Setup",
     "slide_in_subtitle": "Ideal for: SMEs, agencies, consultants, sales teams, local businesses, service providers, and businesses with customer follow-up needs.",
-    "slide_in_content": "<p>A CRM and database setup service that helps your business organize contacts, leads, customer information, and follow-up activity. This service is designed to create a clearer system for managing relationships and opportunities.</p><p><strong>Order your database and CRM setup today and bring your customer information into one organized system.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>You get a CRM and database setup that organizes your contacts, leads, customer information, and follow-up activity into one clear system for managing relationships and opportunities.</p><p>For growing SMEs, agencies, and sales teams in Laos and Southeast Asia, it replaces scattered spreadsheets and chat threads with a structure that makes follow-up routine instead of guesswork.</p><p><strong>Order your database and CRM setup today and bring your customer information into one organized system.</strong></p>",
+    "status": "active"
   }
 ]
