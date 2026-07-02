@@ -1,8 +1,15 @@
 const express = require('express');
 const db = require('../../database/db');
 const { normalizeTiers, unitPriceForQuantity } = require('../utils/pricing');
+const { sendEmail } = require('../utils/mailer');
+const { upsertCustomer, linkOrdersByEmail } = require('./portal');
 
 const router = express.Router();
+
+const normalizeEmail = (raw) => {
+  const email = String(raw || '').trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 255 ? email : null;
+};
 
 // CORS is handled globally in server.js — no duplicate middleware here
 
@@ -308,6 +315,54 @@ router.post('/bcel-order', express.json(), async (req, res) => {
   }
 });
 
+// Attach the buyer's email to a BCEL order (entered in the QR modal).
+// Creates the portal account so the order is immediately trackable, and
+// sends a confirmation carrying the transfer reference.
+router.post('/bcel-order/:id/email', express.json(), async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body.email);
+    if (!email) {
+      return res.status(400).json({ error: 'A valid email is required' });
+    }
+    const result = await db.query(
+      `SELECT o.*, p.name AS product_name FROM orders o
+       LEFT JOIN products p ON o.product_id = p.id
+       WHERE o.id = $1 AND o.payment_method = 'bcel_qr' AND o.status = 'awaiting_payment'`,
+      [req.params.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    const order = result.rows[0];
+
+    const customer = await upsertCustomer(email, null);
+    await db.query(
+      'UPDATE orders SET customer_email = $1, customer_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+      [email, customer.id, order.id]
+    );
+    await linkOrdersByEmail(customer.id, email);
+
+    const reference = (order.metadata && order.metadata.reference) || null;
+    const portalUrl = (process.env.PORTAL_URL || process.env.APP_ADMIN_URL || 'https://admin.wordsthatsells.website').replace(/\/$/, '') + '/portal';
+    // Confirmation is best-effort; the order link must succeed regardless.
+    sendEmail({
+      to: email,
+      subject: reference
+        ? `Order received — reference ${reference}`
+        : 'Order received — Words That Sells',
+      html: `<p>Thanks — we've recorded your order${order.product_name ? ' for <strong>' + order.product_name + '</strong>' : ''}.</p>` +
+        (reference ? `<p>When you make your BCEL One transfer, include this reference in the payment note:</p><p style="font-size:1.2rem;font-weight:bold;letter-spacing:0.05em;">${reference}</p>` : '') +
+        `<p>We confirm every payment within one business day. Track your order any time at <a href="${portalUrl}">${portalUrl}</a> — sign in with this email address, no password needed.</p>`,
+      text: `Thanks — we've recorded your order.${reference ? ' Include reference ' + reference + ' in your BCEL One transfer note.' : ''} Track it at ${portalUrl}`
+    }).catch((e) => console.warn('BCEL confirmation email failed:', e.message));
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('BCEL order email error:', error);
+    res.status(500).json({ error: 'Failed to save email' });
+  }
+});
+
 // Stripe webhook handler
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const stripe = getStripe();
@@ -354,6 +409,19 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
           session.id
         ]
       );
+
+      // The purchase creates the portal account: upsert the customer by the
+      // checkout email and attach their orders. Best-effort — the webhook
+      // must acknowledge regardless.
+      try {
+        const email = normalizeEmail(session.customer_details?.email || session.customer_email);
+        if (email) {
+          const customer = await upsertCustomer(email, session.customer_details?.name || null);
+          await linkOrdersByEmail(customer.id, email);
+        }
+      } catch (e) {
+        console.warn('Stripe webhook customer link failed:', e.message);
+      }
       break;
     }
 
