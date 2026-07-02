@@ -31,6 +31,10 @@
     .ref-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 0.55rem 0.85rem; margin-top: 0.65rem; font-size: 0.82rem; color: #991b1b; }
     .ref-box code { font-weight: 700; color: #c8102e; font-size: 0.95rem; letter-spacing: 0.04em; }
     .dl { display: inline-block; margin-top: 0.65rem; background: #d62b83; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.45rem 1rem; font-size: 0.85rem; font-weight: 600; }
+    .pw-tip { display: flex; align-items: center; gap: 0.75rem; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.88rem; color: #831843; }
+    .pw-tip span { flex: 1; line-height: 1.5; }
+    .pw-tip a { color: #d62b83; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .pw-tip button { background: none; border: none; color: #be185d; font-size: 1.1rem; line-height: 1; cursor: pointer; padding: 0.2rem; font-family: inherit; }
     .empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 2.5rem 1rem; text-align: center; color: #64748b; }
     .empty a { color: #d62b83; font-weight: 600; }
     .foot { text-align: center; color: #94a3b8; font-size: 0.78rem; padding: 1rem; }
@@ -50,6 +54,23 @@
   <div class="wrap">
     <h1>My Account</h1>
     <p class="sub">Signed in as <strong><%= customer.email %></strong></p>
+
+    <% if (typeof hasPassword !== 'undefined' && !hasPassword) { %>
+    <div class="pw-tip" id="pw-tip" hidden>
+      <span>Tip: Set a password for instant access next time — no email checking required. <a href="/portal/profile">Set password</a></span>
+      <button type="button" id="pw-tip-dismiss" aria-label="Dismiss">&times;</button>
+    </div>
+    <script nonce="<%= cspNonce %>">
+      (function () {
+        var tip = document.getElementById('pw-tip');
+        if (sessionStorage.getItem('wts-pw-nudge-dismissed') !== '1') tip.hidden = false;
+        document.getElementById('pw-tip-dismiss').addEventListener('click', function () {
+          tip.hidden = true;
+          sessionStorage.setItem('wts-pw-nudge-dismissed', '1');
+        });
+      })();
+    </script>
+    <% } %>
 
     <% var saved = (typeof savedServices !== 'undefined' && savedServices) ? savedServices : []; %>
     <% if (saved.length > 0) { %>

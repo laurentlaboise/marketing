@@ -36,15 +36,16 @@
         <div class="notice">Nothing arriving? Check your spam folder, or go back and try again.</div>
         <p class="hint"><a href="/portal/login" style="color:#d62b83;">← Use a different email</a></p>
       <% } else { %>
-        <h1>Sign in to your account</h1>
-        <p class="sub">Enter your email — and your password if you've set one in your profile. Leave the password empty and we'll email you a sign-in link instead.</p>
+        <h1>Welcome back</h1>
+        <p class="sub">Enter your email — and your password if you've set one in your profile.</p>
         <form method="POST" action="/portal/login">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <label for="email">Email address</label>
           <input type="email" id="email" name="email" required maxlength="255" placeholder="you@example.com" autocomplete="email" autofocus <%= email ? 'value="' + email + '"' : '' %>>
           <label for="password" style="margin-top:0.85rem;">Password <span style="font-weight:400;color:#94a3b8;">(optional)</span></label>
           <input type="password" id="password" name="password" maxlength="200" placeholder="Leave empty for an email link" autocomplete="current-password">
-          <button type="submit">Sign in</button>
+          <p class="hint" style="margin-top:0.5rem;">Forgot your password? Leave the password empty and we'll email you a secure sign-in link — you can set a new password from your profile.</p>
+          <button type="submit">Sign In</button>
         </form>
         <p class="hint">No account yet? Just enter your email — your account is created automatically. You stay signed in on this device for 30 days.</p>
       <% } %>
