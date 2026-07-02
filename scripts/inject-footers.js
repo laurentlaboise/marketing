@@ -210,7 +210,12 @@ function footerCss() {
     while ((m = re.exec(varsCss)) !== null) vars[m[1]] = m[2].trim();
     let css = fs.readFileSync(path.join(ROOT, 'css/layout/footer.css'), 'utf8');
     css = css.replace(/var\(--([a-z0-9-]+)\)/gi, (full, name) => (vars[name] != null ? vars[name] : full));
-    _footerCss = css;
+    // footer.css relies on `.container` (defined in layout.css) to center and
+    // constrain width. On pages that don't load the site stylesheet, inline a
+    // footer-scoped copy so the footer matches the canonical pages instead of
+    // rendering full-bleed. Scoped to `.footer .container` so it never touches
+    // a standalone page's own `.container`.
+    _footerCss = css + '\n.footer .container{width:90%;max-width:1280px;margin:0 auto;}';
   } catch (e) {
     _footerCss = '';
   }
@@ -222,17 +227,29 @@ function ensureFooterCss(html) {
   const css = footerCss();
   if (!css) return html;
   const styleTag = '<style id="wts-footer-css">' + css + '</style>';
-  // If the block already exists, replace its contents so CSS edits re-bake.
+  // If the block already exists: refresh its contents so footer.css edits
+  // re-bake — or strip it entirely if the page also links a stylesheet that
+  // already carries footer.css (main.css / footer.css), where it's redundant.
   const open = html.indexOf('<style id="wts-footer-css">');
   if (open !== -1) {
     const close = html.indexOf('</style>', open);
-    if (close !== -1) return html.slice(0, open) + styleTag + html.slice(close + '</style>'.length);
-    return html;
+    if (close === -1) return html;
+    const linksFooterStylesheet = /href="[^"]*\/css\/layout\/footer\.css"/i.test(html) ||
+      /href="[^"]*\/css\/main\.css"/i.test(html);
+    const replacement = linksFooterStylesheet ? '' : styleTag;
+    return html.slice(0, open) + replacement + html.slice(close + '</style>'.length);
   }
-  if (/href="[^"]*\/css\/layout\/footer\.css"/i.test(html)) return html; // already linked
+  // Already styled by a linked stylesheet (footer.css directly, or the bundled
+  // site stylesheet main.css which contains it) — leave it alone.
+  if (/href="[^"]*\/css\/layout\/footer\.css"/i.test(html)) return html;
+  if (/href="[^"]*\/css\/main\.css"/i.test(html)) return html;
   const headClose = html.search(/<\/head>/i);
   if (headClose !== -1) return html.slice(0, headClose) + styleTag + html.slice(headClose);
-  return html; // no head; createFooter prepends the style instead
+  // No <head> (stub/fragment pages) — a <style> is valid in the body too, so
+  // place it just before the footer it styles.
+  const footerOpen = html.search(/<footer[\s>]/i);
+  if (footerOpen !== -1) return html.slice(0, footerOpen) + styleTag + html.slice(footerOpen);
+  return html;
 }
 
 // The footer's social/contact icons are Font Awesome glyphs. Many pages load no
@@ -351,12 +368,14 @@ function main() {
       const pick = pickVariant(config, urlPath);
       const variantName = pick.variant;
       if (!variantName || variantName === 'keep' || !config.variants || !config.variants[variantName]) {
-        // Even on kept pages, refresh an inline footer-CSS block (a previously
-        // created self-styled footer) so footer.css edits re-bake everywhere,
-        // and make sure a footer with icons can load Font Awesome.
+        // Even on kept pages, make sure the footer is styled and its icons can
+        // load: inject the inline footer CSS if the page has no footer styling
+        // (skips pages that link the site stylesheet), refresh an existing
+        // block, and guarantee Font Awesome. Keep only means "don't touch the
+        // footer's content/links" — styling it is safe.
         const keptHtml = fs.readFileSync(file, 'utf8');
         let keptOut = keptHtml;
-        if (keptOut.indexOf('<style id="wts-footer-css">') !== -1) keptOut = ensureFooterCss(keptOut);
+        if (keptOut.indexOf('<footer') !== -1) keptOut = ensureFooterCss(keptOut);
         if (keptOut.indexOf('class="social-links"') !== -1) keptOut = ensureFontAwesome(keptOut);
         if (keptOut !== keptHtml) fs.writeFileSync(file, keptOut);
         stats.kept++;
@@ -371,10 +390,10 @@ function main() {
         const newFooter = injectIntoFooter(fm.block, variant);
         if (newFooter == null) { stats.noFooter++; continue; }
         let out = html.slice(0, fm.start) + newFooter + html.slice(fm.end);
-        // Self-styled (created) footers carry an inline CSS block — refresh it so
-        // footer.css edits re-bake. Region-edited pages have no such block and
-        // are left to the site stylesheet.
-        if (out.indexOf('<style id="wts-footer-css">') !== -1) out = ensureFooterCss(out);
+        // Ensure footer styling: injects the inline footer CSS when the page has
+        // none (skips pages that link the site stylesheet), and refreshes an
+        // existing inline block so footer.css edits re-bake.
+        out = ensureFooterCss(out);
         out = ensureFontAwesome(out); // footer has icon glyphs — guarantee Font Awesome
         fs.writeFileSync(file, out);
         stats.injected++;
