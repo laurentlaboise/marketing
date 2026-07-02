@@ -85,7 +85,7 @@
   }
 
   // Floating account pill on service pages: "Sign in" for visitors (opens
-  // the account step of the quote modal), "My account" once signed in.
+  // the email + password sign-in modal), "My account" once signed in.
   function renderAccountPill() {
     var pill = document.getElementById('wts-account-pill');
     if (!pill) {
@@ -102,7 +102,7 @@
     } else {
       pill.innerHTML = '<button type="button" style="' + pillStyle + 'cursor:pointer;">' +
         '<i class="fas fa-user" style="color:var(--accent-color,#d62b83);"></i> Sign in</button>';
-      pill.firstChild.addEventListener('click', function () { openQuote('', '', '', '', 'account'); });
+      pill.firstChild.addEventListener('click', function () { openLoginModal(); });
     }
   }
 
@@ -728,6 +728,273 @@
     }
 
     if (start === 'account') { showAccountForm(); } else { showChoice(); }
+  }
+
+  // ── Sign-in modal (email + password) ─────────────────────────
+  // Direct portal login for returning customers, opened from the floating
+  // account pill. Centered card on desktop, bottom sheet on small screens.
+  // Same injected-styles technique as the quote modal above.
+
+  var LOGIN_MODAL_CSS =
+    '.wts-lm-overlay{position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:10070;display:flex;align-items:center;justify-content:center;padding:1rem;animation:wtsLmFade .18s ease;}' +
+    '@keyframes wtsLmFade{from{opacity:0}to{opacity:1}}' +
+    '@keyframes wtsLmUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}' +
+    '@keyframes wtsLmSheet{from{transform:translateY(100%)}to{transform:none}}' +
+    '.wts-lm-card{background:#fff;border-radius:18px;max-width:420px;width:100%;max-height:92vh;overflow-y:auto;padding:1.6rem;box-shadow:0 25px 60px rgba(0,0,0,.35);animation:wtsLmUp .22s ease;}' +
+    '@media (max-width:640px){' +
+      '.wts-lm-overlay{align-items:flex-end;padding:0;}' +
+      '.wts-lm-card{max-width:none;border-radius:18px 18px 0 0;max-height:88vh;padding:1.4rem 1.25rem calc(1.6rem + env(safe-area-inset-bottom,0px));animation:wtsLmSheet .28s ease;}' +
+    '}' +
+    '.wts-lm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem;}' +
+    '.wts-lm-head h3{margin:0;font-size:1.25rem;color:#1a1a2e;line-height:1.3;}' +
+    '.wts-lm-close{background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;line-height:1;padding:0 0 .25rem .25rem;flex:none;}' +
+    '.wts-lm-close:hover{color:#334155;}' +
+    '.wts-lm-sub{font-size:.9rem;color:#64748b;margin:.25rem 0 1.1rem;}' +
+    '.wts-lm-label{display:block;font-size:.83rem;font-weight:600;color:#334155;margin:0 0 .3rem;}' +
+    '.wts-lm-input{width:100%;box-sizing:border-box;padding:.65rem .8rem;border:1px solid #cbd5e1;border-radius:10px;font-size:.95rem;font-family:inherit;color:#1a1a2e;background:#fff;margin-bottom:.85rem;}' +
+    '.wts-lm-input:focus{outline:2px solid var(--accent-color,#d62b83);outline-offset:-1px;border-color:transparent;}' +
+    '.wts-lm-field{position:relative;margin-bottom:.85rem;}' +
+    '.wts-lm-field .wts-lm-input{margin-bottom:0;padding-right:3.6rem;}' +
+    '.wts-lm-toggle{position:absolute;right:.4rem;top:50%;transform:translateY(-50%);background:none;border:none;color:#64748b;font-size:.8rem;font-weight:600;font-family:inherit;cursor:pointer;padding:.35rem .5rem;}' +
+    '.wts-lm-toggle:hover{color:var(--accent-color,#d62b83);}' +
+    '.wts-lm-check{display:flex;align-items:center;gap:.5rem;font-size:.88rem;color:#334155;margin:0 0 1rem;cursor:pointer;}' +
+    '.wts-lm-check input{width:auto;margin:0;flex:none;accent-color:var(--accent-color,#d62b83);}' +
+    '.wts-lm-submit{width:100%;border:none;border-radius:10px;padding:.8rem;font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;background:var(--accent-color,#d62b83);color:#fff;transition:background .15s;}' +
+    '.wts-lm-submit:hover{background:#b91c6f;}' +
+    '.wts-lm-submit:disabled{opacity:.65;cursor:default;}' +
+    '.wts-lm-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:10px;padding:.6rem .85rem;font-size:.85rem;margin-bottom:.85rem;display:none;}' +
+    '.wts-lm-links{display:flex;flex-direction:column;gap:.45rem;align-items:center;margin-top:1rem;}' +
+    '.wts-lm-link{background:none;border:none;color:#64748b;font-size:.85rem;cursor:pointer;font-family:inherit;padding:0;text-decoration:underline;text-underline-offset:3px;}' +
+    '.wts-lm-link:hover{color:var(--accent-color,#d62b83);}' +
+    '.wts-lm-success{text-align:center;padding:1rem 0 .5rem;}' +
+    '.wts-lm-success .lm-check{width:56px;height:56px;border-radius:50%;background:#dcfce7;color:#16a34a;font-size:1.6rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;}' +
+    '.wts-lm-success h4{margin:0 0 .5rem;font-size:1.1rem;color:#1a1a2e;}' +
+    '.wts-lm-success p{margin:0 0 1.25rem;font-size:.9rem;color:#64748b;line-height:1.6;}' +
+    '.wts-lm-hint{font-size:.78rem;color:#94a3b8;margin:.6rem 0 0;line-height:1.5;text-align:center;}';
+
+  function ensureLoginStyles() {
+    if (document.getElementById('wts-login-modal-styles')) return;
+    var st = document.createElement('style');
+    st.id = 'wts-login-modal-styles';
+    st.textContent = LOGIN_MODAL_CSS;
+    document.head.appendChild(st);
+  }
+
+  function closeLoginModal() {
+    var overlay = document.getElementById('wts-lm-overlay');
+    if (overlay) overlay.remove();
+    document.removeEventListener('keydown', loginEscHandler);
+  }
+  function loginEscHandler(e) { if (e.key === 'Escape') closeLoginModal(); }
+
+  // Brief bottom-center confirmation pill; fades out after ~3s.
+  var TOAST_CSS =
+    '.wts-toast{position:fixed;left:50%;bottom:1.6rem;transform:translateX(-50%);z-index:10090;background:#1a1a2e;color:#fff;padding:.7rem 1.3rem;border-radius:999px;font-size:.9rem;font-weight:600;font-family:inherit;box-shadow:0 10px 30px rgba(0,0,0,.3);max-width:min(92vw,420px);text-align:center;opacity:0;transition:opacity .25s ease;}' +
+    '.wts-toast.is-visible{opacity:1;}';
+
+  function ensureToastStyles() {
+    if (document.getElementById('wts-toast-styles')) return;
+    var st = document.createElement('style');
+    st.id = 'wts-toast-styles';
+    st.textContent = TOAST_CSS;
+    document.head.appendChild(st);
+  }
+
+  function showToast(message) {
+    ensureToastStyles();
+    var old = document.getElementById('wts-toast');
+    if (old) old.remove();
+    var toast = document.createElement('div');
+    toast.id = 'wts-toast';
+    toast.className = 'wts-toast';
+    toast.setAttribute('role', 'status');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(function () { toast.classList.add('is-visible'); }, 20);
+    setTimeout(function () {
+      toast.classList.remove('is-visible');
+      setTimeout(function () { toast.remove(); }, 300);
+    }, 3000);
+  }
+
+  function openLoginModal() {
+    ensureLoginStyles();
+    closeLoginModal();
+    closeQuoteModal();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'wts-lm-overlay';
+    overlay.className = 'wts-lm-overlay';
+    overlay.innerHTML =
+      '<div class="wts-lm-card" role="dialog" aria-modal="true" aria-label="Sign in">' +
+        '<div class="wts-lm-head"><h3 id="wts-lm-title">Welcome back</h3>' +
+        '<button type="button" class="wts-lm-close" aria-label="Close">&times;</button></div>' +
+        '<div id="wts-lm-body"></div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    var body = overlay.querySelector('#wts-lm-body');
+    var titleEl = overlay.querySelector('#wts-lm-title');
+    overlay.querySelector('.wts-lm-close').addEventListener('click', closeLoginModal);
+    overlay.addEventListener('click', function (ev) { if (ev.target === overlay) closeLoginModal(); });
+    document.addEventListener('keydown', loginEscHandler);
+
+    // The typed email survives the password ↔ email-link swap.
+    var lastEmail = '';
+
+    function showError(errEl, msg) {
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+
+    function showPasswordForm() {
+      titleEl.textContent = 'Welcome back';
+      // A real <form> + submit event so browser autofill and password
+      // managers recognize and fill the credentials.
+      body.innerHTML =
+        '<p class="wts-lm-sub">Sign in to your client portal.</p>' +
+        '<div class="wts-lm-error" id="wts-lm-err"></div>' +
+        '<form id="wts-lm-form" novalidate>' +
+          '<label class="wts-lm-label" for="wts-lm-email">Email address</label>' +
+          '<input class="wts-lm-input" id="wts-lm-email" name="email" type="email" maxlength="255" autocomplete="email" placeholder="you@example.com" required>' +
+          '<label class="wts-lm-label" for="wts-lm-pass">Password</label>' +
+          '<div class="wts-lm-field">' +
+            '<input class="wts-lm-input" id="wts-lm-pass" name="password" type="password" autocomplete="current-password" required>' +
+            '<button type="button" class="wts-lm-toggle" aria-label="Show password">Show</button>' +
+          '</div>' +
+          '<label class="wts-lm-check"><input type="checkbox" id="wts-lm-remember" checked> Stay signed in</label>' +
+          '<button type="submit" class="wts-lm-submit" id="wts-lm-go">Sign In</button>' +
+        '</form>' +
+        '<div class="wts-lm-links">' +
+          '<button type="button" class="wts-lm-link" id="wts-lm-magic">Email me a sign-in link instead</button>' +
+          '<button type="button" class="wts-lm-link" id="wts-lm-create">New here? Create an account</button>' +
+        '</div>';
+
+      var form = body.querySelector('#wts-lm-form');
+      var emailInput = body.querySelector('#wts-lm-email');
+      var passInput = body.querySelector('#wts-lm-pass');
+      var rememberBox = body.querySelector('#wts-lm-remember');
+      var toggleBtn = body.querySelector('.wts-lm-toggle');
+      var submitBtn = body.querySelector('#wts-lm-go');
+      var errEl = body.querySelector('#wts-lm-err');
+
+      if (lastEmail) emailInput.value = lastEmail;
+      emailInput.addEventListener('input', function () { lastEmail = emailInput.value; });
+
+      toggleBtn.addEventListener('click', function () {
+        var showing = passInput.type === 'text';
+        passInput.type = showing ? 'password' : 'text';
+        toggleBtn.textContent = showing ? 'Show' : 'Hide';
+        toggleBtn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+      });
+
+      body.querySelector('#wts-lm-magic').addEventListener('click', showLinkForm);
+      body.querySelector('#wts-lm-create').addEventListener('click', function () {
+        closeLoginModal();
+        openQuote('', '', '', '', 'account');
+      });
+
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var email = emailInput.value.trim();
+        var password = passInput.value;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !password) {
+          showError(errEl, 'Please enter your email address and password.');
+          return;
+        }
+        errEl.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in…';
+        fetch(API_BASE + '/portal-login', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: password, remember: !!(rememberBox && rememberBox.checked) })
+        })
+          .then(function (r) {
+            return r.json()
+              .catch(function () { return {}; })
+              .then(function (d) { return { ok: r.ok, data: d }; });
+          })
+          .then(function (res) {
+            if (res.ok && res.data && res.data.signed_in) {
+              closeLoginModal();
+              showToast('You’re in. Welcome back to your portal.');
+              checkCustomerSession();
+              return;
+            }
+            // 401 / 429: surface the server's message; never clear the fields.
+            throw new Error((res.data && res.data.error) || '');
+          })
+          .catch(function (err) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Sign In';
+            showError(errEl, (err && err.message) || 'Something went wrong. Please try again.');
+          });
+      });
+    }
+
+    // One-field fallback: the same magic-link request the account-creation
+    // step uses (POST /portal-signup), with the neutral confirmation.
+    function showLinkForm() {
+      titleEl.textContent = 'Email me a sign-in link';
+      body.innerHTML =
+        '<p class="wts-lm-sub">No password needed. We’ll email you a one-time sign-in link for your portal.</p>' +
+        '<div class="wts-lm-error" id="wts-lm-err"></div>' +
+        '<form id="wts-lm-magic-form" novalidate>' +
+          '<label class="wts-lm-label" for="wts-lm-magic-mail">Email address</label>' +
+          '<input class="wts-lm-input" id="wts-lm-magic-mail" name="email" type="email" maxlength="255" autocomplete="email" placeholder="you@example.com" required>' +
+          '<button type="submit" class="wts-lm-submit" id="wts-lm-magic-send"><i class="fas fa-envelope"></i> Email me a sign-in link</button>' +
+        '</form>' +
+        '<p class="wts-lm-hint">The link works once and expires in 15 minutes.</p>' +
+        '<div class="wts-lm-links"><button type="button" class="wts-lm-link" id="wts-lm-back">Back to password sign-in</button></div>';
+
+      var magicForm = body.querySelector('#wts-lm-magic-form');
+      var mailInput = body.querySelector('#wts-lm-magic-mail');
+      var sendBtn = body.querySelector('#wts-lm-magic-send');
+      var errEl = body.querySelector('#wts-lm-err');
+
+      if (lastEmail) mailInput.value = lastEmail;
+      mailInput.addEventListener('input', function () { lastEmail = mailInput.value; });
+      body.querySelector('#wts-lm-back').addEventListener('click', showPasswordForm);
+
+      magicForm.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var email = mailInput.value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showError(errEl, 'Please enter a valid email address.');
+          return;
+        }
+        errEl.style.display = 'none';
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+        fetch(API_BASE + '/portal-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function () {
+            body.innerHTML =
+              '<div class="wts-lm-success">' +
+                '<div class="lm-check"><i class="fas fa-check"></i></div>' +
+                '<h4>Check your email</h4>' +
+                '<p>A sign-in link is on its way to <strong>' + esc(email) + '</strong>. Click it to open your portal — the link works once and expires in 15 minutes.</p>' +
+                '<button type="button" class="wts-lm-submit" id="wts-lm-done">Done</button>' +
+              '</div>' +
+              '<div class="wts-lm-links"><button type="button" class="wts-lm-link" id="wts-lm-back2">Back to password sign-in</button></div>';
+            body.querySelector('#wts-lm-done').addEventListener('click', closeLoginModal);
+            body.querySelector('#wts-lm-back2').addEventListener('click', showPasswordForm);
+          })
+          .catch(function () {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-envelope"></i> Email me a sign-in link';
+            showError(errEl, 'Something went wrong. Please try again.');
+          });
+      });
+    }
+
+    showPasswordForm();
   }
 
   function onBuyNow(e) {
