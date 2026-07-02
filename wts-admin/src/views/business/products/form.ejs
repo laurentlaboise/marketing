@@ -24,6 +24,22 @@
       </div>
       <% } %>
 
+      <!-- Readiness checklist -->
+      <div class="card form-card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary, #1a1a2e);"><i class="fas fa-clipboard-check"></i> Readiness</h3>
+          <p id="readiness-status" style="margin:0 0 0.6rem;font-size:0.95rem;font-weight:600;"></p>
+          <ul id="readiness-list" style="list-style:none;padding:0;margin:0;font-size:0.9rem;color:#334155;">
+            <li data-check="name" style="margin:0.35rem 0;"><span class="readiness-icon" style="display:inline-block;width:1.35rem;text-align:center;"><i class="fas fa-circle-xmark" style="color:#b91c1c;"></i></span> <span class="readiness-text">Name (3&ndash;80 characters)</span></li>
+            <li data-check="description" style="margin:0.35rem 0;"><span class="readiness-icon" style="display:inline-block;width:1.35rem;text-align:center;"><i class="fas fa-circle-xmark" style="color:#b91c1c;"></i></span> <span class="readiness-text">Description (at least 20 characters)</span></li>
+            <li data-check="classification" style="margin:0.35rem 0;"><span class="readiness-icon" style="display:inline-block;width:1.35rem;text-align:center;"><i class="fas fa-circle-xmark" style="color:#b91c1c;"></i></span> <span class="readiness-text">Service Page + Subcategory chosen</span></li>
+            <li data-check="price" style="margin:0.35rem 0;"><span class="readiness-icon" style="display:inline-block;width:1.35rem;text-align:center;"><i class="fas fa-circle-xmark" style="color:#b91c1c;"></i></span> <span class="readiness-text">Price set for the chosen pricing type</span></li>
+            <li data-check="sell" style="margin:0.35rem 0;"><span class="readiness-icon" style="display:inline-block;width:1.35rem;text-align:center;"><i class="fas fa-minus" style="color:#94a3b8;"></i></span> <span class="readiness-text">Sell online is off &mdash; quote requests only</span></li>
+            <li data-check="icon" style="margin:0.35rem 0;"><span class="readiness-icon" style="display:inline-block;width:1.35rem;text-align:center;"><i class="fas fa-circle-exclamation" style="color:#d97706;"></i></span> <span class="readiness-text">Card icon set</span></li>
+          </ul>
+        </div>
+      </div>
+
       <!-- Basic Information -->
       <div class="card form-card" style="margin-bottom: 1.5rem;">
         <div class="card-body">
@@ -98,13 +114,12 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="purchase_mode">How customers acquire this</label>
-              <select id="purchase_mode" name="purchase_mode" class="form-input">
-                <% tx.PURCHASE_MODES.forEach(function(pm){ %>
-                <option value="<%= pm.value %>" <%= (product ? product.purchase_mode : 'consult') === pm.value ? 'selected' : (!product && pm.value === 'consult' ? 'selected' : '') %>><%= pm.label %></option>
-                <% }); %>
-              </select>
-              <small style="color:#666;">Most services start with a strategy call; reserve “Buy Now” for self-serve products.</small>
+              <label class="form-label" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                <input type="checkbox" id="purchase_mode" name="purchase_mode" value="buy" style="width:auto;margin:0;"
+                  <%= product && product.purchase_mode === 'buy' ? 'checked' : '' %>>
+                Sell online
+              </label>
+              <small style="color:#666;">Off: customers request a quote (default). On: signed-in clients can also buy directly — by card (Stripe) or BCEL OnePay — using the pricing below.</small>
             </div>
             <div class="form-group">
               <label class="form-label" for="sku">SKU (optional)</label>
@@ -806,6 +821,130 @@ document.getElementById('slug').dataset.manual = 'true';
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') close();
   });
+})();
+
+// ── Readiness checklist ─────────────────────────────────────
+(function() {
+  var list = document.getElementById('readiness-list');
+  var statusEl = document.getElementById('readiness-status');
+  if (!list || !statusEl) return;
+
+  function val(id) {
+    var el = document.getElementById(id);
+    return el ? (el.value || '') : '';
+  }
+
+  function sellOnlineOn() {
+    var cb = document.getElementById('purchase_mode');
+    return !!(cb && cb.checked);
+  }
+
+  // state: 'ok' | 'fail' | 'warn' | 'neutral'
+  function setItem(key, state, text) {
+    var li = list.querySelector('[data-check="' + key + '"]');
+    if (!li) return;
+    var iconSpan = li.querySelector('.readiness-icon');
+    var textSpan = li.querySelector('.readiness-text');
+    var cls, color;
+    if (state === 'ok') { cls = 'fas fa-circle-check'; color = '#16a34a'; }
+    else if (state === 'warn') { cls = 'fas fa-circle-exclamation'; color = '#d97706'; }
+    else if (state === 'neutral') { cls = 'fas fa-minus'; color = '#94a3b8'; }
+    else { cls = 'fas fa-circle-xmark'; color = '#b91c1c'; }
+    iconSpan.innerHTML = '';
+    var i = document.createElement('i');
+    i.className = cls;
+    i.style.color = color;
+    iconSpan.appendChild(i);
+    if (text) textSpan.textContent = text;
+  }
+
+  // Does the chosen pricing type have a real (> 0) price somewhere?
+  function hasRealPrice() {
+    var pType = val('pricing_type');
+    if (pType === 'subscription') {
+      return parseFloat(val('monthly_price')) > 0 || parseFloat(val('yearly_price')) > 0;
+    }
+    if (pType === 'tiered') {
+      var inputs = document.querySelectorAll('#tier-rows [name="tier_unit_price"]');
+      for (var k = 0; k < inputs.length; k++) {
+        if (parseFloat(inputs[k].value) > 0) return true;
+      }
+      return false;
+    }
+    return parseFloat(val('price')) > 0;
+  }
+
+  function recompute() {
+    var sellOn = sellOnlineOn();
+    var real = hasRealPrice();
+
+    var nameLen = val('name').trim().length;
+    var nameOk = nameLen >= 3 && nameLen <= 80;
+
+    var descOk = val('description').trim().length >= 20;
+
+    var classOk = val('service_page') !== '' && val('subcategory') !== '';
+
+    // One-time products may leave the price blank ("Custom Quote") — but
+    // only while Sell online is off; buyable products need a real price.
+    var priceOk = real;
+    if (!priceOk && val('pricing_type') === 'one_time' && !sellOn && val('price').trim() === '') {
+      priceOk = true;
+    }
+
+    setItem('name', nameOk ? 'ok' : 'fail');
+    setItem('description', descOk ? 'ok' : 'fail');
+    setItem('classification', classOk ? 'ok' : 'fail');
+    setItem('price', priceOk ? 'ok' : 'fail');
+
+    var sellCounts = false;
+    var sellOk = true;
+    if (sellOn) {
+      sellCounts = true;
+      sellOk = real;
+      setItem('sell', sellOk ? 'ok' : 'fail', 'Ready to sell online');
+    } else {
+      setItem('sell', 'neutral', 'Sell online is off — quote requests only');
+    }
+
+    setItem('icon', val('icon_class').trim() !== '' ? 'ok' : 'warn');
+
+    var missing = 0;
+    if (!nameOk) missing++;
+    if (!descOk) missing++;
+    if (!classOk) missing++;
+    if (!priceOk) missing++;
+    if (sellCounts && !sellOk) missing++;
+
+    if (missing === 0) {
+      statusEl.textContent = 'Ready to publish ✓';
+      statusEl.style.color = '#16a34a';
+    } else {
+      statusEl.textContent = missing + ' item(s) to finish before publishing';
+      statusEl.style.color = '#d97706';
+    }
+  }
+
+  var ids = ['name', 'description', 'service_page', 'subcategory', 'pricing_type',
+             'price', 'monthly_price', 'yearly_price', 'purchase_mode'];
+  ids.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', recompute);
+    el.addEventListener('change', recompute);
+  });
+
+  // Tier rows are added/removed dynamically — delegate on the container.
+  var tierRows = document.getElementById('tier-rows');
+  if (tierRows) {
+    tierRows.addEventListener('input', recompute);
+    tierRows.addEventListener('change', recompute);
+    tierRows.addEventListener('click', recompute); // row removal
+  }
+  var tierAdd = document.getElementById('tier-add');
+  if (tierAdd) tierAdd.addEventListener('click', recompute);
+
+  recompute();
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-uT3pX9zt2ChjFuO5YPuMV+KCYQ7LTYxt6++YOaiq4O4psZxfqyD7ZTjZJNMIafzV" crossorigin="anonymous"></script>
