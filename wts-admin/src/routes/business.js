@@ -4,7 +4,8 @@ const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
 const taxonomy = require('../config/product-taxonomy');
 const slugify = require('../utils/slugify');
-const { parseProductListings } = require('../utils/product-import-parser');
+const { parseProductListings, parseSeedProducts } = require('../utils/product-import-parser');
+const { insertSeedProduct } = require('../utils/product-seeder');
 const { normalizeTiers } = require('../utils/pricing');
 const { upsertCustomer, linkOrdersByEmail, issueLoginLink } = require('./portal');
 
@@ -458,7 +459,9 @@ router.get('/products/import', (req, res) => {
 router.post('/products/import', async (req, res) => {
   let parsed;
   try {
-    parsed = parseProductListings(req.body.text || '');
+    const text = req.body.text || '';
+    // Curated seed JSON (database/seed/*.json) or the original listings doc.
+    parsed = text.trim().startsWith('[') ? parseSeedProducts(text) : parseProductListings(text);
   } catch (e) {
     return res.render('business/products/import', {
       title: 'Import Products - WTS Admin',
@@ -479,27 +482,7 @@ router.post('/products/import', async (req, res) => {
         items.push({ name: p.name, status: 'skipped', message: 'A product with this slug already exists', warnings: p.warnings });
         continue;
       }
-      const monthly = p.monthly_price;
-      const yearly = p.yearly_price;
-      const defaultBilling = monthly != null ? 'monthly' : (yearly != null ? 'yearly' : 'monthly');
-      const allowToggle = monthly != null && yearly != null;
-      await db.query(
-        `INSERT INTO products (
-          name, slug, description, price, currency, features, status,
-          service_page, subcategory, icon_class, animation_class, sort_order,
-          product_type, slide_in_subtitle,
-          pricing_type, monthly_price, yearly_price, default_billing, allow_billing_toggle,
-          purchase_mode, price_unit, industries, sku, stripe_payment_link
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)`,
-        [
-          p.name, p.slug, p.description || null, p.price, p.currency || 'USD', p.features || [], 'draft',
-          p.service_page || null, p.subcategory || null,
-          IMPORT_ICON_BY_PAGE[p.service_page] || 'fas fa-box', 'kinetic-pulse-float', 0,
-          p.pricing_type === 'subscription' ? 'subscription' : 'service', p.slide_in_subtitle || null,
-          p.pricing_type, monthly, yearly, defaultBilling, allowToggle,
-          'consult', p.price_unit || 'fixed', normalizeIndustries(p.industries), p.sku || null, p.stripe_payment_link || null
-        ]
-      );
+      await insertSeedProduct(p);
       created++;
       items.push({ name: p.name, status: 'created', message: `${p.service_page || '?'} / ${p.subcategory || '?'}`, warnings: p.warnings });
     } catch (e) {

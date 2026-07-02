@@ -204,4 +204,103 @@ function parseProductListings(rawText) {
   return { products };
 }
 
-module.exports = { parseProductListings, SERVICE_PAGE_BY_CATEGORY };
+// ── Seed-JSON importer ─────────────────────────────────────────
+//
+// The curated catalog lives as JSON arrays under database/seed/ (one object
+// per product, every editor field populated). The import screen accepts that
+// JSON pasted directly; this validates/coerces each entry against the same
+// taxonomy the form uses and returns the parseProductListings() shape.
+
+const ALLOWED_PRICING_TYPES = ['one_time', 'subscription', 'tiered'];
+
+function num(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = parseFloat(v);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function parseSeedProducts(rawText) {
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (e) {
+    throw new Error('Invalid JSON: ' + e.message);
+  }
+  if (!Array.isArray(data)) {
+    throw new Error('Expected a JSON array of products.');
+  }
+
+  const products = data.map((entry, i) => {
+    const warnings = [];
+    const e = entry || {};
+    const name = String(e.name || '').trim();
+    if (name.length < 3 || name.length > 80) warnings.push('Name must be 3–80 characters.');
+
+    const servicePage = taxonomy.SERVICE_PAGE_VALUES.includes(e.service_page) ? e.service_page : null;
+    if (!servicePage) warnings.push(`Invalid service_page "${e.service_page}".`);
+    const subcategory = servicePage && taxonomy.isValidSubcategory(servicePage, e.subcategory) ? e.subcategory : null;
+    if (!subcategory) warnings.push(`Invalid subcategory "${e.subcategory}" for ${e.service_page}.`);
+
+    const pricingType = ALLOWED_PRICING_TYPES.includes(e.pricing_type) ? e.pricing_type : 'one_time';
+    const tiers = Array.isArray(e.quantity_tiers)
+      ? e.quantity_tiers
+          .map((t) => ({ min_qty: parseInt(t && t.min_qty, 10), unit_price: num(t && t.unit_price) }))
+          .filter((t) => Number.isFinite(t.min_qty) && t.min_qty >= 1 && t.unit_price !== null)
+      : [];
+    if (pricingType === 'tiered' && !tiers.length) warnings.push('Tiered pricing without valid quantity_tiers.');
+
+    const industries = Array.isArray(e.industries)
+      ? e.industries.filter((v) => taxonomy.INDUSTRY_VALUES.includes(v)).slice(0, 6)
+      : [];
+
+    const priceUnit = taxonomy.PRICE_UNIT_VALUES.includes(e.price_unit) ? e.price_unit : 'fixed';
+    const purchaseMode = taxonomy.PURCHASE_MODE_VALUES.includes(e.purchase_mode) ? e.purchase_mode : 'consult';
+
+    const price = pricingType === 'one_time' ? num(e.price) : null;
+    const monthly = pricingType === 'subscription' ? num(e.monthly_price) : null;
+    const yearly = pricingType === 'subscription' ? num(e.yearly_price) : null;
+    if (purchaseMode === 'buy' &&
+        !((pricingType === 'one_time' && price > 0) ||
+          (pricingType === 'subscription' && (monthly > 0 || yearly > 0)) ||
+          (pricingType === 'tiered' && tiers.length))) {
+      warnings.push('purchase_mode "buy" without a sellable price — imported as consult.');
+    }
+
+    const stripeLink = String(e.stripe_payment_link || '').trim();
+    const description = String(e.description || '').trim();
+    if (description.length < 20) warnings.push('Description shorter than 20 characters.');
+
+    return {
+      name,
+      slug: e.slug && /^[a-z0-9-]+$/.test(e.slug) ? e.slug : slugify(name),
+      sku: e.sku ? String(e.sku).trim() : null,
+      service_page: servicePage,
+      subcategory,
+      description,
+      features: Array.isArray(e.features) ? e.features.map((f) => String(f).trim()).filter(Boolean) : [],
+      industries,
+      pricing_type: pricingType,
+      price,
+      price_unit: priceUnit,
+      monthly_price: monthly,
+      yearly_price: yearly,
+      quantity_tiers: tiers,
+      purchase_mode: warnings.some((w) => w.startsWith('purchase_mode')) ? 'consult' : purchaseMode,
+      currency: 'USD',
+      stripe_payment_link: /^https?:\/\//i.test(stripeLink) ? stripeLink : null,
+      product_type: e.product_type === 'subscription' || pricingType === 'subscription' ? 'subscription'
+        : (e.product_type === 'digital' ? 'digital' : 'service'),
+      icon_class: /^fa[srb]?\s+fa-[a-z0-9-]+$/.test(String(e.icon_class || '')) ? e.icon_class : null,
+      sort_order: Number.isFinite(parseInt(e.sort_order, 10)) ? parseInt(e.sort_order, 10) : 0,
+      slide_in_title: e.slide_in_title ? String(e.slide_in_title).trim().slice(0, 500) : null,
+      slide_in_subtitle: e.slide_in_subtitle ? String(e.slide_in_subtitle).trim() : null,
+      slide_in_content: e.slide_in_content ? String(e.slide_in_content).trim() : null,
+      status: e.status === 'active' ? 'active' : 'draft',
+      warnings,
+    };
+  });
+
+  return { products };
+}
+
+module.exports = { parseProductListings, parseSeedProducts, SERVICE_PAGE_BY_CATEGORY };
