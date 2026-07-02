@@ -187,8 +187,8 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
 
     // Create order record
     await db.query(
-      `INSERT INTO orders (product_id, customer_email, amount, currency, stripe_session_id, status, sku, quantity, unit_price)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      `INSERT INTO orders (product_id, customer_email, amount, currency, stripe_session_id, status, sku, quantity, unit_price, payment_method)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'stripe')`,
       [product.id, 'pending@checkout.com', orderAmount, product.currency || 'USD', session.id, 'pending',
        product.sku || null, orderQuantity, orderUnitPrice]
     );
@@ -197,6 +197,107 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
   } catch (error) {
     console.error('Create checkout session error:', error);
     res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
+// Create an order for a BCEL OnePay QR payment (Laos). There is no gateway
+// callback for a scanned merchant QR, so the flow is: record the order as
+// awaiting_payment, hand the customer a short reference to put in the
+// transfer note, and match it manually in the BCEL One statement.
+router.post('/bcel-order', express.json(), async (req, res) => {
+  try {
+    const { product_id, billing_period, quantity, include_setup_fee, customer_email } = req.body;
+    if (!product_id) {
+      return res.status(400).json({ error: 'product_id is required' });
+    }
+
+    const result = await db.query(
+      "SELECT * FROM products WHERE id = $1 AND status = 'active'",
+      [product_id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    const product = result.rows[0];
+    if (!product.bcel_qr_url) {
+      return res.status(400).json({ error: 'This product does not accept BCEL OnePay' });
+    }
+
+    const num = (v) => (v === null || v === undefined || v === '') ? null : parseFloat(v);
+
+    // Total in the product's own currency, mirroring the Stripe branch.
+    let amount = null;
+    let orderQuantity = 1;
+    let unitPrice = null;
+    let period = null;
+    const isSubscription = product.pricing_type === 'subscription' || product.product_type === 'subscription';
+
+    if (isSubscription) {
+      const monthly = num(product.monthly_price);
+      const yearly = num(product.yearly_price);
+      period = (billing_period === 'yearly' || billing_period === 'monthly')
+        ? billing_period
+        : (product.default_billing === 'yearly' ? 'yearly' : 'monthly');
+      if (period === 'monthly' && monthly === null) period = 'yearly';
+      if (period === 'yearly' && yearly === null) period = 'monthly';
+      amount = period === 'yearly' ? yearly : monthly;
+      unitPrice = amount;
+      const setupFee = num(product.setup_fee);
+      const skipSetupFee = include_setup_fee === false || include_setup_fee === 'false';
+      if (!skipSetupFee && setupFee > 0 && amount !== null) {
+        amount = Math.round((amount + setupFee) * 100) / 100;
+      }
+    } else if (product.pricing_type === 'tiered') {
+      const tiers = normalizeTiers(product.quantity_tiers);
+      if (!tiers.length) {
+        return res.status(400).json({ error: 'Product has no valid quantity pricing' });
+      }
+      const minQty = tiers[0].min_qty || 1;
+      orderQuantity = Math.max(minQty, parseInt(quantity, 10) || minQty);
+      unitPrice = unitPriceForQuantity(tiers, orderQuantity);
+      amount = unitPrice > 0 ? Math.round(unitPrice * orderQuantity * 100) / 100 : null;
+    } else {
+      amount = num(product.price);
+      unitPrice = amount;
+    }
+
+    const priceLak = num(product.price_lak);
+    if (!(amount > 0) && !(priceLak > 0)) {
+      return res.status(400).json({ error: 'Product has no valid price' });
+    }
+
+    const insert = await db.query(
+      `INSERT INTO orders (product_id, customer_email, amount, currency, status, sku, quantity, unit_price, payment_method, metadata)
+       VALUES ($1, $2, $3, $4, 'awaiting_payment', $5, $6, $7, 'bcel_qr', $8)
+       RETURNING id`,
+      [
+        product.id,
+        (customer_email && String(customer_email).trim()) || 'pending@bcel.qr',
+        amount, product.currency || 'USD',
+        product.sku || null, orderQuantity, unitPrice,
+        JSON.stringify({ billing_period: period, price_lak: priceLak, include_setup_fee: include_setup_fee !== false })
+      ]
+    );
+
+    // Short, human-typeable reference for the BCEL transfer note.
+    const reference = 'WTS-' + insert.rows[0].id.replace(/-/g, '').slice(0, 8).toUpperCase();
+    await db.query(
+      `UPDATE orders SET metadata = metadata || $1 WHERE id = $2`,
+      [JSON.stringify({ reference }), insert.rows[0].id]
+    );
+
+    res.json({
+      order_id: insert.rows[0].id,
+      reference,
+      amount,
+      currency: product.currency || 'USD',
+      price_lak: priceLak,
+      qr_url: product.bcel_qr_url,
+      product_name: product.name
+    });
+  } catch (error) {
+    console.error('BCEL order error:', error);
+    res.status(500).json({ error: 'Failed to create BCEL order' });
   }
 });
 

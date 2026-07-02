@@ -241,7 +241,8 @@
         purchase_mode: product.purchase_mode || 'consult',
         cta_form_type: product.cta_form_type || null,
         stripe_payment_link: product.stripe_payment_link || null,
-        has_stripe: product.has_stripe
+        has_stripe: product.has_stripe,
+        bcel: (product.bcel && product.bcel.qr_url) ? product.bcel : null
       };
     });
   }
@@ -388,6 +389,12 @@
       buyBtns[j].dataset.bound = '1';
       buyBtns[j].addEventListener('click', onBuyNow);
     }
+    var bcelBtns = elContent.querySelectorAll('.btn-bcel-pay');
+    for (var k = 0; k < bcelBtns.length; k++) {
+      if (bcelBtns[k].dataset.bound) continue;
+      bcelBtns[k].dataset.bound = '1';
+      bcelBtns[k].addEventListener('click', onBcelPay);
+    }
   }
 
   function onRequestQuote(e) {
@@ -503,6 +510,119 @@
         btn.innerHTML = original;
         openQuote(btn.getAttribute('data-product-name') || '', btn.getAttribute('data-cta-form-type') || '');
       });
+  }
+
+  // ── BCEL OnePay (Laos) QR payment ────────────────────────────
+
+  // Whole kip, thousands-separated — LAK has no decimal subunit.
+  function fmtKip(amount) {
+    return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' LAK';
+  }
+
+  function onBcelPay(e) {
+    e.preventDefault();
+    var btn = this;
+    // Resolve product data from the open panel's detail map entry.
+    var productId = btn.getAttribute('data-product-id');
+    var data = null;
+    for (var key in detailMap) {
+      if (String(detailMap[key].id) === String(productId)) { data = detailMap[key]; break; }
+    }
+    if (!data || !data.bcel) return;
+
+    var original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing…';
+
+    var body = { product_id: productId };
+    var billing = btn.getAttribute('data-billing-period');
+    if (billing) body.billing_period = billing;
+    var qty = btn.getAttribute('data-quantity');
+    if (qty) body.quantity = parseInt(qty, 10);
+    var pricingBlock = btn.closest ? btn.closest('.product-pricing-block') : null;
+    var feeBox = pricingBlock ? pricingBlock.querySelector('.setup-fee-checkbox') : null;
+    if (feeBox) body.include_setup_fee = feeBox.checked;
+
+    var payBase = API_BASE.replace('/api/public', '/api/payments');
+    fetch(payBase + '/bcel-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        // Show the QR even if the order record failed — the customer can
+        // still pay; we just lose the pre-created reference.
+        openBcelModal(data, (d && d.reference) ? d : null);
+      })
+      .catch(function () {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        openBcelModal(data, null);
+      });
+  }
+
+  function openBcelModal(data, order) {
+    closeBcelModal();
+    var qr = sanitizeUrl(data.bcel.qr_url);
+    if (!qr) return;
+
+    var priceLak = order && order.price_lak != null ? order.price_lak : data.bcel.price_lak;
+    var amount = order && order.amount != null ? order.amount : null;
+    var amountHTML;
+    if (priceLak != null && priceLak > 0) {
+      amountHTML = '<p style="font-size:1.5rem;font-weight:700;color:#c8102e;margin:0.25rem 0 0;">' + fmtKip(priceLak) + '</p>' +
+        (amount != null ? '<p style="font-size:0.82rem;color:#64748b;margin:0.15rem 0 0;">≈ ' + fmtMoney(amount, order ? order.currency : data.currency) + '</p>' : '');
+    } else if (amount != null) {
+      amountHTML = '<p style="font-size:1.5rem;font-weight:700;color:#c8102e;margin:0.25rem 0 0;">' + fmtMoney(amount, order ? order.currency : data.currency) + '</p>' +
+        '<p style="font-size:0.82rem;color:#64748b;margin:0.15rem 0 0;">Transfer the LAK equivalent at today’s rate.</p>';
+    } else {
+      amountHTML = '';
+    }
+
+    var overlay = document.createElement('div');
+    overlay.id = 'bcel-modal-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.65);z-index:10050;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    overlay.innerHTML =
+      '<div role="dialog" aria-label="Pay with BCEL OnePay" style="background:#fff;border-radius:16px;max-width:400px;width:100%;max-height:92vh;overflow-y:auto;padding:1.5rem;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.35);">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">' +
+          '<h3 style="margin:0;font-size:1.15rem;color:#1a1a2e;"><i class="fas fa-qrcode" style="color:#c8102e;"></i> Pay with BCEL OnePay</h3>' +
+          '<button type="button" id="bcel-modal-close" aria-label="Close" style="background:none;border:none;font-size:1.5rem;color:#64748b;cursor:pointer;line-height:1;">&times;</button>' +
+        '</div>' +
+        '<p style="font-size:0.92rem;color:#334155;margin:0;">' + esc(data.name) + '</p>' +
+        amountHTML +
+        '<img src="' + esc(qr) + '" alt="BCEL OnePay QR code" style="width:230px;max-width:80%;margin:1rem auto;display:block;border:1px solid #e2e8f0;border-radius:12px;">' +
+        (order && order.reference
+          ? '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:0.6rem 0.9rem;margin-bottom:0.9rem;">' +
+              '<p style="font-size:0.82rem;color:#991b1b;margin:0;">Payment reference — include it in the transfer note:</p>' +
+              '<p style="font-size:1.15rem;font-weight:700;letter-spacing:0.05em;color:#c8102e;margin:0.15rem 0 0;">' + esc(order.reference) + '</p>' +
+            '</div>'
+          : '') +
+        '<ol style="text-align:left;font-size:0.85rem;color:#475569;margin:0 0 1rem;padding-left:1.3rem;">' +
+          '<li>Open the <strong>BCEL One</strong> app and tap Scan.</li>' +
+          '<li>Scan this QR and enter the amount' + (order && order.reference ? ' with the reference in the note' : '') + '.</li>' +
+          '<li>Keep your payment slip — we confirm every order by email.</li>' +
+        '</ol>' +
+        '<button type="button" id="bcel-modal-done" class="btn btn-accent-magenta" style="width:100%;padding:0.7rem;">Done</button>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function (ev) { if (ev.target === overlay) closeBcelModal(); });
+    document.getElementById('bcel-modal-close').addEventListener('click', closeBcelModal);
+    document.getElementById('bcel-modal-done').addEventListener('click', closeBcelModal);
+    document.addEventListener('keydown', bcelEscHandler);
+  }
+
+  function bcelEscHandler(e) {
+    if (e.key === 'Escape') closeBcelModal();
+  }
+
+  function closeBcelModal() {
+    var overlay = document.getElementById('bcel-modal-overlay');
+    if (overlay) overlay.remove();
+    document.removeEventListener('keydown', bcelEscHandler);
   }
 
   // ── Slide-in pricing block (one-time or subscription toggle) ──
@@ -661,6 +781,12 @@
       var buy = '<button class="btn btn-accent-magenta product-cta btn-buy-now"' + idAttr + nameAttr + formAttr + billingAttr +
         (data.stripe_payment_link ? ' data-stripe-link="' + esc(data.stripe_payment_link) + '"' : '') +
         ctaStyle + '><i class="fas fa-bolt"></i> Buy Now</button>';
+      // BCEL OnePay (Laos): a second payment path that opens the merchant QR.
+      if (data.bcel) {
+        buy += '<div style="margin-top:0.6rem;"><button class="btn-bcel-pay product-cta"' + idAttr + nameAttr + billingAttr +
+          ' style="background:#fff;border:1.5px solid #c8102e;color:#c8102e;padding:0.6rem 1.5rem;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;">' +
+          '<i class="fas fa-qrcode"></i> Pay with BCEL OnePay</button></div>';
+      }
       var save = '<div style="margin-top:0.6rem;"><button class="btn-add-service"' + idAttr + nameAttr +
         ' style="background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.45rem 1.1rem;border-radius:8px;cursor:pointer;color:var(--color-slate-500,#64748b);font-size:0.95rem;">' +
         (isSaved(data.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
@@ -711,7 +837,6 @@
   function applyBilling(block, pr, billing) {
     var savingsEl = block.querySelector('.billing-savings');
     var addBtn = block.querySelector('.btn-add-service');
-    var ctaBtn = block.querySelector('.product-cta');
 
     var isYearly = billing === 'yearly';
     var amount = isYearly ? pr.yearly_price : pr.monthly_price;
@@ -751,7 +876,9 @@
       }
     }
     if (addBtn) addBtn.setAttribute('data-billing-period', billing);
-    if (ctaBtn) ctaBtn.setAttribute('data-billing-period', billing);
+    // Every CTA (Buy Now, BCEL OnePay, Request a Quote) carries the period.
+    var ctas = block.querySelectorAll('.product-cta');
+    for (var c = 0; c < ctas.length; c++) ctas[c].setAttribute('data-billing-period', billing);
 
     // Active button styling
     var options = block.querySelectorAll('.billing-option');

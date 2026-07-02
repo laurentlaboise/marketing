@@ -397,8 +397,9 @@
       <!-- Stripe & Digital Delivery -->
       <div class="card form-card" style="margin-bottom: 1.5rem;">
         <div class="card-body">
-          <h3 style="margin-bottom: 1rem; color: var(--text-primary, #1a1a2e);"><i class="fab fa-stripe"></i> Stripe & Digital Delivery</h3>
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary, #1a1a2e);"><i class="fas fa-credit-card"></i> Payments & Digital Delivery</h3>
 
+          <h4 style="margin:0 0 0.75rem;color:#635bff;font-size:0.95rem;"><i class="fab fa-stripe"></i> Stripe — international cards</h4>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="stripe_product_id">Stripe Product ID</label>
@@ -416,6 +417,25 @@
             <small style="color:#666;">A ready-made Stripe checkout link, used directly for “Buy Now” products.</small>
           </div>
 
+          <h4 style="margin:1.25rem 0 0.25rem;color:#c8102e;font-size:0.95rem;"><i class="fas fa-qrcode"></i> BCEL OnePay — Laos QR payment</h4>
+          <p style="font-size:0.82rem;color:#666;margin:0 0 0.75rem;">Customers scan your merchant QR in the BCEL One app. You match transfers in your statement using the payment reference shown to the customer. Leave the QR empty to offer Stripe only.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="bcel_qr_url">BCEL OnePay QR Image URL</label>
+              <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                <input type="url" id="bcel_qr_url" name="bcel_qr_url" class="form-input" style="flex:1;" value="<%= product ? (product.bcel_qr_url || '') : '' %>" placeholder="https://... (your OnePay merchant QR image)">
+                <img id="bcel-qr-preview" src="<%= product ? (product.bcel_qr_url || '') : '' %>" alt="QR preview" style="flex:none;width:64px;height:64px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;<%= product && product.bcel_qr_url ? '' : 'display:none;' %>">
+              </div>
+              <small style="color:#666;">Upload the QR via Images and paste its URL here. The same URL can be reused on every product.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="price_lak">Price in LAK (₭, optional)</label>
+              <input type="number" id="price_lak" name="price_lak" class="form-input" min="0" step="1" value="<%= product && product.price_lak != null ? Math.round(product.price_lak) : '' %>" placeholder="e.g. 1250000">
+              <small style="color:#666;">Whole kip, no decimals — the amount to transfer (first payment for subscriptions). Blank shows the product currency with a “pay the LAK equivalent” note.</small>
+            </div>
+          </div>
+
+          <h4 style="margin:1.25rem 0 0.75rem;color:var(--text-primary,#1a1a2e);font-size:0.95rem;"><i class="fas fa-download"></i> Digital Delivery</h4>
           <div class="form-group">
             <label class="form-label" for="download_url">Download URL (for digital products)</label>
             <input type="url" id="download_url" name="download_url" class="form-input" value="<%= product ? (product.download_url || '') : '' %>" placeholder="URL to downloadable file after purchase">
@@ -592,6 +612,23 @@ document.getElementById('slug').dataset.manual = 'true';
     i.className = input.value.trim() || 'fas fa-box';
     box.appendChild(i);
   });
+})();
+
+// ── Live BCEL QR image preview ──────────────────────────────
+(function() {
+  var input = document.getElementById('bcel_qr_url');
+  var img = document.getElementById('bcel-qr-preview');
+  if (!input || !img) return;
+  input.addEventListener('input', function() {
+    var url = input.value.trim();
+    if (/^https?:\/\//i.test(url)) {
+      img.src = url;
+      img.style.display = '';
+    } else {
+      img.style.display = 'none';
+    }
+  });
+  img.addEventListener('error', function() { img.style.display = 'none'; });
 })();
 
 // ── Sidebar Preview Logic ───────────────────────────────────

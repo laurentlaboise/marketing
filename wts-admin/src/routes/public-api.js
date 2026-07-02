@@ -535,6 +535,10 @@ router.get('/products', async (req, res) => {
       sku: p.sku || null,
       pricing: buildProductPricing(p),
       stripe_payment_link: p.stripe_payment_link || null,
+      bcel: p.bcel_qr_url ? {
+        qr_url: p.bcel_qr_url,
+        price_lak: p.price_lak != null ? Math.round(parseFloat(p.price_lak)) : null
+      } : null,
       has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
         p.stripe_payment_link ||
         (p.price && parseFloat(p.price) > 0) ||
@@ -592,6 +596,10 @@ router.get('/products/:slug', async (req, res) => {
       sku: p.sku || null,
       pricing: buildProductPricing(p),
       stripe_payment_link: p.stripe_payment_link || null,
+      bcel: p.bcel_qr_url ? {
+        qr_url: p.bcel_qr_url,
+        price_lak: p.price_lak != null ? Math.round(parseFloat(p.price_lak)) : null
+      } : null,
       has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
         p.stripe_payment_link ||
         (p.price && parseFloat(p.price) > 0) ||
