@@ -271,6 +271,31 @@ function ensureFontAwesome(html) {
   return html; // no head and no footer — nothing to do
 }
 
+// Canonical favicon block (mirrors the homepage). Many pages carry no favicon
+// link (glossary stubs, checkout, etc.); the browser then falls back to the
+// root /favicon.ico, but the explicit multi-size set is better for search and
+// mobile. Ensure every page has it. Idempotent: skipped if any favicon link is
+// already present.
+const FAVICON_HTML =
+  '<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">' +
+  '<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">' +
+  '<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">' +
+  '<link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png">' +
+  '<link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png">' +
+  '<link rel="shortcut icon" href="/favicon/favicon.ico">' +
+  '<link rel="manifest" href="/favicon/site.webmanifest">';
+function ensureFavicon(html) {
+  if (/rel="(shortcut )?icon"/i.test(html) || html.indexOf('/favicon/') !== -1 ||
+      html.indexOf('apple-touch-icon') !== -1) return html; // already has a favicon
+  const headClose = html.search(/<\/head>/i);
+  if (headClose !== -1) return html.slice(0, headClose) + FAVICON_HTML + html.slice(headClose);
+  // No <head> (stub/fragment pages) — icon links are honored in the body too;
+  // place them before the footer. (Same-origin /favicon.ico is the fallback.)
+  const footerOpen = html.search(/<footer[\s>]/i);
+  if (footerOpen !== -1) return html.slice(0, footerOpen) + FAVICON_HTML + html.slice(footerOpen);
+  return html;
+}
+
 function insertBeforeBodyClose(html, snippet) {
   const idx = html.toLowerCase().lastIndexOf('</body>');
   if (idx === -1) return html + snippet;
@@ -377,6 +402,7 @@ function main() {
         let keptOut = keptHtml;
         if (keptOut.indexOf('<footer') !== -1) keptOut = ensureFooterCss(keptOut);
         if (keptOut.indexOf('class="social-links"') !== -1) keptOut = ensureFontAwesome(keptOut);
+        keptOut = ensureFavicon(keptOut);
         if (keptOut !== keptHtml) fs.writeFileSync(file, keptOut);
         stats.kept++;
         continue;
@@ -395,6 +421,7 @@ function main() {
         // existing inline block so footer.css edits re-bake.
         out = ensureFooterCss(out);
         out = ensureFontAwesome(out); // footer has icon glyphs — guarantee Font Awesome
+        out = ensureFavicon(out);
         fs.writeFileSync(file, out);
         stats.injected++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
@@ -402,12 +429,15 @@ function main() {
         // Content page (or explicitly assigned) with no footer — build one
         // (self-styled so it works even on standalone pages) and insert it.
         const created = buildWholeFooter(variant);
-        const withCss = ensureFontAwesome(ensureFooterCss(html));
+        const withCss = ensureFavicon(ensureFontAwesome(ensureFooterCss(html)));
         fs.writeFileSync(file, insertBeforeBodyClose(withCss, created));
         stats.created++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
       } else {
-        // Non-content/root page with no footer — leave it untouched.
+        // Non-content/root page with no footer — don't add a footer, but still
+        // ensure the favicon (it's page-wide, not footer-related).
+        const favOut = ensureFavicon(html);
+        if (favOut !== html) fs.writeFileSync(file, favOut);
         stats.noFooter++;
       }
     } catch (e) {
