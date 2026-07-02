@@ -10,9 +10,12 @@
         <h1 class="page-title" style="word-break:break-all;"><%= customer.email %></h1>
         <p class="page-subtitle">
           <%= customer.name ? customer.name + ' · ' : '' %>
+          <%= customer.company ? customer.company + ' · ' : '' %>
+          <%= customer.phone ? customer.phone + ' · ' : '' %>
           Client since <%= new Date(customer.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %>
           · Last sign-in: <%= customer.last_login_at ? new Date(customer.last_login_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'never' %>
           · <span class="status-badge <%= customer.status === 'active' ? 'active' : 'inactive' %>"><%= customer.status %></span>
+          · <small style="color:#888;"><%= customer.password_hash ? 'password set' : 'sign-in links only' %></small>
         </p>
       </div>
       <div class="page-actions">
