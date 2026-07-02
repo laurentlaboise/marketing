@@ -1,0 +1,148 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Orders</h1>
+        <p class="page-subtitle">Stripe checkouts and BCEL OnePay transfers — match a transfer's reference in your BCEL One statement, then mark it paid</p>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-body" style="padding: 0.75rem 1rem;">
+        <form method="GET" action="/business/orders" class="filter-form">
+          <select name="status" class="form-input filter-select" style="padding: 0.4rem 0.6rem;">
+            <option value="">All Statuses</option>
+            <option value="awaiting_payment" <%= filter_status === 'awaiting_payment' ? 'selected' : '' %>>Awaiting Payment (BCEL)</option>
+            <option value="pending" <%= filter_status === 'pending' ? 'selected' : '' %>>Pending (Stripe)</option>
+            <option value="completed" <%= filter_status === 'completed' ? 'selected' : '' %>>Completed</option>
+            <option value="expired" <%= filter_status === 'expired' ? 'selected' : '' %>>Expired</option>
+            <option value="cancelled" <%= filter_status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+          </select>
+          <select name="method" class="form-input filter-select" style="padding: 0.4rem 0.6rem;">
+            <option value="">All Payment Methods</option>
+            <option value="bcel_qr" <%= filter_method === 'bcel_qr' ? 'selected' : '' %>>BCEL OnePay</option>
+            <option value="stripe" <%= filter_method === 'stripe' ? 'selected' : '' %>>Stripe</option>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+          <% if (filter_status || filter_method) { %>
+          <a href="/business/orders" class="btn btn-sm" style="color: #666;"><i class="fas fa-times"></i> Clear</a>
+          <% } %>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (typeof error !== 'undefined' && error) { %>
+        <p style="padding: 1rem; color: #b91c1c;"><%= error %></p>
+        <% } %>
+        <% if (orders.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Product</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Reference</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% orders.forEach((order) => {
+                const meta = order.metadata || {};
+                const isBcel = order.payment_method === 'bcel_qr';
+                const statusColors = {
+                  completed: '#16a34a', awaiting_payment: '#d97706',
+                  pending: '#64748b', expired: '#94a3b8', cancelled: '#b91c1c'
+                };
+              %>
+              <tr>
+                <td data-label="Date" style="white-space:nowrap;font-size:0.85rem;">
+                  <%= new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                  <br><small style="color:#888;"><%= new Date(order.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) %></small>
+                </td>
+                <td data-label="Product">
+                  <strong><%= order.product_name || '(deleted product)' %></strong>
+                  <% if (order.sku) { %><br><small style="color:#888;"><%= order.sku %><%= order.quantity > 1 ? ' × ' + order.quantity : '' %></small><% } %>
+                </td>
+                <td data-label="Amount" style="white-space:nowrap;">
+                  <% if (order.amount != null) { %>
+                    <%= parseFloat(order.amount).toFixed(2) %> <small style="color:#888;"><%= order.currency %></small>
+                  <% } else { %>
+                    <span style="color:#999;" title="Amount managed by Stripe Price">Stripe</span>
+                  <% } %>
+                  <% if (meta.price_lak) { %>
+                    <br><small style="color:#c8102e;font-weight:600;"><%= Math.round(meta.price_lak).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') %> LAK</small>
+                  <% } %>
+                </td>
+                <td data-label="Method">
+                  <% if (isBcel) { %>
+                    <span style="font-weight:800;color:#c8102e;font-size:0.72rem;border:1.5px solid #c8102e;border-radius:4px;padding:0.1rem 0.35rem;white-space:nowrap;">BCEL OnePay</span>
+                  <% } else { %>
+                    <i class="fab fa-stripe" style="color:#635bff;font-size:1.5rem;" title="Stripe"></i>
+                  <% } %>
+                </td>
+                <td data-label="Reference">
+                  <% if (meta.reference) { %>
+                    <code style="background:#fef2f2;color:#c8102e;padding:0.15rem 0.4rem;border-radius:4px;font-weight:700;"><%= meta.reference %></code>
+                  <% } else if (order.stripe_session_id) { %>
+                    <small style="color:#888;" title="<%= order.stripe_session_id %>"><%= order.stripe_session_id.slice(0, 18) %>…</small>
+                  <% } else { %>
+                    <span style="color:#999;">-</span>
+                  <% } %>
+                </td>
+                <td data-label="Customer" style="font-size:0.85rem;">
+                  <%= /@(checkout\.com|bcel\.qr)$/.test(order.customer_email || '') ? '-' : (order.customer_email || '-') %>
+                  <% if (order.customer_name) { %><br><small style="color:#888;"><%= order.customer_name %></small><% } %>
+                </td>
+                <td data-label="Status">
+                  <span style="color:<%= statusColors[order.status] || '#64748b' %>;font-weight:600;font-size:0.85rem;white-space:nowrap;">
+                    <%= order.status === 'awaiting_payment' ? 'Awaiting payment' : order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                  </span>
+                </td>
+                <td data-label="Actions" style="white-space:nowrap;">
+                  <% if (order.status === 'awaiting_payment' || order.status === 'pending') { %>
+                  <form method="POST" action="/business/orders/<%= order.id %>/status" style="display:inline;">
+                    <input type="hidden" name="status" value="completed">
+                    <input type="hidden" name="filter_status" value="<%= filter_status %>">
+                    <input type="hidden" name="filter_method" value="<%= filter_method %>">
+                    <button type="submit" class="btn btn-sm" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0;" title="Payment received"><i class="fas fa-check"></i> Mark Paid</button>
+                  </form>
+                  <form method="POST" action="/business/orders/<%= order.id %>/status" style="display:inline;">
+                    <input type="hidden" name="status" value="cancelled">
+                    <input type="hidden" name="filter_status" value="<%= filter_status %>">
+                    <input type="hidden" name="filter_method" value="<%= filter_method %>">
+                    <button type="submit" class="btn btn-sm" style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;" title="Cancel order"><i class="fas fa-times"></i></button>
+                  </form>
+                  <% } else { %>
+                  <span style="color:#999;">-</span>
+                  <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div style="text-align:center;padding:3rem 1rem;color:#888;">
+          <i class="fas fa-receipt" style="font-size:2.5rem;color:#cbd5e1;"></i>
+          <p style="margin-top:0.75rem;">No orders<%= filter_status || filter_method ? ' match these filters' : ' yet' %>.</p>
+          <p style="font-size:0.85rem;">BCEL OnePay orders appear here as “Awaiting payment” with their transfer reference.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

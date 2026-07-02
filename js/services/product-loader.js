@@ -566,20 +566,27 @@
 
   function openBcelModal(data, order) {
     closeBcelModal();
-    var qr = sanitizeUrl(data.bcel.qr_url);
-    if (!qr) return;
 
-    var priceLak = order && order.price_lak != null ? order.price_lak : data.bcel.price_lak;
-    var amount = order && order.amount != null ? order.amount : null;
-    var amountHTML;
-    if (priceLak != null && priceLak > 0) {
-      amountHTML = '<p style="font-size:1.5rem;font-weight:700;color:#c8102e;margin:0.25rem 0 0;">' + fmtKip(priceLak) + '</p>' +
-        (amount != null ? '<p style="font-size:0.82rem;color:#64748b;margin:0.15rem 0 0;">≈ ' + fmtMoney(amount, order ? order.currency : data.currency) + '</p>' : '');
-    } else if (amount != null) {
-      amountHTML = '<p style="font-size:1.5rem;font-weight:700;color:#c8102e;margin:0.25rem 0 0;">' + fmtMoney(amount, order ? order.currency : data.currency) + '</p>' +
-        '<p style="font-size:0.82rem;color:#64748b;margin:0.15rem 0 0;">Transfer the LAK equivalent at today’s rate.</p>';
-    } else {
-      amountHTML = '';
+    // Manual price points: one QR per amount (e.g. "Yearly + design",
+    // "Yearly", "Monthly"). Fall back to the single legacy QR.
+    var options = (order && order.options && order.options.length) ? order.options
+      : (data.bcel.options && data.bcel.options.length) ? data.bcel.options
+      : [{ label: '', lak: data.bcel.price_lak, qr_url: data.bcel.qr_url }];
+    options = options.filter(function (o) { return o && sanitizeUrl(o.qr_url); });
+    if (!options.length) return;
+
+    var usdAmount = order && order.amount != null ? order.amount : null;
+    var usdCurrency = order ? order.currency : data.currency;
+
+    var chipsHTML = '';
+    if (options.length > 1) {
+      chipsHTML = '<div id="bcel-option-chips" style="display:flex;flex-wrap:wrap;gap:0.4rem;justify-content:center;margin:0.75rem 0 0.25rem;">';
+      options.forEach(function (o, i) {
+        chipsHTML += '<button type="button" class="bcel-opt" data-idx="' + i + '" ' +
+          'style="border:1.5px solid #c8102e;border-radius:999px;padding:0.35rem 0.9rem;font-size:0.85rem;font-weight:600;cursor:pointer;background:none;color:#c8102e;">' +
+          esc(o.label || (o.lak != null ? fmtKip(o.lak) : 'Option ' + (i + 1))) + '</button>';
+      });
+      chipsHTML += '</div><p style="font-size:0.78rem;color:#94a3b8;margin:0.15rem 0 0;">Choose the option you are buying</p>';
     }
 
     var overlay = document.createElement('div');
@@ -588,12 +595,14 @@
     overlay.innerHTML =
       '<div role="dialog" aria-label="Pay with BCEL OnePay" style="background:#fff;border-radius:16px;max-width:400px;width:100%;max-height:92vh;overflow-y:auto;padding:1.5rem;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.35);">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">' +
-          '<h3 style="margin:0;font-size:1.15rem;color:#1a1a2e;"><i class="fas fa-qrcode" style="color:#c8102e;"></i> Pay with BCEL OnePay</h3>' +
+          '<h3 style="margin:0;font-size:1.15rem;color:#1a1a2e;"><i class="fas fa-qrcode" style="color:#c8102e;"></i> Pay with <span style="color:#c8102e;font-weight:800;">BCEL OnePay</span></h3>' +
           '<button type="button" id="bcel-modal-close" aria-label="Close" style="background:none;border:none;font-size:1.5rem;color:#64748b;cursor:pointer;line-height:1;">&times;</button>' +
         '</div>' +
         '<p style="font-size:0.92rem;color:#334155;margin:0;">' + esc(data.name) + '</p>' +
-        amountHTML +
-        '<img src="' + esc(qr) + '" alt="BCEL OnePay QR code" style="width:230px;max-width:80%;margin:1rem auto;display:block;border:1px solid #e2e8f0;border-radius:12px;">' +
+        chipsHTML +
+        '<p id="bcel-amount" style="font-size:1.5rem;font-weight:700;color:#c8102e;margin:0.25rem 0 0;"></p>' +
+        '<p id="bcel-amount-sub" style="font-size:0.82rem;color:#64748b;margin:0.15rem 0 0;"></p>' +
+        '<img id="bcel-qr-img" alt="BCEL OnePay QR code" style="width:230px;max-width:80%;margin:1rem auto;display:block;border:1px solid #e2e8f0;border-radius:12px;">' +
         (order && order.reference
           ? '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:0.6rem 0.9rem;margin-bottom:0.9rem;">' +
               '<p style="font-size:0.82rem;color:#991b1b;margin:0;">Payment reference — include it in the transfer note:</p>' +
@@ -602,13 +611,45 @@
           : '') +
         '<ol style="text-align:left;font-size:0.85rem;color:#475569;margin:0 0 1rem;padding-left:1.3rem;">' +
           '<li>Open the <strong>BCEL One</strong> app and tap Scan.</li>' +
-          '<li>Scan this QR and enter the amount' + (order && order.reference ? ' with the reference in the note' : '') + '.</li>' +
+          '<li>Scan this QR and confirm the amount' + (order && order.reference ? ' with the reference in the note' : '') + '.</li>' +
           '<li>Keep your payment slip — we confirm every order by email.</li>' +
         '</ol>' +
         '<button type="button" id="bcel-modal-done" class="btn btn-accent-magenta" style="width:100%;padding:0.7rem;">Done</button>' +
       '</div>';
 
     document.body.appendChild(overlay);
+
+    var amountEl = document.getElementById('bcel-amount');
+    var amountSubEl = document.getElementById('bcel-amount-sub');
+    var qrImg = document.getElementById('bcel-qr-img');
+    var chips = overlay.querySelectorAll('.bcel-opt');
+
+    function selectOption(idx) {
+      var o = options[idx];
+      qrImg.src = sanitizeUrl(o.qr_url);
+      if (o.lak != null && o.lak > 0) {
+        amountEl.textContent = fmtKip(o.lak);
+        amountSubEl.textContent = usdAmount != null ? '≈ ' + fmtMoney(usdAmount, usdCurrency) : '';
+      } else if (usdAmount != null) {
+        amountEl.textContent = fmtMoney(usdAmount, usdCurrency);
+        amountSubEl.textContent = 'Transfer the LAK equivalent at today’s rate.';
+      } else {
+        amountEl.textContent = '';
+        amountSubEl.textContent = '';
+      }
+      for (var i = 0; i < chips.length; i++) {
+        var active = parseInt(chips[i].getAttribute('data-idx'), 10) === idx;
+        chips[i].style.background = active ? '#c8102e' : 'none';
+        chips[i].style.color = active ? '#fff' : '#c8102e';
+      }
+    }
+    for (var c = 0; c < chips.length; c++) {
+      chips[c].addEventListener('click', function () {
+        selectOption(parseInt(this.getAttribute('data-idx'), 10));
+      });
+    }
+    selectOption(0);
+
     overlay.addEventListener('click', function (ev) { if (ev.target === overlay) closeBcelModal(); });
     document.getElementById('bcel-modal-close').addEventListener('click', closeBcelModal);
     document.getElementById('bcel-modal-done').addEventListener('click', closeBcelModal);
@@ -785,13 +826,23 @@
       if (data.bcel) {
         buy += '<div style="margin-top:0.6rem;"><button class="btn-bcel-pay product-cta"' + idAttr + nameAttr + billingAttr +
           ' style="background:#fff;border:1.5px solid #c8102e;color:#c8102e;padding:0.6rem 1.5rem;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;">' +
-          '<i class="fas fa-qrcode"></i> Pay with BCEL OnePay</button></div>';
+          '<i class="fas fa-qrcode"></i> Pay with <strong style="letter-spacing:0.01em;">BCEL OnePay</strong></button></div>';
       }
       var save = '<div style="margin-top:0.6rem;"><button class="btn-add-service"' + idAttr + nameAttr +
         ' style="background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.45rem 1.1rem;border-radius:8px;cursor:pointer;color:var(--color-slate-500,#64748b);font-size:0.95rem;">' +
         (isSaved(data.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
         '</button></div>';
-      return buy + save;
+      // Payment-method logos: Stripe wordmark + card brands, and the BCEL
+      // OnePay badge when QR payment is available.
+      var logos = '<div style="margin-top:0.8rem;display:flex;gap:0.6rem;justify-content:center;align-items:center;color:#94a3b8;" aria-label="Accepted payment methods">' +
+        '<i class="fab fa-stripe" style="font-size:1.9rem;" title="Payments by Stripe"></i>' +
+        '<i class="fab fa-cc-visa" style="font-size:1.35rem;" title="Visa"></i>' +
+        '<i class="fab fa-cc-mastercard" style="font-size:1.35rem;" title="Mastercard"></i>' +
+        (data.bcel
+          ? '<span title="BCEL OnePay (Laos)" style="font-weight:800;color:#c8102e;font-size:0.72rem;letter-spacing:0.02em;border:1.5px solid #c8102e;border-radius:4px;padding:0.12rem 0.4rem;white-space:nowrap;">BCEL <span style="font-weight:600;">OnePay</span></span>'
+          : '') +
+        '</div>';
+      return buy + save + logos;
     }
 
     // consult (default for most services)

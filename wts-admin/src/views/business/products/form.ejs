@@ -418,22 +418,43 @@
           </div>
 
           <h4 style="margin:1.25rem 0 0.25rem;color:#c8102e;font-size:0.95rem;"><i class="fas fa-qrcode"></i> BCEL OnePay — Laos QR payment</h4>
-          <p style="font-size:0.82rem;color:#666;margin:0 0 0.75rem;">Customers scan your merchant QR in the BCEL One app. You match transfers in your statement using the payment reference shown to the customer. Leave the QR empty to offer Stripe only.</p>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="bcel_qr_url">BCEL OnePay QR Image URL</label>
-              <div style="display:flex;align-items:flex-start;gap:0.75rem;">
-                <input type="url" id="bcel_qr_url" name="bcel_qr_url" class="form-input" style="flex:1;" value="<%= product ? (product.bcel_qr_url || '') : '' %>" placeholder="https://... (your OnePay merchant QR image)">
-                <img id="bcel-qr-preview" src="<%= product ? (product.bcel_qr_url || '') : '' %>" alt="QR preview" style="flex:none;width:64px;height:64px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;<%= product && product.bcel_qr_url ? '' : 'display:none;' %>">
+          <p style="font-size:0.82rem;color:#666;margin:0 0 0.75rem;">
+            Manual mode (no bank API yet): add one row per amount you sell at — e.g. “Yearly + design”, “Yearly only”, “Monthly” — each with its own QR from BCEL One and the exact kip amount. The customer picks the matching option in the payment modal and pays with a scan. Remove all rows to offer Stripe only.
+          </p>
+          <%
+            var bcelRows = [];
+            if (product && product.bcel_options) {
+              try { bcelRows = typeof product.bcel_options === 'string' ? JSON.parse(product.bcel_options) : product.bcel_options; } catch (e) { bcelRows = []; }
+            }
+            if (!Array.isArray(bcelRows)) bcelRows = [];
+            // Legacy single-QR products migrate into the first row on edit.
+            if (bcelRows.length === 0 && product && product.bcel_qr_url) {
+              bcelRows = [{ label: '', lak: product.price_lak != null ? Math.round(product.price_lak) : '', qr_url: product.bcel_qr_url }];
+            }
+            if (bcelRows.length === 0) { bcelRows = [{ label: '', lak: '', qr_url: '' }]; }
+          %>
+          <div id="bcel-rows">
+            <% bcelRows.forEach(function(r){ %>
+            <div class="bcel-row" style="display:grid;grid-template-columns:1fr 0.8fr 1.6fr 44px auto;gap:0.5rem;align-items:end;margin-bottom:0.5rem;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label" style="font-size:0.78rem;">Option label</label>
+                <input type="text" name="bcel_label" class="form-input" maxlength="80" value="<%= r.label || '' %>" placeholder="e.g. Yearly + design">
               </div>
-              <small style="color:#666;">Upload the QR via Images and paste its URL here. The same URL can be reused on every product.</small>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label" style="font-size:0.78rem;">Amount (LAK ₭)</label>
+                <input type="number" name="bcel_lak" class="form-input" min="0" step="1" value="<%= r.lak != null && r.lak !== '' ? Math.round(r.lak) : '' %>" placeholder="e.g. 1250000">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label" style="font-size:0.78rem;">QR image URL</label>
+                <input type="url" name="bcel_qr" class="form-input" value="<%= r.qr_url || '' %>" placeholder="https://...">
+              </div>
+              <img class="bcel-qr-preview" src="<%= r.qr_url || '' %>" alt="QR" style="width:44px;height:44px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;<%= r.qr_url ? '' : 'visibility:hidden;' %>">
+              <button type="button" class="btn btn-secondary btn-sm bcel-remove" title="Remove option" style="padding:0.4rem 0.6rem;">&times;</button>
             </div>
-            <div class="form-group">
-              <label class="form-label" for="price_lak">Price in LAK (₭, optional)</label>
-              <input type="number" id="price_lak" name="price_lak" class="form-input" min="0" step="1" value="<%= product && product.price_lak != null ? Math.round(product.price_lak) : '' %>" placeholder="e.g. 1250000">
-              <small style="color:#666;">Whole kip, no decimals — the amount to transfer (first payment for subscriptions). Blank shows the product currency with a “pay the LAK equivalent” note.</small>
-            </div>
+            <% }); %>
           </div>
+          <button type="button" id="bcel-add" class="btn btn-secondary btn-sm" style="margin-top:0.25rem;"><i class="fas fa-plus"></i> Add price point</button>
+          <small style="display:block;color:#666;margin-top:0.4rem;">Generate each fixed-amount QR in the BCEL One merchant app, upload the screenshot via Images, and paste its URL here. Whole kip only — no decimals.</small>
 
           <h4 style="margin:1.25rem 0 0.75rem;color:var(--text-primary,#1a1a2e);font-size:0.95rem;"><i class="fas fa-download"></i> Digital Delivery</h4>
           <div class="form-group">
@@ -614,11 +635,12 @@ document.getElementById('slug').dataset.manual = 'true';
   });
 })();
 
-// ── Live BCEL QR image preview ──────────────────────────────
+// ── BCEL OnePay price-point rows (add/remove + QR previews) ──
 (function() {
-  var input = document.getElementById('bcel_qr_url');
-  var img = document.getElementById('bcel-qr-preview');
-  if (!input || !img) return;
+  var rowsEl = document.getElementById('bcel-rows');
+  var addBtn = document.getElementById('bcel-add');
+  if (!rowsEl || !addBtn) return;
+
   // Parse and rebuild the URL so only a validated http(s) address ever
   // reaches the src attribute (never the raw field text).
   function safeHttpUrl(raw) {
@@ -628,17 +650,44 @@ document.getElementById('slug').dataset.manual = 'true';
     } catch (e) { /* not a URL */ }
     return null;
   }
-  input.addEventListener('input', function() {
-    var url = safeHttpUrl(input.value.trim());
-    if (url) {
-      img.src = url;
-      img.style.display = '';
-    } else {
-      img.removeAttribute('src');
-      img.style.display = 'none';
+
+  function wireRow(row) {
+    var qrInput = row.querySelector('[name="bcel_qr"]');
+    var img = row.querySelector('.bcel-qr-preview');
+    if (qrInput && img) {
+      qrInput.addEventListener('input', function() {
+        var url = safeHttpUrl(qrInput.value.trim());
+        if (url) {
+          img.src = url;
+          img.style.visibility = '';
+        } else {
+          img.removeAttribute('src');
+          img.style.visibility = 'hidden';
+        }
+      });
+      img.addEventListener('error', function() { img.style.visibility = 'hidden'; });
     }
+    var rm = row.querySelector('.bcel-remove');
+    if (rm) rm.addEventListener('click', function() {
+      if (rowsEl.querySelectorAll('.bcel-row').length > 1) {
+        row.remove();
+      } else {
+        row.querySelectorAll('input').forEach(function(i) { i.value = ''; });
+        if (img) { img.removeAttribute('src'); img.style.visibility = 'hidden'; }
+      }
+    });
+  }
+
+  rowsEl.querySelectorAll('.bcel-row').forEach(wireRow);
+  addBtn.addEventListener('click', function() {
+    var first = rowsEl.querySelector('.bcel-row');
+    var clone = first.cloneNode(true);
+    clone.querySelectorAll('input').forEach(function(i) { i.value = ''; });
+    var img = clone.querySelector('.bcel-qr-preview');
+    if (img) { img.removeAttribute('src'); img.style.visibility = 'hidden'; }
+    rowsEl.appendChild(clone);
+    wireRow(clone);
   });
-  img.addEventListener('error', function() { img.style.display = 'none'; });
 })();
 
 // ── Sidebar Preview Logic ───────────────────────────────────

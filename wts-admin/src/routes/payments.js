@@ -219,7 +219,13 @@ router.post('/bcel-order', express.json(), async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
     const product = result.rows[0];
-    if (!product.bcel_qr_url) {
+    // Manual price-point options, falling back to the legacy single QR.
+    const bcelOptions = (Array.isArray(product.bcel_options) ? product.bcel_options : [])
+      .filter((o) => o && o.qr_url);
+    if (!bcelOptions.length && product.bcel_qr_url) {
+      bcelOptions.push({ label: '', lak: product.price_lak, qr_url: product.bcel_qr_url });
+    }
+    if (!bcelOptions.length) {
       return res.status(400).json({ error: 'This product does not accept BCEL OnePay' });
     }
 
@@ -261,7 +267,7 @@ router.post('/bcel-order', express.json(), async (req, res) => {
       unitPrice = amount;
     }
 
-    const priceLak = num(product.price_lak);
+    const priceLak = num(bcelOptions[0].lak != null ? bcelOptions[0].lak : product.price_lak);
     if (!(amount > 0) && !(priceLak > 0)) {
       return res.status(400).json({ error: 'Product has no valid price' });
     }
@@ -292,7 +298,8 @@ router.post('/bcel-order', express.json(), async (req, res) => {
       amount,
       currency: product.currency || 'USD',
       price_lak: priceLak,
-      qr_url: product.bcel_qr_url,
+      qr_url: bcelOptions[0].qr_url,
+      options: bcelOptions.map((o) => ({ label: o.label || '', lak: num(o.lak), qr_url: o.qr_url })),
       product_name: product.name
     });
   } catch (error) {

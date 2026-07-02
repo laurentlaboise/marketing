@@ -649,6 +649,14 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='price_lak') THEN
             ALTER TABLE products ADD COLUMN price_lak DECIMAL(14,0);
           END IF;
+          -- bcel_options: manual BCEL QR price points while there is no bank
+          -- API — JSONB array of { label, lak, qr_url }, one entry per amount
+          -- (e.g. "Yearly + design", "Yearly", "Monthly"). The customer picks
+          -- the matching option in the payment modal. bcel_qr_url/price_lak
+          -- mirror the first entry for backward compatibility.
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='bcel_options') THEN
+            ALTER TABLE products ADD COLUMN bcel_options JSONB DEFAULT '[]'::jsonb;
+          END IF;
         END $$;
       `);
 
