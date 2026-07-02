@@ -125,10 +125,10 @@
         // Lead with the all-in first payment so the customer sees the real
         // total, then break it into subscription + one-time fee.
         html = '<span class="product-price" style="' + style + '">' + fmtMoney(amount + pr.setup_fee, pr.currency) +
-          '<span style="font-size:0.7em;font-weight:500;color:var(--color-slate-500,#64748b);"> first payment</span></span>' +
+          '<span style="font-size:0.7em;font-weight:500;color:var(--color-slate-500,#64748b);white-space:nowrap;"> first payment</span></span>' +
           '<span class="product-setup-fee" style="display:block;font-size:0.78rem;color:var(--color-slate-500,#64748b);">' +
           fmtMoney(amount, pr.currency) + suffix + ' + ' + fmtMoney(pr.setup_fee, pr.currency) + ' ' +
-          esc(pr.setup_fee_label || 'setup fee') + ' <em style="font-style:normal;">(one-time)</em></span>' +
+          esc(pr.setup_fee_label || 'setup fee') + ' <em style="font-style:normal;white-space:nowrap;">(one-time)</em></span>' +
           '<span style="display:block;font-size:0.78rem;color:var(--color-slate-500,#64748b);">then ' +
           fmtMoney(amount, pr.currency) + suffix + '</span>';
       } else {
@@ -516,9 +516,9 @@
             '<strong class="pb-sub-amount" style="white-space:nowrap;"></strong>' +
           '</div>' +
           '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;margin-top:0.55rem;">' +
-            '<label style="display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer;color:var(--color-slate-700,#334155);">' +
-              '<input type="checkbox" class="setup-fee-checkbox" checked style="width:auto;margin:0;accent-color:var(--accent-color,#d62b83);">' +
-              '<span>' + esc(pr.setup_fee_label || 'Setup fee') + ' <span style="font-size:0.82em;color:var(--color-slate-500,#64748b);">(one-time)</span></span>' +
+            '<label style="display:inline-flex;align-items:flex-start;gap:0.5rem;cursor:pointer;color:var(--color-slate-700,#334155);">' +
+              '<input type="checkbox" class="setup-fee-checkbox" checked style="width:auto;margin:0.2em 0 0;flex:none;accent-color:var(--accent-color,#d62b83);">' +
+              '<span>' + esc(pr.setup_fee_label || 'Setup fee') + ' <span style="font-size:0.82em;color:var(--color-slate-500,#64748b);white-space:nowrap;">(one-time)</span></span>' +
             '</label>' +
             '<strong class="pb-fee-amount" style="white-space:nowrap;">' + fmtMoney(pr.setup_fee, pr.currency) + '</strong>' +
           '</div>' +
@@ -705,6 +705,10 @@
       var active = options[i].getAttribute('data-billing') === billing;
       options[i].style.background = active ? 'var(--accent-color,#d62b83)' : 'none';
       options[i].style.color = active ? '#fff' : 'inherit';
+      // The "-39%" chip is green on white but unreadable on the active pink
+      // background — switch it to translucent white there.
+      var chip = options[i].querySelector('span');
+      if (chip) chip.style.color = active ? 'rgba(255,255,255,0.9)' : '#16a34a';
     }
   }
 
