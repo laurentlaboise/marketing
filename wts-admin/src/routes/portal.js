@@ -52,12 +52,15 @@ async function linkOrdersByEmail(customerId, email) {
 // 30-day cookie so customers stay signed in on each device they use.
 // (The admin's own sessions keep the global 24h default — this override
 // only applies to sessions minted here.)
+// Pass { persist: false } for a browser-session cookie instead (e.g. a
+// "remember me" checkbox left unticked); the default keeps the 30 days.
 const CUSTOMER_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
-async function establishCustomerSession(req, customer) {
+async function establishCustomerSession(req, customer, opts = {}) {
+  const persist = opts.persist !== false;
   await new Promise((resolve, reject) => req.session.regenerate((err) => err ? reject(err) : resolve()));
   req.session.customerId = customer.id;
   req.session.customerEmail = customer.email;
-  req.session.cookie.maxAge = CUSTOMER_SESSION_MS;
+  req.session.cookie.maxAge = persist ? CUSTOMER_SESSION_MS : null;
   await db.query('UPDATE customers SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1', [customer.id]);
   await linkOrdersByEmail(customer.id, customer.email);
 }
@@ -197,6 +200,7 @@ router.get('/', requireCustomer, async (req, res) => {
     res.render('portal/orders', {
       title: 'My Account - Words That Sells',
       customer: customer.rows[0],
+      hasPassword: !!customer.rows[0].password_hash,
       orders: orders.rows,
       savedServices: saved.rows
     });
@@ -292,3 +296,4 @@ module.exports = router;
 module.exports.upsertCustomer = upsertCustomer;
 module.exports.linkOrdersByEmail = linkOrdersByEmail;
 module.exports.issueLoginLink = issueLoginLink;
+module.exports.establishCustomerSession = establishCustomerSession;

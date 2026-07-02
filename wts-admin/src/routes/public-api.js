@@ -1122,6 +1122,52 @@ router.post('/portal-signup', portalSignupLimiter, async (req, res) => {
   respond(res, { ok: true });
 });
 
+// ==================== PORTAL LOGIN (email + password) ====================
+
+// Direct password sign-in from the public site. Mints the same portal
+// session as /portal/login. This route mutates the session and /api/public
+// is CSRF-exempt, so the Origin allow-list check is mandatory. The failure
+// response is identical for every reason (bad input, unknown email, no
+// password set, wrong password) so account existence never leaks.
+const portalLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many sign-in attempts. Please wait a few minutes and try again.' }
+});
+
+const PORTAL_LOGIN_FAILED = "The email or password doesn't match our records. Please try again, or use an email sign-in link instead.";
+
+router.post('/portal-login', portalLoginLimiter, async (req, res) => {
+  if (!isOriginAllowed(req)) {
+    return respond(res, { error: 'Origin not allowed.' }, 403);
+  }
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 255 ||
+      !password || password.length > 200) {
+    return respond(res, { error: PORTAL_LOGIN_FAILED }, 401);
+  }
+  try {
+    // Required lazily (like portal-signup above) to stay clear of any
+    // require cycle between this router and the portal router.
+    const bcrypt = require('bcryptjs');
+    const { establishCustomerSession } = require('./portal');
+    const result = await db.query('SELECT * FROM customers WHERE LOWER(email) = $1', [email]);
+    const customer = result.rows[0];
+    if (!customer || customer.status !== 'active' || !customer.password_hash ||
+        !(await bcrypt.compare(password, customer.password_hash))) {
+      return respond(res, { error: PORTAL_LOGIN_FAILED }, 401);
+    }
+    await establishCustomerSession(req, customer, { persist: req.body.remember !== false });
+    respond(res, { signed_in: true, email: customer.email });
+  } catch (e) {
+    console.error('Portal password login error:', e);
+    respond(res, { error: PORTAL_LOGIN_FAILED }, 401);
+  }
+});
+
 // ==================== FORM SUBMISSIONS ====================
 
 // Stricter rate limit for form submissions (10 per 15 min per IP)
