@@ -261,6 +261,16 @@ function normalizePricing(body) {
     const n = Math.round(parseFloat(v));
     return Number.isFinite(n) && n > 0 ? n : null;
   };
+  // Only a real http(s) URL may be stored for the QR image — it is rendered
+  // into an <img src> in the admin and on the public site.
+  const toHttpUrl = (v) => {
+    if (!v || !String(v).trim()) return null;
+    try {
+      const u = new URL(String(v).trim());
+      if (u.protocol === 'https:' || u.protocol === 'http:') return u.href;
+    } catch (e) { /* not a URL */ }
+    return null;
+  };
 
   // Optional one-time setup fee charged with the first subscription payment
   // (e.g. custom design). Only meaningful on subscriptions; the label is only
@@ -281,7 +291,7 @@ function normalizePricing(body) {
     setup_fee: setupFee,
     setup_fee_label: setupFeeLabel,
     // BCEL OnePay (Laos): merchant QR image + optional LAK display amount.
-    bcel_qr_url: (body.bcel_qr_url && body.bcel_qr_url.trim()) ? body.bcel_qr_url.trim() : null,
+    bcel_qr_url: toHttpUrl(body.bcel_qr_url),
     price_lak: toKip(body.price_lak)
   };
 }

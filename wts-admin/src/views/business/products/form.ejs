@@ -619,12 +619,22 @@ document.getElementById('slug').dataset.manual = 'true';
   var input = document.getElementById('bcel_qr_url');
   var img = document.getElementById('bcel-qr-preview');
   if (!input || !img) return;
+  // Parse and rebuild the URL so only a validated http(s) address ever
+  // reaches the src attribute (never the raw field text).
+  function safeHttpUrl(raw) {
+    try {
+      var u = new URL(raw);
+      if (u.protocol === 'https:' || u.protocol === 'http:') return u.href;
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
   input.addEventListener('input', function() {
-    var url = input.value.trim();
-    if (/^https?:\/\//i.test(url)) {
+    var url = safeHttpUrl(input.value.trim());
+    if (url) {
       img.src = url;
       img.style.display = '';
     } else {
+      img.removeAttribute('src');
       img.style.display = 'none';
     }
   });
