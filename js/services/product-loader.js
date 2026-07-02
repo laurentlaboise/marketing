@@ -119,15 +119,25 @@
       } else {
         return '';
       }
-      var html = '<span class="product-price" style="' + style + '">' + fmtMoney(amount, pr.currency) +
-        '<span style="font-size:0.85em;font-weight:500;color:var(--color-slate-500,#64748b);">' + suffix + '</span></span>';
+      var hasFee = pr.setup_fee != null && pr.setup_fee > 0;
+      var html;
+      if (hasFee) {
+        // Lead with the all-in first payment so the customer sees the real
+        // total, then break it into subscription + one-time fee.
+        html = '<span class="product-price" style="' + style + '">' + fmtMoney(amount + pr.setup_fee, pr.currency) +
+          '<span style="font-size:0.7em;font-weight:500;color:var(--color-slate-500,#64748b);"> first payment</span></span>' +
+          '<span class="product-setup-fee" style="display:block;font-size:0.78rem;color:var(--color-slate-500,#64748b);">' +
+          fmtMoney(amount, pr.currency) + suffix + ' + ' + fmtMoney(pr.setup_fee, pr.currency) + ' ' +
+          esc(pr.setup_fee_label || 'setup fee') + ' <em style="font-style:normal;">(one-time)</em></span>' +
+          '<span style="display:block;font-size:0.78rem;color:var(--color-slate-500,#64748b);">then ' +
+          fmtMoney(amount, pr.currency) + suffix + '</span>';
+      } else {
+        html = '<span class="product-price" style="' + style + '">' + fmtMoney(amount, pr.currency) +
+          '<span style="font-size:0.85em;font-weight:500;color:var(--color-slate-500,#64748b);">' + suffix + '</span></span>';
+      }
       if (pr.annual_discount_pct) {
         html += '<span class="product-savings" style="display:block;font-size:0.8rem;color:#16a34a;font-weight:600;">Save ' +
           pr.annual_discount_pct + '% yearly</span>';
-      }
-      if (pr.setup_fee != null && pr.setup_fee > 0) {
-        html += '<span class="product-setup-fee" style="display:block;font-size:0.78rem;color:var(--color-slate-500,#64748b);">+ ' +
-          fmtMoney(pr.setup_fee, pr.currency) + ' ' + esc(pr.setup_fee_label || 'setup fee') + ' (one-time)</span>';
       }
       return html;
     }
@@ -494,16 +504,35 @@
           '</button></div>';
       }
 
-      html += '<p class="billing-price" style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:0.25rem;"></p>';
-      html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
+      var hasSetupFee = pr.setup_fee != null && pr.setup_fee > 0;
 
-      // Optional one-time setup fee (e.g. custom design) — included by
-      // default, customer can untick it before checkout.
-      if (pr.setup_fee != null && pr.setup_fee > 0) {
-        html += '<label class="setup-fee-option" style="display:inline-flex;align-items:center;gap:0.5rem;font-size:0.92rem;margin-bottom:1rem;cursor:pointer;color:var(--color-slate-700,#334155);">' +
-          '<input type="checkbox" class="setup-fee-checkbox" checked style="width:auto;margin:0;accent-color:var(--accent-color,#d62b83);">' +
-          'Add ' + esc(pr.setup_fee_label || 'setup fee') + ' — ' + fmtMoney(pr.setup_fee, pr.currency) + ' one-time' +
-          '</label>';
+      if (hasSetupFee) {
+        // Itemized order summary: subscription + one-time fee + "Due today"
+        // total, so the first payment is never a surprise. The fee row has a
+        // checkbox (checked by default) the customer can untick.
+        html += '<div class="price-breakdown" style="max-width:380px;margin:0 auto 0.75rem;border:1px solid var(--color-border,#e2e8f0);border-radius:12px;padding:1rem 1.15rem;text-align:left;font-size:0.95rem;background:var(--color-slate-50,#f8fafc);">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;">' +
+            '<span class="pb-sub-label" style="color:var(--color-slate-700,#334155);"></span>' +
+            '<strong class="pb-sub-amount" style="white-space:nowrap;"></strong>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;margin-top:0.55rem;">' +
+            '<label style="display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer;color:var(--color-slate-700,#334155);">' +
+              '<input type="checkbox" class="setup-fee-checkbox" checked style="width:auto;margin:0;accent-color:var(--accent-color,#d62b83);">' +
+              '<span>' + esc(pr.setup_fee_label || 'Setup fee') + ' <span style="font-size:0.82em;color:var(--color-slate-500,#64748b);">(one-time)</span></span>' +
+            '</label>' +
+            '<strong class="pb-fee-amount" style="white-space:nowrap;">' + fmtMoney(pr.setup_fee, pr.currency) + '</strong>' +
+          '</div>' +
+          '<div style="border-top:1px dashed var(--color-border,#cbd5e1);margin:0.8rem 0 0.6rem;"></div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.75rem;">' +
+            '<span style="font-weight:700;color:var(--text-primary,#1a1a2e);">Due today</span>' +
+            '<strong class="pb-total-amount" style="font-size:1.3rem;color:var(--accent-color,#d62b83);white-space:nowrap;"></strong>' +
+          '</div>' +
+          '<p class="pb-renew-note" style="font-size:0.8rem;color:var(--color-slate-500,#64748b);margin:0.45rem 0 0;"></p>' +
+        '</div>';
+        html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
+      } else {
+        html += '<p class="billing-price" style="font-size:1.3rem;font-weight:700;color:var(--accent-color,#d62b83);margin-bottom:0.25rem;"></p>';
+        html += '<p class="billing-savings" style="font-size:0.9rem;color:#16a34a;font-weight:600;margin-bottom:1rem;min-height:1.2em;"></p>';
       }
 
       html += buildCtaHTML(data, initial);
@@ -604,6 +633,16 @@
         applyBilling(block, pr, this.getAttribute('data-billing'));
       });
     }
+
+    // Un/ticking the setup fee recomputes the "Due today" total for the
+    // currently selected billing period.
+    var feeBox = block.querySelector('.setup-fee-checkbox');
+    if (feeBox) {
+      feeBox.addEventListener('change', function () {
+        var cta = block.querySelector('.product-cta');
+        applyBilling(block, pr, (cta && cta.getAttribute('data-billing-period')) || initial);
+      });
+    }
   }
 
   // Update the displayed price, savings line, active toggle state and the
@@ -621,6 +660,31 @@
     if (priceEl) {
       priceEl.innerHTML = fmtMoney(amount, pr.currency) +
         '<span style="font-size:0.65em;font-weight:500;color:var(--color-slate-500,#64748b);">' + suffix + '</span>';
+    }
+
+    // Itemized breakdown (rendered when the product has a setup fee):
+    // subscription row, fee row and the "Due today" total.
+    var subLabelEl = block.querySelector('.pb-sub-label');
+    var subAmountEl = block.querySelector('.pb-sub-amount');
+    var totalEl = block.querySelector('.pb-total-amount');
+    var renewEl = block.querySelector('.pb-renew-note');
+    if (subAmountEl && totalEl) {
+      if (subLabelEl) subLabelEl.textContent = (isYearly ? 'Yearly' : 'Monthly') + ' subscription';
+      subAmountEl.innerHTML = fmtMoney(amount, pr.currency) +
+        '<span style="font-size:0.8em;font-weight:500;color:var(--color-slate-500,#64748b);">' + suffix + '</span>';
+
+      var feeBox = block.querySelector('.setup-fee-checkbox');
+      var feeIncluded = !feeBox || feeBox.checked;
+      var fee = (feeIncluded && pr.setup_fee > 0) ? pr.setup_fee : 0;
+      totalEl.textContent = fmtMoney((amount || 0) + fee, pr.currency);
+
+      if (renewEl) {
+        var note = 'Renews at ' + fmtMoney(amount, pr.currency) + suffix + '.';
+        if (fee > 0) {
+          note += ' The ' + (pr.setup_fee_label || 'setup fee') + ' is charged only once.';
+        }
+        renewEl.textContent = note;
+      }
     }
     if (savingsEl) {
       if (isYearly && pr.annual_savings) {
