@@ -5,12 +5,12 @@
     "sku": "19106773",
     "service_page": "content-creation",
     "subcategory": "logo-design",
-    "description": "A practical logo design service powered by AI-assisted creative tools. This option is ideal for small businesses and entrepreneurs who need a clean, fast, affordable logo concept to begin building their brand identity.",
+    "description": "A practical logo design service powered by AI-assisted creative tools. It is ideal for small businesses and entrepreneurs who need a clean, fast and affordable logo concept to begin building their brand identity.",
     "features": [
       "AI-assisted logo creation",
       "Fast brand concept development",
       "Clean visual direction",
-      "Suitable for startup use",
+      "Well suited to startups",
       "Affordable entry-level branding"
     ],
     "industries": ["entrepreneurs", "smes", "retail-shops"],
@@ -29,8 +29,8 @@
     "sort_order": 10,
     "slide_in_title": "Logo Design - AI-Powered Creation",
     "slide_in_subtitle": "Ideal for: Startups, entrepreneurs, local businesses, personal brands, online shops, and early-stage projects.",
-    "slide_in_content": "<p>A practical logo design service powered by AI-assisted creative tools. This option is ideal for small businesses and entrepreneurs who need a clean, fast, affordable logo concept to begin building their brand identity.</p><p><strong>Order your AI-powered logo design today and give your business a clearer visual identity.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>A clean, affordable logo concept created with AI-assisted design tools — a fast way to give your business a professional visual identity from day one.</p><p>It is a practical first step for startups, entrepreneurs, local businesses, personal brands and online shops across Laos and Southeast Asia that want to look credible without a big design budget.</p><p><strong>Order your AI-powered logo design today and give your business a clearer visual identity.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Logo Design - Graphic Designer Support",
@@ -38,13 +38,13 @@
     "sku": "19106774",
     "service_page": "content-creation",
     "subcategory": "logo-design",
-    "description": "A professional logo design support service for businesses that need human creative input, refinement, and stronger visual direction. This hourly option is suitable when your logo needs more careful design work, revisions, or brand alignment.",
+    "description": "A professional logo design support service for businesses that need human creative input, refinement and stronger visual direction. This hourly option suits logos that call for more careful design work, revisions or closer brand alignment.",
     "features": [
       "Graphic designer support",
       "Logo refinement",
       "Brand identity guidance",
       "Hourly creative work",
-      "Suitable for custom design needs"
+      "Ideal for custom design needs"
     ],
     "industries": ["smes", "entrepreneurs", "agencies"],
     "pricing_type": "one_time",
@@ -62,8 +62,8 @@
     "sort_order": 20,
     "slide_in_title": "Logo Design - Graphic Designer Support",
     "slide_in_subtitle": "Ideal for: Businesses that need human design input, brand refinement, visual identity support, or custom logo improvements.",
-    "slide_in_content": "<p>A professional logo design support service for businesses that need human creative input, refinement, and stronger visual direction. This hourly option is suitable when your logo needs more careful design work, revisions, or brand alignment.</p><p><strong>Book logo design support today and shape a stronger visual identity for your brand.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Hands-on support from a graphic designer for logo refinement, revisions and brand identity guidance, billed by the hour so you only pay for the design time you need.</p><p>It suits Lao and Southeast Asian businesses that want human creative input to sharpen a logo, align it with their brand or improve an existing design.</p><p><strong>Book logo design support today and shape a stronger visual identity for your brand.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Website Copywriting - 1,000 Characters",
@@ -71,12 +71,12 @@
     "sku": "19106834",
     "service_page": "content-creation",
     "subcategory": "copywriting",
-    "description": "SEO-friendly website copywriting for up to 1,000 characters. This service is designed for short website sections, introductions, product blurbs, landing page blocks, or simple business messages that need to sound clear and professional.",
+    "description": "SEO-friendly website copywriting for up to 1,000 characters, designed for short website sections, introductions, product blurbs, landing page blocks or simple business messages that need to sound clear and professional. Search-friendly wording also helps customers in Laos, Thailand and across Southeast Asia find your business online.",
     "features": [
       "Up to 1,000 characters",
       "SEO-friendly writing",
       "Clear business messaging",
-      "Suitable for short sections",
+      "Ideal for short website sections",
       "Brand-aligned tone"
     ],
     "industries": ["smes", "entrepreneurs", "consultants"],
@@ -95,8 +95,8 @@
     "sort_order": 30,
     "slide_in_title": "Website Copywriting - 1,000 Characters",
     "slide_in_subtitle": "Ideal for: Small website sections, short product descriptions, landing page blocks, service introductions, and business profile text.",
-    "slide_in_content": "<p>SEO-friendly website copywriting for up to 1,000 characters. This service is designed for short website sections, introductions, product blurbs, landing page blocks, or simple business messages that need to sound clear and professional.</p><p><strong>Order your 1,000-character website copy today and make your message clearer.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Clear, SEO-friendly website copy of up to 1,000 characters — ideal for short sections, introductions, product blurbs, landing page blocks and simple business messages.</p><p>It suits SMEs across Laos and Southeast Asia that need short product descriptions, service introductions or business profile text that reads well and helps customers searching in the region find them.</p><p><strong>Order your 1,000-character website copy today and make your message clearer.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Website Copywriting - 2,500 Characters",
@@ -104,12 +104,12 @@
     "sku": "19106835",
     "service_page": "content-creation",
     "subcategory": "copywriting",
-    "description": "SEO-friendly website copywriting for up to 2,500 characters. This service is ideal for fuller website sections, service pages, short landing pages, and business descriptions that need more depth while staying concise.",
+    "description": "SEO-friendly website copywriting for up to 2,500 characters, ideal for fuller website sections, service pages, short landing pages and business descriptions that need more depth while staying concise.",
     "features": [
       "Up to 2,500 characters",
       "SEO-friendly content",
       "Clear and professional structure",
-      "Suitable for service pages",
+      "Ideal for service pages",
       "Brand-focused messaging"
     ],
     "industries": ["smes", "consultants", "agencies"],
@@ -128,8 +128,8 @@
     "sort_order": 40,
     "slide_in_title": "Website Copywriting - 2,500 Characters",
     "slide_in_subtitle": "Ideal for: Service pages, landing pages, product descriptions, about sections, and business introductions.",
-    "slide_in_content": "<p>SEO-friendly website copywriting for up to 2,500 characters. This service is ideal for fuller website sections, service pages, short landing pages, and business descriptions that need more depth while staying concise.</p><p><strong>Order your 2,500-character website copy today and give your business a stronger written presentation.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>SEO-friendly website copy of up to 2,500 characters, giving fuller website sections, service pages and business descriptions more depth while staying concise.</p><p>It fits Lao and Southeast Asian businesses that want service pages, landing pages, product descriptions and about sections written to read professionally and support search visibility in the region.</p><p><strong>Order your 2,500-character website copy today and give your business a stronger written presentation.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Website Copywriting - 5,000 Characters",
@@ -137,13 +137,13 @@
     "sku": "19106836",
     "service_page": "content-creation",
     "subcategory": "copywriting",
-    "description": "SEO-friendly website copywriting for up to 5,000 characters. This service is built for businesses that need a more complete page, longer product explanation, landing page content, or structured service description.",
+    "description": "SEO-friendly website copywriting for up to 5,000 characters, built for businesses that need a more complete page, a longer product explanation, landing page content or a structured service description. Structured, search-friendly copy helps businesses targeting customers in Laos, Thailand and the wider region show up in relevant searches.",
     "features": [
       "Up to 5,000 characters",
       "SEO-friendly website content",
       "Clear page structure",
       "Conversion-focused writing",
-      "Suitable for longer pages"
+      "Ideal for longer pages"
     ],
     "industries": ["smes", "entrepreneurs", "agencies"],
     "pricing_type": "one_time",
@@ -161,8 +161,8 @@
     "sort_order": 50,
     "slide_in_title": "Website Copywriting - 5,000 Characters",
     "slide_in_subtitle": "Ideal for: Landing pages, service pages, product pages, business websites, and campaign pages.",
-    "slide_in_content": "<p>SEO-friendly website copywriting for up to 5,000 characters. This service is built for businesses that need a more complete page, longer product explanation, landing page content, or structured service description.</p><p><strong>Order your 5,000-character website copy today and give your page the words it needs to convert.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>SEO-friendly website copy of up to 5,000 characters — enough for a complete page, a longer product explanation, landing page content or a structured service description.</p><p>It suits SMEs and agencies across Laos and Southeast Asia building landing pages, service pages and campaign pages that need to convert visitors and be found by customers searching in the region.</p><p><strong>Order your 5,000-character website copy today and give your page the words it needs to convert.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Website Copywriting - 10,000 Characters",
@@ -170,13 +170,13 @@
     "sku": "19106837",
     "service_page": "content-creation",
     "subcategory": "copywriting",
-    "description": "SEO-friendly website copywriting for up to 10,000 characters. This package is designed for larger pages, full service explanations, product pages, landing pages, or business content that needs more detail, structure, and persuasive clarity.",
+    "description": "SEO-friendly website copywriting for up to 10,000 characters, designed for larger pages, full service explanations, product pages, landing pages and business content that needs more detail, structure and persuasive clarity.",
     "features": [
       "Up to 10,000 characters",
       "SEO-friendly long-form website copy",
       "Structured business messaging",
       "Clear calls to action",
-      "Suitable for full website pages"
+      "Ideal for full website pages"
     ],
     "industries": ["agencies", "smes", "entrepreneurs"],
     "pricing_type": "one_time",
@@ -194,8 +194,8 @@
     "sort_order": 60,
     "slide_in_title": "Website Copywriting - 10,000 Characters",
     "slide_in_subtitle": "Ideal for: Full service pages, detailed landing pages, product pages, agency websites, SME websites, and business offers.",
-    "slide_in_content": "<p>SEO-friendly website copywriting for up to 10,000 characters. This package is designed for larger pages, full service explanations, product pages, landing pages, or business content that needs more detail, structure, and persuasive clarity.</p><p><strong>Order your 10,000-character website copy today and turn your offer into clear, persuasive content.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>SEO-friendly, long-form website copy of up to 10,000 characters for larger pages, full service explanations, product pages and detailed business content, written with clear structure and persuasive clarity.</p><p>It fits agencies and SMEs in Laos and the wider region that need full service pages, detailed landing pages or complete business offers written to perform in local and regional searches.</p><p><strong>Order your 10,000-character website copy today and turn your offer into clear, persuasive content.</strong></p>",
+    "status": "active"
   },
   {
     "name": "RSS Feed Setup",
@@ -203,7 +203,7 @@
     "sku": "19106853",
     "service_page": "content-creation",
     "subcategory": "rss-feed",
-    "description": "A simple RSS feed setup that helps your audience, tools, or content systems stay updated with your latest posts and updates. This service supports better content distribution and makes your website easier to connect with automated publishing workflows.",
+    "description": "A simple RSS feed setup that helps your audience, tools and content systems stay updated with your latest posts. It supports better content distribution and makes your website easier to connect with automated publishing workflows.",
     "features": [
       "RSS feed setup",
       "Content distribution support",
@@ -227,8 +227,8 @@
     "sort_order": 70,
     "slide_in_title": "RSS Feed Setup",
     "slide_in_subtitle": "Ideal for: Blogs, content websites, publishers, SMEs, agencies, news-style websites, and businesses using content automation.",
-    "slide_in_content": "<p>A simple RSS feed setup that helps your audience, tools, or content systems stay updated with your latest posts and updates. This service supports better content distribution and makes your website easier to connect with automated publishing workflows.</p><p><strong>Order your RSS feed setup today and make your content easier to distribute and follow.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>A simple RSS feed setup that keeps your audience, tools and content systems updated with your latest posts, and makes your website easier to connect with automated publishing workflows.</p><p>It suits blogs, publishers, SMEs and agencies in Laos and Southeast Asia that publish regularly and want their content distributed more widely with less manual work.</p><p><strong>Order your RSS feed setup today and make your content easier to distribute and follow.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Blog Copywriting",
@@ -236,7 +236,7 @@
     "sku": "19106859",
     "service_page": "content-creation",
     "subcategory": "copywriting",
-    "description": "A flexible blog copywriting service for creating useful, SEO-friendly articles for your business, available in packages of 3, 6, or 12 posts with better per-post pricing at higher volumes. Each package helps you publish consistent content, answer customer questions, strengthen your website with relevant articles, and build stronger online visibility and authority over time.",
+    "description": "A flexible blog copywriting service for creating useful, SEO-friendly articles for your business, available in packages of 3, 6 or 12 posts with better per-post pricing at higher volumes. Each package helps you publish consistent content, answer customer questions, strengthen your website with relevant articles and build stronger online visibility and authority over time. Regular, relevant articles also help SMEs in Laos and Southeast Asia get found by customers searching in the region.",
     "features": [
       "Packages of 3, 6, or 12 blog posts",
       "SEO-friendly writing",
@@ -265,8 +265,8 @@
     "sort_order": 80,
     "slide_in_title": "Blog Copywriting",
     "slide_in_subtitle": "Ideal for: SMEs, service businesses, local brands, consultants, agencies, content campaigns, and companies building a long-term blog presence.",
-    "slide_in_content": "<p>A flexible blog copywriting service for creating useful, SEO-friendly articles for your business, available in packages of 3, 6, or 12 posts with better per-post pricing at higher volumes. Each package helps you publish consistent content, answer customer questions, strengthen your website with relevant articles, and build stronger online visibility and authority over time.</p><p><strong>Order your Blog Copywriting package today and start building your content presence.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Flexible, SEO-friendly blog copywriting in packages of 3, 6 or 12 posts, with better per-post pricing at higher volumes — helping you publish consistent, useful articles that answer customer questions.</p><p>It suits SMEs, service businesses, consultants and local brands across Laos and Southeast Asia building long-term visibility and authority with content their customers actually search for.</p><p><strong>Order your Blog Copywriting package today and start building your content presence.</strong></p>",
+    "status": "active"
   },
   {
     "name": "3 SEO Article Copywriting Package",
@@ -274,7 +274,7 @@
     "sku": "19106863",
     "service_page": "content-creation",
     "subcategory": "copywriting",
-    "description": "A professional SEO article copywriting package for three in-depth articles. This service is designed for businesses that need stronger search-focused content, deeper topic coverage, and higher-quality written assets for their website.",
+    "description": "A professional SEO article copywriting package of three in-depth articles, designed for businesses that need stronger search-focused content, deeper topic coverage and higher-quality written assets for their website. It is a solid starting point for businesses targeting searches in Laos, Thailand and across Southeast Asia.",
     "features": [
       "3 SEO articles",
       "In-depth article writing",
@@ -298,8 +298,8 @@
     "sort_order": 90,
     "slide_in_title": "3 SEO Article Copywriting Package",
     "slide_in_subtitle": "Ideal for: Businesses investing in SEO, agencies, consultants, service brands, content websites, and companies building authority.",
-    "slide_in_content": "<p>A professional SEO article copywriting package for three in-depth articles. This service is designed for businesses that need stronger search-focused content, deeper topic coverage, and higher-quality written assets for their website.</p><p><strong>Order your 3 SEO article package today and strengthen your website with deeper, search-focused content.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Three in-depth, professionally written SEO articles with keyword-focused structure — stronger search-focused content and higher-quality written assets for your website.</p><p>It suits businesses, agencies and consultants in Laos and Southeast Asia investing in SEO and building authority with content that matches what customers in the region are searching for.</p><p><strong>Order your 3 SEO article package today and strengthen your website with deeper, search-focused content.</strong></p>",
+    "status": "active"
   },
   {
     "name": "6 SEO Article Copywriting Package",
@@ -307,7 +307,7 @@
     "sku": "19106864",
     "service_page": "content-creation",
     "subcategory": "copywriting",
-    "description": "A professional SEO article copywriting package for six in-depth articles. This service helps your business create a stronger content base, target more search topics, and improve the quality of your website's written content.",
+    "description": "A professional SEO article copywriting package of six in-depth articles, helping your business build a stronger content base, target more search topics and improve the quality of your website's written content.",
     "features": [
       "6 SEO articles",
       "Search-focused structure",
@@ -331,8 +331,8 @@
     "sort_order": 100,
     "slide_in_title": "6 SEO Article Copywriting Package",
     "slide_in_subtitle": "Ideal for: SMEs, agencies, online businesses, content strategies, SEO campaigns, and authority-building websites.",
-    "slide_in_content": "<p>A professional SEO article copywriting package for six in-depth articles. This service helps your business create a stronger content base, target more search topics, and improve the quality of your website's written content.</p><p><strong>Order your 6 SEO article package today and expand your website's search presence.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Six in-depth SEO articles that build a stronger content base, cover more search topics and lift the overall quality of your website's written content.</p><p>It suits SMEs, agencies and online businesses across Laos and Southeast Asia running SEO campaigns and building long-term visibility with regional audiences.</p><p><strong>Order your 6 SEO article package today and expand your website's search presence.</strong></p>",
+    "status": "active"
   },
   {
     "name": "12 SEO Article Copywriting Package",
@@ -340,7 +340,7 @@
     "sku": "19106865",
     "service_page": "content-creation",
     "subcategory": "copywriting",
-    "description": "A professional SEO article copywriting package for twelve in-depth articles. This package is built for businesses that want a serious content library, stronger topical authority, and a larger base for organic traffic growth.",
+    "description": "A professional SEO article copywriting package of twelve in-depth articles, built for businesses that want a serious content library, stronger topical authority and a larger base for organic traffic growth. It suits brands working to be found by customers searching across Laos, Thailand and Southeast Asia.",
     "features": [
       "12 SEO articles",
       "Long-form content development",
@@ -364,8 +364,8 @@
     "sort_order": 110,
     "slide_in_title": "12 SEO Article Copywriting Package",
     "slide_in_subtitle": "Ideal for: Content-driven businesses, agencies, SEO campaigns, SMEs, consultants, and brands building authority online.",
-    "slide_in_content": "<p>A professional SEO article copywriting package for twelve in-depth articles. This package is built for businesses that want a serious content library, stronger topical authority, and a larger base for organic traffic growth.</p><p><strong>Order your 12 SEO article package today and build a powerful content foundation for your website.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Twelve in-depth SEO articles for businesses that want a serious content library, stronger topical authority and a larger base for organic traffic growth.</p><p>It suits content-driven businesses, agencies and consultants in Laos and Southeast Asia that want to be found consistently by customers searching across the region.</p><p><strong>Order your 12 SEO article package today and build a powerful content foundation for your website.</strong></p>",
+    "status": "active"
   },
   {
     "name": "SEO-Friendly Website Translation",
@@ -373,7 +373,7 @@
     "sku": "19106867",
     "service_page": "content-creation",
     "subcategory": "translation",
-    "description": "A translation service designed to make your website or document content clearer for another audience while keeping SEO and readability in mind. This option is suitable for small pieces of translated web content or simple business translation needs.",
+    "description": "A translation service designed to make your website or document content clearer for another audience while keeping SEO and readability in mind. It suits small pieces of translated web content or simple business translation needs, helping you reach Lao, Thai and English-speaking customers.",
     "features": [
       "SEO-friendly translation support",
       "Website or document content translation",
@@ -397,8 +397,8 @@
     "sort_order": 120,
     "slide_in_title": "SEO-Friendly Website Translation",
     "slide_in_subtitle": "Ideal for: SMEs, local businesses, multilingual websites, service providers, tourism businesses, and cross-border brands.",
-    "slide_in_content": "<p>A translation service designed to make your website or document content clearer for another audience while keeping SEO and readability in mind. This option is suitable for small pieces of translated web content or simple business translation needs.</p><p><strong>Order your SEO-friendly website translation today and make your message easier to understand across languages.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>A translation service that makes your website or document content clearer for another audience while keeping SEO and readability in mind — well suited to small pieces of web content or simple business translation needs.</p><p>It helps Lao businesses, tourism providers and cross-border brands reach Lao, Thai and English-speaking customers with content that stays readable and search-friendly.</p><p><strong>Order your SEO-friendly website translation today and make your message easier to understand across languages.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Website SEO Translation Package",
@@ -406,7 +406,7 @@
     "sku": "19106868",
     "service_page": "content-creation",
     "subcategory": "translation",
-    "description": "A website SEO translation package for businesses that need ongoing multilingual content support. This service helps make your website more accessible to different audiences while supporting search visibility and professional communication.",
+    "description": "A website SEO translation package for businesses that need ongoing multilingual content support. It keeps your website accessible to Lao, Thai and English-speaking audiences while supporting search visibility and professional communication across the region.",
     "features": [
       "Website translation support",
       "SEO-friendly content adaptation",
@@ -430,8 +430,8 @@
     "sort_order": 130,
     "slide_in_title": "Website SEO Translation Package",
     "slide_in_subtitle": "Ideal for: Tourism businesses, hotels, agencies, SMEs, exporters, international service providers, and multilingual websites.",
-    "slide_in_content": "<p>A website SEO translation package for businesses that need ongoing multilingual content support. This service helps make your website more accessible to different audiences while supporting search visibility and professional communication.</p><p><strong>Order your website SEO translation package today and make your business easier to find and understand in more languages.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>A yearly website SEO translation package for businesses that need ongoing multilingual content support, keeping your site accessible to different audiences while supporting search visibility and professional communication.</p><p>It fits hotels, tourism businesses, agencies and SMEs in Laos and Southeast Asia that serve Lao, Thai and English-speaking customers and want to stay easy to find in each language.</p><p><strong>Order your website SEO translation package today and make your business easier to find and understand in more languages.</strong></p>",
+    "status": "active"
   },
   {
     "name": "AI Document Translation",
@@ -439,7 +439,7 @@
     "sku": "19106869",
     "service_page": "content-creation",
     "subcategory": "translation",
-    "description": "An AI-assisted document translation service for businesses that need fast and affordable translation support. This service is useful for preparing draft translations, understanding documents, and converting business content into another language quickly.",
+    "description": "An AI-assisted document translation service for businesses that need fast, affordable translation support. It is useful for preparing draft translations, understanding documents and quickly converting business content into another language — practical for teams working across Lao, Thai and English.",
     "features": [
       "AI-assisted translation",
       "Hourly translation support",
@@ -463,8 +463,8 @@
     "sort_order": 140,
     "slide_in_title": "AI Document Translation",
     "slide_in_subtitle": "Ideal for: Small businesses, entrepreneurs, internal documents, draft translations, research, and quick multilingual content needs.",
-    "slide_in_content": "<p>An AI-assisted document translation service for businesses that need fast and affordable translation support. This service is useful for preparing draft translations, understanding documents, and converting business content into another language quickly.</p><p><strong>Book AI document translation support today and move your content across languages faster.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Fast, affordable AI-assisted document translation, billed by the hour — useful for draft translations, understanding documents and converting business content into another language quickly.</p><p>It suits small businesses and entrepreneurs in Laos and Southeast Asia that regularly work across Lao, Thai and English and need quick, budget-friendly translation support.</p><p><strong>Book AI document translation support today and move your content across languages faster.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Human Document Translation",
@@ -472,13 +472,13 @@
     "sku": "19106870",
     "service_page": "content-creation",
     "subcategory": "translation",
-    "description": "A human document translation service for businesses that need more careful language handling, review, and professional communication. This service is ideal when accuracy, tone, context, and cultural clarity matter.",
+    "description": "A human document translation service for businesses that need more careful language handling, review and professional communication. It is the right choice when accuracy, tone, context and cultural clarity matter — especially for content that must read naturally to Lao, Thai and English-speaking audiences.",
     "features": [
       "Human translation support",
       "Hourly translation service",
       "Better contextual accuracy",
       "Professional document review",
-      "Suitable for client-facing content"
+      "Ideal for client-facing content"
     ],
     "industries": ["smes", "consultants", "agencies"],
     "pricing_type": "one_time",
@@ -496,8 +496,8 @@
     "sort_order": 150,
     "slide_in_title": "Human Document Translation",
     "slide_in_subtitle": "Ideal for: Business documents, websites, proposals, client communication, contracts, marketing materials, and multilingual service providers.",
-    "slide_in_content": "<p>A human document translation service for businesses that need more careful language handling, review, and professional communication. This service is ideal when accuracy, tone, context, and cultural clarity matter.</p><p><strong>Book human document translation support today and give your content a more accurate and professional translation.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Careful, human translation of business documents with professional review — the right choice when accuracy, tone, context and cultural clarity matter.</p><p>It suits SMEs, consultants and agencies across the region whose proposals, contracts, marketing materials and client communication need to read naturally to Lao, Thai and English-speaking readers.</p><p><strong>Book human document translation support today and give your content a more accurate and professional translation.</strong></p>",
+    "status": "active"
   },
   {
     "name": "10 Stock Photos",
@@ -505,12 +505,12 @@
     "sku": "19106871",
     "service_page": "content-creation",
     "subcategory": "photography",
-    "description": "A practical stock photo service for businesses that need simple visual content for websites, blogs, listings, menus, social media, or promotional material. This package includes 10 stock photos selected to support your brand or content needs.",
+    "description": "A practical stock photo service for businesses that need simple visual content for websites, blogs, listings, menus, social media or promotional material. The package includes 10 stock photos selected to support your brand and content needs.",
     "features": [
       "10 stock photos",
       "Useful for websites and campaigns",
       "Visual content support",
-      "Suitable for blog and social media use",
+      "Ideal for blog and social media use",
       "Affordable image sourcing"
     ],
     "industries": ["smes", "content-creators", "retail-shops"],
@@ -529,8 +529,8 @@
     "sort_order": 160,
     "slide_in_title": "10 Stock Photos",
     "slide_in_subtitle": "Ideal for: SMEs, bloggers, local businesses, service providers, online shops, and content creators.",
-    "slide_in_content": "<p>A practical stock photo service for businesses that need simple visual content for websites, blogs, listings, menus, social media, or promotional material. This package includes 10 stock photos selected to support your brand or content needs.</p><p><strong>Order 10 stock photos today and give your content a stronger visual foundation.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Ten stock photos selected to support your brand and content — practical visual material for websites, blogs, listings, menus, social media and promotional pieces.</p><p>It suits SMEs, local businesses, online shops and content creators across Laos and Southeast Asia that need affordable imagery for menus, listings and web pages.</p><p><strong>Order 10 stock photos today and give your content a stronger visual foundation.</strong></p>",
+    "status": "active"
   },
   {
     "name": "10 SEO-Branded Stock Photos",
@@ -538,7 +538,7 @@
     "sku": "19106872",
     "service_page": "content-creation",
     "subcategory": "photography",
-    "description": "A package of 10 SEO-branded stock photos selected and prepared to support your website, search visibility, and brand presentation. This service helps your visual content feel more aligned with your business and online goals.",
+    "description": "A package of 10 SEO-branded stock photos selected and prepared to support your website, search visibility and brand presentation. It helps your visual content feel more aligned with your business and your online goals.",
     "features": [
       "10 SEO-branded stock photos",
       "Image selection support",
@@ -562,8 +562,8 @@
     "sort_order": 170,
     "slide_in_title": "10 SEO-Branded Stock Photos",
     "slide_in_subtitle": "Ideal for: SMEs, service websites, blogs, local businesses, agencies, and businesses improving website presentation.",
-    "slide_in_content": "<p>A package of 10 SEO-branded stock photos selected and prepared to support your website, search visibility, and brand presentation. This service helps your visual content feel more aligned with your business and online goals.</p><p><strong>Order 10 SEO-branded stock photos today and make your website visuals more useful and professional.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Ten SEO-branded stock photos selected and prepared to support your website, search visibility and brand presentation, so your visuals work harder for your online goals.</p><p>It suits SMEs, service websites, blogs and agencies in Laos and Southeast Asia that want website imagery aligned with their brand and their visibility in regional searches.</p><p><strong>Order 10 SEO-branded stock photos today and make your website visuals more useful and professional.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Digital Banner Design",
@@ -571,7 +571,7 @@
     "sku": "19385829",
     "service_page": "content-creation",
     "subcategory": "banner-design",
-    "description": "A digital banner design service for online promotions, ads, websites, social media campaigns, and visual marketing. This hourly service helps your business create clear and attractive banner graphics for digital use.",
+    "description": "A digital banner design service for online promotions, ads, websites, social media campaigns and visual marketing. This hourly service helps your business create clear, attractive banner graphics for digital use.",
     "features": [
       "Digital banner design",
       "Promotional graphics",
@@ -595,8 +595,8 @@
     "sort_order": 180,
     "slide_in_title": "Digital Banner Design",
     "slide_in_subtitle": "Ideal for: SMEs, online campaigns, local businesses, agencies, e-commerce brands, and service providers.",
-    "slide_in_content": "<p>A digital banner design service for online promotions, ads, websites, social media campaigns, and visual marketing. This hourly service helps your business create clear and attractive banner graphics for digital use.</p><p><strong>Book digital banner design support today and give your promotion stronger visuals.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>Hourly digital banner design for online promotions, ads, websites and social media campaigns — clear, attractive graphics built for digital use.</p><p>It suits SMEs, local businesses, e-commerce brands and agencies across Laos and Southeast Asia running online campaigns that need eye-catching visuals.</p><p><strong>Book digital banner design support today and give your promotion stronger visuals.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Restaurant & Bar Menu Digital Software",
@@ -604,7 +604,7 @@
     "sku": "19385837",
     "service_page": "content-creation",
     "subcategory": "menu-software",
-    "description": "A digital menu solution for restaurants and bars that want a clearer, more modern way to present their products. This service can support menu setup, digital menu formatting, QR menu experiences, and online menu improvements.",
+    "description": "A digital menu solution for restaurants and bars that want a clearer, more modern way to present their offering, covering menu setup, digital menu formatting, QR menu experiences and online menu improvements. It is a natural fit for restaurants, bars and cafés in Vientiane and Laos' tourist areas, where guests expect to browse menus on their phones.",
     "features": [
       "Digital menu software support",
       "Restaurant and bar menu setup",
@@ -627,9 +627,9 @@
     "animation_class": "kinetic-pulse-float",
     "sort_order": 190,
     "slide_in_title": "Restaurant & Bar Menu Digital Software",
-    "slide_in_subtitle": "Ideal for: Restaurants, bars, cafes, hotels, food courts, delivery brands, and hospitality businesses.",
-    "slide_in_content": "<p>A digital menu solution for restaurants and bars that want a clearer, more modern way to present their products. This service can support menu setup, digital menu formatting, QR menu experiences, and online menu improvements.</p><p><strong>Book digital menu software support today and make your restaurant or bar menu easier to access and update.</strong></p>",
-    "status": "draft"
+    "slide_in_subtitle": "Ideal for: Restaurants, bars, cafés, hotels, food courts, delivery brands, and hospitality businesses.",
+    "slide_in_content": "<p>A digital menu solution for restaurants and bars, covering menu setup, digital formatting, QR menu experiences and online menu improvements — with hourly setup and customization support.</p><p>It suits restaurants, bars, cafés and hotels in Vientiane and Laos' tourist areas, where guests increasingly expect to scan a QR code and browse a clean menu on their phone.</p><p><strong>Book digital menu software support today and make your restaurant or bar menu easier to access and update.</strong></p>",
+    "status": "active"
   },
   {
     "name": "Car Listing Generator",
@@ -637,7 +637,7 @@
     "sku": "19385838",
     "service_page": "content-creation",
     "subcategory": "car-listings",
-    "description": "A car listing content service that turns vehicle basics into clearer, more complete, and more attractive online listings. This helps dealerships and sellers present used vehicles with better descriptions and specifications.",
+    "description": "A car listing content service that turns vehicle basics into clearer, more complete and more attractive online listings, helping dealerships and sellers present used vehicles with better descriptions and specifications. Well-structured listings make it easier for buyers browsing vehicle marketplaces in Laos and Thailand to compare and decide.",
     "features": [
       "Vehicle listing content generation",
       "Specification writing support",
@@ -661,8 +661,8 @@
     "sort_order": 200,
     "slide_in_title": "Car Listing Generator",
     "slide_in_subtitle": "Ideal for: Car dealers, vehicle sellers, marketplaces, rental companies, automotive businesses, and online listing teams.",
-    "slide_in_content": "<p>A car listing content service that turns vehicle basics into clearer, more complete, and more attractive online listings. This helps dealerships and sellers present used vehicles with better descriptions and specifications.</p><p><strong>Order the Car Listing Generator today and create stronger vehicle listings that are easier for buyers to understand.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>A car listing content service that turns vehicle basics into clearer, more complete and more attractive online listings, with better descriptions and specifications.</p><p>It suits dealers, sellers and rental companies listing vehicles on marketplaces in Laos and Thailand, where clear, complete listings help buyers decide faster.</p><p><strong>Order the Car Listing Generator today and create stronger vehicle listings that are easier for buyers to understand.</strong></p>",
+    "status": "active"
   },
   {
     "name": "On-Site Photo Shoot Service",
@@ -670,7 +670,7 @@
     "sku": "19385847",
     "service_page": "content-creation",
     "subcategory": "photography",
-    "description": "A practical on-site photo shoot service for businesses that need stronger original images for their website, listing, menu, campaign, or social media. This service helps capture your brand, products, location, or team in a more professional way.",
+    "description": "A practical on-site photo shoot service for businesses that need stronger original images for their website, listing, menu, campaign or social media. It captures your brand, products, location or team in a more professional way — ideal for menus, hotel pages and property or vehicle listings.",
     "features": [
       "On-site photography support",
       "Brand and product images",
@@ -694,7 +694,7 @@
     "sort_order": 210,
     "slide_in_title": "On-Site Photo Shoot Service",
     "slide_in_subtitle": "Ideal for: Restaurants, hotels, shops, service providers, real estate businesses, local SMEs, and online brands.",
-    "slide_in_content": "<p>A practical on-site photo shoot service for businesses that need stronger original images for their website, listing, menu, campaign, or social media. This service helps capture your brand, products, location, or team in a more professional way.</p><p><strong>Book your on-site photo shoot today and give your business stronger visual content.</strong></p>",
-    "status": "draft"
+    "slide_in_content": "<p>On-site photography, billed by the hour, capturing your brand, products, location or team — original images ready for your website, listings, menus, campaigns and social media.</p><p>It suits restaurants, hotels, shops, real estate businesses and local SMEs across Laos that need authentic photos of their own venue and products rather than generic stock imagery.</p><p><strong>Book your on-site photo shoot today and give your business stronger visual content.</strong></p>",
+    "status": "active"
   }
 ]
