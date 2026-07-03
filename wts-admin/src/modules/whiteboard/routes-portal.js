@@ -8,6 +8,9 @@
 const express = require('express');
 const db = require('../../../database/db');
 const { UUID_RE, relaxedBoardCsp, colorForCustomer, notFound } = require('./util');
+const { addCollabRoutes } = require('./collab');
+
+const COMMENTER_ROLES = new Set(['owner', 'editor', 'commenter']);
 
 // Replicates the requireCustomer guard from src/routes/portal.js.
 const requireCustomer = (req, res, next) => {
@@ -23,7 +26,14 @@ function createPortalRouter() {
   router.get('/', async (req, res) => {
     try {
       const boards = await db.query(
-        `SELECT b.id, b.title, b.updated_at, m.role
+        `SELECT b.id, b.title, b.updated_at, m.role,
+                (SELECT a.status FROM board_approvals a
+                 WHERE a.board_id = b.id
+                 ORDER BY a.created_at DESC LIMIT 1) AS approval_status,
+                (SELECT COUNT(*)::int FROM board_comments bc
+                 WHERE bc.board_id = b.id
+                   AND bc.parent_id IS NULL
+                   AND bc.resolved_at IS NULL) AS unresolved_comments
          FROM boards b
          JOIN board_members m ON m.board_id = b.id
          WHERE m.principal_type = 'customer' AND m.principal_id = $1
@@ -73,13 +83,21 @@ function createPortalRouter() {
           color: colorForCustomer(customer.id)
         },
         backUrl: '/portal/boards',
-        isAdmin: false
+        isAdmin: false,
+        csrfToken: res.locals.csrfToken,
+        apiBase: '/portal/boards/' + board.id,
+        canComment: COMMENTER_ROLES.has(board.member_role),
+        canApprove: false,
+        canDecide: COMMENTER_ROLES.has(board.member_role)
       });
     } catch (e) {
       console.error('Whiteboard portal board error:', e);
       res.status(500).render('error', { title: 'Error', message: 'Failed to load the board.', code: 500 });
     }
   });
+
+  // ── Comments + approvals (stage D+E JSON endpoints) ──────────
+  addCollabRoutes(router, 'portal');
 
   return router;
 }

@@ -7,6 +7,7 @@
 const express = require('express');
 const db = require('../../../database/db');
 const { UUID_RE, relaxedBoardCsp, notFound } = require('./util');
+const { addCollabRoutes } = require('./collab');
 
 const MEMBER_ROLES = new Set(['editor', 'commenter', 'viewer']);
 
@@ -34,7 +35,14 @@ function createAdminRouter() {
                   COALESCE(
                     ARRAY_AGG(DISTINCT COALESCE(c.name, c.email)) FILTER (WHERE c.id IS NOT NULL),
                     '{}'
-                  ) AS customer_names
+                  ) AS customer_names,
+                  (SELECT a.status FROM board_approvals a
+                   WHERE a.board_id = b.id
+                   ORDER BY a.created_at DESC LIMIT 1) AS approval_status,
+                  (SELECT COUNT(*)::int FROM board_comments bc
+                   WHERE bc.board_id = b.id
+                     AND bc.parent_id IS NULL
+                     AND bc.resolved_at IS NULL) AS unresolved_comments
            FROM boards b
            LEFT JOIN board_members m ON m.board_id = b.id
            LEFT JOIN customers c
@@ -103,7 +111,12 @@ function createAdminRouter() {
           color: '#d62b83'
         },
         backUrl: '/business/boards',
-        isAdmin: true
+        isAdmin: true,
+        csrfToken: res.locals.csrfToken,
+        apiBase: '/business/boards/' + board.id,
+        canComment: true,
+        canApprove: true,
+        canDecide: false
       });
     } catch (e) {
       console.error('Whiteboard board page error:', e);
@@ -156,6 +169,9 @@ function createAdminRouter() {
       res.redirect(backTo(req, req.params.id));
     }
   });
+
+  // ── Comments + approvals (stage D+E JSON endpoints) ──────────
+  addCollabRoutes(router, 'admin');
 
   // ── Delete board ──────────────────────────────────────────────
 

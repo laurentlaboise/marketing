@@ -20,7 +20,12 @@
       user: user,
       boardTitle: board.title,
       backUrl: backUrl,
-      isAdmin: isAdmin
+      isAdmin: isAdmin,
+      csrfToken: csrfToken,
+      apiBase: apiBase,
+      canComment: canComment,
+      canApprove: canApprove,
+      canDecide: canDecide
     }).replace(/</g, '\\u003c') %>;
   </script>
   <div id="wts-board-root">

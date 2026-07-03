@@ -89,6 +89,32 @@ function getEntry(boardId) {
   return entry;
 }
 
+// Side-channel push for comment/approval mutations: send a small custom
+// message to every session of a board's room so open clients re-fetch.
+// Uses the supported TLSocketRoom custom-message path (verified against
+// @tldraw/sync-core 5.2.x typings: room.getSessions() → [{ sessionId }],
+// room.sendCustomMessage(sessionId, data); the client receives `data` via
+// useSync's onCustomMessageReceived option) — never raw ws.send(), which
+// would confuse the sync protocol parser.
+async function broadcast(boardId, message) {
+  const entry = rooms.get(String(boardId).toLowerCase());
+  if (!entry) return; // no open sockets for this board — nothing to notify
+  try {
+    const room = await entry.roomPromise;
+    if (room.isClosed()) return;
+    for (const session of room.getSessions()) {
+      try {
+        room.sendCustomMessage(session.sessionId, message);
+      } catch (e) {
+        // One broken session must not stop the rest of the fan-out.
+        console.warn(`Whiteboard custom message failed (board ${boardId}):`, e.message);
+      }
+    }
+  } catch (_) {
+    // Room failed to load; the sockets are being torn down anyway.
+  }
+}
+
 function attachSync(httpServer, { sessionMiddleware }) {
   const wss = new WebSocketServer({ noServer: true });
 
@@ -213,4 +239,4 @@ function attachSync(httpServer, { sessionMiddleware }) {
   return wss;
 }
 
-module.exports = { attachSync };
+module.exports = { attachSync, broadcast };

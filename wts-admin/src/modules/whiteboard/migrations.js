@@ -62,7 +62,6 @@ async function runMigrations() {
     )
   `);
 
-  // Created now, routed in a later stage.
   await db.query(`
     CREATE TABLE IF NOT EXISTS board_approvals (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -74,6 +73,14 @@ async function runMigrations() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
+  `);
+
+  // Stage D+E addition: the admin's note when requesting a review lives in
+  // its own column so the client's decision note (reviewer_note) never
+  // overwrites it. ADD COLUMN IF NOT EXISTS keeps this idempotent for
+  // databases created by earlier stages.
+  await db.query(`
+    ALTER TABLE board_approvals ADD COLUMN IF NOT EXISTS request_note TEXT
   `);
 }
 
