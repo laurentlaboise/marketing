@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../../database/db');
 const { normalizeTiers, unitPriceForQuantity } = require('../utils/pricing');
 const { sendEmail } = require('../utils/mailer');
+const { translate } = require('../lib/i18n');
 const { upsertCustomer, linkOrdersByEmail } = require('./portal');
 
 const router = express.Router();
@@ -190,6 +191,13 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
     sessionConfig.metadata.quantity = String(orderQuantity);
     if (orderUnitPrice != null) sessionConfig.metadata.unit_price = String(orderUnitPrice);
 
+    // Stripe supports Thai natively — setting the locale localizes the
+    // hosted checkout UI and receipts for free. Only set it for Thai
+    // visitors; otherwise leave it unset so Stripe auto-detects.
+    if (req.session && req.session.locale === 'th') {
+      sessionConfig.locale = 'th';
+    }
+
     const session = await stripe.checkout.sessions.create(sessionConfig);
 
     // Create order record
@@ -344,16 +352,24 @@ router.post('/bcel-order/:id/email', express.json(), async (req, res) => {
 
     const reference = (order.metadata && order.metadata.reference) || null;
     const portalUrl = (process.env.PORTAL_URL || process.env.APP_ADMIN_URL || 'https://admin.wordsthatsells.website').replace(/\/$/, '') + '/portal';
+    // The upserted customer row carries the language preference; fall back
+    // to the visitor's session locale, then English.
+    const locale = customer.preferred_language
+      || (req.session && req.session.locale)
+      || 'en';
+    const brand = translate(locale, 'emails.shell.brand');
     // Confirmation is best-effort; the order link must succeed regardless.
     sendEmail({
       to: email,
       subject: reference
-        ? `Order received — reference ${reference}`
-        : 'Order received — Words That Sells',
-      html: `<p>Thanks — we've recorded your order${order.product_name ? ' for <strong>' + order.product_name + '</strong>' : ''}.</p>` +
-        (reference ? `<p>When you make your BCEL One transfer, include this reference in the payment note:</p><p style="font-size:1.2rem;font-weight:bold;letter-spacing:0.05em;">${reference}</p>` : '') +
-        `<p>We confirm every payment within one business day. Track your order any time at <a href="${portalUrl}">${portalUrl}</a> — sign in with this email address, no password needed.</p>`,
-      text: `Thanks — we've recorded your order.${reference ? ' Include reference ' + reference + ' in your BCEL One transfer note.' : ''} Track it at ${portalUrl}`
+        ? translate(locale, 'emails.orderReceived.subjectRef', { reference })
+        : translate(locale, 'emails.orderReceived.subject', { brand }),
+      html: `<p>${order.product_name
+          ? translate(locale, 'emails.orderReceived.thanksProduct', { product: '<strong>' + order.product_name + '</strong>' })
+          : translate(locale, 'emails.orderReceived.thanks')}</p>` +
+        (reference ? `<p>${translate(locale, 'emails.orderReceived.referenceNote')}</p><p style="font-size:1.2rem;font-weight:bold;letter-spacing:0.05em;">${reference}</p>` : '') +
+        `<p>${translate(locale, 'emails.orderReceived.track', { portalLink: `<a href="${portalUrl}">${portalUrl}</a>` })}</p>`,
+      text: `${translate(locale, 'emails.orderReceived.thanks')}${reference ? ' ' + translate(locale, 'emails.orderReceived.textReference', { reference }) : ''} ${translate(locale, 'emails.orderReceived.textTrack', { portalUrl })}`
     }).catch((e) => console.warn('BCEL confirmation email failed:', e.message));
 
     res.json({ ok: true });
