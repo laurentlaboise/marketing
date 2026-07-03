@@ -4,8 +4,19 @@
 customer-facing emails and errors it sends. The marketing site and the admin back-office are
 explicitly out of scope for this phase.
 
-**Status:** plan approved-pending — no implementation yet.
+**Status:** approved and in implementation (Phases 0–4 on this branch).
 **Date:** 2026-07-03
+
+**Ratified decisions (2026-07-03):**
+1. Thai dates use the **Gregorian year with Thai month names** (`th-TH-u-ca-gregory`).
+2. The whiteboard **board canvas (`board.ejs`) is deferred** to a follow-up; the boards list
+   page and the JSON toast errors ARE localized in this phase. (Also deferred with it: the
+   Stripe line-item description in `whiteboard/payments-service.js`.)
+3. Thai copy ships **AI-drafted, flagged for native review** of the top ~60 strings before
+   announcing to clients; the reviewer gets screenshots of strings in place, not a flat JSON.
+4. Phase 5 gains a **production missing-key audit**: browse the portal with `?lang=th` and
+   harvest the `[i18n] Missing th translation` log lines — those keys are the priority list
+   for the native review round.
 
 ---
 
