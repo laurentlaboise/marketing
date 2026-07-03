@@ -881,6 +881,9 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customers' AND column_name='role') THEN
             ALTER TABLE customers ADD COLUMN role VARCHAR(20) DEFAULT 'client';
           END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customers' AND column_name='preferred_language') THEN
+            ALTER TABLE customers ADD COLUMN preferred_language VARCHAR(8);
+          END IF;
         END $$;
       `);
 

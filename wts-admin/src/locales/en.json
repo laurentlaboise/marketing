@@ -1,0 +1,41 @@
+{
+  "common": {
+    "brand": "Words That Sells",
+    "myProfile": "My Profile",
+    "signOut": "Sign out",
+    "footerHelp": "Need help with an order? Reply to any of our emails or use the contact form on wordsthatsells.website",
+    "footerBrand": "Words That Sells · wordsthatsells.website"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "files": "Files",
+    "billing": "Billing",
+    "chat": "AI Strategist",
+    "boards": "Boards",
+    "profile": "Profile"
+  },
+  "login": {
+    "title": "Sign in - Words That Sells",
+    "checkEmailTitle": "Check your email",
+    "checkEmailBody": "If {email} is a valid address, a sign-in link is on its way. It works once and expires in 15 minutes.",
+    "spamNotice": "Nothing arriving? Check your spam folder, or go back and try again.",
+    "useDifferentEmail": "← Use a different email",
+    "welcomeTitle": "Welcome back",
+    "welcomeSub": "Enter your email — and your password if you've set one in your profile.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "passwordOptional": "(optional)",
+    "passwordPlaceholder": "Leave empty for an email link",
+    "forgotHint": "Forgot your password? Leave the password empty and we'll email you a secure sign-in link — you can set a new password from your profile.",
+    "signIn": "Sign In",
+    "autoAccountHint": "No account yet? Just enter your email — your account is created automatically. You stay signed in on this device for 30 days."
+  },
+  "errors": {
+    "backToPortal": "Back to portal",
+    "notFoundTitle": "Not found",
+    "pageNotFound": "The page you are looking for does not exist.",
+    "serverErrorTitle": "Error",
+    "serverError": "Something went wrong. Please try again."
+  }
+}

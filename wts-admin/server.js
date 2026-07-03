@@ -198,6 +198,12 @@ app.use(async (req, res, next) => {
 });
 
 
+// Portal i18n: locale resolution + t()/formatting helpers for every
+// /portal surface (including the whiteboard portal mounted later).
+// Mounted before the routers so req.t is available inside them.
+const i18n = require('./src/lib/i18n');
+app.use('/portal', i18n.middleware(db));
+
 // Public API routes (no authentication required)
 app.use('/api/public', publicApiRoutes);
 
@@ -295,8 +301,17 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// 404 handler
+// 404 handler. Portal paths (req.t is set by the /portal i18n middleware)
+// get the portal-owned, localized error page; everything else keeps the
+// admin error view.
 app.use((req, res) => {
+  if (req.t) {
+    return res.status(404).render('portal/error', {
+      title: req.t('errors.notFoundTitle'),
+      message: req.t('errors.pageNotFound'),
+      code: 404
+    });
+  }
   res.status(404).render('error', {
     title: 'Page Not Found',
     message: 'The page you are looking for does not exist.',
@@ -315,6 +330,13 @@ app.use((err, req, res, next) => {
     : err.message;
   if (req.originalUrl.startsWith('/api/')) {
     return res.status(status).json({ success: false, error: message });
+  }
+  if (req.t) {
+    return res.status(status).render('portal/error', {
+      title: req.t('errors.serverErrorTitle'),
+      message: status >= 500 ? req.t('errors.serverError') : message,
+      code: status
+    });
   }
   res.status(status).render('error', {
     title: status >= 500 ? 'Server Error' : 'Request Error',

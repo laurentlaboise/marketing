@@ -1,0 +1,19 @@
+<%- include('partials/head') %>
+  <style>
+    .wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem 1.75rem; max-width: 420px; width: 100%; box-shadow: 0 10px 30px rgba(15,23,42,0.06); text-align: center; }
+    h1 { font-size: 1.35rem; color: #1a1a2e; margin-bottom: 0.4rem; }
+    p.sub { color: #64748b; font-size: 0.92rem; line-height: 1.55; margin-bottom: 1.25rem; }
+    a.btn { display: inline-block; background: #d62b83; color: #fff; text-decoration: none; border-radius: 10px; padding: 0.7rem 1.4rem; font-size: 0.95rem; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <%- include('partials/topbar', { minimal: true }) %>
+  <div class="wrap">
+    <div class="card">
+      <h1><%= title %></h1>
+      <p class="sub"><%= message %></p>
+      <a class="btn" href="/portal"><%= t('errors.backToPortal') %></a>
+    </div>
+  </div>
+  <%- include('partials/footer', { simpleFooter: true }) %>
