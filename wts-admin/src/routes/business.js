@@ -9,6 +9,7 @@ const { insertSeedProduct } = require('../utils/product-seeder');
 const { normalizeTiers } = require('../utils/pricing');
 const { upsertCustomer, linkOrdersByEmail, issueLoginLink } = require('./portal');
 const { sendEmail } = require('../utils/mailer');
+const { translate } = require('../lib/i18n');
 const multer = require('multer');
 const escapeHtml = require('escape-html');
 
@@ -964,7 +965,7 @@ router.post('/customers', async (req, res) => {
     const customer = await upsertCustomer(email, (req.body.name || '').trim().slice(0, 255) || null);
     await linkOrdersByEmail(customer.id, email);
     if (req.body.send_invite === 'true') {
-      const sent = await issueLoginLink(customer);
+      const sent = await issueLoginLink(customer, customer.preferred_language || 'en');
       req.session.successMessage = sent.sent
         ? `Client added — sign-in link emailed to ${email}`
         : `Client added, but the invite email could not be sent (check Brevo configuration)`;
@@ -1037,7 +1038,7 @@ router.post('/customers/:id/send-login', async (req, res) => {
       req.session.errorMessage = 'This account is disabled — enable it before sending a sign-in link';
       return res.redirect(`/business/customers/${req.params.id}`);
     }
-    const sent = await issueLoginLink(customer.rows[0]);
+    const sent = await issueLoginLink(customer.rows[0], customer.rows[0].preferred_language || 'en');
     req.session.successMessage = sent.sent
       ? `Sign-in link emailed to ${customer.rows[0].email}`
       : 'Could not send the email — check the Brevo configuration (BREVO_API_KEY / BREVO_FROM_EMAIL)';
@@ -1114,16 +1115,17 @@ router.post('/customers/:id/deliverables', (req, res) => {
       // Best-effort notification — the share succeeds even if email doesn't.
       try {
         const portalUrl = `${(process.env.PORTAL_URL || process.env.APP_ADMIN_URL || 'https://admin.wordsthatsells.website').replace(/\/$/, '')}/portal/files`;
+        const locale = customer.rows[0].preferred_language || 'en';
         await sendEmail({
           to: customer.rows[0].email,
-          subject: `A new file is ready for you — ${title}`,
+          subject: translate(locale, 'emails.fileReady.subject', { title }),
           html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-            <h2 style="color:#1a1a2e;margin:0 0 12px;">A new file is ready for you</h2>
+            <h2 style="color:#1a1a2e;margin:0 0 12px;">${translate(locale, 'emails.fileReady.title')}</h2>
             <p style="color:#475569;line-height:1.6;"><strong>${escapeHtml(title)}</strong>${description ? ' — ' + escapeHtml(description) : ''}</p>
-            <p style="margin:24px 0;"><a href="${portalUrl}" style="background:#d62b83;color:#fff;text-decoration:none;border-radius:8px;padding:12px 24px;font-weight:600;display:inline-block;">Open your portal</a></p>
-            <p style="color:#94a3b8;font-size:13px;">Words That Sells · wordsthatsells.website</p>
+            <p style="margin:24px 0;"><a href="${portalUrl}" style="background:#d62b83;color:#fff;text-decoration:none;border-radius:8px;padding:12px 24px;font-weight:600;display:inline-block;">${translate(locale, 'emails.fileReady.button')}</a></p>
+            <p style="color:#94a3b8;font-size:13px;">${translate(locale, 'emails.fileReady.footer', { brand: translate(locale, 'emails.shell.brand') })}</p>
           </div>`,
-          text: `A new file is ready for you: ${title}. Open your portal: ${portalUrl}`
+          text: translate(locale, 'emails.fileReady.text', { title, portalUrl })
         });
       } catch (e) {
         console.error('Deliverable notification email failed:', e.message);

@@ -17,10 +17,15 @@ const { UUID_RE } = require('./util');
 // Review boards poll for changes; no push channel needed.
 const broadcast = () => {};
 const { sendEmail } = require('../../utils/mailer');
+const { translate, SUPPORTED } = require('../../lib/i18n');
 
 const COMMENTER_ROLES = new Set(['owner', 'editor', 'commenter']);
 const MAX_BODY = 2000;
 const MAX_NOTE = 2000;
+
+// These handlers serve both the admin router (no i18n middleware, so no
+// req.locale) and the portal router; translate() falls back to English.
+const msg = (req, key, vars) => translate(req.locale || 'en', key, vars);
 
 const PORTAL_BASE = () =>
   (process.env.PORTAL_URL || process.env.APP_ADMIN_URL || 'https://admin.wordsthatsells.website')
@@ -33,7 +38,7 @@ const jsonError = (res, code, error) => res.status(code).json({ error });
 async function resolveActor(req, res, side) {
   const boardId = req.params.id;
   if (!UUID_RE.test(boardId)) {
-    jsonError(res, 404, 'Board not found');
+    jsonError(res, 404, msg(req, 'boards.errors.boardNotFound'));
     return null;
   }
 
@@ -41,7 +46,7 @@ async function resolveActor(req, res, side) {
     // ensureAdmin already ran; just confirm the board exists.
     const board = (await db.query('SELECT id FROM boards WHERE id = $1', [boardId])).rows[0];
     if (!board) {
-      jsonError(res, 404, 'Board not found');
+      jsonError(res, 404, msg(req, 'boards.errors.boardNotFound'));
       return null;
     }
     const name = [req.user.first_name, req.user.last_name].filter(Boolean).join(' ')
@@ -65,7 +70,7 @@ async function resolveActor(req, res, side) {
     [boardId, String(req.session.customerId)]
   )).rows[0];
   if (!member) {
-    jsonError(res, 404, 'Board not found');
+    jsonError(res, 404, msg(req, 'boards.errors.boardNotFound'));
     return null;
   }
   return {
@@ -111,24 +116,27 @@ function notifyApprovalRequested(boardId, note) {
   (async () => {
     const board = (await db.query('SELECT title FROM boards WHERE id = $1', [boardId])).rows[0];
     const members = (await db.query(
-      `SELECT c.email, c.name FROM board_members m
+      `SELECT c.email, c.name, c.preferred_language FROM board_members m
        JOIN customers c ON c.id::text = m.principal_id
        WHERE m.board_id = $1 AND m.principal_type = 'customer'`,
       [boardId]
     )).rows;
     const link = `${PORTAL_BASE()}/portal/boards/${boardId}`;
-    const title = (board && board.title) || 'your board';
     for (const m of members) {
       if (!m.email) continue;
+      // Each recipient gets the email in their own portal language.
+      const locale = SUPPORTED.includes(m.preferred_language) ? m.preferred_language : 'en';
+      const et = (key, vars) => translate(locale, key, vars);
+      const title = (board && board.title) || et('emails.reviewRequested.fallbackTitle');
       try {
         await sendEmail({
           to: m.email,
-          subject: `Your review is requested — ${title}`,
-          html: `<p>Hi ${m.name || 'there'},</p>
-<p>Your strategist has asked you to review the whiteboard <strong>${title}</strong>.</p>
-${note ? `<p>Note: ${String(note).replace(/</g, '&lt;')}</p>` : ''}
-<p><a href="${link}">Open the board</a> to approve it or request changes.</p>`,
-          text: `Your review is requested on "${title}". Open ${link} to approve it or request changes.${note ? `\nNote: ${note}` : ''}`
+          subject: et('emails.reviewRequested.subject', { title }),
+          html: `<p>${et('emails.reviewRequested.greeting', { name: m.name || et('emails.reviewRequested.defaultName') })}</p>
+<p>${et('emails.reviewRequested.body', { title: `<strong>${title}</strong>` })}</p>
+${note ? `<p>${et('emails.reviewRequested.noteLine', { note: String(note).replace(/</g, '&lt;') })}</p>` : ''}
+<p>${et('emails.reviewRequested.action', { link: `<a href="${link}">${et('emails.reviewRequested.openBoardLabel')}</a>` })}</p>`,
+          text: et('emails.reviewRequested.textBody', { title, link }) + (note ? `\n${et('emails.reviewRequested.noteLine', { note })}` : '')
         });
       } catch (e) {
         console.warn(`Whiteboard approval email failed (${m.email}):`, e.message);
@@ -153,7 +161,7 @@ function addCollabRoutes(router, side) {
       res.json({ comments });
     } catch (e) {
       console.error('Whiteboard comments list error:', e);
-      jsonError(res, 500, 'Failed to load comments');
+      jsonError(res, 500, msg(req, 'boards.errors.loadComments'));
     }
   });
 
@@ -161,24 +169,24 @@ function addCollabRoutes(router, side) {
     try {
       const actor = await resolveActor(req, res, side);
       if (!actor) return;
-      if (!actor.canComment) return jsonError(res, 403, 'Your role on this board does not allow commenting');
+      if (!actor.canComment) return jsonError(res, 403, msg(req, 'boards.errors.roleNoCommenting'));
 
       const body = String(req.body.body || '').trim();
       if (!body || body.length > MAX_BODY) {
-        return jsonError(res, 400, `Comment must be 1–${MAX_BODY} characters`);
+        return jsonError(res, 400, msg(req, 'boards.errors.commentLength', { max: MAX_BODY }));
       }
 
       const anchor = validAnchor(req.body.anchor);
-      if (anchor === undefined) return jsonError(res, 400, 'Invalid anchor');
+      if (anchor === undefined) return jsonError(res, 400, msg(req, 'boards.errors.invalidAnchor'));
 
       let parentId = null;
       if (req.body.parentId) {
-        if (!UUID_RE.test(String(req.body.parentId))) return jsonError(res, 400, 'Invalid parentId');
+        if (!UUID_RE.test(String(req.body.parentId))) return jsonError(res, 400, msg(req, 'boards.errors.invalidParentId'));
         const parent = (await db.query(
           'SELECT id, parent_id FROM board_comments WHERE id = $1 AND board_id = $2',
           [String(req.body.parentId), actor.boardId]
         )).rows[0];
-        if (!parent) return jsonError(res, 400, 'Parent comment not found on this board');
+        if (!parent) return jsonError(res, 400, msg(req, 'boards.errors.parentNotFound'));
         // Keep threads one level deep: replying to a reply attaches to the root.
         parentId = parent.parent_id || parent.id;
       }
@@ -195,7 +203,7 @@ function addCollabRoutes(router, side) {
       res.status(201).json({ comment });
     } catch (e) {
       console.error('Whiteboard comment create error:', e);
-      jsonError(res, 500, 'Failed to add the comment');
+      jsonError(res, 500, msg(req, 'boards.errors.addComment'));
     }
   });
 
@@ -203,8 +211,8 @@ function addCollabRoutes(router, side) {
     try {
       const actor = await resolveActor(req, res, side);
       if (!actor) return;
-      if (!actor.canComment) return jsonError(res, 403, 'Your role on this board does not allow resolving comments');
-      if (!UUID_RE.test(req.params.cid)) return jsonError(res, 404, 'Comment not found');
+      if (!actor.canComment) return jsonError(res, 403, msg(req, 'boards.errors.roleNoResolving'));
+      if (!UUID_RE.test(req.params.cid)) return jsonError(res, 404, msg(req, 'boards.errors.commentNotFound'));
 
       const comment = (await db.query(
         `UPDATE board_comments
@@ -213,13 +221,13 @@ function addCollabRoutes(router, side) {
          RETURNING *`,
         [req.params.cid, actor.boardId]
       )).rows[0];
-      if (!comment) return jsonError(res, 404, 'Comment not found');
+      if (!comment) return jsonError(res, 404, msg(req, 'boards.errors.commentNotFound'));
 
       broadcast(actor.boardId, { type: 'wts-refresh', kind: 'comments' });
       res.json({ comment });
     } catch (e) {
       console.error('Whiteboard comment resolve error:', e);
-      jsonError(res, 500, 'Failed to update the comment');
+      jsonError(res, 500, msg(req, 'boards.errors.updateComment'));
     }
   };
   router.post('/:id/comments/:cid/resolve', setResolved(true));
@@ -234,7 +242,7 @@ function addCollabRoutes(router, side) {
       res.json({ approval: await latestApproval(actor.boardId) });
     } catch (e) {
       console.error('Whiteboard approval fetch error:', e);
-      jsonError(res, 500, 'Failed to load the approval status');
+      jsonError(res, 500, msg(req, 'boards.errors.loadApprovalStatus'));
     }
   });
 
@@ -249,7 +257,7 @@ function addCollabRoutes(router, side) {
         let dueAt = null;
         if (req.body.dueAt) {
           dueAt = new Date(req.body.dueAt);
-          if (Number.isNaN(dueAt.getTime())) return jsonError(res, 400, 'Invalid dueAt');
+          if (Number.isNaN(dueAt.getTime())) return jsonError(res, 400, msg(req, 'boards.errors.invalidDueAt'));
         }
 
         // If a request is already awaiting review, replace it in place;
@@ -280,7 +288,7 @@ function addCollabRoutes(router, side) {
         res.status(201).json({ approval });
       } catch (e) {
         console.error('Whiteboard approval request error:', e);
-        jsonError(res, 500, 'Failed to request approval');
+        jsonError(res, 500, msg(req, 'boards.errors.requestApproval'));
       }
     });
   }
@@ -291,12 +299,12 @@ function addCollabRoutes(router, side) {
       try {
         const actor = await resolveActor(req, res, side);
         if (!actor) return;
-        if (!actor.canComment) return jsonError(res, 403, 'Your role on this board does not allow reviewing');
-        if (!UUID_RE.test(req.params.aid)) return jsonError(res, 404, 'Approval request not found');
+        if (!actor.canComment) return jsonError(res, 403, msg(req, 'boards.errors.roleNoReviewing'));
+        if (!UUID_RE.test(req.params.aid)) return jsonError(res, 404, msg(req, 'boards.errors.approvalNotFound'));
 
         const decision = String(req.body.decision || '');
         if (decision !== 'approved' && decision !== 'needs_changes') {
-          return jsonError(res, 400, "decision must be 'approved' or 'needs_changes'");
+          return jsonError(res, 400, msg(req, 'boards.errors.invalidDecision'));
         }
         const note = req.body.note ? String(req.body.note).trim().slice(0, MAX_NOTE) : null;
 
@@ -307,13 +315,13 @@ function addCollabRoutes(router, side) {
            RETURNING *`,
           [decision, note, req.params.aid, actor.boardId]
         )).rows[0];
-        if (!approval) return jsonError(res, 404, 'No open approval request to decide');
+        if (!approval) return jsonError(res, 404, msg(req, 'boards.errors.noOpenApproval'));
 
         broadcast(actor.boardId, { type: 'wts-refresh', kind: 'approval' });
         res.json({ approval });
       } catch (e) {
         console.error('Whiteboard approval decide error:', e);
-        jsonError(res, 500, 'Failed to record your decision');
+        jsonError(res, 500, msg(req, 'boards.errors.recordDecision'));
       }
     });
   }

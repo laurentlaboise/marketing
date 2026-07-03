@@ -7,7 +7,7 @@
 
 const express = require('express');
 const db = require('../../../database/db');
-const { UUID_RE, colorForCustomer, notFound } = require('./util');
+const { UUID_RE, colorForCustomer } = require('./util');
 const { addCollabRoutes } = require('./collab');
 const { addAssetRoutes } = require('./assets');
 
@@ -18,6 +18,14 @@ const requireCustomer = (req, res, next) => {
   if (req.session && req.session.customerId) return next();
   return res.redirect('/portal/login');
 };
+
+// Portal-side 404: renders the localized portal error view (the shared
+// util.notFound helper renders the admin error view, which has no req.t).
+const portalNotFound = (req, res) => res.status(404).render('portal/error', {
+  title: req.t('errors.notFoundTitle'),
+  message: req.t('boards.notFoundMessage'),
+  code: 404
+});
 
 function createPortalRouter() {
   const router = express.Router();
@@ -42,17 +50,21 @@ function createPortalRouter() {
         [String(req.session.customerId)]
       );
       res.render('whiteboard/portal-list', {
-        title: 'My Boards - Words That Sells',
+        title: req.t('boards.title'),
         boards: boards.rows
       });
     } catch (e) {
       console.error('Whiteboard portal list error:', e);
-      res.status(500).render('error', { title: 'Error', message: 'Failed to load your boards.', code: 500 });
+      res.status(500).render('portal/error', {
+        title: req.t('errors.serverErrorTitle'),
+        message: req.t('boards.loadError'),
+        code: 500
+      });
     }
   });
 
   router.get('/:id', async (req, res) => {
-    if (!UUID_RE.test(req.params.id)) return notFound(res);
+    if (!UUID_RE.test(req.params.id)) return portalNotFound(req, res);
     try {
       const result = await db.query(
         `SELECT b.*, m.role AS member_role
@@ -62,7 +74,7 @@ function createPortalRouter() {
         [req.params.id, String(req.session.customerId)]
       );
       const board = result.rows[0];
-      if (!board) return notFound(res);
+      if (!board) return portalNotFound(req, res);
 
       const customer = (await db.query(
         'SELECT id, name, email FROM customers WHERE id = $1',
@@ -93,7 +105,11 @@ function createPortalRouter() {
       });
     } catch (e) {
       console.error('Whiteboard portal board error:', e);
-      res.status(500).render('error', { title: 'Error', message: 'Failed to load the board.', code: 500 });
+      res.status(500).render('portal/error', {
+        title: req.t('errors.serverErrorTitle'),
+        message: req.t('boards.loadBoardError'),
+        code: 500
+      });
     }
   });
 

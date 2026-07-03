@@ -1,68 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+<%- include('partials/head') %>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', Arial, sans-serif; background: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; }
-    .topbar { background: #122a3f; padding: 0.9rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
-    .topbar a.brand { color: #fff; font-weight: 700; text-decoration: none; font-size: 1.05rem; }
-    .topbar form button { background: none; border: 1px solid rgba(255,255,255,0.35); color: #e2e8f0; border-radius: 8px; padding: 0.35rem 0.9rem; font-size: 0.85rem; cursor: pointer; font-family: inherit; }
     .wrap { flex: 1; max-width: 760px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
     h1 { font-size: 1.35rem; color: #1a1a2e; margin: 0.5rem 0 0.15rem; }
     p.sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; }
-    .nav-links { display: flex; gap: 1rem; margin: 0 0 1rem; font-size: 0.88rem; }
-    .nav-links a { color: #475569; text-decoration: none; font-weight: 600; }
-    .nav-links a.active { color: #d62b83; }
     .file { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem 1.15rem; margin-bottom: 0.9rem; display: flex; justify-content: space-between; gap: 0.85rem; align-items: center; flex-wrap: wrap; }
     .file strong { color: #1a1a2e; font-size: 0.98rem; }
     .file .desc { color: #475569; font-size: 0.86rem; margin-top: 0.25rem; line-height: 1.5; }
     .file .fmeta { color: #94a3b8; font-size: 0.78rem; margin-top: 0.3rem; }
-    .file .fmeta .link-badge { display: inline-block; background: #eff6ff; color: #1d4ed8; border-radius: 999px; padding: 0.08rem 0.55rem; font-weight: 600; }
-    .file a.get { background: #d62b83; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.5rem 1.1rem; font-size: 0.86rem; font-weight: 600; white-space: nowrap; }
+    .file .fmeta .link-badge { display: inline-block; background: #eff6ff; color: #1d4ed8; border-radius: 999px; padding: 0.08rem 0.55rem; font-weight: 600; line-height: 1.45; }
+    .file a.get { background: #d62b83; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.5rem 1.1rem; font-size: 0.86rem; font-weight: 600; white-space: nowrap; line-height: 1.45; }
     .empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 2.5rem 1rem; text-align: center; color: #64748b; }
-    .foot { text-align: center; color: #94a3b8; font-size: 0.78rem; padding: 1rem; }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <a class="brand" href="https://wordsthatsells.website">Words That Sells</a>
-    <div style="display:flex;gap:0.5rem;align-items:center;">
-      <a href="/portal/profile" style="background:none;border:1px solid rgba(255,255,255,0.35);color:#e2e8f0;border-radius:8px;padding:0.35rem 0.9rem;font-size:0.85rem;text-decoration:none;">My Profile</a>
-      <form method="POST" action="/portal/logout">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <button type="submit">Sign out</button>
-      </form>
-    </div>
-  </div>
+  <%- include('partials/topbar') %>
   <div class="wrap">
-    <h1>My Files</h1>
-    <p class="sub">Reports, designs and deliverables we've shared with you.</p>
+    <h1><%= t('files.heading') %></h1>
+    <p class="sub"><%= t('files.subtitle') %></p>
 
-    <div class="nav-links">
-      <a href="/portal/">Dashboard</a>
-      <a href="/portal/files" class="active">Files</a>
-      <a href="/portal/billing">Billing</a>
-      <a href="/portal/chat">AI Strategist</a>
-      <% if (typeof featureWhiteboard !== 'undefined' && featureWhiteboard) { %><a href="/portal/boards">Boards</a><% } %>
-      <a href="/portal/profile">Profile</a>
-    </div>
+    <%- include('partials/nav', { active: 'files' }) %>
 
-    <%
-      function fmtSize(b) {
-        if (b == null) return '';
-        if (b < 1024) return b + ' B';
-        if (b < 1048576) return (b / 1024).toFixed(0) + ' KB';
-        return (b / 1048576).toFixed(1) + ' MB';
-      }
-    %>
     <% if (files.length === 0) { %>
       <div class="empty">
-        <p style="margin-bottom:0.5rem;">No files yet.</p>
-        <p style="font-size:0.85rem;">Deliverables we share with you will appear here.</p>
+        <p style="margin-bottom:0.5rem;"><%= t('files.emptyTitle') %></p>
+        <p style="font-size:0.85rem;"><%= t('files.emptyBody') %></p>
       </div>
     <% } %>
 
@@ -72,15 +33,13 @@
         <strong><%= f.title %></strong>
         <% if (f.description) { %><div class="desc"><%= f.description %></div><% } %>
         <div class="fmeta">
-          <%= new Date(f.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %>
-          <% if (f.external_url) { %> · <span class="link-badge">External link</span>
-          <% } else { %><%= f.file_name ? ' · ' + f.file_name : '' %><%= f.file_size != null ? ' · ' + fmtSize(f.file_size) : '' %><% } %>
+          <%= fmtDate(f.created_at) %>
+          <% if (f.external_url) { %><%= t('files.metaSep') %><span class="link-badge"><%= t('files.externalLink') %></span>
+          <% } else { %><%= f.file_name ? t('files.metaSep') + f.file_name : '' %><%= f.file_size != null ? t('files.metaSep') + fmtSize(f.file_size) : '' %><% } %>
         </div>
       </div>
-      <a class="get" href="/portal/files/<%= f.id %>/download" <%- f.external_url ? 'rel="noopener"' : '' %>><%= f.external_url ? 'Open' : 'Download' %></a>
+      <a class="get" href="/portal/files/<%= f.id %>/download" <%- f.external_url ? 'rel="noopener"' : '' %>><%= f.external_url ? t('common.open') : t('common.download') %></a>
     </div>
     <% }); %>
   </div>
-  <div class="foot">Need help with a file? Reply to any of our emails or use the contact form on wordsthatsells.website</div>
-</body>
-</html>
+  <%- include('partials/footer') %>

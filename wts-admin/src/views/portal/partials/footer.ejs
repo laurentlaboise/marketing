@@ -1,0 +1,5 @@
+<%# Portal page footer; closes the document opened by partials/head.
+    Pass { simpleFooter: true } for the brand-only variant (login, error). %>
+  <div class="foot"><%= (typeof simpleFooter !== 'undefined' && simpleFooter) ? t('common.footerBrand') : t('common.footerHelp') %></div>
+</body>
+</html>

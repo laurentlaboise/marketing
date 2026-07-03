@@ -1,61 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+<%- include('../portal/partials/head') %>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', Arial, sans-serif; background: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; }
-    .topbar { background: #122a3f; padding: 0.9rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
-    .topbar a.brand { color: #fff; font-weight: 700; text-decoration: none; font-size: 1.05rem; }
-    .topbar form button { background: none; border: 1px solid rgba(255,255,255,0.35); color: #e2e8f0; border-radius: 8px; padding: 0.35rem 0.9rem; font-size: 0.85rem; cursor: pointer; font-family: inherit; }
     .wrap { flex: 1; max-width: 760px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
     h1 { font-size: 1.35rem; color: #1a1a2e; margin: 0.5rem 0 0.15rem; }
     p.sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; }
-    .nav-links { display: flex; gap: 1rem; margin: 0 0 1rem; font-size: 0.88rem; flex-wrap: wrap; }
-    .nav-links a { color: #475569; text-decoration: none; font-weight: 600; }
-    .nav-links a.active { color: #d62b83; }
     .board { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem 1.15rem; margin-bottom: 0.9rem; display: flex; justify-content: space-between; gap: 0.85rem; align-items: center; flex-wrap: wrap; }
     .board strong { color: #1a1a2e; font-size: 0.98rem; }
     .board .bmeta { color: #94a3b8; font-size: 0.78rem; margin-top: 0.3rem; }
-    .role-badge { display: inline-block; border-radius: 999px; padding: 0.15rem 0.65rem; font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; text-transform: capitalize; }
+    .role-badge { display: inline-block; border-radius: 999px; padding: 0.15rem 0.65rem; font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; line-height: 1.45; }
     .role-badge.editor { background: #dcfce7; color: #166534; }
     .role-badge.commenter { background: #fef3c7; color: #92400e; }
     .role-badge.viewer { background: #e0f2fe; color: #075985; }
-    .board a.open { background: #d62b83; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.5rem 1.1rem; font-size: 0.86rem; font-weight: 600; white-space: nowrap; }
+    .board a.open { background: #d62b83; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.5rem 1.1rem; font-size: 0.86rem; font-weight: 600; white-space: nowrap; line-height: 1.45; }
     .empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 2.5rem 1rem; text-align: center; color: #64748b; }
-    .foot { text-align: center; color: #94a3b8; font-size: 0.78rem; padding: 1rem; }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <a class="brand" href="https://wordsthatsells.website">Words That Sells</a>
-    <div style="display:flex;gap:0.5rem;align-items:center;">
-      <a href="/portal/profile" style="background:none;border:1px solid rgba(255,255,255,0.35);color:#e2e8f0;border-radius:8px;padding:0.35rem 0.9rem;font-size:0.85rem;text-decoration:none;">My Profile</a>
-      <form method="POST" action="/portal/logout">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <button type="submit">Sign out</button>
-      </form>
-    </div>
-  </div>
+  <%- include('../portal/partials/topbar') %>
   <div class="wrap">
-    <h1>Boards</h1>
-    <p class="sub">Live whiteboards shared with you for working sessions with your strategist.</p>
+    <h1><%= t('boards.heading') %></h1>
+    <p class="sub"><%= t('boards.subtitle') %></p>
 
-    <div class="nav-links">
-      <a href="/portal/">Dashboard</a>
-      <a href="/portal/files">Files</a>
-      <a href="/portal/billing">Billing</a>
-      <a href="/portal/chat">AI Strategist</a>
-      <a href="/portal/boards" class="active">Boards</a>
-      <a href="/portal/profile">Profile</a>
-    </div>
+    <%- include('../portal/partials/nav', { active: 'boards' }) %>
 
     <% if (boards.length === 0) { %>
       <div class="empty">
-        <p style="margin-bottom:0.5rem;">No shared boards yet &mdash; your strategist will invite you when a working session starts.</p>
+        <p style="margin-bottom:0.5rem;"><%= t('boards.empty') %></p>
       </div>
     <% } %>
 
@@ -63,22 +32,21 @@
     <div class="board">
       <div style="flex:1;min-width:200px;">
         <strong><%= b.title %></strong>
-        <span class="role-badge <%= b.role %>"><%= b.role %></span>
+        <span class="role-badge <%= b.role %>"><%= t('boards.role.' + b.role) %></span>
         <% if (b.approval_status) {
-             var apLabel = { awaiting_review: 'Awaiting your review', needs_changes: 'Changes requested', approved: 'Approved' }[b.approval_status] || b.approval_status;
+             var apKnown = { awaiting_review: true, needs_changes: true, approved: true }[b.approval_status];
+             var apLabel = apKnown ? t('boards.approval.' + b.approval_status) : b.approval_status;
              var apStyle = { awaiting_review: 'background:#fef3c7;color:#92400e;', needs_changes: 'background:#fee2e2;color:#b91c1c;', approved: 'background:#dcfce7;color:#166534;' }[b.approval_status] || 'background:#e2e8f0;color:#475569;';
         %>
-        <span style="display:inline-block;border-radius:999px;padding:0.15rem 0.65rem;font-size:0.74rem;font-weight:600;white-space:nowrap;<%= apStyle %>"><%= apLabel %></span>
+        <span style="display:inline-block;border-radius:999px;padding:0.15rem 0.65rem;font-size:0.74rem;font-weight:600;white-space:nowrap;line-height:1.45;<%= apStyle %>"><%= apLabel %></span>
         <% } %>
         <% if (b.unresolved_comments > 0) { %>
-        <span title="Unresolved comments" style="display:inline-block;border-radius:999px;padding:0.15rem 0.65rem;font-size:0.74rem;font-weight:600;white-space:nowrap;background:#e0f2fe;color:#075985;"><%= b.unresolved_comments %> open comment<%= b.unresolved_comments === 1 ? '' : 's' %></span>
+        <span title="<%= t('boards.openCommentsTooltip') %>" style="display:inline-block;border-radius:999px;padding:0.15rem 0.65rem;font-size:0.74rem;font-weight:600;white-space:nowrap;line-height:1.45;background:#e0f2fe;color:#075985;"><%= t(b.unresolved_comments === 1 ? 'boards.openCommentsOne' : 'boards.openCommentsMany', { count: b.unresolved_comments }) %></span>
         <% } %>
-        <div class="bmeta">Updated <%= new Date(b.updated_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %></div>
+        <div class="bmeta"><%= t('boards.updated', { date: fmtDate(b.updated_at) }) %></div>
       </div>
-      <a class="open" href="/portal/boards/<%= b.id %>">Open board</a>
+      <a class="open" href="/portal/boards/<%= b.id %>"><%= t('boards.openBoard') %></a>
     </div>
     <% }); %>
   </div>
-  <div class="foot">Need help with a board? Reply to any of our emails or use the contact form on wordsthatsells.website</div>
-</body>
-</html>
+  <%- include('../portal/partials/footer') %>

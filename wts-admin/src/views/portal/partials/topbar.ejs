@@ -1,0 +1,18 @@
+<%# Portal topbar. Pass { minimal: true } on unauthenticated pages
+    (login, error) to hide the profile link and sign-out button. %>
+<% var isMinimal = typeof minimal !== 'undefined' && minimal; %>
+<div class="topbar">
+  <a class="brand" href="https://wordsthatsells.website"><%= t('common.brand') %></a>
+  <div class="top-actions">
+    <span class="lang-switch">
+      <a href="?lang=en" class="<%= locale === 'en' ? 'active' : '' %>">EN</a>·<a href="?lang=th" lang="th" class="<%= locale === 'th' ? 'active' : '' %>">ไทย</a>
+    </span>
+    <% if (!isMinimal) { %>
+      <a class="pill" href="/portal/profile"><%= t('common.myProfile') %></a>
+      <form method="POST" action="/portal/logout">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit"><%= t('common.signOut') %></button>
+      </form>
+    <% } %>
+  </div>
+</div>
