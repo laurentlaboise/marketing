@@ -3,7 +3,7 @@
 // and mounts a tldraw canvas synced over websocket via @tldraw/sync.
 // Stage D+E: pinned threaded comments panel + approval workflow strip.
 import { createRoot } from 'react-dom/client';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Component, useCallback, useEffect, useMemo, useState } from 'react';
 import { Tldraw, atom, UserRecordType, createUserId, useValue } from 'tldraw';
 import { useSync } from '@tldraw/sync';
 import { getAssetUrls } from '@tldraw/assets/selfHosted';
@@ -16,11 +16,28 @@ const cfg = window.__WTS_BOARD__ || {};
 // works under a strict CSP with no external hosts.
 const assetUrls = getAssetUrls({ baseUrl: '/whiteboard/assets/' });
 
-// Image/file uploads are out of scope for this module: reject uploads,
-// resolve whatever src a record already carries.
-const noopAssets = {
-  upload() {
-    return Promise.reject(new Error('File uploads are not available on this board.'));
+// Image uploads (PNG/JPEG/GIF/WebP): stored server-side per board and served
+// from a membership-checked same-origin URL, so the same document works for
+// both the admin and the client. Members without edit rights get a clear
+// rejection instead of a silent failure.
+const boardAssets = {
+  async upload(asset, file) {
+    if (!cfg.canUpload) {
+      throw new Error('You can view and comment on this board, but not add images.');
+    }
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch(cfg.apiBase + '/assets', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-CSRF-Token': cfg.csrfToken || '' },
+      body: fd,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.src) {
+      throw new Error(data.error || 'Upload failed — please try again.');
+    }
+    return { src: data.src };
   },
   resolve(asset) {
     return (asset && asset.props && asset.props.src) || null;
@@ -60,6 +77,34 @@ function timeAgo(iso) {
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return `${Math.floor(s / 86400)}d ago`;
+}
+
+
+// A crash inside tldraw must never leave a silent blank page — show what
+// broke and offer a reload.
+class BoardErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="wts-board-splash">
+          <p style={{ maxWidth: 420, textAlign: 'center' }}>
+            Something went wrong rendering this board:
+            <br />
+            <code style={{ fontSize: '0.8rem' }}>{String(this.state.error && this.state.error.message)}</code>
+          </p>
+          <button type="button" onClick={() => location.reload()}>Reload board</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 const TOP_BAR_HEIGHT = 48;
@@ -452,7 +497,7 @@ function App() {
     [refreshComments, refreshApproval]
   );
 
-  const storeWithStatus = useSync({ uri, assets: noopAssets, users, onCustomMessageReceived });
+  const storeWithStatus = useSync({ uri, assets: boardAssets, users, onCustomMessageReceived });
   const [editor, setEditor] = useState(null);
 
   const onMount = useCallback((ed) => {
@@ -463,6 +508,15 @@ function App() {
   const synced = storeWithStatus.status === 'synced-remote';
   const failed = storeWithStatus.status === 'error';
   const online = synced && storeWithStatus.connectionStatus === 'online';
+
+  // If connecting takes suspiciously long, say so — a WebSocket blocked by a
+  // network or proxy otherwise looks like a blank page.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (synced || failed) return undefined;
+    const t = setTimeout(() => setSlow(true), 8000);
+    return () => clearTimeout(t);
+  }, [synced, failed]);
 
   const unresolvedCount = comments.filter((c) => !c.parent_id && !c.resolved_at).length;
 
@@ -508,16 +562,29 @@ function App() {
             // its own (connectionStatus flips offline/online) without unmounting
             // — an unmount mid-font-load crashes tldraw's FontManager, and a
             // throwaway scratch canvas would silently discard early drawings.
-            <Tldraw store={storeWithStatus.store} assetUrls={assetUrls} onMount={onMount} />
+            <BoardErrorBoundary>
+              <Tldraw store={storeWithStatus.store} assetUrls={assetUrls} onMount={onMount} />
+            </BoardErrorBoundary>
           ) : (
             <div className="wts-board-splash">
               {failed ? (
                 <>
-                  <p>Couldn&rsquo;t connect to this board.</p>
+                  <p style={{ maxWidth: 420, textAlign: 'center' }}>
+                    Couldn&rsquo;t connect to this board
+                    {storeWithStatus.error ? <><br /><code style={{ fontSize: '0.8rem' }}>{String(storeWithStatus.error.message || storeWithStatus.error)}</code></> : null}.
+                  </p>
                   <button type="button" onClick={() => location.reload()}>Try again</button>
                 </>
               ) : (
-                <p>Connecting to your board&hellip;</p>
+                <>
+                  <p>Connecting to your board&hellip;</p>
+                  {slow && (
+                    <p style={{ fontSize: '0.8rem', maxWidth: 380, textAlign: 'center' }}>
+                      Still connecting — your network may be blocking live connections
+                      (WebSocket). Try a different network or refresh the page.
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}

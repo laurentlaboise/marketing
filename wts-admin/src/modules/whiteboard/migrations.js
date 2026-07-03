@@ -82,6 +82,24 @@ async function runMigrations() {
   await db.query(`
     ALTER TABLE board_approvals ADD COLUMN IF NOT EXISTS request_note TEXT
   `);
+
+  // Images placed on a board (drag-drop / paste / insert-media). Stored in
+  // Postgres like deliverables so they survive Railway's ephemeral disk;
+  // served through a membership-checked route shared by both portals.
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS board_assets (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+      mime VARCHAR(80) NOT NULL,
+      size INTEGER NOT NULL,
+      data BYTEA NOT NULL,
+      created_by VARCHAR(80),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await db.query(`
+    CREATE INDEX IF NOT EXISTS idx_board_assets_board ON board_assets (board_id)
+  `);
 }
 
 module.exports = { runMigrations };
