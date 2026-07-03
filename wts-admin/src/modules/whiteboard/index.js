@@ -9,7 +9,6 @@ const rateLimit = require('express-rate-limit');
 const { runMigrations } = require('./migrations');
 const createAdminRouter = require('./routes-admin');
 const createPortalRouter = require('./routes-portal');
-const { attachSync } = require('./sync');
 const { registerAssetServing } = require('./assets');
 const { ensureAuthenticated, ensureAdmin } = require('../../middleware/auth');
 
@@ -60,9 +59,6 @@ async function attach(app, httpServer, { sessionMiddleware }) {
     app.use('/portal/boards', createPortalRouter());
     registerAssetServing(app);
   });
-
-  // WebSocket sync endpoint: /ws/boards/:boardId
-  attachSync(httpServer, { sessionMiddleware });
 }
 
 module.exports = { attach };
