@@ -63,6 +63,14 @@
     .pin > span { transform: rotate(45deg); }
     .pin.resolved { background: #94a3b8; }
     .pin.active { background: #122a3f; z-index: 30; }
+    .node.selected { outline: 2px dashed #d62b83; outline-offset: 3px; }
+    .node.dragging { box-shadow: 0 12px 32px rgba(0,0,0,0.28); opacity: 0.92; }
+    .rs-handle { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; background: #d62b83; border: 2px solid #fff; border-radius: 4px; cursor: nwse-resize; box-shadow: 0 1px 4px rgba(0,0,0,0.3); z-index: 20;
+      transform: translate(50%, 50%) scale(calc(1 / var(--zoom, 1))); transform-origin: 0 0; }
+    .node-tools { position: absolute; right: 12px; top: 12px; display: flex; gap: 0.35rem; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.25rem 0.4rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); z-index: 40; }
+    .node-tools button { border: none; background: none; font-family: inherit; font-size: 0.78rem; font-weight: 600; color: #334155; cursor: pointer; padding: 0.2rem 0.45rem; border-radius: 6px; }
+    .node-tools button:hover { background: #f1f5f9; }
+    .node-tools button.danger { color: #b91c1c; }
     .hud { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 0.4rem; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.25rem 0.5rem; font-size: 0.78rem; color: #475569; box-shadow: 0 2px 8px rgba(0,0,0,0.08); z-index: 40; }
     .hud button { border: none; background: none; font-family: inherit; font-size: 0.78rem; font-weight: 700; color: #d62b83; cursor: pointer; padding: 0.15rem 0.35rem; }
     .hud .pct { min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -136,7 +144,9 @@
           <span class="pct" id="zoom-pct">100%</span>
           <button type="button" id="zoom-in">+</button>
           <button type="button" id="zoom-fit">Fit</button>
+          <button type="button" id="tidy" hidden>Tidy</button>
         </div>
+        <div class="node-tools" id="node-tools" hidden></div>
       </div>
     </div>
     <div class="panel">
@@ -161,10 +171,45 @@
       current: null,     // selected image id (panel + deliverable banner)
       comments: [],
       approval: null,
-      activeThread: null
+      activeThread: null,
+      canArrange: false  // from GET /assets (server-derived role)
     };
     var naturals = {};   // imageId -> {w, h} from decode (h fallback for h:null)
     var nodesById = {};  // imageId -> node element
+
+    // Pending-write shadow: while a placement write is in flight (or a drag
+    // is live), the 12s poll must not yank the node back to older server
+    // values. shadow[id] holds the local placement to keep; placeSeq guards
+    // against out-of-order responses.
+    var shadow = {};
+    var placeSeq = {};
+    var draggingId = null;
+
+    function persistPlacement(img, fields) {
+      Object.assign(img, fields); // optimistic
+      shadow[img.id] = { x: img.x, y: img.y, w: img.w, h: img.h, z: img.z };
+      var seq = (placeSeq[img.id] || 0) + 1;
+      placeSeq[img.id] = seq;
+      api('POST', '/assets/' + img.id + '/place', fields)
+        .then(function (d) {
+          if (placeSeq[img.id] !== seq) return; // superseded by a newer write
+          delete shadow[img.id];
+          if (d.asset) {
+            img.x = d.asset.x; img.y = d.asset.y;
+            if (d.asset.w != null) img.w = d.asset.w;
+            img.h = d.asset.h; img.z = d.asset.z;
+            img.placed_at = d.asset.placed_at;
+          }
+          var node = nodesById[img.id];
+          if (node) applyPlacement(node, img);
+        })
+        .catch(function (e) {
+          if (placeSeq[img.id] !== seq) return;
+          delete shadow[img.id];
+          toast(e.message);
+          loadAll();
+        });
+    }
 
     // ── Viewport engine (screen = world * zoom + pan) ────────────
     var view = { panX: 0, panY: 0, zoom: 1 };
@@ -255,26 +300,85 @@
     var gesture = { mode: 'idle' };
     var SLOP_MOUSE = 4, SLOP_TOUCH = 8;
 
+    function imgById(id) { return state.images.find(function (i) { return i.id === id; }); }
+
+    function startPinch() {
+      cancelNodeDrag();
+      var ps = Array.from(pointers.values());
+      gesture = {
+        mode: 'pinch',
+        startDist: Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y),
+        startMid: { x: (ps[0].x + ps[1].x) / 2 - getVpRect().left, y: (ps[0].y + ps[1].y) / 2 - getVpRect().top },
+        startView: { panX: view.panX, panY: view.panY, zoom: view.zoom }
+      };
+    }
+
+    function startNodeDrag() {
+      var nodeEl = gesture.nodeEl;
+      var img = imgById(nodeEl.getAttribute('data-id'));
+      if (!img) return;
+      draggingId = img.id;
+      gesture.mode = 'nodeDrag';
+      gesture.img = img;
+      gesture.dx = 0; gesture.dy = 0;
+      nodeEl.classList.add('dragging');
+      closeComposer();
+    }
+
+    function cancelNodeDrag() {
+      clearTimeout(gesture.pressTimer);
+      if (gesture.mode === 'nodeDrag' && gesture.nodeEl) {
+        gesture.nodeEl.style.transform = '';
+        gesture.nodeEl.classList.remove('dragging');
+        draggingId = null;
+      }
+      if (gesture.mode === 'resize' && gesture.nodeEl) {
+        var img = gesture.img;
+        applyPlacement(gesture.nodeEl, img); // restore pre-resize box
+        draggingId = null;
+      }
+    }
+
     viewport.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('.composer-pop') || e.target.closest('.hud')) return;
+      if (e.target.closest('.composer-pop') || e.target.closest('.hud') || e.target.closest('.node-tools')) return;
       viewport.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pointers.size === 2) {
-        var ps = Array.from(pointers.values());
+        startPinch();
+        return;
+      }
+      if (pointers.size !== 1) return;
+
+      var handleEl = e.target.closest ? e.target.closest('.rs-handle') : null;
+      if (handleEl && state.canArrange) {
+        var nodeEl = handleEl.closest('.node');
+        var img = imgById(nodeEl.getAttribute('data-id'));
+        var r = nodeRect(img);
+        draggingId = img.id;
         gesture = {
-          mode: 'pinch',
-          startDist: Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y),
-          startMid: { x: (ps[0].x + ps[1].x) / 2 - getVpRect().left, y: (ps[0].y + ps[1].y) / 2 - getVpRect().top },
-          startView: { panX: view.panX, panY: view.panY, zoom: view.zoom }
+          mode: 'resize', nodeEl: nodeEl, img: img,
+          startW: r.w, startH: r.h,
+          startX: e.clientX, startY: e.clientY
         };
-      } else if (pointers.size === 1) {
-        gesture = {
-          mode: 'press',
-          startX: e.clientX, startY: e.clientY,
-          lastX: e.clientX, lastY: e.clientY,
-          slop: e.pointerType === 'touch' ? SLOP_TOUCH : SLOP_MOUSE,
-          target: e.target
-        };
+        return;
+      }
+
+      var overNode = e.target.closest ? e.target.closest('.node') : null;
+      gesture = {
+        mode: 'press',
+        startX: e.clientX, startY: e.clientY,
+        lastX: e.clientX, lastY: e.clientY,
+        slop: e.pointerType === 'touch' ? SLOP_TOUCH : SLOP_MOUSE,
+        target: e.target,
+        nodeEl: overNode,
+        touch: e.pointerType === 'touch'
+      };
+      // Touch: long-press on a node (finger still) becomes a drag; a plain
+      // one-finger swipe over a node stays a pan.
+      if (overNode && state.canArrange && gesture.touch) {
+        gesture.pressTimer = setTimeout(function () {
+          if (gesture.mode === 'press' && pointers.size === 1) startNodeDrag();
+        }, 350);
       }
     });
 
@@ -294,14 +398,36 @@
         dirty = true;
         return;
       }
+      if (gesture.mode === 'resize') {
+        var dw = (e.clientX - gesture.startX) / view.zoom;
+        var newW = Math.min(20000, Math.max(16, gesture.startW + dw));
+        var newH = newW * (gesture.startH / gesture.startW); // aspect-locked
+        gesture.nodeEl.style.width = newW + 'px';
+        gesture.nodeEl.style.height = newH + 'px';
+        gesture.liveW = newW; gesture.liveH = newH;
+        return;
+      }
       if (gesture.mode === 'press') {
         if (Math.hypot(e.clientX - gesture.startX, e.clientY - gesture.startY) > gesture.slop) {
-          gesture.mode = 'pan';
-          viewport.classList.add('panning');
-          closeComposer();
+          clearTimeout(gesture.pressTimer);
+          // Mouse drag on a node moves it (arrange roles); touch swipe pans —
+          // touch node-drag only via the long-press path above.
+          if (gesture.nodeEl && state.canArrange && !gesture.touch) {
+            startNodeDrag();
+          } else {
+            gesture.mode = 'pan';
+            viewport.classList.add('panning');
+            closeComposer();
+          }
         } else {
           return;
         }
+      }
+      if (gesture.mode === 'nodeDrag') {
+        gesture.dx = (e.clientX - gesture.startX) / view.zoom;
+        gesture.dy = (e.clientY - gesture.startY) / view.zoom;
+        gesture.nodeEl.style.transform = 'translate(' + gesture.dx + 'px,' + gesture.dy + 'px)';
+        return;
       }
       if (gesture.mode === 'pan') {
         view.panX += e.clientX - gesture.lastX;
@@ -314,7 +440,35 @@
     function endPointer(e) {
       if (!pointers.has(e.pointerId)) return;
       pointers.delete(e.pointerId);
-      if (gesture.mode === 'press' && e.type === 'pointerup') handleTap(e);
+      clearTimeout(gesture.pressTimer);
+      if (e.type === 'pointerup') {
+        if (gesture.mode === 'press') handleTap(e);
+        else if (gesture.mode === 'nodeDrag') {
+          var img = gesture.img;
+          var nodeEl = gesture.nodeEl;
+          nodeEl.style.transform = '';
+          nodeEl.classList.remove('dragging');
+          draggingId = null;
+          if (gesture.dx || gesture.dy) {
+            suppressClick = true;
+            var nx = Math.round((img.x + gesture.dx) * 100) / 100;
+            var ny = Math.round((img.y + gesture.dy) * 100) / 100;
+            img.x = nx; img.y = ny;
+            applyPlacement(nodeEl, img);
+            persistPlacement(img, { x: nx, y: ny });
+          }
+        } else if (gesture.mode === 'resize') {
+          draggingId = null;
+          if (gesture.liveW) {
+            var w = Math.round(gesture.liveW * 100) / 100;
+            var h = Math.round(gesture.liveH * 100) / 100;
+            gesture.img.w = w; gesture.img.h = h;
+            persistPlacement(gesture.img, { w: w, h: h });
+          }
+        }
+      } else if (e.type === 'pointercancel') {
+        cancelNodeDrag();
+      }
       if (pointers.size === 0) {
         if (gesture.mode === 'pan' || gesture.mode === 'pinch') scheduleSaveViewport();
         gesture = { mode: 'idle' };
@@ -327,6 +481,13 @@
     }
     viewport.addEventListener('pointerup', endPointer);
     viewport.addEventListener('pointercancel', endPointer);
+
+    // A drag that started on a button (e.g. the pay overlay) must not fire
+    // that button's click on release.
+    var suppressClick = false;
+    viewport.addEventListener('click', function (e) {
+      if (suppressClick) { suppressClick = false; e.stopPropagation(); e.preventDefault(); }
+    }, true);
 
     viewport.addEventListener('wheel', function (e) {
       e.preventDefault();
@@ -429,7 +590,15 @@
     function loadAll() {
       return Promise.all([api('GET', '/assets'), api('GET', '/comments'), api('GET', '/approvals')])
         .then(function (r) {
-          state.images = r[0].assets || [];
+          var prev = {};
+          state.images.forEach(function (i) { prev[i.id] = i; });
+          state.images = (r[0].assets || []).map(function (a) {
+            // Shadowed (in-flight write) or mid-drag nodes keep their local
+            // placement; everything else takes the server's word (LWW).
+            var s = shadow[a.id] || (draggingId === a.id && prev[a.id] ? prev[a.id] : null);
+            return s ? Object.assign({}, a, { x: s.x, y: s.y, w: s.w, h: s.h, z: s.z }) : a;
+          });
+          state.canArrange = !!r[0].can_arrange;
           state.comments = r[1].comments || [];
           state.approval = r[2].approval || null;
           if (!state.current || !state.images.some(function (i) { return i.id === state.current; })) {
@@ -650,10 +819,77 @@
     // ── Chrome (everything outside the canvas) ───────────────────
     function renderChrome() {
       renderApproval(); renderFilm(); renderDeliverable(); renderPanel(); renderCount(); repaintPinStates();
+      updateSelection(); renderNodeTools();
       // Banner/approval visibility changes move and resize the viewport —
       // drop the cached rect so gesture math reads the fresh box.
       vpRect = null;
     }
+
+    function updateSelection() {
+      Object.keys(nodesById).forEach(function (id) {
+        var node = nodesById[id];
+        var selected = state.canArrange && id === state.current;
+        node.classList.toggle('selected', selected);
+        var handle = node.querySelector('.rs-handle');
+        if (selected && !handle) {
+          handle = document.createElement('div');
+          handle.className = 'rs-handle';
+          handle.title = 'Drag to resize';
+          node.appendChild(handle);
+        } else if (!selected && handle) {
+          handle.remove();
+        }
+      });
+    }
+
+    function renderNodeTools() {
+      var el = document.getElementById('node-tools');
+      var tidyBtn = document.getElementById('tidy');
+      tidyBtn.hidden = !(state.canArrange && state.images.length > 1);
+      var img = currentImage();
+      if (!state.canArrange || !img) { el.hidden = true; el.innerHTML = ''; return; }
+      el.hidden = false;
+      var canDelete = !img.is_final || cfg.isAdmin;
+      el.innerHTML =
+        '<button type="button" data-t="front">&#8613; Front</button>' +
+        '<button type="button" data-t="back">&#8615; Back</button>' +
+        (canDelete ? '<button type="button" class="danger" data-t="remove">Remove</button>' : '');
+      el.querySelectorAll('button[data-t]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var act = b.getAttribute('data-t');
+          if (act === 'front') {
+            var maxZ = state.images.reduce(function (m, i) { return Math.max(m, i.z || 0); }, 0);
+            persistPlacement(img, { z: Math.min(100000, maxZ + 1) });
+            applyPlacement(nodesById[img.id], img);
+          } else if (act === 'back') {
+            persistPlacement(img, { z: 0 });
+            applyPlacement(nodesById[img.id], img);
+          } else if (act === 'remove') {
+            if (!confirm('Remove this image from the board? Its comments stay in the panel as history.')) return;
+            api('POST', '/assets/' + img.id + '/delete')
+              .then(function () { state.current = null; return loadAll(); })
+              .then(function () { toast('Image removed.'); })
+              .catch(function (er) { toast(er.message); });
+          }
+        });
+      });
+    }
+
+    document.getElementById('tidy').addEventListener('click', function () {
+      var GAP = 120;
+      var imgs = state.images;
+      if (imgs.length < 2) return;
+      var cols = Math.ceil(Math.sqrt(imgs.length));
+      var maxW = 0, maxH = 0;
+      imgs.forEach(function (i) { var r = nodeRect(i); maxW = Math.max(maxW, r.w); maxH = Math.max(maxH, r.h); });
+      var placements = imgs.map(function (i, n) {
+        return { id: i.id, x: (n % cols) * (maxW + GAP), y: Math.floor(n / cols) * (maxH + GAP), z: n };
+      });
+      api('POST', '/assets/arrange', { placements: placements })
+        .then(loadAll)
+        .then(function () { fitAll(); toast('Board tidied.'); })
+        .catch(function (e) { toast(e.message); });
+    });
 
     function repaintPinStates() {
       state.images.forEach(function (img) {
@@ -832,7 +1068,7 @@
       var gen = generals();
       var h = '';
       if (cfg.canComment) {
-        h += '<div class="muted" style="text-align:left;">' + (img ? 'Tap an image to pin a comment. Drag to pan, pinch or ctrl+scroll to zoom.' : '') + '</div>';
+        h += '<div class="muted" style="text-align:left;">' + (img ? 'Tap an image to pin a comment. Drag to pan, pinch or ctrl+scroll to zoom.' + (state.canArrange ? ' Drag an image to move it.' : '') : '') + '</div>';
       }
       if (!pins.length && !gen.length) h += '<div class="muted">No comments yet.</div>';
       open.forEach(function (c) { h += threadHtml(c, pins.indexOf(c) + 1); });
