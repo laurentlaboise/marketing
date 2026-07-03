@@ -100,6 +100,30 @@ async function runMigrations() {
   await db.query(`
     CREATE INDEX IF NOT EXISTS idx_board_assets_board ON board_assets (board_id)
   `);
+
+  // Gated delivery: an admin can mark one asset per board as the final
+  // deliverable, optionally priced. A priced final starts 'locked' and is
+  // unlocked by the payment webhook (or a manual admin unlock for bank
+  // transfer / BCEL). ADD COLUMN IF NOT EXISTS keeps this idempotent for
+  // databases created by earlier stages.
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS is_final BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS payment_status VARCHAR(10) NOT NULL DEFAULT 'unlocked'
+  `);
+  await db.query(`
+    DO $$ BEGIN
+      ALTER TABLE board_assets ADD CONSTRAINT board_assets_payment_status_check
+        CHECK (payment_status IN ('locked','unlocked'));
+    EXCEPTION WHEN duplicate_object THEN NULL; END $$
+  `);
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS price DECIMAL(10,2)
+  `);
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS title VARCHAR(200)
+  `);
 }
 
 module.exports = { runMigrations };

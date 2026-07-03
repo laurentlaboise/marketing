@@ -51,6 +51,7 @@ async function resolveActor(req, res, side) {
       type: 'admin',
       id: String(req.user.id),
       name,
+      email: req.user.email || null,
       canComment: true
     };
   }
@@ -72,6 +73,7 @@ async function resolveActor(req, res, side) {
     type: 'customer',
     id: String(req.session.customerId),
     name: member.name || member.email,
+    email: member.email || null,
     role: member.role,
     canComment: COMMENTER_ROLES.has(member.role)
   };

@@ -422,6 +422,19 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       } catch (e) {
         console.warn('Stripe webhook customer link failed:', e.message);
       }
+
+      // Gated board deliverable: the checkout session was created by the
+      // review board with the asset id in its metadata — flip the asset to
+      // 'unlocked' so the client's Download final button goes live.
+      if (session.metadata && session.metadata.wts_kind === 'board_asset' && process.env.FEATURE_WHITEBOARD === '1') {
+        try {
+          const { unlockBoardAsset } = require('../modules/whiteboard/assets');
+          const unlocked = await unlockBoardAsset(session.metadata.board_asset_id);
+          if (!unlocked) console.warn('Stripe webhook: board asset not unlocked (missing or not final):', session.metadata.board_asset_id);
+        } catch (e) {
+          console.warn('Stripe webhook board-asset unlock failed:', e.message);
+        }
+      }
       break;
     }
 

@@ -26,8 +26,20 @@
     .main { flex: 1; display: flex; min-height: 0; }
     .stage-wrap { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     .film { flex: 0 0 auto; display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem 0.9rem; background: #fff; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
-    .film img { height: 44px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; }
+    .film .thumb { position: relative; flex: 0 0 auto; }
+    .film img { height: 44px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; display: block; }
     .film img.active { border-color: #d62b83; }
+    .film .thumb .star { position: absolute; top: -5px; right: -5px; background: #f59e0b; color: #fff; border-radius: 50%; width: 17px; height: 17px; font-size: 0.66rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.35); pointer-events: none; }
+    .deliverable { flex: 0 0 auto; display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.9rem; font-size: 0.84rem; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+    .deliverable.locked { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+    .deliverable.unlocked { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .deliverable.plain { background: #fff; color: #64748b; }
+    .deliverable .spacer { flex: 1; }
+    .abtn.gold { background: #f59e0b; color: #fff; }
+    .abtn.ghost { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
+    .frame.final img { outline: 3px solid #f59e0b; outline-offset: -3px; }
+    .lock-overlay { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 1.1rem; background: linear-gradient(180deg, rgba(18,42,63,0) 55%, rgba(18,42,63,0.55)); border-radius: 8px; pointer-events: none; }
+    .lock-overlay .abtn { pointer-events: auto; box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
     .film .add { flex: 0 0 auto; border: 1.5px dashed #cbd5e1; color: #64748b; background: none; border-radius: 8px; height: 44px; padding: 0 0.8rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; }
     .stage { flex: 1; position: relative; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 1rem; }
     .frame { position: relative; display: inline-block; max-width: 100%; }
@@ -94,6 +106,7 @@
   <div class="main">
     <div class="stage-wrap">
       <div class="film" id="film"></div>
+      <div class="deliverable" id="deliverable" hidden></div>
       <div class="stage" id="stage"><div class="empty">Loading&hellip;</div></div>
     </div>
     <div class="panel">
@@ -178,8 +191,89 @@
     }
     function generals() { return roots().filter(function (c) { return !c.anchor || !c.anchor.imageId; }); }
 
+    function currentImage() {
+      return state.images.find(function (i) { return i.id === state.current; });
+    }
+    function fmtPrice(p) { return '$' + Number(p).toFixed(2); }
+
+    // ── Gated delivery actions ───────────────────────────────────
+    function payFor(img) {
+      api('POST', '/assets/' + img.id + '/checkout')
+        .then(function (d) {
+          if (d.url) window.location.href = d.url;
+          else toast('Could not start the payment — please contact us.');
+        })
+        .catch(function (e) { toast(e.message); });
+    }
+    function downloadFinal(img) {
+      window.location.href = cfg.apiBase + '/assets/' + img.id + '/download';
+    }
+    function markFinal(img) {
+      var raw = prompt('Price in USD for the final file (0 = free download):', img.price != null ? img.price : '');
+      if (raw === null) return;
+      var price = parseFloat(raw);
+      if (!isFinite(price) || price < 0) { toast('Enter a price of 0 or more.'); return; }
+      var title = prompt('Name for the downloaded file (optional):', img.title || cfg.boardTitle) || '';
+      api('POST', '/assets/' + img.id + '/final', { price: price, title: title })
+        .then(loadAll)
+        .then(function () { toast(price > 0 ? 'Marked as final — locked until paid.' : 'Marked as final — free to download.'); })
+        .catch(function (e) { toast(e.message); });
+    }
+    function unmarkFinal(img) {
+      if (!confirm('Remove the final-deliverable mark from this image?')) return;
+      api('POST', '/assets/' + img.id + '/final', { remove: true })
+        .then(loadAll).then(function () { toast('No longer marked as final.'); })
+        .catch(function (e) { toast(e.message); });
+    }
+    function unlockFinal(img) {
+      if (!confirm('Mark this deliverable as paid and unlock the client download?')) return;
+      api('POST', '/assets/' + img.id + '/unlock')
+        .then(loadAll).then(function () { toast('Unlocked — the client can download it now.'); })
+        .catch(function (e) { toast(e.message); });
+    }
+
     // ── Rendering ────────────────────────────────────────────────
-    function render() { renderApproval(); renderFilm(); renderStage(); renderPanel(); renderCount(); }
+    function render() { renderApproval(); renderFilm(); renderDeliverable(); renderStage(); renderPanel(); renderCount(); }
+
+    function renderDeliverable() {
+      var el = document.getElementById('deliverable');
+      var img = currentImage();
+      if (!img || (!img.is_final && !cfg.isAdmin)) { el.hidden = true; el.innerHTML = ''; return; }
+      el.hidden = false;
+      var h = '';
+      if (img.is_final) {
+        var locked = img.payment_status === 'locked';
+        el.className = 'deliverable ' + (locked ? 'locked' : 'unlocked');
+        h += '<span>&#9733; <strong>Final deliverable</strong>' +
+             (img.title ? ' &mdash; ' + esc(img.title) : '') +
+             (locked && img.price != null ? ' &middot; ' + fmtPrice(img.price) : '') + '</span>';
+        h += '<span class="spacer"></span>';
+        if (cfg.isAdmin) {
+          h += '<button type="button" class="abtn ghost" data-d="download">&#8595; Download</button>';
+          if (locked) h += '<button type="button" class="abtn approve" data-d="unlock">Mark paid &mdash; unlock</button>';
+          h += '<button type="button" class="abtn ghost" data-d="unmark">Unmark final</button>';
+        } else if (locked) {
+          h += '<button type="button" class="abtn gold" data-d="pay">&#128274; Pay to download' + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '') + '</button>';
+        } else {
+          h += '<button type="button" class="abtn approve" data-d="download">&#8595; Download final</button>';
+        }
+      } else {
+        el.className = 'deliverable plain';
+        h += '<span>Working file &mdash; not marked as the final deliverable.</span><span class="spacer"></span>' +
+             '<button type="button" class="abtn ghost" data-d="mark">Mark as final&hellip;</button>';
+      }
+      el.innerHTML = h;
+      el.querySelectorAll('button[data-d]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var act = b.getAttribute('data-d');
+          if (act === 'pay') payFor(img);
+          else if (act === 'download') downloadFinal(img);
+          else if (act === 'mark') markFinal(img);
+          else if (act === 'unmark') unmarkFinal(img);
+          else if (act === 'unlock') unlockFinal(img);
+        });
+      });
+    }
 
     function renderCount() {
       var open = roots().filter(function (c) { return !c.resolved_at; }).length;
@@ -228,12 +322,22 @@
       var el = document.getElementById('film');
       el.innerHTML = '';
       state.images.forEach(function (img) {
+        var wrap = document.createElement('div');
+        wrap.className = 'thumb';
         var t = document.createElement('img');
         t.src = img.src;
         t.alt = 'design';
         if (img.id === state.current) t.className = 'active';
         t.addEventListener('click', function () { state.current = img.id; state.activeThread = null; render(); });
-        el.appendChild(t);
+        wrap.appendChild(t);
+        if (img.is_final) {
+          var s = document.createElement('span');
+          s.className = 'star';
+          s.innerHTML = '&#9733;';
+          s.title = 'Final deliverable';
+          wrap.appendChild(s);
+        }
+        el.appendChild(wrap);
       });
       if (cfg.canUpload) {
         var add = document.createElement('button');
@@ -271,12 +375,27 @@
         return;
       }
       var frame = document.createElement('div');
-      frame.className = 'frame' + (cfg.canComment ? ' can-pin' : '');
+      frame.className = 'frame' + (cfg.canComment ? ' can-pin' : '') + (img.is_final ? ' final' : '');
       var im = document.createElement('img');
       im.src = img.src;
       im.alt = 'design under review';
       im.draggable = false;
       frame.appendChild(im);
+
+      // Locked final, client view: a Pay to Download overlay on the image
+      // itself. The full-res file only leaves through the payment-checked
+      // download endpoint.
+      if (img.is_final && img.payment_status === 'locked' && !cfg.isAdmin) {
+        var ov = document.createElement('div');
+        ov.className = 'lock-overlay';
+        var payBtn = document.createElement('button');
+        payBtn.type = 'button';
+        payBtn.className = 'abtn gold';
+        payBtn.innerHTML = '&#128274; Pay to download' + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '');
+        payBtn.addEventListener('click', function (e) { e.stopPropagation(); payFor(img); });
+        ov.appendChild(payBtn);
+        frame.appendChild(ov);
+      }
 
       pinsFor(img.id).forEach(function (c, i) {
         var p = document.createElement('div');
@@ -412,6 +531,15 @@
           });
         });
       });
+    }
+
+    // Back from a successful checkout: thank the client and refetch until
+    // the webhook has flipped the asset to 'unlocked'.
+    if (/[?&]paid=1(&|$)/.test(window.location.search)) {
+      toast('Payment received — thank you! Your download unlocks in a moment.');
+      try { history.replaceState(null, '', window.location.pathname); } catch (e) { /* ignore */ }
+      setTimeout(loadAll, 4000);
+      setTimeout(loadAll, 10000);
     }
 
     loadAll();
