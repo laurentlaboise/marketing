@@ -286,6 +286,94 @@ function addAssetRoutes(router, side) {
     }
   });
 
+  // Batch placement — one transaction, all-or-nothing. Powers multi-select
+  // moves and the "tidy grid" action; single drags use /place.
+  router.post('/:id/assets/arrange', async (req, res) => {
+    const actor = await resolveActor(req, res, side);
+    if (!actor) return;
+    if (!mayArrange(actor)) {
+      return res.status(403).json({ error: 'Your role on this board does not allow arranging images.' });
+    }
+    const list = req.body && req.body.placements;
+    if (!Array.isArray(list) || !list.length || list.length > 100) {
+      return res.status(400).json({ error: 'Send between 1 and 100 placements.' });
+    }
+    const round2 = (v) => Math.round(Number(v) * 100) / 100;
+    const cleaned = [];
+    for (const p of list) {
+      if (!p || !UUID_RE.test(String(p.id || ''))) {
+        return res.status(400).json({ error: 'Invalid image id in placements.' });
+      }
+      const entry = { id: p.id, sets: {} };
+      for (const col of ['x', 'y']) {
+        if (p[col] === undefined) continue;
+        const v = Number(p[col]);
+        if (!Number.isFinite(v) || Math.abs(v) > 1e6) return res.status(400).json({ error: 'Position is out of range.' });
+        entry.sets[col] = round2(v);
+      }
+      if (p.w !== undefined) {
+        const v = Number(p.w);
+        if (!Number.isFinite(v) || v < 16 || v > 20000) return res.status(400).json({ error: 'Width must be between 16 and 20000.' });
+        entry.sets.w = round2(v);
+      }
+      if (p.h !== undefined) {
+        if (p.h === null) entry.sets.h = null;
+        else {
+          const v = Number(p.h);
+          if (!Number.isFinite(v) || v < 16 || v > 20000) return res.status(400).json({ error: 'Height must be between 16 and 20000.' });
+          entry.sets.h = round2(v);
+        }
+      }
+      if (p.z !== undefined) {
+        const v = Number(p.z);
+        if (!Number.isInteger(v) || v < 0 || v > 100000) return res.status(400).json({ error: 'Stacking order is out of range.' });
+        entry.sets.z = v;
+      }
+      if (!Object.keys(entry.sets).length) return res.status(400).json({ error: 'A placement has nothing to update.' });
+      cleaned.push(entry);
+    }
+    const ids = cleaned.map((p) => p.id);
+    try {
+      const owned = await db.query(
+        'SELECT id FROM board_assets WHERE board_id = $1 AND id = ANY($2::uuid[])',
+        [actor.boardId, ids]
+      );
+      if (owned.rows.length !== new Set(ids).size) {
+        return res.status(400).json({ error: 'One or more images do not belong to this board.' });
+      }
+      const placedBy = `${actor.type}:${actor.id}`.slice(0, 80);
+      const client = await db.pool.connect();
+      try {
+        await client.query('BEGIN');
+        for (const entry of cleaned) {
+          const sets = [];
+          const params = [];
+          for (const [col, val] of Object.entries(entry.sets)) {
+            params.push(val);
+            sets.push(`${col} = $${params.length}`);
+          }
+          params.push(placedBy);
+          sets.push(`placed_by = $${params.length}`);
+          params.push(entry.id);
+          await client.query(
+            `UPDATE board_assets SET ${sets.join(', ')}, placed_at = CURRENT_TIMESTAMP WHERE id = $${params.length}`,
+            params
+          );
+        }
+        await client.query('COMMIT');
+      } catch (txErr) {
+        await client.query('ROLLBACK');
+        throw txErr;
+      } finally {
+        client.release();
+      }
+      res.json({ ok: true, updated: cleaned.length });
+    } catch (e) {
+      console.error('Board asset arrange error:', e);
+      res.status(500).json({ error: 'Could not save the layout.' });
+    }
+  });
+
   // Remove an image node from the board. Arrange roles; a final deliverable
   // can only be removed by the WTS team (deleting it retires its gate).
   // Comments anchored to it are kept — they are review history; the client
