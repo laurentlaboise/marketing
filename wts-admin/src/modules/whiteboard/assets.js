@@ -453,6 +453,72 @@ function addAssetRoutes(router, side) {
     }
   });
 
+  // BCEL OnePay / bank-transfer path for a locked final: record an
+  // awaiting_payment order with a short transfer reference (same pattern as
+  // the store's /bcel-order). The admin matches the reference in the BCEL
+  // One statement and confirms from the Payments panel, which unlocks the
+  // download. No gateway callback exists for scanned merchant QRs.
+  router.post('/:id/assets/:assetId/bcel', async (req, res) => {
+    const actor = await resolveActor(req, res, side);
+    if (!actor) return;
+    try {
+      const asset = await assetForActor(actor, req.params.assetId);
+      if (!asset || !asset.is_final) return res.status(404).json({ error: 'No final deliverable found for that image.' });
+      if (asset.payment_status === 'unlocked') {
+        return res.status(409).json({ error: 'This deliverable is already unlocked — use Download final.' });
+      }
+      if (!(Number(asset.price) > 0)) {
+        return res.status(409).json({ error: 'This deliverable has no price set. Please contact us.' });
+      }
+
+      // One open bank order per asset+customer: reuse it on repeat clicks so
+      // the client always sees the same reference.
+      const existing = (await db.query(
+        `SELECT id, metadata->>'reference' AS reference FROM orders
+         WHERE payment_method = 'bcel_qr' AND status = 'awaiting_payment'
+           AND metadata->>'kind' = 'board_asset' AND metadata->>'board_asset_id' = $1
+           AND customer_email = $2
+         ORDER BY created_at DESC LIMIT 1`,
+        [asset.id, actor.email || 'unknown@wordsthatsells.website']
+      )).rows[0];
+
+      let orderId, reference;
+      if (existing) {
+        orderId = existing.id;
+        reference = existing.reference;
+      } else {
+        const insert = (await db.query(
+          `INSERT INTO orders (customer_email, customer_name, amount, currency, status, payment_method, metadata)
+           VALUES ($1, $2, $3, 'USD', 'awaiting_payment', 'bcel_qr', $4)
+           RETURNING id`,
+          [
+            actor.email || 'unknown@wordsthatsells.website',
+            actor.name || null,
+            Number(asset.price),
+            JSON.stringify({ kind: 'board_asset', board_asset_id: asset.id, board_id: actor.boardId, title: asset.title || null })
+          ]
+        )).rows[0];
+        orderId = insert.id;
+        reference = 'WTS-' + orderId.replace(/-/g, '').slice(0, 8).toUpperCase();
+        await db.query(
+          'UPDATE orders SET metadata = metadata || $1 WHERE id = $2',
+          [JSON.stringify({ reference }), orderId]
+        );
+      }
+
+      res.json({
+        reference: reference,
+        amount: Number(asset.price),
+        currency: 'USD',
+        qr_url: process.env.BCEL_QR_URL || null,
+        account_note: process.env.BCEL_ACCOUNT_NOTE || null
+      });
+    } catch (e) {
+      console.error('Board asset BCEL order error:', e);
+      res.status(500).json({ error: 'Could not prepare the bank transfer. Please contact us.' });
+    }
+  });
+
   // Gated download of the final deliverable. Admins can always download;
   // clients only once payment_status is 'unlocked'. The bytes are streamed
   // through this authenticated, payment-checked endpoint — the inline

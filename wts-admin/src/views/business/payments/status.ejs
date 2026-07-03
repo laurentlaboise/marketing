@@ -1,0 +1,176 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Payments</h1>
+        <p class="page-subtitle">Stripe wiring, webhook activity, bank transfers awaiting confirmation, and the deliverable funnel</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-header"><h2 class="card-title">Configuration</h2></div>
+      <div class="card-body">
+        <table class="data-table">
+          <tbody>
+            <tr>
+              <td>Stripe secret key</td>
+              <td>
+                <% if (stripe.keyPresent) { %>
+                  <span style="color:#16a34a;font-weight:600;">&#10003; set</span>
+                  &middot; mode: <strong><%= stripe.keyMode %></strong>
+                  &middot; &hellip;<%= stripe.keyLast4 %>
+                <% } else { %>
+                  <span style="color:#b91c1c;font-weight:600;">&#10007; missing</span>
+                  — set <code>STRIPE_SECRET_KEY</code> on Railway. Checkout answers a friendly 503 until then.
+                <% } %>
+              </td>
+            </tr>
+            <tr>
+              <td>Stripe webhook secret</td>
+              <td>
+                <% if (stripe.webhookSecretPresent) { %>
+                  <span style="color:#16a34a;font-weight:600;">&#10003; set</span> &middot; &hellip;<%= stripe.webhookSecretLast4 %>
+                <% } else { %>
+                  <span style="color:#b91c1c;font-weight:600;">&#10007; missing</span>
+                  — set <code>STRIPE_WEBHOOK_SECRET</code>; the webhook rejects everything (fail-closed) until then.
+                <% } %>
+                <div style="color:#64748b;font-size:0.85rem;margin-top:0.25rem;">
+                  Endpoint: <code>https://admin.wordsthatsells.website/api/payments/webhook</code>
+                  &middot; events: <code>checkout.session.completed</code>, <code>checkout.session.expired</code>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>BCEL transfer details</td>
+              <td>
+                <% if (bcelConfigured) { %>
+                  <span style="color:#16a34a;font-weight:600;">&#10003; configured</span> — shown to clients in the bank-transfer dialog
+                <% } else { %>
+                  <span style="color:#92400e;font-weight:600;">optional</span> — set <code>BCEL_QR_URL</code> (image URL) and/or <code>BCEL_ACCOUNT_NOTE</code> to show your QR and account details to clients
+                <% } %>
+              </td>
+            </tr>
+            <tr>
+              <td>Last webhook received</td>
+              <td>
+                <% if (lastEvents.length) { %>
+                  <strong><%= new Date(lastEvents[0].received_at).toLocaleString() %></strong>
+                  &middot; <code><%= lastEvents[0].event_type %></code>
+                  &middot; <%= lastEvents[0].outcome %>
+                <% } else { %>
+                  <span style="color:#92400e;">none yet</span> — after configuring, run a test checkout and check Stripe&rsquo;s dashboard for delivery attempts
+                <% } %>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <% if (pendingBank.length) { %>
+    <div class="card" style="margin-bottom: 1rem; border-left: 4px solid #f59e0b;">
+      <div class="card-header"><h2 class="card-title">Bank transfers awaiting confirmation (<%= pendingBank.length %>)</h2></div>
+      <div class="card-body">
+        <p style="color:#64748b; font-size:0.88rem; margin-bottom:0.75rem;">
+          Match the reference in your BCEL One statement, then confirm — the client&rsquo;s download unlocks immediately.
+        </p>
+        <table class="data-table">
+          <thead><tr><th>Reference</th><th>Client</th><th>Deliverable</th><th>Amount</th><th>Requested</th><th></th></tr></thead>
+          <tbody>
+            <% pendingBank.forEach(function (o) { %>
+            <tr>
+              <td><strong><%= o.reference || o.id.slice(0, 8) %></strong></td>
+              <td><%= o.customer_name || o.customer_email %></td>
+              <td><%= o.asset_title || '—' %></td>
+              <td><%= o.amount %> <%= o.currency %></td>
+              <td><%= new Date(o.created_at).toLocaleString() %></td>
+              <td>
+                <form method="POST" action="/business/payments/orders/<%= o.id %>/confirm" onsubmit="return confirm('Confirm this transfer was received and unlock the download?');">
+                  <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                  <button type="submit" class="btn btn-primary" style="padding:0.3rem 0.8rem;">Confirm + unlock</button>
+                </form>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-header"><h2 class="card-title">Deliverable funnel (last 30 days)</h2></div>
+      <div class="card-body">
+        <% if (funnel.length) { %>
+        <table class="data-table">
+          <thead><tr><th>Status</th><th>Orders</th><th>Value</th></tr></thead>
+          <tbody>
+            <% funnel.forEach(function (f) { %>
+            <tr><td><%= f.status %></td><td><%= f.n %></td><td><%= f.total %> USD</td></tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <p style="color:#64748b; font-size:0.85rem; margin-top:0.5rem;">
+          pending/awaiting_payment = pay clicks &middot; completed = conversions. A large pending pile means clients start but don&rsquo;t finish — check pricing or the checkout experience.
+        </p>
+        <% } else { %>
+        <p style="color:#64748b;">No deliverable orders yet.</p>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Recent deliverable orders</h2></div>
+      <div class="card-body">
+        <% if (recent.length) { %>
+        <table class="data-table">
+          <thead><tr><th>When</th><th>Client</th><th>Deliverable</th><th>Amount</th><th>Method</th><th>Status</th><th>Ref / session</th></tr></thead>
+          <tbody>
+            <% recent.forEach(function (o) { %>
+            <tr>
+              <td><%= new Date(o.created_at).toLocaleString() %></td>
+              <td><%= o.customer_email %></td>
+              <td><%= o.asset_title || '—' %></td>
+              <td><%= o.amount %> <%= o.currency %></td>
+              <td><%= o.payment_method %></td>
+              <td><%= o.status %></td>
+              <td style="font-size:0.8rem; color:#64748b;"><%= o.reference || (o.stripe_session_id ? o.stripe_session_id.slice(0, 18) + '…' : '—') %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <p style="color:#64748b;">No deliverable orders yet — mark a board image as a priced final and the orders will appear here.</p>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (lastEvents.length > 1) { %>
+    <div class="card" style="margin-top: 1rem;">
+      <div class="card-header"><h2 class="card-title">Webhook trail</h2></div>
+      <div class="card-body">
+        <table class="data-table">
+          <thead><tr><th>Received</th><th>Event</th><th>Session</th><th>Outcome</th></tr></thead>
+          <tbody>
+            <% lastEvents.forEach(function (ev) { %>
+            <tr>
+              <td><%= new Date(ev.received_at).toLocaleString() %></td>
+              <td><code><%= ev.event_type %></code></td>
+              <td style="font-size:0.8rem;"><%= ev.stripe_session_id ? ev.stripe_session_id.slice(0, 22) + '…' : '—' %></td>
+              <td><%= ev.outcome %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
+  </div>
+
+  <%- include('../../partials/footer') %>
+</main>

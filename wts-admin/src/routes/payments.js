@@ -426,15 +426,24 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       // Gated board deliverable: the checkout session was created by the
       // review board with the asset id in its metadata — flip the asset to
       // 'unlocked' so the client's Download final button goes live.
+      let outcome = 'order completed';
       if (session.metadata && session.metadata.wts_kind === 'board_asset' && process.env.FEATURE_WHITEBOARD === '1') {
         try {
           const { unlockBoardAsset } = require('../modules/whiteboard/assets');
           const unlocked = await unlockBoardAsset(session.metadata.board_asset_id);
+          outcome = unlocked ? 'order completed + board asset unlocked' : 'order completed; asset not unlocked (missing or not final)';
           if (!unlocked) console.warn('Stripe webhook: board asset not unlocked (missing or not final):', session.metadata.board_asset_id);
         } catch (e) {
+          outcome = 'order completed; unlock failed: ' + e.message;
           console.warn('Stripe webhook board-asset unlock failed:', e.message);
         }
       }
+      try {
+        await db.query(
+          'INSERT INTO payment_webhook_events (event_type, stripe_session_id, outcome) VALUES ($1, $2, $3)',
+          [event.type, session.id, outcome.slice(0, 200)]
+        );
+      } catch (e) { /* trail is best-effort */ }
       break;
     }
 
@@ -444,6 +453,12 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         `UPDATE orders SET status = 'expired', updated_at = CURRENT_TIMESTAMP WHERE stripe_session_id = $1`,
         [session.id]
       );
+      try {
+        await db.query(
+          'INSERT INTO payment_webhook_events (event_type, stripe_session_id, outcome) VALUES ($1, $2, $3)',
+          [event.type, session.id, 'order expired']
+        );
+      } catch (e) { /* trail is best-effort */ }
       break;
     }
 

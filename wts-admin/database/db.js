@@ -831,6 +831,23 @@ const db = {
         END $$;
       `);
 
+      // Trail of received (signature-verified) payment webhooks — powers the
+      // admin Payments panel's "last webhook received" and per-event outcome
+      // display. Best-effort writes; the webhook must acknowledge regardless.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS payment_webhook_events (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          event_type VARCHAR(60),
+          stripe_session_id VARCHAR(255),
+          outcome VARCHAR(200),
+          received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_webhook_events_received
+        ON payment_webhook_events (received_at DESC)
+      `);
+
       // Customer portal accounts — completely separate from the admin `users`
       // table. Passwordless: customers sign in via emailed magic links, so
       // there is no password column at all.

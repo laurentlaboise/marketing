@@ -114,6 +114,15 @@
     .muted { color: #94a3b8; font-size: 0.8rem; text-align: center; padding: 0.9rem 0; }
     .resolved-h { color: #94a3b8; font-size: 0.78rem; font-weight: 700; margin-top: 0.9rem; text-transform: uppercase; letter-spacing: 0.04em; }
     .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #122a3f; color: #fff; border-radius: 999px; padding: 0.45rem 1.1rem; font-size: 0.84rem; z-index: 100; opacity: 0.96; }
+    .bcel-modal { position: fixed; inset: 0; background: rgba(18,42,63,0.55); display: flex; align-items: center; justify-content: center; z-index: 90; padding: 1rem; }
+    .bcel-card { background: #fff; border-radius: 14px; padding: 1.2rem 1.4rem; max-width: 380px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.3); font-size: 0.9rem; color: #334155; }
+    .bcel-card h3 { color: #1a1a2e; font-size: 1rem; margin-bottom: 0.7rem; }
+    .bcel-card p { margin: 0.35rem 0; }
+    .bcel-qr { display: block; max-width: 200px; margin: 0.5rem auto; border-radius: 8px; }
+    .bcel-note { color: #64748b; font-size: 0.84rem; }
+    .bcel-ref { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.06em; color: #122a3f; background: #f1f5f9; border: 1.5px dashed #cbd5e1; border-radius: 10px; text-align: center; padding: 0.55rem; margin: 0.4rem 0 0.6rem; user-select: all; }
+    .bcel-hint { color: #64748b; font-size: 0.8rem; line-height: 1.55; }
+    .bcel-card .row { display: flex; justify-content: flex-end; margin-top: 0.6rem; }
     @media (max-width: 760px) {
       .main { flex-direction: column; }
       .panel { width: 100%; flex: 0 0 42%; border-left: none; border-top: 1px solid #e2e8f0; }
@@ -914,6 +923,34 @@
     function downloadFinal(img) {
       window.location.href = cfg.apiBase + '/assets/' + img.id + '/download';
     }
+    // Bank transfer (BCEL OnePay): fetch/reuse the order reference and show
+    // instructions. The WTS team confirms the transfer and the download
+    // unlocks — the page's polling picks it up automatically.
+    function bcelFor(img) {
+      api('POST', '/assets/' + img.id + '/bcel')
+        .then(function (d) {
+          var old = document.querySelector('.bcel-modal');
+          if (old) old.remove();
+          var wrap = document.createElement('div');
+          wrap.className = 'bcel-modal';
+          wrap.innerHTML =
+            '<div class="bcel-card">' +
+              '<h3>Pay by bank transfer &middot; &#8203;BCEL OnePay</h3>' +
+              (d.qr_url ? '<img class="bcel-qr" src="' + esc(d.qr_url) + '" alt="BCEL OnePay QR">' : '') +
+              (d.account_note ? '<p class="bcel-note">' + esc(d.account_note) + '</p>' : '') +
+              '<p>Amount: <strong>' + fmtPrice(d.amount) + '</strong></p>' +
+              '<p>Put this reference in the transfer note:</p>' +
+              '<div class="bcel-ref">' + esc(d.reference) + '</div>' +
+              '<p class="bcel-hint">We unlock your download as soon as the transfer is confirmed — usually within a few hours.<br>' +
+              'ໃສ່ລະຫັດອ້າງອີງນີ້ໃນໝາຍເຫດການໂອນ. ພວກເຮົາຈະປົດລັອກໄຟລ໌ຂອງທ່ານທັນທີທີ່ຢືນຢັນການໂອນແລ້ວ.</p>' +
+              '<div class="row"><button type="button" class="abtn ghost bcel-close">Close</button></div>' +
+            '</div>';
+          document.body.appendChild(wrap);
+          wrap.querySelector('.bcel-close').addEventListener('click', function () { wrap.remove(); });
+          wrap.addEventListener('click', function (e) { if (e.target === wrap) wrap.remove(); });
+        })
+        .catch(function (e) { toast(e.message); });
+    }
     function markFinal(img) {
       var raw = prompt('Price in USD for the final file (0 = free download):', img.price != null ? img.price : '');
       if (raw === null) return;
@@ -1342,6 +1379,7 @@
           h += '<button type="button" class="abtn ghost" data-d="unmark">Unmark final</button>';
         } else if (locked) {
           h += '<button type="button" class="abtn gold" data-d="pay">&#128274; Pay to download' + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '') + '</button>';
+          h += '<button type="button" class="abtn ghost" data-d="bcel">Pay by bank transfer</button>';
         } else {
           h += '<button type="button" class="abtn approve" data-d="download">&#8595; Download final</button>';
         }
@@ -1355,6 +1393,7 @@
         b.addEventListener('click', function () {
           var act = b.getAttribute('data-d');
           if (act === 'pay') payFor(img);
+          else if (act === 'bcel') bcelFor(img);
           else if (act === 'download') downloadFinal(img);
           else if (act === 'mark') markFinal(img);
           else if (act === 'unmark') unmarkFinal(img);
@@ -1448,13 +1487,26 @@
       });
     }
 
-    // Back from a successful checkout: thank the client and refetch until
-    // the webhook has flipped the asset to 'unlocked'.
+    // Back from a successful checkout: fast-poll (2s for 30s) until the
+    // webhook has flipped the asset to 'unlocked' — the Download button
+    // should appear near-instantly, not on the lazy 12s cycle.
     if (/[?&]paid=1(&|$)/.test(window.location.search)) {
-      toast('Payment received — thank you! Your download unlocks in a moment.');
+      toast('Payment received — checking with the bank…');
       try { history.replaceState(null, '', window.location.pathname); } catch (e) { /* ignore */ }
-      setTimeout(loadAll, 4000);
-      setTimeout(loadAll, 10000);
+      var paidTries = 0;
+      var paidTimer = setInterval(function () {
+        paidTries++;
+        loadAll().then(function () {
+          var unlocked = state.images.some(function (i) { return i.is_final && i.payment_status === 'unlocked'; });
+          if (unlocked) {
+            clearInterval(paidTimer);
+            toast('Payment confirmed — your download is unlocked!');
+          } else if (paidTries >= 15) {
+            clearInterval(paidTimer);
+            toast('Payment is still being confirmed — this page will keep checking.');
+          }
+        });
+      }, 2000);
     }
 
     loadAll();
