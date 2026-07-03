@@ -1,0 +1,16 @@
+{
+  "chat": {
+    "heading": "AI Marketing Strategist",
+    "subtitle": "Ask about your services, orders, or anything marketing — SEO, content, social, web.",
+    "offlineNotice": "The AI Strategist isn't switched on yet — it's coming soon. In the meantime, use {link} and our team will get back to you by email within one business day.",
+    "offlineNoticeLink": "the quick actions on your dashboard",
+    "greeting": "Hi! I'm your marketing strategist. I can see your services, orders and files, and I know the Lao and Southeast Asian market.",
+    "greetingTry": "Try: “What should my next marketing step be?” or “Explain my last order.”",
+    "placeholder": "Type your question…",
+    "send": "Send",
+    "thinking": "Thinking…",
+    "errorGeneric": "Something went wrong — please try again.",
+    "errorConnection": "Connection problem — please try again.",
+    "footerNote": "The strategist can see only your own account. For changes to orders or services, use your dashboard's quick actions."
+  }
+}
