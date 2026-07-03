@@ -50,14 +50,17 @@
 
       <!-- Sales -->
       <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['orders', 'customers'].includes(currentPage) ? 'active' : '' %>">
+        <a href="#" class="nav-link submenu-toggle <%= ['orders', 'customers', 'boards'].includes(currentPage) ? 'active' : '' %>">
           <i class="fas fa-cash-register"></i>
           <span>Sales</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['orders', 'customers'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= ['orders', 'customers', 'boards'].includes(currentPage) ? 'open' : '' %>">
           <li><a href="/business/orders" class="<%= currentPage === 'orders' ? 'active' : '' %>"><i class="fas fa-receipt"></i> Orders</a></li>
           <li><a href="/business/customers" class="<%= currentPage === 'customers' ? 'active' : '' %>"><i class="fas fa-user-group"></i> Clients</a></li>
+          <% if (typeof featureWhiteboard !== 'undefined' && featureWhiteboard) { %>
+          <li><a href="/business/boards" class="<%= currentPage === 'boards' ? 'active' : '' %>"><i class="fas fa-chalkboard"></i> Boards</a></li>
+          <% } %>
         </ul>
       </li>
 

@@ -18,6 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
+    "@tldraw/sync-core": "^5.2.2",
     "bcryptjs": "^3.0.3",
     "connect-pg-simple": "^10.0.0",
     "cors": "^2.8.5",
@@ -41,10 +42,16 @@
     "sharp": "^0.35.3",
     "stripe": "^22.3.0",
     "striptags": "^3.2.0",
-    "uuid": "^14.0.1"
+    "tldraw": "^5.2.2",
+    "uuid": "^14.0.1",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@tldraw/sync": "^5.2.2",
+    "esbuild": "^0.28.1",
+    "nodemon": "^3.1.14",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "engines": {
     "node": ">=18.0.0"
