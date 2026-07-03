@@ -90,7 +90,8 @@ function createPortalRouter() {
         canComment: COMMENTER_ROLES.has(board.member_role),
         canApprove: false,
         canDecide: COMMENTER_ROLES.has(board.member_role),
-        canUpload: ['owner', 'editor'].includes(board.member_role)
+        canUpload: ['owner', 'editor'].includes(board.member_role),
+        tldrawLicenseKey: process.env.TLDRAW_LICENSE_KEY || null
       });
     } catch (e) {
       console.error('Whiteboard portal board error:', e);

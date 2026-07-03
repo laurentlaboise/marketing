@@ -146,7 +146,8 @@ function createAdminRouter() {
         canComment: true,
         canApprove: true,
         canDecide: false,
-        canUpload: true
+        canUpload: true,
+        tldrawLicenseKey: process.env.TLDRAW_LICENSE_KEY || null
       });
     } catch (e) {
       console.error('Whiteboard board page error:', e);

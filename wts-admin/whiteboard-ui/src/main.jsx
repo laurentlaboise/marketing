@@ -518,6 +518,23 @@ function App() {
     return () => clearTimeout(t);
   }, [synced, failed]);
 
+  // tldraw's license gate: on non-localhost domains without a valid
+  // TLDRAW_LICENSE_KEY it silently hides the whole editor 5s after mount
+  // (renders a hidden div[data-testid="tl-license-expired"]). Detect that
+  // and explain, instead of leaving clients staring at a blank canvas.
+  const [lockedOut, setLockedOut] = useState(false);
+  useEffect(() => {
+    if (!synced) return undefined;
+    const iv = setInterval(() => {
+      if (document.querySelector('[data-testid="tl-license-expired"]')) {
+        setLockedOut(true);
+        clearInterval(iv);
+      }
+    }, 1000);
+    const stop = setTimeout(() => clearInterval(iv), 20000);
+    return () => { clearInterval(iv); clearTimeout(stop); };
+  }, [synced]);
+
   const unresolvedCount = comments.filter((c) => !c.parent_id && !c.resolved_at).length;
 
   const togglePanel = () => {
@@ -557,13 +574,23 @@ function App() {
       <div className="wts-board-main">
         <div className="wts-board-canvas">
           {synced && !online && <div className="wts-board-banner">Reconnecting&hellip;</div>}
+          {lockedOut && (
+            <div className="wts-board-splash" style={{ zIndex: 1001 }}>
+              <p style={{ maxWidth: 440, textAlign: 'center' }}>
+                {cfg.isAdmin
+                  ? 'The board engine (tldraw) hid the canvas because no production license key is set. Add TLDRAW_LICENSE_KEY in Railway (get a key at tldraw.dev/pricing), or ask us to switch to the license-free engine.'
+                  : 'This board is temporarily unavailable while we finish setting it up. Please check back soon — your work is saved.'}
+              </p>
+              <button type="button" onClick={() => location.reload()}>Reload</button>
+            </div>
+          )}
           {synced ? (
             // One editor for the life of the page. The sync layer reconnects on
             // its own (connectionStatus flips offline/online) without unmounting
             // — an unmount mid-font-load crashes tldraw's FontManager, and a
             // throwaway scratch canvas would silently discard early drawings.
             <BoardErrorBoundary>
-              <Tldraw store={storeWithStatus.store} assetUrls={assetUrls} onMount={onMount} />
+              <Tldraw store={storeWithStatus.store} assetUrls={assetUrls} onMount={onMount} licenseKey={cfg.tldrawLicenseKey || undefined} />
             </BoardErrorBoundary>
           ) : (
             <div className="wts-board-splash">
