@@ -64,28 +64,50 @@ async function unlockBoardAsset(assetId) {
   return updated.rows.length > 0;
 }
 
+// Grid fallback for rows that predate the placement columns (or were
+// inserted by an old instance mid-deploy): same rule as the boot backfill in
+// migrations.js — 4 columns, 520 stride, 480 wide — so every viewer computes
+// the identical layout without requiring a write.
+function gridFallback(seq) {
+  return { x: (seq % 4) * 520, y: Math.floor(seq / 4) * 520, w: 480, h: null, z: seq };
+}
+
+function mayArrange(actor) {
+  return actor.type === 'admin' || UPLOAD_ROLES.has(actor.role);
+}
+
 function addAssetRoutes(router, side) {
-  // List the board's images (any member/admin) — the review board's filmstrip.
+  // List the board's images (any member/admin) — filmstrip + canvas nodes.
   router.get('/:id/assets', async (req, res) => {
     const actor = await resolveActor(req, res, side);
     if (!actor) return;
     try {
       const rows = (await db.query(
-        `SELECT id, mime, size, created_at, is_final, payment_status, price, title
-         FROM board_assets WHERE board_id = $1 ORDER BY created_at ASC`,
+        `SELECT id, mime, size, created_at, is_final, payment_status, price, title,
+                x, y, w, h, z, placed_at
+         FROM board_assets WHERE board_id = $1 ORDER BY created_at ASC, id ASC`,
         [actor.boardId]
-      )).rows.map((a) => ({
-        id: a.id,
-        mime: a.mime,
-        size: a.size,
-        created_at: a.created_at,
-        is_final: a.is_final,
-        payment_status: a.payment_status,
-        price: a.price === null ? null : Number(a.price),
-        title: a.title,
-        src: '/board-assets/' + actor.boardId + '/' + a.id
-      }));
-      res.json({ assets: rows });
+      )).rows.map((a, seq) => {
+        const placed = a.x === null ? gridFallback(seq) : a;
+        return {
+          id: a.id,
+          mime: a.mime,
+          size: a.size,
+          created_at: a.created_at,
+          is_final: a.is_final,
+          payment_status: a.payment_status,
+          price: a.price === null ? null : Number(a.price),
+          title: a.title,
+          x: Number(placed.x),
+          y: Number(placed.y),
+          w: Number(placed.w),
+          h: placed.h === null ? null : Number(placed.h),
+          z: placed.z == null ? seq : Number(placed.z),
+          placed_at: a.placed_at,
+          src: '/board-assets/' + actor.boardId + '/' + a.id
+        };
+      });
+      res.json({ assets: rows, can_arrange: mayArrange(actor) });
     } catch (e) {
       console.error('Board asset list error:', e);
       res.status(500).json({ error: 'Failed to load images.' });
@@ -186,6 +208,105 @@ function addAssetRoutes(router, side) {
     } catch (e) {
       console.error('Board asset unlock error:', e);
       res.status(500).json({ error: 'Could not unlock the deliverable.' });
+    }
+  });
+
+  // Move/resize/restack a node on the canvas. Admin and owner/editor
+  // members only. Partial update: absent fields keep their value. Server is
+  // the last-write-wins authority — placed_at stamps every write.
+  router.post('/:id/assets/:assetId/place', async (req, res) => {
+    const actor = await resolveActor(req, res, side);
+    if (!actor) return;
+    if (!mayArrange(actor)) {
+      return res.status(403).json({ error: 'Your role on this board does not allow arranging images.' });
+    }
+    try {
+      const asset = await assetForActor(actor, req.params.assetId);
+      if (!asset) return res.status(404).json({ error: 'Image not found.' });
+
+      const body = req.body || {};
+      const sets = [];
+      const params = [];
+      const bad = (msg) => res.status(400).json({ error: msg });
+
+      const round2 = (v) => Math.round(Number(v) * 100) / 100;
+      const addSet = (col, val) => { params.push(val); sets.push(`${col} = $${params.length}`); };
+
+      for (const col of ['x', 'y']) {
+        if (body[col] === undefined) continue;
+        const v = Number(body[col]);
+        if (!Number.isFinite(v) || Math.abs(v) > 1e6) return bad('Position is out of range.');
+        addSet(col, round2(v));
+      }
+      if (body.w !== undefined) {
+        const v = Number(body.w);
+        if (!Number.isFinite(v) || v < 16 || v > 20000) return bad('Width must be between 16 and 20000.');
+        addSet('w', round2(v));
+      }
+      if (body.h !== undefined) {
+        if (body.h === null) {
+          addSet('h', null); // reset to natural aspect
+        } else {
+          const v = Number(body.h);
+          if (!Number.isFinite(v) || v < 16 || v > 20000) return bad('Height must be between 16 and 20000.');
+          addSet('h', round2(v));
+        }
+      }
+      if (body.z !== undefined) {
+        const v = Number(body.z);
+        if (!Number.isInteger(v) || v < 0 || v > 100000) return bad('Stacking order is out of range.');
+        addSet('z', v);
+      }
+      if (!sets.length) return bad('Nothing to update.');
+
+      params.push(`${actor.type}:${actor.id}`.slice(0, 80));
+      sets.push(`placed_by = $${params.length}`);
+      params.push(asset.id);
+
+      const row = (await db.query(
+        `UPDATE board_assets SET ${sets.join(', ')}, placed_at = CURRENT_TIMESTAMP
+         WHERE id = $${params.length}
+         RETURNING id, x, y, w, h, z, placed_at`,
+        params
+      )).rows[0];
+      res.json({
+        asset: {
+          id: row.id,
+          x: Number(row.x),
+          y: Number(row.y),
+          w: row.w === null ? null : Number(row.w),
+          h: row.h === null ? null : Number(row.h),
+          z: Number(row.z),
+          placed_at: row.placed_at
+        }
+      });
+    } catch (e) {
+      console.error('Board asset place error:', e);
+      res.status(500).json({ error: 'Could not save the layout.' });
+    }
+  });
+
+  // Remove an image node from the board. Arrange roles; a final deliverable
+  // can only be removed by the WTS team (deleting it retires its gate).
+  // Comments anchored to it are kept — they are review history; the client
+  // renders them as general comments tagged "(image removed)".
+  router.post('/:id/assets/:assetId/delete', async (req, res) => {
+    const actor = await resolveActor(req, res, side);
+    if (!actor) return;
+    if (!mayArrange(actor)) {
+      return res.status(403).json({ error: 'Your role on this board does not allow removing images.' });
+    }
+    try {
+      const asset = await assetForActor(actor, req.params.assetId);
+      if (!asset) return res.status(404).json({ error: 'Image not found.' });
+      if (asset.is_final && actor.type !== 'admin') {
+        return res.status(403).json({ error: 'Only the WTS team can remove a final deliverable.' });
+      }
+      await db.query('DELETE FROM board_assets WHERE id = $1', [asset.id]);
+      res.json({ ok: true });
+    } catch (e) {
+      console.error('Board asset delete error:', e);
+      res.status(500).json({ error: 'Could not remove the image.' });
     }
   });
 
