@@ -36,7 +36,10 @@ async function runMigrations() {
     ON board_members (principal_type, principal_id)
   `);
 
-  // Latest-only snapshot in v1: PK on board_id, persisted via upsert.
+  // LEGACY — written by the removed tldraw integration; unused since its
+  // removal. Kept for rollback safety and the additive-only migration
+  // policy. Do not write to it. Candidate for a drop migration after
+  // several releases.
   await db.query(`
     CREATE TABLE IF NOT EXISTS board_snapshots (
       board_id UUID PRIMARY KEY REFERENCES boards(id) ON DELETE CASCADE,
@@ -123,6 +126,59 @@ async function runMigrations() {
   `);
   await db.query(`
     ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS title VARCHAR(200)
+  `);
+
+  // Spatial placement: every asset is a node on an infinite canvas.
+  // World units = CSS px at zoom 1. x/y = node top-left; w = node width;
+  // h NULL = natural aspect (the client derives it from w and the image's
+  // intrinsic ratio, and persists it on first arrange). x NULL = legacy row
+  // not yet placed — the assets list serves a deterministic grid fallback
+  // and the backfill below fills the bulk at boot.
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS x DOUBLE PRECISION
+  `);
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS y DOUBLE PRECISION
+  `);
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS w DOUBLE PRECISION
+  `);
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS h DOUBLE PRECISION
+  `);
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS z INTEGER NOT NULL DEFAULT 0
+  `);
+  // Concurrency + audit: set by the server on every placement write. NULL =
+  // never hand-placed (backfilled/legacy) — sorts before any real timestamp
+  // in last-write-wins comparisons.
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS placed_at TIMESTAMP
+  `);
+  await db.query(`
+    ALTER TABLE board_assets ADD COLUMN IF NOT EXISTS placed_by VARCHAR(80)
+  `);
+
+  // One-time default placement for pre-spatial boards: 4-column grid in
+  // created_at order, 480-wide nodes on a 520 stride, z = grid index.
+  // WHERE x IS NULL makes this idempotent AND sweeps up rows inserted by
+  // old app instances during a rolling deploy on the next boot.
+  await db.query(`
+    WITH ranked AS (
+      SELECT id,
+             ROW_NUMBER() OVER (
+               PARTITION BY board_id ORDER BY created_at ASC, id ASC
+             ) - 1 AS n
+      FROM board_assets
+      WHERE x IS NULL
+    )
+    UPDATE board_assets a
+    SET x = (ranked.n % 4) * 520,
+        y = FLOOR(ranked.n / 4) * 520,
+        w = 480,
+        z = ranked.n
+    FROM ranked
+    WHERE a.id = ranked.id
   `);
 }
 
