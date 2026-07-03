@@ -4,7 +4,10 @@
 customer-facing emails and errors it sends. The marketing site and the admin back-office are
 explicitly out of scope for this phase.
 
-**Status:** approved and in implementation (Phases 0–4 on this branch).
+**Status:** Phases 0–4 implemented on this branch (2026-07-03). 261 keys in
+`src/locales/{en,th}.json` with full key/placeholder parity; all portal views render verified in
+both locales; Thai copy is AI-drafted pending native review (decision #3). Remaining: Phase 5
+production QA (screenshot pass done pre-merge; missing-key audit and native review after deploy).
 **Date:** 2026-07-03
 
 **Ratified decisions (2026-07-03):**

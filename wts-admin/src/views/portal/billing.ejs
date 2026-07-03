@@ -74,7 +74,7 @@
         <span style="flex:1;min-width:160px;">
           <strong style="color:#1a1a2e;"><%= o.product_name || t('billing.orderFallback') %></strong><br>
           <span class="when"><%= fmtDate(o.created_at) %></span>
-          <span class="method"> · <%- isBcel ? '<span class="bcel">' + esc(t('billing.methodBcel')) + '</span>' : esc(t('billing.methodCard')) %></span>
+          <span class="method"> · <%- isBcel ? '<span class="bcel">' + esc(t('payment.bcel')) + '</span>' : esc(t('payment.card')) %></span>
           <% if (meta.reference) { %><span class="when"> · <%= t('billing.ref', { ref: meta.reference }) %></span><% } %>
         </span>
         <span style="text-align:right;">
