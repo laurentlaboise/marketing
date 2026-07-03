@@ -74,6 +74,13 @@
     .node-tools button { border: none; background: none; font-family: inherit; font-size: 0.78rem; font-weight: 600; color: #334155; cursor: pointer; padding: 0.2rem 0.45rem; border-radius: 6px; }
     .node-tools button:hover { background: #f1f5f9; }
     .node-tools button.danger { color: #b91c1c; }
+    .export-pop { position: absolute; right: 12px; top: 52px; z-index: 50; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.18); padding: 0.7rem 0.8rem; width: 230px; font-size: 0.82rem; color: #334155; }
+    .export-pop label { display: flex; align-items: center; gap: 0.45rem; padding: 0.22rem 0; cursor: pointer; }
+    .export-pop .note { color: #92400e; background: #fffbeb; border-radius: 8px; padding: 0.35rem 0.5rem; font-size: 0.76rem; margin: 0.35rem 0; }
+    .export-pop .row { display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.5rem; }
+    .export-pop button { border: none; border-radius: 8px; padding: 0.3rem 0.8rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .export-pop .go { background: #d62b83; color: #fff; }
+    .export-pop .cancel { background: #f1f5f9; color: #475569; }
     .hud { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 0.4rem; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.25rem 0.5rem; font-size: 0.78rem; color: #475569; box-shadow: 0 2px 8px rgba(0,0,0,0.08); z-index: 40; }
     .hud button { border: none; background: none; font-family: inherit; font-size: 0.78rem; font-weight: 700; color: #d62b83; cursor: pointer; padding: 0.15rem 0.35rem; }
     .hud .pct { min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -367,7 +374,7 @@
     }
 
     viewport.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('.composer-pop') || e.target.closest('.hud') || e.target.closest('.node-tools')) return;
+      if (e.target.closest('.composer-pop') || e.target.closest('.hud') || e.target.closest('.node-tools') || e.target.closest('.export-pop')) return;
       viewport.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pointers.size === 2) {
@@ -823,7 +830,11 @@
       });
     }
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeComposer();
+      if (e.key === 'Escape') {
+        closeComposer();
+        var xp = viewport.querySelector('.export-pop');
+        if (xp) xp.remove();
+      }
     });
 
     // ── Gated delivery actions (unchanged behavior) ──────────────
@@ -893,17 +904,22 @@
       var tidyBtn = document.getElementById('tidy');
       tidyBtn.hidden = !(state.canArrange && state.images.length > 1);
       var img = currentImage();
-      if (!state.canArrange || !img) { el.hidden = true; el.innerHTML = ''; return; }
+      if (!img) { el.hidden = true; el.innerHTML = ''; return; }
       el.hidden = false;
-      var canDelete = !img.is_final || cfg.isAdmin;
+      var canDelete = state.canArrange && (!img.is_final || cfg.isAdmin);
       el.innerHTML =
-        '<button type="button" data-t="front">&#8613; Front</button>' +
-        '<button type="button" data-t="back">&#8615; Back</button>' +
-        (canDelete ? '<button type="button" class="danger" data-t="remove">Remove</button>' : '');
+        '<button type="button" data-t="export">&#10515; Export</button>' +
+        (state.canArrange
+          ? '<button type="button" data-t="front">&#8613; Front</button>' +
+            '<button type="button" data-t="back">&#8615; Back</button>' +
+            (canDelete ? '<button type="button" class="danger" data-t="remove">Remove</button>' : '')
+          : '');
       el.querySelectorAll('button[data-t]').forEach(function (b) {
         b.addEventListener('click', function () {
           var act = b.getAttribute('data-t');
-          if (act === 'front') {
+          if (act === 'export') {
+            openExportPopover(img);
+          } else if (act === 'front') {
             var maxZ = state.images.reduce(function (m, i) { return Math.max(m, i.z || 0); }, 0);
             persistPlacement(img, { z: Math.min(100000, maxZ + 1) });
             applyPlacement(nodesById[img.id], img);
@@ -918,6 +934,205 @@
               .catch(function (er) { toast(er.message); });
           }
         });
+      });
+    }
+
+    // ── Export pipeline (blueprint §6): renders from the DATA MODEL into an
+    // offscreen canvas in natural-pixel space — the viewport transform and
+    // UI chrome are never inputs, so they cannot leak into the artifact.
+    function slugify(s) {
+      return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'design';
+    }
+
+    function decodeBlob(blob) {
+      if (window.createImageBitmap) return createImageBitmap(blob);
+      return new Promise(function (res, rej) {
+        var u = URL.createObjectURL(blob);
+        var im = new Image();
+        im.onload = function () { URL.revokeObjectURL(u); res(im); };
+        im.onerror = function () { URL.revokeObjectURL(u); rej(new Error('Could not read the image.')); };
+        im.src = u;
+      });
+    }
+
+    function drawWatermark(ctx, W, H) {
+      var diag = Math.hypot(W, H);
+      var fontPx = Math.max(18, diag * 0.028);
+      ctx.save();
+      ctx.globalAlpha = 0.14;
+      ctx.fillStyle = '#122a3f';
+      ctx.font = '700 ' + Math.round(fontPx) + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(-30 * Math.PI / 180);
+      var text = 'PROOF — Words That Sells';
+      var stepX = Math.max(1, ctx.measureText(text).width * 1.6);
+      var stepY = fontPx * 6;
+      for (var y = -diag; y <= diag; y += stepY) {
+        var off = (Math.abs(Math.round(y / stepY)) % 2) * (stepX / 2);
+        for (var x = -diag; x <= diag; x += stepX) ctx.fillText(text, x + off, y);
+      }
+      ctx.restore();
+    }
+
+    function exportNode(img, opts) {
+      var locked = img.is_final && img.payment_status === 'locked' && !cfg.isAdmin;
+      var wantAnnots = locked ? true : !!opts.annotations;
+      var wantLegend = wantAnnots && !!opts.legend;
+      toast('Preparing export…');
+      fetch(img.src, { credentials: 'same-origin' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('Could not fetch the image (' + r.status + ').');
+          return r.blob();
+        })
+        .then(decodeBlob)
+        .then(function (bmp) {
+          var nw = bmp.width, nh = bmp.height;
+          if (!nw || !nh) throw new Error('Could not read the image.');
+          // Memory clamps: Safari misbehaves past ~16M px / 8192 a side.
+          var s = 1;
+          if (locked) s = Math.min(s, 1600 / Math.max(nw, nh));
+          s = Math.min(s, 8192 / Math.max(nw, nh), Math.sqrt(14000000 / (nw * nh)));
+          s = Math.max(0.02, Math.min(1, s));
+          var W = Math.max(1, Math.round(nw * s));
+          var H = Math.max(1, Math.round(nh * s));
+          var diag = Math.hypot(W, H);
+
+          var pins = pinsFor(img.id); // numbering source: FULL list, matches on-screen badges
+          var visible = wantAnnots ? pins.filter(function (c) { return opts.includeResolved || !c.resolved_at; }) : [];
+
+          // Legend measure pass (throwaway ctx so the real canvas is sized once)
+          var fontPx = Math.round(Math.min(26, Math.max(13, diag * 0.012)));
+          var lineH = Math.round(fontPx * 1.45);
+          var pad = Math.round(fontPx * 1.2);
+          var entries = [];
+          var legendH = 0;
+          if (wantLegend && visible.length) {
+            var mctx = document.createElement('canvas').getContext('2d');
+            mctx.font = '400 ' + fontPx + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
+            visible.forEach(function (c) {
+              var text = (c.author_name || 'Comment') + ': ' + String(c.body || '').slice(0, 200) + (c.body && c.body.length > 200 ? '…' : '');
+              var words = text.split(/\s+/);
+              var lines = [];
+              var line = '';
+              var maxW = W - pad * 2 - fontPx * 1.6;
+              words.forEach(function (w) {
+                var probe = line ? line + ' ' + w : w;
+                if (mctx.measureText(probe).width > maxW && line) { lines.push(line); line = w; }
+                else line = probe;
+              });
+              if (line) lines.push(line);
+              entries.push({ n: pins.indexOf(c) + 1, resolved: !!c.resolved_at, lines: lines });
+              legendH += lines.length * lineH + Math.round(fontPx * 0.5);
+            });
+            legendH += pad * 2;
+          }
+
+          var canvas = document.createElement('canvas');
+          canvas.width = W;
+          canvas.height = H + legendH;
+          var ctx = canvas.getContext('2d');
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(bmp, 0, 0, W, H);
+          if (bmp.close) bmp.close();
+
+          if (locked) drawWatermark(ctx, W, H);
+
+          // Badges in natural-pixel space, sized off the image diagonal so a
+          // pin looks identical whether the user was zoomed to 10% or 400%.
+          var r = Math.min(40, Math.max(12, diag * 0.011));
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          visible.forEach(function (c) {
+            var px = (c.anchor.xPct / 100) * W;
+            var py = (c.anchor.yPct / 100) * H;
+            ctx.beginPath();
+            ctx.arc(px, py, r, 0, Math.PI * 2);
+            ctx.fillStyle = c.resolved_at ? 'rgba(148,163,184,0.95)' : 'rgba(214,43,131,0.95)';
+            ctx.fill();
+            ctx.lineWidth = Math.max(2, r * 0.14);
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '700 ' + Math.round(r * 1.05) + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
+            ctx.fillText(String(pins.indexOf(c) + 1), px, py);
+          });
+
+          if (entries.length) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, H, W, legendH);
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(0, H, W, 1);
+            var y = H + pad + lineH / 2;
+            entries.forEach(function (en) {
+              var br = fontPx * 0.55;
+              ctx.beginPath();
+              ctx.arc(pad + br, y, br, 0, Math.PI * 2);
+              ctx.fillStyle = en.resolved ? '#94a3b8' : '#d62b83';
+              ctx.fill();
+              ctx.fillStyle = '#ffffff';
+              ctx.font = '700 ' + Math.round(fontPx * 0.8) + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
+              ctx.fillText(String(en.n), pad + br, y);
+              ctx.fillStyle = '#334155';
+              ctx.font = '400 ' + fontPx + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
+              ctx.textAlign = 'left';
+              en.lines.forEach(function (ln, li) {
+                ctx.fillText(ln, pad + fontPx * 1.6, y + li * lineH);
+              });
+              ctx.textAlign = 'center';
+              y += en.lines.length * lineH + Math.round(fontPx * 0.5);
+            });
+          }
+
+          return new Promise(function (res, rej) {
+            canvas.toBlob(function (b) {
+              if (b) res({ blob: b, locked: locked, annotated: wantAnnots });
+              else rej(new Error('This image is too large to export here — try on a desktop browser.'));
+            }, 'image/png');
+          });
+        })
+        .then(function (out) {
+          var d = new Date();
+          var p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+          var stamp = d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' + p2(d.getHours()) + p2(d.getMinutes());
+          var kind = out.locked ? 'proof' : (out.annotated ? 'annotated' : 'clean');
+          var url = URL.createObjectURL(out.blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = slugify(cfg.boardTitle) + '_' + slugify(img.title || 'design') + '_' + kind + '_' + stamp + '.png';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+          toast(out.locked ? 'Watermarked proof exported.' : 'Export downloaded.');
+        })
+        .catch(function (e) { toast(e.message); });
+    }
+
+    function openExportPopover(img) {
+      closeComposer();
+      var old = viewport.querySelector('.export-pop');
+      if (old) { old.remove(); return; }
+      var locked = img.is_final && img.payment_status === 'locked' && !cfg.isAdmin;
+      var pop = document.createElement('div');
+      pop.className = 'export-pop';
+      pop.innerHTML =
+        '<label><input type="checkbox" id="x-annot" checked' + (locked ? ' disabled' : '') + '> Comment pins</label>' +
+        '<label><input type="checkbox" id="x-res"> Include resolved</label>' +
+        '<label><input type="checkbox" id="x-legend"> Comment legend</label>' +
+        (locked ? '<div class="note">&#128274; Locked final &mdash; exports as a watermarked proof. The clean file unlocks with payment.</div>' : '') +
+        '<div class="row"><button type="button" class="cancel">Cancel</button><button type="button" class="go">Export PNG</button></div>';
+      viewport.appendChild(pop);
+      pop.querySelector('.cancel').addEventListener('click', function () { pop.remove(); });
+      pop.querySelector('.go').addEventListener('click', function () {
+        var opts = {
+          annotations: pop.querySelector('#x-annot').checked,
+          includeResolved: pop.querySelector('#x-res').checked,
+          legend: pop.querySelector('#x-legend').checked
+        };
+        pop.remove();
+        exportNode(img, opts);
       });
     }
 
