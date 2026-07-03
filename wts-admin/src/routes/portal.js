@@ -261,6 +261,42 @@ router.post('/request', requireCustomer, async (req, res) => {
   }
 });
 
+// ── Billing ─────────────────────────────────────────────────────
+//
+// A money-focused view over the same orders data: what was paid, what's
+// still awaiting a transfer, and which purchases are subscriptions.
+
+router.get('/billing', requireCustomer, async (req, res) => {
+  try {
+    const orders = await db.query(
+      `SELECT o.*, p.name AS product_name, p.pricing_type, p.monthly_price, p.yearly_price
+       FROM orders o LEFT JOIN products p ON o.product_id = p.id
+       WHERE o.customer_id = $1
+       ORDER BY o.created_at DESC
+       LIMIT 200`,
+      [req.session.customerId]
+    );
+    const rows = orders.rows;
+    const paid = rows.filter((o) => o.status === 'completed' && o.amount != null);
+    const awaiting = rows.filter((o) => o.status === 'awaiting_payment');
+    const totals = {};
+    paid.forEach((o) => {
+      const cur = o.currency || 'USD';
+      totals[cur] = (totals[cur] || 0) + parseFloat(o.amount);
+    });
+    res.render('portal/billing', {
+      title: 'Billing - Words That Sells',
+      orders: rows,
+      totals,
+      awaitingCount: awaiting.length,
+      subscriptions: rows.filter((o) => o.pricing_type === 'subscription' && o.status === 'completed')
+    });
+  } catch (e) {
+    console.error('Portal billing error:', e);
+    res.status(500).render('error', { title: 'Error', message: 'Failed to load your billing history. Please try again.', code: 500 });
+  }
+});
+
 // ── Files & deliverables ────────────────────────────────────────
 
 router.get('/files', requireCustomer, async (req, res) => {
