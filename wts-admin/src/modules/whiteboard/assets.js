@@ -17,6 +17,11 @@ const db = require('../../../database/db');
 const { UUID_RE } = require('./util');
 const { resolveActor } = require('./collab');
 const payments = require('./payments-service');
+const { translate } = require('../../lib/i18n');
+
+// These handlers serve both the admin router (no i18n middleware, so no
+// req.locale) and the portal router; translate() falls back to English.
+const msg = (req, key, vars) => translate(req.locale || 'en', key, vars);
 
 const MAX_ASSET_BYTES = 8 * 1024 * 1024; // 8 MB per image
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
@@ -110,7 +115,7 @@ function addAssetRoutes(router, side) {
       res.json({ assets: rows, can_arrange: mayArrange(actor) });
     } catch (e) {
       console.error('Board asset list error:', e);
-      res.status(500).json({ error: 'Failed to load images.' });
+      res.status(500).json({ error: msg(req, 'boards.errors.loadImages') });
     }
   });
 
@@ -118,21 +123,21 @@ function addAssetRoutes(router, side) {
     assetUpload.single('file')(req, res, async (uploadErr) => {
       try {
         if (uploadErr) {
-          const msg = uploadErr.code === 'LIMIT_FILE_SIZE'
-            ? 'That image is over the 8 MB limit.'
-            : 'Upload failed — please try again.';
-          return res.status(400).json({ error: msg });
+          const errMsg = uploadErr.code === 'LIMIT_FILE_SIZE'
+            ? msg(req, 'boards.errors.imageTooLarge')
+            : msg(req, 'boards.errors.uploadFailed');
+          return res.status(400).json({ error: errMsg });
         }
         const actor = await resolveActor(req, res, side);
         if (!actor) return;
         const mayUpload = actor.type === 'admin' || UPLOAD_ROLES.has(actor.role);
-        if (!mayUpload) return res.status(403).json({ error: 'You can comment on this board, but not add images.' });
+        if (!mayUpload) return res.status(403).json({ error: msg(req, 'boards.errors.roleNoUpload') });
 
         const file = req.file;
         const mime = file && String(file.mimetype || '').toLowerCase();
-        if (!file || !file.size) return res.status(400).json({ error: 'No file received.' });
+        if (!file || !file.size) return res.status(400).json({ error: msg(req, 'boards.errors.noFile') });
         if (!ALLOWED_MIME.has(mime) || !looksLikeImage(file.buffer, mime)) {
-          return res.status(400).json({ error: 'Only PNG, JPEG, GIF and WebP images can be placed on a board.' });
+          return res.status(400).json({ error: msg(req, 'boards.errors.badImageType') });
         }
 
         const row = (await db.query(
@@ -144,7 +149,7 @@ function addAssetRoutes(router, side) {
         res.json({ src: `/board-assets/${actor.boardId}/${row.id}` });
       } catch (e) {
         console.error('Board asset upload error:', e);
-        res.status(500).json({ error: 'Upload failed — please try again.' });
+        res.status(500).json({ error: msg(req, 'boards.errors.uploadFailed') });
       }
     });
   });
@@ -155,10 +160,10 @@ function addAssetRoutes(router, side) {
   router.post('/:id/assets/:assetId/final', async (req, res) => {
     const actor = await resolveActor(req, res, side);
     if (!actor) return;
-    if (actor.type !== 'admin') return res.status(403).json({ error: 'Only the WTS team can designate final deliverables.' });
+    if (actor.type !== 'admin') return res.status(403).json({ error: msg(req, 'boards.errors.adminOnlyFinal') });
     try {
       const asset = await assetForActor(actor, req.params.assetId);
-      if (!asset) return res.status(404).json({ error: 'Image not found.' });
+      if (!asset) return res.status(404).json({ error: msg(req, 'boards.errors.imageNotFound') });
 
       if (req.body && (req.body.remove === true || req.body.remove === 'true')) {
         await db.query(
@@ -171,7 +176,7 @@ function addAssetRoutes(router, side) {
 
       const price = Number(req.body && req.body.price);
       if (!Number.isFinite(price) || price < 0 || price > 99999999) {
-        return res.status(400).json({ error: 'Enter a price of 0 or more (0 releases the file for free).' });
+        return res.status(400).json({ error: msg(req, 'boards.errors.invalidPrice') });
       }
       const title = String((req.body && req.body.title) || '').trim().slice(0, 200) || null;
       const status = price > 0 ? 'locked' : 'unlocked';
@@ -190,7 +195,7 @@ function addAssetRoutes(router, side) {
       res.json({ ok: true, is_final: true, payment_status: status, price: price > 0 ? price : null });
     } catch (e) {
       console.error('Board asset final-mark error:', e);
-      res.status(500).json({ error: 'Could not update the deliverable.' });
+      res.status(500).json({ error: msg(req, 'boards.errors.updateDeliverable') });
     }
   });
 
@@ -199,15 +204,15 @@ function addAssetRoutes(router, side) {
   router.post('/:id/assets/:assetId/unlock', async (req, res) => {
     const actor = await resolveActor(req, res, side);
     if (!actor) return;
-    if (actor.type !== 'admin') return res.status(403).json({ error: 'Only the WTS team can unlock deliverables.' });
+    if (actor.type !== 'admin') return res.status(403).json({ error: msg(req, 'boards.errors.adminOnlyUnlock') });
     try {
       const asset = await assetForActor(actor, req.params.assetId);
-      if (!asset || !asset.is_final) return res.status(404).json({ error: 'No final deliverable found for that image.' });
+      if (!asset || !asset.is_final) return res.status(404).json({ error: msg(req, 'boards.errors.noFinalDeliverable') });
       await unlockBoardAsset(asset.id);
       res.json({ ok: true, payment_status: 'unlocked' });
     } catch (e) {
       console.error('Board asset unlock error:', e);
-      res.status(500).json({ error: 'Could not unlock the deliverable.' });
+      res.status(500).json({ error: msg(req, 'boards.errors.unlockDeliverable') });
     }
   });
 
@@ -218,16 +223,16 @@ function addAssetRoutes(router, side) {
     const actor = await resolveActor(req, res, side);
     if (!actor) return;
     if (!mayArrange(actor)) {
-      return res.status(403).json({ error: 'Your role on this board does not allow arranging images.' });
+      return res.status(403).json({ error: msg(req, 'boards.errors.roleNoArranging') });
     }
     try {
       const asset = await assetForActor(actor, req.params.assetId);
-      if (!asset) return res.status(404).json({ error: 'Image not found.' });
+      if (!asset) return res.status(404).json({ error: msg(req, 'boards.errors.imageNotFound') });
 
       const body = req.body || {};
       const sets = [];
       const params = [];
-      const bad = (msg) => res.status(400).json({ error: msg });
+      const bad = (key) => res.status(400).json({ error: msg(req, key) });
 
       const round2 = (v) => Math.round(Number(v) * 100) / 100;
       const addSet = (col, val) => { params.push(val); sets.push(`${col} = $${params.length}`); };
@@ -235,12 +240,12 @@ function addAssetRoutes(router, side) {
       for (const col of ['x', 'y']) {
         if (body[col] === undefined) continue;
         const v = Number(body[col]);
-        if (!Number.isFinite(v) || Math.abs(v) > 1e6) return bad('Position is out of range.');
+        if (!Number.isFinite(v) || Math.abs(v) > 1e6) return bad('boards.errors.positionOutOfRange');
         addSet(col, round2(v));
       }
       if (body.w !== undefined) {
         const v = Number(body.w);
-        if (!Number.isFinite(v) || v < 16 || v > 20000) return bad('Width must be between 16 and 20000.');
+        if (!Number.isFinite(v) || v < 16 || v > 20000) return bad('boards.errors.widthRange');
         addSet('w', round2(v));
       }
       if (body.h !== undefined) {
@@ -248,16 +253,16 @@ function addAssetRoutes(router, side) {
           addSet('h', null); // reset to natural aspect
         } else {
           const v = Number(body.h);
-          if (!Number.isFinite(v) || v < 16 || v > 20000) return bad('Height must be between 16 and 20000.');
+          if (!Number.isFinite(v) || v < 16 || v > 20000) return bad('boards.errors.heightRange');
           addSet('h', round2(v));
         }
       }
       if (body.z !== undefined) {
         const v = Number(body.z);
-        if (!Number.isInteger(v) || v < 0 || v > 100000) return bad('Stacking order is out of range.');
+        if (!Number.isInteger(v) || v < 0 || v > 100000) return bad('boards.errors.stackingOutOfRange');
         addSet('z', v);
       }
-      if (!sets.length) return bad('Nothing to update.');
+      if (!sets.length) return bad('boards.errors.nothingToUpdate');
 
       params.push(`${actor.type}:${actor.id}`.slice(0, 80));
       sets.push(`placed_by = $${params.length}`);
@@ -282,7 +287,7 @@ function addAssetRoutes(router, side) {
       });
     } catch (e) {
       console.error('Board asset place error:', e);
-      res.status(500).json({ error: 'Could not save the layout.' });
+      res.status(500).json({ error: msg(req, 'boards.errors.saveLayout') });
     }
   });
 
@@ -292,44 +297,44 @@ function addAssetRoutes(router, side) {
     const actor = await resolveActor(req, res, side);
     if (!actor) return;
     if (!mayArrange(actor)) {
-      return res.status(403).json({ error: 'Your role on this board does not allow arranging images.' });
+      return res.status(403).json({ error: msg(req, 'boards.errors.roleNoArranging') });
     }
     const list = req.body && req.body.placements;
     if (!Array.isArray(list) || !list.length || list.length > 100) {
-      return res.status(400).json({ error: 'Send between 1 and 100 placements.' });
+      return res.status(400).json({ error: msg(req, 'boards.errors.placementsCount') });
     }
     const round2 = (v) => Math.round(Number(v) * 100) / 100;
     const cleaned = [];
     for (const p of list) {
       if (!p || !UUID_RE.test(String(p.id || ''))) {
-        return res.status(400).json({ error: 'Invalid image id in placements.' });
+        return res.status(400).json({ error: msg(req, 'boards.errors.invalidPlacementId') });
       }
       const entry = { id: p.id, sets: {} };
       for (const col of ['x', 'y']) {
         if (p[col] === undefined) continue;
         const v = Number(p[col]);
-        if (!Number.isFinite(v) || Math.abs(v) > 1e6) return res.status(400).json({ error: 'Position is out of range.' });
+        if (!Number.isFinite(v) || Math.abs(v) > 1e6) return res.status(400).json({ error: msg(req, 'boards.errors.positionOutOfRange') });
         entry.sets[col] = round2(v);
       }
       if (p.w !== undefined) {
         const v = Number(p.w);
-        if (!Number.isFinite(v) || v < 16 || v > 20000) return res.status(400).json({ error: 'Width must be between 16 and 20000.' });
+        if (!Number.isFinite(v) || v < 16 || v > 20000) return res.status(400).json({ error: msg(req, 'boards.errors.widthRange') });
         entry.sets.w = round2(v);
       }
       if (p.h !== undefined) {
         if (p.h === null) entry.sets.h = null;
         else {
           const v = Number(p.h);
-          if (!Number.isFinite(v) || v < 16 || v > 20000) return res.status(400).json({ error: 'Height must be between 16 and 20000.' });
+          if (!Number.isFinite(v) || v < 16 || v > 20000) return res.status(400).json({ error: msg(req, 'boards.errors.heightRange') });
           entry.sets.h = round2(v);
         }
       }
       if (p.z !== undefined) {
         const v = Number(p.z);
-        if (!Number.isInteger(v) || v < 0 || v > 100000) return res.status(400).json({ error: 'Stacking order is out of range.' });
+        if (!Number.isInteger(v) || v < 0 || v > 100000) return res.status(400).json({ error: msg(req, 'boards.errors.stackingOutOfRange') });
         entry.sets.z = v;
       }
-      if (!Object.keys(entry.sets).length) return res.status(400).json({ error: 'A placement has nothing to update.' });
+      if (!Object.keys(entry.sets).length) return res.status(400).json({ error: msg(req, 'boards.errors.placementNothingToUpdate') });
       cleaned.push(entry);
     }
     const ids = cleaned.map((p) => p.id);
@@ -339,7 +344,7 @@ function addAssetRoutes(router, side) {
         [actor.boardId, ids]
       );
       if (owned.rows.length !== new Set(ids).size) {
-        return res.status(400).json({ error: 'One or more images do not belong to this board.' });
+        return res.status(400).json({ error: msg(req, 'boards.errors.imagesNotOnBoard') });
       }
       const placedBy = `${actor.type}:${actor.id}`.slice(0, 80);
       const client = await db.pool.connect();
@@ -370,7 +375,7 @@ function addAssetRoutes(router, side) {
       res.json({ ok: true, updated: cleaned.length });
     } catch (e) {
       console.error('Board asset arrange error:', e);
-      res.status(500).json({ error: 'Could not save the layout.' });
+      res.status(500).json({ error: msg(req, 'boards.errors.saveLayout') });
     }
   });
 
@@ -382,19 +387,19 @@ function addAssetRoutes(router, side) {
     const actor = await resolveActor(req, res, side);
     if (!actor) return;
     if (!mayArrange(actor)) {
-      return res.status(403).json({ error: 'Your role on this board does not allow removing images.' });
+      return res.status(403).json({ error: msg(req, 'boards.errors.roleNoRemoving') });
     }
     try {
       const asset = await assetForActor(actor, req.params.assetId);
-      if (!asset) return res.status(404).json({ error: 'Image not found.' });
+      if (!asset) return res.status(404).json({ error: msg(req, 'boards.errors.imageNotFound') });
       if (asset.is_final && actor.type !== 'admin') {
-        return res.status(403).json({ error: 'Only the WTS team can remove a final deliverable.' });
+        return res.status(403).json({ error: msg(req, 'boards.errors.adminOnlyRemoveFinal') });
       }
       await db.query('DELETE FROM board_assets WHERE id = $1', [asset.id]);
       res.json({ ok: true });
     } catch (e) {
       console.error('Board asset delete error:', e);
-      res.status(500).json({ error: 'Could not remove the image.' });
+      res.status(500).json({ error: msg(req, 'boards.errors.removeImage') });
     }
   });
 
@@ -406,16 +411,16 @@ function addAssetRoutes(router, side) {
     if (!actor) return;
     try {
       const asset = await assetForActor(actor, req.params.assetId);
-      if (!asset || !asset.is_final) return res.status(404).json({ error: 'No final deliverable found for that image.' });
+      if (!asset || !asset.is_final) return res.status(404).json({ error: msg(req, 'boards.errors.noFinalDeliverable') });
       if (asset.payment_status === 'unlocked') {
-        return res.status(409).json({ error: 'This deliverable is already unlocked — use Download final.' });
+        return res.status(409).json({ error: msg(req, 'boards.errors.alreadyUnlocked') });
       }
       if (!(Number(asset.price) > 0)) {
-        return res.status(409).json({ error: 'This deliverable has no price set. Please contact us.' });
+        return res.status(409).json({ error: msg(req, 'boards.errors.noPriceSet') });
       }
       if (!payments.isConfigured()) {
         return res.status(503).json({
-          error: 'Online payment is not available right now. Please contact us to pay by bank transfer — we will unlock your download as soon as the payment is confirmed.'
+          error: msg(req, 'boards.errors.paymentUnavailable')
         });
       }
 
@@ -449,7 +454,7 @@ function addAssetRoutes(router, side) {
       res.json({ url });
     } catch (e) {
       console.error('Board asset checkout error:', e);
-      res.status(500).json({ error: 'Could not start the payment. Please try again or contact us.' });
+      res.status(500).json({ error: msg(req, 'boards.errors.checkoutFailed') });
     }
   });
 
@@ -463,12 +468,12 @@ function addAssetRoutes(router, side) {
     if (!actor) return;
     try {
       const asset = await assetForActor(actor, req.params.assetId);
-      if (!asset || !asset.is_final) return res.status(404).json({ error: 'No final deliverable found for that image.' });
+      if (!asset || !asset.is_final) return res.status(404).json({ error: msg(req, 'boards.errors.noFinalDeliverable') });
       if (asset.payment_status === 'unlocked') {
-        return res.status(409).json({ error: 'This deliverable is already unlocked — use Download final.' });
+        return res.status(409).json({ error: msg(req, 'boards.errors.alreadyUnlocked') });
       }
       if (!(Number(asset.price) > 0)) {
-        return res.status(409).json({ error: 'This deliverable has no price set. Please contact us.' });
+        return res.status(409).json({ error: msg(req, 'boards.errors.noPriceSet') });
       }
 
       // One open bank order per asset+customer: reuse it on repeat clicks so
@@ -515,7 +520,7 @@ function addAssetRoutes(router, side) {
       });
     } catch (e) {
       console.error('Board asset BCEL order error:', e);
-      res.status(500).json({ error: 'Could not prepare the bank transfer. Please contact us.' });
+      res.status(500).json({ error: msg(req, 'boards.errors.bcelFailed') });
     }
   });
 
@@ -528,16 +533,16 @@ function addAssetRoutes(router, side) {
     if (!actor) return;
     try {
       const meta = await assetForActor(actor, req.params.assetId);
-      if (!meta || !meta.is_final) return res.status(404).json({ error: 'No final deliverable found for that image.' });
+      if (!meta || !meta.is_final) return res.status(404).json({ error: msg(req, 'boards.errors.noFinalDeliverable') });
       if (actor.type !== 'admin' && meta.payment_status !== 'unlocked') {
-        return res.status(402).json({ error: 'This deliverable is released after payment.' });
+        return res.status(402).json({ error: msg(req, 'boards.errors.paymentRequired') });
       }
 
       const asset = (await db.query(
         'SELECT mime, data FROM board_assets WHERE id = $1',
         [meta.id]
       )).rows[0];
-      if (!asset) return res.status(404).json({ error: 'No final deliverable found for that image.' });
+      if (!asset) return res.status(404).json({ error: msg(req, 'boards.errors.noFinalDeliverable') });
 
       const ext = EXT_BY_MIME[asset.mime] || 'bin';
       const base = (meta.title || 'final-deliverable').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-').slice(0, 80) || 'final-deliverable';
@@ -550,7 +555,7 @@ function addAssetRoutes(router, side) {
       res.send(asset.data);
     } catch (e) {
       console.error('Board asset download error:', e);
-      res.status(500).json({ error: 'Download failed — please try again.' });
+      res.status(500).json({ error: msg(req, 'boards.errors.downloadFailed') });
     }
   });
 }
