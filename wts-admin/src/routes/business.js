@@ -8,6 +8,9 @@ const { parseProductListings, parseSeedProducts } = require('../utils/product-im
 const { insertSeedProduct } = require('../utils/product-seeder');
 const { normalizeTiers } = require('../utils/pricing');
 const { upsertCustomer, linkOrdersByEmail, issueLoginLink } = require('./portal');
+const { sendEmail } = require('../utils/mailer');
+const multer = require('multer');
+const escapeHtml = require('escape-html');
 
 const router = express.Router();
 
@@ -893,7 +896,7 @@ router.get('/customers/:id', async (req, res) => {
       req.session.errorMessage = 'Client not found';
       return res.redirect('/business/customers');
     }
-    const [orders, saved] = await Promise.all([
+    const [orders, saved, deliverables] = await Promise.all([
       db.query(
         `SELECT o.*, p.name AS product_name
          FROM orders o LEFT JOIN products p ON o.product_id = p.id
@@ -908,6 +911,13 @@ router.get('/customers/:id', async (req, res) => {
          WHERE s.customer_id = $1
          ORDER BY s.created_at DESC`,
         [req.params.id]
+      ).catch(() => ({ rows: [] })),
+      db.query(
+        `SELECT id, title, description, external_url, file_name, file_size, created_at
+         FROM deliverables
+         WHERE customer_id = $1
+         ORDER BY created_at DESC`,
+        [req.params.id]
       ).catch(() => ({ rows: [] }))
     ]);
     res.render('business/customers/detail', {
@@ -915,6 +925,7 @@ router.get('/customers/:id', async (req, res) => {
       customer: customer.rows[0],
       orders: orders.rows,
       savedServices: saved.rows,
+      deliverables: deliverables.rows,
       currentPage: 'customers'
     });
   } catch (error) {
@@ -943,6 +954,111 @@ router.post('/customers/:id/send-login', async (req, res) => {
   } catch (error) {
     console.error('Send login link error:', error);
     req.session.errorMessage = 'Failed to send sign-in link';
+  }
+  res.redirect(`/business/customers/${req.params.id}`);
+});
+
+// ── Deliverables: share files with a client ─────────────────────
+//
+// Small files are stored in Postgres (BYTEA) so they survive Railway's
+// ephemeral filesystem; bigger things are shared as an external link.
+// The CSRF token rides the form-action query string because multer parses
+// the multipart body after the CSRF middleware has already run.
+
+const deliverableUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }
+});
+
+router.post('/customers/:id/deliverables', (req, res) => {
+  deliverableUpload.single('file')(req, res, async (uploadErr) => {
+    const back = `/business/customers/${req.params.id}`;
+    try {
+      if (uploadErr) {
+        req.session.errorMessage = uploadErr.code === 'LIMIT_FILE_SIZE'
+          ? 'That file is over the 15 MB limit — share it as a link instead'
+          : 'Upload failed — please try again';
+        return res.redirect(back);
+      }
+      const customer = await db.query('SELECT * FROM customers WHERE id = $1', [req.params.id]);
+      if (!customer.rows.length) {
+        req.session.errorMessage = 'Client not found';
+        return res.redirect('/business/customers');
+      }
+
+      const title = String(req.body.title || '').trim().slice(0, 200);
+      const description = String(req.body.description || '').trim().slice(0, 500) || null;
+      const orderId = /^[0-9a-f-]{36}$/i.test(String(req.body.order_id || '')) ? req.body.order_id : null;
+      const file = req.file && req.file.size > 0 ? req.file : null;
+
+      let externalUrl = null;
+      if (req.body.external_url) {
+        try {
+          const url = new URL(String(req.body.external_url).trim());
+          if (url.protocol === 'http:' || url.protocol === 'https:') externalUrl = url.href;
+        } catch (_) { /* rejected below */ }
+        if (!externalUrl) {
+          req.session.errorMessage = 'That link is not a valid http(s) URL';
+          return res.redirect(back);
+        }
+      }
+
+      if (!title || (!file && !externalUrl) || (file && externalUrl)) {
+        req.session.errorMessage = !title
+          ? 'A title is required'
+          : 'Add either a file or a link — exactly one of the two';
+        return res.redirect(back);
+      }
+
+      const safeName = file ? String(file.originalname || 'file').split(/[\\/]/).pop().slice(0, 255) : null;
+      await db.query(
+        `INSERT INTO deliverables (customer_id, order_id, title, description, external_url, file_name, file_mime, file_size, file_data)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [
+          customer.rows[0].id, orderId, title, description, externalUrl,
+          safeName, file ? (file.mimetype || 'application/octet-stream').slice(0, 120) : null,
+          file ? file.size : null, file ? file.buffer : null
+        ]
+      );
+
+      // Best-effort notification — the share succeeds even if email doesn't.
+      try {
+        const portalUrl = `${(process.env.PORTAL_URL || process.env.APP_ADMIN_URL || 'https://admin.wordsthatsells.website').replace(/\/$/, '')}/portal/files`;
+        await sendEmail({
+          to: customer.rows[0].email,
+          subject: `A new file is ready for you — ${title}`,
+          html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+            <h2 style="color:#1a1a2e;margin:0 0 12px;">A new file is ready for you</h2>
+            <p style="color:#475569;line-height:1.6;"><strong>${escapeHtml(title)}</strong>${description ? ' — ' + escapeHtml(description) : ''}</p>
+            <p style="margin:24px 0;"><a href="${portalUrl}" style="background:#d62b83;color:#fff;text-decoration:none;border-radius:8px;padding:12px 24px;font-weight:600;display:inline-block;">Open your portal</a></p>
+            <p style="color:#94a3b8;font-size:13px;">Words That Sells · wordsthatsells.website</p>
+          </div>`,
+          text: `A new file is ready for you: ${title}. Open your portal: ${portalUrl}`
+        });
+      } catch (e) {
+        console.error('Deliverable notification email failed:', e.message);
+      }
+
+      req.session.successMessage = `Shared "${title}" with ${customer.rows[0].email}`;
+      res.redirect(back);
+    } catch (error) {
+      console.error('Create deliverable error:', error);
+      req.session.errorMessage = 'Failed to share the file';
+      res.redirect(back);
+    }
+  });
+});
+
+router.post('/customers/:id/deliverables/:did/delete', async (req, res) => {
+  try {
+    await db.query(
+      'DELETE FROM deliverables WHERE id = $1 AND customer_id = $2',
+      [req.params.did, req.params.id]
+    );
+    req.session.successMessage = 'Deliverable removed';
+  } catch (error) {
+    console.error('Delete deliverable error:', error);
+    req.session.errorMessage = 'Failed to remove the deliverable';
   }
   res.redirect(`/business/customers/${req.params.id}`);
 });

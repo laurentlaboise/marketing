@@ -861,6 +861,9 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customers' AND column_name='phone') THEN
             ALTER TABLE customers ADD COLUMN phone VARCHAR(50);
           END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customers' AND column_name='role') THEN
+            ALTER TABLE customers ADD COLUMN role VARCHAR(20) DEFAULT 'client';
+          END IF;
         END $$;
       `);
 
@@ -889,6 +892,29 @@ const db = {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           UNIQUE (customer_id, product_id)
         )
+      `);
+
+      // Files the team shares with a client (reports, designs, final assets).
+      // Small files live in the row itself (BYTEA — survives Railway's
+      // ephemeral filesystem across deploys); bigger things are linked via
+      // external_url. Exactly one of the two is set per row.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS deliverables (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+          order_id UUID,
+          title VARCHAR(200) NOT NULL,
+          description TEXT,
+          external_url TEXT,
+          file_name VARCHAR(255),
+          file_mime VARCHAR(120),
+          file_size INTEGER,
+          file_data BYTEA,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_deliverables_customer ON deliverables (customer_id, created_at DESC)
       `);
 
       // Price Models table

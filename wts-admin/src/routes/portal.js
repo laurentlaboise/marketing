@@ -171,11 +171,11 @@ router.get('/auth', loginLimiter, async (req, res) => {
   }
 });
 
-// ── My Orders (dashboard) ───────────────────────────────────────
+// ── Dashboard ───────────────────────────────────────────────────
 
 router.get('/', requireCustomer, async (req, res) => {
   try {
-    const [customer, orders, saved] = await Promise.all([
+    const [customer, orders, saved, files] = await Promise.all([
       db.query('SELECT * FROM customers WHERE id = $1', [req.session.customerId]),
       db.query(
         `SELECT o.*, p.name AS product_name, p.download_url, p.product_type
@@ -191,6 +191,15 @@ router.get('/', requireCustomer, async (req, res) => {
          WHERE s.customer_id = $1
          ORDER BY s.created_at DESC`,
         [req.session.customerId]
+      ).catch(() => ({ rows: [] })),
+      db.query(
+        `SELECT id, title, description, external_url, file_name, file_size, created_at,
+                COUNT(*) OVER() AS total
+         FROM deliverables
+         WHERE customer_id = $1
+         ORDER BY created_at DESC
+         LIMIT 5`,
+        [req.session.customerId]
       ).catch(() => ({ rows: [] }))
     ]);
     if (!customer.rows.length) {
@@ -202,11 +211,148 @@ router.get('/', requireCustomer, async (req, res) => {
       customer: customer.rows[0],
       hasPassword: !!customer.rows[0].password_hash,
       orders: orders.rows,
-      savedServices: saved.rows
+      savedServices: saved.rows,
+      recentFiles: files.rows,
+      fileCount: files.rows.length ? parseInt(files.rows[0].total, 10) : 0,
+      requestSent: !!(req.query && req.query.sent === '1')
     });
   } catch (e) {
     console.error('Portal orders error:', e);
     res.status(500).render('error', { title: 'Error', message: 'Failed to load your orders. Please try again.', code: 500 });
+  }
+});
+
+// ── Quick requests ("Request new content" / "Ask a question") ───
+//
+// Lands in the same form_submissions inbox the public site's forms use,
+// so requests show up in the admin's existing submissions screen —
+// tagged with the customer so context is never lost.
+
+router.post('/request', requireCustomer, async (req, res) => {
+  const kind = req.body.kind === 'content' ? 'content' : (req.body.kind === 'question' ? 'question' : null);
+  const message = String(req.body.message || '').trim().slice(0, 4000);
+  if (!kind || !message) {
+    return res.redirect('/portal/?sent=0');
+  }
+  try {
+    const result = await db.query('SELECT * FROM customers WHERE id = $1', [req.session.customerId]);
+    if (!result.rows.length) {
+      req.session.destroy(() => {});
+      return res.redirect('/portal/login');
+    }
+    const c = result.rows[0];
+    await db.query(
+      `INSERT INTO form_submissions (form_type, name, email, company, phone, message, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        'portal_request',
+        c.name || c.email,
+        c.email,
+        c.company || null,
+        c.phone || null,
+        message,
+        JSON.stringify({ kind, customer_id: c.id, source: 'portal' })
+      ]
+    );
+    res.redirect('/portal/?sent=1');
+  } catch (e) {
+    console.error('Portal request error:', e);
+    res.redirect('/portal/?sent=0');
+  }
+});
+
+// ── Billing ─────────────────────────────────────────────────────
+//
+// A money-focused view over the same orders data: what was paid, what's
+// still awaiting a transfer, and which purchases are subscriptions.
+
+router.get('/billing', requireCustomer, async (req, res) => {
+  try {
+    const orders = await db.query(
+      `SELECT o.*, p.name AS product_name, p.pricing_type, p.monthly_price, p.yearly_price
+       FROM orders o LEFT JOIN products p ON o.product_id = p.id
+       WHERE o.customer_id = $1
+       ORDER BY o.created_at DESC
+       LIMIT 200`,
+      [req.session.customerId]
+    );
+    const rows = orders.rows;
+    const paid = rows.filter((o) => o.status === 'completed' && o.amount != null);
+    const awaiting = rows.filter((o) => o.status === 'awaiting_payment');
+    const totals = {};
+    paid.forEach((o) => {
+      const cur = o.currency || 'USD';
+      totals[cur] = (totals[cur] || 0) + parseFloat(o.amount);
+    });
+    res.render('portal/billing', {
+      title: 'Billing - Words That Sells',
+      orders: rows,
+      totals,
+      awaitingCount: awaiting.length,
+      subscriptions: rows.filter((o) => o.pricing_type === 'subscription' && o.status === 'completed')
+    });
+  } catch (e) {
+    console.error('Portal billing error:', e);
+    res.status(500).render('error', { title: 'Error', message: 'Failed to load your billing history. Please try again.', code: 500 });
+  }
+});
+
+// ── Files & deliverables ────────────────────────────────────────
+
+router.get('/files', requireCustomer, async (req, res) => {
+  try {
+    const files = await db.query(
+      `SELECT id, title, description, external_url, file_name, file_mime, file_size, created_at
+       FROM deliverables
+       WHERE customer_id = $1
+       ORDER BY created_at DESC`,
+      [req.session.customerId]
+    );
+    res.render('portal/files', {
+      title: 'My Files - Words That Sells',
+      files: files.rows
+    });
+  } catch (e) {
+    console.error('Portal files error:', e);
+    res.status(500).render('error', { title: 'Error', message: 'Failed to load your files. Please try again.', code: 500 });
+  }
+});
+
+// Scoped to the signed-in customer — an id belonging to someone else 404s,
+// so deliverable ids can never be enumerated across accounts.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+router.get('/files/:id/download', requireCustomer, async (req, res) => {
+  try {
+    if (!UUID_RE.test(req.params.id)) {
+      return res.status(404).render('error', { title: 'Not found', message: 'This file does not exist.', code: 404 });
+    }
+    const result = await db.query(
+      'SELECT * FROM deliverables WHERE id = $1 AND customer_id = $2',
+      [req.params.id, req.session.customerId]
+    );
+    const file = result.rows[0];
+    if (!file) return res.status(404).render('error', { title: 'Not found', message: 'This file does not exist.', code: 404 });
+
+    if (file.external_url) {
+      try {
+        const url = new URL(file.external_url);
+        if (url.protocol === 'http:' || url.protocol === 'https:') return res.redirect(file.external_url);
+      } catch (_) { /* fall through to 404 */ }
+      return res.status(404).render('error', { title: 'Not found', message: 'This file link is not valid.', code: 404 });
+    }
+
+    if (!file.file_data) return res.status(404).render('error', { title: 'Not found', message: 'This file has no content.', code: 404 });
+    const safeName = String(file.file_name || 'download').replace(/[^\w.\- ]+/g, '_');
+    res.set({
+      'Content-Type': file.file_mime || 'application/octet-stream',
+      'Content-Length': file.file_data.length,
+      'Content-Disposition': `attachment; filename="${safeName}"`
+    });
+    res.send(file.file_data);
+  } catch (e) {
+    console.error('Portal file download error:', e);
+    res.status(500).render('error', { title: 'Error', message: 'Failed to download the file.', code: 500 });
   }
 });
 
@@ -285,6 +431,45 @@ router.post('/profile', requireCustomer, async (req, res) => {
   } catch (e) {
     console.error('Portal profile update error:', e);
     res.status(500).render('error', { title: 'Error', message: 'Failed to save your profile.', code: 500 });
+  }
+});
+
+// ── AI Marketing Strategist chat ────────────────────────────────
+
+const chatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.PORTAL_CHAT_RATE_LIMIT_MAX) || 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'You are sending messages a little fast — give it a few minutes and try again.' }
+});
+
+router.get('/chat', requireCustomer, (req, res) => {
+  const strategist = require('../utils/strategist');
+  res.render('portal/chat', {
+    title: 'AI Strategist - Words That Sells',
+    enabled: strategist.isConfigured(),
+    history: (req.session.chatHistory || []).slice(-12)
+  });
+});
+
+router.post('/chat', requireCustomer, chatLimiter, async (req, res) => {
+  const strategist = require('../utils/strategist');
+  if (!strategist.isConfigured()) {
+    return res.status(503).json({ error: 'The AI Strategist is not available yet. Please use the quick actions on your dashboard instead.' });
+  }
+  const message = String(req.body.message || '').trim().slice(0, 2000);
+  if (!message) return res.status(400).json({ error: 'Type a message first.' });
+  try {
+    if (!Array.isArray(req.session.chatHistory)) req.session.chatHistory = [];
+    const reply = await strategist.chatReply(req.session.customerId, req.session.chatHistory, message);
+    req.session.chatHistory = req.session.chatHistory
+      .concat([{ role: 'user', content: message }, { role: 'assistant', content: reply }])
+      .slice(-12);
+    res.json({ reply });
+  } catch (e) {
+    console.error('Portal chat error:', e.status || '', e.message);
+    res.status(502).json({ error: 'The strategist is having a moment — please try again shortly, or send us a quick request from your dashboard.' });
   }
 });
 

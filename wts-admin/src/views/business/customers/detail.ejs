@@ -76,6 +76,109 @@
     </div>
     <% } %>
 
+    <!-- Deliverables: files shared with this client (visible in their portal) -->
+    <% var files = (typeof deliverables !== 'undefined' && deliverables) ? deliverables : []; %>
+    <%
+      function fmtSize(b) {
+        if (b == null) return '';
+        if (b < 1024) return b + ' B';
+        if (b < 1048576) return (b / 1024).toFixed(0) + ' KB';
+        return (b / 1048576).toFixed(1) + ' MB';
+      }
+    %>
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0.85rem 1rem;">
+        <h3 style="margin:0 0 0.6rem;color:var(--text-primary,#1a1a2e);font-size:1.05rem;"><i class="fas fa-folder-open" style="color:#d62b83;"></i> Deliverables (<%= files.length %>)</h3>
+
+        <% if (files.length > 0) { %>
+        <div class="table-container" style="margin-bottom:0.85rem;">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr><th>Title</th><th>File</th><th>Date</th><th style="width:1%;"></th></tr>
+            </thead>
+            <tbody>
+              <% files.forEach((f) => { %>
+              <tr>
+                <td data-label="Title">
+                  <strong><%= f.title %></strong>
+                  <% if (f.description) { %><br><small style="color:#888;"><%= f.description %></small><% } %>
+                </td>
+                <td data-label="File" style="font-size:0.85rem;">
+                  <% if (f.external_url) { %>
+                    <a href="<%= f.external_url %>" rel="noopener" style="color:#1d4ed8;">External link</a>
+                  <% } else { %>
+                    <%= f.file_name || '-' %> <small style="color:#888;"><%= fmtSize(f.file_size) %></small>
+                  <% } %>
+                </td>
+                <td data-label="Date" style="white-space:nowrap;font-size:0.85rem;"><%= new Date(f.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+                <td data-label="">
+                  <form method="POST" action="/business/customers/<%= customer.id %>/deliverables/<%= f.id %>/delete" style="display:inline;">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-sm" data-confirm-delete style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;"><i class="fas fa-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <p style="margin:0 0 0.85rem;color:#888;font-size:0.88rem;">No files shared yet. Anything you add here appears instantly in the client's portal, and they get an email.</p>
+        <% } %>
+
+        <!-- CSRF rides the query string: multer parses this multipart body
+             after the CSRF middleware has already run. -->
+        <form method="POST" action="/business/customers/<%= customer.id %>/deliverables?_csrf=<%= csrfToken %>" enctype="multipart/form-data"
+              style="border-top:1px solid var(--border-color,#e2e8f0);padding-top:0.85rem;display:grid;gap:0.6rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+            <div>
+              <label class="form-label" for="dlv-title">Title *</label>
+              <input class="form-control" type="text" id="dlv-title" name="title" maxlength="200" required placeholder="March SEO report">
+            </div>
+            <div>
+              <label class="form-label" for="dlv-order">Attach to order (optional)</label>
+              <select class="form-control" id="dlv-order" name="order_id">
+                <option value="">—</option>
+                <% orders.forEach((o) => { const m = o.metadata || {}; %>
+                <option value="<%= o.id %>"><%= (o.product_name || 'Order') %> · <%= new Date(o.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %><%= m.reference ? ' · ' + m.reference : '' %></option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="form-label" for="dlv-desc">Description (optional)</label>
+            <input class="form-control" type="text" id="dlv-desc" name="description" maxlength="500" placeholder="What this file is, in one line">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+            <div>
+              <label class="form-label" for="dlv-file">Upload a file (max 15 MB)</label>
+              <input class="form-control" type="file" id="dlv-file" name="file">
+            </div>
+            <div>
+              <label class="form-label" for="dlv-url">&hellip;or paste a link (Drive, Dropbox&hellip;)</label>
+              <input class="form-control" type="url" id="dlv-url" name="external_url" placeholder="https://">
+            </div>
+          </div>
+          <div>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Share with client</button>
+            <small style="color:#888;margin-left:0.5rem;">The client is notified by email and can download it from their portal.</small>
+          </div>
+        </form>
+        <script nonce="<%= cspNonce %>">
+          (function () {
+            var fileInput = document.getElementById('dlv-file');
+            var urlInput = document.getElementById('dlv-url');
+            function sync() {
+              fileInput.disabled = !!urlInput.value.trim();
+              urlInput.disabled = !!(fileInput.files && fileInput.files.length);
+            }
+            fileInput.addEventListener('change', sync);
+            urlInput.addEventListener('input', sync);
+          })();
+        </script>
+      </div>
+    </div>
+
     <!-- Orders -->
     <div class="card">
       <div class="card-body" style="padding:0;">
