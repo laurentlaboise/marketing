@@ -38,6 +38,29 @@
     .empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 2.5rem 1rem; text-align: center; color: #64748b; }
     .empty a { color: #d62b83; font-weight: 600; }
     .foot { text-align: center; color: #94a3b8; font-size: 0.78rem; padding: 1rem; }
+    .nav-links { display: flex; gap: 1rem; margin: 0 0 1rem; font-size: 0.88rem; }
+    .nav-links a { color: #475569; text-decoration: none; font-weight: 600; }
+    .nav-links a.active { color: #d62b83; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem; margin-bottom: 1.25rem; }
+    .stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 0.8rem 1rem; }
+    .stat .num { font-size: 1.35rem; font-weight: 700; color: #1a1a2e; }
+    .stat .lbl { font-size: 0.78rem; color: #64748b; margin-top: 0.1rem; }
+    .stat.warn { border-color: #fde68a; background: #fffbeb; }
+    .stat.warn .num { color: #92400e; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem 1.15rem; margin-bottom: 1.25rem; }
+    .card h2 { font-size: 1.05rem; color: #1a1a2e; margin: 0 0 0.6rem; }
+    .file-row { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; }
+    .file-row:last-of-type { border-bottom: none; }
+    .file-row .fmeta { color: #94a3b8; font-size: 0.78rem; }
+    .file-row a.get { color: #d62b83; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .view-all { display: inline-block; margin-top: 0.5rem; font-size: 0.85rem; color: #d62b83; font-weight: 600; text-decoration: none; }
+    .qa-btns { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .qa-btns button { background: #fff; border: 1.5px solid #d62b83; color: #d62b83; border-radius: 999px; padding: 0.5rem 1.1rem; font-size: 0.87rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .qa-btns button[aria-pressed="true"] { background: #d62b83; color: #fff; }
+    #qa-form { margin-top: 0.85rem; }
+    #qa-form textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0.65rem 0.8rem; font-family: inherit; font-size: 0.9rem; min-height: 96px; resize: vertical; }
+    #qa-form button[type="submit"] { margin-top: 0.6rem; background: #d62b83; border: none; color: #fff; border-radius: 8px; padding: 0.55rem 1.3rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .sent-note { background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.88rem; }
   </style>
 </head>
 <body>
@@ -54,6 +77,91 @@
   <div class="wrap">
     <h1>My Account</h1>
     <p class="sub">Signed in as <strong><%= customer.email %></strong></p>
+
+    <div class="nav-links">
+      <a href="/portal/" class="active">Dashboard</a>
+      <a href="/portal/files">Files</a>
+      <a href="/portal/profile">Profile</a>
+    </div>
+
+    <% if (typeof requestSent !== 'undefined' && requestSent) { %>
+    <div class="sent-note">Thanks — your request is in. We'll get back to you by email, usually within one business day.</div>
+    <% } %>
+
+    <%
+      var recent = (typeof recentFiles !== 'undefined' && recentFiles) ? recentFiles : [];
+      var nFiles = (typeof fileCount !== 'undefined') ? fileCount : recent.length;
+      var awaiting = orders.filter(function (o) { return o.status === 'awaiting_payment'; }).length;
+      var savedList = (typeof savedServices !== 'undefined' && savedServices) ? savedServices : [];
+      function fmtSize(b) {
+        if (b == null) return '';
+        if (b < 1024) return b + ' B';
+        if (b < 1048576) return (b / 1024).toFixed(0) + ' KB';
+        return (b / 1048576).toFixed(1) + ' MB';
+      }
+    %>
+    <div class="stats">
+      <div class="stat"><div class="num"><%= savedList.length %></div><div class="lbl">Active services</div></div>
+      <div class="stat"><div class="num"><%= orders.length %></div><div class="lbl">Orders</div></div>
+      <div class="stat"><div class="num"><%= nFiles %></div><div class="lbl">Files</div></div>
+      <% if (awaiting > 0) { %>
+      <div class="stat warn"><div class="num"><%= awaiting %></div><div class="lbl">Awaiting payment</div></div>
+      <% } %>
+    </div>
+
+    <div class="card">
+      <h2>Quick actions</h2>
+      <div class="qa-btns">
+        <button type="button" data-kind="content">Request new content</button>
+        <button type="button" data-kind="question">Ask a question</button>
+      </div>
+      <form id="qa-form" method="POST" action="/portal/request" hidden>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="kind" id="qa-kind" value="">
+        <textarea name="message" id="qa-message" maxlength="4000" required placeholder=""></textarea>
+        <button type="submit">Send request</button>
+      </form>
+    </div>
+    <script nonce="<%= cspNonce %>">
+      (function () {
+        var form = document.getElementById('qa-form');
+        var kindInput = document.getElementById('qa-kind');
+        var msg = document.getElementById('qa-message');
+        var btns = document.querySelectorAll('.qa-btns button');
+        var HINTS = {
+          content: 'Tell us what you need — topic, audience, where it will be used, and any deadline.',
+          question: 'Ask us anything about your services, orders, or marketing — we read every message.'
+        };
+        btns.forEach(function (b) {
+          b.addEventListener('click', function () {
+            var kind = b.getAttribute('data-kind');
+            btns.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+            kindInput.value = kind;
+            msg.placeholder = HINTS[kind];
+            form.hidden = false;
+            msg.focus();
+          });
+        });
+      })();
+    </script>
+
+    <div class="card">
+      <h2>Your files</h2>
+      <% if (recent.length === 0) { %>
+        <p style="color:#64748b;font-size:0.88rem;">No files yet — your deliverables will appear here.</p>
+      <% } else { %>
+        <% recent.forEach(function (f) { %>
+        <div class="file-row">
+          <span>
+            <strong style="color:#1a1a2e;"><%= f.title %></strong>
+            <span class="fmeta"> · <%= new Date(f.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %><%= f.external_url ? ' · link' : (f.file_size != null ? ' · ' + fmtSize(f.file_size) : '') %></span>
+          </span>
+          <a class="get" href="/portal/files/<%= f.id %>/download"><%= f.external_url ? 'Open' : 'Download' %></a>
+        </div>
+        <% }); %>
+        <a class="view-all" href="/portal/files">View all files &rarr;</a>
+      <% } %>
+    </div>
 
     <% if (typeof hasPassword !== 'undefined' && !hasPassword) { %>
     <div class="pw-tip" id="pw-tip" hidden>
