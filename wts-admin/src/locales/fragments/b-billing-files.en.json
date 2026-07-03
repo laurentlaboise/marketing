@@ -1,0 +1,41 @@
+{
+  "common": {
+    "open": "Open",
+    "download": "Download"
+  },
+  "status": {
+    "completed": "Completed",
+    "awaiting_payment": "Awaiting payment",
+    "pending": "Pending",
+    "expired": "Expired",
+    "cancelled": "Cancelled",
+    "refunded": "Refunded"
+  },
+  "billing": {
+    "heading": "Billing",
+    "subtitle": "Your payments, pending transfers and subscriptions — all in one place.",
+    "totalPaid": "Total paid",
+    "paymentsOrders": "Payments & orders",
+    "awaitingTransfer": "Awaiting your transfer",
+    "activeSubscriptions": "Active subscriptions",
+    "subscriptionFallback": "Subscription",
+    "cancelNote": "To change or cancel a subscription, {link} from your dashboard — we handle it the same business day.",
+    "cancelNoteLink": "send us a quick request",
+    "paymentHistory": "Payment history",
+    "historyEmpty": "Nothing here yet. Orders placed with your email appear automatically.",
+    "orderFallback": "Order",
+    "methodBcel": "BCEL OnePay",
+    "methodCard": "Card (Stripe)",
+    "ref": "ref {ref}",
+    "invoiceNote": "Need an invoice or receipt for any payment? {link} and we'll email it over.",
+    "invoiceNoteLink": "Ask us from your dashboard"
+  },
+  "files": {
+    "heading": "My Files",
+    "subtitle": "Reports, designs and deliverables we've shared with you.",
+    "emptyTitle": "No files yet.",
+    "emptyBody": "Deliverables we share with you will appear here.",
+    "externalLink": "External link",
+    "metaSep": " · "
+  }
+}
