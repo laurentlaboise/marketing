@@ -23,6 +23,8 @@
     .abtn.primary { background: #d62b83; color: #fff; }
     .abtn.approve { background: #16a34a; color: #fff; }
     .abtn.changes { background: #fff; color: #b91c1c; border: 1px solid #fecaca; }
+    .abtn.gold { background: #f59e0b; color: #fff; }
+    .abtn.ghost { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
     .main { flex: 1; display: flex; min-height: 0; }
     .stage-wrap { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     .film { flex: 0 0 auto; display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem 0.9rem; background: #fff; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
@@ -30,32 +32,51 @@
     .film img { height: 44px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; display: block; }
     .film img.active { border-color: #d62b83; }
     .film .thumb .star { position: absolute; top: -5px; right: -5px; background: #f59e0b; color: #fff; border-radius: 50%; width: 17px; height: 17px; font-size: 0.66rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.35); pointer-events: none; }
+    .film .add { flex: 0 0 auto; border: 1.5px dashed #cbd5e1; color: #64748b; background: none; border-radius: 8px; height: 44px; padding: 0 0.8rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; }
     .deliverable { flex: 0 0 auto; display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.9rem; font-size: 0.84rem; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
     .deliverable.locked { background: #fffbeb; border-color: #fde68a; color: #92400e; }
     .deliverable.unlocked { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
     .deliverable.plain { background: #fff; color: #64748b; }
     .deliverable .spacer { flex: 1; }
-    .abtn.gold { background: #f59e0b; color: #fff; }
-    .abtn.ghost { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
-    .frame.final img { outline: 3px solid #f59e0b; outline-offset: -3px; }
-    .lock-overlay { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 1.1rem; background: linear-gradient(180deg, rgba(18,42,63,0) 55%, rgba(18,42,63,0.55)); border-radius: 8px; pointer-events: none; }
-    .lock-overlay .abtn { pointer-events: auto; box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
-    .film .add { flex: 0 0 auto; border: 1.5px dashed #cbd5e1; color: #64748b; background: none; border-radius: 8px; height: 44px; padding: 0 0.8rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; }
-    .stage { flex: 1; position: relative; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-    .frame { position: relative; display: inline-block; max-width: 100%; }
-    .frame img { display: block; max-width: 100%; max-height: calc(100dvh - 220px); border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,0.12); }
-    .frame.can-pin img { cursor: crosshair; }
-    .pin { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50% 50% 50% 4px; background: #d62b83; color: #fff; font-size: 0.74rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer; border: 2px solid #fff; transform: rotate(-45deg); }
+
+    /* ── Infinite canvas ─────────────────────────────────────────── */
+    .viewport { position: relative; flex: 1; overflow: hidden; touch-action: none; cursor: grab;
+      background: #eef2f7;
+      background-image: radial-gradient(circle, #d6dee9 1px, transparent 1px);
+      background-size: 24px 24px; }
+    .viewport.panning { cursor: grabbing; }
+    /* Screen = world * zoom + pan  (translate() before scale(); mixing
+       conventions is the classic drift bug — keep this order everywhere). */
+    .world { position: absolute; top: 0; left: 0; width: 0; height: 0;
+      transform-origin: 0 0; will-change: transform; }
+    .node { position: absolute; border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,0.12); background: #fff; }
+    .node img { width: 100%; height: 100%; display: block; border-radius: 8px; -webkit-user-drag: none; }
+    .node.can-pin img { cursor: crosshair; }
+    .node.final { outline: 3px solid #f59e0b; outline-offset: -3px; }
+    .node .lock-overlay { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 1.1rem; background: linear-gradient(180deg, rgba(18,42,63,0) 55%, rgba(18,42,63,0.55)); border-radius: 8px; pointer-events: none; }
+    .node .lock-overlay .abtn { pointer-events: auto; box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      transform: scale(calc(1 / var(--zoom, 1))); transform-origin: 50% 100%; }
+    .pin { position: absolute; width: 26px; height: 26px; margin: 0; border-radius: 50% 50% 50% 4px; background: #d62b83; color: #fff; font-size: 0.74rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer; border: 2px solid #fff; z-index: 10;
+      /* tip stays on the anchor; badge keeps constant screen size at any zoom */
+      transform: translate(-50%, -100%) rotate(-45deg) scale(calc(1 / var(--zoom, 1)));
+      transform-origin: 50% 100%; }
     .pin > span { transform: rotate(45deg); }
     .pin.resolved { background: #94a3b8; }
-    .pin.active { background: #122a3f; }
-    .composer-pop { position: absolute; z-index: 20; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.18); padding: 0.6rem; width: 240px; }
+    .pin.active { background: #122a3f; z-index: 30; }
+    .hud { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 0.4rem; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.25rem 0.5rem; font-size: 0.78rem; color: #475569; box-shadow: 0 2px 8px rgba(0,0,0,0.08); z-index: 40; }
+    .hud button { border: none; background: none; font-family: inherit; font-size: 0.78rem; font-weight: 700; color: #d62b83; cursor: pointer; padding: 0.15rem 0.35rem; }
+    .hud .pct { min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+    .canvas-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #64748b; text-align: center; font-size: 0.95rem; line-height: 1.6; padding: 2rem 1rem; pointer-events: none; z-index: 5; }
+
+    /* Composer lives in SCREEN space (child of .viewport, not .world) so it
+       never scales with the canvas. */
+    .composer-pop { position: absolute; z-index: 50; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.18); padding: 0.6rem; width: 240px; }
     .composer-pop textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.45rem 0.55rem; font-size: 0.84rem; font-family: inherit; resize: vertical; min-height: 56px; }
     .composer-pop .row { display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.4rem; }
     .composer-pop button { border: none; border-radius: 8px; padding: 0.3rem 0.8rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit; }
     .composer-pop .send { background: #d62b83; color: #fff; }
     .composer-pop .cancel { background: #f1f5f9; color: #475569; }
-    .empty { color: #64748b; text-align: center; font-size: 0.95rem; line-height: 1.6; padding: 2rem 1rem; }
+
     .panel { flex: 0 0 320px; width: 320px; background: #fff; border-left: 1px solid #e2e8f0; display: flex; flex-direction: column; min-height: 0; }
     .panel h2 { font-size: 0.9rem; color: #1a1a2e; padding: 0.7rem 0.9rem 0.5rem; border-bottom: 1px solid #e2e8f0; }
     .threads { flex: 1; overflow-y: auto; padding: 0.5rem 0.9rem 1rem; }
@@ -78,13 +99,13 @@
     @media (max-width: 760px) {
       .main { flex-direction: column; }
       .panel { width: 100%; flex: 0 0 42%; border-left: none; border-top: 1px solid #e2e8f0; }
-      .frame img { max-height: 42dvh; }
     }
   </style>
 </head>
 <body>
   <script nonce="<%= cspNonce %>">
     window.__WTS_BOARD__ = <%- JSON.stringify({
+      boardId: board.id,
       boardTitle: board.title,
       backUrl: backUrl,
       isAdmin: isAdmin,
@@ -107,7 +128,16 @@
     <div class="stage-wrap">
       <div class="film" id="film"></div>
       <div class="deliverable" id="deliverable" hidden></div>
-      <div class="stage" id="stage"><div class="empty">Loading&hellip;</div></div>
+      <div class="viewport" id="viewport">
+        <div class="world" id="world"></div>
+        <div class="canvas-empty" id="canvas-empty" hidden></div>
+        <div class="hud">
+          <button type="button" id="zoom-out">&minus;</button>
+          <span class="pct" id="zoom-pct">100%</span>
+          <button type="button" id="zoom-in">+</button>
+          <button type="button" id="zoom-fit">Fit</button>
+        </div>
+      </div>
     </div>
     <div class="panel">
       <h2 id="panel-title">Comments</h2>
@@ -122,16 +152,246 @@
     var cfg = window.__WTS_BOARD__;
     window.__WTS_BOARD_MOUNTED = true;
 
-    // ── State: exactly what the review flow needs ────────────────
-    var state = {
-      images: [],        // [{id, src}]
-      current: null,     // image id
-      comments: [],      // rows from the API (anchor: {imageId,xPct,yPct} or null)
-      approval: null,
-      activeThread: null // root comment id highlighted
-    };
+    var MIN_ZOOM = 0.05, MAX_ZOOM = 8;
+    var VP_KEY = 'wts:board-viewport:' + cfg.boardId;
 
-    // ── Tiny API helper (session cookie + CSRF header) ───────────
+    // ── State ────────────────────────────────────────────────────
+    var state = {
+      images: [],        // assets from API: {id, src, x, y, w, h, z, is_final, ...}
+      current: null,     // selected image id (panel + deliverable banner)
+      comments: [],
+      approval: null,
+      activeThread: null
+    };
+    var naturals = {};   // imageId -> {w, h} from decode (h fallback for h:null)
+    var nodesById = {};  // imageId -> node element
+
+    // ── Viewport engine (screen = world * zoom + pan) ────────────
+    var view = { panX: 0, panY: 0, zoom: 1 };
+    var viewport = document.getElementById('viewport');
+    var world = document.getElementById('world');
+    var dirty = true, lastZoomWritten = -1;
+    var vpRect = null;
+    function getVpRect() { if (!vpRect) vpRect = viewport.getBoundingClientRect(); return vpRect; }
+    window.addEventListener('resize', function () { vpRect = null; });
+
+    (function frame() {
+      if (dirty) {
+        dirty = false;
+        world.style.transform = 'translate(' + view.panX + 'px,' + view.panY + 'px) scale(' + view.zoom + ')';
+        if (view.zoom !== lastZoomWritten) {
+          world.style.setProperty('--zoom', view.zoom);
+          document.getElementById('zoom-pct').textContent = Math.round(view.zoom * 100) + '%';
+          lastZoomWritten = view.zoom;
+        }
+      }
+      requestAnimationFrame(frame);
+    })();
+
+    var saveTimer = null;
+    function scheduleSaveViewport() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(function () {
+        try { localStorage.setItem(VP_KEY, JSON.stringify(view)); } catch (e) { /* ignore */ }
+      }, 250);
+    }
+    function loadViewport() {
+      try {
+        var v = JSON.parse(localStorage.getItem(VP_KEY));
+        if (v && isFinite(v.panX) && isFinite(v.panY) && isFinite(v.zoom) &&
+            v.zoom >= MIN_ZOOM && v.zoom <= MAX_ZOOM) return v;
+      } catch (e) { /* ignore */ }
+      return null;
+    }
+
+    function clampZoom(z) { return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z)); }
+
+    function zoomAbout(cx, cy, newZoom) {
+      newZoom = clampZoom(newZoom);
+      var k = newZoom / view.zoom;
+      view.panX = cx - (cx - view.panX) * k;
+      view.panY = cy - (cy - view.panY) * k;
+      view.zoom = newZoom;
+      dirty = true; scheduleSaveViewport();
+    }
+
+    function nodeRect(img) {
+      var h = img.h;
+      if (h == null) {
+        var n = naturals[img.id];
+        h = n ? img.w * (n.h / n.w) : img.w * 0.75;
+      }
+      return { x: img.x, y: img.y, w: img.w, h: h };
+    }
+
+    function fitRect(r, pad) {
+      var vw = getVpRect().width, vh = getVpRect().height;
+      var zoom = clampZoom(Math.min((vw - 2 * pad) / r.w, (vh - 2 * pad) / r.h));
+      if (!isFinite(zoom) || zoom <= 0) zoom = 1;
+      view.zoom = Math.min(zoom, 2);
+      view.panX = (vw - r.w * view.zoom) / 2 - r.x * view.zoom;
+      view.panY = (vh - r.h * view.zoom) / 2 - r.y * view.zoom;
+      dirty = true; scheduleSaveViewport();
+    }
+
+    function fitAll() {
+      if (!state.images.length) { view.panX = 0; view.panY = 0; view.zoom = 1; dirty = true; return; }
+      var b = null;
+      state.images.forEach(function (img) {
+        var r = nodeRect(img);
+        if (!b) b = { x: r.x, y: r.y, x2: r.x + r.w, y2: r.y + r.h };
+        else {
+          b.x = Math.min(b.x, r.x); b.y = Math.min(b.y, r.y);
+          b.x2 = Math.max(b.x2, r.x + r.w); b.y2 = Math.max(b.y2, r.y + r.h);
+        }
+      });
+      fitRect({ x: b.x, y: b.y, w: b.x2 - b.x, h: b.y2 - b.y }, 60);
+    }
+
+    function zoomToNode(img) { fitRect(nodeRect(img), 80); }
+
+    // ── Gestures: pinch > pan > tap ──────────────────────────────
+    var pointers = new Map();
+    var gesture = { mode: 'idle' };
+    var SLOP_MOUSE = 4, SLOP_TOUCH = 8;
+
+    viewport.addEventListener('pointerdown', function (e) {
+      if (e.target.closest('.composer-pop') || e.target.closest('.hud')) return;
+      viewport.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2) {
+        var ps = Array.from(pointers.values());
+        gesture = {
+          mode: 'pinch',
+          startDist: Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y),
+          startMid: { x: (ps[0].x + ps[1].x) / 2 - getVpRect().left, y: (ps[0].y + ps[1].y) / 2 - getVpRect().top },
+          startView: { panX: view.panX, panY: view.panY, zoom: view.zoom }
+        };
+      } else if (pointers.size === 1) {
+        gesture = {
+          mode: 'press',
+          startX: e.clientX, startY: e.clientY,
+          lastX: e.clientX, lastY: e.clientY,
+          slop: e.pointerType === 'touch' ? SLOP_TOUCH : SLOP_MOUSE,
+          target: e.target
+        };
+      }
+    });
+
+    viewport.addEventListener('pointermove', function (e) {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (gesture.mode === 'pinch' && pointers.size >= 2) {
+        var ps = Array.from(pointers.values());
+        var dist = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
+        var mid = { x: (ps[0].x + ps[1].x) / 2 - getVpRect().left, y: (ps[0].y + ps[1].y) / 2 - getVpRect().top };
+        var newZoom = clampZoom(gesture.startView.zoom * dist / (gesture.startDist || 1));
+        var k = newZoom / gesture.startView.zoom;
+        view.panX = mid.x - (gesture.startMid.x - gesture.startView.panX) * k;
+        view.panY = mid.y - (gesture.startMid.y - gesture.startView.panY) * k;
+        view.zoom = newZoom;
+        dirty = true;
+        return;
+      }
+      if (gesture.mode === 'press') {
+        if (Math.hypot(e.clientX - gesture.startX, e.clientY - gesture.startY) > gesture.slop) {
+          gesture.mode = 'pan';
+          viewport.classList.add('panning');
+          closeComposer();
+        } else {
+          return;
+        }
+      }
+      if (gesture.mode === 'pan') {
+        view.panX += e.clientX - gesture.lastX;
+        view.panY += e.clientY - gesture.lastY;
+        gesture.lastX = e.clientX; gesture.lastY = e.clientY;
+        dirty = true;
+      }
+    });
+
+    function endPointer(e) {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.delete(e.pointerId);
+      if (gesture.mode === 'press' && e.type === 'pointerup') handleTap(e);
+      if (pointers.size === 0) {
+        if (gesture.mode === 'pan' || gesture.mode === 'pinch') scheduleSaveViewport();
+        gesture = { mode: 'idle' };
+        viewport.classList.remove('panning');
+      } else if (pointers.size === 1 && gesture.mode === 'pinch') {
+        // one finger lifted mid-pinch: continue as pan with the survivor
+        var p = Array.from(pointers.values())[0];
+        gesture = { mode: 'pan', lastX: p.x, lastY: p.y };
+      }
+    }
+    viewport.addEventListener('pointerup', endPointer);
+    viewport.addEventListener('pointercancel', endPointer);
+
+    viewport.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var r = getVpRect();
+      var cx = e.clientX - r.left, cy = e.clientY - r.top;
+      if (e.ctrlKey || e.metaKey) {
+        zoomAbout(cx, cy, view.zoom * Math.exp(-e.deltaY * 0.01));
+      } else {
+        view.panX -= e.deltaX; view.panY -= e.deltaY;
+        dirty = true; scheduleSaveViewport();
+      }
+    }, { passive: false });
+
+    viewport.addEventListener('dblclick', function (e) {
+      if (e.target.closest('.node') || e.target.closest('.hud')) return;
+      var r = getVpRect();
+      zoomAbout(e.clientX - r.left, e.clientY - r.top, view.zoom * 1.5);
+    });
+
+    document.getElementById('zoom-in').addEventListener('click', function () {
+      var r = getVpRect(); zoomAbout(r.width / 2, r.height / 2, view.zoom * 1.25);
+    });
+    document.getElementById('zoom-out').addEventListener('click', function () {
+      var r = getVpRect(); zoomAbout(r.width / 2, r.height / 2, view.zoom / 1.25);
+    });
+    document.getElementById('zoom-fit').addEventListener('click', fitAll);
+
+    function handleTap(e) {
+      var pinEl = gesture.target && gesture.target.closest ? gesture.target.closest('.pin') : null;
+      if (pinEl) {
+        var cid = pinEl.getAttribute('data-cid');
+        var imgId = pinEl.getAttribute('data-img');
+        state.activeThread = cid;
+        if (imgId) state.current = imgId;
+        renderChrome();
+        var t = document.querySelector('[data-thread="' + cid + '"]');
+        if (t) t.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        return;
+      }
+      var nodeEl = gesture.target && gesture.target.closest ? gesture.target.closest('.node') : null;
+      if (nodeEl) {
+        var id = nodeEl.getAttribute('data-id');
+        state.current = id;
+        // Anchor math MUST run before renderChrome(): showing the deliverable
+        // banner shifts the viewport down, which would corrupt a rect-based
+        // anchor computed afterwards.
+        var anchor = null;
+        if (cfg.canComment && gesture.target.tagName === 'IMG') {
+          var rect = gesture.target.getBoundingClientRect();
+          anchor = {
+            xPct: Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100)),
+            yPct: Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100))
+          };
+        }
+        renderChrome();
+        var img = state.images.find(function (i) { return i.id === id; });
+        if (img && anchor) openComposer(nodeEl, img, anchor);
+        return;
+      }
+      closeComposer();
+      state.activeThread = null;
+      renderChrome();
+    }
+
+    // ── API + polling ────────────────────────────────────────────
     function api(method, path, body) {
       var opts = { method: method, credentials: 'same-origin', headers: { Accept: 'application/json' } };
       if (method !== 'GET') {
@@ -152,7 +412,7 @@
       t.className = 'toast';
       t.textContent = text;
       document.body.appendChild(t);
-      setTimeout(function () { t.remove(); }, 3000);
+      setTimeout(function () { t.remove(); }, 3500);
     }
 
     function esc(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
@@ -163,8 +423,9 @@
       if (s < 86400) return Math.floor(s / 3600) + 'h ago';
       return Math.floor(s / 86400) + 'd ago';
     }
+    function fmtPrice(p) { return '$' + Number(p).toFixed(2); }
 
-    // ── Data loading + 12s polling ───────────────────────────────
+    var firstLoad = true;
     function loadAll() {
       return Promise.all([api('GET', '/assets'), api('GET', '/comments'), api('GET', '/approvals')])
         .then(function (r) {
@@ -174,29 +435,183 @@
           if (!state.current || !state.images.some(function (i) { return i.id === state.current; })) {
             state.current = state.images.length ? state.images[state.images.length - 1].id : null;
           }
-          render();
+          reconcileWorld();
+          renderChrome();
+          if (firstLoad) {
+            firstLoad = false;
+            var saved = loadViewport();
+            if (saved) { view.panX = saved.panX; view.panY = saved.panY; view.zoom = saved.zoom; dirty = true; }
+            else if (state.images.length) {
+              // fit after first decode settles so natural-aspect heights exist
+              setTimeout(fitAll, 150);
+            }
+          }
         })
         .catch(function (e) {
-          document.getElementById('stage').innerHTML =
-            '<div class="empty">Couldn&rsquo;t load this board (' + esc(e.message) + ').<br>Please refresh the page.</div>';
+          document.getElementById('canvas-empty').hidden = false;
+          document.getElementById('canvas-empty').innerHTML =
+            'Couldn&rsquo;t load this board (' + esc(e.message) + ').<br>Please refresh the page.';
         });
     }
     setInterval(function () { loadAll(); }, 12000);
 
-    // ── Derived helpers ──────────────────────────────────────────
+    // ── Derived ──────────────────────────────────────────────────
     function roots() { return state.comments.filter(function (c) { return !c.parent_id; }); }
     function repliesOf(id) { return state.comments.filter(function (c) { return c.parent_id === id; }); }
+    function imageIds() { return state.images.map(function (i) { return i.id; }); }
     function pinsFor(imageId) {
       return roots().filter(function (c) { return c.anchor && c.anchor.imageId === imageId; });
     }
-    function generals() { return roots().filter(function (c) { return !c.anchor || !c.anchor.imageId; }); }
-
+    // Generals: unanchored + anchors whose image was removed (review history).
+    function generals() {
+      var ids = imageIds();
+      return roots().filter(function (c) {
+        return !c.anchor || !c.anchor.imageId || ids.indexOf(c.anchor.imageId) === -1;
+      });
+    }
     function currentImage() {
       return state.images.find(function (i) { return i.id === state.current; });
     }
-    function fmtPrice(p) { return '$' + Number(p).toFixed(2); }
 
-    // ── Gated delivery actions ───────────────────────────────────
+    // ── World reconciliation (keyed; no full rebuild on poll) ────
+    function reconcileWorld() {
+      var seen = {};
+      state.images.forEach(function (img) {
+        seen[img.id] = true;
+        var node = nodesById[img.id];
+        if (!node) {
+          node = document.createElement('div');
+          node.className = 'node';
+          node.setAttribute('data-id', img.id);
+          var im = document.createElement('img');
+          im.src = img.src;
+          im.alt = 'design under review';
+          im.draggable = false;
+          im.decoding = 'async';
+          im.addEventListener('load', function () {
+            naturals[img.id] = { w: im.naturalWidth, h: im.naturalHeight };
+            var cur = state.images.find(function (i) { return i.id === img.id; });
+            if (cur) applyPlacement(node, cur);
+          });
+          node.appendChild(im);
+          world.appendChild(node);
+          nodesById[img.id] = node;
+        }
+        node.classList.toggle('can-pin', !!cfg.canComment);
+        node.classList.toggle('final', !!img.is_final);
+        applyPlacement(node, img);
+        renderLockOverlay(node, img);
+        renderPins(node, img);
+      });
+      Object.keys(nodesById).forEach(function (id) {
+        if (!seen[id]) { nodesById[id].remove(); delete nodesById[id]; }
+      });
+      var empty = document.getElementById('canvas-empty');
+      if (!state.images.length) {
+        empty.hidden = false;
+        empty.innerHTML = cfg.canUpload
+          ? 'No designs on this board yet.<br>Use <strong>+ Add image</strong> above to upload the first one.'
+          : 'No designs to review yet &mdash; your strategist will add them shortly.';
+      } else {
+        empty.hidden = true;
+      }
+    }
+
+    function applyPlacement(node, img) {
+      var r = nodeRect(img);
+      node.style.left = r.x + 'px';
+      node.style.top = r.y + 'px';
+      node.style.width = r.w + 'px';
+      node.style.height = r.h + 'px';
+      node.style.zIndex = img.z || 0;
+    }
+
+    function renderLockOverlay(node, img) {
+      var ov = node.querySelector('.lock-overlay');
+      var wantOverlay = img.is_final && img.payment_status === 'locked' && !cfg.isAdmin;
+      if (!wantOverlay) { if (ov) ov.remove(); return; }
+      if (ov) return;
+      ov = document.createElement('div');
+      ov.className = 'lock-overlay';
+      var payBtn = document.createElement('button');
+      payBtn.type = 'button';
+      payBtn.className = 'abtn gold';
+      payBtn.innerHTML = '&#128274; Pay to download' + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '');
+      payBtn.addEventListener('click', function (e) { e.stopPropagation(); payFor(img); });
+      ov.appendChild(payBtn);
+      node.appendChild(ov);
+    }
+
+    function renderPins(node, img) {
+      // Only saved pins ([data-cid]) — the composer's placeholder marker
+      // must survive the 12s poll repaint.
+      node.querySelectorAll('.pin[data-cid]').forEach(function (p) { p.remove(); });
+      pinsFor(img.id).forEach(function (c, i) {
+        var p = document.createElement('div');
+        p.className = 'pin' + (c.resolved_at ? ' resolved' : '') + (state.activeThread === c.id ? ' active' : '');
+        p.style.left = c.anchor.xPct + '%';
+        p.style.top = c.anchor.yPct + '%';
+        p.setAttribute('data-cid', c.id);
+        p.setAttribute('data-img', img.id);
+        p.innerHTML = '<span>' + (i + 1) + '</span>';
+        p.title = c.body;
+        node.appendChild(p);
+      });
+    }
+
+    // ── Composer (screen space) ──────────────────────────────────
+    var composerMarker = null;
+    function closeComposer() {
+      var pop = viewport.querySelector('.composer-pop');
+      if (pop) pop.remove();
+      if (composerMarker) { composerMarker.remove(); composerMarker = null; }
+    }
+
+    // anchor = {xPct, yPct}, computed by the caller BEFORE any chrome
+    // re-render (layout shifts would corrupt rect math). The pop position is
+    // re-derived from the image's CURRENT rect so it lands on the marker
+    // even after the banner shifted the viewport.
+    function openComposer(nodeEl, img, anchor) {
+      closeComposer();
+      var xPct = anchor.xPct, yPct = anchor.yPct;
+
+      composerMarker = document.createElement('div');
+      composerMarker.className = 'pin active';
+      composerMarker.style.left = xPct + '%';
+      composerMarker.style.top = yPct + '%';
+      composerMarker.innerHTML = '<span>+</span>';
+      nodeEl.appendChild(composerMarker);
+
+      var imEl = nodeEl.querySelector('img');
+      var rect = imEl.getBoundingClientRect();      // fresh, post-render box
+      var ax = rect.left + (xPct / 100) * rect.width;
+      var ay = rect.top + (yPct / 100) * rect.height;
+      var vr = getVpRect();
+      var pop = document.createElement('div');
+      pop.className = 'composer-pop';
+      var px = Math.min(Math.max(ax - vr.left + 10, 8), vr.width - 250);
+      var py = Math.min(Math.max(ay - vr.top + 10, 8), vr.height - 140);
+      pop.style.left = px + 'px';
+      pop.style.top = py + 'px';
+      pop.innerHTML = '<textarea maxlength="2000" placeholder="e.g. change this font&hellip;"></textarea>' +
+        '<div class="row"><button type="button" class="cancel">Cancel</button><button type="button" class="send">Pin comment</button></div>';
+      viewport.appendChild(pop);
+      var ta = pop.querySelector('textarea');
+      ta.focus();
+      pop.querySelector('.cancel').addEventListener('click', closeComposer);
+      pop.querySelector('.send').addEventListener('click', function () {
+        var body = ta.value.trim();
+        if (!body) return;
+        api('POST', '/comments', { body: body, anchor: { imageId: img.id, xPct: xPct, yPct: yPct } })
+          .then(function () { closeComposer(); return loadAll(); })
+          .catch(function (er) { toast(er.message); });
+      });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeComposer();
+    });
+
+    // ── Gated delivery actions (unchanged behavior) ──────────────
     function payFor(img) {
       api('POST', '/assets/' + img.id + '/checkout')
         .then(function (d) {
@@ -232,46 +647,18 @@
         .catch(function (e) { toast(e.message); });
     }
 
-    // ── Rendering ────────────────────────────────────────────────
-    function render() { renderApproval(); renderFilm(); renderDeliverable(); renderStage(); renderPanel(); renderCount(); }
+    // ── Chrome (everything outside the canvas) ───────────────────
+    function renderChrome() {
+      renderApproval(); renderFilm(); renderDeliverable(); renderPanel(); renderCount(); repaintPinStates();
+      // Banner/approval visibility changes move and resize the viewport —
+      // drop the cached rect so gesture math reads the fresh box.
+      vpRect = null;
+    }
 
-    function renderDeliverable() {
-      var el = document.getElementById('deliverable');
-      var img = currentImage();
-      if (!img || (!img.is_final && !cfg.isAdmin)) { el.hidden = true; el.innerHTML = ''; return; }
-      el.hidden = false;
-      var h = '';
-      if (img.is_final) {
-        var locked = img.payment_status === 'locked';
-        el.className = 'deliverable ' + (locked ? 'locked' : 'unlocked');
-        h += '<span>&#9733; <strong>Final deliverable</strong>' +
-             (img.title ? ' &mdash; ' + esc(img.title) : '') +
-             (locked && img.price != null ? ' &middot; ' + fmtPrice(img.price) : '') + '</span>';
-        h += '<span class="spacer"></span>';
-        if (cfg.isAdmin) {
-          h += '<button type="button" class="abtn ghost" data-d="download">&#8595; Download</button>';
-          if (locked) h += '<button type="button" class="abtn approve" data-d="unlock">Mark paid &mdash; unlock</button>';
-          h += '<button type="button" class="abtn ghost" data-d="unmark">Unmark final</button>';
-        } else if (locked) {
-          h += '<button type="button" class="abtn gold" data-d="pay">&#128274; Pay to download' + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '') + '</button>';
-        } else {
-          h += '<button type="button" class="abtn approve" data-d="download">&#8595; Download final</button>';
-        }
-      } else {
-        el.className = 'deliverable plain';
-        h += '<span>Working file &mdash; not marked as the final deliverable.</span><span class="spacer"></span>' +
-             '<button type="button" class="abtn ghost" data-d="mark">Mark as final&hellip;</button>';
-      }
-      el.innerHTML = h;
-      el.querySelectorAll('button[data-d]').forEach(function (b) {
-        b.addEventListener('click', function () {
-          var act = b.getAttribute('data-d');
-          if (act === 'pay') payFor(img);
-          else if (act === 'download') downloadFinal(img);
-          else if (act === 'mark') markFinal(img);
-          else if (act === 'unmark') unmarkFinal(img);
-          else if (act === 'unlock') unlockFinal(img);
-        });
+    function repaintPinStates() {
+      state.images.forEach(function (img) {
+        var node = nodesById[img.id];
+        if (node) renderPins(node, img);
       });
     }
 
@@ -328,7 +715,12 @@
         t.src = img.src;
         t.alt = 'design';
         if (img.id === state.current) t.className = 'active';
-        t.addEventListener('click', function () { state.current = img.id; state.activeThread = null; render(); });
+        t.addEventListener('click', function () {
+          state.current = img.id;
+          state.activeThread = null;
+          renderChrome();
+          zoomToNode(img);
+        });
         wrap.appendChild(t);
         if (img.is_final) {
           var s = document.createElement('span');
@@ -360,97 +752,52 @@
         method: 'POST', credentials: 'same-origin',
         headers: { 'X-CSRF-Token': cfg.csrfToken }, body: fd
       }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || 'Upload failed'); }); })
-        .then(loadAll).then(function () { toast('Image added.'); })
+        .then(loadAll)
+        .then(function () {
+          toast('Image added.');
+          var latest = state.images[state.images.length - 1];
+          if (latest) { state.current = latest.id; renderChrome(); zoomToNode(latest); }
+        })
         .catch(function (e) { toast(e.message); });
     });
 
-    function renderStage() {
-      var el = document.getElementById('stage');
-      el.innerHTML = '';
-      var img = state.images.find(function (i) { return i.id === state.current; });
-      if (!img) {
-        el.innerHTML = '<div class="empty">' + (cfg.canUpload
-          ? 'No designs on this board yet.<br>Use <strong>+ Add image</strong> above to upload the first one.'
-          : 'No designs to review yet — your strategist will add them shortly.') + '</div>';
-        return;
+    function renderDeliverable() {
+      var el = document.getElementById('deliverable');
+      var img = currentImage();
+      if (!img || (!img.is_final && !cfg.isAdmin)) { el.hidden = true; el.innerHTML = ''; return; }
+      el.hidden = false;
+      var h = '';
+      if (img.is_final) {
+        var locked = img.payment_status === 'locked';
+        el.className = 'deliverable ' + (locked ? 'locked' : 'unlocked');
+        h += '<span>&#9733; <strong>Final deliverable</strong>' +
+             (img.title ? ' &mdash; ' + esc(img.title) : '') +
+             (locked && img.price != null ? ' &middot; ' + fmtPrice(img.price) : '') + '</span>';
+        h += '<span class="spacer"></span>';
+        if (cfg.isAdmin) {
+          h += '<button type="button" class="abtn ghost" data-d="download">&#8595; Download</button>';
+          if (locked) h += '<button type="button" class="abtn approve" data-d="unlock">Mark paid &mdash; unlock</button>';
+          h += '<button type="button" class="abtn ghost" data-d="unmark">Unmark final</button>';
+        } else if (locked) {
+          h += '<button type="button" class="abtn gold" data-d="pay">&#128274; Pay to download' + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '') + '</button>';
+        } else {
+          h += '<button type="button" class="abtn approve" data-d="download">&#8595; Download final</button>';
+        }
+      } else {
+        el.className = 'deliverable plain';
+        h += '<span>Working file &mdash; not marked as the final deliverable.</span><span class="spacer"></span>' +
+             '<button type="button" class="abtn ghost" data-d="mark">Mark as final&hellip;</button>';
       }
-      var frame = document.createElement('div');
-      frame.className = 'frame' + (cfg.canComment ? ' can-pin' : '') + (img.is_final ? ' final' : '');
-      var im = document.createElement('img');
-      im.src = img.src;
-      im.alt = 'design under review';
-      im.draggable = false;
-      frame.appendChild(im);
-
-      // Locked final, client view: a Pay to Download overlay on the image
-      // itself. The full-res file only leaves through the payment-checked
-      // download endpoint.
-      if (img.is_final && img.payment_status === 'locked' && !cfg.isAdmin) {
-        var ov = document.createElement('div');
-        ov.className = 'lock-overlay';
-        var payBtn = document.createElement('button');
-        payBtn.type = 'button';
-        payBtn.className = 'abtn gold';
-        payBtn.innerHTML = '&#128274; Pay to download' + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '');
-        payBtn.addEventListener('click', function (e) { e.stopPropagation(); payFor(img); });
-        ov.appendChild(payBtn);
-        frame.appendChild(ov);
-      }
-
-      pinsFor(img.id).forEach(function (c, i) {
-        var p = document.createElement('div');
-        p.className = 'pin' + (c.resolved_at ? ' resolved' : '') + (state.activeThread === c.id ? ' active' : '');
-        p.style.left = c.anchor.xPct + '%';
-        p.style.top = c.anchor.yPct + '%';
-        p.innerHTML = '<span>' + (i + 1) + '</span>';
-        p.title = c.body;
-        p.addEventListener('click', function (e) {
-          e.stopPropagation();
-          state.activeThread = c.id;
-          render();
-          var t = document.querySelector('[data-thread="' + c.id + '"]');
-          if (t) t.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      el.innerHTML = h;
+      el.querySelectorAll('button[data-d]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var act = b.getAttribute('data-d');
+          if (act === 'pay') payFor(img);
+          else if (act === 'download') downloadFinal(img);
+          else if (act === 'mark') markFinal(img);
+          else if (act === 'unmark') unmarkFinal(img);
+          else if (act === 'unlock') unlockFinal(img);
         });
-        frame.appendChild(p);
-      });
-
-      if (cfg.canComment) {
-        im.addEventListener('click', function (e) {
-          var rect = im.getBoundingClientRect();
-          var xPct = ((e.clientX - rect.left) / rect.width) * 100;
-          var yPct = ((e.clientY - rect.top) / rect.height) * 100;
-          openComposer(frame, img.id, xPct, yPct);
-        });
-      }
-      el.appendChild(frame);
-    }
-
-    function openComposer(frame, imageId, xPct, yPct) {
-      var old = frame.querySelector('.composer-pop');
-      if (old) old.remove();
-      var marker = document.createElement('div');
-      marker.className = 'pin active';
-      marker.style.left = xPct + '%';
-      marker.style.top = yPct + '%';
-      marker.innerHTML = '<span>+</span>';
-      frame.appendChild(marker);
-
-      var pop = document.createElement('div');
-      pop.className = 'composer-pop';
-      pop.style.left = Math.min(xPct, 70) + '%';
-      pop.style.top = Math.min(yPct + 4, 82) + '%';
-      pop.innerHTML = '<textarea maxlength="2000" placeholder="e.g. change this font&hellip;"></textarea>' +
-        '<div class="row"><button type="button" class="cancel">Cancel</button><button type="button" class="send">Pin comment</button></div>';
-      frame.appendChild(pop);
-      var ta = pop.querySelector('textarea');
-      ta.focus();
-      pop.querySelector('.cancel').addEventListener('click', function () { pop.remove(); marker.remove(); });
-      pop.querySelector('.send').addEventListener('click', function () {
-        var body = ta.value.trim();
-        if (!body) return;
-        api('POST', '/comments', { body: body, anchor: { imageId: imageId, xPct: xPct, yPct: yPct } })
-          .then(loadAll)
-          .catch(function (e) { toast(e.message); });
       });
     }
 
@@ -478,20 +825,23 @@
 
     function renderPanel() {
       var el = document.getElementById('threads');
-      var img = state.images.find(function (i) { return i.id === state.current; });
+      var img = currentImage();
       var pins = img ? pinsFor(img.id) : [];
       var open = pins.filter(function (c) { return !c.resolved_at; });
       var done = pins.filter(function (c) { return c.resolved_at; });
       var gen = generals();
       var h = '';
       if (cfg.canComment) {
-        h += '<div class="muted" style="text-align:left;">' + (img ? 'Click anywhere on the image to pin a comment.' : '') + '</div>';
+        h += '<div class="muted" style="text-align:left;">' + (img ? 'Tap an image to pin a comment. Drag to pan, pinch or ctrl+scroll to zoom.' : '') + '</div>';
       }
       if (!pins.length && !gen.length) h += '<div class="muted">No comments yet.</div>';
       open.forEach(function (c) { h += threadHtml(c, pins.indexOf(c) + 1); });
       if (gen.length) {
         h += '<div class="resolved-h">General</div>';
-        gen.forEach(function (c) { h += threadHtml(c, null); });
+        gen.forEach(function (c) {
+          var removed = c.anchor && c.anchor.imageId;
+          h += threadHtml(c, null).replace('</div>' /* first meta close */, (removed ? '<span>&middot; image removed</span>' : '') + '</div>');
+        });
       }
       if (done.length) {
         h += '<div class="resolved-h">Resolved</div>';
@@ -500,7 +850,7 @@
       el.innerHTML = h;
 
       el.querySelectorAll('.thread').forEach(function (t) {
-        t.addEventListener('click', function () { state.activeThread = t.getAttribute('data-thread'); render(); });
+        t.addEventListener('click', function () { state.activeThread = t.getAttribute('data-thread'); renderChrome(); });
       });
       el.querySelectorAll('button[data-act]').forEach(function (b) {
         b.addEventListener('click', function (e) {
@@ -511,7 +861,6 @@
             api('POST', '/comments/' + id + '/' + act).then(loadAll).catch(function (er) { toast(er.message); });
             return;
           }
-          // inline reply box
           var thread = b.closest('.thread');
           if (thread.querySelector('textarea')) return;
           var ta = document.createElement('textarea');
