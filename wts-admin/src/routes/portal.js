@@ -57,23 +57,36 @@ async function linkOrdersByEmail(customerId, email) {
 const CUSTOMER_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 async function establishCustomerSession(req, customer, opts = {}) {
   const persist = opts.persist !== false;
+  // Session regeneration wipes everything, including the locale a visitor
+  // picked before signing in — capture it first, then restore/persist it.
+  const preLoginLocale = req.session.locale;
   await new Promise((resolve, reject) => req.session.regenerate((err) => err ? reject(err) : resolve()));
   req.session.customerId = customer.id;
   req.session.customerEmail = customer.email;
+  req.session.locale = customer.preferred_language || preLoginLocale || undefined;
   req.session.cookie.maxAge = persist ? CUSTOMER_SESSION_MS : null;
   await db.query('UPDATE customers SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1', [customer.id]);
+  if (!customer.preferred_language && preLoginLocale) {
+    // First sign-in with a pre-login language choice: make it the account
+    // preference. Non-fatal — login must never fail over this.
+    try {
+      await db.query('UPDATE customers SET preferred_language = $1 WHERE id = $2', [preLoginLocale, customer.id]);
+    } catch (e) {
+      console.warn('Portal: failed to persist language preference:', e.message);
+    }
+  }
   await linkOrdersByEmail(customer.id, customer.email);
 }
 
 // Mint a single-use magic-link token and email it. The one token path for
 // self-serve login, admin invites and public portal signups alike.
-async function issueLoginLink(customer) {
+async function issueLoginLink(customer, locale = 'en') {
   const token = crypto.randomBytes(32).toString('hex');
   await db.query(
     'INSERT INTO customer_login_tokens (customer_id, token_hash, expires_at) VALUES ($1, $2, $3)',
     [customer.id, hashToken(token), new Date(Date.now() + TOKEN_TTL_MS)]
   );
-  return sendMagicLink(customer.email, `${PORTAL_BASE()}/portal/auth?token=${token}`);
+  return sendMagicLink(customer.email, `${PORTAL_BASE()}/portal/auth?token=${token}`, locale);
 }
 
 const requireCustomer = (req, res, next) => {
@@ -87,14 +100,14 @@ const loginLimiter = rateLimit({
   max: Number(process.env.PORTAL_RATE_LIMIT_MAX) || 8,
   standardHeaders: true,
   legacyHeaders: false,
-  message: 'Too many sign-in attempts, please try again later.'
+  message: (req) => req.t('login.rateLimited')
 });
 
 // ── Login ───────────────────────────────────────────────────────
 
 router.get('/login', (req, res) => {
   if (req.session.customerId) return res.redirect('/portal');
-  res.render('portal/login', { title: 'Sign in - Words That Sells', sent: false, email: '' });
+  res.render('portal/login', { title: req.t('login.title'), sent: false, email: '' });
 });
 
 router.post('/login', loginLimiter, async (req, res) => {
@@ -118,24 +131,24 @@ router.post('/login', loginLimiter, async (req, res) => {
       console.error('Portal password login error:', e);
     }
     return res.status(401).render('portal/login', {
-      title: 'Sign in - Words That Sells', sent: false, email: email || '',
-      error: 'Email or password incorrect — or this account has no password yet. Leave the password empty and we’ll email you a sign-in link instead.'
+      title: req.t('login.title'), sent: false, email: email || '',
+      error: req.t('login.errorInvalidCreds')
     });
   }
 
   // Magic-link flow. Always render the same "check your email" page — never
   // reveal whether an address exists (no account enumeration).
   if (!email) {
-    return res.render('portal/login', { title: 'Sign in - Words That Sells', sent: true, email: String(req.body.email || '').slice(0, 100) });
+    return res.render('portal/login', { title: req.t('login.title'), sent: true, email: String(req.body.email || '').slice(0, 100) });
   }
   try {
     const customer = await upsertCustomer(email, null);
-    await issueLoginLink(customer);
+    await issueLoginLink(customer, req.locale);
   } catch (e) {
     console.error('Portal login error:', e);
     // Fall through to the neutral response.
   }
-  res.render('portal/login', { title: 'Sign in - Words That Sells', sent: true, email });
+  res.render('portal/login', { title: req.t('login.title'), sent: true, email });
 });
 
 // ── Magic-link verification ─────────────────────────────────────
@@ -143,7 +156,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 router.get('/auth', loginLimiter, async (req, res) => {
   const token = String(req.query.token || '');
   if (!/^[a-f0-9]{64}$/.test(token)) {
-    return res.status(400).render('portal/login', { title: 'Sign in - Words That Sells', sent: false, email: '', error: 'That sign-in link is not valid. Request a new one below.' });
+    return res.status(400).render('portal/login', { title: req.t('login.title'), sent: false, email: '', error: req.t('login.errorLinkInvalid') });
   }
   try {
     // Single-use: claim the token atomically so a link can never mint two sessions.
@@ -155,19 +168,19 @@ router.get('/auth', loginLimiter, async (req, res) => {
       [hashToken(token)]
     );
     if (result.rows.length === 0) {
-      return res.status(400).render('portal/login', { title: 'Sign in - Words That Sells', sent: false, email: '', error: 'That sign-in link has expired or was already used. Request a new one below.' });
+      return res.status(400).render('portal/login', { title: req.t('login.title'), sent: false, email: '', error: req.t('login.errorLinkExpired') });
     }
     const customerId = result.rows[0].customer_id;
     const customer = (await db.query('SELECT * FROM customers WHERE id = $1', [customerId])).rows[0];
     if (!customer || customer.status !== 'active') {
-      return res.status(403).render('portal/login', { title: 'Sign in - Words That Sells', sent: false, email: '', error: 'This account is not active. Contact us if you think this is a mistake.' });
+      return res.status(403).render('portal/login', { title: req.t('login.title'), sent: false, email: '', error: req.t('login.errorInactive') });
     }
 
     await establishCustomerSession(req, customer);
     res.redirect('/portal');
   } catch (e) {
     console.error('Portal auth error:', e);
-    res.status(500).render('portal/login', { title: 'Sign in - Words That Sells', sent: false, email: '', error: 'Something went wrong signing you in. Please request a new link.' });
+    res.status(500).render('portal/login', { title: req.t('login.title'), sent: false, email: '', error: req.t('login.errorGeneric') });
   }
 });
 
@@ -207,7 +220,7 @@ router.get('/', requireCustomer, async (req, res) => {
       return res.redirect('/portal/login');
     }
     res.render('portal/orders', {
-      title: 'My Account - Words That Sells',
+      title: req.t('dashboard.title'),
       customer: customer.rows[0],
       hasPassword: !!customer.rows[0].password_hash,
       orders: orders.rows,
@@ -218,7 +231,7 @@ router.get('/', requireCustomer, async (req, res) => {
     });
   } catch (e) {
     console.error('Portal orders error:', e);
-    res.status(500).render('error', { title: 'Error', message: 'Failed to load your orders. Please try again.', code: 500 });
+    res.status(500).render('portal/error', { title: req.t('errors.serverErrorTitle'), message: req.t('dashboard.loadError'), code: 500 });
   }
 });
 
@@ -285,7 +298,7 @@ router.get('/billing', requireCustomer, async (req, res) => {
       totals[cur] = (totals[cur] || 0) + parseFloat(o.amount);
     });
     res.render('portal/billing', {
-      title: 'Billing - Words That Sells',
+      title: req.t('billing.title'),
       orders: rows,
       totals,
       awaitingCount: awaiting.length,
@@ -293,7 +306,7 @@ router.get('/billing', requireCustomer, async (req, res) => {
     });
   } catch (e) {
     console.error('Portal billing error:', e);
-    res.status(500).render('error', { title: 'Error', message: 'Failed to load your billing history. Please try again.', code: 500 });
+    res.status(500).render('portal/error', { title: req.t('errors.serverErrorTitle'), message: req.t('billing.loadError'), code: 500 });
   }
 });
 
@@ -309,12 +322,12 @@ router.get('/files', requireCustomer, async (req, res) => {
       [req.session.customerId]
     );
     res.render('portal/files', {
-      title: 'My Files - Words That Sells',
+      title: req.t('files.title'),
       files: files.rows
     });
   } catch (e) {
     console.error('Portal files error:', e);
-    res.status(500).render('error', { title: 'Error', message: 'Failed to load your files. Please try again.', code: 500 });
+    res.status(500).render('portal/error', { title: req.t('errors.serverErrorTitle'), message: req.t('files.loadError'), code: 500 });
   }
 });
 
@@ -325,24 +338,24 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 router.get('/files/:id/download', requireCustomer, async (req, res) => {
   try {
     if (!UUID_RE.test(req.params.id)) {
-      return res.status(404).render('error', { title: 'Not found', message: 'This file does not exist.', code: 404 });
+      return res.status(404).render('portal/error', { title: req.t('errors.notFoundTitle'), message: req.t('files.notFound'), code: 404 });
     }
     const result = await db.query(
       'SELECT * FROM deliverables WHERE id = $1 AND customer_id = $2',
       [req.params.id, req.session.customerId]
     );
     const file = result.rows[0];
-    if (!file) return res.status(404).render('error', { title: 'Not found', message: 'This file does not exist.', code: 404 });
+    if (!file) return res.status(404).render('portal/error', { title: req.t('errors.notFoundTitle'), message: req.t('files.notFound'), code: 404 });
 
     if (file.external_url) {
       try {
         const url = new URL(file.external_url);
         if (url.protocol === 'http:' || url.protocol === 'https:') return res.redirect(file.external_url);
       } catch (_) { /* fall through to 404 */ }
-      return res.status(404).render('error', { title: 'Not found', message: 'This file link is not valid.', code: 404 });
+      return res.status(404).render('portal/error', { title: req.t('errors.notFoundTitle'), message: req.t('files.linkInvalid'), code: 404 });
     }
 
-    if (!file.file_data) return res.status(404).render('error', { title: 'Not found', message: 'This file has no content.', code: 404 });
+    if (!file.file_data) return res.status(404).render('portal/error', { title: req.t('errors.notFoundTitle'), message: req.t('files.noContent'), code: 404 });
     const safeName = String(file.file_name || 'download').replace(/[^\w.\- ]+/g, '_');
     res.set({
       'Content-Type': file.file_mime || 'application/octet-stream',
@@ -352,7 +365,7 @@ router.get('/files/:id/download', requireCustomer, async (req, res) => {
     res.send(file.file_data);
   } catch (e) {
     console.error('Portal file download error:', e);
-    res.status(500).render('error', { title: 'Error', message: 'Failed to download the file.', code: 500 });
+    res.status(500).render('portal/error', { title: req.t('errors.serverErrorTitle'), message: req.t('files.downloadError'), code: 500 });
   }
 });
 
@@ -366,13 +379,13 @@ router.get('/profile', requireCustomer, async (req, res) => {
       return res.redirect('/portal/login');
     }
     res.render('portal/profile', {
-      title: 'My Profile - Words That Sells',
+      title: req.t('profile.title'),
       customer: result.rows[0],
       saved: false
     });
   } catch (e) {
     console.error('Portal profile error:', e);
-    res.status(500).render('error', { title: 'Error', message: 'Failed to load your profile.', code: 500 });
+    res.status(500).render('portal/error', { title: req.t('errors.serverErrorTitle'), message: req.t('profile.loadError'), code: 500 });
   }
 });
 
@@ -392,6 +405,10 @@ router.post('/profile', requireCustomer, async (req, res) => {
     const company = clean(req.body.company, 255);
     const phone = clean(req.body.phone, 50);
 
+    // Language preference: only the two supported values are accepted;
+    // anything else (or no select at all) leaves the stored preference alone.
+    const language = (req.body.language === 'en' || req.body.language === 'th') ? req.body.language : null;
+
     // Optional password change: both fields must match, minimum 8 chars.
     // Leaving them blank keeps the current setting (including "no password").
     const newPassword = typeof req.body.new_password === 'string' ? req.body.new_password : '';
@@ -400,14 +417,14 @@ router.post('/profile', requireCustomer, async (req, res) => {
     if (newPassword || confirm) {
       if (newPassword.length < 8) {
         return res.status(400).render('portal/profile', {
-          title: 'My Profile - Words That Sells', customer: { ...customer, name, company, phone },
-          saved: false, error: 'The password must be at least 8 characters.'
+          title: req.t('profile.title'), customer: { ...customer, name, company, phone },
+          saved: false, error: req.t('profile.passwordTooShort')
         });
       }
       if (newPassword !== confirm) {
         return res.status(400).render('portal/profile', {
-          title: 'My Profile - Words That Sells', customer: { ...customer, name, company, phone },
-          saved: false, error: 'The two passwords don’t match.'
+          title: req.t('profile.title'), customer: { ...customer, name, company, phone },
+          saved: false, error: req.t('profile.passwordMismatch')
         });
       }
       passwordHash = await bcrypt.hash(newPassword, 10);
@@ -417,20 +434,22 @@ router.post('/profile', requireCustomer, async (req, res) => {
       `UPDATE customers SET
          name = $1, company = $2, phone = $3,
          password_hash = COALESCE($4, password_hash),
+         preferred_language = COALESCE($5, preferred_language),
          updated_at = CURRENT_TIMESTAMP
-       WHERE id = $5
+       WHERE id = $6
        RETURNING *`,
-      [name, company, phone, passwordHash || null, customer.id]
+      [name, company, phone, passwordHash || null, language, customer.id]
     );
+    if (language) req.session.locale = language;
     res.render('portal/profile', {
-      title: 'My Profile - Words That Sells',
+      title: req.t('profile.title'),
       customer: updated.rows[0],
       saved: true,
       passwordChanged: !!passwordHash
     });
   } catch (e) {
     console.error('Portal profile update error:', e);
-    res.status(500).render('error', { title: 'Error', message: 'Failed to save your profile.', code: 500 });
+    res.status(500).render('portal/error', { title: req.t('errors.serverErrorTitle'), message: req.t('profile.saveError'), code: 500 });
   }
 });
 
@@ -441,13 +460,13 @@ const chatLimiter = rateLimit({
   max: Number(process.env.PORTAL_CHAT_RATE_LIMIT_MAX) || 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'You are sending messages a little fast — give it a few minutes and try again.' }
+  message: (req) => ({ error: req.t('chat.rateLimited') })
 });
 
 router.get('/chat', requireCustomer, (req, res) => {
   const strategist = require('../utils/strategist');
   res.render('portal/chat', {
-    title: 'AI Strategist - Words That Sells',
+    title: req.t('chat.title'),
     enabled: strategist.isConfigured(),
     history: (req.session.chatHistory || []).slice(-12)
   });
@@ -456,10 +475,10 @@ router.get('/chat', requireCustomer, (req, res) => {
 router.post('/chat', requireCustomer, chatLimiter, async (req, res) => {
   const strategist = require('../utils/strategist');
   if (!strategist.isConfigured()) {
-    return res.status(503).json({ error: 'The AI Strategist is not available yet. Please use the quick actions on your dashboard instead.' });
+    return res.status(503).json({ error: req.t('chat.unavailable') });
   }
   const message = String(req.body.message || '').trim().slice(0, 2000);
-  if (!message) return res.status(400).json({ error: 'Type a message first.' });
+  if (!message) return res.status(400).json({ error: req.t('chat.emptyMessage') });
   try {
     if (!Array.isArray(req.session.chatHistory)) req.session.chatHistory = [];
     const reply = await strategist.chatReply(req.session.customerId, req.session.chatHistory, message);
@@ -469,7 +488,7 @@ router.post('/chat', requireCustomer, chatLimiter, async (req, res) => {
     res.json({ reply });
   } catch (e) {
     console.error('Portal chat error:', e.status || '', e.message);
-    res.status(502).json({ error: 'The strategist is having a moment — please try again shortly, or send us a quick request from your dashboard.' });
+    res.status(502).json({ error: req.t('chat.upstreamError') });
   }
 });
 

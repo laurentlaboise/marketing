@@ -3,6 +3,12 @@ const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
 const { isOriginAllowed } = require('../utils/origins');
 const { normalizeTiers } = require('../utils/pricing');
+const { translate } = require('../lib/i18n');
+
+// The portal i18n middleware is not mounted on /api/public, so the portal
+// signup/login endpoints resolve the locale straight from Accept-Language.
+const resolveLocale = (req) =>
+  (req.acceptsLanguages ? (req.acceptsLanguages('en', 'th') || 'en') : 'en');
 
 const router = express.Router();
 
@@ -1100,7 +1106,7 @@ const portalSignupLimiter = rateLimit({
   max: 6,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many sign-up attempts, please try again later.' }
+  message: (req) => ({ error: translate(resolveLocale(req), 'portalApi.signupRateLimited') })
 });
 
 router.post('/portal-signup', portalSignupLimiter, async (req, res) => {
@@ -1109,12 +1115,12 @@ router.post('/portal-signup', portalSignupLimiter, async (req, res) => {
   }
   const email = String(req.body.email || '').trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 255) {
-    return respond(res, { error: 'A valid email is required.' }, 400);
+    return respond(res, { error: translate(resolveLocale(req), 'portalApi.emailRequired') }, 400);
   }
   try {
     const { upsertCustomer, issueLoginLink } = require('./portal');
     const customer = await upsertCustomer(email, String(req.body.name || '').trim().slice(0, 255) || null);
-    await issueLoginLink(customer);
+    await issueLoginLink(customer, resolveLocale(req));
   } catch (e) {
     console.error('Portal signup error:', e);
     // Fall through to the neutral response.
@@ -1134,10 +1140,10 @@ const portalLoginLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many sign-in attempts. Please wait a few minutes and try again.' }
+  message: (req) => ({ error: translate(resolveLocale(req), 'portalApi.loginRateLimited') })
 });
 
-const PORTAL_LOGIN_FAILED = "The email or password doesn't match our records. Please try again, or use an email sign-in link instead.";
+const portalLoginFailed = (req) => translate(resolveLocale(req), 'portalApi.loginFailed');
 
 router.post('/portal-login', portalLoginLimiter, async (req, res) => {
   if (!isOriginAllowed(req)) {
@@ -1147,7 +1153,7 @@ router.post('/portal-login', portalLoginLimiter, async (req, res) => {
   const password = typeof req.body.password === 'string' ? req.body.password : '';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 255 ||
       !password || password.length > 200) {
-    return respond(res, { error: PORTAL_LOGIN_FAILED }, 401);
+    return respond(res, { error: portalLoginFailed(req) }, 401);
   }
   try {
     // Required lazily (like portal-signup above) to stay clear of any
@@ -1158,13 +1164,13 @@ router.post('/portal-login', portalLoginLimiter, async (req, res) => {
     const customer = result.rows[0];
     if (!customer || customer.status !== 'active' || !customer.password_hash ||
         !(await bcrypt.compare(password, customer.password_hash))) {
-      return respond(res, { error: PORTAL_LOGIN_FAILED }, 401);
+      return respond(res, { error: portalLoginFailed(req) }, 401);
     }
     await establishCustomerSession(req, customer, { persist: req.body.remember !== false });
     respond(res, { signed_in: true, email: customer.email });
   } catch (e) {
     console.error('Portal password login error:', e);
-    respond(res, { error: PORTAL_LOGIN_FAILED }, 401);
+    respond(res, { error: portalLoginFailed(req) }, 401);
   }
 });
 
