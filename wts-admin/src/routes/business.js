@@ -735,6 +735,96 @@ router.post('/products/:id/duplicate', async (req, res) => {
 // alongside for one view of everything sold.
 const ORDER_STATUSES = ['pending', 'awaiting_payment', 'completed', 'expired', 'cancelled'];
 
+// Payments panel: is Stripe wired, what did the last webhook do, which bank
+// transfers are waiting for confirmation, and how the deliverable funnel
+// converts. The single place to look when "payments aren't working".
+router.get('/payments', async (req, res) => {
+  try {
+    const key = process.env.STRIPE_SECRET_KEY || '';
+    const whsec = process.env.STRIPE_WEBHOOK_SECRET || '';
+    const stripe = {
+      keyPresent: !!key,
+      keyMode: key.startsWith('sk_live') ? 'live' : (key.startsWith('sk_test') ? 'test' : (key ? 'unknown' : null)),
+      keyLast4: key ? key.slice(-4) : null,
+      webhookSecretPresent: !!whsec,
+      webhookSecretLast4: whsec ? whsec.slice(-4) : null
+    };
+
+    const lastEvents = (await db.query(
+      'SELECT event_type, stripe_session_id, outcome, received_at FROM payment_webhook_events ORDER BY received_at DESC LIMIT 10'
+    )).rows;
+
+    const funnel = (await db.query(
+      `SELECT status, COUNT(*)::int AS n, COALESCE(SUM(amount), 0) AS total
+       FROM orders
+       WHERE metadata->>'kind' = 'board_asset' AND created_at > NOW() - INTERVAL '30 days'
+       GROUP BY status`
+    )).rows;
+
+    const pendingBank = (await db.query(
+      `SELECT id, customer_email, customer_name, amount, currency, created_at,
+              metadata->>'reference' AS reference, metadata->>'title' AS asset_title,
+              metadata->>'board_asset_id' AS board_asset_id
+       FROM orders
+       WHERE payment_method = 'bcel_qr' AND status = 'awaiting_payment'
+         AND metadata->>'kind' = 'board_asset'
+       ORDER BY created_at DESC LIMIT 50`
+    )).rows;
+
+    const recent = (await db.query(
+      `SELECT id, customer_email, amount, currency, status, payment_method, created_at, updated_at,
+              stripe_session_id, metadata->>'title' AS asset_title, metadata->>'reference' AS reference
+       FROM orders
+       WHERE metadata->>'kind' = 'board_asset'
+       ORDER BY created_at DESC LIMIT 15`
+    )).rows;
+
+    res.render('business/payments/status', {
+      title: 'Payments',
+      currentPage: 'payments',
+      user: req.user,
+      messages: req.flash ? req.flash() : {},
+      stripe, lastEvents, funnel, pendingBank, recent,
+      bcelConfigured: !!(process.env.BCEL_QR_URL || process.env.BCEL_ACCOUNT_NOTE)
+    });
+  } catch (error) {
+    console.error('Payments panel error:', error);
+    res.status(500).send('Failed to load the payments panel');
+  }
+});
+
+// Confirm a bank-transfer order: mark completed and unlock the deliverable
+// it gates. The admin does this after matching the reference in the BCEL
+// One statement.
+router.post('/payments/orders/:id/confirm', async (req, res) => {
+  try {
+    const order = (await db.query(
+      `UPDATE orders SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND payment_method = 'bcel_qr' AND status = 'awaiting_payment'
+       RETURNING id, metadata`,
+      [req.params.id]
+    )).rows[0];
+    if (!order) {
+      req.flash && req.flash('error', 'Order not found or already confirmed.');
+      return res.redirect('/business/payments');
+    }
+    const meta = order.metadata || {};
+    if (meta.kind === 'board_asset' && meta.board_asset_id && process.env.FEATURE_WHITEBOARD === '1') {
+      try {
+        const { unlockBoardAsset } = require('../modules/whiteboard/assets');
+        await unlockBoardAsset(meta.board_asset_id);
+      } catch (e) {
+        console.warn('BCEL confirm: unlock failed:', e.message);
+      }
+    }
+    req.flash && req.flash('success', 'Payment confirmed — the download is unlocked.');
+    res.redirect('/business/payments');
+  } catch (error) {
+    console.error('BCEL confirm error:', error);
+    res.status(500).send('Failed to confirm the payment');
+  }
+});
+
 router.get('/orders', async (req, res) => {
   const { status, method } = req.query;
   try {
