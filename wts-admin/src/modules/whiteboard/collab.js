@@ -310,4 +310,4 @@ function addCollabRoutes(router, side) {
   }
 }
 
-module.exports = { addCollabRoutes };
+module.exports = { addCollabRoutes, resolveActor };

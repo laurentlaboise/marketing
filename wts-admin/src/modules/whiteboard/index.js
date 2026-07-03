@@ -10,6 +10,7 @@ const { runMigrations } = require('./migrations');
 const createAdminRouter = require('./routes-admin');
 const createPortalRouter = require('./routes-portal');
 const { attachSync } = require('./sync');
+const { registerAssetServing } = require('./assets');
 const { ensureAuthenticated, ensureAdmin } = require('../../middleware/auth');
 
 // attach() runs after server.js has already registered its catch-all 404
@@ -57,6 +58,7 @@ async function attach(app, httpServer, { sessionMiddleware }) {
   mountBeforeNotFound(app, () => {
     app.use('/business/boards', adminSurfaceLimiter, ensureAuthenticated, ensureAdmin, createAdminRouter());
     app.use('/portal/boards', createPortalRouter());
+    registerAssetServing(app);
   });
 
   // WebSocket sync endpoint: /ws/boards/:boardId

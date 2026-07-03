@@ -8,6 +8,7 @@ const express = require('express');
 const db = require('../../../database/db');
 const { UUID_RE, relaxedBoardCsp, notFound } = require('./util');
 const { addCollabRoutes } = require('./collab');
+const { addAssetRoutes } = require('./assets');
 
 const MEMBER_ROLES = new Set(['editor', 'commenter', 'viewer']);
 
@@ -116,7 +117,8 @@ function createAdminRouter() {
         apiBase: '/business/boards/' + board.id,
         canComment: true,
         canApprove: true,
-        canDecide: false
+        canDecide: false,
+        canUpload: true
       });
     } catch (e) {
       console.error('Whiteboard board page error:', e);
@@ -172,6 +174,7 @@ function createAdminRouter() {
 
   // ── Comments + approvals (stage D+E JSON endpoints) ──────────
   addCollabRoutes(router, 'admin');
+  addAssetRoutes(router, 'admin');
 
   // ── Delete board ──────────────────────────────────────────────
 

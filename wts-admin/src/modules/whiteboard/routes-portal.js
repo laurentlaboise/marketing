@@ -9,6 +9,7 @@ const express = require('express');
 const db = require('../../../database/db');
 const { UUID_RE, relaxedBoardCsp, colorForCustomer, notFound } = require('./util');
 const { addCollabRoutes } = require('./collab');
+const { addAssetRoutes } = require('./assets');
 
 const COMMENTER_ROLES = new Set(['owner', 'editor', 'commenter']);
 
@@ -88,7 +89,8 @@ function createPortalRouter() {
         apiBase: '/portal/boards/' + board.id,
         canComment: COMMENTER_ROLES.has(board.member_role),
         canApprove: false,
-        canDecide: COMMENTER_ROLES.has(board.member_role)
+        canDecide: COMMENTER_ROLES.has(board.member_role),
+        canUpload: ['owner', 'editor'].includes(board.member_role)
       });
     } catch (e) {
       console.error('Whiteboard portal board error:', e);
@@ -98,6 +100,7 @@ function createPortalRouter() {
 
   // ── Comments + approvals (stage D+E JSON endpoints) ──────────
   addCollabRoutes(router, 'portal');
+  addAssetRoutes(router, 'portal');
 
   return router;
 }
