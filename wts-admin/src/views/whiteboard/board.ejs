@@ -374,7 +374,10 @@
     }
 
     viewport.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('.composer-pop') || e.target.closest('.hud') || e.target.closest('.node-tools') || e.target.closest('.export-pop')) return;
+      // Interactive islands: no gesture capture, so their native clicks
+      // fire (pointer capture would retarget the click to the viewport —
+      // the pay overlay button silently dies without this).
+      if (e.target.closest('.composer-pop') || e.target.closest('.hud') || e.target.closest('.node-tools') || e.target.closest('.export-pop') || e.target.closest('.lock-overlay')) return;
       viewport.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pointers.size === 2) {
@@ -537,9 +540,13 @@
 
     viewport.addEventListener('dblclick', function (e) {
       if (e.target.closest('.node') || e.target.closest('.hud')) return;
+      // Touch double-taps are handled in handleTap AND synthesize a dblclick
+      // — without this guard both fire and the zoom doubles up.
+      if (Date.now() - lastTouchZoom < 500) return;
       var r = getVpRect();
       zoomAbout(e.clientX - r.left, e.clientY - r.top, view.zoom * 1.5);
     });
+    var lastTouchZoom = 0;
 
     document.getElementById('zoom-in').addEventListener('click', function () {
       var r = getVpRect(); zoomAbout(r.width / 2, r.height / 2, view.zoom * 1.25);
@@ -600,10 +607,24 @@
         if (img && anchor) openComposer(nodeEl, img, anchor);
         return;
       }
+      // Background tap. Touch double-tap zooms in about the tap point
+      // (mouse users have dblclick; guarding on touch avoids double-firing).
+      if (gesture.touch) {
+        var now = Date.now();
+        if (lastBgTap && now - lastBgTap.t < 300 && Math.hypot(e.clientX - lastBgTap.x, e.clientY - lastBgTap.y) < 30) {
+          var vr2 = getVpRect();
+          zoomAbout(e.clientX - vr2.left, e.clientY - vr2.top, view.zoom * 1.5);
+          lastBgTap = null;
+          lastTouchZoom = Date.now();
+          return;
+        }
+        lastBgTap = { t: now, x: e.clientX, y: e.clientY };
+      }
       closeComposer();
       state.activeThread = null;
       renderChrome();
     }
+    var lastBgTap = null;
 
     // ── API + polling ────────────────────────────────────────────
     function api(method, path, body) {
@@ -829,11 +850,55 @@
           .catch(function (er) { toast(er.message); });
       });
     }
+    // ── Keyboard ─────────────────────────────────────────────────
+    // Arrows nudge the selected image (shift = 10 units), +/− zoom about
+    // the center, 0 fits all, Delete removes the selection. Never while
+    // typing in a field.
+    var nudgeTimers = {};
+    function nudge(img, dx, dy) {
+      img.x = Math.round((img.x + dx) * 100) / 100;
+      img.y = Math.round((img.y + dy) * 100) / 100;
+      shadow[img.id] = { x: img.x, y: img.y, w: img.w, h: img.h, z: img.z };
+      var node = nodesById[img.id];
+      if (node) applyPlacement(node, img);
+      clearTimeout(nudgeTimers[img.id]);
+      nudgeTimers[img.id] = setTimeout(function () {
+        persistPlacement(img, { x: img.x, y: img.y });
+      }, 400);
+    }
+
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         closeComposer();
         var xp = viewport.querySelector('.export-pop');
         if (xp) xp.remove();
+        return;
+      }
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+
+      var img = currentImage();
+      var ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+      if (ARROWS[e.key] && state.canArrange && img) {
+        e.preventDefault();
+        var step = e.shiftKey ? 10 : 1;
+        nudge(img, ARROWS[e.key][0] * step, ARROWS[e.key][1] * step);
+        return;
+      }
+      if (e.key === '+' || e.key === '=') {
+        var r1 = getVpRect(); zoomAbout(r1.width / 2, r1.height / 2, view.zoom * 1.25);
+      } else if (e.key === '-' || e.key === '_') {
+        var r2 = getVpRect(); zoomAbout(r2.width / 2, r2.height / 2, view.zoom / 1.25);
+      } else if (e.key === '0') {
+        fitAll();
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && state.canArrange && img) {
+        e.preventDefault();
+        if (img.is_final && !cfg.isAdmin) { toast('Only the WTS team can remove a final deliverable.'); return; }
+        if (!confirm('Remove this image from the board? Its comments stay in the panel as history.')) return;
+        api('POST', '/assets/' + img.id + '/delete')
+          .then(function () { state.current = null; return loadAll(); })
+          .then(function () { toast('Image removed.'); })
+          .catch(function (er) { toast(er.message); });
       }
     });
 
