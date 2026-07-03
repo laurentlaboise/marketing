@@ -29,7 +29,8 @@ function createAdminRouter() {
 
   router.get('/', async (req, res) => {
     try {
-      const [boards, customers] = await Promise.all([
+      const customerFilter = UUID_RE.test(String(req.query.customer || '')) ? req.query.customer : null;
+      const [boards, customers, filterCustomer] = await Promise.all([
         db.query(
           `SELECT b.id, b.title, b.status, b.created_at,
                   COUNT(m.id)::int AS member_count,
@@ -49,19 +50,27 @@ function createAdminRouter() {
            LEFT JOIN customers c
              ON m.principal_type = 'customer' AND c.id::text = m.principal_id
            GROUP BY b.id
-           ORDER BY b.created_at DESC`
+           HAVING $1::uuid IS NULL OR bool_or(
+             m.principal_type = 'customer' AND m.principal_id = $1::text
+           )
+           ORDER BY b.created_at DESC`,
+          [customerFilter]
         ),
         db.query(
           `SELECT id, email, name FROM customers
            WHERE status = 'active'
            ORDER BY COALESCE(name, email)`
-        )
+        ),
+        customerFilter
+          ? db.query('SELECT id, email, name FROM customers WHERE id = $1', [customerFilter])
+          : Promise.resolve({ rows: [] })
       ]);
       res.render('whiteboard/admin-list', {
         title: 'Boards',
         currentPage: 'boards',
         boards: boards.rows,
-        customers: customers.rows
+        customers: customers.rows,
+        filterCustomer: filterCustomer.rows[0] || null
       });
     } catch (e) {
       console.error('Whiteboard admin list error:', e);
@@ -85,6 +94,25 @@ function createAdminRouter() {
          VALUES ($1, 'admin', $2, 'owner')`,
         [board.id, String(req.user.id)]
       );
+      // Started from a client's page: invite that client in the same step so
+      // the board is ready to share the moment it opens.
+      const customerId = String(req.body.customer_id || '');
+      if (UUID_RE.test(customerId)) {
+        const customer = (await db.query(
+          "SELECT id, email FROM customers WHERE id = $1 AND status = 'active'",
+          [customerId]
+        )).rows[0];
+        if (customer) {
+          await db.query(
+            `INSERT INTO board_members (board_id, principal_type, principal_id, role)
+             VALUES ($1, 'customer', $2, 'editor')
+             ON CONFLICT (board_id, principal_type, principal_id) DO NOTHING`,
+            [board.id, String(customer.id)]
+          );
+          req.session.successMessage = `Board created and shared with ${customer.email}`;
+          return res.redirect(`/business/boards/${board.id}`);
+        }
+      }
       req.session.successMessage = 'Board created successfully';
       res.redirect(`/business/boards/${board.id}`);
     } catch (e) {

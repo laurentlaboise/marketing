@@ -58,6 +58,31 @@
       </div>
     </div>
 
+    <% if (typeof featureWhiteboard !== 'undefined' && featureWhiteboard) { %>
+    <!-- Whiteboards: jump straight into a live working session with this client -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0.85rem 1rem;">
+        <h3 style="margin:0 0 0.6rem;color:var(--text-primary,#1a1a2e);font-size:1.05rem;"><i class="fas fa-chalkboard" style="color:#d62b83;"></i> Boards</h3>
+        <div style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap;">
+          <form method="POST" action="/business/boards" style="display:flex;gap:0.6rem;align-items:flex-end;flex-wrap:wrap;">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="customer_id" value="<%= customer.id %>">
+            <div>
+              <label class="form-label" for="board-title">New board with this client</label>
+              <input class="form-control" type="text" id="board-title" name="title" maxlength="200" required
+                     value="<%= (customer.name || customer.email.split('@')[0]) + ' — working session' %>" style="min-width:260px;">
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-chalkboard"></i> Create &amp; open board</button>
+          </form>
+          <a class="btn btn-secondary" href="/business/boards?customer=<%= customer.id %>">
+            <i class="fas fa-list"></i> Boards shared with this client
+          </a>
+        </div>
+        <p style="margin:0.6rem 0 0;font-size:0.78rem;color:#888;">The client is added as an editor automatically — they'll see the board under &ldquo;Boards&rdquo; in their portal.</p>
+      </div>
+    </div>
+    <% } %>
+
     <% var saved = (typeof savedServices !== 'undefined' && savedServices) ? savedServices : []; %>
     <% if (saved.length > 0) { %>
     <!-- Saved services: what this client is interested in -->

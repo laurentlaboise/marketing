@@ -599,5 +599,6 @@ function App() {
 
 const rootEl = document.getElementById('wts-board-root');
 if (rootEl) {
+  window.__WTS_BOARD_MOUNTED = true; // tells the server-rendered shell we made it
   createRoot(rootEl).render(<App />);
 }

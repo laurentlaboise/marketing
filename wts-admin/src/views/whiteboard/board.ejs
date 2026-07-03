@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= board.title %> · Whiteboard · Words That Sells</title>
+  <link rel="preload" href="/whiteboard/board.js" as="script">
   <link rel="stylesheet" href="/whiteboard/board.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -11,6 +12,17 @@
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f1f5f9; }
     #wts-board-root { position: fixed; inset: 0; }
     .wts-board-fallback { padding: 2rem 1rem; text-align: center; color: #64748b; font-size: 0.9rem; }
+    /* Server-rendered shell: visible the instant the page arrives, replaced
+       by the React app once the bundle has downloaded and mounted. Without
+       it, a slow connection shows a pure white page for the whole download. */
+    .wts-shell-topbar { height: 48px; background: #122a3f; color: #fff; display: flex; align-items: center; gap: 0.75rem; padding: 0 0.9rem; }
+    .wts-shell-topbar a { color: #e2e8f0; text-decoration: none; font-size: 0.84rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.35); border-radius: 8px; padding: 0.25rem 0.7rem; }
+    .wts-shell-topbar strong { font-size: 0.95rem; }
+    .wts-shell-body { position: absolute; top: 48px; bottom: 0; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; background: #f8fafc; color: #64748b; }
+    .wts-shell-spinner { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #d62b83; border-radius: 50%; animation: wts-spin 0.9s linear infinite; }
+    @keyframes wts-spin { to { transform: rotate(360deg); } }
+    .wts-shell-body p { font-size: 0.92rem; max-width: 380px; text-align: center; line-height: 1.55; padding: 0 1rem; }
+    .wts-shell-body .hint { font-size: 0.8rem; color: #94a3b8; }
   </style>
 </head>
 <body>
@@ -30,8 +42,44 @@
     }).replace(/</g, '\\u003c') %>;
   </script>
   <div id="wts-board-root">
-    <noscript><div class="wts-board-fallback">This whiteboard needs JavaScript to run.</div></noscript>
+    <div class="wts-shell-topbar">
+      <a href="<%= backUrl %>">&larr; Back</a>
+      <strong><%= board.title %></strong>
+    </div>
+    <div class="wts-shell-body">
+      <div class="wts-shell-spinner"></div>
+      <p id="wts-shell-msg">Loading your board&hellip;</p>
+      <p class="hint" id="wts-shell-hint"></p>
+      <noscript><div class="wts-board-fallback">This whiteboard needs JavaScript to run.</div></noscript>
+    </div>
   </div>
+  <script nonce="<%= cspNonce %>">
+    (function () {
+      var msg = document.getElementById('wts-shell-msg');
+      var hint = document.getElementById('wts-shell-hint');
+      // Bundle failed to download/parse (bad connection, blocked, old browser).
+      window.addEventListener('error', function (e) {
+        var t = e.target || {};
+        if (t.tagName === 'SCRIPT' && String(t.src).indexOf('/whiteboard/board.js') !== -1 && msg) {
+          msg.textContent = "Couldn't load the board app.";
+          hint.textContent = 'Check your internet connection and pull to refresh (or press Ctrl+Shift+R).';
+        }
+      }, true);
+      // Download is taking long — say so instead of looking frozen.
+      setTimeout(function () {
+        if (!window.__WTS_BOARD_MOUNTED && hint && !hint.textContent) {
+          hint.textContent = 'Still loading — the first visit downloads the board app (about 0.6 MB). On a slow connection this can take a little while.';
+        }
+      }, 6000);
+      // Mounted but never replaced the shell (unexpected crash before render).
+      setTimeout(function () {
+        if (!window.__WTS_BOARD_MOUNTED && msg) {
+          msg.textContent = 'The board is taking unusually long to start.';
+          hint.textContent = 'Please refresh the page. If this keeps happening, tell us what device and browser you are using.';
+        }
+      }, 30000);
+    })();
+  </script>
   <script nonce="<%= cspNonce %>" src="/whiteboard/board.js"></script>
 </body>
 </html>
