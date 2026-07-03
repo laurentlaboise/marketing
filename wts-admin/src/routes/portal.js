@@ -434,6 +434,45 @@ router.post('/profile', requireCustomer, async (req, res) => {
   }
 });
 
+// ── AI Marketing Strategist chat ────────────────────────────────
+
+const chatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.PORTAL_CHAT_RATE_LIMIT_MAX) || 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'You are sending messages a little fast — give it a few minutes and try again.' }
+});
+
+router.get('/chat', requireCustomer, (req, res) => {
+  const strategist = require('../utils/strategist');
+  res.render('portal/chat', {
+    title: 'AI Strategist - Words That Sells',
+    enabled: strategist.isConfigured(),
+    history: (req.session.chatHistory || []).slice(-12)
+  });
+});
+
+router.post('/chat', requireCustomer, chatLimiter, async (req, res) => {
+  const strategist = require('../utils/strategist');
+  if (!strategist.isConfigured()) {
+    return res.status(503).json({ error: 'The AI Strategist is not available yet. Please use the quick actions on your dashboard instead.' });
+  }
+  const message = String(req.body.message || '').trim().slice(0, 2000);
+  if (!message) return res.status(400).json({ error: 'Type a message first.' });
+  try {
+    if (!Array.isArray(req.session.chatHistory)) req.session.chatHistory = [];
+    const reply = await strategist.chatReply(req.session.customerId, req.session.chatHistory, message);
+    req.session.chatHistory = req.session.chatHistory
+      .concat([{ role: 'user', content: message }, { role: 'assistant', content: reply }])
+      .slice(-12);
+    res.json({ reply });
+  } catch (e) {
+    console.error('Portal chat error:', e.status || '', e.message);
+    res.status(502).json({ error: 'The strategist is having a moment — please try again shortly, or send us a quick request from your dashboard.' });
+  }
+});
+
 router.post('/logout', requireCustomer, (req, res) => {
   req.session.destroy(() => res.redirect('/portal/login'));
 });
