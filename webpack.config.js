@@ -41,6 +41,11 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: 'public', to: 'public', noErrorOnMissing: true },
+        // The service pages load /js/main.js and /js/services/*.js directly
+        // (product loader, sidebar, menus). The webpack entry only emits a
+        // hashed homepage bundle, so the source js/ tree must ship too or
+        // every API-driven section (the whole product catalog) goes dark.
+        { from: 'js', to: 'js', noErrorOnMissing: true },
         { from: 'images', to: 'images', noErrorOnMissing: true },
         { from: 'en', to: 'en', noErrorOnMissing: true },
         { from: 'favicon', to: 'favicon', noErrorOnMissing: true },
