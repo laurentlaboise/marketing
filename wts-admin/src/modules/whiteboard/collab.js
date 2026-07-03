@@ -14,7 +14,8 @@
 
 const db = require('../../../database/db');
 const { UUID_RE } = require('./util');
-const { broadcast } = require('./sync');
+// Review boards poll for changes; no push channel needed.
+const broadcast = () => {};
 const { sendEmail } = require('../../utils/mailer');
 
 const COMMENTER_ROLES = new Set(['owner', 'editor', 'commenter']);
@@ -81,6 +82,12 @@ function validAnchor(anchor) {
   if (typeof anchor !== 'object' || Array.isArray(anchor)) return undefined; // invalid
   if (Number.isFinite(anchor.x) && Number.isFinite(anchor.y)) {
     return { x: anchor.x, y: anchor.y };
+  }
+  // Image-review pin: percentage position on a specific board image.
+  if (typeof anchor.imageId === 'string' && anchor.imageId.length <= 40 &&
+      Number.isFinite(anchor.xPct) && Number.isFinite(anchor.yPct) &&
+      anchor.xPct >= 0 && anchor.xPct <= 100 && anchor.yPct >= 0 && anchor.yPct <= 100) {
+    return { imageId: anchor.imageId, xPct: Math.round(anchor.xPct * 100) / 100, yPct: Math.round(anchor.yPct * 100) / 100 };
   }
   if (typeof anchor.shapeId === 'string' && anchor.shapeId.length <= 100) {
     return { shapeId: anchor.shapeId };

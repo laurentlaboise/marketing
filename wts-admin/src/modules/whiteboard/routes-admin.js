@@ -6,7 +6,7 @@
 
 const express = require('express');
 const db = require('../../../database/db');
-const { UUID_RE, relaxedBoardCsp, notFound } = require('./util');
+const { UUID_RE, notFound } = require('./util');
 const { addCollabRoutes } = require('./collab');
 const { addAssetRoutes } = require('./assets');
 
@@ -129,7 +129,6 @@ function createAdminRouter() {
     try {
       const board = (await db.query('SELECT * FROM boards WHERE id = $1', [req.params.id])).rows[0];
       if (!board) return notFound(res);
-      res.setHeader('Content-Security-Policy', relaxedBoardCsp(res.locals.cspNonce));
       res.render('whiteboard/board', {
         title: board.title,
         board,
@@ -146,8 +145,7 @@ function createAdminRouter() {
         canComment: true,
         canApprove: true,
         canDecide: false,
-        canUpload: true,
-        tldrawLicenseKey: process.env.TLDRAW_LICENSE_KEY || null
+        canUpload: true
       });
     } catch (e) {
       console.error('Whiteboard board page error:', e);

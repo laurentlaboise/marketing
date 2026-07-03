@@ -33,6 +33,29 @@ const assetUpload = multer({
 // POST /:id/assets — registered on both the admin and portal routers.
 // Admins and owner/editor members may upload; commenters/viewers may not.
 function addAssetRoutes(router, side) {
+  // List the board's images (any member/admin) — the review board's filmstrip.
+  router.get('/:id/assets', async (req, res) => {
+    const actor = await resolveActor(req, res, side);
+    if (!actor) return;
+    try {
+      const rows = (await db.query(
+        `SELECT id, mime, size, created_at FROM board_assets
+         WHERE board_id = $1 ORDER BY created_at ASC`,
+        [actor.boardId]
+      )).rows.map((a) => ({
+        id: a.id,
+        mime: a.mime,
+        size: a.size,
+        created_at: a.created_at,
+        src: '/board-assets/' + actor.boardId + '/' + a.id
+      }));
+      res.json({ assets: rows });
+    } catch (e) {
+      console.error('Board asset list error:', e);
+      res.status(500).json({ error: 'Failed to load images.' });
+    }
+  });
+
   router.post('/:id/assets', (req, res) => {
     assetUpload.single('file')(req, res, async (uploadErr) => {
       try {

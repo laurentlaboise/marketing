@@ -3,33 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= board.title %> · Whiteboard · Words That Sells</title>
-  <link rel="preload" href="/whiteboard/board.js" as="script">
-  <link rel="stylesheet" href="/whiteboard/board.css">
+  <title><%= board.title %> · Review Board · Words That Sells</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f1f5f9; }
-    #wts-board-root { position: fixed; inset: 0; }
-    .wts-board-fallback { padding: 2rem 1rem; text-align: center; color: #64748b; font-size: 0.9rem; }
-    /* Server-rendered shell: visible the instant the page arrives, replaced
-       by the React app once the bundle has downloaded and mounted. Without
-       it, a slow connection shows a pure white page for the whole download. */
-    .wts-shell-topbar { height: 48px; background: #122a3f; color: #fff; display: flex; align-items: center; gap: 0.75rem; padding: 0 0.9rem; }
-    .wts-shell-topbar a { color: #e2e8f0; text-decoration: none; font-size: 0.84rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.35); border-radius: 8px; padding: 0.25rem 0.7rem; }
-    .wts-shell-topbar strong { font-size: 0.95rem; }
-    .wts-shell-body { position: absolute; top: 48px; bottom: 0; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; background: #f8fafc; color: #64748b; }
-    .wts-shell-spinner { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #d62b83; border-radius: 50%; animation: wts-spin 0.9s linear infinite; }
-    @keyframes wts-spin { to { transform: rotate(360deg); } }
-    .wts-shell-body p { font-size: 0.92rem; max-width: 380px; text-align: center; line-height: 1.55; padding: 0 1rem; }
-    .wts-shell-body .hint { font-size: 0.8rem; color: #94a3b8; }
+    html, body { height: 100%; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f1f5f9; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+    .topbar { height: 48px; flex: 0 0 48px; background: #122a3f; color: #fff; display: flex; align-items: center; gap: 0.75rem; padding: 0 0.9rem; }
+    .topbar a.back { color: #e2e8f0; text-decoration: none; font-size: 0.84rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.35); border-radius: 8px; padding: 0.25rem 0.7rem; white-space: nowrap; }
+    .topbar .title { font-size: 0.95rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .topbar .count { font-size: 0.78rem; color: #cbd5e1; white-space: nowrap; }
+    .approval { flex: 0 0 auto; display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.9rem; background: #fff; border-bottom: 1px solid #e2e8f0; font-size: 0.82rem; flex-wrap: wrap; min-height: 38px; }
+    .chip { display: inline-flex; align-items: center; border-radius: 999px; padding: 0.18rem 0.7rem; font-weight: 600; font-size: 0.78rem; white-space: nowrap; }
+    .chip.awaiting_review { background: #fef3c7; color: #92400e; }
+    .chip.needs_changes { background: #fee2e2; color: #b91c1c; }
+    .chip.approved { background: #dcfce7; color: #166534; }
+    .approval .note { color: #64748b; font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; }
+    .approval .spacer { flex: 1; }
+    .abtn { border: none; border-radius: 8px; padding: 0.3rem 0.85rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .abtn.primary { background: #d62b83; color: #fff; }
+    .abtn.approve { background: #16a34a; color: #fff; }
+    .abtn.changes { background: #fff; color: #b91c1c; border: 1px solid #fecaca; }
+    .main { flex: 1; display: flex; min-height: 0; }
+    .stage-wrap { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .film { flex: 0 0 auto; display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem 0.9rem; background: #fff; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
+    .film img { height: 44px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; }
+    .film img.active { border-color: #d62b83; }
+    .film .add { flex: 0 0 auto; border: 1.5px dashed #cbd5e1; color: #64748b; background: none; border-radius: 8px; height: 44px; padding: 0 0.8rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .stage { flex: 1; position: relative; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .frame { position: relative; display: inline-block; max-width: 100%; }
+    .frame img { display: block; max-width: 100%; max-height: calc(100dvh - 220px); border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,0.12); }
+    .frame.can-pin img { cursor: crosshair; }
+    .pin { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50% 50% 50% 4px; background: #d62b83; color: #fff; font-size: 0.74rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer; border: 2px solid #fff; transform: rotate(-45deg); }
+    .pin > span { transform: rotate(45deg); }
+    .pin.resolved { background: #94a3b8; }
+    .pin.active { background: #122a3f; }
+    .composer-pop { position: absolute; z-index: 20; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.18); padding: 0.6rem; width: 240px; }
+    .composer-pop textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.45rem 0.55rem; font-size: 0.84rem; font-family: inherit; resize: vertical; min-height: 56px; }
+    .composer-pop .row { display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.4rem; }
+    .composer-pop button { border: none; border-radius: 8px; padding: 0.3rem 0.8rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .composer-pop .send { background: #d62b83; color: #fff; }
+    .composer-pop .cancel { background: #f1f5f9; color: #475569; }
+    .empty { color: #64748b; text-align: center; font-size: 0.95rem; line-height: 1.6; padding: 2rem 1rem; }
+    .panel { flex: 0 0 320px; width: 320px; background: #fff; border-left: 1px solid #e2e8f0; display: flex; flex-direction: column; min-height: 0; }
+    .panel h2 { font-size: 0.9rem; color: #1a1a2e; padding: 0.7rem 0.9rem 0.5rem; border-bottom: 1px solid #e2e8f0; }
+    .threads { flex: 1; overflow-y: auto; padding: 0.5rem 0.9rem 1rem; }
+    .thread { border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.55rem 0.65rem; margin-top: 0.55rem; cursor: pointer; }
+    .thread.active { border-color: #d62b83; }
+    .thread .meta { display: flex; align-items: baseline; gap: 0.4rem; font-size: 0.74rem; color: #94a3b8; }
+    .thread .meta .who { color: #1a1a2e; font-weight: 700; font-size: 0.8rem; }
+    .thread .meta .pin-n { background: #d62b83; color: #fff; border-radius: 50%; width: 17px; height: 17px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; }
+    .thread.resolved-t .meta .pin-n { background: #94a3b8; }
+    .thread .body { color: #334155; font-size: 0.84rem; margin-top: 0.25rem; white-space: pre-wrap; word-break: break-word; }
+    .thread .reply { margin: 0.4rem 0 0 0.9rem; border-left: 2px solid #f1f5f9; padding-left: 0.55rem; }
+    .thread .actions { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
+    .thread .actions button { background: none; border: none; padding: 0; color: #d62b83; font-size: 0.76rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .thread .actions button.res { color: #16a34a; }
+    .thread .actions button.unres { color: #92400e; }
+    .thread textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.4rem 0.5rem; font-size: 0.8rem; font-family: inherit; margin-top: 0.4rem; min-height: 44px; }
+    .muted { color: #94a3b8; font-size: 0.8rem; text-align: center; padding: 0.9rem 0; }
+    .resolved-h { color: #94a3b8; font-size: 0.78rem; font-weight: 700; margin-top: 0.9rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #122a3f; color: #fff; border-radius: 999px; padding: 0.45rem 1.1rem; font-size: 0.84rem; z-index: 100; opacity: 0.96; }
+    @media (max-width: 760px) {
+      .main { flex-direction: column; }
+      .panel { width: 100%; flex: 0 0 42%; border-left: none; border-top: 1px solid #e2e8f0; }
+      .frame img { max-height: 42dvh; }
+    }
   </style>
 </head>
 <body>
   <script nonce="<%= cspNonce %>">
     window.__WTS_BOARD__ = <%- JSON.stringify({
-      wsPath: wsPath,
-      user: user,
       boardTitle: board.title,
       backUrl: backUrl,
       isAdmin: isAdmin,
@@ -38,49 +81,341 @@
       canComment: canComment,
       canApprove: canApprove,
       canDecide: canDecide,
-      canUpload: canUpload,
-      tldrawLicenseKey: tldrawLicenseKey
+      canUpload: canUpload
     }).replace(/</g, '\\u003c') %>;
   </script>
-  <div id="wts-board-root">
-    <div class="wts-shell-topbar">
-      <a href="<%= backUrl %>">&larr; Back</a>
-      <strong><%= board.title %></strong>
+
+  <div class="topbar">
+    <a class="back" href="<%= backUrl %>">&larr; Back</a>
+    <span class="title"><%= board.title %></span>
+    <span class="count" id="c-count"></span>
+  </div>
+  <div class="approval" id="approval"></div>
+  <div class="main">
+    <div class="stage-wrap">
+      <div class="film" id="film"></div>
+      <div class="stage" id="stage"><div class="empty">Loading&hellip;</div></div>
     </div>
-    <div class="wts-shell-body">
-      <div class="wts-shell-spinner"></div>
-      <p id="wts-shell-msg">Loading your board&hellip;</p>
-      <p class="hint" id="wts-shell-hint"></p>
-      <noscript><div class="wts-board-fallback">This whiteboard needs JavaScript to run.</div></noscript>
+    <div class="panel">
+      <h2 id="panel-title">Comments</h2>
+      <div class="threads" id="threads"><div class="muted">Loading&hellip;</div></div>
     </div>
   </div>
+  <input type="file" id="file-input" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+
   <script nonce="<%= cspNonce %>">
-    (function () {
-      var msg = document.getElementById('wts-shell-msg');
-      var hint = document.getElementById('wts-shell-hint');
-      // Bundle failed to download/parse (bad connection, blocked, old browser).
-      window.addEventListener('error', function (e) {
-        var t = e.target || {};
-        if (t.tagName === 'SCRIPT' && String(t.src).indexOf('/whiteboard/board.js') !== -1 && msg) {
-          msg.textContent = "Couldn't load the board app.";
-          hint.textContent = 'Check your internet connection and pull to refresh (or press Ctrl+Shift+R).';
-        }
-      }, true);
-      // Download is taking long — say so instead of looking frozen.
-      setTimeout(function () {
-        if (!window.__WTS_BOARD_MOUNTED && hint && !hint.textContent) {
-          hint.textContent = 'Still loading — the first visit downloads the board app (about 0.6 MB). On a slow connection this can take a little while.';
-        }
-      }, 6000);
-      // Mounted but never replaced the shell (unexpected crash before render).
-      setTimeout(function () {
-        if (!window.__WTS_BOARD_MOUNTED && msg) {
-          msg.textContent = 'The board is taking unusually long to start.';
-          hint.textContent = 'Please refresh the page. If this keeps happening, tell us what device and browser you are using.';
-        }
-      }, 30000);
-    })();
+  (function () {
+    'use strict';
+    var cfg = window.__WTS_BOARD__;
+    window.__WTS_BOARD_MOUNTED = true;
+
+    // ── State: exactly what the review flow needs ────────────────
+    var state = {
+      images: [],        // [{id, src}]
+      current: null,     // image id
+      comments: [],      // rows from the API (anchor: {imageId,xPct,yPct} or null)
+      approval: null,
+      activeThread: null // root comment id highlighted
+    };
+
+    // ── Tiny API helper (session cookie + CSRF header) ───────────
+    function api(method, path, body) {
+      var opts = { method: method, credentials: 'same-origin', headers: { Accept: 'application/json' } };
+      if (method !== 'GET') {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.headers['X-CSRF-Token'] = cfg.csrfToken;
+        opts.body = JSON.stringify(body || {});
+      }
+      return fetch(cfg.apiBase + path, opts).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (!r.ok) throw new Error(d.error || 'HTTP ' + r.status);
+          return d;
+        });
+      });
+    }
+
+    function toast(text) {
+      var t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = text;
+      document.body.appendChild(t);
+      setTimeout(function () { t.remove(); }, 3000);
+    }
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
+    function ago(iso) {
+      var s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+      if (s < 60) return 'just now';
+      if (s < 3600) return Math.floor(s / 60) + 'm ago';
+      if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+      return Math.floor(s / 86400) + 'd ago';
+    }
+
+    // ── Data loading + 12s polling ───────────────────────────────
+    function loadAll() {
+      return Promise.all([api('GET', '/assets'), api('GET', '/comments'), api('GET', '/approvals')])
+        .then(function (r) {
+          state.images = r[0].assets || [];
+          state.comments = r[1].comments || [];
+          state.approval = r[2].approval || null;
+          if (!state.current || !state.images.some(function (i) { return i.id === state.current; })) {
+            state.current = state.images.length ? state.images[state.images.length - 1].id : null;
+          }
+          render();
+        })
+        .catch(function (e) {
+          document.getElementById('stage').innerHTML =
+            '<div class="empty">Couldn&rsquo;t load this board (' + esc(e.message) + ').<br>Please refresh the page.</div>';
+        });
+    }
+    setInterval(function () { loadAll(); }, 12000);
+
+    // ── Derived helpers ──────────────────────────────────────────
+    function roots() { return state.comments.filter(function (c) { return !c.parent_id; }); }
+    function repliesOf(id) { return state.comments.filter(function (c) { return c.parent_id === id; }); }
+    function pinsFor(imageId) {
+      return roots().filter(function (c) { return c.anchor && c.anchor.imageId === imageId; });
+    }
+    function generals() { return roots().filter(function (c) { return !c.anchor || !c.anchor.imageId; }); }
+
+    // ── Rendering ────────────────────────────────────────────────
+    function render() { renderApproval(); renderFilm(); renderStage(); renderPanel(); renderCount(); }
+
+    function renderCount() {
+      var open = roots().filter(function (c) { return !c.resolved_at; }).length;
+      document.getElementById('c-count').textContent = open + ' open comment' + (open === 1 ? '' : 's');
+    }
+
+    function renderApproval() {
+      var el = document.getElementById('approval');
+      var a = state.approval;
+      var LABELS = { awaiting_review: 'Awaiting review', needs_changes: 'Changes requested', approved: 'Approved' };
+      var h = '';
+      if (a) {
+        h += '<span class="chip ' + esc(a.status) + '">' + LABELS[a.status] + '</span>';
+        var note = a.status === 'awaiting_review' ? a.request_note : a.reviewer_note;
+        if (note) h += '<span class="note">&ldquo;' + esc(note) + '&rdquo;</span>';
+      } else {
+        h += '<span class="note">' + (cfg.isAdmin ? 'No approval requested yet.' : 'Nothing awaiting your approval.') + '</span>';
+      }
+      h += '<span class="spacer"></span>';
+      if (cfg.canApprove && (!a || a.status !== 'awaiting_review')) h += '<button class="abtn primary" id="btn-request">Request approval</button>';
+      if (cfg.canDecide && a && a.status === 'awaiting_review') {
+        h += '<button class="abtn approve" id="btn-approve">Approve</button>' +
+             '<button class="abtn changes" id="btn-changes">Request changes</button>';
+      }
+      el.innerHTML = h;
+      var rq = document.getElementById('btn-request');
+      if (rq) rq.addEventListener('click', function () {
+        var note = prompt('Add a note for the client (optional):') || '';
+        api('POST', '/approvals', { note: note }).then(loadAll).then(function () { toast('Review requested — the client has been emailed.'); })
+          .catch(function (e) { toast(e.message); });
+      });
+      var ap = document.getElementById('btn-approve');
+      if (ap) ap.addEventListener('click', function () {
+        api('POST', '/approvals/' + state.approval.id + '/decide', { decision: 'approved' }).then(loadAll).then(function () { toast('Approved — thank you!'); })
+          .catch(function (e) { toast(e.message); });
+      });
+      var ch = document.getElementById('btn-changes');
+      if (ch) ch.addEventListener('click', function () {
+        var note = prompt('What should we change?') || '';
+        api('POST', '/approvals/' + state.approval.id + '/decide', { decision: 'needs_changes', note: note }).then(loadAll).then(function () { toast('Change request sent.'); })
+          .catch(function (e) { toast(e.message); });
+      });
+    }
+
+    function renderFilm() {
+      var el = document.getElementById('film');
+      el.innerHTML = '';
+      state.images.forEach(function (img) {
+        var t = document.createElement('img');
+        t.src = img.src;
+        t.alt = 'design';
+        if (img.id === state.current) t.className = 'active';
+        t.addEventListener('click', function () { state.current = img.id; state.activeThread = null; render(); });
+        el.appendChild(t);
+      });
+      if (cfg.canUpload) {
+        var add = document.createElement('button');
+        add.className = 'add';
+        add.type = 'button';
+        add.textContent = '+ Add image';
+        add.addEventListener('click', function () { document.getElementById('file-input').click(); });
+        el.appendChild(add);
+      }
+      el.hidden = !state.images.length && !cfg.canUpload;
+    }
+
+    document.getElementById('file-input').addEventListener('change', function () {
+      var f = this.files && this.files[0];
+      this.value = '';
+      if (!f) return;
+      var fd = new FormData();
+      fd.append('file', f);
+      fetch(cfg.apiBase + '/assets', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'X-CSRF-Token': cfg.csrfToken }, body: fd
+      }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || 'Upload failed'); }); })
+        .then(loadAll).then(function () { toast('Image added.'); })
+        .catch(function (e) { toast(e.message); });
+    });
+
+    function renderStage() {
+      var el = document.getElementById('stage');
+      el.innerHTML = '';
+      var img = state.images.find(function (i) { return i.id === state.current; });
+      if (!img) {
+        el.innerHTML = '<div class="empty">' + (cfg.canUpload
+          ? 'No designs on this board yet.<br>Use <strong>+ Add image</strong> above to upload the first one.'
+          : 'No designs to review yet — your strategist will add them shortly.') + '</div>';
+        return;
+      }
+      var frame = document.createElement('div');
+      frame.className = 'frame' + (cfg.canComment ? ' can-pin' : '');
+      var im = document.createElement('img');
+      im.src = img.src;
+      im.alt = 'design under review';
+      im.draggable = false;
+      frame.appendChild(im);
+
+      pinsFor(img.id).forEach(function (c, i) {
+        var p = document.createElement('div');
+        p.className = 'pin' + (c.resolved_at ? ' resolved' : '') + (state.activeThread === c.id ? ' active' : '');
+        p.style.left = c.anchor.xPct + '%';
+        p.style.top = c.anchor.yPct + '%';
+        p.innerHTML = '<span>' + (i + 1) + '</span>';
+        p.title = c.body;
+        p.addEventListener('click', function (e) {
+          e.stopPropagation();
+          state.activeThread = c.id;
+          render();
+          var t = document.querySelector('[data-thread="' + c.id + '"]');
+          if (t) t.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        });
+        frame.appendChild(p);
+      });
+
+      if (cfg.canComment) {
+        im.addEventListener('click', function (e) {
+          var rect = im.getBoundingClientRect();
+          var xPct = ((e.clientX - rect.left) / rect.width) * 100;
+          var yPct = ((e.clientY - rect.top) / rect.height) * 100;
+          openComposer(frame, img.id, xPct, yPct);
+        });
+      }
+      el.appendChild(frame);
+    }
+
+    function openComposer(frame, imageId, xPct, yPct) {
+      var old = frame.querySelector('.composer-pop');
+      if (old) old.remove();
+      var marker = document.createElement('div');
+      marker.className = 'pin active';
+      marker.style.left = xPct + '%';
+      marker.style.top = yPct + '%';
+      marker.innerHTML = '<span>+</span>';
+      frame.appendChild(marker);
+
+      var pop = document.createElement('div');
+      pop.className = 'composer-pop';
+      pop.style.left = Math.min(xPct, 70) + '%';
+      pop.style.top = Math.min(yPct + 4, 82) + '%';
+      pop.innerHTML = '<textarea maxlength="2000" placeholder="e.g. change this font&hellip;"></textarea>' +
+        '<div class="row"><button type="button" class="cancel">Cancel</button><button type="button" class="send">Pin comment</button></div>';
+      frame.appendChild(pop);
+      var ta = pop.querySelector('textarea');
+      ta.focus();
+      pop.querySelector('.cancel').addEventListener('click', function () { pop.remove(); marker.remove(); });
+      pop.querySelector('.send').addEventListener('click', function () {
+        var body = ta.value.trim();
+        if (!body) return;
+        api('POST', '/comments', { body: body, anchor: { imageId: imageId, xPct: xPct, yPct: yPct } })
+          .then(loadAll)
+          .catch(function (e) { toast(e.message); });
+      });
+    }
+
+    function threadHtml(c, n) {
+      var reps = repliesOf(c.id);
+      var h = '<div class="thread' + (c.resolved_at ? ' resolved-t' : '') + (state.activeThread === c.id ? ' active' : '') + '" data-thread="' + c.id + '">' +
+        '<div class="meta">' + (n != null ? '<span class="pin-n">' + n + '</span>' : '') +
+        '<span class="who">' + esc(c.author_name) + '</span><span>' + ago(c.created_at) + '</span>' +
+        (c.resolved_at ? '<span>· resolved</span>' : '') + '</div>' +
+        '<div class="body">' + esc(c.body) + '</div>';
+      reps.forEach(function (r) {
+        h += '<div class="reply"><div class="meta"><span class="who">' + esc(r.author_name) + '</span><span>' + ago(r.created_at) + '</span></div>' +
+             '<div class="body">' + esc(r.body) + '</div></div>';
+      });
+      if (cfg.canComment) {
+        h += '<div class="actions">' +
+          '<button type="button" data-act="reply" data-id="' + c.id + '">Reply</button>' +
+          (c.resolved_at
+            ? '<button type="button" class="unres" data-act="unresolve" data-id="' + c.id + '">Reopen</button>'
+            : '<button type="button" class="res" data-act="resolve" data-id="' + c.id + '">&#10003; Resolve</button>') +
+          '</div>';
+      }
+      return h + '</div>';
+    }
+
+    function renderPanel() {
+      var el = document.getElementById('threads');
+      var img = state.images.find(function (i) { return i.id === state.current; });
+      var pins = img ? pinsFor(img.id) : [];
+      var open = pins.filter(function (c) { return !c.resolved_at; });
+      var done = pins.filter(function (c) { return c.resolved_at; });
+      var gen = generals();
+      var h = '';
+      if (cfg.canComment) {
+        h += '<div class="muted" style="text-align:left;">' + (img ? 'Click anywhere on the image to pin a comment.' : '') + '</div>';
+      }
+      if (!pins.length && !gen.length) h += '<div class="muted">No comments yet.</div>';
+      open.forEach(function (c) { h += threadHtml(c, pins.indexOf(c) + 1); });
+      if (gen.length) {
+        h += '<div class="resolved-h">General</div>';
+        gen.forEach(function (c) { h += threadHtml(c, null); });
+      }
+      if (done.length) {
+        h += '<div class="resolved-h">Resolved</div>';
+        done.forEach(function (c) { h += threadHtml(c, pins.indexOf(c) + 1); });
+      }
+      el.innerHTML = h;
+
+      el.querySelectorAll('.thread').forEach(function (t) {
+        t.addEventListener('click', function () { state.activeThread = t.getAttribute('data-thread'); render(); });
+      });
+      el.querySelectorAll('button[data-act]').forEach(function (b) {
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var id = b.getAttribute('data-id');
+          var act = b.getAttribute('data-act');
+          if (act === 'resolve' || act === 'unresolve') {
+            api('POST', '/comments/' + id + '/' + act).then(loadAll).catch(function (er) { toast(er.message); });
+            return;
+          }
+          // inline reply box
+          var thread = b.closest('.thread');
+          if (thread.querySelector('textarea')) return;
+          var ta = document.createElement('textarea');
+          ta.maxLength = 2000;
+          ta.placeholder = 'Reply…';
+          thread.appendChild(ta);
+          ta.focus();
+          ta.addEventListener('click', function (ev) { ev.stopPropagation(); });
+          ta.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter' && !ev.shiftKey) {
+              ev.preventDefault();
+              var body = ta.value.trim();
+              if (!body) return;
+              api('POST', '/comments', { body: body, parentId: id }).then(loadAll).catch(function (er) { toast(er.message); });
+            }
+            if (ev.key === 'Escape') ta.remove();
+          });
+        });
+      });
+    }
+
+    loadAll();
+  })();
   </script>
-  <script nonce="<%= cspNonce %>" src="/whiteboard/board.js"></script>
 </body>
 </html>

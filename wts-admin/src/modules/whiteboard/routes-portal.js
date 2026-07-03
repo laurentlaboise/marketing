@@ -7,7 +7,7 @@
 
 const express = require('express');
 const db = require('../../../database/db');
-const { UUID_RE, relaxedBoardCsp, colorForCustomer, notFound } = require('./util');
+const { UUID_RE, colorForCustomer, notFound } = require('./util');
 const { addCollabRoutes } = require('./collab');
 const { addAssetRoutes } = require('./assets');
 
@@ -73,7 +73,6 @@ function createPortalRouter() {
         return res.redirect('/portal/login');
       }
 
-      res.setHeader('Content-Security-Policy', relaxedBoardCsp(res.locals.cspNonce));
       res.render('whiteboard/board', {
         title: board.title,
         board,
@@ -90,8 +89,7 @@ function createPortalRouter() {
         canComment: COMMENTER_ROLES.has(board.member_role),
         canApprove: false,
         canDecide: COMMENTER_ROLES.has(board.member_role),
-        canUpload: ['owner', 'editor'].includes(board.member_role),
-        tldrawLicenseKey: process.env.TLDRAW_LICENSE_KEY || null
+        canUpload: ['owner', 'editor'].includes(board.member_role)
       });
     } catch (e) {
       console.error('Whiteboard portal board error:', e);
