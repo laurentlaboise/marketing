@@ -38,6 +38,8 @@ const styles = `
   .wts-board-presence .dot.off { background: #f59e0b; }
   .wts-board-canvas { flex: 1; position: relative; min-height: 0; }
   .wts-board-banner { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 1000; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; border-radius: 999px; padding: 0.3rem 1rem; font-size: 0.82rem; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.12); pointer-events: none; }
+  .wts-board-splash { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.9rem; background: #f8fafc; color: #64748b; font-size: 0.95rem; }
+  .wts-board-splash button { background: #d62b83; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.3rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; }
 `;
 
 // Small badge shown in the top bar once the editor is mounted: how many
@@ -75,8 +77,8 @@ function App() {
   const [editor, setEditor] = useState(null);
 
   const synced = storeWithStatus.status === 'synced-remote';
+  const failed = storeWithStatus.status === 'error';
   const online = synced && storeWithStatus.connectionStatus === 'online';
-  const showBanner = !online;
 
   return (
     <div className="wts-board-app">
@@ -89,15 +91,24 @@ function App() {
         <PresenceBadge editor={synced ? editor : null} online={online} />
       </div>
       <div className="wts-board-canvas">
-        {showBanner && <div className="wts-board-banner">Reconnecting&hellip;</div>}
+        {synced && !online && <div className="wts-board-banner">Reconnecting&hellip;</div>}
         {synced ? (
-          // Connected: render the shared store. Keyed so switching from the
-          // local placeholder store below remounts cleanly.
-          <Tldraw key="synced" store={storeWithStatus.store} assetUrls={assetUrls} onMount={setEditor} />
+          // One editor for the life of the page. The sync layer reconnects on
+          // its own (connectionStatus flips offline/online) without unmounting
+          // — an unmount mid-font-load crashes tldraw's FontManager, and a
+          // throwaway scratch canvas would silently discard early drawings.
+          <Tldraw store={storeWithStatus.store} assetUrls={assetUrls} onMount={setEditor} />
         ) : (
-          // Still connecting (or the socket dropped before first sync): show a
-          // local scratch canvas so the UI stays usable, with the banner above.
-          <Tldraw key="local" assetUrls={assetUrls} onMount={setEditor} />
+          <div className="wts-board-splash">
+            {failed ? (
+              <>
+                <p>Couldn&rsquo;t connect to this board.</p>
+                <button type="button" onClick={() => location.reload()}>Try again</button>
+              </>
+            ) : (
+              <p>Connecting to your board&hellip;</p>
+            )}
+          </div>
         )}
       </div>
     </div>

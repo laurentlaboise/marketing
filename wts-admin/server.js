@@ -153,7 +153,8 @@ if (process.env.DATABASE_URL) {
   });
 }
 
-app.use(session(sessionConfig));
+const sessionMiddleware = session(sessionConfig);
+app.use(sessionMiddleware);
 
 // Passport initialization (must come after session, before routes)
 app.use(passport.initialize());
@@ -338,10 +339,23 @@ async function startServer() {
       console.error('Catalog seed skipped:', e.message);
     }
 
-    app.listen(PORT, '0.0.0.0', () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`WTS Admin server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     });
+
+    // Optional collaborative whiteboard module. Flag off → nothing happens.
+    // Placed after db.initialize() (its migrations need the pool) and after
+    // listen() (its WS handler needs the http server). Module failure must
+    // never block boot.
+    if (process.env.FEATURE_WHITEBOARD === '1') {
+      try {
+        await require('./src/modules/whiteboard').attach(app, server, { sessionMiddleware });
+        console.log('Whiteboard module enabled');
+      } catch (e) {
+        console.error('Whiteboard module failed to load:', e.message);
+      }
+    }
   } catch (error) {
     console.error('Failed to start server:', error);
     // Start server anyway for health checks
