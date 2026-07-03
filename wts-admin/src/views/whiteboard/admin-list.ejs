@@ -9,6 +9,14 @@
       <div>
         <h1 class="page-title">Boards</h1>
         <p class="page-subtitle">Collaborative whiteboards for live working sessions with clients.</p>
+        <% if (typeof filterCustomer !== 'undefined' && filterCustomer) { %>
+        <p style="margin-top:0.35rem;font-size:0.85rem;">
+          <span style="background:#fdf2f8;border:1px solid #fbcfe8;border-radius:999px;padding:0.2rem 0.75rem;color:#9d174d;font-weight:600;">
+            Showing boards shared with <%= filterCustomer.name || filterCustomer.email %>
+          </span>
+          <a href="/business/boards" style="margin-left:0.5rem;color:#d62b83;font-weight:600;">Show all boards</a>
+        </p>
+        <% } %>
       </div>
     </div>
 
