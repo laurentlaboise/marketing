@@ -1,0 +1,87 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Boards</h1>
+        <p class="page-subtitle">Collaborative whiteboards for live working sessions with clients.</p>
+      </div>
+    </div>
+
+    <!-- Create board -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0.85rem 1rem;">
+        <form method="POST" action="/business/boards" style="display:flex;gap:0.6rem;align-items:flex-end;flex-wrap:wrap;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div style="flex:1;min-width:220px;">
+            <label class="form-label" for="board-title">New board title *</label>
+            <input class="form-control" type="text" id="board-title" name="title" maxlength="200" required placeholder="Q3 campaign planning">
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Create Board</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Boards table -->
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <h3 style="padding:1rem 1rem 0.25rem;color:var(--text-primary,#1a1a2e);font-size:1.05rem;"><i class="fas fa-chalkboard" style="color:#d62b83;"></i> Boards (<%= boards.length %>)</h3>
+        <% if (boards.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr><th>Title</th><th>Status</th><th>Members</th><th>Clients</th><th>Created</th><th>Invite client</th><th style="width:1%;"></th></tr>
+            </thead>
+            <tbody>
+              <% boards.forEach(function (b) { %>
+              <tr>
+                <td data-label="Title">
+                  <a href="/business/boards/<%= b.id %>" style="color:#d62b83;font-weight:600;text-decoration:none;"><%= b.title %></a>
+                </td>
+                <td data-label="Status">
+                  <span class="status-badge <%= b.status === 'active' ? 'active' : 'inactive' %>"><%= b.status %></span>
+                </td>
+                <td data-label="Members" style="white-space:nowrap;font-size:0.85rem;"><%= b.member_count %></td>
+                <td data-label="Clients" style="font-size:0.85rem;"><%= b.customer_names || '-' %></td>
+                <td data-label="Created" style="white-space:nowrap;font-size:0.85rem;"><%= new Date(b.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+                <td data-label="Invite client">
+                  <form method="POST" action="/business/boards/<%= b.id %>/members" style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <select class="form-control" name="customer_id" required style="width:auto;max-width:180px;font-size:0.82rem;padding:0.3rem 0.4rem;">
+                      <option value="">Choose client&hellip;</option>
+                      <% customers.forEach(function (c) { %>
+                      <option value="<%= c.id %>"><%= c.name ? c.name + ' · ' + c.email : c.email %></option>
+                      <% }); %>
+                    </select>
+                    <select class="form-control" name="role" style="width:auto;font-size:0.82rem;padding:0.3rem 0.4rem;">
+                      <option value="editor">Editor</option>
+                      <option value="commenter">Commenter</option>
+                      <option value="viewer">Viewer</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-secondary"><i class="fas fa-user-plus"></i> Invite</button>
+                  </form>
+                </td>
+                <td data-label="">
+                  <form method="POST" action="/business/boards/<%= b.id %>/delete" style="display:inline;">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-sm" data-confirm-delete style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;"><i class="fas fa-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <p style="padding:0 1rem 1.5rem;color:#888;">No boards yet. Create one above, then invite a client to start a live session.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

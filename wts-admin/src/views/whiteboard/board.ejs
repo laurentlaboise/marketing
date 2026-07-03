@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= board.title %> · Whiteboard · Words That Sells</title>
+  <link rel="stylesheet" href="/whiteboard/board.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f1f5f9; }
+    #wts-board-root { position: fixed; inset: 0; }
+    .wts-board-fallback { padding: 2rem 1rem; text-align: center; color: #64748b; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <script nonce="<%= cspNonce %>">
+    window.__WTS_BOARD__ = <%- JSON.stringify({
+      wsPath: wsPath,
+      user: user,
+      boardTitle: board.title,
+      backUrl: backUrl,
+      isAdmin: isAdmin
+    }).replace(/</g, '\\u003c') %>;
+  </script>
+  <div id="wts-board-root">
+    <noscript><div class="wts-board-fallback">This whiteboard needs JavaScript to run.</div></noscript>
+  </div>
+  <script nonce="<%= cspNonce %>" src="/whiteboard/board.js"></script>
+</body>
+</html>

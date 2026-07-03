@@ -1,0 +1,11 @@
+{
+  "name": "wts-whiteboard-ui",
+  "private": true,
+  "description": "Build source for the collaborative whiteboard React island. Shared deps (esbuild, react, react-dom, tldraw, @tldraw/sync) resolve from ../node_modules; only the static-asset package is pinned here.",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "@tldraw/assets": "5.2.2"
+  }
+}
