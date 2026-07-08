@@ -28,6 +28,16 @@ body.no-scroll {
   overflow: hidden;
 }
 
+/* Keyboard focus for a11y (skip mouse-only outline noise) */
+:focus-visible {
+  outline: 2px solid var(--color-accent-magenta, #d62b83);
+  outline-offset: 2px;
+}
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
 h1,
 h2,
 h3,

@@ -178,7 +178,7 @@ function showFormMountError(el, message) {
   if (!el) return;
   el.innerHTML = `<p class="wts-form-error" style="margin:0;color:#b91c1c;">${escapeHtml(message)}</p>
     <p style="margin:0.75rem 0 0;"><a href="mailto:info@wordsthatsells.website">info@wordsthatsells.website</a>
-    · <a href="https://wa.me/02055528034" target="_blank" rel="noopener noreferrer">WhatsApp</a></p>`;
+    · <a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">WhatsApp</a></p>`;
   revealFormAncestors(el);
 }
 
