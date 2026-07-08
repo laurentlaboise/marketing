@@ -116,6 +116,50 @@ function renderFormTemplate(template, container) {
  * Try to load a form template from the API and render it into the quote modal.
  * Returns true if a template was loaded, false otherwise.
  */
+/**
+ * Mount an admin form template into any page container.
+ * Use: <div id="wts-contact-form" data-wts-form="contact"></div>
+ * Optional noscript fallback HTML inside the container is replaced when the template loads.
+ */
+export async function mountAdminForms() {
+  const mounts = document.querySelectorAll('[data-wts-form]');
+  if (!mounts.length) return 0;
+
+  let loaded = 0;
+  for (const el of mounts) {
+    const formType = (el.getAttribute('data-wts-form') || '').trim();
+    if (!formType) continue;
+    try {
+      const res = await fetch(`${API_BASE}/form-template/${encodeURIComponent(formType)}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (!data || !data.fields || !data.fields.length) continue;
+
+      el.innerHTML = '';
+      el.classList.add('wts-admin-form-mount');
+      renderFormTemplate(data, el);
+      // Style for on-page (not only modal) context
+      const form = el.querySelector('form');
+      if (form) {
+        form.classList.add('card-base', 'modal-form', 'wts-page-form');
+        // Ensure form_type is submitted
+        let ft = form.querySelector('input[name="form_type"]');
+        if (!ft) {
+          ft = document.createElement('input');
+          ft.type = 'hidden';
+          ft.name = 'form_type';
+          form.appendChild(ft);
+        }
+        ft.value = formType;
+      }
+      loaded += 1;
+    } catch (e) {
+      console.warn('[Forms] Could not mount template', formType, e.message);
+    }
+  }
+  return loaded;
+}
+
 export async function loadQuoteFormTemplate() {
   const container = document.getElementById('quote-modal-container');
   if (!container) return false;
