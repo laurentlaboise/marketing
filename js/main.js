@@ -1,6 +1,6 @@
 // js/main.js
 
-import { handleFormSubmit, handleNewsletterSubmit, loadQuoteFormTemplate, initStickyFormTabs } from './modules/firebase.js';
+import { handleFormSubmit, handleNewsletterSubmit, loadQuoteFormTemplate, initStickyFormTabs, mountAdminForms } from './modules/firebase.js';
 import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
 import { initSlidePanel } from './modules/slide.js';
@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initFaqSection();
   initSlidePanel();
   initStickyFormTabs();
+
+  // On-page admin forms (e.g. contact page: data-wts-form="contact")
+  await mountAdminForms();
 
   // Try to load a dynamic form template from the admin.
   // If a template exists for this page's form type, it replaces the hardcoded form.
