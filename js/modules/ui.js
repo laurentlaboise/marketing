@@ -1,17 +1,27 @@
 // js/modules/ui.js
 
 // --- Shared On-Scroll Reveal Observer (singleton) ---
+// rootMargin pre-reveals content slightly before it enters the viewport so
+// below-the-fold sections (forms, FAQs) are not stuck at opacity:0 after jump links.
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) entry.target.classList.add('visible');
   });
-}, { threshold: 0.1 });
+}, { threshold: 0.05, rootMargin: '0px 0px 20% 0px' });
 
 export { revealObserver };
 
 // Initialize reveal on all current .reveal elements
 export function initScrollReveal() {
-  document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
+  document.querySelectorAll('.reveal').forEach((el) => {
+    // Already in (or near) the viewport on load — show immediately (IO can miss these).
+    const rect = el.getBoundingClientRect();
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    if (rect.top < vh * 1.15 && rect.bottom > 0) {
+      el.classList.add('visible');
+    }
+    revealObserver.observe(el);
+  });
 }
 
 // --- Floating Buttons & Quote Modal ---
