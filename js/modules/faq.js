@@ -94,6 +94,12 @@ const allFaqs = [
   { q: "Do you provide crisis communication management?", a: "Yes, we can help manage your online reputation during a crisis by controlling the narrative on social media and search results." },
   { q: "Can you integrate my website with a CRM?", a: "Yes, our web development team can integrate your website with popular CRMs like HubSpot or Salesforce to streamline your lead management." },
   { q: "What is your client onboarding process like?", a: "Our onboarding is seamless. We have a kickoff meeting, set up all necessary accounts and tracking, and establish clear communication channels." },
+  { q: "What does client onboarding look like?", a: "Onboarding starts with a kickoff call to confirm goals, access (Analytics, GBP, ads, CMS), and brand guidelines. Within the first week we set tracking, a 30–90 day plan, and a shared communication channel so execution can begin without delays." },
+  { q: "How long until SEO or content work shows results?", a: "Local SEO and technical fixes can move map visibility within weeks. Competitive organic rankings typically need 3–6 months of consistent content and optimization. Paid social and landing pages can generate leads much faster while organic compounds." },
+  { q: "How do you report progress?", a: "You receive clear monthly reports covering rankings, traffic, leads or inquiries, and work completed, plus next-month priorities. We explain results in plain language so owners and marketing teams can act on the data." },
+  { q: "What services does WordsThatSells offer in Laos?", a: "We provide AI-assisted SEO, content creation, social media management, web development, Google Business Profile optimization, and business automation for SMEs, affiliates, and agencies across Laos and Southeast Asia." },
+  { q: "How do you optimize Google Business Profile for Vientiane SEO?", a: "We verify categories, photos, services, posts, and review responses; keep NAP consistent; and support the profile with localized pages so you rank for relevant near-me and city searches in Vientiane and nearby markets." },
+  { q: "Where can I read your privacy and terms policies?", a: "Legal documents are published on our site under Company → Legal, including Privacy Policy, Terms and Conditions, and Cookie Policy." },
   { q: "What if I'm not happy with the results?", a: "We believe in partnership. If you're not happy, we'll schedule an in-depth strategy review to realign our approach with your goals." },
   { q: "How do you protect my data and privacy?", a: "We adhere to strict data privacy protocols and use secure systems. Client confidentiality and data protection are our top priorities." },
   { q: "Can you help with influencer marketing in Asia?", a: "Yes, we can identify and partner with relevant influencers across Asia to promote your brand authentically to their followers." },
@@ -123,9 +129,23 @@ export function initFaqSection() {
     revealObserver.observe(details); // animate newly added item
   }
 
+  function markStaticFaqsUsed() {
+    // Keep server-rendered FAQs for SEO/crawlers; track their questions so "Ask another" stays unique.
+    faqList.querySelectorAll('.accordion-summary h3, summary h3').forEach((el) => {
+      const q = (el.textContent || '').trim();
+      const idx = allFaqs.findIndex((item) => item.q === q);
+      if (idx >= 0) usedFaqIndexes.add(idx);
+    });
+  }
+
   function generateInitialFaqs() {
-    faqList.innerHTML = '';
     usedFaqIndexes.clear();
+    // Prefer static HTML FAQs when present (no flash / better crawlability).
+    if (faqList.children.length > 0) {
+      markStaticFaqsUsed();
+      return;
+    }
+    faqList.innerHTML = '';
     const shuffled = [...allFaqs].sort(() => Math.random() - 0.5);
     shuffled.slice(0, 5).forEach((faq) => {
       addFaqToDom(faq);
