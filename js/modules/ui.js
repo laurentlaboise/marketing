@@ -14,13 +14,26 @@ export { revealObserver };
 // Initialize reveal on all current .reveal elements
 export function initScrollReveal() {
   document.querySelectorAll('.reveal').forEach((el) => {
-    // Already in (or near) the viewport on load — show immediately (IO can miss these).
-    const rect = el.getBoundingClientRect();
-    const vh = window.innerHeight || document.documentElement.clientHeight;
-    if (rect.top < vh * 1.15 && rect.bottom > 0) {
+    // Hero / above-the-fold: mark visible without reading layout (avoids forced reflow + CLS)
+    if (el.classList.contains('reveal-instant') || el.closest('.hero-section')) {
       el.classList.add('visible');
+      return;
     }
-    revealObserver.observe(el);
+    // Already in (or near) the viewport on load — show immediately (IO can miss these).
+    // Use a single rAF so we batch after paint instead of forcing reflow mid-setup.
+    const revealIfNear = () => {
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < vh * 1.15 && rect.bottom > 0) {
+        el.classList.add('visible');
+      }
+      revealObserver.observe(el);
+    };
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(revealIfNear);
+    } else {
+      revealIfNear();
+    }
   });
 }
 
