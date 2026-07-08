@@ -2,6 +2,34 @@
 
 Bearer-token API for automation (Grok, CI, scripts) — **no browser login**.
 
+## Local helper script
+
+From the `wts-admin` directory:
+
+```bash
+export ADMIN_API_TOKEN='…'   # from Railway → marketing service → Variables
+
+chmod +x scripts/machine-api.sh   # once
+
+./scripts/machine-api.sh health
+./scripts/machine-api.sh seed-pricing
+./scripts/machine-api.sh pricing
+./scripts/machine-api.sh products
+./scripts/machine-api.sh products web-development
+./scripts/machine-api.sh affiliates
+./scripts/machine-api.sh footer
+./scripts/machine-api.sh menus footer
+./scripts/machine-api.sh put-package growth-engine '{"name":"Growth Engine","base_price":649,"highlight":true}'
+./scripts/machine-api.sh patch-footer '{"footer_social_youtube":"https://www.youtube.com/@wordsthatsells928"}'
+./scripts/machine-api.sh help
+```
+
+Optional base override (local admin):
+
+```bash
+export ADMIN_API_BASE=http://localhost:3000/api/machine
+```
+
 ## Setup (Railway)
 
 1. Generate a token:
