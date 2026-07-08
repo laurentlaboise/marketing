@@ -13,7 +13,12 @@ const crypto = require('crypto');
 //  - /api/payments/*  public checkout endpoints; the webhook is
 //                     authenticated by its Stripe signature
 //  - /api/webhooks/*  authenticated by HMAC signature
-const EXEMPT_PREFIXES = ['/api/public', '/api/payments', '/api/webhooks'];
+const EXEMPT_PREFIXES = [
+  '/api/public',
+  '/api/payments',
+  '/api/webhooks',
+  '/api/machine', // Bearer-token machine API (no session cookies)
+];
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
