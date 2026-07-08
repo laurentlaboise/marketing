@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Marketing website build process",
   "scripts": {
-    "build": "webpack --mode=production && node scripts/inject-footers.js",
+    "bundle:css": "node scripts/bundle-css.js",
+    "build": "node scripts/bundle-css.js && webpack --mode=production && node scripts/inject-footers.js",
     "build:webpack": "webpack --mode=production",
     "inject-footers": "node scripts/inject-footers.js",
     "analyze-schema": "node analyze-schema.js",

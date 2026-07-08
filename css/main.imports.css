@@ -1,0 +1,25 @@
+/* --- BASE --- */
+@import 'base/variables.css';
+@import 'base/reset.css';
+@import 'base/typography.css';
+
+/* --- LAYOUT --- */
+@import 'layout/layout.css';
+@import 'layout/header.css';
+@import 'layout/footer.css';
+@import 'layout/animations.css';
+
+/* --- COMPONENTS --- */
+@import 'components/buttons.css';
+@import 'components/cards.css';
+@import 'components/forms.css';
+@import 'components/accordion.css';
+@import 'components/modal.css';
+@import 'components/floating-ui.css';
+@import 'components/slide-in.css';
+
+/*! @layer components */
+
+.services-section-header h1 {
+  font-size: var(--font-size-4xl);
+}
