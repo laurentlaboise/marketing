@@ -92,6 +92,7 @@ function renderFormTemplate(template, container) {
     el.name = field.name;
     if (field.placeholder && field.type !== 'select') el.placeholder = field.placeholder;
     if (field.required) el.required = true;
+    if (field.label) el.setAttribute('aria-label', field.label);
 
     fieldsDiv.appendChild(el);
   });
@@ -108,6 +109,14 @@ function renderFormTemplate(template, container) {
 
   // Bind submit handler
   form.addEventListener('submit', handleDynamicFormSubmit);
+
+  // WebMCP annotations (progressive enhancement for AI agents)
+  try {
+    // Lazy import avoided — main.js calls initWebMCP after mount; annotate inline if available
+    if (typeof window !== 'undefined' && window.__wtsAnnotateForm) {
+      window.__wtsAnnotateForm(form, template.form_type);
+    }
+  } catch (_) { /* ignore */ }
 
   return form;
 }
@@ -169,7 +178,7 @@ function showFormMountError(el, message) {
   if (!el) return;
   el.innerHTML = `<p class="wts-form-error" style="margin:0;color:#b91c1c;">${escapeHtml(message)}</p>
     <p style="margin:0.75rem 0 0;"><a href="mailto:info@wordsthatsells.website">info@wordsthatsells.website</a>
-    · <a href="https://wa.me/02055528034" target="_blank" rel="noopener noreferrer">WhatsApp</a></p>`;
+    · <a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">WhatsApp</a></p>`;
   revealFormAncestors(el);
 }
 
@@ -355,6 +364,7 @@ async function handleDynamicFormSubmit(event) {
   const submitBtn = form.querySelector('button[type="submit"]');
   const formType = ((new FormData(form)).get('form_type') || '').trim() || form.dataset.formType;
   const successMessage = form.dataset.successMessage;
+  const agentInvoked = !!(event && event.agentInvoked);
 
   const formData = new FormData(form);
   const data = {};
@@ -373,7 +383,12 @@ async function handleDynamicFormSubmit(event) {
   }
 
   if (!data.name || !data.email) {
-    alert('Please fill in the required fields.');
+    const err = 'Please fill in the required fields (name and email).';
+    if (agentInvoked && typeof event.respondWith === 'function') {
+      event.respondWith(Promise.resolve({ error: err }));
+    } else {
+      alert(err);
+    }
     return;
   }
 
@@ -388,7 +403,7 @@ async function handleDynamicFormSubmit(event) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
   }
 
-  try {
+  const submitPromise = (async () => {
     const res = await fetch(`${API_BASE}/submissions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -404,6 +419,20 @@ async function handleDynamicFormSubmit(event) {
       gtag('event', 'form_submit', { event_category: 'Forms', event_label: formType });
     }
 
+    return successMessage || 'Thank you! Your request has been submitted.';
+  })();
+
+  if (agentInvoked && typeof event.respondWith === 'function') {
+    event.respondWith(
+      submitPromise
+        .then((msg) => ({ ok: true, message: msg }))
+        .catch((err) => ({ ok: false, error: err.message || String(err) }))
+    );
+  }
+
+  try {
+    const msg = await submitPromise;
+
     // Show success in place of the form
     const parent = form.parentElement;
     form.style.display = 'none';
@@ -412,13 +441,15 @@ async function handleDynamicFormSubmit(event) {
     successDiv.innerHTML = `
       <i class="fas fa-check-circle" style="font-size:3rem;color:#10b981;margin-bottom:1rem;display:block;"></i>
       <h2 style="margin-bottom:0.5rem;">Thank You!</h2>
-      <p style="color:#64748b;">${escapeHtml(successMessage)}</p>
+      <p style="color:#64748b;">${escapeHtml(msg || successMessage || 'Submitted.')}</p>
     `;
     parent.appendChild(successDiv);
     form.reset();
   } catch (e) {
     console.error('Dynamic form submission error:', e);
-    alert(e.message || 'There was an error. Please try again.');
+    if (!agentInvoked) {
+      alert(e.message || 'There was an error. Please try again.');
+    }
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;

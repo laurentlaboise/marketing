@@ -12,7 +12,7 @@ html {
 }
 
 body {
-  font-family: var(--font-family-body);
+  font-family: var(--font-family-body), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: var(--font-size-base);
   line-height: 1.6;
   background-color: var(--color-white);
@@ -20,10 +20,22 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* Stabilize metrics while optional webfonts load */
+  text-rendering: optimizeLegibility;
 }
 
 body.no-scroll {
   overflow: hidden;
+}
+
+/* Keyboard focus for a11y (skip mouse-only outline noise) */
+:focus-visible {
+  outline: 2px solid var(--color-accent-magenta, #d62b83);
+  outline-offset: 2px;
+}
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible) {
+  outline: none;
 }
 
 h1,
@@ -32,7 +44,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-family-heading);
+  font-family: var(--font-family-heading), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: var(--spacing-md);

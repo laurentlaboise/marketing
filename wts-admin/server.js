@@ -86,7 +86,9 @@ app.use(cors({
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests, please try again later.'
+  message: 'Too many requests, please try again later.',
+  // Machine API has its own higher budget (automation / CI)
+  skip: (req) => (req.originalUrl || '').startsWith('/api/machine'),
 });
 app.use('/api/', limiter);
 
@@ -207,6 +209,12 @@ app.use('/portal', i18n.middleware(db));
 // Public API routes (no authentication required)
 app.use('/api/public', publicApiRoutes);
 
+// Machine API (Bearer ADMIN_API_TOKEN — no session / no CSRF)
+// Mounted before session-protected /api routes so automation can manage
+// packages, products, menus, and seeds without a browser login.
+const machineApiRoutes = require('./src/routes/machine-api');
+app.use('/api/machine', machineApiRoutes);
+
 // Payment routes (no authentication - public facing)
 app.use('/api/payments', paymentsRoutes);
 
@@ -244,6 +252,9 @@ app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/content', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, contentRoutes);
 app.use('/business', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, businessRoutes);
+// Note: /api/machine is mounted earlier and must not require session admin auth.
+// Express still matches /api/* here for other paths only after prior routers
+// call next(); machine routes always end the response themselves.
 app.use('/api', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, apiRoutes);
 app.use('/images', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, imagesRoutes);
 app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webdevRoutes);

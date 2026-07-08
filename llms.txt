@@ -1,0 +1,51 @@
+# WordsThatSells
+
+> AI-powered digital marketing agency based in Vientiane, Laos. We combine AI productivity with human creativity for SEO, content, social media, web development, and business automation for SMEs and partners across Southeast Asia.
+
+Website: https://wordsthatsells.website
+Contact: https://wordsthatsells.website/en/company/contact-us/
+Email: info@wordsthatsells.website
+
+## Primary pages
+
+- [Home (English)](https://wordsthatsells.website/en/): Main landing page for WordsThatSells digital marketing services in Laos and Southeast Asia.
+- [Digital Marketing Services](https://wordsthatsells.website/en/digital-marketing-services/): Overview of SEO, content, social, web, and AI business tools.
+- [Pricing](https://wordsthatsells.website/en/digital-marketing-services/prices/): Plans and pricing for SMEs, affiliates, and agencies.
+- [Contact Us](https://wordsthatsells.website/en/company/contact-us/): Contact form and explanation of AI + human delivery model. Preferred path for new enquiries.
+- [About Us](https://wordsthatsells.website/en/company/about-us/): Company background and approach.
+- [Affiliate Program](https://wordsthatsells.website/en/company/affiliate-sales/): Partner program for affiliates.
+- [Agency Partners](https://wordsthatsells.website/en/company/digital-agencies/): White-label services for digital agencies.
+
+## Services
+
+- [SEO Content Creation](https://wordsthatsells.website/en/digital-marketing-services/content-creation/): Keyword research, articles, and landing page copy.
+- [Social Media Management](https://wordsthatsells.website/en/digital-marketing-services/social-media-management/): Content calendars, engagement, and paid social.
+- [Web Development](https://wordsthatsells.website/en/digital-marketing-services/web-development/): Responsive sites and landing pages.
+- [AI Business Tools](https://wordsthatsells.website/en/digital-marketing-services/business-tools/): Automation and AI workflow tools.
+
+## Resources
+
+- [Articles / Blog](https://wordsthatsells.website/en/resources/articles/): Digital marketing and AI insights for Southeast Asia.
+- [SEO Glossary](https://wordsthatsells.website/en/resources/glossary/): Plain-language SEO and marketing terms.
+- [AI Tools](https://wordsthatsells.website/en/resources/ai-tools/): Recommended AI agents and tools.
+- [Guides](https://wordsthatsells.website/en/resources/guides/): Practical digital marketing guides.
+
+## Legal
+
+- [Privacy Policy](https://wordsthatsells.website/en/company/legal/privacy-policy.html): How we handle personal data.
+- [Terms and Conditions](https://wordsthatsells.website/en/company/legal/terms-and-conditions.html): Site and service terms.
+- [Cookie Policy](https://wordsthatsells.website/en/company/legal/cookie-policy.html): Cookie usage.
+- [All legal documents](https://wordsthatsells.website/en/company/legal/): Legal index.
+
+## Optional
+
+- [Sitemap](https://wordsthatsells.website/sitemap.xml): Machine-readable list of public URLs.
+- [Robots](https://wordsthatsells.website/robots.txt): Crawl guidance for search engines.
+
+## How to use this site (for AI agents)
+
+1. Prefer English pages under `/en/` (primary language; other locales may be incomplete).
+2. For new business enquiries, use the Contact form tool on `/en/company/contact-us/` (`submit_contact_request`) or open that page and fill the annotated form.
+3. For newsletter signup, use forms annotated as `subscribe_newsletter` on marketing pages.
+4. Do not invent pricing or guarantees; link users to Pricing and Contact for quotes.
+5. Brand name: **WordsThatSells** (Laboise eworker Laos enterprise). Location: Vientiane, Laos.

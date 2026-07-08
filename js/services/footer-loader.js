@@ -171,9 +171,19 @@
 
   // ── Helpers ────────────────────────────────────────────────
 
+  /** Prefer trailing-slash canonicals for directory URLs (avoids 301s in SEO audits). */
+  function normalizeHref(href) {
+    if (!href || typeof href !== 'string') return href;
+    if (href.indexOf('mailto:') === 0 || href.indexOf('tel:') === 0 || href.indexOf('#') === 0) return href;
+    if (/[?#]/.test(href)) return href;
+    if (/\.[a-zA-Z0-9]{1,8}$/.test(href)) return href; // file extension
+    if (href.charAt(href.length - 1) !== '/') return href + '/';
+    return href;
+  }
+
   function link(href, text, newTab) {
     var a = document.createElement('a');
-    a.href = href;
+    a.href = normalizeHref(href);
     a.textContent = text;
     if (newTab) {
       a.target = '_blank';

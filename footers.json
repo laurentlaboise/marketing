@@ -35,7 +35,7 @@
         },
         {
           "icon": "fab fa-youtube-square",
-          "href": "https://www.youtube.com/@wordsthatsells942",
+          "href": "https://www.youtube.com/@wordsthatsells928",
           "label": "YouTube"
         }
       ],
@@ -53,7 +53,7 @@
         },
         {
           "icon": "fab fa-whatsapp",
-          "href": "https://wa.me/02055528034",
+          "href": "https://wa.me/8562055528034",
           "external": true,
           "text": "02055528034"
         },
@@ -70,23 +70,23 @@
           "links": [
             {
               "text": "Digital Marketing",
-              "href": "https://wordsthatsells.website/en/digital-marketing-services"
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/"
             },
             {
               "text": "Web Development",
-              "href": "https://wordsthatsells.website/en/digital-marketing-services/web-development"
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/web-development/"
             },
             {
               "text": "Content Creation",
-              "href": "https://wordsthatsells.website/en/digital-marketing-services/content-creation"
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/content-creation/"
             },
             {
               "text": "Social Media",
-              "href": "https://wordsthatsells.website/en/digital-marketing-services/social-media-management"
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/social-media-management/"
             },
             {
               "text": "Business Tools",
-              "href": "https://wordsthatsells.website/en/digital-marketing-services/business-tools"
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/business-tools/"
             }
           ]
         },
@@ -95,19 +95,19 @@
           "links": [
             {
               "text": "Pricing",
-              "href": "https://wordsthatsells.website/en/digital-marketing-services/prices"
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/prices/"
             },
             {
               "text": "Affiliate Program",
-              "href": "https://wordsthatsells.website/en/company/affiliate-sales"
+              "href": "https://wordsthatsells.website/en/company/affiliate-sales/"
             },
             {
               "text": "Agencies",
-              "href": "https://wordsthatsells.website/en/company/digital-agencies"
+              "href": "https://wordsthatsells.website/en/company/digital-agencies/"
             },
             {
               "text": "Automation",
-              "href": "https://wordsthatsells.website/en/resources/ai-tools"
+              "href": "https://wordsthatsells.website/en/resources/ai-tools/"
             }
           ]
         },
@@ -116,15 +116,15 @@
           "links": [
             {
               "text": "Articles",
-              "href": "https://wordsthatsells.website/en/resources/articles"
+              "href": "https://wordsthatsells.website/en/resources/articles/"
             },
             {
               "text": "Glossary",
-              "href": "https://wordsthatsells.website/en/resources/glossary"
+              "href": "https://wordsthatsells.website/en/resources/glossary/"
             },
             {
               "text": "Ai Tools",
-              "href": "https://wordsthatsells.website/en/resources/ai-tools"
+              "href": "https://wordsthatsells.website/en/resources/ai-tools/"
             }
           ]
         },

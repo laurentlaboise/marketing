@@ -9,11 +9,11 @@
     <meta name="twitter:description" content="Transparent digital marketing pricing for SMEs, agencies, and affiliates — monthly plans for SEO, content, social, and web services in Laos and SEA.">
     <meta name="twitter:title" content="Digital Marketing Pricing & Plans | WordsThatSells">
     <meta name="twitter:url" content="https://wordsthatsells.website/en/digital-marketing-services/prices/">
-    <meta property="og:description" content="Transparent digital marketing pricing for SMEs, agencies, and affiliates — monthly plans for SEO, content, social, and web services in Laos and SEA.">
+    <meta property="og:description" content="WordsThatSells pricing: Digital Footprint from $329/mo, Growth Engine $649/mo, Automation Pro $1,099/mo, plus à la carte web and content packages for SEA SMEs.">
     <meta property="og:title" content="Digital Marketing Pricing & Plans | WordsThatSells">
     <meta property="og:url" content="https://wordsthatsells.website/en/digital-marketing-services/prices/">
     <meta name="robots" content="index, follow">
-    <meta name="description" content="Transparent digital marketing pricing for SMEs, agencies, and affiliates — monthly plans for SEO, content, social, and web services in Laos and SEA.">
+    <meta name="description" content="WordsThatSells pricing: Digital Footprint from $329/mo, Growth Engine $649/mo, Automation Pro $1,099/mo, plus à la carte web and content packages for SEA SMEs.">
 
     <link rel="canonical" href="https://wordsthatsells.website/en/digital-marketing-services/prices/">
     <link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/prices/">
@@ -763,14 +763,14 @@
 <body>
 
     <div class="hero-banner">
-        <img src="https://placehold.co/1200x400/1f85c9/ffffff?text=Words+That+Sells+Digital+Marketing" alt="Marketing Banners with AI">
+        <img src="/images/wts-pricing-banner-1200.webp" alt="Marketing Banners with AI">
     </div>
 
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1>Find the Perfect Plan for Your Growth</h1>
-            <p>Choose a subscription for ongoing growth, or select a one-time bundle for a specific goal. All plans include our 30-day money-back guarantee.</p>
+            <h1>Digital Marketing Plans for SEA Growth</h1>
+            <p>Monthly retainers for SMEs in Laos &amp; Thailand—from a professional digital footprint to ads, SEO, and automation. 30-day money-back on eligible plans. Partner packages for affiliates and agencies too.</p>
             <div class="billing-toggle">
                 <span id="monthly-label">Billed Monthly</span>
                 <label class="toggle-switch">
@@ -785,10 +785,67 @@
             <!-- Subscription Plans (dynamic from admin backend) -->
             <section id="pricing-plans" class="section" data-pricing-section="subscriptions">
                 <div id="subscriptions-grid" class="grid-4">
-                    <!-- Loaded dynamically from API, static fallback below -->
+                    <!-- Static fallback from Drive pricing strategy (Digital Marketing Pricing Strategy SEA + catalogue) -->
+                    <div class="card subscription-card" data-fallback-plan="digital-footprint">
+                        <h3 class="plan-name">Digital Footprint</h3>
+                        <div class="plan-price-wrapper"><span class="plan-price" data-price="329" data-discount="20">$329</span><span class="plan-period">/mo</span></div>
+                        <p class="plan-billing-note">Retail range $299–$349 · best for Lao SMEs starting online</p>
+                        <div class="feature-section">
+                            <ul>
+                                <li><i class="fas fa-check"></i> Social media foundation (key platforms)</li>
+                                <li><i class="fas fa-check"></i> Foundational content production</li>
+                                <li><i class="fas fa-check"></i> Professional online presence support</li>
+                                <li><i class="fas fa-check"></i> Monthly reporting in plain language</li>
+                            </ul>
+                        </div>
+                        <button type="button" class="btn btn-accent" type="button" onclick="openFormModal('consultation')">Start Footprint</button>
+                    </div>
+                    <div class="card subscription-card highlight" data-fallback-plan="growth-engine">
+                        <span class="popular-pill-badge">Most popular</span>
+                        <h3 class="plan-name">Growth Engine</h3>
+                        <div class="plan-price-wrapper"><span class="plan-price" data-price="649" data-discount="20">$649</span><span class="plan-period">/mo</span></div>
+                        <p class="plan-billing-note">Retail range $599–$699 · ads + SEO + lead assets</p>
+                        <div class="feature-section">
+                            <ul>
+                                <li><i class="fas fa-check"></i> Social ad campaign support</li>
+                                <li><i class="fas fa-check"></i> Local / organic SEO execution</li>
+                                <li><i class="fas fa-check"></i> Lead magnet / conversion assets</li>
+                                <li><i class="fas fa-check"></i> Performance-focused reporting</li>
+                            </ul>
+                        </div>
+                        <button type="button" class="btn btn-accent" type="button" onclick="openFormModal('consultation')">Start Growth</button>
+                    </div>
+                    <div class="card subscription-card" data-fallback-plan="automation-pro">
+                        <h3 class="plan-name">Automation Pro</h3>
+                        <div class="plan-price-wrapper"><span class="plan-price" data-price="1099" data-discount="20">$1,099</span><span class="plan-period">/mo</span></div>
+                        <p class="plan-billing-note">Retail range $999–$1,199 · scale &amp; systems</p>
+                        <div class="feature-section">
+                            <ul>
+                                <li><i class="fas fa-check"></i> CRM &amp; automation orientation</li>
+                                <li><i class="fas fa-check"></i> Email marketing workflows</li>
+                                <li><i class="fas fa-check"></i> Advanced growth operations</li>
+                                <li><i class="fas fa-check"></i> Priority delivery coordination</li>
+                            </ul>
+                        </div>
+                        <button type="button" class="btn btn-accent" type="button" onclick="openFormModal('consultation')">Start Automation</button>
+                    </div>
+                    <div class="card subscription-card">
+                        <h3 class="plan-name">Catalogue anchors</h3>
+                        <div class="plan-price-wrapper"><span class="plan-price" style="font-size:1.75rem;">À la carte</span></div>
+                        <p class="plan-billing-note">From product listings (one-time)</p>
+                        <div class="feature-section">
+                            <ul>
+                                <li><i class="fas fa-check"></i> Landing page from <strong>$95</strong></li>
+                                <li><i class="fas fa-check"></i> WordPress &amp; Divi site from <strong>$355</strong></li>
+                                <li><i class="fas fa-check"></i> Website copy from <strong>$27</strong> / 1,000 chars</li>
+                                <li><i class="fas fa-check"></i> Virtual Card Pro+ <strong>$58.60</strong></li>
+                            </ul>
+                        </div>
+                        <a class="btn btn-outline" href="/en/company/contact-us/">Request a quote</a>
+                    </div>
                 </div>
                 <div style="text-align: center; margin-top: 2.5rem;">
-                    <button id="compare-plans-btn" class="btn btn-outline">
+                    <button type="button" id="compare-plans-btn" class="btn btn-outline">
                         <i class="fas fa-columns" style="margin-right: 0.5rem;"></i> Compare All Plans
                     </button>
                 </div>
@@ -800,10 +857,10 @@
                     <div class="text-column">
                         <h2>Explore Custom Solutions</h2>
                         <p>Our team of experts can develop a unique strategy and custom software to fit your specific business needs. Schedule a free consultation to discuss your project.</p>
-                        <button class="btn btn-accent" style="margin-top: 1rem;" onclick="openFormModal('consultation')">Schedule a Consultation</button>
+                        <button type="button" class="btn btn-accent" style="margin-top: 1rem;" onclick="openFormModal('consultation')">Schedule a Consultation</button>
                     </div>
                     <div class="image-column">
-                        <img src="https://placehold.co/600x400/d62b83/ffffff?text=Custom+Solutions" alt="Custom solutions and web development">
+                        <img src="/images/wts-team-collaboration-hero-960.webp" alt="Custom solutions and web development">
                     </div>
                 </div>
             </section>
@@ -816,39 +873,40 @@
                 <p style="max-width: 800px; margin: 0 auto 2.5rem; font-size: 1.125rem;">We are dedicated to empowering local businesses, startups, and NGOs in Laos. Our mission is to accelerate digital growth and foster a vibrant local economy with our free marketing services.</p>
                 <div style="max-width: 900px; margin: 0 auto;">
                     <ul style="list-style: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; text-align: left;">
-                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> **Zero Cost**: Essential services offered at no charge.</li>
-                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> **Expert Support**: Receive guidance from our professional team.</li>
-                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> **Sustainable Growth**: Tools to help your business thrive long-term.</li>
-                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> **Community Focus**: Exclusively for local Lao businesses and organizations.</li>
+                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> <strong>Zero Cost</strong>: Essential services offered at no charge.</li>
+                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> <strong>Expert Support</strong>: Receive guidance from our professional team.</li>
+                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> <strong>Sustainable Growth</strong>: Tools to help your business thrive long-term.</li>
+                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> <strong>Community Focus</strong>: Exclusively for local Lao businesses and organizations.</li>
                     </ul>
                 </div>
-                <button class="btn btn-accent" style="margin-top: 3rem;" onclick="openFormModal('free-support')">Apply for Free Support</button>
+                <button type="button" class="btn btn-accent" style="margin-top: 3rem;" onclick="openFormModal('free-support')">Apply for Free Support</button>
             </section>
             
             <!-- Strategic Program Bundles -->
             <section id="bundles" class="section affiliate-section">
                 <h2>Become a Digital Affiliate Partner</h2>
-                <p style="text-align: center; max-width: 700px; margin: -1.5rem auto 2.5rem;">Join our affiliate program and earn a percentage on every sale by promoting our digital products to your audience. This is perfect for content creators, influencers, and bloggers.</p>
+                <p style="text-align: center; max-width: 700px; margin: -1.5rem auto 2.5rem;">Earn <strong>recurring commissions</strong>: 20% on Standard ($290/mo → $58) and 25% on Professional ($790/mo → $197.50), with Silver/Gold tiers for bonuses. Perfect for creators, consultants, and local networkers.</p>
                 <div style="max-width: 900px; margin: 0 auto;">
                     <ul class="affiliate-benefits-list">
-                        <li><i class="fas fa-gem" style="color: var(--color-accent-magenta);"></i> **High Commissions**: Earn a competitive percentage on every sale you drive.</li>
-                        <li><i class="fas fa-laptop" style="color: var(--color-accent-magenta);"></i> **Premium Digital Products**: Promote valuable products like AI courses, e-books, and website bundles.</li>
-                        <li><i class="fas fa-handshake" style="color: var(--color-accent-magenta);"></i> **Easy to Promote**: We provide you with all the marketing materials you need to get started.</li>
-                        <li><i class="fas fa-chart-line" style="color: var(--color-accent-magenta);"></i> **Dedicated Support**: Get access to a dedicated support team to help you succeed.</li>
+                        <li><i class="fas fa-gem" style="color: var(--color-accent-magenta);"></i> <strong>Recurring payouts</strong>: Monthly commissions while clients stay active.</li>
+                        <li><i class="fas fa-laptop" style="color: var(--color-accent-magenta);"></i> <strong>SEA Growth Suite</strong>: Websites, landing pages, local SEO, social, ads, branding kits.</li>
+                        <li><i class="fas fa-handshake" style="color: var(--color-accent-magenta);"></i> <strong>You sell, we deliver</strong>: Marketing materials and fulfilment by WordsThatSells.</li>
+                        <li><i class="fas fa-chart-line" style="color: var(--color-accent-magenta);"></i> <strong>Paid on the 15th</strong>: Min $100 via PayPal, bank, or Stripe.</li>
                     </ul>
                 </div>
-                <button class="btn btn-accent" style="margin-top: 1rem;" onclick="openFormModal('affiliate')">Apply Now to Become an Affiliate</button>
+                <a class="btn btn-accent" style="margin-top: 1rem; display:inline-block;" href="/en/company/affiliate-sales/">View full affiliate program</a>
+                <button type="button" class="btn btn-outline" style="margin-top: 1rem; margin-left: 0.5rem;" onclick="openFormModal('affiliate')">Apply now</button>
             </section>
             
             <!-- Individual Services -->
             <section id="individual-services" class="section section-alt">
-                <h2>White Label Services for Digital Marketers</h2>
-                <p style="text-align: center; max-width: 700px; margin: -1.5rem auto 2.5rem;">Our white-label solutions are designed for digital marketers to sell directly to their clients. Expand your service offerings without the overhead.</p>
+                <h2>White Label Services for Digital Agencies</h2>
+                <p style="text-align: center; max-width: 700px; margin: -1.5rem auto 2.5rem;">Resell Footprint, Growth Engine, and Automation Pro under your brand. Suggested retail $299–$1,199/mo. You keep the client—we deliver white-label. <a href="/en/company/digital-agencies/" style="color:var(--color-accent-magenta);font-weight:600;">Agency partner details →</a></p>
                 <div id="services-accordion">
                     <!-- JS will generate this -->
                 </div>
                  <div style="text-align: center; margin-top: 2.5rem;">
-                    <button class="btn btn-accent" onclick="openFormModal('white-label')">Apply for a White Label Partnership</button>
+                    <button type="button" class="btn btn-accent" onclick="openFormModal('white-label')">Apply for a White Label Partnership</button>
                 </div>
             </section>
             
@@ -879,31 +937,31 @@
         <div class="form-modal">
             <div class="form-modal-header">
                 <h3><i class="fas fa-calendar-check" style="color:var(--color-primary-base);margin-right:0.5rem;"></i> Schedule a Consultation</h3>
-                <button class="modal-close-btn" onclick="closeFormModal('consultation')">&times;</button>
+                <button type="button" class="modal-close-btn" onclick="closeFormModal('consultation')">&times;</button>
             </div>
             <div class="form-modal-body">
                 <p class="form-subtitle">Tell us about your project and we'll schedule a free consultation to discuss custom solutions for your business.</p>
                 <div class="form-error" id="form-error-consultation"></div>
-                <form id="form-consultation" onsubmit="submitForm(event, 'consultation')">
+                <form id="form-consultation" onsubmit="submitForm(event, 'consultation')" toolname="request_quote" tooldescription="Request a consultation quote from WordsThatSells.">
                     <div class="form-group">
                         <label>Full Name <span class="required">*</span></label>
-                        <input type="text" name="name" required placeholder="Your name">
+                        <input type="text" name="name" required placeholder="Your name" toolparamdescription="Full name of the person making the request">
                     </div>
                     <div class="form-group">
                         <label>Email <span class="required">*</span></label>
-                        <input type="email" name="email" required placeholder="your@email.com">
+                        <input type="email" name="email" required placeholder="your@email.com" toolparamdescription="Work email address for follow-up">
                     </div>
                     <div class="form-group">
                         <label>Company</label>
-                        <input type="text" name="company" placeholder="Your company name">
+                        <input type="text" name="company" placeholder="Your company name" toolparamdescription="Company or business name">
                     </div>
                     <div class="form-group">
                         <label>Phone</label>
-                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000">
+                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000" toolparamdescription="Phone or WhatsApp number">
                     </div>
                     <div class="form-group">
                         <label>Tell us about your project</label>
-                        <textarea name="message" placeholder="What challenges are you facing? What goals do you want to achieve?"></textarea>
+                        <textarea name="message" placeholder="What challenges are you facing? What goals do you want to achieve?" toolparamdescription="Details about the request or project"></textarea>
                     </div>
                     <button type="submit" class="form-submit-btn">Request Consultation</button>
                 </form>
@@ -916,31 +974,31 @@
         <div class="form-modal">
             <div class="form-modal-header">
                 <h3><i class="fas fa-heart" style="color:var(--color-accent-magenta);margin-right:0.5rem;"></i> Apply for Free Support</h3>
-                <button class="modal-close-btn" onclick="closeFormModal('free-support')">&times;</button>
+                <button type="button" class="modal-close-btn" onclick="closeFormModal('free-support')">&times;</button>
             </div>
             <div class="form-modal-body">
                 <p class="form-subtitle">Our free program is designed for Lao businesses, startups, and NGOs. Tell us about your organization and how we can help.</p>
                 <div class="form-error" id="form-error-free-support"></div>
-                <form id="form-free-support" onsubmit="submitForm(event, 'free-support')">
+                <form id="form-free-support" onsubmit="submitForm(event, 'free-support')" toolname="request_free_support" tooldescription="Request free support information from WordsThatSells.">
                     <div class="form-group">
                         <label>Full Name <span class="required">*</span></label>
-                        <input type="text" name="name" required placeholder="Your name">
+                        <input type="text" name="name" required placeholder="Your name" toolparamdescription="Full name of the person making the request">
                     </div>
                     <div class="form-group">
                         <label>Email <span class="required">*</span></label>
-                        <input type="email" name="email" required placeholder="your@email.com">
+                        <input type="email" name="email" required placeholder="your@email.com" toolparamdescription="Work email address for follow-up">
                     </div>
                     <div class="form-group">
                         <label>Organization / Business Name</label>
-                        <input type="text" name="company" placeholder="Your business or organization">
+                        <input type="text" name="company" placeholder="Your business or organization" toolparamdescription="Company or business name">
                     </div>
                     <div class="form-group">
                         <label>Phone</label>
-                        <input type="tel" name="phone" placeholder="+856 20 xxxx xxxx">
+                        <input type="tel" name="phone" placeholder="+856 20 xxxx xxxx" toolparamdescription="Phone or WhatsApp number">
                     </div>
                     <div class="form-group">
                         <label>Tell us about your needs</label>
-                        <textarea name="message" placeholder="Describe your business and how digital marketing can help you grow."></textarea>
+                        <textarea name="message" placeholder="Describe your business and how digital marketing can help you grow." toolparamdescription="Details about the request or project"></textarea>
                     </div>
                     <button type="submit" class="form-submit-btn">Submit Application</button>
                 </form>
@@ -953,31 +1011,31 @@
         <div class="form-modal">
             <div class="form-modal-header">
                 <h3><i class="fas fa-handshake" style="color:var(--color-primary-base);margin-right:0.5rem;"></i> Become an Affiliate</h3>
-                <button class="modal-close-btn" onclick="closeFormModal('affiliate')">&times;</button>
+                <button type="button" class="modal-close-btn" onclick="closeFormModal('affiliate')">&times;</button>
             </div>
             <div class="form-modal-body">
                 <p class="form-subtitle">Join our affiliate program and earn commissions by promoting our digital products. Perfect for content creators, influencers, and bloggers.</p>
                 <div class="form-error" id="form-error-affiliate"></div>
-                <form id="form-affiliate" onsubmit="submitForm(event, 'affiliate')">
+                <form id="form-affiliate" onsubmit="submitForm(event, 'affiliate')" toolname="apply_affiliate_program" tooldescription="Apply to the WordsThatSells affiliate program.">
                     <div class="form-group">
                         <label>Full Name <span class="required">*</span></label>
-                        <input type="text" name="name" required placeholder="Your name">
+                        <input type="text" name="name" required placeholder="Your name" toolparamdescription="Full name of the person making the request">
                     </div>
                     <div class="form-group">
                         <label>Email <span class="required">*</span></label>
-                        <input type="email" name="email" required placeholder="your@email.com">
+                        <input type="email" name="email" required placeholder="your@email.com" toolparamdescription="Work email address for follow-up">
                     </div>
                     <div class="form-group">
                         <label>Website / Social Media</label>
-                        <input type="text" name="company" placeholder="Your website or main social profile URL">
+                        <input type="text" name="company" placeholder="Your website or main social profile URL" toolparamdescription="Company or business name">
                     </div>
                     <div class="form-group">
                         <label>Phone</label>
-                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000">
+                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000" toolparamdescription="Phone or WhatsApp number">
                     </div>
                     <div class="form-group">
                         <label>Tell us about your audience</label>
-                        <textarea name="message" placeholder="What platforms do you use? What is your audience size and niche?"></textarea>
+                        <textarea name="message" placeholder="What platforms do you use? What is your audience size and niche?" toolparamdescription="Details about the request or project"></textarea>
                     </div>
                     <button type="submit" class="form-submit-btn">Apply to Become an Affiliate</button>
                 </form>
@@ -990,31 +1048,31 @@
         <div class="form-modal">
             <div class="form-modal-header">
                 <h3><i class="fas fa-building" style="color:var(--color-primary-base);margin-right:0.5rem;"></i> White Label Partnership</h3>
-                <button class="modal-close-btn" onclick="closeFormModal('white-label')">&times;</button>
+                <button type="button" class="modal-close-btn" onclick="closeFormModal('white-label')">&times;</button>
             </div>
             <div class="form-modal-body">
                 <p class="form-subtitle">Expand your agency's offerings with our white-label services. Sell premium digital marketing solutions under your own brand.</p>
                 <div class="form-error" id="form-error-white-label"></div>
-                <form id="form-white-label" onsubmit="submitForm(event, 'white-label')">
+                <form id="form-white-label" onsubmit="submitForm(event, 'white-label')" toolname="request_white_label" tooldescription="Request white-label agency partnership with WordsThatSells.">
                     <div class="form-group">
                         <label>Full Name <span class="required">*</span></label>
-                        <input type="text" name="name" required placeholder="Your name">
+                        <input type="text" name="name" required placeholder="Your name" toolparamdescription="Full name of the person making the request">
                     </div>
                     <div class="form-group">
                         <label>Email <span class="required">*</span></label>
-                        <input type="email" name="email" required placeholder="your@email.com">
+                        <input type="email" name="email" required placeholder="your@email.com" toolparamdescription="Work email address for follow-up">
                     </div>
                     <div class="form-group">
                         <label>Agency / Company Name</label>
-                        <input type="text" name="company" placeholder="Your agency or company name">
+                        <input type="text" name="company" placeholder="Your agency or company name" toolparamdescription="Company or business name">
                     </div>
                     <div class="form-group">
                         <label>Phone</label>
-                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000">
+                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000" toolparamdescription="Phone or WhatsApp number">
                     </div>
                     <div class="form-group">
                         <label>Tell us about your agency</label>
-                        <textarea name="message" placeholder="What services do you currently offer? How many clients do you serve?"></textarea>
+                        <textarea name="message" placeholder="What services do you currently offer? How many clients do you serve?" toolparamdescription="Details about the request or project"></textarea>
                     </div>
                     <button type="submit" class="form-submit-btn">Apply for White Label Partnership</button>
                 </form>
@@ -1087,7 +1145,7 @@
                 `).join('');
 
                 accordionItem.innerHTML = `
-                    <button class="accordion-header">
+                    <button type="button" class="accordion-header">
                         <h3><i class="fas ${category.icon || 'fa-cog'}" style="margin-right: 0.5rem; color: var(--color-primary-base);"></i> ${category.category || category.name || ''}</h3>
                         <i class="fas fa-chevron-right"></i>
                     </button>
@@ -1145,20 +1203,26 @@
             const infoModalTitle = document.getElementById('info-modal-title');
             const infoModalDescription = document.getElementById('info-modal-description');
 
-            // Load all pricing data from API
+            // Load pricing from Admin API (source of truth). Keep static HTML fallback
+            // when API is down or packages have not been seeded yet.
             const pricingData = await loadPricingData();
+            // Primary SME plans on this page (affiliate-only tiers stay in admin API)
+            const PRIMARY_SLUGS = new Set(['digital-footprint', 'growth-engine', 'automation-pro']);
+            if (pricingData && Array.isArray(pricingData.subscriptions)) {
+                const primary = pricingData.subscriptions.filter(p => PRIMARY_SLUGS.has(p.slug));
+                if (primary.length) pricingData.subscriptions = primary;
+            }
+            const hasApiPlans = !!(pricingData && pricingData.subscriptions && pricingData.subscriptions.length);
 
             if (!pricingData) {
-                // API is down — show a clean message
-                if (subsGrid) {
-                    subsGrid.innerHTML = '<p style="text-align:center;color:var(--color-slate-500);padding:2rem;">Pricing plans are being updated. Please check back shortly.</p>';
-                }
-                return;
+                console.warn('[Pricing] API unavailable — keeping static fallback cards');
+            } else if (!hasApiPlans) {
+                console.warn('[Pricing] No packages in admin yet — keeping static fallback cards. Seed via Admin → Packages → Seed SEA defaults');
             }
 
             // --- Render Subscription Cards ---
             const planLookup = {};
-            if (pricingData.subscriptions) {
+            if (hasApiPlans) {
                 pricingData.subscriptions.forEach(p => { if (p.id) planLookup[p.id] = p; });
             }
 
@@ -1174,8 +1238,8 @@
             }
 
             const renderSubscriptions = () => {
-                if (!pricingData.subscriptions || !pricingData.subscriptions.length) {
-                    subsGrid.innerHTML = '<p style="text-align:center;color:var(--color-slate-500);padding:2rem;">No subscription plans available yet.</p>';
+                // Preserve static fallback HTML when admin has no packages yet
+                if (!hasApiPlans) {
                     return;
                 }
                 subsGrid.innerHTML = '';
@@ -1312,22 +1376,24 @@
                 });
             };
 
-            // Render all sections
-            renderSubscriptions();
-            renderModal();
+            // Render all sections (subscriptions only overwrite DOM when API has plans)
+            if (hasApiPlans) {
+                renderSubscriptions();
+                renderModal();
+            }
 
             // Render bundles if API provides them
-            if (pricingData.bundles) {
+            if (pricingData && pricingData.bundles) {
                 renderBundles(pricingData.bundles);
             }
 
-            // Render individual services if API provides them
-            if (pricingData.individualServices) {
+            // White-label / à la carte from admin products
+            if (pricingData && pricingData.individualServices && pricingData.individualServices.length) {
                 renderIndividualServices(pricingData.individualServices);
             }
 
             // --- Billing Toggle ---
-            billingToggle.addEventListener('change', () => {
+            if (billingToggle) billingToggle.addEventListener('change', () => {
                 const isAnnual = billingToggle.checked;
                 trackEvent('toggle_billing', 'Pricing', isAnnual ? 'Annual' : 'Monthly');
                 document.querySelectorAll('.plan-price').forEach(el => {
@@ -1350,7 +1416,8 @@
 
             // --- Modal controls ---
             const modalOverlay = document.getElementById('comparison-modal-overlay');
-            document.getElementById('compare-plans-btn').addEventListener('click', () => {
+            const compareBtn = document.getElementById('compare-plans-btn');
+            if (compareBtn) compareBtn.addEventListener('click', () => {
                 trackEvent('open_comparison', 'Pricing', 'Compare All Plans');
                 modalOverlay.classList.add('active');
                 document.body.classList.add('no-scroll');
@@ -1359,13 +1426,14 @@
                 modalOverlay.classList.remove('active');
                 document.body.classList.remove('no-scroll');
             };
-            document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
             modalOverlay.addEventListener('click', (e) => {
                 if (e.target === modalOverlay) closeModal();
             });
 
             const infoModalCloseBtn = document.getElementById('info-modal-close-btn');
-            infoModalCloseBtn.addEventListener('click', () => {
+            if (infoModalCloseBtn) infoModalCloseBtn.addEventListener('click', () => {
                 infoModalOverlay.classList.remove('active');
             });
             infoModalOverlay.addEventListener('click', (e) => {
@@ -1529,7 +1597,7 @@
                     const header = document.createElement('div');
                     header.className = 'form-modal-header';
                     header.innerHTML = '<h3>' + escapeFormHtml(tpl.title) + '</h3>' +
-                        '<button class="modal-close-btn" onclick="closeFormModal(\'' + type + '\')">&times;</button>';
+                        '<button type="button" class="modal-close-btn" onclick="closeFormModal(\'' + type + '\')">&times;</button>';
                     modal.appendChild(header);
 
                     // Body
@@ -1678,5 +1746,5 @@
         }
     </script>
     <script src="/js/services/page-sidebar.js"></script>
-<footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells942" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">Contact Us</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane, <br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">Find us on Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/02055528034" target="_blank" rel="noopener noreferrer">02055528034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Solutions</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services">Digital Marketing</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development">Web Development</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation">Content Creation</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management">Social Media</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools">Business Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Services</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices">Pricing</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales">Affiliate Program</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies">Agencies</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools">Automation</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Resources</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles">Articles</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary">Glossary</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools">Ai Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Legal</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Privacy Policy</a></li><li><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Terms &amp; Conditions</a></li><li><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Cookie Policy</a></li><li><a href="https://wordsthatsells.website/en/company/legal/">All legal documents</a></li></ul></div></div></div><div class="footer-bottom"<div class="footer-column"><div class="footer-legal"><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Privacy</a><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Terms</a><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Cookies</a></div><p>© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p></div></div></div><div class="footer-bottom"><p>© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253 · <a href="/en/company/legal/privacy-policy.html">Privacy</a> · <a href="/en/company/legal/terms-and-conditions.html">Terms</a> · <a href="/en/company/legal/cookie-policy.html">Cookies</a></p></div></div></footer></body>
+<footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">Contact Us</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane, <br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">Find us on Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">02055528034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Solutions</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">Digital Marketing</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">Web Development</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">Content Creation</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">Social Media</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">Business Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Services</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">Pricing</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">Affiliate Program</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">Agencies</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Automation</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Resources</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">Articles</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">Glossary</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Ai Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Legal</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Privacy Policy</a></li><li><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Terms &amp; Conditions</a></li><li><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Cookie Policy</a></li><li><a href="https://wordsthatsells.website/en/company/legal/">All legal documents</a></li></ul></div></div></div><div class="footer-bottom"><div class="footer-legal"><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Privacy</a><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Terms</a><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Cookies</a></div><p>© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p></div></div></footer></body>
 </html>
