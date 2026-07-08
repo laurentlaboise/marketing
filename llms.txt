@@ -49,3 +49,20 @@ Email: info@wordsthatsells.website
 3. For newsletter signup, use forms annotated as `subscribe_newsletter` on marketing pages.
 4. Do not invent pricing or guarantees; link users to Pricing and Contact for quotes.
 5. Brand name: **WordsThatSells** (Laboise eworker Laos enterprise). Location: Vientiane, Laos.
+
+## WebMCP tools (Chrome origin trial / document.modelContext)
+
+Forms use declarative attributes (`toolname`, `tooldescription`, `toolparamdescription`). Imperative tools register when `document.modelContext` is available.
+
+| Tool name | Purpose | Typical page |
+|-----------|---------|--------------|
+| `submit_contact_request` | Contact / consultation enquiry | `/en/company/contact-us/` |
+| `send_general_inquiry` | Quick modal message | most `/en/` pages |
+| `request_quote` | Pricing consultation quote | `/en/digital-marketing-services/prices/` |
+| `request_free_support` | Free support interest form | pricing |
+| `apply_affiliate_program` | Affiliate application | pricing, affiliate page |
+| `request_white_label` | Agency white-label request | pricing |
+| `subscribe_newsletter` | Newsletter email signup | marketing pages |
+| `list_site_services` | Read-only service + URL list | any page with WebMCP JS |
+
+Prefer human confirmation on commercial forms (no `toolautosubmit`).

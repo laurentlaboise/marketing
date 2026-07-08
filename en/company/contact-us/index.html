@@ -1655,10 +1655,39 @@
                 <div class="two-column-layout" style="align-items:start;">
                     <div class="column-left">
                         <div id="wts-contact-form" data-wts-form="contact" class="card-base" style="padding:1.5rem;">
+                            <!-- Static annotated form: WebMCP form coverage without waiting on admin API.
+                                 Replaced by admin template when /api/public/form-template/contact succeeds. -->
+                            <form id="contact-static-form" class="modal-form wts-page-form" method="post" action="#"
+                                  data-form-type="contact"
+                                  toolname="submit_contact_request"
+                                  tooldescription="Submit a contact or consultation request to WordsThatSells digital marketing agency in Vientiane, Laos. Use for SEO, content, social, web, or automation enquiries.">
+                                <input type="hidden" name="form_type" value="contact">
+                                <div class="form-fields">
+                                    <input type="text" name="name" required placeholder="Your Name" aria-label="Full name"
+                                           toolparamdescription="Full name of the person making the request" aria-description="Full name of the person making the request">
+                                    <input type="email" name="email" required placeholder="Your Email" aria-label="Email"
+                                           toolparamdescription="Work email address for follow-up" aria-description="Work email address for follow-up">
+                                    <input type="text" name="company" placeholder="Company Name" aria-label="Company"
+                                           toolparamdescription="Company or business name (optional)" aria-description="Company or business name (optional)">
+                                    <select name="service" required aria-label="Service of interest"
+                                            toolparamdescription="Primary service or focus area requested" aria-description="Primary service or focus area requested">
+                                        <option value="">Select a Service of Interest</option>
+                                        <option value="Digital Marketing Strategy">Digital Marketing Strategy</option>
+                                        <option value="SEO Content Creation">SEO Content Creation</option>
+                                        <option value="Social Media Management">Social Media Management</option>
+                                        <option value="Web Development">Web Development</option>
+                                        <option value="Graphic Design">Graphic Design</option>
+                                        <option value="App Development">App Development</option>
+                                        <option value="AI Marketing Hub">AI Marketing Hub</option>
+                                    </select>
+                                    <textarea name="message" rows="4" placeholder="Tell us about your project..." aria-label="Message"
+                                              toolparamdescription="Details about the project, market, timeline, and success criteria" aria-description="Details about the project, market, timeline, and success criteria"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-accent-blue"><i class="fas fa-paper-plane"></i> Submit Request</button>
+                            </form>
                             <noscript>
                                 <p>Please enable JavaScript to use the contact form, or email us at <a href="mailto:info@wordsthatsells.website">info@wordsthatsells.website</a>.</p>
                             </noscript>
-                            <p class="wts-form-loading" style="color:#64748b;">Loading contact form…</p>
                         </div>
                     </div>
                     <div class="column-right">
