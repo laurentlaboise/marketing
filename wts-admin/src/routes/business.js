@@ -1188,6 +1188,24 @@ router.post('/customers/:id/delete', async (req, res) => {
 
 // ==================== PRICE MODELS (Subscription Packages) ====================
 
+/**
+ * Seed Drive-backed default packages, feature catalog, and affiliate solutions.
+ * Safe to re-run (upsert by slug / feature_key / name).
+ */
+router.post('/pricing/seed-defaults', async (req, res) => {
+  try {
+    const { seedPricingDefaults } = require('../lib/pricing-seed-data');
+    const result = await seedPricingDefaults(db);
+    req.session.successMessage =
+      `Seeded ${result.plansUpserted} packages, ${result.featuresUpserted} features, ${result.affiliatesUpserted} affiliate products` +
+      (result.agenciesUpserted ? `, ${result.agenciesUpserted} agency packages` : '');
+  } catch (error) {
+    console.error('Seed pricing defaults error:', error);
+    req.session.errorMessage = 'Failed to seed defaults: ' + error.message;
+  }
+  res.redirect('/business/pricing');
+});
+
 router.get('/pricing', async (req, res) => {
   try {
     const [modelsResult, featuresResult] = await Promise.all([

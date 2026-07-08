@@ -786,9 +786,9 @@
             <section id="pricing-plans" class="section" data-pricing-section="subscriptions">
                 <div id="subscriptions-grid" class="grid-4">
                     <!-- Static fallback from Drive pricing strategy (Digital Marketing Pricing Strategy SEA + catalogue) -->
-                    <div class="card subscription-card">
+                    <div class="card subscription-card" data-fallback-plan="digital-footprint">
                         <h3 class="plan-name">Digital Footprint</h3>
-                        <div class="plan-price-wrapper"><span class="plan-price">$329</span><span class="plan-period">/mo</span></div>
+                        <div class="plan-price-wrapper"><span class="plan-price" data-price="329" data-discount="20">$329</span><span class="plan-period">/mo</span></div>
                         <p class="plan-billing-note">Retail range $299–$349 · best for Lao SMEs starting online</p>
                         <div class="feature-section">
                             <ul>
@@ -800,10 +800,10 @@
                         </div>
                         <button class="btn btn-accent" type="button" onclick="openFormModal('consultation')">Start Footprint</button>
                     </div>
-                    <div class="card subscription-card highlight">
+                    <div class="card subscription-card highlight" data-fallback-plan="growth-engine">
                         <span class="popular-pill-badge">Most popular</span>
                         <h3 class="plan-name">Growth Engine</h3>
-                        <div class="plan-price-wrapper"><span class="plan-price">$649</span><span class="plan-period">/mo</span></div>
+                        <div class="plan-price-wrapper"><span class="plan-price" data-price="649" data-discount="20">$649</span><span class="plan-period">/mo</span></div>
                         <p class="plan-billing-note">Retail range $599–$699 · ads + SEO + lead assets</p>
                         <div class="feature-section">
                             <ul>
@@ -815,9 +815,9 @@
                         </div>
                         <button class="btn btn-accent" type="button" onclick="openFormModal('consultation')">Start Growth</button>
                     </div>
-                    <div class="card subscription-card">
+                    <div class="card subscription-card" data-fallback-plan="automation-pro">
                         <h3 class="plan-name">Automation Pro</h3>
-                        <div class="plan-price-wrapper"><span class="plan-price">$1,099</span><span class="plan-period">/mo</span></div>
+                        <div class="plan-price-wrapper"><span class="plan-price" data-price="1099" data-discount="20">$1,099</span><span class="plan-period">/mo</span></div>
                         <p class="plan-billing-note">Retail range $999–$1,199 · scale &amp; systems</p>
                         <div class="feature-section">
                             <ul>
@@ -1203,20 +1203,20 @@
             const infoModalTitle = document.getElementById('info-modal-title');
             const infoModalDescription = document.getElementById('info-modal-description');
 
-            // Load all pricing data from API
+            // Load pricing from Admin API (source of truth). Keep static HTML fallback
+            // when API is down or packages have not been seeded yet.
             const pricingData = await loadPricingData();
+            const hasApiPlans = !!(pricingData && pricingData.subscriptions && pricingData.subscriptions.length);
 
             if (!pricingData) {
-                // API is down — show a clean message
-                if (subsGrid) {
-                    subsGrid.innerHTML = '<p style="text-align:center;color:var(--color-slate-500);padding:2rem;">Pricing plans are being updated. Please check back shortly.</p>';
-                }
-                return;
+                console.warn('[Pricing] API unavailable — keeping static fallback cards');
+            } else if (!hasApiPlans) {
+                console.warn('[Pricing] No packages in admin yet — keeping static fallback cards. Seed via Admin → Packages → Seed SEA defaults');
             }
 
             // --- Render Subscription Cards ---
             const planLookup = {};
-            if (pricingData.subscriptions) {
+            if (hasApiPlans) {
                 pricingData.subscriptions.forEach(p => { if (p.id) planLookup[p.id] = p; });
             }
 
@@ -1232,8 +1232,8 @@
             }
 
             const renderSubscriptions = () => {
-                if (!pricingData.subscriptions || !pricingData.subscriptions.length) {
-                    subsGrid.innerHTML = '<p style="text-align:center;color:var(--color-slate-500);padding:2rem;">No subscription plans available yet.</p>';
+                // Preserve static fallback HTML when admin has no packages yet
+                if (!hasApiPlans) {
                     return;
                 }
                 subsGrid.innerHTML = '';
@@ -1370,22 +1370,24 @@
                 });
             };
 
-            // Render all sections
-            renderSubscriptions();
-            renderModal();
+            // Render all sections (subscriptions only overwrite DOM when API has plans)
+            if (hasApiPlans) {
+                renderSubscriptions();
+                renderModal();
+            }
 
             // Render bundles if API provides them
-            if (pricingData.bundles) {
+            if (pricingData && pricingData.bundles) {
                 renderBundles(pricingData.bundles);
             }
 
-            // Render individual services if API provides them
-            if (pricingData.individualServices) {
+            // White-label / à la carte from admin products
+            if (pricingData && pricingData.individualServices && pricingData.individualServices.length) {
                 renderIndividualServices(pricingData.individualServices);
             }
 
             // --- Billing Toggle ---
-            billingToggle.addEventListener('change', () => {
+            if (billingToggle) billingToggle.addEventListener('change', () => {
                 const isAnnual = billingToggle.checked;
                 trackEvent('toggle_billing', 'Pricing', isAnnual ? 'Annual' : 'Monthly');
                 document.querySelectorAll('.plan-price').forEach(el => {
