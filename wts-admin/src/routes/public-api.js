@@ -916,9 +916,70 @@ router.get('/pricing', async (req, res) => {
     });
     const featureCategories = Object.values(categoryMap);
 
+    // Group active products by service_page for white-label / à la carte accordion
+    let individualServices = [];
+    try {
+      const productsResult = await db.query(
+        `SELECT name, description, price, currency, service_page, category, features, icon_class
+         FROM products WHERE status = 'active'
+         ORDER BY service_page ASC, name ASC`
+      );
+      const byPage = {};
+      const pageIcons = {
+        'content-creation': 'fa-pen',
+        'social-media-management': 'fa-share-nodes',
+        'web-development': 'fa-code',
+        'business-tools': 'fa-robot',
+      };
+      const pageLabels = {
+        'content-creation': 'Content Creation',
+        'social-media-management': 'Social Media',
+        'web-development': 'Web Development',
+        'business-tools': 'Business Tools',
+      };
+      productsResult.rows.forEach((p) => {
+        const key = p.service_page || 'other';
+        if (!byPage[key]) {
+          byPage[key] = {
+            category: pageLabels[key] || key,
+            name: pageLabels[key] || key,
+            icon: pageIcons[key] || 'fa-cog',
+            services: [],
+          };
+        }
+        const priceLabel =
+          p.price != null
+            ? ` · $${parseFloat(p.price).toFixed(p.price % 1 ? 2 : 0)}${p.currency && p.currency !== 'USD' ? ' ' + p.currency : ''}`
+            : '';
+        byPage[key].services.push({
+          name: p.name,
+          serviceTitle: p.name + priceLabel,
+          description: p.description || '',
+          price: p.price != null ? parseFloat(p.price) : null,
+        });
+      });
+      individualServices = Object.values(byPage);
+    } catch (prodErr) {
+      console.warn('Public API - products for pricing accordion:', prodErr.message);
+    }
+
+    // Affiliate solutions for partner pages / pricing affiliate section
+    let affiliateSolutions = [];
+    try {
+      const aff = await db.query(
+        `SELECT name, description, commission_rate, cookie_duration, payout_threshold, affiliate_url, category
+         FROM affiliate_solutions WHERE status = 'active' ORDER BY name ASC`
+      );
+      affiliateSolutions = aff.rows;
+    } catch (_) {
+      /* table may be empty */
+    }
+
     respond(res, {
       subscriptions,
-      featureCategories
+      featureCategories,
+      individualServices,
+      affiliateSolutions,
     });
   } catch (error) {
     console.error('Public API - Pricing error:', error);

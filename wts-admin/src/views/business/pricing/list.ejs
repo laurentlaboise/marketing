@@ -10,7 +10,12 @@
         <h1 class="page-title">Packages</h1>
         <p class="page-subtitle">Manage subscription tiers, pricing plans, and feature catalog</p>
       </div>
-      <div class="page-actions" id="packagesActions">
+      <div class="page-actions" id="packagesActions" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <form action="/business/pricing/seed-defaults" method="POST" style="display:inline;"
+              onsubmit="return confirm('Upsert Drive-backed SEA packages, feature catalog, and affiliate products into the database?');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-secondary"><i class="fas fa-database"></i> Seed SEA defaults</button>
+        </form>
         <a href="/business/pricing/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Package</a>
       </div>
       <div class="page-actions" id="featuresActions" style="display: none;">
