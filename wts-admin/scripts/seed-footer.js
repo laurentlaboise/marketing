@@ -23,7 +23,7 @@ const SETTINGS = {
   footer_social_linkedin: 'https://www.linkedin.com/company/wordsthatsells',
   footer_social_facebook: 'https://www.facebook.com/wordsthatsells/',
   footer_social_twitter: 'https://x.com/wordsthatsells/',
-  footer_social_youtube: 'https://www.youtube.com/@wordsthatsells942',
+  footer_social_youtube: 'https://www.youtube.com/@wordsthatsells928',
   footer_contact_address: '20 Rue Samsenthai, Vientiane,\nVientiane Province',
   footer_contact_maps_url: 'https://www.google.com/maps/search/?api=1&query=Words+That+Sells+20+Rue+Samsenthai+Vientiane+Laos',
   footer_contact_whatsapp: '+856 20 5552 8034',
@@ -38,30 +38,30 @@ const SETTINGS = {
 // current static markup).
 const COLUMNS = [
   { heading: 'Services', links: [
-    { label: 'Digital Marketing', url: '/digital-marketing-services', t: true },
-    { label: 'Content Creation', url: '/digital-marketing-services/content-creation' },
-    { label: 'Social Media', url: '/digital-marketing-services/social-media-management' },
-    { label: 'Web Development', url: '/digital-marketing-services/web-development' },
-    { label: 'Business Tools', url: '/digital-marketing-services/business-tools' }
+    { label: 'Digital Marketing', url: '/digital-marketing-services/', t: true },
+    { label: 'Content Creation', url: '/digital-marketing-services/content-creation/' },
+    { label: 'Social Media', url: '/digital-marketing-services/social-media-management/' },
+    { label: 'Web Development', url: '/digital-marketing-services/web-development/' },
+    { label: 'Business Tools', url: '/digital-marketing-services/business-tools/' }
   ] },
   { heading: 'Solutions', links: [
-    { label: 'Pricing', url: '/digital-marketing-services/prices' },
-    { label: 'Affiliates', url: '/company/affiliate-sales' },
-    { label: 'Agencies', url: '/company/digital-agencies' },
-    { label: 'Automation', url: '/resources/ai-tools', t: true }
+    { label: 'Pricing', url: '/digital-marketing-services/prices/' },
+    { label: 'Affiliates', url: '/company/affiliate-sales/' },
+    { label: 'Agencies', url: '/company/digital-agencies/' },
+    { label: 'Automation', url: '/resources/ai-tools/', t: true }
   ] },
   { heading: 'Resources', links: [
-    { label: 'Articles', url: '/resources/articles', t: true },
-    { label: 'Glossary', url: '/resources/glossary', t: true },
-    { label: 'Ai Tools', url: '/resources/ai-tools', t: true },
-    { label: 'E-Guides', url: '/resources/guides', t: true }
+    { label: 'Articles', url: '/resources/articles/', t: true },
+    { label: 'Glossary', url: '/resources/glossary/', t: true },
+    { label: 'Ai Tools', url: '/resources/ai-tools/', t: true },
+    { label: 'E-Guides', url: '/resources/guides/', t: true }
   ] }
 ];
 
 const LEGAL = [
-  { label: 'About Us', url: '/company/about-us' },
-  { label: 'Contact Us', url: '/company/contact-us' },
-  { label: 'Legal', url: '/company/legal' }
+  { label: 'About Us', url: '/company/about-us/' },
+  { label: 'Contact Us', url: '/company/contact-us/' },
+  { label: 'Legal', url: '/company/legal/' }
 ];
 
 async function seedSettings() {
