@@ -1,6 +1,13 @@
 // js/main.js
 
-import { handleFormSubmit, handleNewsletterSubmit, loadQuoteFormTemplate, initStickyFormTabs, mountAdminForms } from './modules/firebase.js';
+import {
+  handleFormSubmit,
+  handleNewsletterSubmit,
+  handleDynamicFormSubmit,
+  loadQuoteFormTemplate,
+  initStickyFormTabs,
+  mountAdminForms,
+} from './modules/firebase.js';
 import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
 import { initSlidePanel } from './modules/slide.js';
@@ -20,6 +27,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSlidePanel();
   initStickyFormTabs();
 
+  // Annotate static forms early (Lighthouse form coverage / schema validity).
+  // __wtsAnnotateForm is exposed for dynamic mounts that follow.
+  await initWebMCP();
+
   // On-page admin forms (e.g. contact page: data-wts-form="contact")
   await mountAdminForms();
 
@@ -35,11 +46,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Connect all Newsletter forms (by ID or class)
-  document.querySelectorAll('#newsletter-form, form.newsletter-form').forEach(form => {
+  document.querySelectorAll('#newsletter-form, form.newsletter-form').forEach((form) => {
     form.addEventListener('submit', handleNewsletterSubmit);
   });
 
-  // WebMCP: annotate forms for AI agents + register tools when supported
+  // Static contact / page forms that still need a submit handler
+  document.querySelectorAll('#contact-static-form, form.wts-page-form').forEach((form) => {
+    if (form.dataset.wtsBound) return;
+    form.dataset.wtsBound = '1';
+    form.addEventListener('submit', handleDynamicFormSubmit);
+  });
+
+  // Re-annotate + register after dynamic mounts so tools match final DOM
   await initWebMCP();
 
   updateFooterLanguageLinks();

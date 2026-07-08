@@ -31,9 +31,22 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+/** Default WebMCP param copy when admin field has no label (keeps schema validity). */
+const WEBMCP_PARAM_FALLBACKS = {
+  name: 'Full name of the person making the request',
+  email: 'Work email address for follow-up',
+  company: 'Company or business name (optional)',
+  phone: 'Phone or WhatsApp number (optional)',
+  service: 'Primary service or focus area requested',
+  goal: 'Primary business goal (optional)',
+  message: 'Details about the project, market, timeline, and success criteria',
+};
+
 /**
  * Render a form template into a container element.
  * Returns the created <form> element, or null if template not found.
+ * Always applies declarative WebMCP attributes so Lighthouse form coverage
+ * and schema validity pass even before initWebMCP runs.
  */
 function renderFormTemplate(template, container) {
   if (!template || !container) return null;
@@ -94,6 +107,17 @@ function renderFormTemplate(template, container) {
     if (field.required) el.required = true;
     if (field.label) el.setAttribute('aria-label', field.label);
 
+    // WebMCP / a11y: every param needs a human-readable description
+    const paramDesc =
+      field.label ||
+      field.placeholder ||
+      WEBMCP_PARAM_FALLBACKS[field.name] ||
+      field.name;
+    el.setAttribute('toolparamdescription', paramDesc);
+    if (!el.getAttribute('aria-description')) {
+      el.setAttribute('aria-description', paramDesc);
+    }
+
     fieldsDiv.appendChild(el);
   });
 
@@ -110,11 +134,26 @@ function renderFormTemplate(template, container) {
   // Bind submit handler
   form.addEventListener('submit', handleDynamicFormSubmit);
 
-  // WebMCP annotations (progressive enhancement for AI agents)
+  // WebMCP annotations (declarative attrs for agents + Lighthouse)
   try {
-    // Lazy import avoided — main.js calls initWebMCP after mount; annotate inline if available
     if (typeof window !== 'undefined' && window.__wtsAnnotateForm) {
       window.__wtsAnnotateForm(form, template.form_type);
+    } else {
+      // Minimal inline annotation if webmcp module has not init'd yet
+      const defaults = {
+        contact: ['submit_contact_request', 'Submit a contact or consultation request to WordsThatSells digital marketing agency in Vientiane, Laos.'],
+        'general-inquiry': ['send_general_inquiry', 'Send a general inquiry message to WordsThatSells.'],
+        consultation: ['request_quote', 'Request a tailored digital marketing quote from WordsThatSells.'],
+        affiliate: ['apply_affiliate_program', 'Apply to the WordsThatSells affiliate partner program.'],
+        'free-support': ['request_free_support', 'Request free digital marketing support information from WordsThatSells.'],
+        'white-label': ['request_white_label', 'Request a white-label agency partnership with WordsThatSells.'],
+        newsletter: ['subscribe_newsletter', 'Subscribe to the WordsThatSells newsletter.'],
+      };
+      const pair = defaults[template.form_type];
+      if (pair) {
+        form.setAttribute('toolname', pair[0]);
+        form.setAttribute('tooldescription', pair[1]);
+      }
     }
   } catch (_) { /* ignore */ }
 
@@ -134,15 +173,39 @@ export async function mountAdminForms() {
   for (const el of mounts) {
     const formType = (el.getAttribute('data-wts-form') || '').trim();
     if (!formType) continue;
+    // Keep any static annotated form if the admin template is unavailable
+    const hasStaticForm = !!el.querySelector('form[toolname], form');
     try {
       const res = await fetch(`${API_BASE}/form-template/${encodeURIComponent(formType)}`);
       if (!res.ok) {
-        showFormMountError(el, 'Form temporarily unavailable. Email us at info@wordsthatsells.website');
+        if (!hasStaticForm) {
+          showFormMountError(el, 'Form temporarily unavailable. Email us at info@wordsthatsells.website');
+        } else {
+          // Wire static fallback form to dynamic submit handler
+          const staticForm = el.querySelector('form');
+          if (staticForm && !staticForm.dataset.wtsBound) {
+            staticForm.dataset.wtsBound = '1';
+            staticForm.addEventListener('submit', handleDynamicFormSubmit);
+            if (typeof window !== 'undefined' && window.__wtsAnnotateForm) {
+              window.__wtsAnnotateForm(staticForm, formType);
+            }
+          }
+          revealFormAncestors(el);
+        }
         continue;
       }
       const data = await res.json();
       if (!data || !data.fields || !data.fields.length) {
-        showFormMountError(el, 'Form temporarily unavailable. Email us at info@wordsthatsells.website');
+        if (!hasStaticForm) {
+          showFormMountError(el, 'Form temporarily unavailable. Email us at info@wordsthatsells.website');
+        } else {
+          const staticForm = el.querySelector('form');
+          if (staticForm && !staticForm.dataset.wtsBound) {
+            staticForm.dataset.wtsBound = '1';
+            staticForm.addEventListener('submit', handleDynamicFormSubmit);
+          }
+          revealFormAncestors(el);
+        }
         continue;
       }
 
@@ -168,7 +231,16 @@ export async function mountAdminForms() {
       loaded += 1;
     } catch (e) {
       console.warn('[Forms] Could not mount template', formType, e.message);
-      showFormMountError(el, 'Could not load the form. Please email info@wordsthatsells.website or try again.');
+      if (!hasStaticForm) {
+        showFormMountError(el, 'Could not load the form. Please email info@wordsthatsells.website or try again.');
+      } else {
+        const staticForm = el.querySelector('form');
+        if (staticForm && !staticForm.dataset.wtsBound) {
+          staticForm.dataset.wtsBound = '1';
+          staticForm.addEventListener('submit', handleDynamicFormSubmit);
+        }
+        revealFormAncestors(el);
+      }
     }
   }
   return loaded;
@@ -356,9 +428,9 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Submit handler for dynamically rendered forms
+ * Submit handler for dynamically rendered forms (and static WebMCP fallbacks)
  */
-async function handleDynamicFormSubmit(event) {
+export async function handleDynamicFormSubmit(event) {
   event.preventDefault();
   const form = event.target;
   const submitBtn = form.querySelector('button[type="submit"]');
@@ -468,6 +540,7 @@ export async function handleFormSubmit(event) {
   const form = event.target;
   const submitBtn = form.querySelector('button[type="submit"]');
   const formData = new FormData(form);
+  const agentInvoked = !!(event && event.agentInvoked);
 
   const name = (formData.get('name') || '').trim();
   const email = (formData.get('email') || '').trim();
@@ -476,7 +549,12 @@ export async function handleFormSubmit(event) {
   const message = (formData.get('message') || '').trim();
 
   if (!name || !email) {
-    alert('Please fill in your name and email.');
+    const err = 'Please fill in your name and email.';
+    if (agentInvoked && typeof event.respondWith === 'function') {
+      event.respondWith(Promise.resolve({ error: err }));
+    } else {
+      alert(err);
+    }
     return;
   }
 
@@ -495,7 +573,7 @@ export async function handleFormSubmit(event) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
   }
 
-  try {
+  const submitPromise = (async () => {
     const res = await fetch(`${API_BASE}/submissions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -510,6 +588,19 @@ export async function handleFormSubmit(event) {
     if (typeof gtag === 'function') {
       gtag('event', 'form_submit', { event_category: 'Forms', event_label: formType });
     }
+    return 'Your request has been submitted successfully. Our team will get back to you shortly.';
+  })();
+
+  if (agentInvoked && typeof event.respondWith === 'function') {
+    event.respondWith(
+      submitPromise
+        .then((msg) => ({ ok: true, message: msg }))
+        .catch((err) => ({ ok: false, error: err.message || String(err) }))
+    );
+  }
+
+  try {
+    const msg = await submitPromise;
 
     // Show success in the modal
     const container = document.getElementById('quote-modal-container');
@@ -519,7 +610,7 @@ export async function handleFormSubmit(event) {
         <div style="text-align:center;padding:2rem 1rem;">
           <i class="fas fa-check-circle" style="font-size:3rem;color:#10b981;margin-bottom:1rem;display:block;"></i>
           <h2 style="margin-bottom:0.5rem;">Thank You!</h2>
-          <p style="color:#64748b;">Your request has been submitted successfully. Our team will get back to you shortly.</p>
+          <p style="color:#64748b;">${escapeHtml(msg)}</p>
         </div>
       `;
       const successClose = container.querySelector('#modal-close-btn');
@@ -529,7 +620,9 @@ export async function handleFormSubmit(event) {
     form.reset();
   } catch (e) {
     console.error('Form submission error:', e);
-    alert(e.message || 'There was an error submitting your form. Please try again.');
+    if (!agentInvoked) {
+      alert(e.message || 'There was an error submitting your form. Please try again.');
+    }
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
@@ -545,9 +638,15 @@ export async function handleNewsletterSubmit(event) {
   const submitBtn = form.querySelector('button[type="submit"]');
   const formData = new FormData(form);
   const email = (formData.get('email') || '').trim();
+  const agentInvoked = !!(event && event.agentInvoked);
 
   if (!email) {
-    alert('Please enter your email address.');
+    const err = 'Please enter your email address.';
+    if (agentInvoked && typeof event.respondWith === 'function') {
+      event.respondWith(Promise.resolve({ error: err }));
+    } else {
+      alert(err);
+    }
     return;
   }
 
@@ -556,7 +655,7 @@ export async function handleNewsletterSubmit(event) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subscribing...';
   }
 
-  try {
+  const submitPromise = (async () => {
     const res = await fetch(`${API_BASE}/submissions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -576,12 +675,28 @@ export async function handleNewsletterSubmit(event) {
     if (typeof gtag === 'function') {
       gtag('event', 'form_submit', { event_category: 'Newsletter', event_label: 'subscribe' });
     }
+    return 'Subscribed successfully.';
+  })();
 
-    alert('Thanks for subscribing! You\'ll hear from us soon.');
+  if (agentInvoked && typeof event.respondWith === 'function') {
+    event.respondWith(
+      submitPromise
+        .then((msg) => ({ ok: true, message: msg }))
+        .catch((err) => ({ ok: false, error: err.message || String(err) }))
+    );
+  }
+
+  try {
+    await submitPromise;
+    if (!agentInvoked) {
+      alert('Thanks for subscribing! You\'ll hear from us soon.');
+    }
     form.reset();
   } catch (e) {
     console.error('Newsletter signup error:', e);
-    alert(e.message || 'Subscription failed. Please try again.');
+    if (!agentInvoked) {
+      alert(e.message || 'Subscription failed. Please try again.');
+    }
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
