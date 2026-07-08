@@ -1,1 +1,4 @@
+# WordsThatSells
+
+See [llms.txt](/llms.txt) for the canonical LLM guidance file.
 

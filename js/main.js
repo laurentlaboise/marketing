@@ -4,6 +4,7 @@ import { handleFormSubmit, handleNewsletterSubmit, loadQuoteFormTemplate, initSt
 import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
 import { initSlidePanel } from './modules/slide.js';
+import { initWebMCP } from './modules/webmcp.js';
 
 // Enable the scroll-reveal hidden start-state only once this module is actually
 // running. If main.js ever fails to load/execute, .js-reveal is never set and
@@ -37,6 +38,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('#newsletter-form, form.newsletter-form').forEach(form => {
     form.addEventListener('submit', handleNewsletterSubmit);
   });
+
+  // WebMCP: annotate forms for AI agents + register tools when supported
+  await initWebMCP();
 
   updateFooterLanguageLinks();
 });
