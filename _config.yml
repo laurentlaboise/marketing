@@ -7,6 +7,8 @@ permalink: pretty
 include:
   - sitemap.xml
   - robots.txt
+  - llms.txt
+  - llm.txt
 
 # Exclude files from processing
 exclude:
