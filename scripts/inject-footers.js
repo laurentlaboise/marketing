@@ -54,7 +54,7 @@ function relAttrs(external) {
 function renderSocial(items) {
   if (!Array.isArray(items) || !items.length) return null;
   return items.map(s =>
-    `<a href="${esc(s.href)}" target="_blank" aria-label="Visit our ${esc(s.label)}"><i class="${esc(s.icon)}"></i></a>`
+    `<a href="${esc(s.href)}" target="_blank" rel="noopener noreferrer" aria-label="Visit our ${esc(s.label)}"><i class="${esc(s.icon)}"></i></a>`
   ).join('');
 }
 

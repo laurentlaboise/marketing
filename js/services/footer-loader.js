@@ -59,7 +59,7 @@
       var a = document.createElement('a');
       a.href = social[s.key];
       a.target = '_blank';
-      a.rel = 'noopener';
+      a.rel = 'noopener noreferrer';
       a.setAttribute('aria-label', 'Visit our ' + s.label);
       var i = document.createElement('i');
       i.className = s.icon;
