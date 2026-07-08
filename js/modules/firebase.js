@@ -113,10 +113,6 @@ function renderFormTemplate(template, container) {
 }
 
 /**
- * Try to load a form template from the API and render it into the quote modal.
- * Returns true if a template was loaded, false otherwise.
- */
-/**
  * Mount an admin form template into any page container.
  * Use: <div id="wts-contact-form" data-wts-form="contact"></div>
  * Optional noscript fallback HTML inside the container is replaced when the template loads.
@@ -131,9 +127,15 @@ export async function mountAdminForms() {
     if (!formType) continue;
     try {
       const res = await fetch(`${API_BASE}/form-template/${encodeURIComponent(formType)}`);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        showFormMountError(el, 'Form temporarily unavailable. Email us at info@wordsthatsells.website');
+        continue;
+      }
       const data = await res.json();
-      if (!data || !data.fields || !data.fields.length) continue;
+      if (!data || !data.fields || !data.fields.length) {
+        showFormMountError(el, 'Form temporarily unavailable. Email us at info@wordsthatsells.website');
+        continue;
+      }
 
       el.innerHTML = '';
       el.classList.add('wts-admin-form-mount');
@@ -152,12 +154,33 @@ export async function mountAdminForms() {
         }
         ft.value = formType;
       }
+      // Scroll-reveal can leave opacity:0 on ancestors; force the form path visible.
+      revealFormAncestors(el);
       loaded += 1;
     } catch (e) {
       console.warn('[Forms] Could not mount template', formType, e.message);
+      showFormMountError(el, 'Could not load the form. Please email info@wordsthatsells.website or try again.');
     }
   }
   return loaded;
+}
+
+function showFormMountError(el, message) {
+  if (!el) return;
+  el.innerHTML = `<p class="wts-form-error" style="margin:0;color:#b91c1c;">${escapeHtml(message)}</p>
+    <p style="margin:0.75rem 0 0;"><a href="mailto:info@wordsthatsells.website">info@wordsthatsells.website</a>
+    · <a href="https://wa.me/02055528034" target="_blank" rel="noopener noreferrer">WhatsApp</a></p>`;
+  revealFormAncestors(el);
+}
+
+function revealFormAncestors(el) {
+  let node = el;
+  while (node && node !== document.body) {
+    if (node.classList && node.classList.contains('reveal')) {
+      node.classList.add('visible');
+    }
+    node = node.parentElement;
+  }
 }
 
 export async function loadQuoteFormTemplate() {
