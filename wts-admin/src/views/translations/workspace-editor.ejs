@@ -37,14 +37,22 @@
     <% } %>
 
     <form id="editorForm">
-      <% entityConfig.fields.forEach(field => {
+      <%
+        // Dynamic entities (site pages) carry one field per extracted text
+        // segment, in page reading order; fixed entities use the column list.
+        var fieldList = entityConfig.dynamic ? Object.keys(source.fields) : entityConfig.fields;
+        var segIndex = 0;
+      %>
+      <% fieldList.forEach(field => {
            var sourceValue = source.fields[field];
            if (!sourceValue) return;
+           segIndex += 1;
+           var fieldLabel = entityConfig.dynamic ? ('Segment ' + segIndex) : field.replace(/_/g, ' ');
            var targetValue = (item.content_payload && item.content_payload[field]) || '';
            var isLong = String(sourceValue).length > 300; %>
         <div class="card" style="margin-bottom:1rem;">
           <div class="card-body">
-            <h3 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; color:var(--gray-500);"><%= field.replace(/_/g, ' ') %></h3>
+            <h3 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; color:var(--gray-500);"><%= fieldLabel %></h3>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
               <div>
                 <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">English source (read-only)</div>

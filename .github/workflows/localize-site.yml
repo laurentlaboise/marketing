@@ -1,0 +1,86 @@
+name: Localize site (/th /la /fr)
+
+# Regenerates the localized page mirrors from published translations.
+#
+# Triggered by:
+#   - the wts-admin approve flow (workflow_dispatch fired by
+#     src/lib/github-content.js when a page/glossary/article translation
+#     is published) — the SuperAdmin "Publish & Generate" path
+#   - manual runs from the Actions tab
+#
+# Requires the repository variable WTS_ADMIN_URL (e.g. the Railway URL of
+# wts-admin) so the generator can read published translations from
+# /api/public/translations/:lang/page. The generator is idempotent: every
+# run rebuilds all published pages, so missed dispatches self-heal.
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'What triggered this run'
+        required: false
+      langs:
+        description: 'Languages to generate (comma-separated)'
+        required: false
+        default: 'th,la,fr'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: localize-site
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # full history → stable sitemap lastmod dates
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Check admin URL is configured
+        env:
+          ADMIN_URL: ${{ vars.WTS_ADMIN_URL }}
+        run: |
+          if [ -z "$ADMIN_URL" ]; then
+            echo "::error::Set the repository variable WTS_ADMIN_URL to the wts-admin base URL (Settings → Secrets and variables → Actions → Variables)."
+            exit 1
+          fi
+
+      - name: Generate localized pages
+        env:
+          ADMIN_URL: ${{ vars.WTS_ADMIN_URL }}
+        run: |
+          node scripts/generate-localized-pages.js \
+            --api "$ADMIN_URL" \
+            --langs "${{ github.event.inputs.langs || 'th,la,fr' }}" \
+            --update-en-hreflang
+
+      - name: Localize footers on generated pages
+        run: node scripts/inject-footers.js --source
+
+      - name: Regenerate multi-language sitemap
+        run: node scripts/generate-sitemap.js
+
+      - name: hreflang consistency audit
+        run: node scripts/check-hreflang.js
+
+      - name: Commit changes (if any)
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "wts-localize-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add th la fr en sitemap.xml 2>/dev/null || true
+            git commit -m "Regenerate localized pages from published translations
+
+Triggered: ${{ github.event.inputs.reason || 'manual run' }}"
+            git push
+          else
+            echo "No changes to commit."
+          fi
