@@ -13,6 +13,10 @@
           · status: <strong><%= item.status.replace('_', ' ') %></strong>
           <% if (item.ai_model) { %> · drafted by <i class="fas fa-robot"></i> <%= item.ai_model %><% } %>
           <% if (translator) { %> · translator: <%= translator.first_name %> <%= translator.last_name || '' %> (<%= translator.email %>)<% } %>
+          <% if (typeof verifier !== 'undefined' && verifier) { %>
+            · verified by <%= verifier.first_name %> <%= verifier.last_name || '' %>
+            (<%= item.target_char_count || 0 %> chars read<% if (item.edited_segments) { %>, <%= item.edited_segments %> segment(s) reworked — <%= item.edited_chars %> chars<% } else { %>, approved as-is<% } %>)
+          <% } %>
         </p>
       </div>
       <div class="page-actions">
@@ -22,9 +26,9 @@
 
     <div class="card" style="margin-bottom:1rem;">
       <div class="card-body" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
-        <% if (item.status === 'requires_review') { %>
+        <% if (item.status === 'requires_review' || item.status === 'verified') { %>
           <button type="button" class="btn btn-primary" id="approveBtn">
-            <i class="fas fa-check"></i> Approve &amp; Publish
+            <i class="fas fa-check"></i> <%= item.status === 'verified' ? 'Publish (verified)' : 'Approve & Publish' %>
           </button>
           <button type="button" class="btn btn-danger" id="rejectBtn">
             <i class="fas fa-rotate-left"></i> Reject with Note

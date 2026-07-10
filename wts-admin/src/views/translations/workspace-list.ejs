@@ -29,8 +29,63 @@
       </div>
     </div>
     <% } else { %>
+
+    <!-- Verify queue: drafted content awaiting a native sign-off -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding: 0;">
+        <div style="padding: 1rem 1rem 0.5rem;">
+          <h3 style="margin:0;"><i class="fas fa-clipboard-check"></i> To Verify</h3>
+          <p style="margin:0.25rem 0 0.5rem; color:var(--gray-500); font-size:0.85rem;">
+            Read the draft, fix light issues directly, approve — or return it for a full re-translation.
+            Paid per 1,000 characters verified, plus reworked segments.
+          </p>
+        </div>
+        <% if (verifyItems.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Content</th>
+                <th>Type</th>
+                <th>Language</th>
+                <th>Source</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% verifyItems.forEach(item => { %>
+              <tr>
+                <td data-label="Content"><strong><%= item.entity_title %></strong></td>
+                <td data-label="Type"><%= item.entity_type %></td>
+                <td data-label="Language"><%= languageNames[item.target_language] || item.target_language %></td>
+                <td data-label="Source">
+                  <% if (item.ai_model) { %><i class="fas fa-robot"></i> AI draft<% } else { %><i class="fas fa-user"></i> Human<% } %>
+                  <% if (item.verifier_id) { %><span style="color:var(--gray-500);"> · claimed by you</span><% } %>
+                </td>
+                <td data-label="Actions">
+                  <a href="/translations/verify/<%= item.id %>" class="btn btn-sm btn-primary">
+                    <i class="fas fa-clipboard-check"></i> Verify
+                  </a>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state" style="padding: 1.5rem;">
+          <p style="margin:0; color:var(--gray-500);">Nothing waiting for verification right now.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Translate queue -->
     <div class="card">
       <div class="card-body" style="padding: 0;">
+        <div style="padding: 1rem 1rem 0.5rem;">
+          <h3 style="margin:0;"><i class="fas fa-pen"></i> To Translate</h3>
+        </div>
         <% if (items.length > 0) { %>
         <div class="table-container">
           <table class="table table-responsive-cards">

@@ -54,6 +54,29 @@ const ensureRole = (...allowed) => (req, res, next) => {
 const ensureSuperAdmin = ensureRole(...SUPER_ROLES);
 const ensureTranslator = ensureRole('translator', ...SUPER_ROLES);
 
+// Workforce guard: field workers (lead verifiers, engagement associates,
+// cascade coordinators) are payable vendors but not necessarily
+// translators — is_vendor grants the work hub regardless of role.
+const ensureWorker = (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    if (wantsJson(req)) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+    req.session.returnTo = req.originalUrl;
+    req.session.errorMessage = 'Please log in to access this page';
+    return res.redirect('/auth/login');
+  }
+  const allowed = isSuperAdmin(req.user) || req.user.role === 'translator' || req.user.is_vendor === true;
+  if (!allowed) {
+    if (wantsJson(req)) {
+      return res.status(403).json({ success: false, error: 'Insufficient role' });
+    }
+    req.session.errorMessage = 'Access denied.';
+    return res.redirect('/dashboard');
+  }
+  next();
+};
+
 // Language scoping for translators. SuperAdmins pass through; translators
 // must have the request's target language in users.assigned_languages.
 // Reads the language from route params, body, or query. Routes addressing
@@ -144,6 +167,7 @@ module.exports = {
   ensureRole,
   ensureSuperAdmin,
   ensureTranslator,
+  ensureWorker,
   ensureLanguageAccess,
   isSuperAdmin
 };

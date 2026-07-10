@@ -25,11 +25,16 @@
 
     <div class="card" style="margin-bottom: 1rem;">
       <div class="card-body" style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:center;">
-        <% ['pending', 'translating', 'requires_review', 'published', 'rejected'].forEach(s => { %>
+        <% ['pending', 'translating', 'requires_review', 'verified', 'published', 'rejected'].forEach(s => { %>
           <a href="/translations?status=<%= s %>" style="text-decoration:none;">
             <strong><%= counts[s] || 0 %></strong> <%= s.replace('_', ' ') %>
           </a>
         <% }); %>
+        <% if (counts.verified > 0) { %>
+          <button type="button" class="btn btn-sm btn-primary" id="publishVerifiedBtn">
+            <i class="fas fa-check-double"></i> Publish all verified (<%= counts.verified %>)
+          </button>
+        <% } %>
         <span id="aiJobStatus" style="margin-left:auto; color: var(--gray-500);">
           <% if (aiJob && aiJob.status === 'running') { %>
             <i class="fas fa-spinner fa-spin"></i> AI batch: <%= aiJob.processed %>/<%= aiJob.total %>
@@ -239,6 +244,22 @@
     if (!document.hidden && jobWasRunning) pollJob();
   });
   <% if (aiJob && aiJob.status === 'running') { %>pollJob();<% } %>
+
+  var publishVerifiedBtn = document.getElementById('publishVerifiedBtn');
+  if (publishVerifiedBtn) publishVerifiedBtn.addEventListener('click', function () {
+    if (!confirm('Publish everything the verifiers have signed off? Translator and verifier payouts are credited per configured rates.')) return;
+    var btn = this;
+    btn.disabled = true;
+    post('/translations/publish-verified', {}).then(function (res) {
+      if (res.ok) {
+        alert('Published ' + res.data.published + ' translation(s)' + (res.data.errors.length ? ', ' + res.data.errors.length + ' failed' : '') + '.');
+        location.reload();
+      } else {
+        btn.disabled = false;
+        alert(res.data.error || 'Bulk publish failed');
+      }
+    });
+  });
 
   document.querySelectorAll('.assign-select').forEach(function (select) {
     select.addEventListener('change', function () {
