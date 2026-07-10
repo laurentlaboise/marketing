@@ -69,14 +69,19 @@ const DYNAMIC_FIELD_KEY_RE = /^s_[0-9a-f]{8,16}$/;
 
 const ENTITY_TYPES = Object.keys(ENTITY_SOURCES);
 
-const STATUSES = ['pending', 'translating', 'requires_review', 'published', 'rejected'];
+const STATUSES = ['pending', 'translating', 'requires_review', 'verified', 'published', 'rejected'];
 
 // Status machine. published → pending/translating covers source-change
-// re-opens (sync) and superadmin-initiated manual overrides.
+// re-opens (sync) and superadmin-initiated manual overrides. 'verified'
+// is the native-speaker sign-off (Content Verifier brief: approved /
+// needs-fix handled by direct edits / returned = back to translating);
+// admins may still publish straight from requires_review for languages
+// without a verifier.
 const TRANSITIONS = {
   pending: ['translating', 'requires_review'],
   translating: ['requires_review', 'pending'],
-  requires_review: ['published', 'rejected', 'translating'],
+  requires_review: ['published', 'rejected', 'translating', 'verified'],
+  verified: ['published', 'translating', 'rejected'],
   rejected: ['translating', 'requires_review'],
   published: ['pending', 'translating'],
 };
@@ -139,6 +144,41 @@ function countWords(sourceFields) {
     count += striptags(String(value)).split(/\s+/).filter(Boolean).length;
   }
   return count;
+}
+
+// Character count of a payload (Lao/Thai have no word breaks, so
+// character metering is the pay basis — the briefs express verification
+// pay per 1,000 characters, "counted automatically (LEN)"). Tags are
+// stripped so markup never inflates pay; whitespace runs collapse to one.
+function countChars(fields) {
+  let count = 0;
+  for (const value of Object.values(fields || {})) {
+    count += striptags(String(value)).replace(/\s+/g, ' ').trim().length;
+  }
+  return count;
+}
+
+// Edit compensation meter: compare the verifier's final payload with the
+// draft they started from. A segment counts as edited when its normalized
+// text differs; edited characters are the full character count of each
+// edited segment (the verifier read and reworked that block). Transparent
+// and cheap — the admin review page shows the ratio, so touching
+// everything to inflate pay is visible.
+function computeEditStats(draftPayload, finalPayload) {
+  const draft = draftPayload && typeof draftPayload === 'object' ? draftPayload : {};
+  const final = finalPayload && typeof finalPayload === 'object' ? finalPayload : {};
+  let editedChars = 0;
+  let editedSegments = 0;
+  const normalize = (v) => striptags(String(v == null ? '' : v)).replace(/\s+/g, ' ').trim();
+  for (const [key, value] of Object.entries(final)) {
+    const finalText = normalize(value);
+    if (!finalText) continue;
+    if (normalize(draft[key]) !== finalText) {
+      editedSegments += 1;
+      editedChars += finalText.length;
+    }
+  }
+  return { editedChars, editedSegments };
 }
 
 async function fetchEntitySource(entityType, entityId, client = db) {
@@ -239,6 +279,26 @@ function rowAccessError(user, row) {
   return null;
 }
 
+// Verification access: the row's language must be assigned, the row must
+// be someone else's (or AI) work — verifiers never sign off their own
+// translation — and an already-claimed row belongs to its verifier.
+function verifyAccessError(user, row) {
+  if (!user) return 'Authentication required';
+  if (['admin', 'superadmin'].includes(user.role)) return null;
+  if (user.role !== 'translator') return 'Insufficient role';
+  const assigned = user.assigned_languages || [];
+  if (!assigned.includes(row.target_language)) {
+    return 'Language not assigned to your account';
+  }
+  if (row.translator_id && row.translator_id === user.id) {
+    return 'You cannot verify your own translation';
+  }
+  if (row.verifier_id && row.verifier_id !== user.id) {
+    return 'This item is being verified by someone else';
+  }
+  return null;
+}
+
 // Validate a submitted content payload against the entity's field list.
 // Unknown keys are rejected outright so the payload can never smuggle
 // columns the renderer doesn't expect. Dynamic entities accept segment
@@ -266,35 +326,50 @@ function sanitizePayload(entityType, payload) {
 // Payouts
 // ---------------------------------------------------------------------------
 
-// Resolve the most specific active rate card for (translator, language):
-// (translator, language) > (translator, any) > (any, language) > (any, any).
-async function resolveRate(translatorId, targetLanguage, client = db) {
+// Resolve the most specific active rate card for (worker, language) and
+// work type ('translation' | 'verification' | 'edit'):
+// (worker, language) > (worker, any) > (any, language) > (any, any).
+async function resolveRate(translatorId, targetLanguage, client = db, workType = 'translation') {
   const result = await client.query(
     `SELECT * FROM payout_rates
      WHERE is_active = TRUE
+       AND work_type = $3
        AND (translator_id = $1 OR translator_id IS NULL)
        AND (target_language = $2 OR target_language IS NULL)
      ORDER BY (translator_id IS NOT NULL) DESC,
               (target_language IS NOT NULL) DESC,
               updated_at DESC
      LIMIT 1`,
-    [translatorId, targetLanguage]
+    [translatorId, targetLanguage, workType]
   );
   return result.rows[0] || null;
 }
 
-// Payout for a translation under a rate card. per_word pays on the stored
-// source word count; per_article and fixed pay the flat rate per published
+// Kip has no minor unit — round LAK to whole amounts, everything else to
+// 4 decimals (the ledger's precision).
+function roundMoney(amount, currency) {
+  return currency === 'LAK' ? Math.round(amount) : Math.round(amount * 10000) / 10000;
+}
+
+// Payout for a unit of work under a rate card. per_word pays on the
+// stored source word count; per_1000_chars pays on target characters
+// (units.chars); per_article and fixed pay the flat rate per published
 // translation (fixed exists for contract vendors — same math, different
 // reporting semantics).
-function computePayoutAmount(rate, translation) {
+function computePayoutAmount(rate, translation, units = {}) {
   const rateAmount = parseFloat(rate.rate_amount);
   if (!Number.isFinite(rateAmount) || rateAmount <= 0) return 0;
+  const currency = rate.currency || 'USD';
   if (rate.rate_type === 'per_word') {
     const words = parseInt(translation.word_count, 10) || 0;
-    return Math.round(rateAmount * words * 10000) / 10000;
+    return roundMoney(rateAmount * words, currency);
   }
-  return rateAmount; // per_article | fixed
+  if (rate.rate_type === 'per_1000_chars') {
+    const chars = Number.isFinite(units.chars) ? units.chars
+      : parseInt(translation.target_char_count, 10) || 0;
+    return roundMoney((rateAmount * chars) / 1000, currency);
+  }
+  return roundMoney(rateAmount, currency); // per_article | fixed
 }
 
 async function calculatePayout(translation, client = db) {
@@ -311,14 +386,21 @@ async function calculatePayout(translation, client = db) {
   };
 }
 
-// The approval-to-payout hook. Runs the requires_review → published
-// transition and the vendor ledger credit in ONE transaction so a payout
-// can never be credited without the publish (or vice versa).
+// The approval-to-payout hook. Runs the (requires_review|verified) →
+// published transition and every vendor ledger credit in ONE transaction
+// so a payout can never be credited without the publish (or vice versa).
 //
-// Credits only when the translation is claimed by a human vendor
-// (users.is_vendor). AI-only rows (translator_id NULL) publish without a
-// ledger entry. A translation row is credited at most once across its
-// lifetime — a reopen → re-publish cycle does not double-pay.
+// Up to three credits per publish, each at its own rate (the "write vs
+// check vs rewrite" split):
+//   translation_credit  — the human translator (per word / per 1,000
+//                         target chars / flat), AI rows credit nothing
+//   verification_credit — the native verifier, per 1,000 target chars
+//                         (or flat), for reading and signing off
+//   edit_credit         — the verifier again, on the characters of the
+//                         segments they actually changed vs the draft
+// Verifier credits require verified_by ≠ translator_id (no self-verify
+// pay). Every credit type is written at most once per translation row —
+// a reopen → re-publish cycle never double-pays.
 async function onTranslationPublished(translationId, reviewerId) {
   const client = await db.getClient();
   try {
@@ -336,72 +418,127 @@ async function onTranslationPublished(translationId, reviewerId) {
       );
     }
 
+    // Target character count backfill (rows that predate char metering).
+    const targetChars = parseInt(translation.target_char_count, 10)
+      || countChars(translation.content_payload);
+
+    const isVendor = async (userId) => {
+      if (!userId) return false;
+      const row = await client.query('SELECT is_vendor FROM users WHERE id = $1', [userId]);
+      return Boolean(row.rows.length && row.rows[0].is_vendor);
+    };
+    const alreadyCredited = async (type) => {
+      const row = await client.query(
+        `SELECT 1 FROM payout_ledger WHERE translation_id = $1 AND type = $2 LIMIT 1`,
+        [translationId, type]
+      );
+      return row.rows.length > 0;
+    };
+
+    const credits = [];
+    const baseDescription = `${translation.entity_type} ${translation.entity_id} → ${translation.target_language}`;
+    const baseMetadata = {
+      entity_type: translation.entity_type,
+      entity_id: translation.entity_id,
+      target_language: translation.target_language,
+      word_count: translation.word_count,
+      target_char_count: targetChars,
+    };
+
+    // 1. Translator (writing) credit.
     let payout = null;
     let payoutSkipReason = null;
+    if (!translation.translator_id) {
+      payoutSkipReason = 'ai_translation';
+    } else if (!(await isVendor(translation.translator_id))) {
+      payoutSkipReason = 'not_a_vendor';
+    } else if (await alreadyCredited('translation_credit')) {
+      payoutSkipReason = 'already_credited';
+    } else {
+      const rate = await resolveRate(translation.translator_id, translation.target_language, client, 'translation');
+      if (!rate) payoutSkipReason = 'no_rate_configured';
+      else {
+        const amount = computePayoutAmount(rate, translation, { chars: targetChars });
+        if (amount <= 0) payoutSkipReason = 'zero_rate';
+        else {
+          payout = {
+            amount,
+            currency: rate.currency || 'USD',
+            rateType: rate.rate_type,
+            rateAmount: parseFloat(rate.rate_amount),
+            rateId: rate.id,
+          };
+          credits.push({
+            userId: translation.translator_id,
+            type: 'translation_credit',
+            amount,
+            currency: payout.currency,
+            description: `Translated ${baseDescription}`,
+            metadata: { ...baseMetadata, rate_type: rate.rate_type, rate_amount: payout.rateAmount, rate_id: rate.id },
+          });
+        }
+      }
+    }
 
-    if (translation.translator_id) {
-      const vendor = await client.query(
-        'SELECT id, is_vendor FROM users WHERE id = $1',
-        [translation.translator_id]
-      );
-      if (vendor.rows.length && vendor.rows[0].is_vendor) {
-        const alreadyCredited = await client.query(
-          `SELECT 1 FROM payout_ledger WHERE translation_id = $1 AND type = 'translation_credit' LIMIT 1`,
-          [translationId]
-        );
-        if (alreadyCredited.rows.length > 0) {
-          payoutSkipReason = 'already_credited';
-        } else {
-          payout = await calculatePayout(translation, client);
-          if (!payout) payoutSkipReason = 'no_rate_configured';
-          else if (payout.amount <= 0) {
-            payoutSkipReason = 'zero_rate';
-            payout = null;
+    // 2 + 3. Verifier (checking + rewriting) credits.
+    const verifierId = translation.verified_by;
+    if (verifierId && verifierId !== translation.translator_id && (await isVendor(verifierId))) {
+      if (!(await alreadyCredited('verification_credit'))) {
+        const rate = await resolveRate(verifierId, translation.target_language, client, 'verification');
+        if (rate) {
+          const amount = computePayoutAmount(rate, translation, { chars: targetChars });
+          if (amount > 0) {
+            credits.push({
+              userId: verifierId,
+              type: 'verification_credit',
+              amount,
+              currency: rate.currency || 'USD',
+              description: `Verified ${baseDescription} (${targetChars} chars)`,
+              metadata: { ...baseMetadata, rate_type: rate.rate_type, rate_amount: parseFloat(rate.rate_amount), rate_id: rate.id },
+            });
           }
         }
-      } else {
-        payoutSkipReason = 'not_a_vendor';
       }
-    } else {
-      payoutSkipReason = 'ai_translation';
+      const editedChars = parseInt(translation.edited_chars, 10) || 0;
+      if (editedChars > 0 && !(await alreadyCredited('edit_credit'))) {
+        const rate = await resolveRate(verifierId, translation.target_language, client, 'edit');
+        if (rate) {
+          const amount = computePayoutAmount(rate, translation, { chars: editedChars });
+          if (amount > 0) {
+            credits.push({
+              userId: verifierId,
+              type: 'edit_credit',
+              amount,
+              currency: rate.currency || 'USD',
+              description: `Reworked ${translation.edited_segments || 0} segment(s) of ${baseDescription} (${editedChars} chars)`,
+              metadata: { ...baseMetadata, edited_chars: editedChars, edited_segments: translation.edited_segments, rate_type: rate.rate_type, rate_amount: parseFloat(rate.rate_amount), rate_id: rate.id },
+            });
+          }
+        }
+      }
     }
 
     const updated = await client.query(
       `UPDATE translations
        SET status = 'published', reviewed_by = $1, reviewed_at = CURRENT_TIMESTAMP,
            published_at = CURRENT_TIMESTAMP, payout_amount = $2, payout_currency = $3,
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id = $4
+           target_char_count = $4, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $5
        RETURNING *`,
-      [reviewerId, payout ? payout.amount : null, payout ? payout.currency : 'USD', translationId]
+      [reviewerId, payout ? payout.amount : null, payout ? payout.currency : 'USD', targetChars, translationId]
     );
 
-    if (payout) {
+    for (const credit of credits) {
       await client.query(
         `INSERT INTO payout_ledger
            (translator_id, translation_id, amount, currency, type, status, description, metadata)
-         VALUES ($1, $2, $3, $4, 'translation_credit', 'available', $5, $6)`,
-        [
-          translation.translator_id,
-          translationId,
-          payout.amount,
-          payout.currency,
-          `Published ${translation.entity_type} ${translation.entity_id} → ${translation.target_language}`,
-          JSON.stringify({
-            word_count: translation.word_count,
-            rate_type: payout.rateType,
-            rate_amount: payout.rateAmount,
-            rate_id: payout.rateId,
-            entity_type: translation.entity_type,
-            entity_id: translation.entity_id,
-            target_language: translation.target_language,
-          }),
-        ]
+         VALUES ($1, $2, $3, $4, $5, 'available', $6, $7)`,
+        [credit.userId, translationId, credit.amount, credit.currency, credit.type, credit.description, JSON.stringify(credit.metadata)]
       );
     }
 
     await client.query('COMMIT');
-    return { translation: updated.rows[0], payout, payoutSkipReason };
+    return { translation: updated.rows[0], payout, payoutSkipReason, credits };
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -453,9 +590,13 @@ module.exports = {
   extractSourceFields,
   sourceHash,
   countWords,
+  countChars,
+  computeEditStats,
+  roundMoney,
   fetchEntitySource,
   syncTranslationRows,
   rowAccessError,
+  verifyAccessError,
   sanitizePayload,
   resolveRate,
   computePayoutAmount,
