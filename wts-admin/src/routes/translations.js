@@ -18,7 +18,25 @@ const gateway = require('../lib/payout-gateway');
 
 const router = express.Router();
 
-router.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }));
+// General budget for the interactive surfaces. The AI-batch status poll
+// is excluded — it fires on an interval while a batch runs and gets its
+// own generous limiter below, so it can never starve navigation.
+router.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === '/ai-batch/status',
+}));
+
+// Status poll: a cheap in-memory read, polled by the pipeline page while
+// a batch runs. 900/15min sustains one poll every second.
+const statusPollLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 900,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const asJson = (res, status, body) => res.status(status).json(body);
 
@@ -141,7 +159,7 @@ router.post('/ai-batch', ensureSuperAdmin, logActivity('translations_ai_batch'),
   }
 });
 
-router.get('/ai-batch/status', ensureSuperAdmin, (req, res) => {
+router.get('/ai-batch/status', statusPollLimiter, ensureSuperAdmin, (req, res) => {
   asJson(res, 200, { success: true, job: aiTranslator.getJobStatus(), configured: aiTranslator.isConfigured() });
 });
 

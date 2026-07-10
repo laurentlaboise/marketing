@@ -172,24 +172,40 @@
     aiBtn.addEventListener('click', function () {
       if (!confirm('Run the AI translation batch for Thai and French now?')) return;
       post('/translations/ai-batch', {}).then(function (res) {
-        if (res.ok) { pollJob(); } else { alert(res.data.error || 'Could not start batch'); }
+        if (res.ok) { jobWasRunning = true; pollCount = 0; pollJob(); } else { alert(res.data.error || 'Could not start batch'); }
       });
     });
   }
 
+  // Status polling: 5s at first, backing off to 15s after two minutes,
+  // and paused entirely while the tab is hidden — long batches must never
+  // burn the rate-limit budget from a forgotten background tab.
+  var pollCount = 0;
+  function pollDelay() { return pollCount > 24 ? 15000 : 5000; }
+  function schedulePoll() {
+    if (document.hidden) return; // resumed by visibilitychange below
+    setTimeout(pollJob, pollDelay());
+  }
   function pollJob() {
+    if (document.hidden) return;
+    pollCount += 1;
     fetch('/translations/ai-batch/status', { headers: { 'Accept': 'application/json' } })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var el = document.getElementById('aiJobStatus');
         if (d.job && d.job.status === 'running') {
           el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI batch: ' + d.job.processed + '/' + d.job.total;
-          setTimeout(pollJob, 3000);
+          schedulePoll();
         } else if (d.job) {
           el.textContent = 'AI batch ' + d.job.status + ': ' + d.job.translated + ' translated, ' + d.job.skipped + ' skipped, ' + d.job.failed + ' failed';
         }
-      });
+      })
+      .catch(function () { schedulePoll(); });
   }
+  var jobWasRunning = <%= aiJob && aiJob.status === 'running' ? 'true' : 'false' %>;
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && jobWasRunning) pollJob();
+  });
   <% if (aiJob && aiJob.status === 'running') { %>pollJob();<% } %>
 
   document.querySelectorAll('.assign-select').forEach(function (select) {
