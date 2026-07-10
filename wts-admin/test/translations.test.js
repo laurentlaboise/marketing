@@ -502,3 +502,119 @@ test('AI batch reports missing configuration cleanly', async () => {
   assert.equal(res.status, 503, 'no ANTHROPIC_API_KEY in the test env');
   assert.match((await res.json()).error, /ANTHROPIC_API_KEY/);
 });
+
+// ---------------------------------------------------------------------------
+// Part 2: site pages as translatable entities + public feeds for the
+// static-site generator and the localized article shell
+// ---------------------------------------------------------------------------
+
+test('site page entity: sync → vendor translate → publish → public feed with path', async () => {
+  await pool.query(`DELETE FROM site_pages WHERE path = '/test-page/'`);
+  const page = await pool.query(
+    `INSERT INTO site_pages (path, title, segments, segment_count, word_count, tier)
+     VALUES ('/test-page/', 'Test Page', $1, 2, 9, 1) RETURNING id`,
+    [JSON.stringify({ s_aabbccdd11: 'Hello world from the test page.', s_eeff00112233: 'A second translatable block.' })]
+  );
+  const pageId = page.rows[0].id;
+
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const aHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+  };
+  const sync = await admin.fetch('/translations/sync', {
+    method: 'POST', headers: aHeaders, body: JSON.stringify({ entity_types: ['page'] }),
+  });
+  assert.equal(sync.status, 200);
+
+  const rows = await pool.query(
+    `SELECT * FROM translations WHERE entity_type = 'page' AND entity_id = $1 ORDER BY target_language`,
+    [pageId]
+  );
+  assert.equal(rows.rows.length, 3, 'page rows created for fr/la/th');
+  const laPage = rows.rows.find((r) => r.target_language === 'la');
+
+  const translator = new Session(server.base);
+  await translator.login('translator@test.local');
+  const tHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await translator.getCsrfToken('/translations/workspace'),
+  };
+
+  // Segment keys are validated by pattern for dynamic entities.
+  const badSave = await translator.fetch(`/translations/workspace/${laPage.id}/save`, {
+    method: 'POST', headers: tHeaders,
+    body: JSON.stringify({ content_payload: { not_a_segment: 'x' } }),
+  });
+  assert.equal(badSave.status, 400);
+
+  const save = await translator.fetch(`/translations/workspace/${laPage.id}/save`, {
+    method: 'POST', headers: tHeaders,
+    body: JSON.stringify({ content_payload: { s_aabbccdd11: 'ສະບາຍດີຈາກໜ້າທົດສອບ.' } }),
+  });
+  assert.equal(save.status, 200);
+
+  // The workspace editor renders the page segments side-by-side.
+  const editor = await translator.fetch(`/translations/workspace/${laPage.id}`);
+  assert.equal(editor.status, 200);
+  const editorHtml = await editor.text();
+  assert.match(editorHtml, /Hello world from the test page\./);
+  assert.match(editorHtml, /Segment 1/);
+
+  const submit = await translator.fetch(`/translations/workspace/${laPage.id}/submit`, {
+    method: 'POST', headers: tHeaders, body: JSON.stringify({}),
+  });
+  assert.equal(submit.status, 200);
+
+  const approve = await admin.fetch(`/translations/${laPage.id}/approve`, {
+    method: 'POST', headers: aHeaders, body: JSON.stringify({}),
+  });
+  assert.equal(approve.status, 200);
+  const approveBody = await approve.json();
+  assert.equal(approveBody.translation.status, 'published');
+  // Dispatch is best-effort and unconfigured here (no GITHUB_TOKEN).
+  assert.equal(approveBody.regeneration.dispatched, false);
+
+  // The generator consumes this feed: published page rows joined to paths.
+  const anon = new Session(server.base);
+  const feed = await anon.fetch('/api/public/translations/la/page');
+  assert.equal(feed.status, 200);
+  const feedBody = await feed.json();
+  const entry = feedBody.translations.find((t) => t.path === '/test-page/');
+  assert.ok(entry, 'published page translation exposed with its site path');
+  assert.equal(entry.content_payload.s_aabbccdd11, 'ສະບາຍດີຈາກໜ້າທົດສອບ.');
+
+  // Unpublished languages stay unexposed.
+  const thFeed = await (await anon.fetch('/api/public/translations/th/page')).json();
+  assert.ok(!thFeed.translations.some((t) => t.path === '/test-page/'));
+});
+
+test('article translation is served by slug for the localized shell', async () => {
+  await pool.query(`DELETE FROM articles WHERE slug = 'test-localized-article'`);
+  const article = await pool.query(
+    `INSERT INTO articles (title, slug, content, status)
+     VALUES ('Localized Article', 'test-localized-article', '<p>English body</p>', 'published')
+     RETURNING id`
+  );
+  await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, content_payload, status, published_at, word_count)
+     VALUES ('article', $1, 'th', $2, 'published', CURRENT_TIMESTAMP, 2)
+     ON CONFLICT (entity_type, entity_id, target_language) DO UPDATE
+       SET content_payload = $2, status = 'published'`,
+    [article.rows[0].id, JSON.stringify({ title: 'บทความทดสอบ', content: '<p>เนื้อหาภาษาไทย</p>' })]
+  );
+
+  const anon = new Session(server.base);
+  const found = await anon.fetch('/api/public/translations/th/article/test-localized-article');
+  assert.equal(found.status, 200);
+  const body = await found.json();
+  assert.equal(body.translation.slug, 'test-localized-article');
+  assert.equal(body.translation.content_payload.title, 'บทความทดสอบ');
+
+  const missing = await anon.fetch('/api/public/translations/la/article/test-localized-article');
+  assert.equal(missing.status, 404, 'no published Lao translation → 404');
+
+  const badLang = await anon.fetch('/api/public/translations/xx/article/test-localized-article');
+  assert.equal(badLang.status, 400);
+});
