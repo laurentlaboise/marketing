@@ -189,6 +189,28 @@ const db = {
         )
       `);
 
+      // RBAC + vendor extensions for the localization platform.
+      // Roles: superadmin/admin (full control plane — 'admin' is the legacy
+      // name and stays a synonym), translator (vendor scoped to the i18n
+      // module + assigned_languages), user (no admin surface access).
+      // payout_metadata holds an AES-256-GCM envelope (see
+      // src/lib/payout-gateway.js) — bank details are never stored in
+      // plaintext, only the gateway name and a masked label are readable.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='assigned_languages') THEN
+            ALTER TABLE users ADD COLUMN assigned_languages TEXT[] DEFAULT '{}';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='is_vendor') THEN
+            ALTER TABLE users ADD COLUMN is_vendor BOOLEAN DEFAULT FALSE;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='payout_metadata') THEN
+            ALTER TABLE users ADD COLUMN payout_metadata JSONB DEFAULT '{}'::jsonb;
+          END IF;
+        END $$;
+      `);
+
       // User sessions table (for connect-pg-simple)
       await client.query(`
         CREATE TABLE IF NOT EXISTS user_sessions (
@@ -1353,6 +1375,115 @@ const db = {
           ON execution_telemetry (automation_id, executed_at DESC)
       `);
 
+      // ------------------------------------------------------------------
+      // Localization platform: polymorphic translations + vendor payouts
+      // ------------------------------------------------------------------
+
+      // One row per (entity, target language). content_payload maps the
+      // entity's translatable columns to translated values; source_hash is
+      // the sha256 of the English source at translation time so the AI
+      // batch loop can skip unchanged content (diff-only processing).
+      // Status machine: pending → translating → requires_review →
+      // published | rejected (rejected returns to translating).
+      // translator_id NULL + ai_model set = machine translation; a human
+      // vendor taking over (manual override) claims translator_id and
+      // ai_model is kept as provenance of the draft.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS translations (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          entity_type VARCHAR(50) NOT NULL,
+          entity_id UUID NOT NULL,
+          target_language VARCHAR(8) NOT NULL,
+          content_payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+          source_hash VARCHAR(64),
+          status VARCHAR(30) NOT NULL DEFAULT 'pending',
+          translator_id UUID REFERENCES users(id),
+          ai_model VARCHAR(100),
+          word_count INTEGER,
+          review_note TEXT,
+          payout_amount DECIMAL(12,4),
+          payout_currency VARCHAR(3) DEFAULT 'USD',
+          reviewed_by UUID REFERENCES users(id),
+          reviewed_at TIMESTAMP,
+          published_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(entity_type, entity_id, target_language)
+        )
+      `);
+
+      // Payout rate cards. Resolution picks the most specific active row:
+      // (translator, language) > (translator, any) > (any, language) >
+      // (any, any). rate_type: per_word (amount = rate × word_count),
+      // per_article / fixed (amount = rate per published translation).
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS payout_rates (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          translator_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          target_language VARCHAR(8),
+          rate_type VARCHAR(20) NOT NULL DEFAULT 'per_word',
+          rate_amount DECIMAL(12,4) NOT NULL DEFAULT 0,
+          currency VARCHAR(3) DEFAULT 'USD',
+          min_payout DECIMAL(12,2) DEFAULT 0,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Internal vendor ledger. Credits are written by the publish hook
+      // (requires_review → published) inside the same transaction as the
+      // status change. status: available → requested (bundled into a
+      // payout_request) → paid | back to available on cancel.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS payout_ledger (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          translator_id UUID NOT NULL REFERENCES users(id),
+          translation_id UUID REFERENCES translations(id),
+          payout_request_id UUID,
+          amount DECIMAL(12,4) NOT NULL,
+          currency VARCHAR(3) DEFAULT 'USD',
+          type VARCHAR(30) DEFAULT 'translation_credit',
+          status VARCHAR(30) DEFAULT 'available',
+          description TEXT,
+          metadata JSONB DEFAULT '{}'::jsonb,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          paid_at TIMESTAMP
+        )
+      `);
+
+      // Disbursement requests raised by vendors against their available
+      // balance. bank_metadata_snapshot stores the encrypted envelope the
+      // vendor had on file at request time (never plaintext) so later
+      // profile edits can't redirect an in-flight payout. gateway: wise |
+      // stripe_connect | manual.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS payout_requests (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          translator_id UUID NOT NULL REFERENCES users(id),
+          amount DECIMAL(12,4) NOT NULL,
+          currency VARCHAR(3) DEFAULT 'USD',
+          status VARCHAR(30) DEFAULT 'requested',
+          gateway VARCHAR(50),
+          gateway_reference TEXT,
+          bank_metadata_snapshot JSONB,
+          note TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          completed_at TIMESTAMP
+        )
+      `);
+
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_translations_status ON translations (status);
+        CREATE INDEX IF NOT EXISTS idx_translations_translator ON translations (translator_id);
+        CREATE INDEX IF NOT EXISTS idx_translations_entity ON translations (entity_type, entity_id);
+        CREATE INDEX IF NOT EXISTS idx_translations_lang_status ON translations (target_language, status);
+        CREATE INDEX IF NOT EXISTS idx_payout_rates_lookup ON payout_rates (translator_id, target_language, is_active);
+        CREATE INDEX IF NOT EXISTS idx_payout_ledger_translator ON payout_ledger (translator_id, status);
+        CREATE INDEX IF NOT EXISTS idx_payout_ledger_request ON payout_ledger (payout_request_id);
+        CREATE INDEX IF NOT EXISTS idx_payout_requests_translator ON payout_requests (translator_id, status);
+      `);
+
       // Indexes for slug lookups, foreign keys and common sort/filter
       // columns. UNIQUE columns (articles.slug, guides.slug,
       // microsites.slug, users.email) already have implicit indexes.
@@ -1432,7 +1563,8 @@ const db = {
           if (emails.length) {
             const promoted = await client.query(
               `UPDATE users SET role = 'admin', updated_at = CURRENT_TIMESTAMP
-               WHERE lower(email) = ANY($1::text[]) AND role IS DISTINCT FROM 'admin'
+               WHERE lower(email) = ANY($1::text[])
+                 AND (role IS NULL OR role NOT IN ('admin', 'superadmin'))
                RETURNING email`,
               [emails]
             );
