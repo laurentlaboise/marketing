@@ -590,6 +590,69 @@ test('site page entity: sync → vendor translate → publish → public feed wi
   assert.ok(!thFeed.translations.some((t) => t.path === '/test-page/'));
 });
 
+test('Sync Site Pages imports the website pages into the pipeline', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const headers = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await session.getCsrfToken('/dashboard'),
+  };
+
+  // The test process runs inside the full repo checkout, so the sync uses
+  // the real en/ tree via the filesystem path — the same code path a
+  // full-checkout deployment uses; live deployments fetch the site instead.
+  const res = await session.fetch('/translations/sync-pages', {
+    method: 'POST', headers, body: JSON.stringify({}),
+  });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.summary.mode, 'filesystem');
+  // ~26 real pages today; the ~80 glossary term files are content-prompt
+  // stubs with no extractable text (their real content is the glossary DB
+  // entity) and must be skipped, not imported.
+  assert.ok(body.summary.upserted >= 20, `imports the real pages (got ${body.summary.upserted})`);
+  assert.ok(body.summary.empty >= 50, `skips the stub pages (got ${body.summary.empty} empty)`);
+  assert.equal(body.summary.failed, 0);
+
+  // Key surfaces are registered with their segments…
+  const pages = await pool.query(
+    `SELECT path, segment_count FROM site_pages WHERE status = 'active' AND path = ANY($1) ORDER BY path`,
+    [['/', '/digital-marketing-services/prices/', '/company/contact-us/']]
+  );
+  assert.equal(pages.rows.length, 3, 'homepage, prices and contact are registered');
+  assert.ok(pages.rows.every((p) => p.segment_count > 0));
+
+  // …and each got pending translation rows for every target language.
+  const homepageRows = await pool.query(
+    `SELECT t.target_language FROM translations t
+     JOIN site_pages p ON p.id = t.entity_id
+     WHERE t.entity_type = 'page' AND p.path = '/' ORDER BY t.target_language`
+  );
+  assert.deepEqual(homepageRows.rows.map((r) => r.target_language), ['fr', 'la', 'th']);
+
+  // Idempotent: a second run creates no duplicate pages or rows.
+  const before = (await pool.query(`SELECT COUNT(*)::int AS c FROM site_pages WHERE status = 'active'`)).rows[0].c;
+  const again = await session.fetch('/translations/sync-pages', {
+    method: 'POST', headers, body: JSON.stringify({}),
+  });
+  assert.equal(again.status, 200);
+  const after = (await pool.query(`SELECT COUNT(*)::int AS c FROM site_pages WHERE status = 'active'`)).rows[0].c;
+  assert.equal(before, after, 'second import must not duplicate pages');
+
+  // The pipeline list shows pages by their site path, and translators are
+  // still locked out of the import.
+  const list = await session.fetch('/translations?entity_type=page');
+  assert.match(await list.text(), /\/digital-marketing-services\/prices\//);
+  const translator = new Session(server.base);
+  await translator.login('translator@test.local');
+  const denied = await translator.fetch('/translations/sync-pages', {
+    method: 'POST',
+    headers: { ...headers, 'x-csrf-token': await translator.getCsrfToken('/translations/workspace') },
+    body: JSON.stringify({}),
+  });
+  assert.equal(denied.status, 403);
+});
+
 test('article translation is served by slug for the localized shell', async () => {
   await pool.query(`DELETE FROM articles WHERE slug = 'test-localized-article'`);
   const article = await pool.query(

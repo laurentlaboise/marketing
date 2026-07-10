@@ -11,7 +11,10 @@
         <p class="page-subtitle">Localization pipeline — /en /th /la /fr</p>
       </div>
       <div class="page-actions">
-        <button type="button" class="btn btn-secondary" id="syncBtn" title="Create translation rows for all live content and flag stale ones">
+        <button type="button" class="btn btn-secondary" id="syncPagesBtn" title="Import every public website page (homepage, services, prices, company, legal, glossary pages…) as translatable content">
+          <i class="fas fa-file-import"></i> Sync Site Pages
+        </button>
+        <button type="button" class="btn btn-secondary" id="syncBtn" title="Create translation rows for database content (articles, glossary, products, guides) and flag stale ones">
           <i class="fas fa-rotate"></i> Sync Content
         </button>
         <button type="button" class="btn btn-primary" id="aiBatchBtn" <%= aiConfigured ? '' : 'disabled title="Set ANTHROPIC_API_KEY to enable"' %>>
@@ -89,7 +92,14 @@
             <tbody>
               <% items.forEach(item => { %>
               <tr>
-                <td data-label="Content"><span style="color:var(--gray-500);"><%= item.entity_type %></span> <code style="font-size:0.75rem;"><%= item.entity_id.slice(0, 8) %></code></td>
+                <td data-label="Content">
+                  <span style="color:var(--gray-500);"><%= item.entity_type %></span>
+                  <% if (item.page_path) { %>
+                    <strong><%= item.page_path %></strong>
+                  <% } else { %>
+                    <code style="font-size:0.75rem;"><%= item.entity_id.slice(0, 8) %></code>
+                  <% } %>
+                </td>
                 <td data-label="Language"><%= languageNames[item.target_language] || item.target_language %></td>
                 <td data-label="Status">
                   <%
@@ -127,7 +137,7 @@
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-language"></i></div>
           <h3>No Translations Yet</h3>
-          <p>Run "Sync Content" to create translation rows for your live content.</p>
+          <p>Run "Sync Site Pages" to import the website pages, and "Sync Content" for database content (articles, glossary, products, guides).</p>
         </div>
         <% } %>
       </div>
@@ -163,6 +173,28 @@
         alert(res.data.error || 'Sync failed');
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-rotate"></i> Sync Content';
+      }
+    });
+  });
+
+  // Import every public website page as translatable content. Can take up
+  // to a minute on deployments that fetch the live site page-by-page.
+  document.getElementById('syncPagesBtn').addEventListener('click', function () {
+    if (!confirm('Import all public website pages (homepage, services, prices, company, legal, glossary pages…) into the translation pipeline? This can take up to a minute.')) return;
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing pages…';
+    post('/translations/sync-pages').then(function (res) {
+      if (res.ok) {
+        var s = res.data.summary, t = res.data.translations;
+        alert('Site pages imported (' + s.mode + '): ' + s.upserted + ' pages, ' +
+          t.created + ' new translation rows, ' + t.stale + ' re-opened' +
+          (s.failed ? ', ' + s.failed + ' pages failed to fetch' : '') + '.');
+        location.reload();
+      } else {
+        alert(res.data.error || 'Site page import failed');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-file-import"></i> Sync Site Pages';
       }
     });
   });

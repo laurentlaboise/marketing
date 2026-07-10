@@ -42,9 +42,14 @@ function walkHtml(dir, base = dir) {
 
 function isIndexable(absFile, relFile) {
   if (relFile.startsWith('checkout/')) return false;
-  const head = fs.readFileSync(absFile, 'utf8').slice(0, 4000);
-  const robots = /<meta\b[^>]*name="robots"[^>]*content="([^"]*)"/i.exec(head);
+  const html = fs.readFileSync(absFile, 'utf8');
+  const robots = /<meta\b[^>]*name="robots"[^>]*content="([^"]*)"/i.exec(html.slice(0, 4000));
   if (robots && /noindex/i.test(robots[1])) return false;
+  // Placeholder files (e.g. the glossary term stubs, which hold a content
+  // prompt + injected footer but no real page) have no extractable text
+  // segments — keep them out of the sitemap until real pages exist.
+  const { extractSegments } = require('./lib/html-l10n');
+  if (Object.keys(extractSegments(html)).length === 0) return false;
   return true;
 }
 

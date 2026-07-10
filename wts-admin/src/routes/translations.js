@@ -87,9 +87,11 @@ router.get('/', ensureSuperAdmin, async (req, res, next) => {
     }
 
     const rows = await db.query(
-      `SELECT t.*, u.first_name AS translator_first_name, u.last_name AS translator_last_name
+      `SELECT t.*, u.first_name AS translator_first_name, u.last_name AS translator_last_name,
+              sp.path AS page_path
        FROM translations t
        LEFT JOIN users u ON u.id = t.translator_id
+       LEFT JOIN site_pages sp ON t.entity_type = 'page' AND sp.id = t.entity_id
        ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
        ORDER BY t.updated_at DESC
        LIMIT 200`,
@@ -120,6 +122,24 @@ router.get('/', ensureSuperAdmin, async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+});
+
+// Import the static site's English pages (site_pages + their translation
+// rows). Works on any deployment: reads the local en/ tree in a full
+// checkout, otherwise fetches the live site via its sitemap. Idempotent —
+// re-running refreshes segments and re-opens published rows whose English
+// source changed.
+router.post('/sync-pages', ensureSuperAdmin, logActivity('translations_sync_pages'), async (req, res) => {
+  try {
+    const sitePagesSync = require('../lib/site-pages-sync');
+    const result = await sitePagesSync.syncSitePages({
+      tier1Only: req.body.tier1_only === true || req.body.tier1_only === 'true',
+    });
+    asJson(res, 200, { success: true, ...result });
+  } catch (error) {
+    console.error('Site page sync failed:', error.message);
+    asJson(res, error.status || 500, { success: false, error: `Site page sync failed: ${error.message}` });
   }
 });
 
