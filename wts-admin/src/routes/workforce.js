@@ -149,23 +149,31 @@ router.post('/my/leads/:id', ensureWorker, async (req, res) => {
       return asJson(res, 409, { success: false, error: `Lead is already ${lead.status}` });
     }
 
+    // stampColumn is a fixed lookup (identifiers can't be parameterized);
+    // the status value itself is bound as a parameter.
     const stampColumn = { entered: 'entered_at', call_verified: 'call_verified_at', qualified: 'qualified_at' }[claim];
+    const params = [
+      req.body.name ? String(req.body.name).trim().slice(0, 255) : null,
+      req.body.email ? String(req.body.email).trim().slice(0, 255) : null,
+      req.body.company ? String(req.body.company).trim().slice(0, 255) : null,
+      req.body.category ? String(req.body.category).trim().slice(0, 120) : null,
+      req.body.interest ? String(req.body.interest).trim().slice(0, 2000) : null,
+      req.body.notes ? String(req.body.notes).trim().slice(0, 2000) : null,
+      lead.id,
+    ];
+    let statusClause = '';
+    if (claim) {
+      params.push(claim);
+      statusClause = `status = $8, ${stampColumn} = COALESCE(${stampColumn}, CURRENT_TIMESTAMP),`;
+    }
     await db.query(
       `UPDATE leads SET
          name = COALESCE($1, name), email = COALESCE($2, email), company = COALESCE($3, company),
          category = COALESCE($4, category), interest = COALESCE($5, interest), notes = COALESCE($6, notes),
-         ${claim ? `status = '${claim}', ${stampColumn} = COALESCE(${stampColumn}, CURRENT_TIMESTAMP),` : ''}
+         ${statusClause}
          updated_at = CURRENT_TIMESTAMP
        WHERE id = $7`,
-      [
-        req.body.name ? String(req.body.name).trim().slice(0, 255) : null,
-        req.body.email ? String(req.body.email).trim().slice(0, 255) : null,
-        req.body.company ? String(req.body.company).trim().slice(0, 255) : null,
-        req.body.category ? String(req.body.category).trim().slice(0, 120) : null,
-        req.body.interest ? String(req.body.interest).trim().slice(0, 2000) : null,
-        req.body.notes ? String(req.body.notes).trim().slice(0, 2000) : null,
-        lead.id,
-      ]
+      params
     );
     asJson(res, 200, { success: true });
   } catch (error) {
@@ -244,23 +252,32 @@ router.get('/leads', ensureSuperAdmin, async (req, res, next) => {
 });
 
 // Pull new form submissions into the CRM as leads (source 'form').
+// One transaction + the unique index on form_submission_id: concurrent
+// imports can never duplicate a submission.
 router.post('/leads/import-submissions', ensureSuperAdmin, logActivity('leads_import_submissions'), async (req, res) => {
+  const client = await db.getClient();
   try {
-    const imported = await db.query(
+    await client.query('BEGIN');
+    const imported = await client.query(
       `INSERT INTO leads (source, name, phone, email, company, interest, status, form_submission_id)
        SELECT 'form', fs.name, fs.phone, fs.email, fs.company, fs.message, 'new', fs.id
        FROM form_submissions fs
        WHERE fs.status = 'new'
          AND NOT EXISTS (SELECT 1 FROM leads l WHERE l.form_submission_id = fs.id)
+       ON CONFLICT (form_submission_id) WHERE form_submission_id IS NOT NULL DO NOTHING
        RETURNING id`
     );
-    await db.query(
+    await client.query(
       `UPDATE form_submissions SET status = 'in-crm', updated_at = CURRENT_TIMESTAMP WHERE status = 'new'`
     );
+    await client.query('COMMIT');
     asJson(res, 200, { success: true, imported: imported.rows.length });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Submission import failed:', error.message);
     asJson(res, 500, { success: false, error: 'Import failed' });
+  } finally {
+    client.release();
   }
 });
 
@@ -287,6 +304,7 @@ router.post('/leads/:id/assign', ensureSuperAdmin, async (req, res) => {
 // (marginal monthly tier). Idempotent per milestone. Junk/duplicates
 // never reach here with credits.
 router.post('/leads/:id/approve', ensureSuperAdmin, logActivity('lead_approve'), async (req, res) => {
+  const client = await db.getClient();
   try {
     const lead = await loadLead(req, res);
     if (!lead) return;
@@ -297,62 +315,83 @@ router.post('/leads/:id/approve', ensureSuperAdmin, logActivity('lead_approve'),
     const credits = [];
     const label = lead.name || lead.company || lead.phone || lead.id.slice(0, 8);
 
-    if (lead.entered_at && !(await comp.alreadyCreditedFor(lead.id, 'lead_entry'))) {
+    // One transaction for the whole approval — the unique ledger index
+    // additionally collapses any concurrent double-click into one credit.
+    await client.query('BEGIN');
+    if (lead.entered_at && !(await comp.alreadyCreditedFor(lead.id, 'lead_entry', client))) {
       credits.push(await comp.creditWork({
         userId: workerId, workType: 'lead_entry', referenceId: lead.id,
-        description: `Lead entered: ${label}`, metadata: { lead_id: lead.id },
+        description: `Lead entered: ${label}`, metadata: { lead_id: lead.id }, client,
       }));
     }
-    if (lead.call_verified_at && !(await comp.alreadyCreditedFor(lead.id, 'lead_directory_call'))) {
+    if (lead.call_verified_at && !(await comp.alreadyCreditedFor(lead.id, 'lead_directory_call', client))) {
       credits.push(await comp.creditWork({
         userId: workerId, workType: 'lead_directory_call', referenceId: lead.id,
-        description: `Directory record verified by call: ${label}`, metadata: { lead_id: lead.id },
+        description: `Directory record verified by call: ${label}`, metadata: { lead_id: lead.id }, client,
       }));
     }
-    if (lead.qualified_at && !(await comp.alreadyCreditedFor(lead.id, 'lead_qualified'))) {
-      const monthCount = await comp.monthlyLeadCount(workerId, 'qualified_at');
+    if (lead.qualified_at && !(await comp.alreadyCreditedFor(lead.id, 'lead_qualified', client))) {
+      const monthCount = await comp.monthlyLeadCount(workerId, 'qualified_at', client);
       credits.push(await comp.creditWork({
         userId: workerId, workType: 'lead_qualified', referenceId: lead.id, unitIndex: Math.max(monthCount, 1),
-        description: `Qualified lead #${Math.max(monthCount, 1)} this month: ${label}`, metadata: { lead_id: lead.id },
+        description: `Qualified lead #${Math.max(monthCount, 1)} this month: ${label}`, metadata: { lead_id: lead.id }, client,
       }));
     }
+    await client.query('COMMIT');
     asJson(res, 200, { success: true, credits: credits.filter(Boolean) });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Lead approve failed:', error.message);
     asJson(res, 500, { success: false, error: 'Approve failed' });
+  } finally {
+    client.release();
   }
 });
 
 // Mark converted (+ optional sale value) → conversion bonus on top.
+// Junk can never convert (mirrors the approve guard); the status update
+// and the bonus credit commit atomically.
 router.post('/leads/:id/convert', ensureSuperAdmin, logActivity('lead_convert'), async (req, res) => {
+  const client = await db.getClient();
   try {
     const lead = await loadLead(req, res);
     if (!lead) return;
+    if (lead.status === 'junk') {
+      return asJson(res, 409, { success: false, error: 'Junk leads cannot be converted' });
+    }
     const workerId = lead.assigned_to || lead.entered_by;
     const saleValue = req.body.sale_value != null && req.body.sale_value !== ''
       ? parseFloat(req.body.sale_value) : null;
-    await db.query(
+
+    await client.query('BEGIN');
+    await client.query(
       `UPDATE leads SET status = 'converted', sale_value = $1,
          converted_at = COALESCE(converted_at, CURRENT_TIMESTAMP), updated_at = CURRENT_TIMESTAMP
        WHERE id = $2`,
       [Number.isFinite(saleValue) ? saleValue : null, lead.id]
     );
     let bonus = null;
-    if (workerId && !(await comp.alreadyCreditedFor(lead.id, 'lead_conversion'))) {
+    if (workerId && !(await comp.alreadyCreditedFor(lead.id, 'lead_conversion', client))) {
       bonus = await comp.creditWork({
         userId: workerId, workType: 'lead_conversion', referenceId: lead.id, saleValue,
         description: `Conversion bonus: ${lead.name || lead.company || lead.id.slice(0, 8)}`,
         metadata: { lead_id: lead.id, sale_value: saleValue },
+        client,
       });
-      if (bonus.credited) {
-        await core.notifyUser(workerId, 'Lead converted — bonus credited',
-          `Your lead closed to a sale. Bonus: ${bonus.currency} ${bonus.amount}.`, '/translations/earnings');
-      }
+    }
+    await client.query('COMMIT');
+
+    if (bonus && bonus.credited) {
+      await core.notifyUser(workerId, 'Lead converted — bonus credited',
+        `Your lead closed to a sale. Bonus: ${bonus.currency} ${bonus.amount}.`, '/translations/earnings');
     }
     asJson(res, 200, { success: true, bonus });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Lead convert failed:', error.message);
     asJson(res, 500, { success: false, error: 'Convert failed' });
+  } finally {
+    client.release();
   }
 });
 
@@ -405,24 +444,41 @@ router.post('/engagement/review', ensureSuperAdmin, logActivity('engagement_revi
       return asJson(res, 400, { success: false, error: 'Provide log ids and a decision' });
     }
     let credited = 0;
-    for (const id of ids) {
-      const updated = await db.query(
-        `UPDATE engagement_logs SET status = $1, reviewed_by = $2, reviewed_at = CURRENT_TIMESTAMP
-         WHERE id = $3 AND status = 'pending' RETURNING *`,
-        [decision, req.user.id, id]
-      );
-      if (!updated.rows.length) continue;
-      const log = updated.rows[0];
-      if (decision === 'approved' && !(await comp.alreadyCreditedFor(log.id, log.track))) {
-        const credit = await comp.creditWork({
-          userId: log.user_id, workType: log.track, referenceId: log.id,
-          description: log.track === 'cascade_share'
-            ? `Cascade share (wave ${log.wave || '?'}, ${log.group_name || 'group'})`
-            : 'Community response',
-          metadata: { engagement_id: log.id, group_name: log.group_name, wave: log.wave },
-        });
-        if (credit.credited) credited += 1;
+    const client = await db.getClient();
+    try {
+      for (const id of ids) {
+        // Per-log transaction: the status flip and its credit land (or
+        // roll back) together — an approved log can never end up unpaid
+        // because a later statement failed.
+        await client.query('BEGIN');
+        const updated = await client.query(
+          `UPDATE engagement_logs SET status = $1, reviewed_by = $2, reviewed_at = CURRENT_TIMESTAMP
+           WHERE id = $3 AND status = 'pending' RETURNING *`,
+          [decision, req.user.id, id]
+        );
+        if (!updated.rows.length) {
+          await client.query('ROLLBACK');
+          continue;
+        }
+        const log = updated.rows[0];
+        if (decision === 'approved' && !(await comp.alreadyCreditedFor(log.id, log.track, client))) {
+          const credit = await comp.creditWork({
+            userId: log.user_id, workType: log.track, referenceId: log.id,
+            description: log.track === 'cascade_share'
+              ? `Cascade share (wave ${log.wave || '?'}, ${log.group_name || 'group'})`
+              : 'Community response',
+            metadata: { engagement_id: log.id, group_name: log.group_name, wave: log.wave },
+            client,
+          });
+          if (credit.credited) credited += 1;
+        }
+        await client.query('COMMIT');
       }
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      client.release();
     }
     asJson(res, 200, { success: true, reviewed: ids.length, credited });
   } catch (error) {
@@ -443,6 +499,10 @@ router.post('/comp-rates', ensureSuperAdmin, logActivity('comp_rate_save'), asyn
     }
     const userId = req.body.user_id && core.isUuid(req.body.user_id) ? req.body.user_id : null;
     const currency = /^[A-Z]{3}$/.test(req.body.currency || '') ? req.body.currency : 'LAK';
+    const rateAmount = parseFloat(req.body.rate_amount) || 0;
+    if (rateAmount < 0) {
+      return asJson(res, 400, { success: false, error: 'rate_amount must be non-negative' });
+    }
     let tiers = null;
     if (req.body.tiers) {
       tiers = typeof req.body.tiers === 'string' ? JSON.parse(req.body.tiers) : req.body.tiers;
@@ -459,7 +519,7 @@ router.post('/comp-rates', ensureSuperAdmin, logActivity('comp_rate_save'), asyn
       [
         userId,
         workType,
-        parseFloat(req.body.rate_amount) || 0,
+        rateAmount,
         currency,
         tiers ? JSON.stringify(tiers) : null,
         req.body.bonus_percent != null && req.body.bonus_percent !== '' ? parseFloat(req.body.bonus_percent) : null,

@@ -64,11 +64,19 @@ function tierRate(tiers, count) {
 }
 
 // How many of the user's leads reached `status` this calendar month —
-// determines the marginal tier for the next one.
+// determines the marginal tier for the next one. Attribution mirrors the
+// approve flow exactly (assigned_to, else entered_by when unassigned), so
+// unassigned-but-entered leads count toward the same worker's tier they
+// pay out to. statusTimestampColumn is an internal fixed identifier
+// (callers pass literals), never user input.
 async function monthlyLeadCount(userId, statusTimestampColumn, client = db) {
+  if (!/^[a-z_]+$/.test(statusTimestampColumn)) {
+    throw new Error(`Invalid timestamp column: ${statusTimestampColumn}`);
+  }
   const result = await client.query(
     `SELECT COUNT(*)::int AS c FROM leads
-     WHERE assigned_to = $1 AND ${statusTimestampColumn} >= date_trunc('month', CURRENT_TIMESTAMP)`,
+     WHERE (assigned_to = $1 OR (assigned_to IS NULL AND entered_by = $1))
+       AND ${statusTimestampColumn} >= date_trunc('month', CURRENT_TIMESTAMP)`,
     [userId]
   );
   return result.rows[0].c;
@@ -117,18 +125,25 @@ async function creditWork({
   const amount = computeCompAmount(rate, { unitIndex, saleValue });
   if (amount <= 0) return { credited: false, reason: 'zero_rate' };
 
-  await client.query(
-    `INSERT INTO payout_ledger (translator_id, amount, currency, type, status, description, metadata)
-     VALUES ($1, $2, $3, $4, 'available', $5, $6)`,
-    [
-      userId,
-      amount,
-      rate.currency || 'LAK',
-      LEDGER_TYPE_BY_WORK[workType],
-      description,
-      JSON.stringify({ ...metadata, work_type: workType, rate_id: rate.id, unit_index: unitIndex, reference_id: referenceId }),
-    ]
-  );
+  try {
+    await client.query(
+      `INSERT INTO payout_ledger (translator_id, amount, currency, type, status, description, metadata)
+       VALUES ($1, $2, $3, $4, 'available', $5, $6)`,
+      [
+        userId,
+        amount,
+        rate.currency || 'LAK',
+        LEDGER_TYPE_BY_WORK[workType],
+        description,
+        JSON.stringify({ ...metadata, work_type: workType, rate_id: rate.id, unit_index: unitIndex, reference_id: referenceId }),
+      ]
+    );
+  } catch (error) {
+    // uq_payout_ledger_work_reference: a concurrent approval already paid
+    // this exact work unit — idempotent, not an error.
+    if (error.code === '23505') return { credited: false, reason: 'already_credited' };
+    throw error;
+  }
   return { credited: true, amount, currency: rate.currency || 'LAK', workType, unitIndex };
 }
 

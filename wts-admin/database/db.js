@@ -1643,6 +1643,25 @@ const db = {
         CREATE INDEX IF NOT EXISTS idx_engagement_status ON engagement_logs (status, created_at DESC);
       `);
 
+      // Money-integrity guarantees enforced by the database, not just the
+      // application checks:
+      //  - one credit per (work unit, work type): concurrent approvals
+      //    collapse into a single ledger row (creditWork treats the
+      //    unique violation as already-credited)
+      //  - one lead per form submission: concurrent imports can't
+      //    duplicate
+      //  - the phone-dedupe lookup matches its normalized expression so
+      //    Postgres can use an index for it
+      await client.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_payout_ledger_work_reference
+          ON payout_ledger ((metadata->>'reference_id'), (metadata->>'work_type'))
+          WHERE metadata->>'reference_id' IS NOT NULL;
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_leads_form_submission
+          ON leads (form_submission_id) WHERE form_submission_id IS NOT NULL;
+        CREATE INDEX IF NOT EXISTS idx_leads_phone_normalized
+          ON leads (regexp_replace(COALESCE(phone, ''), '[^0-9]', '', 'g'));
+      `);
+
       await client.query(`
         CREATE INDEX IF NOT EXISTS idx_translations_status ON translations (status);
         CREATE INDEX IF NOT EXISTS idx_translations_translator ON translations (translator_id);

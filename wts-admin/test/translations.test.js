@@ -39,6 +39,16 @@ before(async () => {
   );
   translatorId = translator.rows[0].id;
 
+  // Lao verifier (Content Verifier position) — seeded here so the verify,
+  // leads, engagement and work-hub tests are each independently runnable.
+  await pool.query(
+    `INSERT INTO users (email, password_hash, first_name, last_name, role, assigned_languages, is_vendor, position)
+     VALUES ('verifier@test.local', $1, 'Kham', 'Verifier', 'translator', '{la}', TRUE, 'content_verifier')
+     ON CONFLICT (email) DO UPDATE
+       SET password_hash = $1, role = 'translator', assigned_languages = '{la}', is_vendor = TRUE`,
+    [hash]
+  );
+
   // One translatable entity.
   const glossary = await pool.query(
     `INSERT INTO glossary (term, definition, letter)
@@ -523,15 +533,8 @@ test('edit stats and comp math: chars, tiers, conversion floors, kip rounding', 
 });
 
 test('verifier flow: AI draft → fix → approve → publish credits verification + edit in kip', async () => {
-  // A second Lao worker acts as the verifier.
-  const hash = await bcrypt.hash('Password123!', 10);
-  const verifier = await pool.query(
-    `INSERT INTO users (email, password_hash, first_name, last_name, role, assigned_languages, is_vendor, position)
-     VALUES ('verifier@test.local', $1, 'Kham', 'Verifier', 'translator', '{la}', TRUE, 'content_verifier')
-     ON CONFLICT (email) DO UPDATE SET role = 'translator', assigned_languages = '{la}', is_vendor = TRUE
-     RETURNING id`,
-    [hash]
-  );
+  // The verifier user is seeded in before().
+  const verifier = await pool.query(`SELECT id FROM users WHERE email = 'verifier@test.local'`);
   const verifierId = verifier.rows[0].id;
 
   // Per-1000-char kip rates for checking and reworking.
