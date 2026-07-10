@@ -7,6 +7,27 @@
   status = 200
   force = false
 
+# Localized sub-directories (/th /la /fr): serve the English page until a
+# localized file exists at the path. force = false means any generated
+# /th /la /fr file automatically takes precedence over the fallback.
+[[redirects]]
+  from = "/th/*"
+  to = "/en/:splat"
+  status = 302
+  force = false
+
+[[redirects]]
+  from = "/la/*"
+  to = "/en/:splat"
+  status = 302
+  force = false
+
+[[redirects]]
+  from = "/fr/*"
+  to = "/en/:splat"
+  status = 302
+  force = false
+
 # Ensure sitemap.xml is served with the correct Content-Type header
 [[headers]]
   for = "/sitemap.xml"

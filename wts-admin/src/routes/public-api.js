@@ -1308,7 +1308,7 @@ router.post('/submissions', formLimiter, async (req, res) => {
     const notifTitle = `New ${typeLabel}`;
     const notifMessage = `${name} (${email})${company ? ' from ' + company : ''} submitted a ${typeLabel.toLowerCase()}.`;
 
-    const admins = await db.query("SELECT id FROM users WHERE role = 'admin'");
+    const admins = await db.query("SELECT id FROM users WHERE role IN ('admin', 'superadmin')");
     for (const admin of admins.rows) {
       await db.query(
         `INSERT INTO notifications (user_id, type, title, message, link)
@@ -1321,6 +1321,41 @@ router.post('/submissions', formLimiter, async (req, res) => {
   } catch (error) {
     console.error('Public API - Form submission error:', error);
     respond(res, { error: 'Failed to submit form. Please try again.' }, 500);
+  }
+});
+
+// ==================== TRANSLATIONS (localization) ====================
+
+// Published translations feed for the static site's /th /la /fr builds
+// and any client that renders localized content. Only rows that passed
+// SuperAdmin review (status = 'published') are ever exposed.
+router.get('/translations/:lang/:entityType', async (req, res) => {
+  try {
+    const core = require('../lib/translation-core');
+    const { lang, entityType } = req.params;
+    if (!core.TARGET_LANGUAGES.includes(lang)) {
+      return respond(res, { error: 'Unsupported language' }, 400);
+    }
+    if (!core.ENTITY_TYPES.includes(entityType)) {
+      return respond(res, { error: 'Unsupported entity type' }, 400);
+    }
+    const result = await db.query(
+      `SELECT entity_id, content_payload, word_count, published_at, updated_at
+       FROM translations
+       WHERE status = 'published' AND target_language = $1 AND entity_type = $2
+       ORDER BY published_at DESC
+       LIMIT 500`,
+      [lang, entityType]
+    );
+    respond(res, {
+      language: lang,
+      entity_type: entityType,
+      count: result.rows.length,
+      translations: result.rows,
+    });
+  } catch (error) {
+    console.error('Public API - Translations error:', error);
+    respond(res, { error: 'Failed to fetch translations' }, 500);
   }
 });
 
