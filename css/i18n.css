@@ -1,0 +1,65 @@
+/*
+ * Localization typography (Thai / Lao).
+ *
+ * Loaded only on /th and /la pages (the page generator injects this
+ * stylesheet together with the Noto font <link>, keeping /en and /fr on
+ * the Poppins-only pipeline). French renders fine with Poppins (Latin).
+ *
+ * Rules follow the localization checklist:
+ *  - Noto Sans Thai / Noto Sans Lao applied only when <html lang> matches
+ *  - No letter-spacing or text-transform on Thai/Lao (breaks tone marks)
+ *  - Line-height ≥ 1.65 body / ≥ 1.4 headings so tone marks never clip
+ */
+
+html[lang="th"] body,
+html[lang="th"] .btn,
+html[lang="th"] input,
+html[lang="th"] textarea,
+html[lang="th"] select,
+html[lang="th"] button {
+  font-family: 'Noto Sans Thai', 'Poppins', system-ui, sans-serif;
+  line-height: 1.65; /* Thai tone marks need vertical room */
+}
+
+html[lang="th"] h1, html[lang="th"] h2, html[lang="th"] h3,
+html[lang="th"] h4, html[lang="th"] h5, html[lang="th"] h6 {
+  font-family: 'Noto Sans Thai', 'Poppins', system-ui, sans-serif;
+  line-height: 1.45;
+}
+
+html[lang="lo"] body,
+html[lang="lo"] .btn,
+html[lang="lo"] input,
+html[lang="lo"] textarea,
+html[lang="lo"] select,
+html[lang="lo"] button {
+  font-family: 'Noto Sans Lao', 'Poppins', system-ui, sans-serif;
+  line-height: 1.7; /* Lao stacks vowels above and below the baseline */
+}
+
+html[lang="lo"] h1, html[lang="lo"] h2, html[lang="lo"] h3,
+html[lang="lo"] h4, html[lang="lo"] h5, html[lang="lo"] h6 {
+  font-family: 'Noto Sans Lao', 'Poppins', system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+/* Never letter-space or uppercase Thai/Lao text — it detaches tone marks
+   and Southeast Asian scripts have no case. Covers buttons, badges, nav
+   items and any utility class that sets either property upstream. */
+html[lang="th"] .btn, html[lang="lo"] .btn,
+html[lang="th"] .badge, html[lang="lo"] .badge,
+html[lang="th"] .accordion-summary, html[lang="lo"] .accordion-summary,
+html[lang="th"] .hero-title, html[lang="lo"] .hero-title,
+html[lang="th"] .sub-title, html[lang="lo"] .sub-title,
+html[lang="th"] [class*="uppercase"], html[lang="lo"] [class*="uppercase"] {
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+/* Keep buttons and pills tall enough that ascending tone marks and
+   descending vowels are never clipped by tight line boxes. */
+html[lang="th"] .btn, html[lang="lo"] .btn {
+  line-height: 1.6;
+  padding-top: 0.55em;
+  padding-bottom: 0.55em;
+}

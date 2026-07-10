@@ -1326,9 +1326,41 @@ router.post('/submissions', formLimiter, async (req, res) => {
 
 // ==================== TRANSLATIONS (localization) ====================
 
+// Single published article translation by slug — used by the /xx/articles/
+// SPA shell to overlay localized title/excerpt/content on the English
+// article payload. Declared before the generic feed so 'article' + slug
+// paths don't get swallowed by :entityType.
+router.get('/translations/:lang/article/:slug', async (req, res) => {
+  try {
+    const core = require('../lib/translation-core');
+    const { lang, slug } = req.params;
+    if (!core.TARGET_LANGUAGES.includes(lang)) {
+      return respond(res, { error: 'Unsupported language' }, 400);
+    }
+    const result = await db.query(
+      `SELECT t.entity_id, t.content_payload, t.word_count, t.published_at, t.updated_at, a.slug
+       FROM translations t
+       JOIN articles a ON a.id = t.entity_id
+       WHERE t.entity_type = 'article' AND t.status = 'published'
+         AND t.target_language = $1 AND a.slug = $2
+       LIMIT 1`,
+      [lang, slug]
+    );
+    if (result.rows.length === 0) {
+      return respond(res, { error: 'No published translation for this article' }, 404);
+    }
+    respond(res, { language: lang, translation: result.rows[0] });
+  } catch (error) {
+    console.error('Public API - Article translation error:', error);
+    respond(res, { error: 'Failed to fetch translation' }, 500);
+  }
+});
+
 // Published translations feed for the static site's /th /la /fr builds
 // and any client that renders localized content. Only rows that passed
-// SuperAdmin review (status = 'published') are ever exposed.
+// SuperAdmin review (status = 'published') are ever exposed. Pages join
+// their site path and articles their slug so consumers (the page
+// generator, the article shell) can map rows without extra lookups.
 router.get('/translations/:lang/:entityType', async (req, res) => {
   try {
     const core = require('../lib/translation-core');
@@ -1339,14 +1371,33 @@ router.get('/translations/:lang/:entityType', async (req, res) => {
     if (!core.ENTITY_TYPES.includes(entityType)) {
       return respond(res, { error: 'Unsupported entity type' }, 400);
     }
-    const result = await db.query(
-      `SELECT entity_id, content_payload, word_count, published_at, updated_at
-       FROM translations
-       WHERE status = 'published' AND target_language = $1 AND entity_type = $2
-       ORDER BY published_at DESC
-       LIMIT 500`,
-      [lang, entityType]
-    );
+
+    let query;
+    if (entityType === 'page') {
+      query = `
+        SELECT t.entity_id, t.content_payload, t.word_count, t.published_at, t.updated_at, p.path
+        FROM translations t
+        JOIN site_pages p ON p.id = t.entity_id
+        WHERE t.entity_type = 'page' AND t.status = 'published' AND t.target_language = $1
+        ORDER BY t.published_at DESC
+        LIMIT 500`;
+    } else if (entityType === 'article') {
+      query = `
+        SELECT t.entity_id, t.content_payload, t.word_count, t.published_at, t.updated_at, a.slug
+        FROM translations t
+        JOIN articles a ON a.id = t.entity_id
+        WHERE t.entity_type = 'article' AND t.status = 'published' AND t.target_language = $1
+        ORDER BY t.published_at DESC
+        LIMIT 500`;
+    } else {
+      query = `
+        SELECT entity_id, content_payload, word_count, published_at, updated_at
+        FROM translations
+        WHERE entity_type = $2 AND status = 'published' AND target_language = $1
+        ORDER BY published_at DESC
+        LIMIT 500`;
+    }
+    const result = await db.query(query, entityType === 'page' || entityType === 'article' ? [lang] : [lang, entityType]);
     respond(res, {
       language: lang,
       entity_type: entityType,

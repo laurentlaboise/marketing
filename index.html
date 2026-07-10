@@ -36,7 +36,22 @@
       gtag('config', 'G-LMRKC1VBBB');
     </script>
     <script>
-      (function () { window.location.replace('/en/'); })();
+      // Language router: saved preference (wts_lang cookie, written by the
+      // language switcher) wins, then the browser language, else English.
+      // The meta refresh above stays as the no-JS fallback to /en/. Missing
+      // localized trees are safe — the 404 handler bounces any
+      // not-yet-generated /th /la /fr path back to /en.
+      (function () {
+        var m = document.cookie.match(/(?:^|;\s*)wts_lang=(en|th|la|fr)/);
+        var target = m && m[1];
+        if (!target) {
+          var nav = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase();
+          if (nav.indexOf('th') === 0) target = 'th';
+          else if (nav.indexOf('lo') === 0) target = 'la';
+          else if (nav.indexOf('fr') === 0) target = 'fr';
+        }
+        window.location.replace('/' + (target || 'en') + '/');
+      })();
     </script>
   </head>
   <body>

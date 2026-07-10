@@ -1473,6 +1473,31 @@ const db = {
         )
       `);
 
+      // Static site pages as translatable entities. `segments` maps stable
+      // segment keys (sha1 of the normalized English text — computed by
+      // scripts/lib/html-l10n.js at the repo root) to the English strings
+      // extracted from the page. Stored as JSON (not JSONB) so key order
+      // follows page order — the vendor workspace renders fields in
+      // reading order. Rows are written by wts-admin/scripts/sync-site-pages.js;
+      // translations rows reference them with entity_type = 'page'.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS site_pages (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          path VARCHAR(300) UNIQUE NOT NULL,
+          title VARCHAR(500),
+          segments JSON NOT NULL DEFAULT '{}',
+          segment_count INTEGER DEFAULT 0,
+          word_count INTEGER DEFAULT 0,
+          tier INTEGER DEFAULT 2,
+          status VARCHAR(30) DEFAULT 'active',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_site_pages_status_tier ON site_pages (status, tier)
+      `);
+
       await client.query(`
         CREATE INDEX IF NOT EXISTS idx_translations_status ON translations (status);
         CREATE INDEX IF NOT EXISTS idx_translations_translator ON translations (translator_id);

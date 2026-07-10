@@ -44,7 +44,7 @@ Email: info@wordsthatsells.website
 
 ## How to use this site (for AI agents)
 
-1. Prefer English pages under `/en/` (primary language; other locales may be incomplete).
+1. Prefer English pages under `/en/` (primary language). Localized mirrors live under `/th/` (Thai), `/la/` (Lao), and `/fr/` (French); pages roll out progressively as translations are reviewed, and any not-yet-translated URL serves the English page.
 2. For new business enquiries, use the Contact form tool on `/en/company/contact-us/` (`submit_contact_request`) or open that page and fill the annotated form.
 3. For newsletter signup, use forms annotated as `subscribe_newsletter` on marketing pages.
 4. Do not invent pricing or guarantees; link users to Pricing and Contact for quotes.

@@ -21,42 +21,66 @@
     </script>
     
     <script>
-        // Custom 404 handler for clean article URLs
-        // This uses history.replaceState to load the article page while keeping the clean URL
+        // Custom 404 handler:
+        //  1. Clean article URLs (/{lang}/articles/slug) load the language's
+        //     SPA shell via history.replaceState — falling back to the
+        //     English shell while a localized one doesn't exist yet.
+        //  2. Localized paths (/th /la /fr) with no generated file yet are
+        //     served the English page (GitHub Pages equivalent of the
+        //     Netlify 302 fallback; real files always win once generated).
+        //  3. Anything else shows a 404 message in the page's language.
         (function() {
             const path = window.location.pathname;
+            const langMatch = path.match(/^\/(en|th|la|fr)(\/.*)?$/);
+            const lang = langMatch ? langMatch[1] : 'en';
+            const rest = langMatch ? (langMatch[2] || '/') : path;
 
-            // Check if this is an article URL: /en/articles/slug
-            const articleMatch = path.match(/^\/en\/articles\/([^\/]+)\/?$/);
-
-            if (articleMatch && articleMatch[1] !== 'index.html') {
-                // This is an article URL, load the article page using history API
+            // 1. Clean article URL: /{lang}/articles/slug
+            const articleMatch = path.match(/^\/(en|th|la|fr)\/articles\/([^\/]+)\/?$/);
+            if (articleMatch && articleMatch[2] !== 'index.html') {
                 const currentUrl = window.location.href;
-                const newUrl = '/en/articles/index.html';
-
-                // Fetch the article page content
-                fetch(newUrl)
-                    .then(response => response.text())
+                const shellUrl = '/' + articleMatch[1] + '/articles/index.html';
+                fetch(shellUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error('shell missing');
+                        return response.text();
+                    })
                     .then(html => {
-                        // Replace current page content
                         document.open();
                         document.write(html);
                         document.close();
-
-                        // Update the URL without reloading (keeps clean URL)
                         history.replaceState(null, '', currentUrl);
                     })
-                    .catch(error => {
-                        // If fetch fails, redirect normally
-                        window.location.href = newUrl;
+                    .catch(() => {
+                        // Localized shell not generated yet → English article.
+                        window.location.replace(
+                            articleMatch[1] === 'en'
+                                ? '/en/articles/index.html'
+                                : '/en/articles/' + articleMatch[2]
+                        );
                     });
-            } else {
-                // Show actual 404 page for other URLs
-                document.write('<style>body{font-family:sans-serif;padding:2rem;text-align:center;}h1{color:#d62b83;}</style>');
-                document.write('<h1>404 - Page Not Found</h1>');
-                document.write('<p>The page you are looking for does not exist.</p>');
-                document.write('<a href="/">Go to Homepage</a>');
+                return;
             }
+
+            // 2. Localized page not generated yet → English equivalent.
+            if (langMatch && lang !== 'en') {
+                window.location.replace('/en' + rest + window.location.search + window.location.hash);
+                return;
+            }
+
+            // 3. Localized 404 message (strings mirror src/locales/site/*.json).
+            const MESSAGES = {
+                en: { title: '404 - Page Not Found', body: 'The page you are looking for does not exist.', home: 'Go to Homepage', dir: 'en' },
+                th: { title: '404 - ไม่พบหน้านี้', body: 'ไม่พบหน้าที่คุณกำลังค้นหา', home: 'กลับไปหน้าแรก', dir: 'th' },
+                la: { title: '404 - ບໍ່ພົບໜ້ານີ້', body: 'ບໍ່ພົບໜ້າທີ່ທ່ານກຳລັງຊອກຫາ', home: 'ກັບໄປໜ້າຫຼັກ', dir: 'la' },
+                fr: { title: '404 - Page introuvable', body: 'La page que vous recherchez n\'existe pas.', home: 'Retour à l\'accueil', dir: 'fr' }
+            };
+            const t = MESSAGES[lang] || MESSAGES.en;
+            document.documentElement.lang = lang === 'la' ? 'lo' : lang;
+            document.write('<style>body{font-family:\'Noto Sans Thai\',\'Noto Sans Lao\',sans-serif;padding:2rem;text-align:center;line-height:1.7;}h1{color:#d62b83;}</style>');
+            document.write('<h1>' + t.title + '</h1>');
+            document.write('<p>' + t.body + '</p>');
+            document.write('<a href="/' + t.dir + '/">' + t.home + '</a>');
         })();
     </script>
 </head>

@@ -1,0 +1,152 @@
+#!/usr/bin/env node
+/**
+ * Multi-language sitemap generator.
+ *
+ * Walks the committed language trees (en/ plus th/ la/ fr/ once the page
+ * generator has materialized them) and emits sitemap.xml with a full
+ * xhtml:link hreflang cluster per URL:
+ *   - a page's cluster lists only languages whose file actually exists
+ *     (never a soft-fallback URL), plus x-default → English
+ *   - localized pages get their own <url> entries with the same cluster
+ *
+ * Skips: pages whose <meta name="robots"> contains noindex (e.g. the
+ * /xx/articles/ SPA shells), checkout pages, and backup/dynamic files.
+ *
+ * Usage: node scripts/generate-sitemap.js [--out sitemap.xml] [--dry-run]
+ */
+const fs = require('fs');
+const path = require('path');
+const { SITE_ORIGIN, LANGUAGES, filePathToSitePath } = require('./lib/html-l10n');
+
+const ROOT = path.resolve(__dirname, '..');
+const LANG_DIRS = ['en', 'th', 'la', 'fr'];
+const HREFLANG_BY_DIR = { en: 'en', th: 'th', la: 'lo', fr: 'fr' };
+
+const args = process.argv.slice(2);
+const DRY_RUN = args.includes('--dry-run');
+const outIndex = args.indexOf('--out');
+const OUT_FILE = outIndex !== -1 ? path.resolve(args[outIndex + 1]) : path.join(ROOT, 'sitemap.xml');
+
+function walkHtml(dir, base = dir) {
+  if (!fs.existsSync(dir)) return [];
+  const files = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...walkHtml(full, base));
+    else if (entry.name.endsWith('.html') && !/backup|dynamic/i.test(entry.name)) {
+      files.push(path.relative(base, full).replace(/\\/g, '/'));
+    }
+  }
+  return files.sort();
+}
+
+function isIndexable(absFile, relFile) {
+  if (relFile.startsWith('checkout/')) return false;
+  const head = fs.readFileSync(absFile, 'utf8').slice(0, 4000);
+  const robots = /<meta\b[^>]*name="robots"[^>]*content="([^"]*)"/i.exec(head);
+  if (robots && /noindex/i.test(robots[1])) return false;
+  return true;
+}
+
+// changefreq / priority by section (mirrors the tiers of the previous
+// hand-maintained sitemap).
+function pageMeta(relFile) {
+  const sitePath = filePathToSitePath(relFile);
+  if (sitePath === '/') return { priority: '1.0', changefreq: 'weekly' };
+  if (relFile.startsWith('articles/')) return { priority: '0.6', changefreq: 'weekly' };
+  if (sitePath === '/digital-marketing-services/prices/') return { priority: '0.9', changefreq: 'monthly' };
+  if (relFile.startsWith('digital-marketing-services/')) return { priority: '0.8', changefreq: 'monthly' };
+  if (relFile.startsWith('company/legal/')) return { priority: '0.3', changefreq: 'yearly' };
+  if (relFile.startsWith('company/')) return { priority: '0.7', changefreq: 'monthly' };
+  if (relFile.startsWith('resources/glossary/') && relFile !== 'resources/glossary/index.html') {
+    return { priority: '0.5', changefreq: 'monthly' };
+  }
+  if (relFile.startsWith('resources/')) return { priority: '0.7', changefreq: 'weekly' };
+  return { priority: '0.6', changefreq: 'monthly' };
+}
+
+// Prefer the git commit date (stable across clones); file mtime is the
+// fallback for shallow checkouts and uncommitted files.
+const { execFileSync } = require('child_process');
+function lastmod(absFile) {
+  try {
+    const date = execFileSync('git', ['log', '-1', '--format=%cs', '--', absFile], {
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+  } catch (e) { /* no git or no history — fall through */ }
+  return fs.statSync(absFile).mtime.toISOString().slice(0, 10);
+}
+
+function urlEntry(loc, meta, mod, alternates) {
+  const lines = [
+    '  <url>',
+    `    <loc>${loc}</loc>`,
+    `    <lastmod>${mod}</lastmod>`,
+    `    <changefreq>${meta.changefreq}</changefreq>`,
+    `    <priority>${meta.priority}</priority>`,
+  ];
+  for (const alt of alternates) {
+    lines.push(`    <xhtml:link rel="alternate" hreflang="${alt.hreflang}" href="${alt.href}" />`);
+  }
+  lines.push('  </url>');
+  return lines.join('\n');
+}
+
+function main() {
+  // English tree defines the page inventory; other languages contribute
+  // entries only where their mirror file exists.
+  const enPages = walkHtml(path.join(ROOT, 'en')).filter((rel) => {
+    const abs = path.join(ROOT, 'en', rel);
+    return isIndexable(abs, rel);
+  });
+
+  const entries = [];
+  let urlCount = 0;
+
+  for (const rel of enPages) {
+    const sitePath = filePathToSitePath(rel);
+    const meta = pageMeta(rel);
+
+    const presentDirs = LANG_DIRS.filter((dir) => fs.existsSync(path.join(ROOT, dir, rel)));
+    const alternates = presentDirs.map((dir) => ({
+      hreflang: HREFLANG_BY_DIR[dir],
+      href: `${SITE_ORIGIN}/${dir}${sitePath}`,
+    }));
+    alternates.push({ hreflang: 'x-default', href: `${SITE_ORIGIN}/en${sitePath}` });
+
+    for (const dir of presentDirs) {
+      entries.push(urlEntry(
+        `${SITE_ORIGIN}/${dir}${sitePath}`,
+        meta,
+        lastmod(path.join(ROOT, dir, rel)),
+        // Only emit the cluster when a page really has alternates.
+        presentDirs.length > 1 ? alternates : alternates.filter((a) => ['en', 'x-default'].includes(a.hreflang))
+      ));
+      urlCount += 1;
+    }
+  }
+
+  const generated = new Date().toISOString().slice(0, 10);
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+    '        xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+    '',
+    '  <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->',
+    `  <!-- URL count: ${urlCount} | generated ${generated} by scripts/generate-sitemap.js -->`,
+    '',
+    entries.join('\n'),
+    '</urlset>',
+    '',
+  ].join('\n');
+
+  if (DRY_RUN) {
+    console.log(xml);
+  } else {
+    fs.writeFileSync(OUT_FILE, xml, 'utf8');
+  }
+  console.error(`[sitemap] ${urlCount} URLs (${enPages.length} English pages) → ${DRY_RUN ? 'stdout' : path.relative(ROOT, OUT_FILE)}`);
+}
+
+main();

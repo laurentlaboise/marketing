@@ -12,6 +12,7 @@ import { initScrollReveal, initModalsAndButtons } from './modules/ui.js';
 import { initFaqSection } from './modules/faq.js';
 import { initSlidePanel } from './modules/slide.js';
 import { initWebMCP } from './modules/webmcp.js';
+import { initLangSwitcher } from './modules/lang-switcher.js';
 
 // Enable the scroll-reveal hidden start-state only once this module is actually
 // running. If main.js ever fails to load/execute, .js-reveal is never set and
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initFaqSection();
   initSlidePanel();
   initStickyFormTabs();
+  initLangSwitcher();
 
   // Annotate static forms early (Lighthouse form coverage / schema validity).
   // __wtsAnnotateForm is exposed for dynamic mounts that follow.

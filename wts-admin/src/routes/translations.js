@@ -223,6 +223,27 @@ router.post('/:id/assign', ensureSuperAdmin, logActivity('translation_assign'), 
   }
 });
 
+// Publish-and-generate: after a static-surface translation (page /
+// glossary / article) publishes, ask GitHub Actions to regenerate the
+// localized mirrors + sitemap (.github/workflows/localize-site.yml).
+// Best-effort: a missing GITHUB_TOKEN or API failure never blocks the
+// approve — the next successful dispatch or manual run regenerates all
+// published rows anyway (the generator is idempotent).
+async function triggerSiteRegeneration(translation) {
+  if (!['page', 'glossary', 'article'].includes(translation.entity_type)) return null;
+  try {
+    const { dispatchWorkflow } = require('../lib/github-content');
+    const result = await dispatchWorkflow('localize-site.yml', {
+      reason: `publish ${translation.entity_type} ${translation.entity_id} → ${translation.target_language}`,
+    });
+    if (!result.ok) console.warn('Site regeneration dispatch skipped:', result.reason);
+    return result;
+  } catch (error) {
+    console.warn('Site regeneration dispatch failed:', error.message);
+    return { ok: false, reason: error.message };
+  }
+}
+
 // requires_review → published. Runs the transactional publish + vendor
 // ledger credit hook (translation-core.onTranslationPublished).
 router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve'), async (req, res) => {
@@ -244,7 +265,14 @@ router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve')
         '/translations/earnings'
       );
     }
-    asJson(res, 200, { success: true, translation, payout, payoutSkipReason });
+    const regeneration = await triggerSiteRegeneration(translation);
+    asJson(res, 200, {
+      success: true,
+      translation,
+      payout,
+      payoutSkipReason,
+      regeneration: regeneration ? { dispatched: regeneration.ok, reason: regeneration.ok ? undefined : regeneration.reason } : null,
+    });
   } catch (error) {
     if (error.status) {
       return asJson(res, error.status, { success: false, error: error.message });

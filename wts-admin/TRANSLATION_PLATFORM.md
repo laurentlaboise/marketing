@@ -1,5 +1,9 @@
 # Localization Platform (RBAC · i18n Pipeline · Vendor Payouts)
 
+> Part 2 — full-site localization (static /th /la /fr generation, language
+> switcher, hreflang/sitemap, publish-and-generate) is documented in
+> [`../LOCALIZATION_GUIDE.md`](../LOCALIZATION_GUIDE.md).
+
 Multi-sided translation platform on the existing stack (Express 5 + EJS +
 Passport sessions + raw `pg`). Three concurrent epics: granular RBAC, a
 hybrid AI/human translation pipeline for `/en /th /la /fr`, and an

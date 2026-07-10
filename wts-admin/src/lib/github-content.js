@@ -77,4 +77,27 @@ async function putFile(repoPath, contentString, message, sha) {
   return { ok: false, reason: 'http_' + res.statusCode, statusCode: res.statusCode };
 }
 
-module.exports = { getFile, putFile };
+// Fire a workflow_dispatch event (e.g. localize-site.yml regenerating the
+// /th /la /fr mirrors after a translation publishes). 204 = accepted.
+// Returns { ok, reason?, statusCode? } and never throws — callers treat
+// regeneration as best-effort.
+async function dispatchWorkflow(workflowFile, inputs) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return { ok: false, reason: 'no_token' };
+
+  const body = JSON.stringify({ ref: CDN_CONFIG.branch, inputs: inputs || {} });
+  const res = await request({
+    hostname: 'api.github.com',
+    path: `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/actions/workflows/${workflowFile}/dispatches`,
+    method: 'POST',
+    headers: authHeaders(token, { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }),
+  }, body);
+
+  if (res.networkError) return { ok: false, reason: 'network', detail: res.networkError };
+  if (res.statusCode === 204) return { ok: true, statusCode: 204 };
+  if (res.statusCode === 401 || res.statusCode === 403) return { ok: false, reason: 'auth', statusCode: res.statusCode };
+  if (res.statusCode === 404) return { ok: false, reason: 'workflow_not_found', statusCode: 404 };
+  return { ok: false, reason: 'http_' + res.statusCode, statusCode: res.statusCode };
+}
+
+module.exports = { getFile, putFile, dispatchWorkflow };

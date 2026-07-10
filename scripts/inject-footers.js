@@ -26,12 +26,40 @@ const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const CONFIG = path.join(ROOT, 'footers.json');
 
-// --source rewrites the committed SOURCE HTML (en/, lo/, th/, fr/) in place, so
+// --source rewrites the committed SOURCE HTML (en/, th/, la/, fr/) in place, so
 // the footer is correct even when GitHub Pages serves the branch source rather
 // than the built dist artifact. Default (no flag) rewrites ./dist after webpack.
+// Note the Lao directory is /la (URL prefix) while its hreflang code is lo.
 const SOURCE_MODE = process.argv.includes('--source');
-const LANG_DIRS = ['en', 'lo', 'th', 'fr'];
+const LANG_DIRS = ['en', 'th', 'la', 'fr'];
 const BASE = SOURCE_MODE ? ROOT : DIST;
+
+// Localized footer labels: footers.json content is English; on th/la/fr
+// pages the rendered regions are passed through the site chrome strings
+// (src/locales/site/<lang>.json) so headings and link texts match the
+// page language. Missing locale files degrade to English, never abort.
+const l10n = require('./lib/html-l10n');
+const _chromePairs = {};
+function chromePairsFor(lang) {
+  if (_chromePairs[lang] !== undefined) return _chromePairs[lang];
+  try {
+    const load = (l) => JSON.parse(fs.readFileSync(path.join(ROOT, 'src/locales/site', `${l}.json`), 'utf8'));
+    _chromePairs[lang] = l10n.buildChromeDict(load('en'), load(lang));
+  } catch (e) {
+    _chromePairs[lang] = [];
+  }
+  return _chromePairs[lang];
+}
+function langOfPath(urlPath) {
+  const m = /^\/(en|th|la|fr)(\/|$)/.exec(urlPath);
+  return m ? m[1] : null;
+}
+function translateFooterHtml(footerHtml, lang) {
+  if (!lang || lang === 'en') return footerHtml;
+  const pairs = chromePairsFor(lang);
+  if (!pairs.length) return footerHtml;
+  return l10n.applyChromeStrings(footerHtml, pairs).html;
+}
 
 function esc(s) {
   return String(s == null ? '' : s)
@@ -373,7 +401,7 @@ function pickVariant(config, urlPath) {
 // without an explicit assignment. Utility/root files (the language-router
 // index.html, 404.html, google-verification files) are left alone.
 function isContentPage(urlPath) {
-  return /^\/(en|lo|th|fr)(\/|$)/.test(urlPath);
+  return /^\/(en|th|la|fr)(\/|$)/.test(urlPath);
 }
 
 // ── Walk dist + apply ──────────────────────────────────────────
@@ -436,8 +464,9 @@ function main() {
 
       if (fm) {
         // Page already has a footer: replace its dynamic regions in place.
-        const newFooter = injectIntoFooter(fm.block, variant);
+        let newFooter = injectIntoFooter(fm.block, variant);
         if (newFooter == null) { stats.noFooter++; continue; }
+        newFooter = translateFooterHtml(newFooter, langOfPath(urlPath));
         let out = html.slice(0, fm.start) + newFooter + html.slice(fm.end);
         // Ensure footer styling: injects the inline footer CSS when the page has
         // none (skips pages that link the site stylesheet), and refreshes an
@@ -451,7 +480,7 @@ function main() {
       } else if (pick.explicit || isContentPage(urlPath)) {
         // Content page (or explicitly assigned) with no footer — build one
         // (self-styled so it works even on standalone pages) and insert it.
-        const created = buildWholeFooter(variant);
+        const created = translateFooterHtml(buildWholeFooter(variant), langOfPath(urlPath));
         const withCss = ensureFavicon(ensureFontAwesome(ensureFooterCss(html)));
         fs.writeFileSync(file, insertBeforeBodyClose(withCss, created));
         stats.created++;

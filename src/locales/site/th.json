@@ -1,0 +1,94 @@
+{
+  "$meta": {
+    "language": "th",
+    "htmlLang": "th",
+    "name": "ไทย",
+    "urlPrefix": "/th",
+    "reviewStatus": "ai-draft"
+  },
+  "nav": {
+    "home": "หน้าแรก",
+    "aboutUs": "เกี่ยวกับเรา",
+    "services": "บริการ",
+    "pricing": "ราคา",
+    "resources": "แหล่งข้อมูล",
+    "contactUs": "ติดต่อเรา",
+    "articles": "บทความ",
+    "glossary": "อภิธานศัพท์",
+    "guides": "คู่มือ",
+    "aiTools": "เครื่องมือ AI",
+    "digitalAgencies": "เอเจนซีดิจิทัล",
+    "affiliateProgram": "โปรแกรมพันธมิตร"
+  },
+  "footer": {
+    "headingContact": "ติดต่อเรา",
+    "headingSolutions": "โซลูชัน",
+    "headingServices": "บริการ",
+    "headingResources": "แหล่งข้อมูล",
+    "headingLegal": "กฎหมาย",
+    "digitalMarketing": "การตลาดดิจิทัล",
+    "webDevelopment": "พัฒนาเว็บไซต์",
+    "contentCreation": "การสร้างคอนเทนต์",
+    "socialMedia": "โซเชียลมีเดีย",
+    "businessTools": "เครื่องมือธุรกิจ",
+    "pricing": "ราคา",
+    "affiliateProgram": "โปรแกรมพันธมิตร",
+    "agencies": "เอเจนซี",
+    "automation": "ระบบอัตโนมัติ",
+    "articles": "บทความ",
+    "glossary": "อภิธานศัพท์",
+    "aiTools": "เครื่องมือ AI",
+    "findUsOnGoogle": "ค้นหาเราบน Google"
+  },
+  "legal-links": {
+    "privacyPolicy": "นโยบายความเป็นส่วนตัว",
+    "termsAndConditions": "ข้อกำหนดและเงื่อนไข",
+    "cookiePolicy": "นโยบายคุกกี้",
+    "licence": "ใบอนุญาต",
+    "termsOfSales": "เงื่อนไขการขาย",
+    "allLegalDocuments": "เอกสารทางกฎหมายทั้งหมด"
+  },
+  "modals": {
+    "quoteTitle": "ฝากข้อความถึงเรา",
+    "quoteSubtitle": "มาคุยกันว่าเราจะช่วยให้ธุรกิจของคุณเติบโตได้อย่างไร กรอกแบบฟอร์มด้านล่าง แล้วเราจะติดต่อกลับโดยเร็วที่สุด",
+    "closeQuoteForm": "ปิดแบบฟอร์ม",
+    "newsletterBlurb": "สมัครรับจดหมายข่าวเพื่อรับเคล็ดลับพิเศษ กรณีศึกษา และข่าวการตลาด AI สำหรับตลาดเอเชียตะวันออกเฉียงใต้ ส่งตรงถึงอีเมลของคุณ"
+  },
+  "forms": {
+    "yourName": "ชื่อของคุณ",
+    "yourEmail": "อีเมลของคุณ",
+    "company": "บริษัท",
+    "companyOptional": "บริษัท (ไม่บังคับ)",
+    "phoneOptional": "โทรศัพท์ (ไม่บังคับ)",
+    "message": "ข้อความ",
+    "messagePlaceholder": "ให้เราช่วยอะไรคุณได้บ้าง?",
+    "emailPlaceholder": "กรอกอีเมลของคุณ",
+    "emailAria": "อีเมล",
+    "submitRequest": "ส่งคำขอ",
+    "sendMessage": "ส่งข้อความ",
+    "subscribe": "สมัครรับข่าวสาร",
+    "successGeneric": "ขอบคุณ! เราได้รับข้อความของคุณแล้ว และจะติดต่อกลับโดยเร็ว"
+  },
+  "common": {
+    "readMore": "อ่านเพิ่มเติม",
+    "backToTop": "กลับขึ้นด้านบน",
+    "loading": "กำลังโหลด...",
+    "goToHomepage": "กลับไปหน้าแรก",
+    "notFoundTitle": "404 - ไม่พบหน้านี้",
+    "notFoundMessage": "ไม่พบหน้าที่คุณกำลังค้นหา",
+    "languageNames": {
+      "en": "English",
+      "th": "ไทย",
+      "lo": "ລາວ",
+      "fr": "Français"
+    }
+  },
+  "cta": {
+    "requestAQuote": "ขอใบเสนอราคา",
+    "applyAffiliate": "สมัครโปรแกรมพันธมิตร",
+    "digitalAgencies": "เอเจนซีดิจิทัล",
+    "getStarted": "เริ่มต้นใช้งาน",
+    "learnMore": "เรียนรู้เพิ่มเติม",
+    "viewPricing": "ดูราคา"
+  }
+}

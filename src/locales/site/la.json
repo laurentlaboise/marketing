@@ -1,0 +1,94 @@
+{
+  "$meta": {
+    "language": "la",
+    "htmlLang": "lo",
+    "name": "ລາວ",
+    "urlPrefix": "/la",
+    "reviewStatus": "needs-vendor-review"
+  },
+  "nav": {
+    "home": "ໜ້າຫຼັກ",
+    "aboutUs": "ກ່ຽວກັບພວກເຮົາ",
+    "services": "ບໍລິການ",
+    "pricing": "ລາຄາ",
+    "resources": "ແຫຼ່ງຂໍ້ມູນ",
+    "contactUs": "ຕິດຕໍ່ພວກເຮົາ",
+    "articles": "ບົດຄວາມ",
+    "glossary": "ປະມວນຄຳສັບ",
+    "guides": "ຄູ່ມື",
+    "aiTools": "ເຄື່ອງມື AI",
+    "digitalAgencies": "ເອເຈນຊີດິຈິຕອນ",
+    "affiliateProgram": "ໂປຣແກຣມພັນທະມິດ"
+  },
+  "footer": {
+    "headingContact": "ຕິດຕໍ່ພວກເຮົາ",
+    "headingSolutions": "ໂຊລູຊັນ",
+    "headingServices": "ບໍລິການ",
+    "headingResources": "ແຫຼ່ງຂໍ້ມູນ",
+    "headingLegal": "ດ້ານກົດໝາຍ",
+    "digitalMarketing": "ການຕະຫຼາດດິຈິຕອນ",
+    "webDevelopment": "ພັດທະນາເວັບໄຊ",
+    "contentCreation": "ການສ້າງເນື້ອຫາ",
+    "socialMedia": "ໂຊຊຽວມີເດຍ",
+    "businessTools": "ເຄື່ອງມືທຸລະກິດ",
+    "pricing": "ລາຄາ",
+    "affiliateProgram": "ໂປຣແກຣມພັນທະມິດ",
+    "agencies": "ເອເຈນຊີ",
+    "automation": "ລະບົບອັດຕະໂນມັດ",
+    "articles": "ບົດຄວາມ",
+    "glossary": "ປະມວນຄຳສັບ",
+    "aiTools": "ເຄື່ອງມື AI",
+    "findUsOnGoogle": "ຊອກຫາພວກເຮົາໃນ Google"
+  },
+  "legal-links": {
+    "privacyPolicy": "ນະໂຍບາຍຄວາມເປັນສ່ວນຕົວ",
+    "termsAndConditions": "ຂໍ້ກຳນົດ ແລະ ເງື່ອນໄຂ",
+    "cookiePolicy": "ນະໂຍບາຍຄຸກກີ້",
+    "licence": "ໃບອະນຸຍາດ",
+    "termsOfSales": "ເງື່ອນໄຂການຂາຍ",
+    "allLegalDocuments": "ເອກະສານທາງກົດໝາຍທັງໝົດ"
+  },
+  "modals": {
+    "quoteTitle": "ຝາກຂໍ້ຄວາມຫາພວກເຮົາ",
+    "quoteSubtitle": "ມາລົມກັນວ່າພວກເຮົາຈະຊ່ວຍໃຫ້ທຸລະກິດຂອງທ່ານເຕີບໂຕໄດ້ແນວໃດ ກະລຸນາຕື່ມແບບຟອມຂ້າງລຸ່ມນີ້ ແລ້ວພວກເຮົາຈະຕິດຕໍ່ກັບຄືນໂດຍໄວ",
+    "closeQuoteForm": "ປິດແບບຟອມ",
+    "newsletterBlurb": "ສະໝັກຮັບຈົດໝາຍຂ່າວ ເພື່ອຮັບເຄັດລັບພິເສດ, ກໍລະນີສຶກສາ ແລະ ຂ່າວການຕະຫຼາດ AI ສຳລັບຕະຫຼາດອາຊີຕາເວັນອອກສຽງໃຕ້ ສົ່ງກົງຮອດອີເມວຂອງທ່ານ"
+  },
+  "forms": {
+    "yourName": "ຊື່ຂອງທ່ານ",
+    "yourEmail": "ອີເມວຂອງທ່ານ",
+    "company": "ບໍລິສັດ",
+    "companyOptional": "ບໍລິສັດ (ບໍ່ບັງຄັບ)",
+    "phoneOptional": "ໂທລະສັບ (ບໍ່ບັງຄັບ)",
+    "message": "ຂໍ້ຄວາມ",
+    "messagePlaceholder": "ໃຫ້ພວກເຮົາຊ່ວຍຫຍັງທ່ານໄດ້ແດ່?",
+    "emailPlaceholder": "ປ້ອນອີເມວຂອງທ່ານ",
+    "emailAria": "ອີເມວ",
+    "submitRequest": "ສົ່ງຄຳຮ້ອງ",
+    "sendMessage": "ສົ່ງຂໍ້ຄວາມ",
+    "subscribe": "ສະໝັກຮັບຂ່າວສານ",
+    "successGeneric": "ຂອບໃຈ! ພວກເຮົາໄດ້ຮັບຂໍ້ຄວາມຂອງທ່ານແລ້ວ ແລະ ຈະຕິດຕໍ່ກັບຄືນໂດຍໄວ"
+  },
+  "common": {
+    "readMore": "ອ່ານເພີ່ມເຕີມ",
+    "backToTop": "ກັບຄືນເທິງສຸດ",
+    "loading": "ກຳລັງໂຫຼດ...",
+    "goToHomepage": "ກັບໄປໜ້າຫຼັກ",
+    "notFoundTitle": "404 - ບໍ່ພົບໜ້ານີ້",
+    "notFoundMessage": "ບໍ່ພົບໜ້າທີ່ທ່ານກຳລັງຊອກຫາ",
+    "languageNames": {
+      "en": "English",
+      "th": "ไทย",
+      "lo": "ລາວ",
+      "fr": "Français"
+    }
+  },
+  "cta": {
+    "requestAQuote": "ຂໍໃບສະເໜີລາຄາ",
+    "applyAffiliate": "ສະໝັກໂປຣແກຣມພັນທະມິດ",
+    "digitalAgencies": "ເອເຈນຊີດິຈິຕອນ",
+    "getStarted": "ເລີ່ມຕົ້ນ",
+    "learnMore": "ຮຽນຮູ້ເພີ່ມເຕີມ",
+    "viewPricing": "ເບິ່ງລາຄາ"
+  }
+}

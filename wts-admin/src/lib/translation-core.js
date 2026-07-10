@@ -51,7 +51,21 @@ const ENTITY_SOURCES = {
     fields: ['name', 'description', 'slide_in_title', 'slide_in_subtitle', 'slide_in_content'],
     filter: "status = 'active'",
   },
+  // Static site pages (see site_pages DDL). `dynamic`: the translatable
+  // fields are not fixed columns but the keys of the segments JSON —
+  // one field per extracted text block, keyed s_<sha1-prefix> by
+  // scripts/lib/html-l10n.js at the repo root.
+  page: {
+    table: 'site_pages',
+    label: 'Site page',
+    titleField: 'path',
+    fields: ['segments'],
+    dynamic: true,
+    filter: "status = 'active'",
+  },
 };
+
+const DYNAMIC_FIELD_KEY_RE = /^s_[0-9a-f]{8,16}$/;
 
 const ENTITY_TYPES = Object.keys(ENTITY_SOURCES);
 
@@ -78,11 +92,23 @@ const isUuid = (v) =>
 // ---------------------------------------------------------------------------
 
 // Pick the translatable fields out of an entity row, dropping empties so
-// the hash doesn't churn on NULL↔'' differences.
+// the hash doesn't churn on NULL↔'' differences. Dynamic entities (pages)
+// carry their fields inside a JSON column instead of fixed columns.
 function extractSourceFields(entityType, row) {
   const config = ENTITY_SOURCES[entityType];
   if (!config) throw new Error(`Unknown entity type: ${entityType}`);
   const fields = {};
+  if (config.dynamic) {
+    const dynamic = row[config.fields[0]];
+    if (dynamic && typeof dynamic === 'object' && !Array.isArray(dynamic)) {
+      for (const [key, value] of Object.entries(dynamic)) {
+        if (typeof value === 'string' && value.trim() !== '' && DYNAMIC_FIELD_KEY_RE.test(key)) {
+          fields[key] = value;
+        }
+      }
+    }
+    return fields;
+  }
   for (const field of config.fields) {
     const value = row[field];
     if (value !== null && value !== undefined && String(value).trim() !== '') {
@@ -215,7 +241,8 @@ function rowAccessError(user, row) {
 
 // Validate a submitted content payload against the entity's field list.
 // Unknown keys are rejected outright so the payload can never smuggle
-// columns the renderer doesn't expect.
+// columns the renderer doesn't expect. Dynamic entities accept segment
+// keys (s_<sha1-prefix>) instead of a fixed column list.
 function sanitizePayload(entityType, payload) {
   const config = ENTITY_SOURCES[entityType];
   if (!config || typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
@@ -223,7 +250,8 @@ function sanitizePayload(entityType, payload) {
   }
   const clean = {};
   for (const [key, value] of Object.entries(payload)) {
-    if (!config.fields.includes(key)) {
+    const validKey = config.dynamic ? DYNAMIC_FIELD_KEY_RE.test(key) : config.fields.includes(key);
+    if (!validKey) {
       return { error: `Unknown field: ${key}` };
     }
     if (typeof value !== 'string') {

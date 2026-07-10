@@ -1154,6 +1154,26 @@
 
                 const article = await response.json();
 
+                // Localized shells (/th /la /fr — this file is mirrored there
+                // by scripts/generate-localized-pages.js): overlay the
+                // published translation onto the English payload before
+                // rendering. No published translation → English content.
+                const pageLang = (window.location.pathname.match(/^\/(th|la|fr)\//) || [])[1];
+                if (pageLang) {
+                    try {
+                        const tRes = await fetch(`${API_BASE_URL}/translations/${pageLang}/article/${slug}`);
+                        if (tRes.ok) {
+                            const tBody = await tRes.json();
+                            const payload = (tBody.translation && tBody.translation.content_payload) || {};
+                            if (payload.title) article.title = payload.title;
+                            if (payload.excerpt) { article.description = payload.excerpt; article.excerpt = payload.excerpt; }
+                            if (payload.content) { article.content = payload.content; article.full_article_content = payload.content; }
+                            if (payload.seo_title) article.seo_title = payload.seo_title;
+                            if (payload.seo_description) article.seo_description = payload.seo_description;
+                        }
+                    } catch (e) { /* keep English content */ }
+                }
+
                 // Update SEO meta tags
                 updateMetaTags(article);
 
