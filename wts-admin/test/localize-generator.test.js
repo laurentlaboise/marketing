@@ -86,7 +86,11 @@ test('generator writes a fully localized mirror from a payloads file', () => {
   assert.ok(generated.includes('ขยายธุรกิจของคุณด้วยการตลาด AI'), 'h1 segment applied');
   assert.ok(generated.includes('เราสร้างเว็บไซต์ที่เปลี่ยนผู้เยี่ยมชมให้เป็นลูกค้า'), 'paragraph segment applied');
   assert.ok(generated.includes('href="/th/company/about-us/"'), 'root-relative link rewritten');
-  assert.ok(generated.includes('https://wordsthatsells.website/th/digital-marketing-services/'), 'absolute link rewritten');
+  // Exact-match the rewritten absolute link by parsing hrefs (a substring
+  // check on a URL literal trips CodeQL's url-sanitization heuristic).
+  const hrefs = [...generated.matchAll(/href="([^"]*)"/g)].map((m) => m[1]);
+  assert.ok(hrefs.includes('https://wordsthatsells.website/th/digital-marketing-services/'), 'absolute link rewritten to the th URL');
+  assert.ok(!hrefs.includes('https://wordsthatsells.website/en/digital-marketing-services/'), 'English absolute link no longer present');
   assert.ok(generated.includes('<link rel="canonical" href="https://wordsthatsells.website/th/">'), 'self-canonical');
   assert.ok(generated.includes('hreflang="th" href="https://wordsthatsells.website/th/"'), 'th alternate present');
   assert.ok(generated.includes('hreflang="x-default" href="https://wordsthatsells.website/en/"'), 'x-default alternate');
