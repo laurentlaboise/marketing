@@ -1,0 +1,94 @@
+{
+  "$meta": {
+    "language": "en",
+    "htmlLang": "en",
+    "name": "English",
+    "urlPrefix": "/en",
+    "reviewStatus": "source"
+  },
+  "nav": {
+    "home": "Home",
+    "aboutUs": "About Us",
+    "services": "Services",
+    "pricing": "Pricing",
+    "resources": "Resources",
+    "contactUs": "Contact Us",
+    "articles": "Articles",
+    "glossary": "Glossary",
+    "guides": "Guides",
+    "aiTools": "Ai Tools",
+    "digitalAgencies": "Digital Agencies",
+    "affiliateProgram": "Affiliate Program"
+  },
+  "footer": {
+    "headingContact": "Contact Us",
+    "headingSolutions": "Solutions",
+    "headingServices": "Services",
+    "headingResources": "Resources",
+    "headingLegal": "Legal",
+    "digitalMarketing": "Digital Marketing",
+    "webDevelopment": "Web Development",
+    "contentCreation": "Content Creation",
+    "socialMedia": "Social Media",
+    "businessTools": "Business Tools",
+    "pricing": "Pricing",
+    "affiliateProgram": "Affiliate Program",
+    "agencies": "Agencies",
+    "automation": "Automation",
+    "articles": "Articles",
+    "glossary": "Glossary",
+    "aiTools": "Ai Tools",
+    "findUsOnGoogle": "Find us on Google"
+  },
+  "legal-links": {
+    "privacyPolicy": "Privacy Policy",
+    "termsAndConditions": "Terms & Conditions",
+    "cookiePolicy": "Cookie Policy",
+    "licence": "Licence",
+    "termsOfSales": "Terms of Sales",
+    "allLegalDocuments": "All legal documents"
+  },
+  "modals": {
+    "quoteTitle": "leave a quick message",
+    "quoteSubtitle": "Let's discuss how we can help your business grow. Fill out the form below and we'll get back to you shortly.",
+    "closeQuoteForm": "Close quote form",
+    "newsletterBlurb": "Subscribe to our newsletter for exclusive tips, case studies, and AI marketing news for the Southeast Asian market, delivered straight to your inbox."
+  },
+  "forms": {
+    "yourName": "Your Name",
+    "yourEmail": "Your Email",
+    "company": "Company",
+    "companyOptional": "Company (optional)",
+    "phoneOptional": "Phone (optional)",
+    "message": "Message",
+    "messagePlaceholder": "How can we help?",
+    "emailPlaceholder": "Enter your email address",
+    "emailAria": "Email Address",
+    "submitRequest": "Submit Request",
+    "sendMessage": "Send Message",
+    "subscribe": "Subscribe",
+    "successGeneric": "Thank you! Your message has been sent — we'll be in touch soon."
+  },
+  "common": {
+    "readMore": "Read More",
+    "backToTop": "Back to top",
+    "loading": "Loading...",
+    "goToHomepage": "Go to Homepage",
+    "notFoundTitle": "404 - Page Not Found",
+    "notFoundMessage": "The page you are looking for does not exist.",
+    "languageNames": {
+      "en": "English",
+      "th": "ไทย",
+      "lo": "ລາວ",
+      "fr": "Français"
+    }
+  },
+  "cta": {
+    "requestAQuote": "Request a Quote",
+    "applyAffiliate": "Apply for Affiliate Program",
+    "digitalAgencies": "Digital Agencies",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "viewPricing": "View Pricing"
+  }
+}

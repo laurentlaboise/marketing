@@ -8,6 +8,9 @@
     "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js",
     "build:webpack": "webpack --mode=production",
     "inject-footers": "node scripts/inject-footers.js",
+    "localize": "node scripts/generate-localized-pages.js",
+    "sitemap": "node scripts/generate-sitemap.js",
+    "audit:hreflang": "node scripts/check-hreflang.js",
     "analyze-schema": "node analyze-schema.js",
     "start": "echo 'No local server - blog-backend has been migrated to wts-admin'"
   },

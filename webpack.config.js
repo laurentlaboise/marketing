@@ -48,6 +48,11 @@ module.exports = {
         { from: 'js', to: 'js', noErrorOnMissing: true },
         { from: 'images', to: 'images', noErrorOnMissing: true },
         { from: 'en', to: 'en', noErrorOnMissing: true },
+        // Localized mirrors written by scripts/generate-localized-pages.js.
+        // noErrorOnMissing: the dirs only exist once translations publish.
+        { from: 'th', to: 'th', noErrorOnMissing: true },
+        { from: 'la', to: 'la', noErrorOnMissing: true },
+        { from: 'fr', to: 'fr', noErrorOnMissing: true },
         { from: 'favicon', to: 'favicon', noErrorOnMissing: true },
         { from: 'css', to: 'css', noErrorOnMissing: true },
         { from: 'fonts', to: 'fonts', noErrorOnMissing: true },

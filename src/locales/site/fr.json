@@ -1,0 +1,94 @@
+{
+  "$meta": {
+    "language": "fr",
+    "htmlLang": "fr",
+    "name": "Français",
+    "urlPrefix": "/fr",
+    "reviewStatus": "ai-draft"
+  },
+  "nav": {
+    "home": "Accueil",
+    "aboutUs": "À propos",
+    "services": "Services",
+    "pricing": "Tarifs",
+    "resources": "Ressources",
+    "contactUs": "Contactez-nous",
+    "articles": "Articles",
+    "glossary": "Glossaire",
+    "guides": "Guides",
+    "aiTools": "Outils IA",
+    "digitalAgencies": "Agences digitales",
+    "affiliateProgram": "Programme d'affiliation"
+  },
+  "footer": {
+    "headingContact": "Contactez-nous",
+    "headingSolutions": "Solutions",
+    "headingServices": "Services",
+    "headingResources": "Ressources",
+    "headingLegal": "Mentions légales",
+    "digitalMarketing": "Marketing digital",
+    "webDevelopment": "Développement web",
+    "contentCreation": "Création de contenu",
+    "socialMedia": "Réseaux sociaux",
+    "businessTools": "Outils business",
+    "pricing": "Tarifs",
+    "affiliateProgram": "Programme d'affiliation",
+    "agencies": "Agences",
+    "automation": "Automatisation",
+    "articles": "Articles",
+    "glossary": "Glossaire",
+    "aiTools": "Outils IA",
+    "findUsOnGoogle": "Retrouvez-nous sur Google"
+  },
+  "legal-links": {
+    "privacyPolicy": "Politique de confidentialité",
+    "termsAndConditions": "Conditions générales",
+    "cookiePolicy": "Politique de cookies",
+    "licence": "Licence",
+    "termsOfSales": "Conditions de vente",
+    "allLegalDocuments": "Tous les documents légaux"
+  },
+  "modals": {
+    "quoteTitle": "laissez-nous un petit message",
+    "quoteSubtitle": "Discutons de la façon dont nous pouvons aider votre entreprise à grandir. Remplissez le formulaire ci-dessous et nous vous recontacterons rapidement.",
+    "closeQuoteForm": "Fermer le formulaire",
+    "newsletterBlurb": "Abonnez-vous à notre newsletter pour recevoir des conseils exclusifs, des études de cas et l'actualité du marketing IA pour l'Asie du Sud-Est, directement dans votre boîte mail."
+  },
+  "forms": {
+    "yourName": "Votre nom",
+    "yourEmail": "Votre e-mail",
+    "company": "Société",
+    "companyOptional": "Société (facultatif)",
+    "phoneOptional": "Téléphone (facultatif)",
+    "message": "Message",
+    "messagePlaceholder": "Comment pouvons-nous vous aider ?",
+    "emailPlaceholder": "Entrez votre adresse e-mail",
+    "emailAria": "Adresse e-mail",
+    "submitRequest": "Envoyer la demande",
+    "sendMessage": "Envoyer le message",
+    "subscribe": "S'abonner",
+    "successGeneric": "Merci ! Votre message a bien été envoyé — nous vous recontacterons rapidement."
+  },
+  "common": {
+    "readMore": "En savoir plus",
+    "backToTop": "Retour en haut",
+    "loading": "Chargement...",
+    "goToHomepage": "Retour à l'accueil",
+    "notFoundTitle": "404 - Page introuvable",
+    "notFoundMessage": "La page que vous recherchez n'existe pas.",
+    "languageNames": {
+      "en": "English",
+      "th": "ไทย",
+      "lo": "ລາວ",
+      "fr": "Français"
+    }
+  },
+  "cta": {
+    "requestAQuote": "Demander un devis",
+    "applyAffiliate": "Rejoindre le programme d'affiliation",
+    "digitalAgencies": "Agences digitales",
+    "getStarted": "Commencer",
+    "learnMore": "En savoir plus",
+    "viewPricing": "Voir les tarifs"
+  }
+}
