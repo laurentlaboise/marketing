@@ -1,0 +1,124 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Review Translation</h1>
+        <p class="page-subtitle">
+          <%= entityConfig.label %> → <%= languageNames[item.target_language] || item.target_language %>
+          · status: <strong><%= item.status.replace('_', ' ') %></strong>
+          <% if (item.ai_model) { %> · drafted by <i class="fas fa-robot"></i> <%= item.ai_model %><% } %>
+          <% if (translator) { %> · translator: <%= translator.first_name %> <%= translator.last_name || '' %> (<%= translator.email %>)<% } %>
+        </p>
+      </div>
+      <div class="page-actions">
+        <a href="/translations" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+        <% if (item.status === 'requires_review') { %>
+          <button type="button" class="btn btn-primary" id="approveBtn">
+            <i class="fas fa-check"></i> Approve &amp; Publish
+          </button>
+          <button type="button" class="btn btn-danger" id="rejectBtn">
+            <i class="fas fa-rotate-left"></i> Reject with Note
+          </button>
+        <% } else if (item.status === 'published') { %>
+          <button type="button" class="btn btn-secondary" id="reopenBtn">
+            <i class="fas fa-lock-open"></i> Reopen for Editing
+          </button>
+        <% } %>
+        <span style="margin-left:auto; color:var(--gray-500);">
+          <% if (ledgerEntry) { %>
+            <i class="fas fa-coins"></i> Credited <%= ledgerEntry.currency %> <%= parseFloat(ledgerEntry.amount).toFixed(2) %> (<%= ledgerEntry.status %>)
+          <% } else if (payoutPreview) { %>
+            <i class="fas fa-coins"></i> On publish: <%= payoutPreview.currency %> <%= payoutPreview.amount.toFixed(2) %>
+            (<%= payoutPreview.rateType === 'per_word' ? (payoutPreview.rateAmount + '/word × ' + (item.word_count || 0)) : payoutPreview.rateType %>)
+          <% } else if (translator && translator.is_vendor) { %>
+            <i class="fas fa-triangle-exclamation"></i> No payout rate configured for this vendor
+          <% } else if (item.ai_model && !item.translator_id) { %>
+            AI translation — no payout
+          <% } %>
+        </span>
+      </div>
+      <% if (item.review_note) { %>
+      <div class="card-body" style="border-top:1px solid var(--gray-200); color:var(--gray-600);">
+        <strong>Last review note:</strong> <%= item.review_note %>
+      </div>
+      <% } %>
+    </div>
+
+    <% entityConfig.fields.forEach(field => {
+         var sourceValue = source && source.fields[field];
+         var targetValue = item.content_payload ? item.content_payload[field] : null;
+         if (!sourceValue && !targetValue) return; %>
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-body">
+          <h3 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; color:var(--gray-500);"><%= field.replace(/_/g, ' ') %></h3>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div>
+              <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">English source</div>
+              <div style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:320px; overflow:auto; white-space:pre-wrap; background:var(--gray-50, #f9fafb);"><%= sourceValue || '—' %></div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;"><%= languageNames[item.target_language] || item.target_language %></div>
+              <div style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:320px; overflow:auto; white-space:pre-wrap;"><%= targetValue || '—' %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  var id = '<%= item.id %>';
+
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify(body || {})
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  var approveBtn = document.getElementById('approveBtn');
+  if (approveBtn) approveBtn.addEventListener('click', function () {
+    if (!confirm('Publish this translation? Vendor payout (if configured) is credited immediately.')) return;
+    post('/translations/' + id + '/approve').then(function (res) {
+      if (res.ok) {
+        var p = res.data.payout;
+        alert(p ? ('Published. Credited ' + p.currency + ' ' + p.amount.toFixed(2) + ' to the vendor ledger.') : 'Published.');
+        location.reload();
+      } else { alert(res.data.error || 'Approve failed'); }
+    });
+  });
+
+  var rejectBtn = document.getElementById('rejectBtn');
+  if (rejectBtn) rejectBtn.addEventListener('click', function () {
+    var note = prompt('Note for the translator (what needs to change)?');
+    if (note === null) return;
+    post('/translations/' + id + '/reject', { note: note }).then(function (res) {
+      if (res.ok) location.href = '/translations'; else alert(res.data.error || 'Reject failed');
+    });
+  });
+
+  var reopenBtn = document.getElementById('reopenBtn');
+  if (reopenBtn) reopenBtn.addEventListener('click', function () {
+    if (!confirm('Reopen this published translation for editing? Re-publishing will NOT credit the vendor again.')) return;
+    post('/translations/' + id + '/reopen').then(function (res) {
+      if (res.ok) location.reload(); else alert(res.data.error || 'Reopen failed');
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>

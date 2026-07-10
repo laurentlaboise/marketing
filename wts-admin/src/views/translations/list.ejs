@@ -1,0 +1,206 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Translations</h1>
+        <p class="page-subtitle">Localization pipeline — /en /th /la /fr</p>
+      </div>
+      <div class="page-actions">
+        <button type="button" class="btn btn-secondary" id="syncBtn" title="Create translation rows for all live content and flag stale ones">
+          <i class="fas fa-rotate"></i> Sync Content
+        </button>
+        <button type="button" class="btn btn-primary" id="aiBatchBtn" <%= aiConfigured ? '' : 'disabled title="Set ANTHROPIC_API_KEY to enable"' %>>
+          <i class="fas fa-robot"></i> Run AI Batch
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-body" style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:center;">
+        <% ['pending', 'translating', 'requires_review', 'published', 'rejected'].forEach(s => { %>
+          <a href="/translations?status=<%= s %>" style="text-decoration:none;">
+            <strong><%= counts[s] || 0 %></strong> <%= s.replace('_', ' ') %>
+          </a>
+        <% }); %>
+        <span id="aiJobStatus" style="margin-left:auto; color: var(--gray-500);">
+          <% if (aiJob && aiJob.status === 'running') { %>
+            <i class="fas fa-spinner fa-spin"></i> AI batch: <%= aiJob.processed %>/<%= aiJob.total %>
+          <% } %>
+        </span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-body">
+        <form method="GET" action="/translations" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" for="filterStatus">Status</label>
+            <select class="form-input" id="filterStatus" name="status">
+              <option value="">All</option>
+              <% statuses.forEach(s => { %>
+                <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s.replace('_', ' ') %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" for="filterLang">Language</label>
+            <select class="form-input" id="filterLang" name="lang">
+              <option value="">All</option>
+              <% languages.forEach(l => { %>
+                <option value="<%= l %>" <%= filters.lang === l ? 'selected' : '' %>><%= languageNames[l] || l %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" for="filterEntity">Content type</label>
+            <select class="form-input" id="filterEntity" name="entity_type">
+              <option value="">All</option>
+              <% entityTypes.forEach(t => { %>
+                <option value="<%= t %>" <%= filters.entity_type === t ? 'selected' : '' %>><%= t %></option>
+              <% }); %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-secondary">Filter</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (items.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Content</th>
+                <th>Language</th>
+                <th>Status</th>
+                <th>Translator</th>
+                <th>Words</th>
+                <th>Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% items.forEach(item => { %>
+              <tr>
+                <td data-label="Content"><span style="color:var(--gray-500);"><%= item.entity_type %></span> <code style="font-size:0.75rem;"><%= item.entity_id.slice(0, 8) %></code></td>
+                <td data-label="Language"><%= languageNames[item.target_language] || item.target_language %></td>
+                <td data-label="Status">
+                  <%
+                    var statusColors = { pending: '#6b7280', translating: '#2563eb', requires_review: '#d97706', published: '#059669', rejected: '#dc2626' };
+                  %>
+                  <span style="display:inline-block; padding:0.15rem 0.5rem; border-radius:999px; font-size:0.75rem; color:#fff; background:<%= statusColors[item.status] || '#6b7280' %>;">
+                    <%= item.status.replace('_', ' ') %>
+                  </span>
+                </td>
+                <td data-label="Translator">
+                  <% if (item.translator_id) { %>
+                    <%= item.translator_first_name || '' %> <%= item.translator_last_name || '' %>
+                  <% } else if (item.ai_model) { %>
+                    <i class="fas fa-robot" title="<%= item.ai_model %>"></i> AI
+                  <% } else { %>
+                    <select class="form-input assign-select" data-id="<%= item.id %>" style="max-width:180px; padding:0.25rem;">
+                      <option value="">Assign…</option>
+                      <% translators.filter(t => (t.assigned_languages || []).includes(item.target_language)).forEach(t => { %>
+                        <option value="<%= t.id %>"><%= t.first_name %> <%= t.last_name || '' %></option>
+                      <% }); %>
+                    </select>
+                  <% } %>
+                </td>
+                <td data-label="Words"><%= item.word_count || '-' %></td>
+                <td data-label="Updated"><%= new Date(item.updated_at).toLocaleDateString() %></td>
+                <td data-label="Actions">
+                  <a href="/translations/review/<%= item.id %>" class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> Review</a>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-language"></i></div>
+          <h3>No Translations Yet</h3>
+          <p>Run "Sync Content" to create translation rows for your live content.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-Token': csrf
+      },
+      body: JSON.stringify(body || {})
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  document.getElementById('syncBtn').addEventListener('click', function () {
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing…';
+    post('/translations/sync').then(function (res) {
+      if (res.ok) {
+        alert('Sync complete: ' + res.data.summary.created + ' created, ' + res.data.summary.stale + ' re-opened (source changed), ' + res.data.summary.scanned + ' entities scanned.');
+        location.reload();
+      } else {
+        alert(res.data.error || 'Sync failed');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-rotate"></i> Sync Content';
+      }
+    });
+  });
+
+  var aiBtn = document.getElementById('aiBatchBtn');
+  if (aiBtn && !aiBtn.disabled) {
+    aiBtn.addEventListener('click', function () {
+      if (!confirm('Run the AI translation batch for Thai and French now?')) return;
+      post('/translations/ai-batch', {}).then(function (res) {
+        if (res.ok) { pollJob(); } else { alert(res.data.error || 'Could not start batch'); }
+      });
+    });
+  }
+
+  function pollJob() {
+    fetch('/translations/ai-batch/status', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var el = document.getElementById('aiJobStatus');
+        if (d.job && d.job.status === 'running') {
+          el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI batch: ' + d.job.processed + '/' + d.job.total;
+          setTimeout(pollJob, 3000);
+        } else if (d.job) {
+          el.textContent = 'AI batch ' + d.job.status + ': ' + d.job.translated + ' translated, ' + d.job.skipped + ' skipped, ' + d.job.failed + ' failed';
+        }
+      });
+  }
+  <% if (aiJob && aiJob.status === 'running') { %>pollJob();<% } %>
+
+  document.querySelectorAll('.assign-select').forEach(function (select) {
+    select.addEventListener('change', function () {
+      if (!this.value) return;
+      post('/translations/' + this.dataset.id + '/assign', { translator_id: this.value }).then(function (res) {
+        if (res.ok) location.reload(); else alert(res.data.error || 'Assign failed');
+      });
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>

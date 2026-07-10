@@ -1,0 +1,144 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= source.title %></h1>
+        <p class="page-subtitle">
+          <%= entityConfig.label %> · English → <strong><%= languageNames[item.target_language] || item.target_language %></strong>
+          · status: <strong id="statusLabel"><%= item.status.replace('_', ' ') %></strong>
+          · <%= item.word_count || 0 %> source words
+        </p>
+      </div>
+      <div class="page-actions">
+        <a href="/translations/workspace" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+        <% if (!readOnly) { %>
+        <button type="button" class="btn btn-secondary" id="saveBtn"><i class="fas fa-save"></i> Save Draft</button>
+        <button type="button" class="btn btn-primary" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit for Review</button>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (item.status === 'rejected' && item.review_note) { %>
+    <div class="alert alert-error" style="position:static; margin-bottom:1rem;">
+      <i class="fas fa-comment-dots"></i>
+      <span><strong>Reviewer note:</strong> <%= item.review_note %></span>
+    </div>
+    <% } %>
+    <% if (readOnly) { %>
+    <div class="alert alert-success" style="position:static; margin-bottom:1rem;">
+      <i class="fas fa-lock"></i>
+      <span>This translation is published and read-only. Ask an administrator to reopen it for changes.</span>
+    </div>
+    <% } %>
+
+    <form id="editorForm">
+      <% entityConfig.fields.forEach(field => {
+           var sourceValue = source.fields[field];
+           if (!sourceValue) return;
+           var targetValue = (item.content_payload && item.content_payload[field]) || '';
+           var isLong = String(sourceValue).length > 300; %>
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-body">
+            <h3 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; color:var(--gray-500);"><%= field.replace(/_/g, ' ') %></h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div>
+                <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">English source (read-only)</div>
+                <div style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:400px; overflow:auto; white-space:pre-wrap; background:var(--gray-50, #f9fafb);"><%= sourceValue %></div>
+              </div>
+              <div>
+                <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">
+                  <%= languageNames[item.target_language] || item.target_language %>
+                </div>
+                <textarea
+                  class="form-input translation-field"
+                  name="<%= field %>"
+                  rows="<%= isLong ? 16 : 3 %>"
+                  style="width:100%; font-family:inherit; resize:vertical;"
+                  <%= readOnly ? 'readonly' : '' %>
+                  placeholder="Translate the English text…"><%= targetValue %></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </form>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  var id = '<%= item.id %>';
+  var dirty = false;
+
+  document.querySelectorAll('.translation-field').forEach(function (field) {
+    field.addEventListener('input', function () { dirty = true; });
+  });
+  window.addEventListener('beforeunload', function (e) {
+    if (dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  function collectPayload() {
+    var payload = {};
+    document.querySelectorAll('.translation-field').forEach(function (field) {
+      payload[field.name] = field.value;
+    });
+    return payload;
+  }
+
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify(body || {})
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  function save() {
+    return post('/translations/workspace/' + id + '/save', { content_payload: collectPayload() });
+  }
+
+  var saveBtn = document.getElementById('saveBtn');
+  if (saveBtn) saveBtn.addEventListener('click', function () {
+    var btn = this;
+    btn.disabled = true;
+    save().then(function (res) {
+      btn.disabled = false;
+      if (res.ok) {
+        dirty = false;
+        document.getElementById('statusLabel').textContent = res.data.status.replace('_', ' ');
+        btn.innerHTML = '<i class="fas fa-check"></i> Saved';
+        setTimeout(function () { btn.innerHTML = '<i class="fas fa-save"></i> Save Draft'; }, 1500);
+      } else {
+        alert(res.data.error || 'Save failed');
+      }
+    });
+  });
+
+  var submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) submitBtn.addEventListener('click', function () {
+    if (!confirm('Submit this translation for review? An administrator will be notified.')) return;
+    var btn = this;
+    btn.disabled = true;
+    save().then(function (res) {
+      if (!res.ok) { btn.disabled = false; return alert(res.data.error || 'Save failed'); }
+      dirty = false;
+      post('/translations/workspace/' + id + '/submit').then(function (res2) {
+        if (res2.ok) {
+          location.href = '/translations/workspace';
+        } else {
+          btn.disabled = false;
+          alert(res2.data.error || 'Submit failed');
+        }
+      });
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>
