@@ -22,9 +22,66 @@ const ensureAuthenticated = (req, res, next) => {
   res.redirect('/auth/login');
 };
 
-// Ensure user is admin
+// Platform roles:
+//   superadmin / admin — unrestricted control plane ('admin' is the legacy
+//     name; the two are synonyms everywhere so promoting is never required
+//     for access and never breaks it)
+//   translator — vendor role, scoped to /translations for assigned languages
+//   user — authenticated but no admin surface access
+const SUPER_ROLES = ['superadmin', 'admin'];
+const isSuperAdmin = (user) => !!user && SUPER_ROLES.includes(user.role);
+
+// Generic role guard: ensureRole('translator', 'superadmin', 'admin')
+const ensureRole = (...allowed) => (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    if (wantsJson(req)) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+    req.session.returnTo = req.originalUrl;
+    req.session.errorMessage = 'Please log in to access this page';
+    return res.redirect('/auth/login');
+  }
+  if (!allowed.includes(req.user.role)) {
+    if (wantsJson(req)) {
+      return res.status(403).json({ success: false, error: 'Insufficient role' });
+    }
+    req.session.errorMessage = 'Access denied.';
+    return res.redirect('/dashboard');
+  }
+  next();
+};
+
+const ensureSuperAdmin = ensureRole(...SUPER_ROLES);
+const ensureTranslator = ensureRole('translator', ...SUPER_ROLES);
+
+// Language scoping for translators. SuperAdmins pass through; translators
+// must have the request's target language in users.assigned_languages.
+// Reads the language from route params, body, or query. Routes addressing
+// a translation row by id enforce the same rule against the row itself via
+// translation-core.assertRowAccess — this guard covers list/create paths
+// where the language arrives with the request.
+const ensureLanguageAccess = (req, res, next) => {
+  if (isSuperAdmin(req.user)) return next();
+  const assigned = req.user.assigned_languages || [];
+  const lang = (req.params && req.params.lang) ||
+    (req.body && req.body.target_language) ||
+    (req.query && req.query.lang);
+  if (!lang || !assigned.includes(lang)) {
+    if (wantsJson(req)) {
+      return res.status(403).json({ success: false, error: 'Language not assigned to your account' });
+    }
+    return res.status(403).render('error', {
+      title: 'Access Denied',
+      message: 'This language is not assigned to your account.',
+      code: 403
+    });
+  }
+  next();
+};
+
+// Ensure user is admin (superadmin included — see SUPER_ROLES)
 const ensureAdmin = (req, res, next) => {
-  if (req.isAuthenticated() && req.user.role === 'admin') {
+  if (req.isAuthenticated() && isSuperAdmin(req.user)) {
     return next();
   }
   if (wantsJson(req)) {
@@ -83,5 +140,10 @@ module.exports = {
   ensureAuthenticated,
   ensureAdmin,
   ensureGuest,
-  logActivity
+  logActivity,
+  ensureRole,
+  ensureSuperAdmin,
+  ensureTranslator,
+  ensureLanguageAccess,
+  isSuperAdmin
 };

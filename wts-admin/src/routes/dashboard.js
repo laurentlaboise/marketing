@@ -17,9 +17,14 @@ router.use(ensureAuthenticated);
 
 // Main dashboard
 router.get('/', async (req, res) => {
+  // Translators' home is their workspace, not the admin dashboard.
+  if (req.user && req.user.role === 'translator') {
+    return res.redirect('/translations/workspace');
+  }
+
   // Non-admin users get a restricted dashboard without content stats,
   // activity logs (which include other users' emails) or site data.
-  if (!req.user || req.user.role !== 'admin') {
+  if (!req.user || !['admin', 'superadmin'].includes(req.user.role)) {
     return res.render('dashboard/index', {
       title: 'Dashboard - WTS Admin',
       stats: { articles: 0, aiTools: 0, products: 0, glossary: 0, seoTerms: 0, images: 0, microsites: 0, drafts: 0, activeSites: 0, unreadNotifications: 0, customers: 0 },

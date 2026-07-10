@@ -8,15 +8,59 @@
     </button>
   </div>
 
+  <%
+    // Role-scoped navigation: translators are locked to their workspace +
+    // earnings; everything else is the admin control plane ('admin' and
+    // 'superadmin' are synonyms).
+    var isAdminRole = user && ['admin', 'superadmin'].includes(user.role);
+    var isTranslatorRole = user && user.role === 'translator';
+  %>
   <nav class="sidebar-nav">
     <ul class="nav-list">
+      <% if (!isTranslatorRole) { %>
       <li class="nav-item">
         <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
           <i class="fas fa-home"></i>
           <span>Dashboard</span>
         </a>
       </li>
+      <% } %>
 
+      <% if (isTranslatorRole || isAdminRole) { %>
+      <!-- Translator workspace -->
+      <li class="nav-item">
+        <a href="/translations/workspace" class="nav-link <%= currentPage === 'workspace' ? 'active' : '' %>">
+          <i class="fas fa-pen-to-square"></i>
+          <span>My Workspace</span>
+        </a>
+      </li>
+      <% } %>
+      <% if (isTranslatorRole) { %>
+      <li class="nav-item">
+        <a href="/translations/earnings" class="nav-link <%= currentPage === 'earnings' ? 'active' : '' %>">
+          <i class="fas fa-coins"></i>
+          <span>My Earnings</span>
+        </a>
+      </li>
+      <% } %>
+
+      <% if (isAdminRole) { %>
+      <!-- Localization -->
+      <li class="nav-item has-submenu">
+        <a href="#" class="nav-link submenu-toggle <%= ['translations', 'translation-vendors', 'translation-payouts'].includes(currentPage) ? 'active' : '' %>">
+          <i class="fas fa-language"></i>
+          <span>Localization</span>
+          <i class="fas fa-chevron-down submenu-arrow"></i>
+        </a>
+        <ul class="submenu <%= ['translations', 'translation-vendors', 'translation-payouts'].includes(currentPage) ? 'open' : '' %>">
+          <li><a href="/translations" class="<%= currentPage === 'translations' ? 'active' : '' %>"><i class="fas fa-list-check"></i> Translations</a></li>
+          <li><a href="/translations/vendors" class="<%= currentPage === 'translation-vendors' ? 'active' : '' %>"><i class="fas fa-user-tag"></i> Vendors &amp; Languages</a></li>
+          <li><a href="/translations/payouts" class="<%= currentPage === 'translation-payouts' ? 'active' : '' %>"><i class="fas fa-coins"></i> Payout Ledger</a></li>
+        </ul>
+      </li>
+      <% } %>
+
+      <% if (isAdminRole) { %>
       <!-- Resource Management -->
       <li class="nav-item has-submenu">
         <a href="#" class="nav-link submenu-toggle <%= ['articles', 'seo-terms', 'ai-tools', 'glossary', 'guides'].includes(currentPage) ? 'active' : '' %>">
@@ -100,6 +144,7 @@
           <span>Image Library</span>
         </a>
       </li>
+      <% } %>
 
       <li class="nav-divider"></li>
 
