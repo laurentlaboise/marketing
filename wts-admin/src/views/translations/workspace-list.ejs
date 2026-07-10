@@ -1,0 +1,88 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Translation Workspace</h1>
+        <p class="page-subtitle">
+          Your languages:
+          <% (assigned || []).forEach(function (l) { %>
+            <strong><%= languageNames[l] || l %></strong>&nbsp;
+          <% }); %>
+          <% if (!assigned || assigned.length === 0) { %><em>none assigned yet</em><% } %>
+        </p>
+      </div>
+    </div>
+
+    <% if (noLanguages) { %>
+    <div class="card">
+      <div class="card-body">
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-language"></i></div>
+          <h3>No Languages Assigned</h3>
+          <p>An administrator needs to assign languages to your account before you can translate.</p>
+        </div>
+      </div>
+    </div>
+    <% } else { %>
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (items.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Content</th>
+                <th>Type</th>
+                <th>Language</th>
+                <th>Status</th>
+                <th>Words</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% items.forEach(item => { %>
+              <tr>
+                <td data-label="Content"><strong><%= item.entity_title %></strong></td>
+                <td data-label="Type"><%= item.entity_type %></td>
+                <td data-label="Language"><%= languageNames[item.target_language] || item.target_language %></td>
+                <td data-label="Status">
+                  <%
+                    var statusColors = { pending: '#6b7280', translating: '#2563eb', requires_review: '#d97706', published: '#059669', rejected: '#dc2626' };
+                  %>
+                  <span style="display:inline-block; padding:0.15rem 0.5rem; border-radius:999px; font-size:0.75rem; color:#fff; background:<%= statusColors[item.status] || '#6b7280' %>;">
+                    <%= item.status.replace('_', ' ') %>
+                  </span>
+                  <% if (item.status === 'rejected' && item.review_note) { %>
+                    <i class="fas fa-comment-dots" title="<%= item.review_note %>"></i>
+                  <% } %>
+                </td>
+                <td data-label="Words"><%= item.word_count || '-' %></td>
+                <td data-label="Actions">
+                  <a href="/translations/workspace/<%= item.id %>" class="btn btn-sm btn-primary">
+                    <i class="fas fa-pen"></i> <%= item.status === 'published' ? 'View' : 'Translate' %>
+                  </a>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+          <h3>Nothing to Translate</h3>
+          <p>There is no content queued for your languages right now. Check back later.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

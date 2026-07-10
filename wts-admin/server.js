@@ -106,7 +106,7 @@ app.use('/auth/signup', authLimiter);
 // Only the admin content editors legitimately submit large payloads
 // (full article HTML); everything else — including all public endpoints —
 // gets a 1 MB cap so the body parser is not a DoS lever.
-const LARGE_BODY_PREFIXES = ['/content', '/webdev', '/business'];
+const LARGE_BODY_PREFIXES = ['/content', '/webdev', '/business', '/translations'];
 const allowsLargeBody = (req) => LARGE_BODY_PREFIXES.some(p => req.originalUrl.startsWith(p));
 const jsonLarge = express.json({ limit: '10mb' });
 const jsonDefault = express.json({ limit: '1mb' });
@@ -258,6 +258,12 @@ app.use('/business', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, bu
 app.use('/api', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, apiRoutes);
 app.use('/images', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, imagesRoutes);
 app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webdevRoutes);
+
+// Localization platform. Deliberately NOT behind ensureAdmin: the router
+// carries per-route RBAC (ensureSuperAdmin for the pipeline/ledger,
+// ensureTranslator + language scoping for the vendor workspace).
+const translationsRoutes = require('./src/routes/translations');
+app.use('/translations', adminSurfaceLimiter(), ensureAuthenticated, translationsRoutes);
 
 // Serve images from the local working copy for admin previews.
 // The local copy is env-configurable (IMAGES_DIR, e.g. a Railway volume);

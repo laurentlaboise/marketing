@@ -1,0 +1,191 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">My Earnings</h1>
+        <p class="page-subtitle">Ledger credits from published translations</p>
+      </div>
+    </div>
+
+    <!-- Balance summary -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="display:flex; gap:2.5rem; flex-wrap:wrap; align-items:center;">
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Available</div>
+          <div style="font-size:1.5rem; font-weight:700;">$<%= parseFloat(balance.available).toFixed(2) %></div>
+        </div>
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Requested</div>
+          <div style="font-size:1.5rem;">$<%= parseFloat(balance.requested).toFixed(2) %></div>
+        </div>
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Paid out</div>
+          <div style="font-size:1.5rem;">$<%= parseFloat(balance.paid).toFixed(2) %></div>
+        </div>
+        <div style="margin-left:auto;">
+          <button type="button" class="btn btn-primary" id="requestBtn" <%= parseFloat(balance.available) > 0 ? '' : 'disabled' %>>
+            <i class="fas fa-hand-holding-dollar"></i> Request Payout
+          </button>
+          <% if (minPayout > 0) { %>
+            <div style="font-size:0.75rem; color:var(--gray-500); margin-top:0.25rem;">Minimum payout: $<%= minPayout.toFixed(2) %></div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payout method -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body">
+        <h3 style="margin:0 0 0.5rem;">Payout Method</h3>
+        <% if (payout.configured) { %>
+          <p style="margin:0 0 1rem; color:var(--gray-600);">
+            Current: <strong><%= payout.gateway %></strong> <span style="color:var(--gray-500);"><%= payout.label %></span>
+          </p>
+        <% } else { %>
+          <p style="margin:0 0 1rem; color:var(--gray-600);">No payout method on file yet.</p>
+        <% } %>
+
+        <% if (!encryptionConfigured) { %>
+          <p style="color:#d97706; margin:0;"><i class="fas fa-triangle-exclamation"></i> Banking details cannot be stored until the administrator configures encryption (PAYOUT_METADATA_KEY).</p>
+        <% } else { %>
+        <form id="bankingForm" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Method</label>
+            <select class="form-input" name="gateway">
+              <% gateways.forEach(g => { %>
+                <option value="<%= g %>" <%= payout.gateway === g ? 'selected' : '' %>><%= g === 'stripe_connect' ? 'Stripe Connect' : (g === 'wise' ? 'Wise' : 'Manual / local bank') %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Account holder name</label>
+            <input class="form-input" name="account_holder" autocomplete="off">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Bank name</label>
+            <input class="form-input" name="bank_name" autocomplete="off" placeholder="e.g. BCEL">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Account number</label>
+            <input class="form-input" name="account_number" autocomplete="off">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">IBAN (if applicable)</label>
+            <input class="form-input" name="iban" autocomplete="off">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Account currency</label>
+            <input class="form-input" name="currency" placeholder="LAK, THB, EUR…" maxlength="3" autocomplete="off">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Stripe account id (Stripe Connect only)</label>
+            <input class="form-input" name="stripe_account_id" placeholder="acct_…" autocomplete="off">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Country</label>
+            <input class="form-input" name="country" autocomplete="off">
+          </div>
+          <div style="grid-column:1 / -1;">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-lock"></i> Save (encrypted)</button>
+            <span style="font-size:0.8rem; color:var(--gray-500); margin-left:0.5rem;">Details are encrypted at rest; only the payment gateway can read them.</span>
+          </div>
+        </form>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Requests -->
+    <% if (requests.length > 0) { %>
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body">
+        <h3 style="margin:0 0 0.75rem;">My Payout Requests</h3>
+        <div class="table-container">
+          <table class="table">
+            <thead><tr><th>Date</th><th>Amount</th><th>Status</th><th>Reference</th></tr></thead>
+            <tbody>
+              <% requests.forEach(r => { %>
+              <tr>
+                <td><%= new Date(r.created_at).toLocaleDateString() %></td>
+                <td><%= r.currency %> <%= parseFloat(r.amount).toFixed(2) %></td>
+                <td><%= r.status %></td>
+                <td><code style="font-size:0.75rem;"><%= r.gateway_reference || '—' %></code></td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Ledger -->
+    <div class="card">
+      <div class="card-body">
+        <h3 style="margin:0 0 0.75rem;">Ledger History</h3>
+        <div class="table-container">
+          <table class="table">
+            <thead><tr><th>Date</th><th>Amount</th><th>Status</th><th>Description</th></tr></thead>
+            <tbody>
+              <% ledger.forEach(l => { %>
+              <tr>
+                <td><%= new Date(l.created_at).toLocaleDateString() %></td>
+                <td><%= l.currency %> <%= parseFloat(l.amount).toFixed(2) %></td>
+                <td><%= l.status %></td>
+                <td style="color:var(--gray-500);"><%= l.description || l.type %></td>
+              </tr>
+              <% }); %>
+              <% if (ledger.length === 0) { %>
+              <tr><td colspan="4" style="color:var(--gray-500);">No credits yet — they appear when your submitted translations are approved and published.</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify(body || {})
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  var requestBtn = document.getElementById('requestBtn');
+  if (requestBtn) requestBtn.addEventListener('click', function () {
+    if (!confirm('Request a payout of your full available balance?')) return;
+    requestBtn.disabled = true;
+    post('/translations/earnings/request').then(function (res) {
+      if (res.ok) location.reload();
+      else { requestBtn.disabled = false; alert(res.data.error || 'Request failed'); }
+    });
+  });
+
+  var bankingForm = document.getElementById('bankingForm');
+  if (bankingForm) bankingForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var body = {};
+    ['gateway', 'account_holder', 'bank_name', 'account_number', 'iban', 'currency', 'stripe_account_id', 'country'].forEach(function (name) {
+      var field = bankingForm.querySelector('[name="' + name + '"]');
+      if (field && field.value.trim()) body[name] = field.value.trim();
+    });
+    body.gateway = bankingForm.querySelector('[name="gateway"]').value;
+    post('/translations/earnings/banking', body).then(function (res) {
+      if (res.ok) location.reload(); else alert(res.data.error || 'Save failed');
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>

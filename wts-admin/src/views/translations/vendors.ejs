@@ -1,0 +1,123 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Vendors &amp; Languages</h1>
+        <p class="page-subtitle">Grant the translator role, assign languages and mark payable vendors. Admin accounts are managed via ADMIN_EMAILS.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Languages</th>
+                <th>Payable Vendor</th>
+                <th>Payout Method</th>
+                <th>Available Balance</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% users.forEach(u => {
+                   var isAdminAccount = ['admin', 'superadmin'].includes(u.role); %>
+              <tr data-user="<%= u.id %>">
+                <td data-label="User">
+                  <strong><%= u.first_name || '' %> <%= u.last_name || '' %></strong><br>
+                  <span style="color:var(--gray-500); font-size:0.85rem;"><%= u.email %></span>
+                </td>
+                <td data-label="Role">
+                  <% if (isAdminAccount) { %>
+                    <span style="font-weight:600;"><%= u.role %></span>
+                  <% } else { %>
+                    <select class="form-input role-select" style="max-width:140px; padding:0.25rem;">
+                      <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>user</option>
+                      <option value="translator" <%= u.role === 'translator' ? 'selected' : '' %>>translator</option>
+                    </select>
+                  <% } %>
+                </td>
+                <td data-label="Languages">
+                  <% if (isAdminAccount) { %>
+                    <span style="color:var(--gray-500);">all</span>
+                  <% } else { %>
+                    <% languages.forEach(l => { %>
+                      <label style="margin-right:0.75rem; white-space:nowrap;">
+                        <input type="checkbox" class="lang-check" value="<%= l %>"
+                          <%= (u.assigned_languages || []).includes(l) ? 'checked' : '' %>>
+                        <%= languageNames[l] || l %>
+                      </label>
+                    <% }); %>
+                  <% } %>
+                </td>
+                <td data-label="Payable Vendor">
+                  <% if (isAdminAccount) { %>
+                    —
+                  <% } else { %>
+                    <input type="checkbox" class="vendor-check" <%= u.is_vendor ? 'checked' : '' %> title="Publishing their work credits the payout ledger">
+                  <% } %>
+                </td>
+                <td data-label="Payout Method">
+                  <% if (u.payout && u.payout.configured) { %>
+                    <%= u.payout.gateway %> <span style="color:var(--gray-500);"><%= u.payout.label %></span>
+                  <% } else { %>
+                    <span style="color:var(--gray-500);">not set</span>
+                  <% } %>
+                </td>
+                <td data-label="Available Balance">$<%= parseFloat(u.available_balance || 0).toFixed(2) %></td>
+                <td data-label="Actions">
+                  <% if (!isAdminAccount) { %>
+                    <button type="button" class="btn btn-sm btn-primary save-user"><i class="fas fa-save"></i> Save</button>
+                  <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+  document.querySelectorAll('.save-user').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var row = btn.closest('tr');
+      var body = {
+        role: row.querySelector('.role-select').value,
+        assigned_languages: Array.prototype.slice.call(row.querySelectorAll('.lang-check:checked')).map(function (c) { return c.value; }),
+        is_vendor: row.querySelector('.vendor-check').checked
+      };
+      btn.disabled = true;
+      fetch('/translations/vendors/' + row.dataset.user, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+        body: JSON.stringify(body)
+      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(function (res) {
+          btn.disabled = false;
+          if (res.ok) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Saved';
+            setTimeout(function () { btn.innerHTML = '<i class="fas fa-save"></i> Save'; }, 1500);
+          } else {
+            alert(res.data.error || 'Update failed');
+          }
+        });
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>
