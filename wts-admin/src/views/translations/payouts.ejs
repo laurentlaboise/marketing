@@ -21,14 +21,16 @@
         <% } else { %>
         <div class="table-container">
           <table class="table">
-            <thead><tr><th>Vendor</th><th>Available</th><th>Requested</th><th>Paid (lifetime)</th></tr></thead>
+            <thead><tr><th>Vendor</th><th>Currency</th><th>Available</th><th>Requested</th><th>Paid (lifetime)</th></tr></thead>
             <tbody>
+              <% var fmt = function (v, c) { return c === 'LAK' ? Math.round(parseFloat(v)).toLocaleString() : parseFloat(v).toFixed(2); }; %>
               <% balances.forEach(b => { %>
               <tr>
                 <td><%= b.first_name || '' %> <%= b.last_name || '' %> <span style="color:var(--gray-500);"><%= b.email %></span></td>
-                <td>$<%= parseFloat(b.available).toFixed(2) %></td>
-                <td>$<%= parseFloat(b.requested).toFixed(2) %></td>
-                <td>$<%= parseFloat(b.paid).toFixed(2) %></td>
+                <td><%= b.currency %></td>
+                <td><%= fmt(b.available, b.currency) %></td>
+                <td><%= fmt(b.requested, b.currency) %></td>
+                <td><%= fmt(b.paid, b.currency) %></td>
               </tr>
               <% }); %>
             </tbody>
@@ -78,20 +80,26 @@
     <!-- Rate cards -->
     <div class="card" style="margin-bottom:1rem;">
       <div class="card-body">
-        <h3 style="margin:0 0 0.75rem;">Rate Cards</h3>
-        <p style="color:var(--gray-500); font-size:0.85rem;">Most specific card wins: vendor+language &gt; vendor &gt; language &gt; global. per_word pays rate × source words; per_article / fixed pay a flat rate per published translation.</p>
+        <h3 style="margin:0 0 0.75rem;">Translation Rate Cards</h3>
+        <p style="color:var(--gray-500); font-size:0.85rem;">
+          Writing, checking and rewriting pay differently: <strong>translation</strong> (writing it),
+          <strong>verification</strong> (reading &amp; signing off, per 1,000 target characters), and
+          <strong>edit</strong> (segments the verifier reworked). Most specific card wins:
+          vendor+language &gt; vendor &gt; language &gt; global.
+        </p>
         <div class="table-container" style="margin-bottom:1rem;">
           <table class="table">
-            <thead><tr><th>Scope</th><th>Type</th><th>Rate</th><th>Min payout</th><th></th></tr></thead>
+            <thead><tr><th>Work</th><th>Scope</th><th>Type</th><th>Rate</th><th>Min payout</th><th></th></tr></thead>
             <tbody>
               <% rates.forEach(r => { %>
               <tr>
+                <td><strong><%= r.work_type || 'translation' %></strong></td>
                 <td>
                   <%= r.translator_email || 'Any vendor' %> ·
                   <%= r.target_language ? (languageNames[r.target_language] || r.target_language) : 'Any language' %>
                 </td>
                 <td><%= r.rate_type %></td>
-                <td><%= r.currency %> <%= parseFloat(r.rate_amount).toFixed(4) %></td>
+                <td><%= r.currency %> <%= r.currency === 'LAK' ? Math.round(parseFloat(r.rate_amount)).toLocaleString() : parseFloat(r.rate_amount).toFixed(4) %></td>
                 <td><%= r.currency %> <%= parseFloat(r.min_payout || 0).toFixed(2) %></td>
                 <td>
                   <button type="button" class="btn btn-sm btn-danger rate-delete" data-id="<%= r.id %>"><i class="fas fa-trash"></i></button>
@@ -99,13 +107,21 @@
               </tr>
               <% }); %>
               <% if (rates.length === 0) { %>
-              <tr><td colspan="5" style="color:var(--gray-500);">No rates configured — publishing vendor work will not credit the ledger until a rate exists.</td></tr>
+              <tr><td colspan="6" style="color:var(--gray-500);">No rates configured — publishing vendor work will not credit the ledger until a rate exists.</td></tr>
               <% } %>
             </tbody>
           </table>
         </div>
 
         <form id="rateForm" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Work</label>
+            <select class="form-input" name="work_type">
+              <option value="translation">translation (write)</option>
+              <option value="verification">verification (check)</option>
+              <option value="edit">edit (rework)</option>
+            </select>
+          </div>
           <div class="form-group" style="margin:0;">
             <label class="form-label">Scope: language</label>
             <select class="form-input" name="target_language">
@@ -116,22 +132,88 @@
           <div class="form-group" style="margin:0;">
             <label class="form-label">Type</label>
             <select class="form-input" name="rate_type">
-              <option value="per_word">per_word</option>
-              <option value="per_article">per_article</option>
+              <option value="per_1000_chars">per 1,000 chars</option>
+              <option value="per_word">per word</option>
+              <option value="per_article">per item</option>
               <option value="fixed">fixed</option>
             </select>
           </div>
           <div class="form-group" style="margin:0;">
-            <label class="form-label">Rate (USD)</label>
-            <input class="form-input" type="number" name="rate_amount" step="0.0001" min="0" value="0.05" style="max-width:120px;">
+            <label class="form-label">Currency</label>
+            <select class="form-input" name="currency">
+              <option value="LAK">LAK (kip)</option>
+              <option value="USD">USD</option>
+            </select>
           </div>
           <div class="form-group" style="margin:0;">
-            <label class="form-label">Min payout (USD)</label>
+            <label class="form-label">Rate</label>
+            <input class="form-input" type="number" name="rate_amount" step="0.0001" min="0" value="30000" style="max-width:130px;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Min payout</label>
             <input class="form-input" type="number" name="min_payout" step="0.01" min="0" value="0" style="max-width:120px;">
           </div>
           <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Save Rate</button>
         </form>
-        <p style="color:var(--gray-500); font-size:0.8rem; margin-top:0.5rem;">Vendor-specific cards can be added via the API with translator_id; this form manages language/global cards.</p>
+        <p style="color:var(--gray-500); font-size:0.8rem; margin-top:0.5rem;">
+          Brief defaults: verification overflow ≈ LAK 30,000 / 1,000 chars. Vendor-specific cards can be added via the API with translator_id.
+        </p>
+      </div>
+    </div>
+
+    <!-- Work-unit rates (leads, community, cascades) -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body">
+        <h3 style="margin:0 0 0.75rem;">Work-Unit Rates (leads · community · cascades)</h3>
+        <p style="color:var(--gray-500); font-size:0.85rem;">
+          From the position briefs — every figure editable. Qualified leads use <em>marginal monthly tiers</em>
+          (lead #21 pays the 21–50 rate; earlier leads keep theirs). Conversion pays percent-of-sale with a floor,
+          or the flat amount when no percent is set.
+        </p>
+        <div class="table-container" style="margin-bottom:1rem;">
+          <table class="table">
+            <thead><tr><th>Work unit</th><th>Scope</th><th>Rate</th><th>Tiers</th><th>Bonus</th></tr></thead>
+            <tbody>
+              <% compRates.forEach(c => { %>
+              <tr>
+                <td><strong><%= c.work_type.replace(/_/g, ' ') %></strong></td>
+                <td><%= c.worker_email || 'Everyone' %></td>
+                <td><%= c.currency %> <%= Math.round(parseFloat(c.rate_amount)).toLocaleString() %></td>
+                <td style="font-size:0.8rem;"><%= c.tiers ? JSON.stringify(c.tiers) : '—' %></td>
+                <td><%= c.bonus_percent != null ? (parseFloat(c.bonus_percent) + '% (floor ' + Math.round(parseFloat(c.bonus_floor || 0)).toLocaleString() + ')') : '—' %></td>
+              </tr>
+              <% }); %>
+              <% if (compRates.length === 0) { %>
+              <tr><td colspan="5" style="color:var(--gray-500);">No work-unit rates yet — run <code>node scripts/setup-workforce.js seed-rates</code> for the brief defaults, then adjust here.</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+        <form id="compRateForm" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Work unit</label>
+            <select class="form-input" name="work_type">
+              <% compWorkTypes.forEach(w => { %><option value="<%= w %>"><%= w.replace(/_/g, ' ') %></option><% }); %>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Rate (LAK)</label>
+            <input class="form-input" type="number" name="rate_amount" step="1" min="0" value="0" style="max-width:130px;">
+          </div>
+          <div class="form-group" style="margin:0; min-width:280px;">
+            <label class="form-label">Tiers JSON (optional)</label>
+            <input class="form-input" name="tiers" placeholder='[{"min":1,"max":20,"rate":20000},…]'>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Bonus %</label>
+            <input class="form-input" type="number" name="bonus_percent" step="0.1" min="0" style="max-width:90px;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Bonus floor</label>
+            <input class="form-input" type="number" name="bonus_floor" step="1" min="0" style="max-width:120px;">
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Save</button>
+        </form>
       </div>
     </div>
 
@@ -201,11 +283,28 @@
     e.preventDefault();
     var form = e.target;
     post('/translations/payouts/rates', {
+      work_type: form.work_type.value,
       target_language: form.target_language.value || null,
       rate_type: form.rate_type.value,
+      currency: form.currency.value,
       rate_amount: form.rate_amount.value,
       min_payout: form.min_payout.value
     }).then(function (res) {
+      if (res.ok) location.reload(); else alert(res.data.error || 'Rate save failed');
+    });
+  });
+
+  document.getElementById('compRateForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var form = e.target;
+    var body = { work_type: form.work_type.value, rate_amount: form.rate_amount.value, currency: 'LAK' };
+    if (form.tiers.value.trim()) {
+      try { body.tiers = JSON.parse(form.tiers.value); }
+      catch (err) { return alert('Tiers must be valid JSON, e.g. [{"min":1,"max":20,"rate":20000}]'); }
+    }
+    if (form.bonus_percent.value) body.bonus_percent = form.bonus_percent.value;
+    if (form.bonus_floor.value) body.bonus_floor = form.bonus_floor.value;
+    post('/workforce/comp-rates', body).then(function (res) {
       if (res.ok) location.reload(); else alert(res.data.error || 'Rate save failed');
     });
   });

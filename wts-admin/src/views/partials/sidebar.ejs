@@ -9,11 +9,13 @@
   </div>
 
   <%
-    // Role-scoped navigation: translators are locked to their workspace +
-    // earnings; everything else is the admin control plane ('admin' and
-    // 'superadmin' are synonyms).
+    // Role-scoped navigation: workers (translators and payable vendors —
+    // lead verifiers, engagement associates, cascade coordinators) see
+    // their workspace, work hub and earnings; everything else is the
+    // admin control plane ('admin' and 'superadmin' are synonyms).
     var isAdminRole = user && ['admin', 'superadmin'].includes(user.role);
     var isTranslatorRole = user && user.role === 'translator';
+    var isWorker = user && (isTranslatorRole || user.is_vendor === true);
   %>
   <nav class="sidebar-nav">
     <ul class="nav-list">
@@ -35,7 +37,13 @@
         </a>
       </li>
       <% } %>
-      <% if (isTranslatorRole) { %>
+      <% if (isWorker && !isAdminRole) { %>
+      <li class="nav-item">
+        <a href="/workforce/my" class="nav-link <%= currentPage === 'work-hub' ? 'active' : '' %>">
+          <i class="fas fa-briefcase"></i>
+          <span>My Work Hub</span>
+        </a>
+      </li>
       <li class="nav-item">
         <a href="/translations/earnings" class="nav-link <%= currentPage === 'earnings' ? 'active' : '' %>">
           <i class="fas fa-coins"></i>
@@ -54,8 +62,22 @@
         </a>
         <ul class="submenu <%= ['translations', 'translation-vendors', 'translation-payouts'].includes(currentPage) ? 'open' : '' %>">
           <li><a href="/translations" class="<%= currentPage === 'translations' ? 'active' : '' %>"><i class="fas fa-list-check"></i> Translations</a></li>
-          <li><a href="/translations/vendors" class="<%= currentPage === 'translation-vendors' ? 'active' : '' %>"><i class="fas fa-user-tag"></i> Vendors &amp; Languages</a></li>
+          <li><a href="/translations/vendors" class="<%= currentPage === 'translation-vendors' ? 'active' : '' %>"><i class="fas fa-user-tag"></i> Team &amp; Vendors</a></li>
           <li><a href="/translations/payouts" class="<%= currentPage === 'translation-payouts' ? 'active' : '' %>"><i class="fas fa-coins"></i> Payout Ledger</a></li>
+        </ul>
+      </li>
+
+      <!-- Workforce -->
+      <li class="nav-item has-submenu">
+        <a href="#" class="nav-link submenu-toggle <%= ['leads', 'engagement', 'work-hub'].includes(currentPage) ? 'active' : '' %>">
+          <i class="fas fa-people-group"></i>
+          <span>Workforce</span>
+          <i class="fas fa-chevron-down submenu-arrow"></i>
+        </a>
+        <ul class="submenu <%= ['leads', 'engagement', 'work-hub'].includes(currentPage) ? 'open' : '' %>">
+          <li><a href="/workforce/leads" class="<%= currentPage === 'leads' ? 'active' : '' %>"><i class="fas fa-address-book"></i> Leads CRM</a></li>
+          <li><a href="/workforce/engagement" class="<%= currentPage === 'engagement' ? 'active' : '' %>"><i class="fas fa-comments"></i> Engagement &amp; Cascades</a></li>
+          <li><a href="/workforce/my" class="<%= currentPage === 'work-hub' ? 'active' : '' %>"><i class="fas fa-briefcase"></i> Work Hub (worker view)</a></li>
         </ul>
       </li>
       <% } %>

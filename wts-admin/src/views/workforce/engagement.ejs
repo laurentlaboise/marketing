@@ -1,0 +1,110 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Engagement &amp; Cascades</h1>
+        <p class="page-subtitle">Community responses and tracked cascade shares — approve verified work, credit per unit.</p>
+      </div>
+      <div class="page-actions">
+        <% if (pending.length > 0) { %>
+        <button type="button" class="btn btn-primary" id="approveAllBtn">
+          <i class="fas fa-check-double"></i> Approve all pending (<%= pending.length %>)
+        </button>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0;">
+        <div style="padding:1rem 1rem 0.5rem;"><h3 style="margin:0;">Pending Review</h3></div>
+        <% if (pending.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead><tr><th>Date</th><th>Worker</th><th>Track</th><th>Group / Wave</th><th>Proof</th><th>Note</th><th>Actions</th></tr></thead>
+            <tbody>
+              <% pending.forEach(g => { %>
+              <tr data-log="<%= g.id %>">
+                <td data-label="Date"><%= new Date(g.created_at).toLocaleString() %></td>
+                <td data-label="Worker"><%= g.first_name %> <%= g.last_name || '' %></td>
+                <td data-label="Track"><%= g.track.replace('_', ' ') %></td>
+                <td data-label="Group / Wave"><%= g.group_name || '—' %><%= g.wave ? ' · Wave ' + g.wave : '' %></td>
+                <td data-label="Proof"><a href="<%= g.reference_url %>" target="_blank" rel="noopener noreferrer">open link</a></td>
+                <td data-label="Note" style="max-width:220px;"><%= (g.note || '').slice(0, 80) %></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <button type="button" class="btn btn-sm btn-primary log-review" data-decision="approve"><i class="fas fa-check"></i></button>
+                    <button type="button" class="btn btn-sm btn-danger log-review" data-decision="reject" title="Bounced / late / off-brand — pays nothing"><i class="fas fa-times"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state" style="padding:1.5rem;"><p style="margin:0; color:var(--gray-500);">Nothing pending — workers log responses and shares from their hub.</p></div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <div style="padding:1rem 1rem 0.5rem;"><h3 style="margin:0;">Recently Reviewed</h3></div>
+        <div class="table-container">
+          <table class="table">
+            <thead><tr><th>Date</th><th>Worker</th><th>Track</th><th>Status</th></tr></thead>
+            <tbody>
+              <% recent.forEach(g => { %>
+              <tr>
+                <td><%= g.reviewed_at ? new Date(g.reviewed_at).toLocaleString() : '' %></td>
+                <td><%= g.first_name %> <%= g.last_name || '' %></td>
+                <td><%= g.track.replace('_', ' ') %><%= g.wave ? ' (W' + g.wave + ')' : '' %></td>
+                <td><%= g.status %></td>
+              </tr>
+              <% }); %>
+              <% if (recent.length === 0) { %><tr><td colspan="4" style="color:var(--gray-500);">No reviews yet.</td></tr><% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  function review(ids, decision) {
+    return fetch('/workforce/engagement/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify({ ids: ids, decision: decision })
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  document.querySelectorAll('.log-review').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      review([btn.closest('tr').dataset.log], btn.dataset.decision).then(function (res) {
+        if (res.ok) location.reload(); else alert(res.data.error || 'Review failed');
+      });
+    });
+  });
+
+  var approveAll = document.getElementById('approveAllBtn');
+  if (approveAll) approveAll.addEventListener('click', function () {
+    if (!confirm('Approve every pending log and credit each at the configured per-unit rate?')) return;
+    var ids = Array.prototype.slice.call(document.querySelectorAll('tr[data-log]')).map(function (tr) { return tr.dataset.log; });
+    review(ids, 'approve').then(function (res) {
+      if (res.ok) { alert('Reviewed ' + res.data.reviewed + ', credited ' + res.data.credited + '.'); location.reload(); }
+      else alert(res.data.error || 'Bulk approve failed');
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>

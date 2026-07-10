@@ -7,8 +7,8 @@
   <div class="page-content">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Vendors &amp; Languages</h1>
-        <p class="page-subtitle">Grant the translator role, assign languages and mark payable vendors. Admin accounts are managed via ADMIN_EMAILS.</p>
+        <h1 class="page-title">Team &amp; Vendors</h1>
+        <p class="page-subtitle">Roles, languages, positions (from the role briefs), team structure and payability. Admin accounts are managed via ADMIN_EMAILS.</p>
       </div>
     </div>
 
@@ -20,10 +20,12 @@
               <tr>
                 <th>User</th>
                 <th>Role</th>
+                <th>Position</th>
+                <th>Manager</th>
                 <th>Languages</th>
                 <th>Payable Vendor</th>
                 <th>Payout Method</th>
-                <th>Available Balance</th>
+                <th>Available</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -39,9 +41,33 @@
                   <% if (isAdminAccount) { %>
                     <span style="font-weight:600;"><%= u.role %></span>
                   <% } else { %>
-                    <select class="form-input role-select" style="max-width:140px; padding:0.25rem;">
+                    <select class="form-input role-select" style="max-width:130px; padding:0.25rem;">
                       <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>user</option>
                       <option value="translator" <%= u.role === 'translator' ? 'selected' : '' %>>translator</option>
+                    </select>
+                  <% } %>
+                </td>
+                <td data-label="Position">
+                  <% if (isAdminAccount) { %>
+                    —
+                  <% } else { %>
+                    <select class="form-input position-select" style="max-width:190px; padding:0.25rem;">
+                      <option value="">none</option>
+                      <% positions.forEach(p => { %>
+                        <option value="<%= p %>" <%= u.position === p ? 'selected' : '' %>><%= p.replace(/_/g, ' ') %></option>
+                      <% }); %>
+                    </select>
+                  <% } %>
+                </td>
+                <td data-label="Manager">
+                  <% if (isAdminAccount) { %>
+                    —
+                  <% } else { %>
+                    <select class="form-input manager-select" style="max-width:170px; padding:0.25rem;">
+                      <option value="">none</option>
+                      <% users.filter(m => m.id !== u.id && (m.role === 'translator' || m.is_vendor || ['admin','superadmin'].includes(m.role))).forEach(m => { %>
+                        <option value="<%= m.id %>" <%= u.manager_id === m.id ? 'selected' : '' %>><%= m.first_name %> <%= m.last_name || '' %></option>
+                      <% }); %>
                     </select>
                   <% } %>
                 </td>
@@ -72,7 +98,11 @@
                     <span style="color:var(--gray-500);">not set</span>
                   <% } %>
                 </td>
-                <td data-label="Available Balance">$<%= parseFloat(u.available_balance || 0).toFixed(2) %></td>
+                <td data-label="Available">
+                  <% if (u.balances.length === 0) { %>—<% } else { u.balances.forEach(b => { %>
+                    <div><%= b.currency %> <%= b.currency === 'LAK' ? Math.round(parseFloat(b.available)).toLocaleString() : parseFloat(b.available).toFixed(2) %></div>
+                  <% }); } %>
+                </td>
                 <td data-label="Actions">
                   <% if (!isAdminAccount) { %>
                     <button type="button" class="btn btn-sm btn-primary save-user"><i class="fas fa-save"></i> Save</button>
@@ -92,29 +122,41 @@
 (function () {
   var csrf = document.querySelector('meta[name="csrf-token"]').content;
 
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify(body)
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
   document.querySelectorAll('.save-user').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var row = btn.closest('tr');
-      var body = {
+      var id = row.dataset.user;
+      btn.disabled = true;
+      post('/translations/vendors/' + id, {
         role: row.querySelector('.role-select').value,
         assigned_languages: Array.prototype.slice.call(row.querySelectorAll('.lang-check:checked')).map(function (c) { return c.value; }),
         is_vendor: row.querySelector('.vendor-check').checked
-      };
-      btn.disabled = true;
-      fetch('/translations/vendors/' + row.dataset.user, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
-        body: JSON.stringify(body)
-      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
-        .then(function (res) {
-          btn.disabled = false;
-          if (res.ok) {
-            btn.innerHTML = '<i class="fas fa-check"></i> Saved';
-            setTimeout(function () { btn.innerHTML = '<i class="fas fa-save"></i> Save'; }, 1500);
-          } else {
-            alert(res.data.error || 'Update failed');
-          }
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Update failed');
+        return post('/workforce/team/' + id, {
+          position: row.querySelector('.position-select').value,
+          manager_id: row.querySelector('.manager-select').value || null
         });
+      }).then(function (res) {
+        btn.disabled = false;
+        if (res.ok) {
+          btn.innerHTML = '<i class="fas fa-check"></i> Saved';
+          setTimeout(function () { btn.innerHTML = '<i class="fas fa-save"></i> Save'; }, 1500);
+        } else {
+          alert(res.data.error || 'Team update failed');
+        }
+      }).catch(function (err) {
+        btn.disabled = false;
+        alert(err.message);
+      });
     });
   });
 })();
