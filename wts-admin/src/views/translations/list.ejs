@@ -11,7 +11,10 @@
         <p class="page-subtitle">Localization pipeline — /en /th /la /fr</p>
       </div>
       <div class="page-actions">
-        <button type="button" class="btn btn-secondary" id="syncBtn" title="Create translation rows for all live content and flag stale ones">
+        <button type="button" class="btn btn-secondary" id="syncPagesBtn" title="Import every public website page (homepage, services, prices, company, legal, glossary pages…) as translatable content">
+          <i class="fas fa-file-import"></i> Sync Site Pages
+        </button>
+        <button type="button" class="btn btn-secondary" id="syncBtn" title="Create translation rows for database content (articles, glossary, products, guides) and flag stale ones">
           <i class="fas fa-rotate"></i> Sync Content
         </button>
         <button type="button" class="btn btn-primary" id="aiBatchBtn" <%= aiConfigured ? '' : 'disabled title="Set ANTHROPIC_API_KEY to enable"' %>>
@@ -89,7 +92,14 @@
             <tbody>
               <% items.forEach(item => { %>
               <tr>
-                <td data-label="Content"><span style="color:var(--gray-500);"><%= item.entity_type %></span> <code style="font-size:0.75rem;"><%= item.entity_id.slice(0, 8) %></code></td>
+                <td data-label="Content">
+                  <span style="color:var(--gray-500);"><%= item.entity_type %></span>
+                  <% if (item.page_path) { %>
+                    <strong><%= item.page_path %></strong>
+                  <% } else { %>
+                    <code style="font-size:0.75rem;"><%= item.entity_id.slice(0, 8) %></code>
+                  <% } %>
+                </td>
                 <td data-label="Language"><%= languageNames[item.target_language] || item.target_language %></td>
                 <td data-label="Status">
                   <%
@@ -127,7 +137,7 @@
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-language"></i></div>
           <h3>No Translations Yet</h3>
-          <p>Run "Sync Content" to create translation rows for your live content.</p>
+          <p>Run "Sync Site Pages" to import the website pages, and "Sync Content" for database content (articles, glossary, products, guides).</p>
         </div>
         <% } %>
       </div>
@@ -167,29 +177,67 @@
     });
   });
 
+  // Import every public website page as translatable content. Can take up
+  // to a minute on deployments that fetch the live site page-by-page.
+  document.getElementById('syncPagesBtn').addEventListener('click', function () {
+    if (!confirm('Import all public website pages (homepage, services, prices, company, legal, glossary pages…) into the translation pipeline? This can take up to a minute.')) return;
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing pages…';
+    post('/translations/sync-pages').then(function (res) {
+      if (res.ok) {
+        var s = res.data.summary, t = res.data.translations;
+        alert('Site pages imported (' + s.mode + '): ' + s.upserted + ' pages, ' +
+          t.created + ' new translation rows, ' + t.stale + ' re-opened' +
+          (s.failed ? ', ' + s.failed + ' pages failed to fetch' : '') + '.');
+        location.reload();
+      } else {
+        alert(res.data.error || 'Site page import failed');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-file-import"></i> Sync Site Pages';
+      }
+    });
+  });
+
   var aiBtn = document.getElementById('aiBatchBtn');
   if (aiBtn && !aiBtn.disabled) {
     aiBtn.addEventListener('click', function () {
       if (!confirm('Run the AI translation batch for Thai and French now?')) return;
       post('/translations/ai-batch', {}).then(function (res) {
-        if (res.ok) { pollJob(); } else { alert(res.data.error || 'Could not start batch'); }
+        if (res.ok) { jobWasRunning = true; pollCount = 0; pollJob(); } else { alert(res.data.error || 'Could not start batch'); }
       });
     });
   }
 
+  // Status polling: 5s at first, backing off to 15s after two minutes,
+  // and paused entirely while the tab is hidden — long batches must never
+  // burn the rate-limit budget from a forgotten background tab.
+  var pollCount = 0;
+  function pollDelay() { return pollCount > 24 ? 15000 : 5000; }
+  function schedulePoll() {
+    if (document.hidden) return; // resumed by visibilitychange below
+    setTimeout(pollJob, pollDelay());
+  }
   function pollJob() {
+    if (document.hidden) return;
+    pollCount += 1;
     fetch('/translations/ai-batch/status', { headers: { 'Accept': 'application/json' } })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var el = document.getElementById('aiJobStatus');
         if (d.job && d.job.status === 'running') {
           el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI batch: ' + d.job.processed + '/' + d.job.total;
-          setTimeout(pollJob, 3000);
+          schedulePoll();
         } else if (d.job) {
           el.textContent = 'AI batch ' + d.job.status + ': ' + d.job.translated + ' translated, ' + d.job.skipped + ' skipped, ' + d.job.failed + ' failed';
         }
-      });
+      })
+      .catch(function () { schedulePoll(); });
   }
+  var jobWasRunning = <%= aiJob && aiJob.status === 'running' ? 'true' : 'false' %>;
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && jobWasRunning) pollJob();
+  });
   <% if (aiJob && aiJob.status === 'running') { %>pollJob();<% } %>
 
   document.querySelectorAll('.assign-select').forEach(function (select) {

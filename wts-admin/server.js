@@ -262,8 +262,34 @@ app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webd
 // Localization platform. Deliberately NOT behind ensureAdmin: the router
 // carries per-route RBAC (ensureSuperAdmin for the pipeline/ledger,
 // ensureTranslator + language scoping for the vendor workspace).
+//
+// Dedicated limiter instead of adminSurfaceLimiter():
+//  - the AI-batch status poll is exempt here (it carries its own generous
+//    limiter inside the router). Counting polls against the shared
+//    100/15min budget let a single open pipeline tab exhaust the bucket
+//    and 429 all /translations navigation for the rest of the window.
+//  - when the limit does trip, browsers get the styled error page instead
+//    of the bare "Too many requests" text on a white page.
 const translationsRoutes = require('./src/routes/translations');
-app.use('/translations', adminSurfaceLimiter(), ensureAuthenticated, translationsRoutes);
+const translationsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.originalUrl.split('?')[0] === '/translations/ai-batch/status',
+  handler: (req, res) => {
+    const wantsJson = req.xhr || (req.get('accept') || '').includes('application/json');
+    if (wantsJson) {
+      return res.status(429).json({ success: false, error: 'Too many requests, please try again later.' });
+    }
+    res.status(429).render('error', {
+      title: 'Too Many Requests',
+      message: 'This session sent too many requests in a short time. Wait a minute and try again.',
+      code: 429,
+    });
+  },
+});
+app.use('/translations', translationsLimiter, ensureAuthenticated, translationsRoutes);
 
 // Serve images from the local working copy for admin previews.
 // The local copy is env-configurable (IMAGES_DIR, e.g. a Railway volume);

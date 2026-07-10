@@ -102,10 +102,14 @@ so any later run (or a manual Actions run) catches everything up.
 ## Seeding the first pages (migration notes)
 
 ```bash
-# 1. Register Tier 1 pages (homepage, prices, services, contact, about,
-#    affiliate/agencies, legal) as translatable entities:
+# 1. Register the website pages as translatable entities:
+#    Admin UI → Localization → Translations → "Sync Site Pages"
+#    (works on any deployment — reads the local en/ tree in a full
+#    checkout, otherwise fetches the live site via its sitemap).
+#    CLI equivalent from a full checkout:
 railway run node wts-admin/scripts/sync-site-pages.js --tier1-only
-#    (or a subset: --paths /,prices,contact-us)
+#    (or a subset: --paths /,prices,contact-us · or --live to force
+#    fetching the deployed site)
 
 # 2. Thai + French: admin UI → Localization → Translations → Run AI Batch
 #    (requires ANTHROPIC_API_KEY). Segments land in requires_review.
