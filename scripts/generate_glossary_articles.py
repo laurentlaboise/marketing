@@ -197,12 +197,28 @@ def build_article(t: dict, filename: str) -> str:
     wa = f"https://api.whatsapp.com/send?text={txt}%20{u}"
     tg = f"https://t.me/share/url?url={u}&text={txt}"
 
-    og_image_tag = f'<meta property="og:image" content="{esc(img)}">' if img else ""
+    # Image SEO from Image Library fields (image_seo / alt) when present
+    img_seo = t.get("image_seo") or {}
+    img_alt = (img_seo.get("alt") or t.get("image_alt") or f"{term} — SEO glossary illustration for Southeast Asia marketers").strip()
+    img_title = (img_seo.get("title") or term).strip()
+    img_w = img_seo.get("width") or 1200
+    img_h = img_seo.get("height") or 630
+    og_image_tag = ""
+    if img:
+        og_image_tag = f'''<meta property="og:image" content="{esc(img)}">
+    <meta property="og:image:alt" content="{esc(img_alt)}">
+    <meta name="twitter:image" content="{esc(img)}">
+    <meta name="twitter:image:alt" content="{esc(img_alt)}">'''
     img_block = ""
     if img:
         img_block = f"""
     <div class="featured-image-wrapper">
-      <img class="featured-image" src="{esc(img)}" width="1200" height="630" alt="{esc(term)} — SEO glossary illustration" loading="eager" decoding="async">
+      <figure>
+        <img class="featured-image" src="{esc(img)}" width="{int(img_w)}" height="{int(img_h)}"
+             alt="{esc(img_alt)}" title="{esc(img_title)}"
+             loading="eager" decoding="async" fetchpriority="high">
+        <figcaption class="sr-only">{esc_text(img_alt)}</figcaption>
+      </figure>
     </div>"""
 
     example_block = ""
@@ -284,9 +300,19 @@ def build_article(t: dict, filename: str) -> str:
         },
         "mainEntityOfPage": canonical,
         "dateModified": date.today().isoformat(),
-        "image": img or None,
         "about": {"@type": "DefinedTerm", "name": term, "description": definition},
     }
+    if img:
+        schema["image"] = {
+            "@type": "ImageObject",
+            "url": img,
+            "contentUrl": img,
+            "name": img_title,
+            "description": img_alt,
+            "width": int(img_w) if img_w else 1200,
+            "height": int(img_h) if img_h else 630,
+            "caption": img_alt,
+        }
     if ytid:
         schema["video"] = {
             "@type": "VideoObject",
@@ -297,7 +323,7 @@ def build_article(t: dict, filename: str) -> str:
     schema_json = json.dumps(schema, ensure_ascii=False)
 
     why = f"""
-    <h2>Why {esc_text(term)} matters for SEO</h2>
+    <h2 id="why-matters-h">Why {esc_text(term)} matters for SEO</h2>
     <p>For search engines, <strong>{esc_text(term)}</strong> sits at the intersection of <strong>crawling</strong>,
     <strong>indexing</strong>, and <strong>ranking</strong>. Crawlers must discover and understand your pages;
     indexes store what they found; rankings decide which URLs appear for a keyword. When {esc_text(term.lower())}
@@ -309,7 +335,7 @@ def build_article(t: dict, filename: str) -> str:
     """
 
     ranking = f"""
-    <h2>Crawling, ranking, and keyword searchability</h2>
+    <h2 id="crawling-ranking-h">Crawling, ranking, and keyword searchability</h2>
     <p>Search visibility is not only about stuffing more keywords. Ranking systems evaluate whether a page is
     <em>findable</em>, <em>understandable</em>, and <em>useful</em>. {esc_text(term)} influences one or more of those layers:</p>
     <ul>
@@ -323,7 +349,7 @@ def build_article(t: dict, filename: str) -> str:
     """
 
     practical = f"""
-    <h2>Practical steps for teams in Southeast Asia</h2>
+    <h2 id="practical-steps-h">Practical steps for teams in Southeast Asia</h2>
     <ol class="checklist">
       <li><strong>Audit first.</strong> Confirm how {esc_text(term.lower())} currently appears on your site (templates, CMS fields, server config, or content workflows).</li>
       <li><strong>Align keywords.</strong> Pair this concept with primary and secondary keywords your audience searches—especially local modifiers (Laos, Vientiane, Thailand, Vietnam, Indonesia, Singapore) where relevant.</li>
@@ -384,18 +410,39 @@ def build_article(t: dict, filename: str) -> str:
     </header>
     {img_block}
     <article>
-    <h2>What is {esc_text(term)}?</h2>
+    <nav class="article-toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#what-is">What is {esc_text(term)}?</a></li>
+        <li><a href="#key-concepts">Key concepts</a></li>
+        <li><a href="#why-matters">Why it matters for SEO</a></li>
+        <li><a href="#sea-example">Real-world example (SEA)</a></li>
+        <li><a href="#crawling-ranking">Crawling, ranking &amp; keywords</a></li>
+        <li><a href="#practical-steps">Practical steps</a></li>
+        <li><a href="#related-terms">Related terms</a></li>
+      </ol>
+    </nav>
+    <h2 id="what-is">What is {esc_text(term)}?</h2>
     <p>{esc_text(definition)}</p>
-    <div class="key-box">
+    <div class="key-box" id="key-concepts">
       <h3 style="margin-top:0">Key concepts</h3>
+      <p class="toc-hint">Jump to a concept below, or keep reading the full guide.</p>
       {bullets_html(bullets)}
     </div>
+    <section id="why-matters">
     {why}
+    </section>
+    <section id="sea-example">
     {example_block}
+    </section>
+    <section id="crawling-ranking">
     {ranking}
+    </section>
+    <section id="practical-steps">
     {practical}
+    </section>
     {video_block}
-    <h2>Related glossary terms (keyword connections)</h2>
+    <h2 id="related-terms">Related glossary terms (keyword connections)</h2>
     <p>Click through to expand the topic cluster. These links help readers learn faster and help search engines understand relationships between SEO concepts.</p>
     {related_html(related)}
     <div class="cta">

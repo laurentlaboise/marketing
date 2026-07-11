@@ -2039,7 +2039,9 @@
                         example: item.example || '',
                         video_url: item.video_url || '',
                         featured_image: item.featured_image || '',
-                        article_link: item.article_link || ''
+                        article_link: item.article_link || '',
+                        // Image Library SEO (alt/title/dimensions) from admin gallery
+                        image_seo: item.image_seo || null
                     },
                     related_terms: item.related_terms || [],
                     letter: item.letter || item.term.charAt(0).toUpperCase()
@@ -2273,12 +2275,18 @@
             const content = document.createElement('div');
             content.className = 'feature-content';
 
-            // Featured image
+            // Featured image — connected to Image Library SEO (alt/title/size for bots + a11y)
             if (termData.definition.featured_image) {
+                const seo = termData.definition.image_seo || {};
                 const img = document.createElement('img');
-                img.src = termData.definition.featured_image;
-                img.alt = termData.term;
-                img.style.cssText = 'width:100%; border-radius:8px; margin-bottom:16px;';
+                img.src = seo.url || termData.definition.featured_image;
+                img.alt = seo.alt || (termData.term + ' — SEO glossary illustration for Southeast Asia marketers');
+                if (seo.title) img.title = seo.title;
+                if (seo.width) img.width = seo.width;
+                if (seo.height) img.height = seo.height;
+                img.loading = 'lazy';
+                img.decoding = 'async';
+                img.style.cssText = 'width:100%; height:auto; border-radius:8px; margin-bottom:16px;';
                 content.appendChild(img);
             }
 

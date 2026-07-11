@@ -182,44 +182,183 @@ router.get('/articles/:slug', async (req, res) => {
 
 // ==================== GLOSSARY ====================
 
-// Get all glossary terms
+// Get all glossary terms (joins Image Library SEO fields when featured_image matches)
 router.get('/glossary', async (req, res) => {
   try {
     const letter = req.query.letter || '';
 
-    let query = 'SELECT * FROM glossary';
+    // Lateral join picks gallery row whose CDN URL / filename matches glossary.featured_image
+    let query = `
+      SELECT g.*,
+        img.alt_text AS image_alt,
+        img.title AS image_title,
+        img.description AS image_description,
+        img.width AS image_width,
+        img.height AS image_height,
+        img.filename AS image_filename,
+        img.cdn_url AS image_cdn_url
+      FROM glossary g
+      LEFT JOIN LATERAL (
+        SELECT alt_text, title, description, width, height, filename, cdn_url
+        FROM images
+        WHERE status = 'active'
+          AND g.featured_image IS NOT NULL
+          AND g.featured_image <> ''
+          AND (
+            cdn_url = g.featured_image
+            OR g.featured_image LIKE '%' || filename
+            OR (original_filename IS NOT NULL AND g.featured_image LIKE '%' || original_filename)
+          )
+        ORDER BY CASE WHEN cdn_url = g.featured_image THEN 0 ELSE 1 END
+        LIMIT 1
+      ) img ON TRUE`;
     const params = [];
 
     if (letter) {
-      query += ' WHERE letter = $1';
+      query += ' WHERE g.letter = $1';
       params.push(letter.toUpperCase());
     }
 
-    query += ' ORDER BY term ASC';
+    query += ' ORDER BY g.term ASC';
 
     const result = await db.query(query, params);
 
     // Transform for frontend
-    const terms = result.rows.map(item => ({
-      id: item.id,
-      term: item.term,
-      slug: item.slug || '',
-      definition: item.definition,
-      category: item.category,
-      categories: item.categories || [],
-      related_terms: item.related_terms || [],
-      letter: item.letter,
-      bullets: item.bullets || [],
-      example: item.example || '',
-      video_url: item.video_url || '',
-      featured_image: item.featured_image || '',
-      article_link: item.article_link || ''
-    }));
+    const terms = result.rows.map(item => {
+      const featured = item.featured_image || item.image_cdn_url || '';
+      const fallbackAlt = item.term
+        ? `${item.term} — SEO glossary illustration for Southeast Asia marketers`
+        : 'SEO glossary illustration';
+      return {
+        id: item.id,
+        term: item.term,
+        slug: item.slug || '',
+        definition: item.definition,
+        category: item.category,
+        categories: item.categories || [],
+        related_terms: item.related_terms || [],
+        letter: item.letter,
+        bullets: item.bullets || [],
+        example: item.example || '',
+        video_url: item.video_url || '',
+        featured_image: featured,
+        article_link: item.article_link || '',
+        // Connected Image Library SEO (bots + UI)
+        image_seo: featured ? {
+          url: featured,
+          alt: (item.image_alt && String(item.image_alt).trim()) || fallbackAlt,
+          title: (item.image_title && String(item.image_title).trim()) || item.term || '',
+          description: item.image_description || '',
+          width: item.image_width || null,
+          height: item.image_height || null,
+          filename: item.image_filename || null,
+        } : null,
+      };
+    });
 
     respond(res, terms);
   } catch (error) {
     console.error('Public API - Glossary error:', error);
-    respond(res, { error: 'Failed to load glossary' }, 500);
+    // Fallback without join if images table/columns missing
+    try {
+      let query = 'SELECT * FROM glossary';
+      const params = [];
+      if (letter) {
+        query += ' WHERE letter = $1';
+        params.push(letter.toUpperCase());
+      }
+      query += ' ORDER BY term ASC';
+      const result = await db.query(query, params);
+      const terms = result.rows.map(item => ({
+        id: item.id,
+        term: item.term,
+        slug: item.slug || '',
+        definition: item.definition,
+        category: item.category,
+        categories: item.categories || [],
+        related_terms: item.related_terms || [],
+        letter: item.letter,
+        bullets: item.bullets || [],
+        example: item.example || '',
+        video_url: item.video_url || '',
+        featured_image: item.featured_image || '',
+        article_link: item.article_link || '',
+        image_seo: item.featured_image ? {
+          url: item.featured_image,
+          alt: `${item.term} — SEO glossary illustration for Southeast Asia marketers`,
+          title: item.term || '',
+          description: '',
+          width: null,
+          height: null,
+          filename: null,
+        } : null,
+      }));
+      respond(res, terms);
+    } catch (e2) {
+      respond(res, { error: 'Failed to load glossary' }, 500);
+    }
+  }
+});
+
+// ==================== IMAGE SEO (public, for static site + bots) ====================
+// Exposes Image Library alt/title/dimensions so front-end pages can render
+// crawlable SEO image attributes connected to admin gallery metadata.
+
+router.get('/images/seo', async (req, res) => {
+  try {
+    const url = (req.query.url || req.query.cdn_url || '').trim();
+    const filename = (req.query.filename || '').trim();
+
+    if (url || filename) {
+      const result = await db.query(
+        `SELECT filename, original_filename, cdn_url, alt_text, title, description, width, height, mime_type
+         FROM images
+         WHERE status = 'active'
+           AND (
+             ($1 <> '' AND (cdn_url = $1 OR cdn_url LIKE '%' || $1 OR $1 LIKE '%' || filename))
+             OR ($2 <> '' AND (filename = $2 OR original_filename = $2 OR filename ILIKE $2 OR original_filename ILIKE $2))
+           )
+         ORDER BY updated_at DESC NULLS LAST
+         LIMIT 5`,
+        [url, filename]
+      );
+      const rows = result.rows.map((r) => ({
+        filename: r.filename,
+        original_filename: r.original_filename,
+        cdn_url: r.cdn_url,
+        alt_text: r.alt_text || '',
+        title: r.title || '',
+        description: r.description || '',
+        width: r.width,
+        height: r.height,
+        mime_type: r.mime_type,
+      }));
+      return respond(res, { count: rows.length, images: rows, image: rows[0] || null });
+    }
+
+    // Full map (capped) for static generators
+    const result = await db.query(
+      `SELECT filename, original_filename, cdn_url, alt_text, title, description, width, height, mime_type
+       FROM images
+       WHERE status = 'active' AND cdn_url IS NOT NULL AND cdn_url <> ''
+       ORDER BY updated_at DESC NULLS LAST
+       LIMIT 2000`
+    );
+    const images = result.rows.map((r) => ({
+      filename: r.filename,
+      original_filename: r.original_filename,
+      cdn_url: r.cdn_url,
+      alt_text: r.alt_text || '',
+      title: r.title || '',
+      description: r.description || '',
+      width: r.width,
+      height: r.height,
+      mime_type: r.mime_type,
+    }));
+    respond(res, { count: images.length, images });
+  } catch (error) {
+    console.error('Public API - Images SEO error:', error);
+    respond(res, { error: 'Failed to load image SEO metadata' }, 500);
   }
 });
 
