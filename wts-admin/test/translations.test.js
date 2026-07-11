@@ -2357,3 +2357,13 @@ test('per-section verify: untick, autosave, acknowledged finish, resets, surface
     await pool.query(`DELETE FROM glossary WHERE id = $1`, [gid]);
   }
 });
+
+test('workers get their own mobile dock: workspace, work hub, earnings', async () => {
+  const session = new Session(server.base);
+  await session.login('translator@test.local');
+  const html = await (await session.fetch('/translations/workspace')).text();
+  assert.ok(html.includes('id="bottomDock"'), 'dock renders for workers');
+  assert.match(html, /bottom-dock[\s\S]*\/workforce\/my/, 'dock points at the work hub');
+  assert.match(html, /bottom-dock[\s\S]*\/translations\/earnings/, 'dock points at earnings');
+  assert.ok(!/bottom-dock[\s\S]*href="\/dashboard"/.test(html), 'no admin dashboard in the worker dock');
+});
