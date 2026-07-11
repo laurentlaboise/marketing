@@ -192,6 +192,67 @@ button.share-btn,
 .key-box a.concept-jump:hover{color:#d62b83}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
+
+/* Responsive polish */
+@media (min-width: 900px) {
+  .container { max-width: 900px; padding: 0 24px; }
+  .article-toc { position: sticky; top: 12px; z-index: 2; }
+}
+@media (max-width: 768px) {
+  body { font-size: 16px; }
+  .container { width: auto; max-width: 100%; padding: 0 16px; }
+  h1 { font-size: 1.55rem !important; line-height: 1.25; }
+  h2 { font-size: 1.25rem !important; }
+  .article-header { margin-bottom: 1.25rem; padding-bottom: 1rem; }
+  .article-meta { gap: 10px; font-size: 0.85rem; justify-content: flex-start; }
+  .featured-image-wrapper { margin-bottom: 1.25rem; border-radius: 10px; }
+  .article-toc { padding: 0.9rem 1rem; margin-bottom: 1.25rem; }
+  .article-toc ol { padding-left: 1.1rem; }
+  .key-box { padding: 1rem; }
+  .share-dock {
+    left: 50% !important;
+    right: auto !important;
+    bottom: 12px !important;
+    top: auto !important;
+    transform: translateX(-50%);
+    flex-direction: row !important;
+    width: auto;
+    max-width: calc(100vw - 16px);
+    padding: 8px 10px !important;
+  }
+  .share-dock .share-label { display: none; }
+  .share-dock .share-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .cta, .cta-box { padding: 1.35rem 1.1rem !important; margin: 1.75rem 0 !important; }
+  .cta a, .cta-button { display: inline-block; margin: 0.35rem 0; }
+  .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
+  .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .back-link { margin: 16px 0 12px; }
+}
+@media (min-width: 769px) {
+  .share-dock {
+    /* desktop: left sticky stack if present */
+  }
+}
+
+
+.key-concepts-top, .key-box.key-concepts-top {
+  margin: 0 0 1.5rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+}
+.key-concepts-top h3 { margin-top: 0 !important; color: #1e3a5f; }
+@media (min-width: 900px) {
+  .key-concepts-top, .key-box.key-concepts-top {
+    max-width: 100%;
+  }
+}
 </style>
     <script type="application/ld+json">
     {"@context": "https://schema.org", "@type": "Article", "headline": "Domain Trust: SEO Guide 2026", "description": "The level of confidence search engines have in a website's credibility, built over time through high-quality backlinks, secure protocols, and adherence to …", "author": {"@type": "Person", "name": "Laurent Laboise"}, "publisher": {"@type": "Organization", "name": "WordsThatSells", "url": "https://wordsthatsells.website"}, "mainEntityOfPage": "https://wordsthatsells.website/en/resources/glossary/domain-trust-signals-2026.html", "dateModified": "2026-07-12", "image": {"@type": "ImageObject", "url": "https://wordsthatsells.website/images/domain-trust.webp", "contentUrl": "https://wordsthatsells.website/images/domain-trust.webp", "description": "Domain Trust \u2014 SEO glossary illustration for Southeast Asia marketers", "caption": "Domain Trust \u2014 SEO glossary illustration for Southeast Asia marketers", "width": 1200, "height": 630}, "about": {"@type": "DefinedTerm", "name": "Domain Trust", "description": "The level of confidence search engines have in a website's credibility, built over time through high-quality backlinks, secure protocols, and adherence to webmaster guidelines."}, "video": {"@type": "VideoObject", "name": "Domain Trust explainer", "embedUrl": "https://www.youtube.com/embed/WC6dtzY2eTU", "contentUrl": "https://www.youtube.com/watch?v=WC6dtzY2eTU"}}
@@ -210,13 +271,8 @@ button.share-btn,
       </div>
     </header>
     
-    <div class="featured-image-wrapper">
-      <img class="featured-image" src="https://wordsthatsells.website/images/domain-trust.webp" width="1200" height="630" alt="Domain Trust — SEO glossary illustration for Southeast Asia marketers" title="Domain Trust" loading="eager" decoding="async" fetchpriority="high">
-    </div>
-    <article>
-    <h2 id="what-is">What is Domain Trust?</h2>
-    <p>The level of confidence search engines have in a website&#x27;s credibility, built over time through high-quality backlinks, secure protocols, and adherence to webmaster guidelines.</p>
-    <div class="key-box" id="key-concepts">
+    
+    <div class="key-box key-concepts-top" id="key-concepts">
       <h3 style="margin-top:0">Key concepts</h3>
       <p class="toc-hint">Tap a concept to jump down the guide — an on-page index for readers and search engines.</p>
       <ul>
@@ -225,9 +281,12 @@ button.share-btn,
   <li><a class="concept-jump" href="#concept-2">Webmaster Guidelines</a></li>
 </ul>
     </div>
-    
-    
-    <section class="concept-sections" aria-label="Key concept details">    <h3 id="concept-0">Credibility</h3>
+<div class="featured-image-wrapper">
+      <img class="featured-image" src="https://wordsthatsells.website/images/domain-trust.webp" width="1200" height="630" alt="Domain Trust — SEO glossary illustration for Southeast Asia marketers" title="Domain Trust" loading="eager" decoding="async" fetchpriority="high">
+    </div>
+    <article>
+    <h2 id="what-is">What is Domain Trust?</h2>
+    <p>The level of confidence search engines have in a website&#x27;s credibility, built over time through high-quality backlinks, secure protocols, and adherence to webmaster guidelines.</p><section class="concept-sections" aria-label="Key concept details">    <h3 id="concept-0">Credibility</h3>
     <p>In SEO practice, <strong>Credibility</strong> helps you align content with how people search and how Google evaluates relevance. Use it when planning pages, briefs, and internal links for Southeast Asia markets.</p>    <h3 id="concept-1">Backlink Quality</h3>
     <p>In SEO practice, <strong>Backlink Quality</strong> helps you align content with how people search and how Google evaluates relevance. Use it when planning pages, briefs, and internal links for Southeast Asia markets.</p>    <h3 id="concept-2">Webmaster Guidelines</h3>
     <p>In SEO practice, <strong>Webmaster Guidelines</strong> helps you align content with how people search and how Google evaluates relevance. Use it when planning pages, briefs, and internal links for Southeast Asia markets.</p>    </section>
