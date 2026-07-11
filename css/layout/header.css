@@ -30,12 +30,32 @@
     z-index: -1; 
 }
 
-.hero-title { 
-    font-family: var(--font-family-heading); 
-    line-height: 1.1; 
-    font-weight: 800; 
-    font-size: clamp(2.5rem, 8vw, 5rem); 
-    margin-bottom: var(--spacing-md); 
+.hero-title {
+    font-family: var(--font-family-heading);
+    line-height: 1.1;
+    font-weight: 800;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    margin-bottom: var(--spacing-md);
+}
+
+.hero-strapline {
+    font-family: var(--font-family-heading);
+    font-weight: 700;
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    letter-spacing: 0.03em;
+    margin-bottom: var(--spacing-sm);
+}
+
+.hero-cta-tertiary {
+    color: var(--color-light-gray);
+    font-size: var(--font-size-lg);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.hero-cta-tertiary:hover,
+.hero-cta-tertiary:focus {
+    color: var(--color-white);
 }
 
 .hero-content p.hero-title { 
