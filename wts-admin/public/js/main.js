@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileSearch();
   initAlerts();
   initSubmenuToggle();
+  initRailToggle();
   initFormValidation();
   initConfirmDelete();
   initCopyCdnUrl();
@@ -67,13 +68,21 @@ function initSidebar() {
   const mobileMenuBtn = document.getElementById('mobileMenuBtn');
   const sidebarToggle = document.getElementById('sidebarToggle');
 
+  const openSidebar = () => {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+    if (mobileMenuBtn) mobileMenuBtn.classList.add('active');
+    lockBody();
+  };
+
   if (mobileMenuBtn) {
-    mobileMenuBtn.addEventListener('click', () => {
-      sidebar.classList.add('open');
-      overlay.classList.add('active');
-      mobileMenuBtn.classList.add('active');
-      lockBody();
-    });
+    mobileMenuBtn.addEventListener('click', openSidebar);
+  }
+
+  // Bottom dock "More" opens the same drawer.
+  const dockMore = document.getElementById('dockMore');
+  if (dockMore) {
+    dockMore.addEventListener('click', openSidebar);
   }
 
   if (overlay) {
@@ -99,51 +108,89 @@ function initSidebar() {
   });
 }
 
-// Submenu toggle with state persistence
+// Operate accordion: one section open at a time per accordion namespace
+// (data-accordion), so the column always fits one viewport. The active
+// page's section renders open server-side and always wins; otherwise the
+// last manually opened section is restored.
 function initSubmenuToggle() {
-  const submenuToggles = document.querySelectorAll('.submenu-toggle');
-  const STORAGE_KEY = 'wts_sidebar_submenu_state';
+  const items = document.querySelectorAll('.nav-item[data-accordion]');
+  const STORAGE_KEY = 'wts_sidebar_open_groups';
 
-  // Restore saved state
-  try {
-    const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    submenuToggles.forEach((toggle, index) => {
-      const parent = toggle.closest('.nav-item');
-      const submenu = parent.querySelector('.submenu');
-      if (savedState[index] && submenu) {
-        toggle.classList.add('active');
-        submenu.classList.add('open');
-      }
+  const setOpen = (item, open) => {
+    const toggle = item.querySelector('.submenu-toggle');
+    const submenu = item.querySelector('.submenu');
+    if (toggle) toggle.classList.toggle('active', open);
+    if (submenu) submenu.classList.toggle('open', open);
+  };
+
+  const readState = () => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch (e) { return {}; }
+  };
+  const saveState = (state) => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch (e) { /* ignore storage errors */ }
+  };
+
+  // Restore: within each namespace, open the saved group only when the
+  // server didn't already open one (the active page's section).
+  const state = readState();
+  const namespaces = new Set();
+  items.forEach((item) => namespaces.add(item.dataset.accordion));
+  namespaces.forEach((ns) => {
+    const group = Array.from(items).filter((i) => i.dataset.accordion === ns);
+    const serverOpen = group.find((i) => i.querySelector('.submenu.open'));
+    group.forEach((item) => {
+      const open = serverOpen ? item === serverOpen : state[ns] === item.dataset.group;
+      setOpen(item, open);
     });
-  } catch (e) { /* ignore parse errors */ }
+  });
 
-  function saveSubmenuState() {
-    const state = {};
-    submenuToggles.forEach((toggle, index) => {
-      state[index] = toggle.classList.contains('active');
-    });
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) { /* ignore storage errors */ }
-  }
-
-  submenuToggles.forEach(toggle => {
+  items.forEach((item) => {
+    const toggle = item.querySelector('.submenu-toggle');
+    if (!toggle) return;
     toggle.addEventListener('click', (e) => {
       e.preventDefault();
-      const parent = toggle.closest('.nav-item');
-      const submenu = parent.querySelector('.submenu');
-
-      // Toggle active class
-      toggle.classList.toggle('active');
-
-      // Toggle submenu
-      if (submenu) {
-        submenu.classList.toggle('open');
+      // A collapsed icon rail has no room for submenus — expand it and
+      // open the section instead.
+      if (document.body.classList.contains('rail-collapsed')) {
+        document.body.classList.remove('rail-collapsed');
+        try { localStorage.setItem('wts_sidebar_rail', '0'); } catch (err) { /* ignore */ }
       }
-
-      // Save state to localStorage
-      saveSubmenuState();
+      const ns = item.dataset.accordion;
+      const wasOpen = item.querySelector('.submenu') &&
+        item.querySelector('.submenu').classList.contains('open');
+      document.querySelectorAll('.nav-item[data-accordion="' + ns + '"]').forEach((sib) => {
+        setOpen(sib, sib === item && !wasOpen);
+      });
+      const state = readState();
+      state[ns] = wasOpen ? null : item.dataset.group;
+      saveState(state);
     });
+  });
+}
+
+// Desktop icon rail: collapse the sidebar to icons only; persisted per
+// browser. Submenu clicks re-expand (handled above).
+function initRailToggle() {
+  const railToggle = document.getElementById('railToggle');
+  if (!railToggle) return;
+  const KEY = 'wts_sidebar_rail';
+  const reflect = () => {
+    const collapsed = document.body.classList.contains('rail-collapsed');
+    const label = collapsed ? 'Expand menu' : 'Collapse menu';
+    railToggle.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+    railToggle.setAttribute('aria-label', label);
+    railToggle.setAttribute('title', label);
+  };
+  try {
+    if (localStorage.getItem(KEY) === '1') document.body.classList.add('rail-collapsed');
+  } catch (e) { /* ignore */ }
+  reflect();
+  railToggle.addEventListener('click', () => {
+    const collapsed = document.body.classList.toggle('rail-collapsed');
+    try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch (e) { /* ignore */ }
+    reflect();
   });
 }
 

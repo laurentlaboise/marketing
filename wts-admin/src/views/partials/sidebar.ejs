@@ -3,25 +3,47 @@
     <div class="logo">
       <img src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WTS Admin" class="logo-img">
     </div>
+    <button class="rail-toggle" id="railToggle" aria-pressed="false" aria-label="Collapse menu" title="Collapse menu">
+      <i class="fas fa-angles-left"></i>
+    </button>
     <button class="sidebar-toggle" id="sidebarToggle" aria-label="Close menu">
       <i class="fas fa-times"></i>
     </button>
   </div>
 
   <%
-    // Role-scoped navigation: workers (translators and payable vendors —
-    // lead verifiers, engagement associates, cascade coordinators) see
-    // their workspace, work hub and earnings; everything else is the
-    // admin control plane ('admin' and 'superadmin' are synonyms).
+    // Role-scoped, job-organized navigation (three zones):
+    //   WORKSPACE — pinned daily surfaces, never collapses
+    //   OPERATE   — one accordion, one section open at a time
+    //   UTILITY   — profile/settings/legal, collapsed out of the way
+    // Workers (translators and payable vendors) see their workspace, work
+    // hub and earnings; the operations accordion is the admin control
+    // plane ('admin' and 'superadmin' are synonyms).
     var isAdminRole = user && ['admin', 'superadmin'].includes(user.role);
     var isTranslatorRole = user && user.role === 'translator';
     var isWorker = user && (isTranslatorRole || user.is_vendor === true);
+
+    // currentPage keys per Operate section — the active section renders
+    // open and the accordion keeps it that way.
+    var OPERATE = {
+      content: ['articles', 'seo-terms', 'ai-tools', 'glossary', 'guides'],
+      localization: ['translations', 'translation-vendors', 'translation-payouts'],
+      workforce: ['leads', 'engagement', 'work-hub'],
+      commerce: ['orders', 'payments', 'customers', 'boards', 'products', 'pricing'],
+      web: ['microsites', 'menus', 'footers', 'footer-settings', 'sidebar', 'form-templates', 'submissions', 'affiliates', 'agencies'],
+    };
+    var isOpen = function (key) { return OPERATE[key].includes(currentPage); };
+    var isUtility = ['profile', 'settings'].includes(currentPage);
   %>
+
   <nav class="sidebar-nav">
     <ul class="nav-list">
+      <!-- ── WORKSPACE: pinned daily surfaces ─────────────────── -->
+      <li class="nav-zone-label">Workspace</li>
+
       <% if (!isTranslatorRole) { %>
       <li class="nav-item">
-        <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+        <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>" title="Dashboard">
           <i class="fas fa-home"></i>
           <span>Dashboard</span>
         </a>
@@ -29,23 +51,23 @@
       <% } %>
 
       <% if (isTranslatorRole || isAdminRole) { %>
-      <!-- Translator workspace -->
       <li class="nav-item">
-        <a href="/translations/workspace" class="nav-link <%= currentPage === 'workspace' ? 'active' : '' %>">
+        <a href="/translations/workspace" class="nav-link <%= currentPage === 'workspace' ? 'active' : '' %>" title="My Workspace">
           <i class="fas fa-pen-to-square"></i>
           <span>My Workspace</span>
         </a>
       </li>
       <% } %>
+
       <% if (isWorker && !isAdminRole) { %>
       <li class="nav-item">
-        <a href="/workforce/my" class="nav-link <%= currentPage === 'work-hub' ? 'active' : '' %>">
+        <a href="/workforce/my" class="nav-link <%= currentPage === 'work-hub' ? 'active' : '' %>" title="My Work Hub">
           <i class="fas fa-briefcase"></i>
           <span>My Work Hub</span>
         </a>
       </li>
       <li class="nav-item">
-        <a href="/translations/earnings" class="nav-link <%= currentPage === 'earnings' ? 'active' : '' %>">
+        <a href="/translations/earnings" class="nav-link <%= currentPage === 'earnings' ? 'active' : '' %>" title="My Earnings">
           <i class="fas fa-coins"></i>
           <span>My Earnings</span>
         </a>
@@ -53,52 +75,31 @@
       <% } %>
 
       <% if (isAdminRole) { %>
-      <!-- Localization -->
-      <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['translations', 'translation-vendors', 'translation-payouts'].includes(currentPage) ? 'active' : '' %>">
-          <i class="fas fa-language"></i>
-          <span>Localization</span>
-          <i class="fas fa-chevron-down submenu-arrow"></i>
-        </a>
-        <ul class="submenu <%= ['translations', 'translation-vendors', 'translation-payouts'].includes(currentPage) ? 'open' : '' %>">
-          <li><a href="/translations" class="<%= currentPage === 'translations' ? 'active' : '' %>"><i class="fas fa-list-check"></i> Translations</a></li>
-          <li><a href="/translations/vendors" class="<%= currentPage === 'translation-vendors' ? 'active' : '' %>"><i class="fas fa-user-tag"></i> Team &amp; Vendors</a></li>
-          <li><a href="/translations/payouts" class="<%= currentPage === 'translation-payouts' ? 'active' : '' %>"><i class="fas fa-coins"></i> Payout Ledger</a></li>
-        </ul>
-      </li>
-
-      <!-- Partner programs: portal applications awaiting a human yes -->
       <li class="nav-item">
-        <a href="/partners" class="nav-link <%= currentPage === 'partners' ? 'active' : '' %>">
+        <a href="/partners" class="nav-link <%= currentPage === 'partners' ? 'active' : '' %>" title="Partner Programs">
           <i class="fas fa-handshake-angle"></i>
           <span>Partner Programs</span>
         </a>
       </li>
-
-      <!-- Workforce -->
-      <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['leads', 'engagement', 'work-hub'].includes(currentPage) ? 'active' : '' %>">
-          <i class="fas fa-people-group"></i>
-          <span>Workforce</span>
-          <i class="fas fa-chevron-down submenu-arrow"></i>
+      <li class="nav-item">
+        <a href="/images" class="nav-link <%= currentPage === 'images' ? 'active' : '' %>" title="Image Library">
+          <i class="fas fa-images"></i>
+          <span>Image Library</span>
         </a>
-        <ul class="submenu <%= ['leads', 'engagement', 'work-hub'].includes(currentPage) ? 'open' : '' %>">
-          <li><a href="/workforce/leads" class="<%= currentPage === 'leads' ? 'active' : '' %>"><i class="fas fa-address-book"></i> Leads CRM</a></li>
-          <li><a href="/workforce/engagement" class="<%= currentPage === 'engagement' ? 'active' : '' %>"><i class="fas fa-comments"></i> Engagement &amp; Cascades</a></li>
-          <li><a href="/workforce/my" class="<%= currentPage === 'work-hub' ? 'active' : '' %>"><i class="fas fa-briefcase"></i> Work Hub (worker view)</a></li>
-        </ul>
       </li>
       <% } %>
 
       <% if (isAdminRole) { %>
-      <!-- Resource Management -->
-      <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['articles', 'seo-terms', 'ai-tools', 'glossary', 'guides'].includes(currentPage) ? 'active' : '' %>">
+      <!-- ── OPERATE: one section open at a time ──────────────── -->
+      <li class="nav-zone-label">Operate</li>
+
+      <li class="nav-item has-submenu" data-accordion="operate" data-group="content">
+        <a href="#" class="nav-link submenu-toggle <%= isOpen('content') ? 'active' : '' %>" title="Content">
           <i class="fas fa-file-alt"></i>
-          <span>Resource Management</span>
+          <span>Content</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['articles', 'seo-terms', 'ai-tools', 'glossary', 'guides'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= isOpen('content') ? 'open' : '' %>">
           <li><a href="/content/articles" class="<%= currentPage === 'articles' ? 'active' : '' %>"><i class="fas fa-newspaper"></i> Articles</a></li>
           <li><a href="/content/seo-terms" class="<%= currentPage === 'seo-terms' ? 'active' : '' %>"><i class="fas fa-search"></i> SEO Terms</a></li>
           <li><a href="/content/ai-tools" class="<%= currentPage === 'ai-tools' ? 'active' : '' %>"><i class="fas fa-robot"></i> AI Tools</a></li>
@@ -107,89 +108,82 @@
         </ul>
       </li>
 
-      <!-- Website Resources -->
-      <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['affiliates', 'agencies', 'products', 'pricing'].includes(currentPage) ? 'active' : '' %>">
-          <i class="fas fa-briefcase"></i>
-          <span>Website Resources</span>
+      <li class="nav-item has-submenu" data-accordion="operate" data-group="localization">
+        <a href="#" class="nav-link submenu-toggle <%= isOpen('localization') ? 'active' : '' %>" title="Localization">
+          <i class="fas fa-language"></i>
+          <span>Localization</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['affiliates', 'agencies', 'products', 'pricing'].includes(currentPage) ? 'open' : '' %>">
-          <li><a href="/business/affiliates" class="<%= currentPage === 'affiliates' ? 'active' : '' %>"><i class="fas fa-handshake"></i> Affiliate Solutions</a></li>
-          <li><a href="/business/agencies" class="<%= currentPage === 'agencies' ? 'active' : '' %>"><i class="fas fa-building"></i> Agency Management</a></li>
-          <li><a href="/business/products" class="<%= currentPage === 'products' ? 'active' : '' %>"><i class="fas fa-box"></i> Products</a></li>
-          <li><a href="/business/pricing" class="<%= currentPage === 'pricing' ? 'active' : '' %>"><i class="fas fa-tags"></i> Packages</a></li>
+        <ul class="submenu <%= isOpen('localization') ? 'open' : '' %>">
+          <li><a href="/translations" class="<%= currentPage === 'translations' ? 'active' : '' %>"><i class="fas fa-list-check"></i> Translations</a></li>
+          <li><a href="/translations/vendors" class="<%= currentPage === 'translation-vendors' ? 'active' : '' %>"><i class="fas fa-user-tag"></i> Team &amp; Vendors</a></li>
+          <li><a href="/translations/payouts" class="<%= currentPage === 'translation-payouts' ? 'active' : '' %>"><i class="fas fa-coins"></i> Payout Ledger</a></li>
         </ul>
       </li>
 
-      <!-- Sales -->
-      <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['orders', 'customers', 'boards', 'payments'].includes(currentPage) ? 'active' : '' %>">
-          <i class="fas fa-cash-register"></i>
-          <span>Sales</span>
+      <li class="nav-item has-submenu" data-accordion="operate" data-group="workforce">
+        <a href="#" class="nav-link submenu-toggle <%= isOpen('workforce') ? 'active' : '' %>" title="Workforce">
+          <i class="fas fa-people-group"></i>
+          <span>Workforce</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['orders', 'customers', 'boards', 'payments'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= isOpen('workforce') ? 'open' : '' %>">
+          <li><a href="/workforce/leads" class="<%= currentPage === 'leads' ? 'active' : '' %>"><i class="fas fa-address-book"></i> Leads CRM</a></li>
+          <li><a href="/workforce/engagement" class="<%= currentPage === 'engagement' ? 'active' : '' %>"><i class="fas fa-comments"></i> Engagement &amp; Cascades</a></li>
+          <li><a href="/workforce/my" class="<%= currentPage === 'work-hub' ? 'active' : '' %>"><i class="fas fa-briefcase"></i> Work Hub (worker view)</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item has-submenu" data-accordion="operate" data-group="commerce">
+        <a href="#" class="nav-link submenu-toggle <%= isOpen('commerce') ? 'active' : '' %>" title="Commerce">
+          <i class="fas fa-cash-register"></i>
+          <span>Commerce</span>
+          <i class="fas fa-chevron-down submenu-arrow"></i>
+        </a>
+        <ul class="submenu <%= isOpen('commerce') ? 'open' : '' %>">
           <li><a href="/business/orders" class="<%= currentPage === 'orders' ? 'active' : '' %>"><i class="fas fa-receipt"></i> Orders</a></li>
           <li><a href="/business/payments" class="<%= currentPage === 'payments' ? 'active' : '' %>"><i class="fas fa-credit-card"></i> Payments</a></li>
           <li><a href="/business/customers" class="<%= currentPage === 'customers' ? 'active' : '' %>"><i class="fas fa-user-group"></i> Clients</a></li>
+          <li><a href="/business/products" class="<%= currentPage === 'products' ? 'active' : '' %>"><i class="fas fa-box"></i> Products</a></li>
+          <li><a href="/business/pricing" class="<%= currentPage === 'pricing' ? 'active' : '' %>"><i class="fas fa-tags"></i> Packages</a></li>
           <% if (typeof featureWhiteboard !== 'undefined' && featureWhiteboard) { %>
           <li><a href="/business/boards" class="<%= currentPage === 'boards' ? 'active' : '' %>"><i class="fas fa-chalkboard"></i> Boards</a></li>
           <% } %>
         </ul>
       </li>
 
-      <!-- Message Board -->
-      <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['form-templates', 'submissions'].includes(currentPage) ? 'active' : '' %>">
-          <i class="fas fa-envelope-open-text"></i>
-          <span>Message Board</span>
-          <i class="fas fa-chevron-down submenu-arrow"></i>
-        </a>
-        <ul class="submenu <%= ['form-templates', 'submissions'].includes(currentPage) ? 'open' : '' %>">
-          <li><a href="/webdev/form-templates" class="<%= currentPage === 'form-templates' ? 'active' : '' %>"><i class="fas fa-file-lines"></i> Forms</a></li>
-          <li><a href="/webdev/submissions" class="<%= currentPage === 'submissions' ? 'active' : '' %>"><i class="fas fa-inbox"></i> Submissions</a></li>
-        </ul>
-      </li>
-
-      <!-- Connections -->
-      <li class="nav-item has-submenu">
-        <a href="#" class="nav-link submenu-toggle <%= ['microsites', 'sidebar', 'menus', 'footer-settings', 'footers'].includes(currentPage) ? 'active' : '' %>">
+      <li class="nav-item has-submenu" data-accordion="operate" data-group="web">
+        <a href="#" class="nav-link submenu-toggle <%= isOpen('web') ? 'active' : '' %>" title="Web &amp; Connections">
           <i class="fas fa-plug"></i>
-          <span>Connections</span>
+          <span>Web &amp; Connections</span>
           <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-        <ul class="submenu <%= ['microsites', 'sidebar', 'menus', 'footer-settings', 'footers'].includes(currentPage) ? 'open' : '' %>">
+        <ul class="submenu <%= isOpen('web') ? 'open' : '' %>">
           <li><a href="/webdev/microsites" class="<%= currentPage === 'microsites' ? 'active' : '' %>"><i class="fas fa-globe"></i> Microsites</a></li>
           <li><a href="/webdev/menus" class="<%= currentPage === 'menus' ? 'active' : '' %>"><i class="fas fa-bars"></i> Menu Manager</a></li>
           <li><a href="/webdev/footers" class="<%= currentPage === 'footers' || currentPage === 'footer-settings' ? 'active' : '' %>"><i class="fas fa-shoe-prints"></i> Footer Manager</a></li>
           <li><a href="/webdev/sidebar" class="<%= currentPage === 'sidebar' ? 'active' : '' %>"><i class="fas fa-window-restore"></i> Sidebar Manager</a></li>
+          <li><a href="/webdev/form-templates" class="<%= currentPage === 'form-templates' ? 'active' : '' %>"><i class="fas fa-file-lines"></i> Forms</a></li>
+          <li><a href="/webdev/submissions" class="<%= currentPage === 'submissions' ? 'active' : '' %>"><i class="fas fa-inbox"></i> Submissions</a></li>
+          <li><a href="/business/affiliates" class="<%= currentPage === 'affiliates' ? 'active' : '' %>"><i class="fas fa-handshake"></i> Affiliate Solutions</a></li>
+          <li><a href="/business/agencies" class="<%= currentPage === 'agencies' ? 'active' : '' %>"><i class="fas fa-building"></i> Agency Management</a></li>
         </ul>
-      </li>
-
-      <!-- Image Library -->
-      <li class="nav-item">
-        <a href="/images" class="nav-link <%= currentPage === 'images' ? 'active' : '' %>">
-          <i class="fas fa-images"></i>
-          <span>Image Library</span>
-        </a>
       </li>
       <% } %>
 
+      <!-- ── UTILITY: configuration, collapsed out of the way ─── -->
       <li class="nav-divider"></li>
-
-      <li class="nav-item">
-        <a href="/dashboard/profile" class="nav-link <%= currentPage === 'profile' ? 'active' : '' %>">
-          <i class="fas fa-user"></i>
-          <span>Profile</span>
+      <li class="nav-item has-submenu" data-accordion="utility" data-group="utility">
+        <a href="#" class="nav-link submenu-toggle <%= isUtility ? 'active' : '' %>" title="Profile, settings &amp; legal">
+          <i class="fas fa-sliders"></i>
+          <span>Profile &amp; Settings</span>
+          <i class="fas fa-chevron-down submenu-arrow"></i>
         </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="/dashboard/settings" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %>">
-          <i class="fas fa-cog"></i>
-          <span>Settings</span>
-        </a>
+        <ul class="submenu <%= isUtility ? 'open' : '' %>">
+          <li><a href="/dashboard/profile" class="<%= currentPage === 'profile' ? 'active' : '' %>"><i class="fas fa-user"></i> Profile</a></li>
+          <li><a href="/dashboard/settings" class="<%= currentPage === 'settings' ? 'active' : '' %>"><i class="fas fa-cog"></i> Settings</a></li>
+          <li><a href="https://wordsthatsells.website/en/company/legal/" target="_blank" rel="noopener noreferrer"><i class="fas fa-scale-balanced"></i> Legal</a></li>
+        </ul>
       </li>
     </ul>
   </nav>
@@ -210,10 +204,7 @@
       </div>
     </div>
     <% } %>
-    <div class="sidebar-legal">
-      <%- include('legal-bar', { compact: true }) %>
-    </div>
-    <a href="/auth/logout" class="logout-btn">
+    <a href="/auth/logout" class="logout-btn" title="Logout">
       <i class="fas fa-sign-out-alt"></i>
       <span>Logout</span>
     </a>
@@ -221,3 +212,22 @@
 </aside>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Mobile bottom dock: the 3 highest-frequency destinations for this
+     role plus "More" (opens the drawer). Hidden ≥768px. -->
+<nav class="bottom-dock" id="bottomDock" aria-label="Quick navigation">
+  <% if (isAdminRole) { %>
+    <a href="/dashboard" class="<%= currentPage === 'dashboard' ? 'active' : '' %>"><i class="fas fa-home"></i><span>Dashboard</span></a>
+    <a href="/translations/workspace" class="<%= currentPage === 'workspace' ? 'active' : '' %>"><i class="fas fa-pen-to-square"></i><span>Workspace</span></a>
+    <a href="/partners" class="<%= currentPage === 'partners' ? 'active' : '' %>"><i class="fas fa-handshake-angle"></i><span>Partners</span></a>
+  <% } else if (isWorker) { %>
+    <a href="/translations/workspace" class="<%= currentPage === 'workspace' ? 'active' : '' %>"><i class="fas fa-pen-to-square"></i><span>Workspace</span></a>
+    <a href="/workforce/my" class="<%= currentPage === 'work-hub' ? 'active' : '' %>"><i class="fas fa-briefcase"></i><span>Work Hub</span></a>
+    <a href="/translations/earnings" class="<%= currentPage === 'earnings' ? 'active' : '' %>"><i class="fas fa-coins"></i><span>Earnings</span></a>
+  <% } else { %>
+    <a href="/dashboard" class="<%= currentPage === 'dashboard' ? 'active' : '' %>"><i class="fas fa-home"></i><span>Dashboard</span></a>
+    <a href="/dashboard/profile" class="<%= currentPage === 'profile' ? 'active' : '' %>"><i class="fas fa-user"></i><span>Profile</span></a>
+    <a href="/dashboard/settings" class="<%= currentPage === 'settings' ? 'active' : '' %>"><i class="fas fa-cog"></i><span>Settings</span></a>
+  <% } %>
+  <button type="button" id="dockMore" aria-label="Open full menu"><i class="fas fa-bars"></i><span>More</span></button>
+</nav>

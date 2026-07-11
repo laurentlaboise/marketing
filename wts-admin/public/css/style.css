@@ -4788,3 +4788,88 @@ img, video, iframe, canvas, svg, embed, object {
     width: 100%;
   }
 }
+
+/* ── Sidebar redesign: zones, icon rail, bottom dock ─────────────── */
+
+/* Zone labels (WORKSPACE / OPERATE) */
+.nav-zone-label {
+  list-style: none;
+  padding: 14px 20px 6px;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Desktop icon rail: collapse to 64px via the shared layout variable so
+   the content column follows automatically. */
+.rail-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.rail-toggle:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+@media (min-width: 1025px) {
+  .rail-toggle { display: flex; }
+  body.rail-collapsed { --sidebar-width: 64px; }
+  body.rail-collapsed .sidebar .logo,
+  body.rail-collapsed .sidebar .nav-link span,
+  body.rail-collapsed .sidebar .submenu-arrow,
+  body.rail-collapsed .sidebar .nav-zone-label,
+  body.rail-collapsed .sidebar .submenu,
+  body.rail-collapsed .sidebar .user-details,
+  body.rail-collapsed .sidebar .logout-btn span { display: none; }
+  body.rail-collapsed .sidebar .sidebar-header { justify-content: center; padding: 20px 8px; }
+  body.rail-collapsed .sidebar .rail-toggle i { transform: rotate(180deg); }
+  body.rail-collapsed .sidebar .nav-link { justify-content: center; padding-left: 0; padding-right: 0; }
+  body.rail-collapsed .sidebar .nav-link i { margin: 0; }
+  body.rail-collapsed .sidebar .user-info { justify-content: center; }
+  body.rail-collapsed .sidebar .logout-btn { justify-content: center; }
+}
+
+/* Mobile bottom dock: the role's 3 core destinations + More (drawer).
+   Sits under the drawer/overlay (z 900 < 1000) so the full menu covers
+   it when open. */
+.bottom-dock { display: none; }
+@media (max-width: 768px) {
+  .bottom-dock {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 900;
+    background: var(--white, #ffffff);
+    border-top: 1px solid var(--gray-200, #e2e8f0);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .bottom-dock a,
+  .bottom-dock button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 44px;
+    background: none;
+    border: none;
+    text-decoration: none;
+    color: var(--gray-500, #64748b);
+    font-size: 0.66rem;
+    font-family: inherit;
+    padding: 4px 2px;
+    cursor: pointer;
+  }
+  .bottom-dock a i,
+  .bottom-dock button i { font-size: 1.05rem; }
+  .bottom-dock a.active { color: var(--primary-color, #d62b83); }
+  /* Keep page content clear of the dock */
+  .main-content { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+}

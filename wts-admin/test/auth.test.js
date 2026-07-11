@@ -212,3 +212,29 @@ test('remember me stretches the session to ~30 days; default stays short', async
   const longLived = await sessionExpiry(true);
   assert.ok(longLived > 20 * day, 'remember-me session lives ~30 days');
 });
+
+test('sidebar ships the three-zone architecture, icon rail and mobile dock', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const html = await (await session.fetch('/dashboard')).text();
+
+  // Zones: pinned Workspace, one Operate accordion, collapsed Utility.
+  assert.ok(html.includes('nav-zone-label'), 'zone labels render');
+  assert.match(html, />Workspace</);
+  assert.match(html, />Operate</);
+  for (const group of ['content', 'localization', 'workforce', 'commerce', 'web']) {
+    assert.ok(html.includes(`data-accordion="operate" data-group="${group}"`), `${group} section renders`);
+  }
+  assert.ok(html.includes('data-accordion="utility"'), 'utility drawer renders');
+
+  // Mechanics: desktop icon rail + mobile bottom dock.
+  assert.ok(html.includes('id="railToggle"'), 'icon-rail toggle ships');
+  assert.ok(html.includes('id="bottomDock"'), 'mobile dock ships');
+  assert.ok(html.includes('id="dockMore"'), 'dock More button ships');
+
+  // The active page's section renders open server-side (accordion keeps
+  // it as the one open section).
+  const articles = await (await session.fetch('/content/articles')).text();
+  assert.match(articles, /data-group="content"[\s\S]{0,600}?submenu open/, 'active section renders open');
+  assert.ok(!/data-group="commerce"[\s\S]{0,600}?submenu open/.test(articles), 'inactive sections render closed');
+});
