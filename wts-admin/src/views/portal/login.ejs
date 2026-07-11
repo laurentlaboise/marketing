@@ -1,64 +1,704 @@
 <%- include('partials/head') %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    .wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem 1.75rem; max-width: 420px; width: 100%; box-shadow: 0 10px 30px rgba(15,23,42,0.06); }
-    h1 { font-size: 1.35rem; color: #1a1a2e; margin-bottom: 0.4rem; }
-    p.sub { color: #64748b; font-size: 0.92rem; line-height: 1.55; margin-bottom: 1.25rem; }
+    /* Portal login — split-screen “command center” door (brand + product story) */
+    body.login-page {
+      font-family: 'Poppins', 'Inter', 'Noto Sans Thai', system-ui, sans-serif;
+      background: #0b1a28;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    body.login-page .topbar {
+      background: transparent;
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 20;
+      padding: 0.85rem 1.25rem;
+    }
+    body.login-page .topbar a.brand { display: none; } /* logo lives in showcase / form */
+    body.login-page .portal-legal-footer {
+      background: transparent;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      color: #94a3b8;
+    }
+    body.login-page .portal-legal-footer .foot,
+    body.login-page .portal-legal-footer .wts-legal-entity,
+    body.login-page .portal-legal-footer .foot-agree { color: #94a3b8; }
+    body.login-page .portal-legal-footer .wts-legal-bar a { color: #cbd5e1; }
+    body.login-page .portal-legal-footer .wts-legal-bar a:hover { color: #f9a8d4; }
+    body.login-page .portal-legal-footer .foot-agree a { color: #f9a8d4; }
+
+    .login-shell {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr;
+      min-height: 0;
+      padding-top: 3.25rem; /* room for floating topbar */
+    }
+    @media (min-width: 900px) {
+      .login-shell {
+        grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+        padding-top: 0;
+      }
+      body.login-page .topbar { background: transparent; }
+      body.login-page .portal-legal-footer { position: relative; z-index: 5; }
+    }
+
+    /* ── Showcase panel ── */
+    .login-showcase {
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      padding: 1.25rem 1.35rem 1.5rem;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(214,43,131,0.45), transparent 55%),
+        radial-gradient(ellipse 70% 50% at 90% 80%, rgba(31,133,201,0.28), transparent 50%),
+        linear-gradient(145deg, #0f2740 0%, #122a3f 45%, #1a1030 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.25rem;
+    }
+    @media (min-width: 900px) {
+      .login-showcase { padding: 3.5rem 3rem 3rem 3.25rem; min-height: 100%; }
+    }
+    .login-showcase__logo {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+    .login-showcase__logo img {
+      height: 36px;
+      width: auto;
+      display: block;
+    }
+    .login-showcase__kicker {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #fbcfe8;
+      margin: 0;
+    }
+    .login-showcase__title {
+      font-size: clamp(1.55rem, 3.2vw, 2.35rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin: 0.35rem 0 0.65rem;
+      max-width: 16ch;
+    }
+    .login-showcase__lead {
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+      max-width: 34rem;
+      margin: 0 0 0.5rem;
+    }
+
+    /* Feature carousel */
+    .feat-stage {
+      position: relative;
+      min-height: 210px;
+      margin: 0.5rem 0 0.25rem;
+    }
+    @media (min-width: 900px) { .feat-stage { min-height: 280px; } }
+    .feat-card {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+      pointer-events: none;
+      display: grid;
+      gap: 0.75rem;
+    }
+    .feat-card.is-active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      position: relative;
+    }
+    .feat-card__mock {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      padding: 0.85rem;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+      backdrop-filter: blur(6px);
+    }
+    .feat-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 0.25rem;
+    }
+    .feat-card p {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      margin: 0;
+      max-width: 36rem;
+    }
+    .feat-dots {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+    }
+    .feat-dots button {
+      width: 8px; height: 8px; border-radius: 999px;
+      border: none; padding: 0; cursor: pointer;
+      background: rgba(255,255,255,0.28);
+      transition: width 0.2s, background 0.2s;
+    }
+    .feat-dots button.is-active {
+      width: 22px;
+      background: #d62b83;
+    }
+    .login-showcase__trust {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin: 0.5rem 0 0;
+      font-weight: 600;
+    }
+
+    /* Compact showcase on small screens */
+    @media (max-width: 899px) {
+      .login-showcase {
+        padding: 1rem 1.15rem 1.15rem;
+      }
+      .login-showcase__title { max-width: none; font-size: 1.35rem; }
+      .login-showcase__lead { font-size: 0.88rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      .feat-stage { min-height: 0; }
+      .feat-card:not(.is-active) { display: none; }
+      .feat-card.is-active { position: relative; }
+      .feat-card__mock { display: none; } /* keep mobile lean — copy only */
+      .feat-dots { display: none; }
+      .login-showcase__trust { display: none; }
+    }
+
+    /* ── Mock UIs (illustrative product chrome until real screenshots) ── */
+    .mock-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .mock-col {
+      background: rgba(15,23,42,0.45);
+      border-radius: 10px;
+      padding: 0.45rem;
+      min-height: 120px;
+    }
+    .mock-col__h {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 0.4rem;
+    }
+    .mock-chip {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 0.4rem 0.45rem;
+      font-size: 0.68rem;
+      color: #e2e8f0;
+      margin-bottom: 0.35rem;
+      line-height: 1.3;
+    }
+    .mock-chip--hot { border-color: rgba(214,43,131,0.55); background: rgba(214,43,131,0.18); }
+    .mock-ai {
+      display: grid; gap: 0.5rem;
+    }
+    .mock-ai__bar {
+      display: flex; gap: 0.35rem; align-items: center;
+      font-size: 0.7rem; color: #cbd5e1;
+    }
+    .mock-ai__dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #d62b83;
+      box-shadow: 0 0 0 3px rgba(214,43,131,0.25);
+    }
+    .mock-ai__box {
+      background: rgba(15,23,42,0.5);
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      color: #e2e8f0;
+      border-left: 3px solid #d62b83;
+    }
+    .mock-ai__suggest {
+      display: flex; flex-wrap: wrap; gap: 0.35rem;
+    }
+    .mock-ai__suggest span {
+      font-size: 0.65rem; font-weight: 600;
+      background: rgba(214,43,131,0.2);
+      color: #fbcfe8;
+      border-radius: 999px;
+      padding: 0.25rem 0.55rem;
+    }
+    .mock-channels {
+      display: flex; flex-wrap: wrap; gap: 0.45rem;
+      margin-bottom: 0.55rem;
+    }
+    .mock-channels span {
+      font-size: 0.7rem; font-weight: 700;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 0.4rem 0.65rem;
+    }
+    .mock-flow {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #d62b83, #1f85c9, #34d399);
+      opacity: 0.9;
+      margin: 0.5rem 0;
+    }
+    .mock-chart {
+      display: flex; align-items: flex-end; gap: 0.35rem;
+      height: 90px; padding-top: 0.5rem;
+    }
+    .mock-chart i {
+      flex: 1;
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, #d62b83, rgba(214,43,131,0.35));
+      display: block;
+      min-height: 20%;
+    }
+    .mock-chart i:nth-child(2) { height: 55%; background: linear-gradient(180deg, #1f85c9, rgba(31,133,201,0.35)); }
+    .mock-chart i:nth-child(3) { height: 72%; }
+    .mock-chart i:nth-child(4) { height: 48%; background: linear-gradient(180deg, #1f85c9, rgba(31,133,201,0.35)); }
+    .mock-chart i:nth-child(5) { height: 88%; }
+    .mock-chart i:nth-child(6) { height: 64%; background: linear-gradient(180deg, #34d399, rgba(52,211,153,0.35)); }
+    .mock-meta {
+      display: flex; justify-content: space-between;
+      font-size: 0.68rem; color: #94a3b8; margin-top: 0.4rem;
+    }
+
+    /* ── Form panel ── */
+    .login-form-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1.25rem 2rem;
+      background: #f1f5f9;
+    }
+    @media (min-width: 900px) {
+      .login-form-panel {
+        min-height: 100%;
+        padding: 2.5rem 2rem;
+        background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+      }
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 1.85rem 1.6rem;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.08);
+      animation: cardIn 0.45s ease both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+    .card__brand {
+      display: none;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 899px) {
+      .card__brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 700;
+        color: #122a3f;
+        font-size: 0.95rem;
+        text-decoration: none;
+      }
+      .card__brand img { height: 28px; width: auto; }
+    }
+    h1 { font-size: 1.3rem; color: #0f172a; margin-bottom: 0.4rem; font-weight: 700; letter-spacing: -0.02em; }
+    p.sub { color: #64748b; font-size: 0.9rem; line-height: 1.55; margin-bottom: 1.25rem; }
     label { display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; }
-    input[type=email], input[type=password] { width: 100%; padding: 0.7rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 1rem; font-family: inherit; box-sizing: border-box; }
-    input[type=email]:focus, input[type=password]:focus { outline: 2px solid #d62b83; border-color: transparent; }
-    button[type=submit] { width: 100%; margin-top: 1rem; background: #d62b83; color: #fff; border: none; border-radius: 10px; padding: 0.8rem; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-    button[type=submit]:hover { background: #b91c6f; }
+    label .opt { font-weight: 500; color: #94a3b8; }
+    input[type=email], input[type=password], input[type=text].pw-input {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      box-sizing: border-box;
+      background: #fff;
+      color: #0f172a;
+    }
+    input:focus {
+      outline: 2px solid #d62b83;
+      border-color: transparent;
+    }
+    .pw-row { position: relative; }
+    .pw-row input { padding-right: 4.25rem; }
+    .pw-toggle {
+      position: absolute;
+      right: 0.45rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: #d62b83;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 0.35rem 0.5rem;
+    }
+    button[type=submit], .btn-continue {
+      width: 100%;
+      margin-top: 1rem;
+      background: #d62b83;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, transform 0.15s, opacity 0.15s;
+    }
+    button[type=submit]:hover:not(:disabled), .btn-continue:hover { background: #b91c6f; }
+    button[type=submit]:disabled {
+      opacity: 0.72;
+      cursor: wait;
+    }
     .notice { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 10px; padding: 0.8rem 1rem; font-size: 0.9rem; line-height: 1.5; }
     .error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 10px; padding: 0.8rem 1rem; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
-    .hint { color: #94a3b8; font-size: 0.8rem; margin-top: 1rem; line-height: 1.5; }
+    .hint { color: #64748b; font-size: 0.8rem; margin-top: 0.65rem; line-height: 1.5; }
+    .hint a { color: #d62b83; font-weight: 600; text-decoration: none; }
+    .hint a:hover { text-decoration: underline; }
     .sdiv { display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0 0.9rem; color: #94a3b8; font-size: 0.8rem; }
     .sdiv::before, .sdiv::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
     .social { display: flex; gap: 0.6rem; }
-    .social a { flex: 1; text-align: center; padding: 0.65rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 10px; color: #334155; text-decoration: none; font-size: 0.92rem; font-weight: 600; }
+    .social a {
+      flex: 1; text-align: center; padding: 0.65rem 0.5rem;
+      border: 1px solid #cbd5e1; border-radius: 10px; color: #334155;
+      text-decoration: none; font-size: 0.92rem; font-weight: 600;
+    }
     .social a:hover { border-color: #d62b83; color: #d62b83; }
+    /* Progressive steps */
+    .step-password[hidden] { display: none !important; }
+    .step-back {
+      display: inline-block;
+      margin: 0.35rem 0 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #d62b83;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0;
+    }
     /* Honeypot: parked far off-screen; humans never see or fill it. */
-    .hp-field { position: absolute; left: -5000px; top: -5000px; }
+    .hp-field { position: absolute; left: -5000px; top: -5000px; height: 0; overflow: hidden; }
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce) {
+      .card, .feat-card { animation: none !important; transition: none !important; }
+    }
   </style>
 </head>
-<body>
+<body class="login-page">
   <%- include('partials/topbar', { minimal: true }) %>
-  <div class="wrap">
-    <div class="card">
-      <% if (typeof error !== 'undefined' && error) { %><div class="error"><%= error %></div><% } %>
-      <% if (sent) { %>
-        <h1><%= t('login.checkEmailTitle') %></h1>
-        <p class="sub"><%- t('login.checkEmailBody', { email: '<strong>' + esc(email) + '</strong>' }) %></p>
-        <div class="notice"><%= t('login.spamNotice') %></div>
-        <p class="hint"><a href="/portal/login" style="color:#d62b83;"><%= t('login.useDifferentEmail') %></a></p>
-      <% } else { %>
-        <h1><%= t('login.welcomeTitle') %></h1>
-        <p class="sub"><%= t('login.welcomeSub') %></p>
-        <form method="POST" action="/portal/login">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <div class="hp-field" aria-hidden="true">
-            <label for="website">Website</label>
-            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+
+  <div class="login-shell">
+    <!-- Product story panel -->
+    <aside class="login-showcase" aria-label="<%= t('login.showcaseTitle') %>">
+      <a class="login-showcase__logo" href="https://wordsthatsells.website">
+        <img
+          src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg"
+          alt="WordsThatSells"
+          width="160"
+          height="40"
+          onerror="this.style.display='none'">
+        <span><%= t('common.brand') %></span>
+      </a>
+      <div>
+        <p class="login-showcase__kicker"><%= t('login.showcaseKicker') %></p>
+        <h2 class="login-showcase__title"><%= t('login.showcaseTitle') %></h2>
+        <p class="login-showcase__lead"><%= t('login.showcaseLead') %></p>
+      </div>
+
+      <div class="feat-stage" id="feat-stage">
+        <!-- Boards -->
+        <div class="feat-card is-active" data-feat="0">
+          <div class="feat-card__mock" aria-hidden="true">
+            <div class="mock-board">
+              <div class="mock-col">
+                <div class="mock-col__h">Brief</div>
+                <div class="mock-chip">Footprint · FB posts</div>
+                <div class="mock-chip">Landing sprint</div>
+              </div>
+              <div class="mock-col">
+                <div class="mock-col__h">In progress</div>
+                <div class="mock-chip mock-chip--hot">Growth ads · week 2</div>
+                <div class="mock-chip">LINE OA copy</div>
+              </div>
+              <div class="mock-col">
+                <div class="mock-col__h">Review</div>
+                <div class="mock-chip">Monthly report</div>
+                <div class="mock-chip">Approval · you</div>
+              </div>
+            </div>
           </div>
-          <label for="email"><%= t('login.emailLabel') %></label>
-          <input type="email" id="email" name="email" required maxlength="255" placeholder="<%= t('login.emailPlaceholder') %>" autocomplete="email" autofocus <%= email ? 'value="' + email + '"' : '' %>>
-          <label for="password" style="margin-top:0.85rem;"><%= t('login.passwordLabel') %> <span style="font-weight:400;color:#94a3b8;"><%= t('login.passwordOptional') %></span></label>
-          <input type="password" id="password" name="password" maxlength="200" placeholder="<%= t('login.passwordPlaceholder') %>" autocomplete="current-password">
-          <p class="hint" style="margin-top:0.5rem;"><%= t('login.forgotHint') %></p>
-          <button type="submit"><%= t('login.signIn') %></button>
-        </form>
-        <% var sGoogle = typeof googleEnabled !== 'undefined' && googleEnabled; %>
-        <% var sFacebook = typeof facebookEnabled !== 'undefined' && facebookEnabled; %>
-        <% if (sGoogle || sFacebook) { %>
-          <div class="sdiv"><span><%= t('login.orContinueWith') %></span></div>
-          <div class="social">
-            <% if (sGoogle) { %><a href="/portal/auth/google"><%= t('login.continueGoogle') %></a><% } %>
-            <% if (sFacebook) { %><a href="/portal/auth/facebook"><%= t('login.continueFacebook') %></a><% } %>
+          <div>
+            <h3><%= t('login.featBoardTitle') %></h3>
+            <p><%= t('login.featBoardBody') %></p>
           </div>
+        </div>
+
+        <!-- AI -->
+        <div class="feat-card" data-feat="1">
+          <div class="feat-card__mock" aria-hidden="true">
+            <div class="mock-ai">
+              <div class="mock-ai__bar"><span class="mock-ai__dot"></span> AI assist · draft</div>
+              <div class="mock-ai__box">“Write a Facebook post for a Vientiane café — weekend promo, warm tone, Lao + English friendly.”</div>
+              <div class="mock-ai__suggest">
+                <span>Shorter</span><span>Add CTA</span><span>LINE version</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3><%= t('login.featAiTitle') %></h3>
+            <p><%= t('login.featAiBody') %></p>
+          </div>
+        </div>
+
+        <!-- Omni-channel -->
+        <div class="feat-card" data-feat="2">
+          <div class="feat-card__mock" aria-hidden="true">
+            <div class="mock-channels">
+              <span>Facebook</span><span>LINE</span><span>TikTok</span><span>WhatsApp</span>
+            </div>
+            <div class="mock-flow"></div>
+            <div class="mock-meta"><span>1 campaign</span><span>4 channels</span></div>
+          </div>
+          <div>
+            <h3><%= t('login.featSocialTitle') %></h3>
+            <p><%= t('login.featSocialBody') %></p>
+          </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="feat-card" data-feat="3">
+          <div class="feat-card__mock" aria-hidden="true">
+            <div class="mock-chart" aria-hidden="true">
+              <i style="height:40%"></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="mock-meta"><span>Reach · leads · engagement</span><span>Live</span></div>
+          </div>
+          <div>
+            <h3><%= t('login.featAnalyticsTitle') %></h3>
+            <p><%= t('login.featAnalyticsBody') %></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feat-dots" id="feat-dots" role="tablist" aria-label="Features">
+        <button type="button" class="is-active" data-i="0" aria-label="<%= t('login.featBoardTitle') %>"></button>
+        <button type="button" data-i="1" aria-label="<%= t('login.featAiTitle') %>"></button>
+        <button type="button" data-i="2" aria-label="<%= t('login.featSocialTitle') %>"></button>
+        <button type="button" data-i="3" aria-label="<%= t('login.featAnalyticsTitle') %>"></button>
+      </div>
+      <p class="login-showcase__trust"><%= t('login.showcaseTrust') %></p>
+    </aside>
+
+    <!-- Sign-in card -->
+    <div class="login-form-panel">
+      <div class="card">
+        <a class="card__brand" href="https://wordsthatsells.website">
+          <img src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="" width="120" height="30" style="filter:brightness(0) saturate(100%);" onerror="this.style.display='none'">
+          <span><%= t('common.brand') %></span>
+        </a>
+
+        <% if (typeof error !== 'undefined' && error) { %><div class="error" role="alert"><%= error %></div><% } %>
+        <% if (sent) { %>
+          <h1><%= t('login.checkEmailTitle') %></h1>
+          <p class="sub"><%- t('login.checkEmailBody', { email: '<strong>' + esc(email) + '</strong>' }) %></p>
+          <div class="notice"><%= t('login.spamNotice') %></div>
+          <p class="hint"><a href="/portal/login"><%= t('login.useDifferentEmail') %></a></p>
+        <% } else { %>
+          <h1><%= t('login.welcomeTitle') %></h1>
+          <p class="sub"><%= t('login.welcomeSub') %></p>
+          <form method="POST" action="/portal/login" id="portal-login-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="hp-field" aria-hidden="true">
+              <label for="website">Website</label>
+              <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+            </div>
+
+            <div class="step-email" id="step-email">
+              <label for="email"><%= t('login.emailLabel') %></label>
+              <input type="email" id="email" name="email" required maxlength="255"
+                     placeholder="<%= t('login.emailPlaceholder') %>"
+                     autocomplete="email" autofocus
+                     inputmode="email"
+                     <%= email ? 'value="' + email + '"' : '' %>>
+              <button type="button" class="btn-continue" id="btn-continue"><%= t('login.continueEmail') %></button>
+            </div>
+
+            <div class="step-password" id="step-password" hidden>
+              <button type="button" class="step-back" id="btn-back-email"><%= t('login.backToEmail') %></button>
+              <label for="password"><%= t('login.passwordLabel') %> <span class="opt">— <%= t('login.passwordOptional') %></span></label>
+              <div class="pw-row">
+                <input type="password" id="password" name="password" maxlength="200"
+                       class="pw-input"
+                       placeholder="<%= t('login.passwordPlaceholder') %>"
+                       autocomplete="current-password">
+                <button type="button" class="pw-toggle" id="pw-toggle"
+                        aria-label="<%= t('login.showPassword') %>"
+                        data-show="<%= t('login.showPassword') %>"
+                        data-hide="<%= t('login.hidePassword') %>"><%= t('login.showPassword') %></button>
+              </div>
+              <p class="hint"><%= t('login.forgotHint') %></p>
+              <button type="submit" id="btn-submit"
+                      data-label="<%= t('login.signIn') %>"
+                      data-loading="<%= t('login.signingIn') %>"><%= t('login.signIn') %></button>
+            </div>
+
+            <!-- No-JS fallback: both steps visible if progressive JS fails -->
+            <noscript>
+              <style>
+                #step-password { display: block !important; }
+                #btn-continue, #btn-back-email { display: none !important; }
+                #step-email .btn-continue { display: none !important; }
+              </style>
+              <button type="submit"><%= t('login.signIn') %></button>
+            </noscript>
+          </form>
+
+          <% var sGoogle = typeof googleEnabled !== 'undefined' && googleEnabled; %>
+          <% var sFacebook = typeof facebookEnabled !== 'undefined' && facebookEnabled; %>
+          <% if (sGoogle || sFacebook) { %>
+            <div class="sdiv"><span><%= t('login.orContinueWith') %></span></div>
+            <div class="social">
+              <% if (sGoogle) { %><a href="/portal/auth/google"><%= t('login.continueGoogle') %></a><% } %>
+              <% if (sFacebook) { %><a href="/portal/auth/facebook"><%= t('login.continueFacebook') %></a><% } %>
+            </div>
+          <% } %>
+          <p class="hint"><%= t('login.autoAccountHint') %></p>
+          <% /* Legal lives in footer only — avoid duplicate Terms/Privacy on the card */ %>
         <% } %>
-        <p class="hint"><%= t('login.autoAccountHint') %></p>
-        <p class="login-legal-note"><%- t('login.legalAgree') %></p>
-      <% } %>
+      </div>
     </div>
   </div>
+
+  <script>
+    (function () {
+      // Feature carousel
+      var cards = Array.prototype.slice.call(document.querySelectorAll('.feat-card'));
+      var dots = Array.prototype.slice.call(document.querySelectorAll('#feat-dots button'));
+      var i = 0;
+      var timer = null;
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function show(n) {
+        i = (n + cards.length) % cards.length;
+        cards.forEach(function (c, idx) { c.classList.toggle('is-active', idx === i); });
+        dots.forEach(function (d, idx) { d.classList.toggle('is-active', idx === i); });
+      }
+      function next() { show(i + 1); }
+      function start() {
+        if (reduce || cards.length < 2) return;
+        stop();
+        timer = setInterval(next, 4200);
+      }
+      function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+      dots.forEach(function (d) {
+        d.addEventListener('click', function () {
+          show(parseInt(d.getAttribute('data-i'), 10) || 0);
+          start();
+        });
+      });
+      // Only auto-rotate on wider screens (mobile shows first feature only)
+      if (window.matchMedia && window.matchMedia('(min-width: 900px)').matches) start();
+
+      // Progressive email → password / magic-link
+      var form = document.getElementById('portal-login-form');
+      if (!form) {
+        return;
+      }
+      var stepPw = document.getElementById('step-password');
+      var emailEl = document.getElementById('email');
+      var pwEl = document.getElementById('password');
+      var btnCont = document.getElementById('btn-continue');
+      var btnBack = document.getElementById('btn-back-email');
+      var btnSub = document.getElementById('btn-submit');
+      var pwToggle = document.getElementById('pw-toggle');
+
+      function goPassword() {
+        if (!emailEl.checkValidity()) {
+          emailEl.reportValidity();
+          return;
+        }
+        stepPw.hidden = false;
+        if (btnCont) btnCont.style.display = 'none';
+        if (pwEl) pwEl.focus();
+      }
+      function goEmail() {
+        stepPw.hidden = true;
+        if (btnCont) btnCont.style.display = '';
+        if (emailEl) emailEl.focus();
+      }
+
+      if (btnCont) {
+        btnCont.addEventListener('click', function (e) {
+          e.preventDefault();
+          goPassword();
+        });
+      }
+      if (btnBack) {
+        btnBack.addEventListener('click', function (e) {
+          e.preventDefault();
+          goEmail();
+        });
+      }
+      // Enter on email advances to password step
+      if (emailEl) {
+        emailEl.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' && stepPw && stepPw.hidden) {
+            e.preventDefault();
+            goPassword();
+          }
+        });
+      }
+
+      // Show / hide password
+      if (pwToggle && pwEl) {
+        pwToggle.addEventListener('click', function () {
+          var show = pwEl.type === 'password';
+          pwEl.type = show ? 'text' : 'password';
+          pwToggle.textContent = show ? (pwToggle.getAttribute('data-hide') || 'Hide') : (pwToggle.getAttribute('data-show') || 'Show');
+          pwToggle.setAttribute('aria-label', pwToggle.textContent);
+        });
+      }
+
+      // Loading state on submit (magic-link path can feel idle)
+      form.addEventListener('submit', function () {
+        if (btnSub) {
+          btnSub.disabled = true;
+          btnSub.textContent = btnSub.getAttribute('data-loading') || 'Signing in…';
+        }
+      });
+
+      // If server re-rendered with error + email, open password step
+      <% if (typeof error !== 'undefined' && error) { %>
+      if (emailEl && emailEl.value) goPassword();
+      <% } %>
+    })();
+  </script>
+
   <%- include('partials/footer', { simpleFooter: true }) %>
