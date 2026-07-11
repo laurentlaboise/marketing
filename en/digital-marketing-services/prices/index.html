@@ -80,16 +80,35 @@
         .section-alt { background-color: var(--color-light); border-radius: 16px; padding: 3rem; }
 
         .header { text-align: center; padding: 2rem 0; }
-        .header p { font-size: 1.125rem; color: var(--color-slate-500); max-width: 700px; margin: 1rem auto 0 auto; }
+        .header p { font-size: 1.125rem; color: var(--color-slate-700); max-width: 720px; margin: 1rem auto 0 auto; line-height: 1.65; }
+        .header .audience-note { font-size: 0.95rem; color: var(--color-slate-700); margin-top: 0.75rem; }
 
-        .billing-toggle { margin: 2rem auto; display: flex; justify-content: center; align-items: center; gap: 1rem; font-weight: 600; }
-        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--color-slate-300); transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        .trust-strip {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem 1.25rem;
+            margin: 0 auto 1.25rem; padding: 0.85rem 1rem;
+            background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px;
+            font-size: 0.9rem; font-weight: 600; color: var(--color-slate-900);
+        }
+        .trust-strip i { color: var(--color-accent-magenta); margin-right: 0.35rem; }
+
+        .billing-toggle {
+            margin: 1.5rem auto 0.5rem; display: flex; justify-content: center; align-items: center;
+            gap: 0.85rem; font-weight: 600; color: var(--color-slate-700); flex-wrap: wrap;
+        }
+        .billing-toggle .bill-label { transition: color 0.2s, opacity 0.2s; opacity: 0.55; cursor: pointer; user-select: none; }
+        .billing-toggle .bill-label.is-active { opacity: 1; color: var(--color-slate-900); }
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; flex-shrink: 0; }
+        .toggle-switch input {
+            position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0;
+            cursor: pointer; z-index: 2;
+        }
+        .toggle-switch input:focus-visible + .slider { outline: 3px solid var(--color-accent-magenta); outline-offset: 3px; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #94a3b8; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
         input:checked + .slider { background-color: var(--color-primary-base); }
         input:checked + .slider:before { transform: translateX(26px); }
-        .savings-badge { background-color: var(--color-success); color: white; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+        .savings-badge { background-color: var(--color-success); color: white; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; margin-left: 0.25rem; }
+        .billing-toggle-hint { font-size: 0.85rem; color: var(--color-slate-700); text-align: center; margin: 0.35rem 0 0; min-height: 1.25em; }
         
         /* Ad Account Menu */
         .ad-account-menu-container {
@@ -156,44 +175,94 @@
 
         .grid-2 { display: grid; gap: 1.5rem; }
         @media(min-width: 768px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+        .grid-3 { display: grid; gap: 1.5rem; align-items: stretch; }
+        @media(min-width: 900px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
         .grid-4 { display: grid; gap: 1.5rem; }
         @media(min-width: 640px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
-        @media(min-width: 1024px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+        @media(min-width: 1024px) { .grid-4 { grid-template-columns: repeat(3, 1fr); } }
 
         .card { background-color: var(--color-light); border-radius: 24px; border: 1px solid var(--color-border); padding: 2rem; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; }
         
         .lao-card { border-left: 5px solid var(--color-accent-magenta); }
         .lao-card h3 { color: var(--color-accent-magenta); }
 
+        .section-kicker {
+            text-align: center; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--color-accent-magenta); margin: 0 0 0.5rem;
+        }
+        .section-lead {
+            text-align: center; max-width: 640px; margin: -0.5rem auto 2rem;
+            color: var(--color-slate-700); font-size: 1rem; line-height: 1.6;
+        }
+
         /* Subscription Cards */
-        .subscription-card { text-align: center; position: relative; overflow: visible; }
-        .subscription-card.highlight { border-color: var(--color-accent-magenta); border-width: 2px; }
+        .subscription-card { text-align: center; position: relative; overflow: visible; background: #fff; }
+        .subscription-card.highlight {
+            border-color: var(--color-accent-magenta); border-width: 2px;
+            transform: scale(1.02); box-shadow: 0 16px 40px rgba(214, 43, 131, 0.12);
+            z-index: 1;
+        }
+        @media (max-width: 899px) {
+            .subscription-card.highlight { transform: none; }
+        }
 
         .popular-pill-badge { 
             display: inline-block;
-            background-color: var(--color-primary-base);
+            background-color: var(--color-accent-magenta);
             color: white; 
             padding: 0.25rem 0.75rem; 
             border-radius: 999px; 
-            font-size: 0.9rem; 
+            font-size: 0.8rem; 
             font-weight: 700;
-            margin: -0.5rem auto 1rem auto;
+            margin: 0 auto 0.75rem auto;
             text-align: center;
         }
 
-        .subscription-card .plan-name { font-size: 1.5rem; font-weight: 700; }
-        .subscription-card .plan-price-wrapper { margin-bottom: 0.5rem; }
-        .subscription-card .plan-price { font-size: 3rem; font-weight: 800; }
-        .subscription-card .plan-period { color: var(--color-slate-500); }
-        .subscription-card .plan-billing-note { font-size: 0.8rem; color: var(--color-slate-500); min-height: 20px; }
+        .subscription-card .plan-name { font-size: 1.45rem; font-weight: 700; color: var(--color-slate-900); }
+        .subscription-card .plan-tagline {
+            font-size: 0.95rem; color: var(--color-slate-700); margin: 0.35rem 0 0.85rem;
+            line-height: 1.45; min-height: 2.7em;
+        }
+        .subscription-card .plan-price-wrapper { margin-bottom: 0.35rem; }
+        .subscription-card .plan-price { font-size: 2.75rem; font-weight: 800; color: var(--color-slate-900); }
+        .subscription-card .plan-period { color: var(--color-slate-700); font-weight: 600; }
+        .subscription-card .plan-billing-note {
+            font-size: 0.85rem; color: var(--color-slate-700); min-height: 1.35em; margin: 0.25rem 0 0; line-height: 1.4;
+        }
+        .subscription-card .plan-annual-total {
+            font-size: 0.82rem; color: var(--color-slate-700); min-height: 1.2em; margin: 0.15rem 0 0; font-weight: 600;
+        }
         .subscription-card .feature-section { text-align: left; flex-grow: 1; margin: 1rem 0; }
-        .subscription-card .feature-category-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-slate-500); margin: 1rem 0 0.4rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; gap: 0.4rem; }
+        .subscription-card .feature-category-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-slate-700); margin: 1rem 0 0.4rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; gap: 0.4rem; }
         .subscription-card .feature-category-label i { color: var(--color-primary-base); font-size: 0.8rem; }
         .subscription-card ul { list-style: none; padding: 0; margin: 0; text-align: left; }
         .subscription-card li { display: flex; align-items: flex-start; margin-bottom: 0.5rem; color: #13293f; font-size: 0.95rem; }
         .subscription-card li i { margin-right: 0.6rem; font-size: 1rem; line-height: 1.5; flex-shrink: 0; color: #d62a83; }
-        .subscription-card .pay-as-you-go { font-size: 0.9rem; color: var(--color-slate-500); text-align: center; margin-bottom: 1rem; }
+        .subscription-card li.excluded { color: #475569; font-size: 0.88rem; }
+        .subscription-card .pay-as-you-go { font-size: 0.9rem; color: var(--color-slate-700); text-align: center; margin-bottom: 1rem; }
         .subscription-card .btn { width: 100%; }
+
+        /* Inline comparison */
+        .compare-wrap { overflow-x: auto; margin: 2rem 0 0.5rem; border-radius: 14px; border: 1px solid var(--color-border); background: #fff; }
+        .compare-table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 0.92rem; }
+        .compare-table th, .compare-table td { padding: 0.85rem 1rem; text-align: center; border-bottom: 1px solid var(--color-border); color: var(--color-slate-900); }
+        .compare-table th:first-child, .compare-table td:first-child { text-align: left; font-weight: 600; }
+        .compare-table thead th { background: #122a3f; color: #fff; font-weight: 700; }
+        .compare-table tbody tr:nth-child(even) { background: #f8fafc; }
+        .compare-table .yes { color: var(--color-accent-magenta); font-weight: 700; }
+        .compare-table .no { color: #94a3b8; }
+        .compare-table .col-pop { background: rgba(214, 43, 131, 0.06); }
+        .compare-table thead .col-pop { background: #9d174d; }
+
+        .partner-links {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 1rem;
+        }
+        .partner-links a {
+            display: inline-block; padding: 0.65rem 1.15rem; border-radius: 999px;
+            border: 1.5px solid var(--color-slate-300); color: var(--color-slate-900);
+            text-decoration: none; font-weight: 600; font-size: 0.9rem; background: #fff;
+        }
+        .partner-links a:hover { border-color: var(--color-accent-magenta); color: var(--color-accent-magenta); }
 
         /* Comparison Modal */
         .modal-overlay { position: fixed; inset: 0; background-color: rgba(18, 42, 63, 0.8); z-index: 2000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
@@ -628,210 +697,243 @@
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1>Digital Marketing Plans for SEA Growth</h1>
-            <p>Scoped monthly retainers for SMEs in Laos &amp; Thailand—Footprint → Growth → Automation—with hard delivery caps so price matches capacity. 30-day money-back on eligible plans. Affiliate and white-label partner tracks included.</p>
-            <div class="billing-toggle">
-                <span id="monthly-label">Billed Monthly</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="billing-cycle-toggle">
-                    <span class="slider"></span>
-                </label>
-                <span id="annually-label">Billed Annually <span class="savings-badge">Save 20%</span></span>
+            <h1>Digital marketing pricing for SEA SMEs</h1>
+            <p>Clear monthly plans to get found online, win more leads, and grow—built for businesses in Laos and Thailand. You get a fixed monthly scope so you always know what you are paying for.</p>
+            <p class="audience-note">Looking for <a href="/en/company/affiliate-sales/" style="color:var(--color-accent-magenta);font-weight:700;">affiliate</a> or <a href="/en/company/digital-agencies/" style="color:var(--color-accent-magenta);font-weight:700;">white-label agency</a> options? Partner details live on those pages.</p>
+            <div class="trust-strip" role="list">
+                <span role="listitem"><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back on eligible plans</span>
+                <span role="listitem"><i class="fas fa-lock" aria-hidden="true"></i> SSL secure payments</span>
+                <span role="listitem"><i class="fas fa-comments" aria-hidden="true"></i> Plain-language monthly reports</span>
             </div>
+            <div class="billing-toggle" role="group" aria-label="Billing cycle">
+                <span id="monthly-label" class="bill-label is-active">Monthly</span>
+                <label class="toggle-switch" for="billing-cycle-toggle">
+                    <input type="checkbox" id="billing-cycle-toggle" aria-describedby="billing-toggle-hint" aria-label="Switch between monthly and annual billing">
+                    <span class="slider" aria-hidden="true"></span>
+                </label>
+                <span id="annually-label" class="bill-label">Annual <span class="savings-badge">Save 20%</span></span>
+            </div>
+            <p id="billing-toggle-hint" class="billing-toggle-hint">Prices show per month. Annual saves 20% and is billed once a year.</p>
         </header>
 
         <main>
-            <!-- Subscription Plans (dynamic from admin backend) -->
-            <section id="pricing-plans" class="section" data-pricing-section="subscriptions">
-                <div id="subscriptions-grid" class="grid-4">
-                    <!-- Static fallback from Drive pricing strategy (Digital Marketing Pricing Strategy SEA + catalogue) -->
+            <!-- Ongoing retainers -->
+            <section id="pricing-plans" class="section" data-pricing-section="subscriptions" aria-labelledby="retainers-heading">
+                <p class="section-kicker">Ongoing retainers</p>
+                <h2 id="retainers-heading">Choose your growth plan</h2>
+                <p class="section-lead">Start with a professional online presence, add SEO and ads when you are ready, then automate follow-up as you scale.</p>
+                <div id="subscriptions-grid" class="grid-3">
                     <div class="card subscription-card" data-fallback-plan="digital-footprint">
                         <h3 class="plan-name">Digital Footprint</h3>
-                        <div class="plan-price-wrapper"><span class="plan-price" data-price="329" data-discount="20">$329</span><span class="plan-period">/mo</span></div>
-                        <p class="plan-billing-note">Retail range $299–$349 · best for Lao SMEs starting online</p>
+                        <p class="plan-tagline">Get online and look professional—ideal first step for SMEs.</p>
+                        <div class="plan-price-wrapper">
+                            <span class="plan-price" data-price="329" data-discount="20">$329</span><span class="plan-period">/mo</span>
+                        </div>
+                        <p class="plan-billing-note" data-monthly-note="Billed monthly">Billed monthly</p>
+                        <p class="plan-annual-total" aria-live="polite"></p>
                         <div class="feature-section">
                             <ul>
-                                <li><i class="fas fa-check"></i> <strong>1–2 platforms</strong> (Facebook-first in Laos)</li>
-                                <li><i class="fas fa-check"></i> <strong>8 posts / month</strong> + light replies</li>
-                                <li><i class="fas fa-check"></i> Foundational content <strong>or ≤2 pieces</strong>/mo</li>
+                                <li><i class="fas fa-check"></i> <strong>1–2 social platforms</strong> (Facebook-first in Laos)</li>
+                                <li><i class="fas fa-check"></i> <strong>8 posts / month</strong> + light community replies</li>
+                                <li><i class="fas fa-check"></i> Foundational content <strong>or up to 2 pieces</strong>/mo</li>
                                 <li><i class="fas fa-check"></i> Plain-language monthly report</li>
-                                <li style="opacity:0.85;font-size:0.9rem;"><i class="fas fa-times" style="opacity:0.5;"></i> Ad spend, multi-page builds, unlimited revisions excluded</li>
+                                <li class="excluded"><i class="fas fa-times" style="opacity:0.5;"></i> Not included: ad spend, full websites, unlimited revisions</li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-accent" type="button" onclick="openFormModal('consultation')">Start Footprint</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
                     </div>
                     <div class="card subscription-card highlight" data-fallback-plan="growth-engine">
                         <span class="popular-pill-badge">Most popular</span>
                         <h3 class="plan-name">Growth Engine</h3>
-                        <div class="plan-price-wrapper"><span class="plan-price" data-price="649" data-discount="20">$649</span><span class="plan-period">/mo</span></div>
-                        <p class="plan-billing-note">Retail range $599–$699 · ads + SEO + lead assets (scoped)</p>
+                        <p class="plan-tagline">More visibility and leads—SEO, social, and campaign support.</p>
+                        <div class="plan-price-wrapper">
+                            <span class="plan-price" data-price="649" data-discount="20">$649</span><span class="plan-period">/mo</span>
+                        </div>
+                        <p class="plan-billing-note" data-monthly-note="Billed monthly">Billed monthly</p>
+                        <p class="plan-annual-total" aria-live="polite"></p>
                         <div class="feature-section">
                             <ul>
-                                <li><i class="fas fa-check"></i> Social foundation or equivalent base</li>
-                                <li><i class="fas fa-check"></i> Local / organic SEO <strong>cadence</strong> (scoped)</li>
-                                <li><i class="fas fa-check"></i> Lead assets + ad <strong>management</strong> (spend separate)</li>
+                                <li><i class="fas fa-check"></i> Social foundation (or equivalent base)</li>
+                                <li><i class="fas fa-check"></i> Local / organic SEO on a clear monthly cadence</li>
+                                <li><i class="fas fa-check"></i> Lead assets + ad <strong>management</strong> (ad budget billed separate)</li>
                                 <li><i class="fas fa-check"></i> Performance reporting</li>
-                                <li style="opacity:0.85;font-size:0.9rem;"><i class="fas fa-times" style="opacity:0.5;"></i> Ad budget &amp; unlimited content not included</li>
+                                <li class="excluded"><i class="fas fa-times" style="opacity:0.5;"></i> Not included: media budget, unlimited content</li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-accent" type="button" onclick="openFormModal('consultation')">Start Growth</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
                     </div>
                     <div class="card subscription-card" data-fallback-plan="automation-pro">
                         <h3 class="plan-name">Automation Pro</h3>
-                        <div class="plan-price-wrapper"><span class="plan-price" data-price="1099" data-discount="20">$1,099</span><span class="plan-period">/mo</span></div>
-                        <p class="plan-billing-note">Retail range $999–$1,199 · scale &amp; systems (scoped)</p>
+                        <p class="plan-tagline">Systems that follow up for you—CRM, email, priority delivery.</p>
+                        <div class="plan-price-wrapper">
+                            <span class="plan-price" data-price="1099" data-discount="20">$1,099</span><span class="plan-period">/mo</span>
+                        </div>
+                        <p class="plan-billing-note" data-monthly-note="Billed monthly">Billed monthly</p>
+                        <p class="plan-annual-total" aria-live="polite"></p>
                         <div class="feature-section">
                             <ul>
                                 <li><i class="fas fa-check"></i> CRM orientation + scoped automation</li>
-                                <li><i class="fas fa-check"></i> Email marketing workflows (scoped flows)</li>
+                                <li><i class="fas fa-check"></i> Email marketing workflows (scoped)</li>
                                 <li><i class="fas fa-check"></i> Advanced growth operations</li>
                                 <li><i class="fas fa-check"></i> Priority delivery coordination</li>
-                                <li style="opacity:0.85;font-size:0.9rem;"><i class="fas fa-times" style="opacity:0.5;"></i> Custom apps &amp; third-party licenses excluded</li>
+                                <li class="excluded"><i class="fas fa-times" style="opacity:0.5;"></i> Not included: custom apps, third-party license fees</li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-accent" type="button" onclick="openFormModal('consultation')">Start Automation</button>
-                    </div>
-                    <div class="card subscription-card">
-                        <h3 class="plan-name">Catalogue anchors</h3>
-                        <div class="plan-price-wrapper"><span class="plan-price" style="font-size:1.75rem;">À la carte</span></div>
-                        <p class="plan-billing-note">From product listings (one-time)</p>
-                        <div class="feature-section">
-                            <ul>
-                                <li><i class="fas fa-check"></i> Landing page from <strong>$95</strong></li>
-                                <li><i class="fas fa-check"></i> WordPress &amp; Divi site from <strong>$355</strong></li>
-                                <li><i class="fas fa-check"></i> Website copy from <strong>$27</strong> / 1,000 chars</li>
-                                <li><i class="fas fa-check"></i> Virtual Card Pro+ <strong>$58.60</strong></li>
-                            </ul>
-                        </div>
-                        <a class="btn btn-outline" href="/en/company/contact-us/">Request a quote</a>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
                     </div>
                 </div>
-                <div style="text-align: center; margin-top: 2.5rem;">
+
+                <div id="plan-compare" class="compare-wrap" style="margin-top:2.5rem;">
+                    <table class="compare-table" aria-label="Compare monthly plans">
+                        <thead>
+                            <tr>
+                                <th scope="col">What you get</th>
+                                <th scope="col">Footprint</th>
+                                <th scope="col" class="col-pop">Growth</th>
+                                <th scope="col">Automation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Best for</td>
+                                <td>First professional presence</td>
+                                <td class="col-pop">Leads &amp; visibility</td>
+                                <td>Scale with systems</td>
+                            </tr>
+                            <tr>
+                                <td>List price / month</td>
+                                <td>$329</td>
+                                <td class="col-pop">$649</td>
+                                <td>$1,099</td>
+                            </tr>
+                            <tr>
+                                <td>Social content</td>
+                                <td class="yes"><i class="fas fa-check"></i> 8 posts</td>
+                                <td class="col-pop yes"><i class="fas fa-check"></i> Included</td>
+                                <td class="yes"><i class="fas fa-check"></i> Included</td>
+                            </tr>
+                            <tr>
+                                <td>Local SEO cadence</td>
+                                <td class="no">—</td>
+                                <td class="col-pop yes"><i class="fas fa-check"></i></td>
+                                <td class="yes"><i class="fas fa-check"></i></td>
+                            </tr>
+                            <tr>
+                                <td>Ad campaign management</td>
+                                <td class="no">—</td>
+                                <td class="col-pop yes"><i class="fas fa-check"></i></td>
+                                <td class="yes"><i class="fas fa-check"></i></td>
+                            </tr>
+                            <tr>
+                                <td>CRM / email automation</td>
+                                <td class="no">—</td>
+                                <td class="col-pop no">—</td>
+                                <td class="yes"><i class="fas fa-check"></i></td>
+                            </tr>
+                            <tr>
+                                <td>Priority delivery</td>
+                                <td class="no">—</td>
+                                <td class="col-pop no">—</td>
+                                <td class="yes"><i class="fas fa-check"></i></td>
+                            </tr>
+                            <tr>
+                                <td>Monthly report</td>
+                                <td class="yes"><i class="fas fa-check"></i></td>
+                                <td class="col-pop yes"><i class="fas fa-check"></i></td>
+                                <td class="yes"><i class="fas fa-check"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="text-align: center; margin-top: 1.25rem;">
                     <button type="button" id="compare-plans-btn" class="btn btn-outline">
-                        <i class="fas fa-columns" style="margin-right: 0.5rem;"></i> Compare All Plans
+                        <i class="fas fa-columns" style="margin-right: 0.5rem;"></i> Open detailed comparison
                     </button>
                 </div>
                 <div class="card" style="max-width:820px;margin:2rem auto 0;padding:1.25rem 1.5rem;text-align:left;background:var(--color-white,#fff);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);">
-                    <p style="margin:0 0 0.75rem;font-weight:700;color:var(--color-primary-base,#122a3f);">Scoped retainers — not unlimited catalogue</p>
-                    <p style="margin:0 0 0.75rem;font-size:0.95rem;line-height:1.65;color:var(--color-slate-600,#475569);">
-                        Monthly plans include hard caps (platforms, posts, content units, support scope). Extra work is quoted as an add-on or tier upgrade.
-                        <strong>Laos:</strong> Facebook-first footprint and tangible ROI language.
-                        <strong>Thailand:</strong> Growth and Automation sell best when LINE Official Account and TikTok are named as platform options (swap short-form video for blog posts within caps, or add as modules).
-                    </p>
-                    <p style="margin:0;font-size:0.9rem;color:var(--color-slate-500);">
-                        Affiliates earn 20–25% recurring by tier on these retainers — <a href="/en/company/affiliate-sales/" style="color:var(--color-accent-magenta);font-weight:600;">affiliate program →</a>
+                    <p style="margin:0 0 0.75rem;font-weight:700;color:var(--color-slate-900);">What’s included each month is capped on purpose</p>
+                    <p style="margin:0;font-size:0.95rem;line-height:1.65;color:var(--color-slate-700);">
+                        Every plan lists platforms, posts, and deliverables so we can deliver reliably. Need more? We quote an add-on or recommend the next tier—no surprise unlimited scope.
+                        In Laos we focus on Facebook-first ROI; in Thailand we can include LINE or TikTok within your platform caps or as add-on modules.
                     </p>
                 </div>
             </section>
 
-            <!-- Top 8 product-menu packages (legacy deck → WTS map) -->
-            <section id="product-menu-packages" class="section section-alt">
-                <h2>Product menu packages</h2>
-                <p style="text-align:center;max-width:720px;margin:-1rem auto 2rem;color:var(--color-slate-600);">
-                    Eight clear offers from our product menu — web, forms, content, and growth retainers.
-                    Projects are one-time with explicit includes; monthly plans align to Footprint / Growth. Request a quote to start.
+            <!-- One-time projects only -->
+            <section id="product-menu-packages" class="section section-alt" aria-labelledby="projects-heading">
+                <p class="section-kicker">One-time projects</p>
+                <h2 id="projects-heading">Web, forms &amp; content packages</h2>
+                <p class="section-lead">
+                    Need a page, form, or content pack without a monthly retainer? These are fixed-scope projects with clear deliverables.
                 </p>
                 <div class="grid-4" style="align-items:stretch;">
                     <div class="card bundle-card">
                         <h3>Landing Page Sprint</h3>
-                        <p class="value">Project</p>
+                        <p class="value">One-time project</p>
                         <p class="price">$349</p>
-                        <p class="save">SKU WTS-LANDING</p>
                         <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> CTA + lead form</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Tracking + mobile layout</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> 1 revision</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Book landing page</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
                     </div>
                     <div class="card bundle-card">
                         <h3>Professional Page</h3>
-                        <p class="value">Project</p>
+                        <p class="value">One-time project</p>
                         <p class="price">$899</p>
-                        <p class="save">SKU WTS-PRO-PAGE</p>
                         <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Multi-section page</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form ≤5 fields + SEO</li>
+                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form ≤5 fields + SEO basics</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> 2 design touch-ups</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get professional page</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
                     </div>
                     <div class="card bundle-card highlight">
                         <h3>Multi-Page Site Starter</h3>
-                        <p class="value">Project</p>
+                        <p class="value">One-time · best for new brands</p>
                         <p class="price">$2,490</p>
-                        <p class="save">Best for new brands · WTS-SITE-STARTER</p>
                         <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Home + 2 pages + contact</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form → admin pipeline</li>
+                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form wired to your lead inbox</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> SEO + analytics setup</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Start website project</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
                     </div>
                     <div class="card bundle-card">
                         <h3>Lead Form + Pipeline</h3>
-                        <p class="value">Project</p>
+                        <p class="value">One-time project</p>
                         <p class="price">$490</p>
-                        <p class="save">SKU WTS-FORM-LEAD</p>
                         <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form Builder setup</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Lead stages + alerts</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> WhatsApp CTA ready</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Wire my leads</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
                     </div>
                     <div class="card bundle-card">
                         <h3>SEO Content Pack (5)</h3>
-                        <p class="value">Project</p>
+                        <p class="value">One-time project</p>
                         <p class="price">$750</p>
-                        <p class="save">SKU WTS-SEO-CONTENT</p>
                         <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> 5 SEO pages / guides</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Keyword brief + image SEO</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Publish on your site</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Order content pack</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
                     </div>
                     <div class="card bundle-card">
                         <h3>Lead Magnet Kit</h3>
-                        <p class="value">Project</p>
+                        <p class="value">One-time project</p>
                         <p class="price">$390</p>
-                        <p class="save">SKU WTS-LEAD-MAGNET</p>
                         <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> E-guide / resource concept</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Capture form + delivery</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Basic design + 1 revision</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Build lead magnet</button>
-                    </div>
-                    <div class="card bundle-card">
-                        <h3>Social Foundation</h3>
-                        <p class="value">Monthly · Digital Footprint</p>
-                        <p class="price">$329<span style="font-size:1rem;font-weight:600;">/mo</span></p>
-                        <p class="save">Aligns with Footprint retainer</p>
-                        <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Profile polish</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> 8 posts / month</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Monthly report</li>
-                        </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Start social</button>
-                    </div>
-                    <div class="card bundle-card highlight">
-                        <h3>Growth Engine Retainer</h3>
-                        <p class="value">Monthly · Most popular</p>
-                        <p class="price">$649<span style="font-size:1rem;font-weight:600;">/mo</span></p>
-                        <p class="save">SEO + content + lead assets</p>
-                        <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> SEO + content cadence</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Social foundation</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Performance reporting</li>
-                        </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Start Growth Engine</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
                     </div>
                 </div>
-                <p style="text-align:center;margin-top:1.5rem;font-size:0.9rem;color:var(--color-slate-500);">
-                    Full SKU map (legacy → WTS): see internal sheet <em>WTS Product Menu from Legacy Deck</em>.
-                </p>
             </section>
 
             <!-- New Two-Column Section -->
@@ -865,31 +967,28 @@
                 <button type="button" class="btn btn-accent" style="margin-top: 3rem;" onclick="openFormModal('free-support')">Apply for Free Support</button>
             </section>
             
-            <!-- Strategic Program Bundles -->
-            <section id="bundles" class="section affiliate-section">
-                <h2>Become a Digital Affiliate Partner</h2>
-                <p style="text-align: center; max-width: 700px; margin: -1.5rem auto 2.5rem;">Built for the <strong>Regional Hustler</strong>: earn <strong>20–25% recurring</strong> on Footprint, Growth, and Automation (Bronze → Gold tiers + new-client bonuses). You own the relationship—we deliver scoped packages. Perfect for creators, consultants, and local networkers on Facebook, LINE, and Messenger.</p>
-                <div style="max-width: 900px; margin: 0 auto;">
-                    <ul class="affiliate-benefits-list">
-                        <li><i class="fas fa-gem" style="color: var(--color-accent-magenta);"></i> <strong>Recurring payouts</strong>: Monthly commissions while clients stay active.</li>
-                        <li><i class="fas fa-laptop" style="color: var(--color-accent-magenta);"></i> <strong>SEA Growth Suite</strong>: Websites, landing pages, local SEO, social, ads, branding kits.</li>
-                        <li><i class="fas fa-handshake" style="color: var(--color-accent-magenta);"></i> <strong>You sell, we deliver</strong>: Marketing materials and fulfilment by WordsThatSells.</li>
-                        <li><i class="fas fa-chart-line" style="color: var(--color-accent-magenta);"></i> <strong>Paid on the 15th</strong>: Min $100 via PayPal, bank, or Stripe.</li>
-                    </ul>
+            <!-- Partners (secondary — full detail on dedicated pages) -->
+            <section id="bundles" class="section" style="text-align:center;">
+                <p class="section-kicker">Partners</p>
+                <h2>Earn or resell with us</h2>
+                <p class="section-lead">Separate tracks for affiliates and agencies—so this page stays focused on buying a plan.</p>
+                <div class="partner-links">
+                    <a href="/en/company/affiliate-sales/">Affiliate program (20–25% recurring) →</a>
+                    <a href="/en/company/digital-agencies/">White-label for agencies →</a>
+                    <a href="#individual-services" id="partner-services-jump">Browse à la carte service categories</a>
                 </div>
-                <a class="btn btn-accent" style="margin-top: 1rem; display:inline-block;" href="/en/company/affiliate-sales/">View full affiliate program</a>
-                <button type="button" class="btn btn-outline" style="margin-top: 1rem; margin-left: 0.5rem;" onclick="openFormModal('affiliate')">Apply now</button>
             </section>
             
-            <!-- Individual Services -->
+            <!-- À la carte service categories (from admin when available) -->
             <section id="individual-services" class="section section-alt">
-                <h2>White Label Services for Digital Agencies</h2>
-                <p style="text-align: center; max-width: 700px; margin: -1.5rem auto 2.5rem;">Resell Footprint, Growth Engine, and Automation Pro under your brand. Suggested retail $299–$1,199/mo. You keep the client—we deliver white-label. <a href="/en/company/digital-agencies/" style="color:var(--color-accent-magenta);font-weight:600;">Agency partner details →</a></p>
+                <p class="section-kicker">More services</p>
+                <h2>À la carte categories</h2>
+                <p class="section-lead">Optional add-ons and project lines. Expand a category to explore, or request a quote.</p>
                 <div id="services-accordion">
-                    <!-- JS will generate this -->
+                    <!-- JS will generate this when admin API has data -->
                 </div>
                  <div style="text-align: center; margin-top: 2.5rem;">
-                    <button type="button" class="btn btn-accent" onclick="openFormModal('white-label')">Apply for a White Label Partnership</button>
+                    <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Request a quote</button>
                 </div>
             </section>
             
@@ -1259,22 +1358,24 @@
                         ${upsellHtml}
                         ${badgeHtml}
                         <div class="card-sticky-header">
+                            <h3 class="plan-name">${plan.name}</h3>
+                            ${plan.description ? '<p class="plan-tagline">' + plan.description + '</p>' : '<p class="plan-tagline"></p>'}
                             <div class="plan-price-wrapper">
                                 <span class="plan-price" data-price="${plan.price}" data-discount="${discount}">$${plan.price}</span>
-                                <span class="plan-period">/ month</span>
-                                <span class="plan-billing-note">&nbsp;</span>
+                                <span class="plan-period">/mo</span>
                             </div>
-                            <h3 class="plan-name">${plan.name}</h3>
-                            ${plan.description ? '<p style="font-size:0.9rem;color:var(--color-slate-500);margin-top:0.25rem;">' + plan.description + '</p>' : ''}
+                            <p class="plan-billing-note" data-monthly-note="Billed monthly">Billed monthly</p>
+                            <p class="plan-annual-total" aria-live="polite"></p>
                         </div>
                         <div class="feature-section">${featuresHtml}</div>
                         <div class="card-footer">
                             ${paygoText ? '<div class="pay-as-you-go">' + paygoText + '</div>' : ''}
-                            <a href="${ctaUrl}" class="btn ${plan.highlight ? 'btn-accent' : ''}" data-plan="${plan.name}" data-price="${plan.price}" style="margin-top:auto;">${ctaText}</a>
+                            <a href="${ctaUrl}" class="btn btn-accent" data-plan="${plan.name}" data-price="${plan.price}" style="margin-top:auto;">Get started</a>
                         </div>
                         ${upsellBannerHtml}`;
                     subsGrid.appendChild(card);
                 });
+                if (billingToggle) applyBillingCycle(billingToggle.checked);
 
                 // --- GA: Track CTA button clicks ---
                 document.querySelectorAll('.subscription-card .btn[data-plan]').forEach(btn => {
@@ -1359,6 +1460,49 @@
                 });
             };
 
+            // --- Billing Toggle (monthly vs annual with 20% off) ---
+            // Defined before render so API re-render can re-apply the selected cycle.
+            // Only touches .plan-price[data-price] inside subscription cards.
+            function formatMoney(n) {
+                return '$' + Math.round(n).toLocaleString('en-US');
+            }
+            function applyBillingCycle(isAnnual) {
+                const monthlyLabel = document.getElementById('monthly-label');
+                const annualLabel = document.getElementById('annually-label');
+                const hint = document.getElementById('billing-toggle-hint');
+                if (monthlyLabel) monthlyLabel.classList.toggle('is-active', !isAnnual);
+                if (annualLabel) annualLabel.classList.toggle('is-active', isAnnual);
+                if (hint) {
+                    hint.textContent = isAnnual
+                        ? 'Annual billing: you pay once per year (20% off). Prices below show the monthly equivalent.'
+                        : 'Prices show per month. Switch to Annual to save 20% (billed once a year).';
+                }
+                document.querySelectorAll('.subscription-card .plan-price[data-price]').forEach(el => {
+                    const basePrice = parseFloat(el.dataset.price);
+                    if (!Number.isFinite(basePrice)) return;
+                    const discount = parseFloat(el.dataset.discount || '20');
+                    const card = el.closest('.subscription-card');
+                    const periodEl = el.parentElement && el.parentElement.querySelector('.plan-period');
+                    const noteEl = card && card.querySelector('.plan-billing-note');
+                    const annualEl = card && card.querySelector('.plan-annual-total');
+                    if (isAnnual) {
+                        const monthlyEq = basePrice * (1 - discount / 100);
+                        const yearTotal = monthlyEq * 12;
+                        el.textContent = formatMoney(monthlyEq);
+                        if (periodEl) periodEl.textContent = '/mo';
+                        if (noteEl) noteEl.textContent = 'Billed annually · save ' + discount + '%';
+                        if (annualEl) annualEl.textContent = formatMoney(yearTotal) + ' total per year';
+                    } else {
+                        el.textContent = formatMoney(basePrice);
+                        if (periodEl) periodEl.textContent = '/mo';
+                        if (noteEl) {
+                            noteEl.textContent = noteEl.getAttribute('data-monthly-note') || 'Billed monthly';
+                        }
+                        if (annualEl) annualEl.textContent = '';
+                    }
+                });
+            }
+
             // Render all sections (subscriptions only overwrite DOM when API has plans)
             if (hasApiPlans) {
                 renderSubscriptions();
@@ -1370,38 +1514,40 @@
                 renderBundles(pricingData.bundles);
             }
 
-            // White-label / à la carte from admin products
+            // À la carte service categories from admin products
             if (pricingData && pricingData.individualServices && pricingData.individualServices.length) {
                 renderIndividualServices(pricingData.individualServices);
             }
 
-            // --- Billing Toggle ---
-            if (billingToggle) billingToggle.addEventListener('change', () => {
-                const isAnnual = billingToggle.checked;
-                trackEvent('toggle_billing', 'Pricing', isAnnual ? 'Annual' : 'Monthly');
-                document.querySelectorAll('.plan-price').forEach(el => {
-                    const basePrice = parseFloat(el.dataset.price);
-                    const discount = parseFloat(el.dataset.discount || 20);
-                    const periodEl = el.nextElementSibling;
-                    const noteEl = periodEl ? periodEl.nextElementSibling : null;
-
-                    if (isAnnual) {
-                        el.textContent = `$${Math.round(basePrice * (1 - discount / 100))}`;
-                        if (periodEl) periodEl.textContent = '/ month';
-                        if (noteEl) noteEl.textContent = 'Billed Annually';
-                    } else {
-                        el.textContent = `$${basePrice}`;
-                        if (periodEl) periodEl.textContent = '/ month';
-                        if (noteEl) noteEl.innerHTML = '&nbsp;';
-                    }
+            if (billingToggle) {
+                applyBillingCycle(billingToggle.checked);
+                billingToggle.addEventListener('change', () => {
+                    const isAnnual = billingToggle.checked;
+                    trackEvent('toggle_billing', 'Pricing', isAnnual ? 'Annual' : 'Monthly');
+                    applyBillingCycle(isAnnual);
                 });
-            });
+                const monthlyLabel = document.getElementById('monthly-label');
+                const annualLabel = document.getElementById('annually-label');
+                if (monthlyLabel) monthlyLabel.addEventListener('click', () => {
+                    if (billingToggle.checked) { billingToggle.checked = false; billingToggle.dispatchEvent(new Event('change')); }
+                });
+                if (annualLabel) annualLabel.addEventListener('click', () => {
+                    if (!billingToggle.checked) { billingToggle.checked = true; billingToggle.dispatchEvent(new Event('change')); }
+                });
+            }
 
-            // --- Modal controls ---
+            // --- Modal controls (detailed feature matrix from admin when available) ---
             const modalOverlay = document.getElementById('comparison-modal-overlay');
             const compareBtn = document.getElementById('compare-plans-btn');
             if (compareBtn) compareBtn.addEventListener('click', () => {
                 trackEvent('open_comparison', 'Pricing', 'Compare All Plans');
+                // If admin feature matrix is empty, scroll to the always-visible table instead
+                const hasMatrix = modalTableBody && modalTableBody.children.length > 0;
+                if (!hasMatrix || !hasApiPlans) {
+                    const table = document.getElementById('plan-compare');
+                    if (table) table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
                 modalOverlay.classList.add('active');
                 document.body.classList.add('no-scroll');
             });
