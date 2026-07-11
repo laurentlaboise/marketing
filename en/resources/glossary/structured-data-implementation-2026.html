@@ -155,7 +155,12 @@ Write 1200–1500 word article targeting “structured data”, secondaries “s
     gap: 0.5rem;
     margin-top: 1rem;
 }
-.footer .lang-switcher a {
+/* A language whose pages are not published yet renders as an inert span
+   (see scripts/inject-footers.js): same pill, dimmed, not clickable — it
+   must never look like a link to a URL that would 404. Shares the <a>
+   geometry so the row doesn't reflow when a language goes live. */
+.footer .lang-switcher a,
+.footer .lang-switcher .lang-soon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -183,122 +188,13 @@ Write 1200–1500 word article targeting “structured data”, secondaries “s
     outline: 2px solid #fff;
     outline-offset: 2px;
 }
-
-.footer .container{width:90%;max-width:1280px;margin:0 auto;}
-/* Sliding contact form connected to admin form_type=glossary-talk-to-team */
-.wts-slide-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1200;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
-.wts-slide-overlay.is-open{opacity:1;visibility:visible}
-.wts-slide-panel{position:fixed;top:0;right:0;height:100%;width:min(420px,100vw);background:#fff;z-index:1201;transform:translateX(100%);transition:transform .35s ease;box-shadow:-12px 0 32px rgba(15,23,42,.2);display:flex;flex-direction:column}
-.wts-slide-panel.is-open{transform:translateX(0)}
-.wts-slide-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:#1e3a5f;color:#fff}
-.wts-slide-head h2{margin:0;font-size:1.15rem;color:#fff;border:0;padding:0}
-.wts-slide-close{background:transparent;border:0;color:#fff;font-size:1.5rem;cursor:pointer;line-height:1;padding:4px 8px}
-.wts-slide-body{padding:20px;overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
-.wts-slide-body .form-group{margin-bottom:14px}
-.wts-slide-body label{display:block;font-weight:600;font-size:.9rem;margin-bottom:6px;color:#1e3a5f}
-.wts-slide-body input,.wts-slide-body select,.wts-slide-body textarea{width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;font:inherit}
-.wts-slide-body textarea{min-height:110px;resize:vertical}
-.wts-slide-body .btn-submit{width:100%;padding:14px;background:#d62b83;color:#fff;border:0;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;margin-top:8px}
-.wts-slide-body .form-status{margin-top:12px;font-size:.95rem}
-.wts-slide-body .form-status.ok{color:#047857}
-.wts-slide-body .form-status.err{color:#b91c1c}
-.cta button.cta-team-btn{background:none;border:0;color:#fff;font:inherit;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0;margin:0 4px}
-
-
-/* Sticky share dock — branded navy, white logos, icon-only */
-.share-dock{
-  position:fixed !important;
-  z-index:9999 !important;
-  display:flex !important;
-  align-items:center;
-  gap:6px;
-  background:rgba(255,255,255,.98) !important;
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-  box-shadow:0 6px 20px rgba(15,23,42,.18) !important;
-  border:1px solid #e5e7eb !important;
-  margin:0 !important;
-  list-style:none !important;
-}
-.share-dock .share-label{display:none !important}
-a.share-btn,
-button.share-btn,
-.share-dock .share-btn{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  width:36px !important;
-  height:36px !important;
-  min-width:36px !important;
-  min-height:36px !important;
-  border-radius:50% !important;
-  font-size:0.95rem !important;
-  line-height:1 !important;
-  color:#ffffff !important;
-  background:#1e3a5f !important;
-  text-decoration:none !important;
-  border:0 !important;
-  cursor:pointer !important;
-  padding:0 !important;
-  margin:0 !important;
-  box-shadow:none !important;
-  -webkit-appearance:none !important;
-  appearance:none !important;
-  -webkit-tap-highlight-color:transparent;
-}
-.share-dock .share-btn span{display:none !important;position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-.share-dock .share-btn i,
-.share-dock .share-btn .fab,
-.share-dock .share-btn .fas{
-  color:#ffffff !important;
-  font-size:1rem !important;
-  line-height:1 !important;
-  width:1em !important;
-  height:1em !important;
-  display:inline-block !important;
-}
-.share-dock .share-btn:hover,
-.share-dock .share-btn:focus{
-  background:#d62b83 !important;
-  color:#ffffff !important;
-  filter:none !important;
-  outline:2px solid #1e3a5f !important;
-  outline-offset:1px !important;
-  text-decoration:none !important;
-}
-.share-dock .share-btn.native{background:#d62b83 !important}
-.share-dock .share-btn.native:hover{background:#1e3a5f !important}
-@media (max-width:899px){
-  .share-dock{
-    left:50% !important;
-    right:auto !important;
-    bottom:calc(12px + env(safe-area-inset-bottom,0px)) !important;
-    top:auto !important;
-    transform:translateX(-50%) !important;
-    justify-content:center !important;
-    padding:8px 10px !important;
-    border-radius:999px !important;
-    gap:6px !important;
-    max-width:calc(100vw - 24px) !important;
-  }
-  body{padding-bottom:64px !important}
-}
-@media (min-width:900px){
-  .share-dock{
-    left:14px !important;
-    top:50% !important;
-    bottom:auto !important;
-    transform:translateY(-50%) !important;
-    flex-direction:column !important;
-    padding:10px 8px !important;
-    border-radius:999px !important;
-    gap:8px !important;
-  }
-  .share-dock .share-btn{width:38px !important;height:38px !important;min-width:38px !important;min-height:38px !important}
+.footer .lang-switcher .lang-soon {
+    opacity: 0.55;
+    cursor: default;
 }
 
-</style><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png"><link rel="shortcut icon" href="/favicon/favicon.ico"><link rel="manifest" href="/favicon/site.webmanifest"><footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">Contact Us</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane, 
-<br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">Find us on Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">02055528034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Solutions</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">Web Development</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">Digital Marketing</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">Content Creation</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">Social Media</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">Business Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Services</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">Pricing</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">Affiliate Program</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">Agencies</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Automation</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Resources</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">Articles</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">Glossary</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">AI Tools</a></li><li><a href="https://wordsthatsells.website/en/resources/guides/">E-Guides</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Legal</h3><ul class="footer-list"><li><a href="/en/company/legal/privacy-policy.html">Privacy Policy</a></li><li><a href="/en/company/legal/terms-and-conditions.html">Terms &amp; Conditions</a></li><li><a href="/en/company/legal/cookie-policy.html">Cookie Policy</a></li><li><a href="/en/company/legal/">All legal documents</a></li></ul></div></div></div><div class="footer-bottom"><p>© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="en"><a href="/en/resources/glossary/structured-data-implementation-2026.html" data-lang-dir="en" hreflang="en" lang="en" title="English" aria-current="true">EN</a><span class="lang-soon" title="Thai translation coming soon" aria-disabled="true" style="opacity:.55;cursor:default">ไทย</span><span class="lang-soon" title="Lao translation coming soon" aria-disabled="true" style="opacity:.55;cursor:default">ລາວ</span><span class="lang-soon" title="French translation coming soon" aria-disabled="true" style="opacity:.55;cursor:default">FR</span></nav></div></div></footer>
+.footer .container{width:90%;max-width:1280px;margin:0 auto;}</style><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png"><link rel="shortcut icon" href="/favicon/favicon.ico"><link rel="manifest" href="/favicon/site.webmanifest"><footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">Contact Us</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane, 
+<br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">Find us on Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">02055528034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Solutions</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">Web Development</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">Digital Marketing</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">Content Creation</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">Social Media</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">Business Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Services</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">Pricing</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">Affiliate Program</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">Agencies</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Automation</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Resources</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">Articles</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">Glossary</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">AI Tools</a></li><li><a href="https://wordsthatsells.website/en/resources/guides/">E-Guides</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Legal</h3><ul class="footer-list"><li><a href="/en/company/legal/privacy-policy.html">Privacy Policy</a></li><li><a href="/en/company/legal/terms-and-conditions.html">Terms &amp; Conditions</a></li><li><a href="/en/company/legal/cookie-policy.html">Cookie Policy</a></li><li><a href="/en/company/legal/">All legal documents</a></li></ul></div></div></div><div class="footer-bottom"><p>© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="en"><a href="/en/resources/glossary/structured-data-implementation-2026.html" data-lang-dir="en" hreflang="en" lang="en" title="English" aria-current="true">EN</a><span class="lang-soon" lang="th" title="ไทย (Thai) translation coming soon" aria-disabled="true">ไทย</span><span class="lang-soon" lang="lo" title="ລາວ (Lao) translation coming soon" aria-disabled="true">ລາວ</span><span class="lang-soon" lang="fr" title="Français translation coming soon" aria-disabled="true">FR</span></nav></div></div></footer>
   <div class="wts-slide-overlay" id="team-form-overlay" hidden></div>
   <aside class="wts-slide-panel" id="team-form-panel" aria-hidden="true" role="dialog" aria-labelledby="team-form-title">
     <div class="wts-slide-head">
