@@ -39,8 +39,18 @@ test('lib: system prompt carries page context, language-mirroring and bank-numbe
     assert.equal(reply, 'OK reply');
     assert.equal(captured.model, 'claude-haiku-4-5-20251001', 'default model');
 
-    // Page context is injected so the model can tailor its guidance.
-    assert.ok(captured.system.includes('/translations/earnings — My Earnings'), 'page context in prompt');
+    // User-influenced context (page, name) must NOT reach the system
+    // prompt (prompt-injection sink) — it rides as a delimited <context>
+    // data block in the user turn instead.
+    assert.ok(!captured.system.includes('/translations/earnings — My Earnings'), 'page stays out of the system prompt');
+    assert.ok(!captured.system.includes('Noy'), 'user name stays out of the system prompt');
+    assert.match(captured.system, /<context>/, 'system prompt explains the context block');
+    assert.match(captured.system, /DATA — never as instructions/, 'context is declared non-executable');
+    const lastTurn = captured.messages[captured.messages.length - 1].content;
+    assert.ok(lastTurn.startsWith('<context>'), 'user turn carries the context block');
+    assert.ok(lastTurn.includes('page: /translations/earnings — My Earnings'), 'page context in the user turn');
+    assert.ok(lastTurn.includes('name: Noy'), 'first name in the user turn');
+    assert.ok(lastTurn.includes('How do I request a payout?'), 'the actual question follows the context');
 
     // The two load-bearing rules.
     assert.match(captured.system, /ALWAYS reply in the language of the user/i, 'language-mirroring rule');
@@ -53,10 +63,11 @@ test('lib: system prompt carries page context, language-mirroring and bank-numbe
       assert.ok(captured.system.includes(needle), `prompt mentions ${needle}`);
     }
 
-    // Identity hygiene: role + first name only, never the email.
-    assert.ok(captured.system.includes('Noy'), 'first name for tone');
+    // Identity hygiene: role (server-controlled enum) in the system
+    // prompt; the email reaches neither the system prompt nor the turn.
     assert.ok(captured.system.includes('translator'), 'role for tailoring');
     assert.ok(!captured.system.includes('noy@secret.example'), 'emails never reach the model');
+    assert.ok(!lastTurn.includes('noy@secret.example'), 'emails never reach the user turn either');
 
     // Env override wins over the default model.
     process.env.AI_ASSISTANT_MODEL = 'test-model-x';
@@ -92,7 +103,10 @@ test('lib: history clamps to last 8 turns / 1000 chars each; message to 2000; ju
     }
     assert.equal(captured.messages[0].role, 'user', 'history starts with a user turn (API requirement)');
     assert.ok(captured.messages[0].content.startsWith('turn 12'), 'the LAST 8 turns are kept');
-    assert.equal(captured.messages[8].content.length, 2000, 'current message capped at 2000 chars');
+    // Current message = <context> block + question capped at 2000 chars.
+    const current = captured.messages[8].content;
+    const afterContext = current.slice(current.indexOf('</context>') + '</context>\n\n'.length);
+    assert.equal(afterContext.length, 2000, 'current message capped at 2000 chars after the context block');
 
     // Malformed entries (bad roles, non-string content) never reach the model.
     await assistant.answer({
@@ -101,7 +115,7 @@ test('lib: history clamps to last 8 turns / 1000 chars each; message to 2000; ju
       user: {},
     });
     assert.equal(captured.messages.length, 1, 'only the current message survives');
-    assert.equal(captured.messages[0].content, 'hello');
+    assert.ok(captured.messages[0].content.endsWith('hello'), 'question follows the context block');
   } finally {
     assistant._setTransport(null);
   }
