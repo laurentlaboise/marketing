@@ -30,24 +30,34 @@
           <div style="font-size:0.75rem; color:var(--gray-500);">requested <%= fmt(b.requested, b.currency) %> · paid <%= fmt(b.paid, b.currency) %></div>
         </div>
         <% }); %>
-        <div style="margin-left:auto;">
-          <button type="button" class="btn btn-primary" id="requestBtn" <%= totalAvailable > 0 ? '' : 'disabled' %>>
+        <div style="margin-left:auto; text-align:right; max-width:320px;">
+          <button type="button" class="btn btn-primary" id="requestBtn" <%= requestBlockReason ? 'disabled' : '' %>>
             <i class="fas fa-hand-holding-dollar"></i> Request Payout
           </button>
+          <div style="font-size:0.75rem; color:var(--gray-500); margin-top:0.25rem;">
+            Minimum payout: LAK <%= lakMinPayout.toLocaleString('en-US') %><% if (balances.some(b => b.currency !== 'LAK')) { %> — applies to the LAK balance only; other currencies are paid out in full<% } %>
+          </div>
           <% if (minPayout > 0) { %>
-            <div style="font-size:0.75rem; color:var(--gray-500); margin-top:0.25rem;">Minimum payout: <%= minPayout.toFixed(2) %></div>
+            <div style="font-size:0.75rem; color:var(--gray-500);">Rate-card minimum: <%= minPayout.toFixed(2) %></div>
+          <% } %>
+          <% if (requestBlockReason) { %>
+            <div style="font-size:0.75rem; color:#b45309; margin-top:0.25rem;"><i class="fas fa-circle-info"></i> <%= requestBlockReason %></div>
           <% } %>
         </div>
       </div>
     </div>
 
-    <!-- Payout method -->
+    <!-- Payout method (self-service: the account holder enters their own
+         details; the form is never prefilled — only the masked label is
+         ever readable back) -->
     <div class="card" style="margin-bottom:1rem;">
       <div class="card-body">
         <h3 style="margin:0 0 0.5rem;">Payout Method</h3>
         <% if (payout.configured) { %>
           <p style="margin:0 0 1rem; color:var(--gray-600);">
-            Current: <strong><%= payout.gateway %></strong> <span style="color:var(--gray-500);"><%= payout.label %></span>
+            Current: <strong><%= payout.method === 'bank_transfer' ? 'Bank transfer' : (payout.method === 'wallet_qr' ? 'Wallet / QR' : payout.gateway) %></strong>
+            <span style="color:var(--gray-500);"><%= payout.label %></span>
+            <button type="button" class="btn btn-secondary btn-sm" id="removeMethodBtn" style="margin-left:0.75rem;"><i class="fas fa-trash-can"></i> Remove method</button>
           </p>
         <% } else { %>
           <p style="margin:0 0 1rem; color:var(--gray-600);">No payout method on file yet.</p>
@@ -56,46 +66,43 @@
         <% if (!encryptionConfigured) { %>
           <p style="color:#d97706; margin:0;"><i class="fas fa-triangle-exclamation"></i> Banking details cannot be stored until the administrator configures encryption (PAYOUT_METADATA_KEY).</p>
         <% } else { %>
-        <form id="bankingForm" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem;">
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">Method</label>
-            <select class="form-input" name="gateway">
-              <% gateways.forEach(g => { %>
-                <option value="<%= g %>" <%= payout.gateway === g ? 'selected' : '' %>><%= g === 'stripe_connect' ? 'Stripe Connect' : (g === 'wise' ? 'Wise' : 'Manual / local bank') %></option>
-              <% }); %>
-            </select>
+        <form id="methodForm" autocomplete="off">
+          <div style="display:flex; gap:1.25rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+            <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+              <input type="radio" name="method" value="bank_transfer" checked> Bank transfer
+            </label>
+            <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+              <input type="radio" name="method" value="wallet_qr"> Wallet / QR
+            </label>
           </div>
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">Account holder name</label>
-            <input class="form-input" name="account_holder" autocomplete="off">
+          <div id="bankFields" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Bank name</label>
+              <input class="form-input" name="bank_name" maxlength="120" autocomplete="off" placeholder="e.g. BCEL">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Account holder name</label>
+              <input class="form-input" name="account_name" maxlength="120" autocomplete="off">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Account number</label>
+              <input class="form-input" name="account_number" maxlength="34" inputmode="numeric" autocomplete="off" placeholder="digits, spaces, dashes">
+            </div>
           </div>
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">Bank name</label>
-            <input class="form-input" name="bank_name" autocomplete="off" placeholder="e.g. BCEL">
+          <div id="walletFields" style="display:none; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Provider</label>
+              <input class="form-input" name="provider" maxlength="60" autocomplete="off" placeholder="OnePay, BCEL One, LaoQR…">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Wallet ID / QR payload</label>
+              <input class="form-input" name="wallet_id" maxlength="300" autocomplete="off" placeholder="Wallet number or the QR code text">
+            </div>
           </div>
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">Account number</label>
-            <input class="form-input" name="account_number" autocomplete="off">
-          </div>
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">IBAN (if applicable)</label>
-            <input class="form-input" name="iban" autocomplete="off">
-          </div>
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">Account currency</label>
-            <input class="form-input" name="currency" placeholder="LAK, THB, EUR…" maxlength="3" autocomplete="off">
-          </div>
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">Stripe account id (Stripe Connect only)</label>
-            <input class="form-input" name="stripe_account_id" placeholder="acct_…" autocomplete="off">
-          </div>
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">Country</label>
-            <input class="form-input" name="country" autocomplete="off">
-          </div>
-          <div style="grid-column:1 / -1;">
+          <div style="margin-top:0.75rem;">
             <button type="submit" class="btn btn-primary"><i class="fas fa-lock"></i> Save (encrypted)</button>
-            <span style="font-size:0.8rem; color:var(--gray-500); margin-left:0.5rem;">Details are encrypted at rest; only the payment gateway can read them.</span>
+            <span style="font-size:0.8rem; color:var(--gray-500); margin-left:0.5rem;">Details are encrypted at rest; only a masked label is ever shown.</span>
+            <div id="methodError" style="display:none; color:#b91c1c; font-size:0.85rem; margin-top:0.5rem;"></div>
           </div>
         </form>
         <% } %>
@@ -176,17 +183,50 @@
     });
   });
 
-  var bankingForm = document.getElementById('bankingForm');
-  if (bankingForm) bankingForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var body = {};
-    ['gateway', 'account_holder', 'bank_name', 'account_number', 'iban', 'currency', 'stripe_account_id', 'country'].forEach(function (name) {
-      var field = bankingForm.querySelector('[name="' + name + '"]');
-      if (field && field.value.trim()) body[name] = field.value.trim();
+  var methodForm = document.getElementById('methodForm');
+  if (methodForm) {
+    var bankFields = document.getElementById('bankFields');
+    var walletFields = document.getElementById('walletFields');
+    var methodError = document.getElementById('methodError');
+    var currentMethod = function () {
+      var checked = methodForm.querySelector('input[name="method"]:checked');
+      return checked ? checked.value : 'bank_transfer';
+    };
+    var syncFields = function () {
+      var wallet = currentMethod() === 'wallet_qr';
+      bankFields.style.display = wallet ? 'none' : 'grid';
+      walletFields.style.display = wallet ? 'grid' : 'none';
+    };
+    methodForm.querySelectorAll('input[name="method"]').forEach(function (radio) {
+      radio.addEventListener('change', syncFields);
     });
-    body.gateway = bankingForm.querySelector('[name="gateway"]').value;
-    post('/translations/earnings/banking', body).then(function (res) {
-      if (res.ok) location.reload(); else alert(res.data.error || 'Save failed');
+    syncFields();
+
+    methodForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      methodError.style.display = 'none';
+      var method = currentMethod();
+      var body = { method: method };
+      var names = method === 'wallet_qr'
+        ? ['provider', 'wallet_id']
+        : ['bank_name', 'account_name', 'account_number'];
+      names.forEach(function (name) {
+        var field = methodForm.querySelector('[name="' + name + '"]');
+        if (field && field.value.trim()) body[name] = field.value.trim();
+      });
+      post('/translations/earnings/payout-method', body).then(function (res) {
+        if (res.ok) { location.reload(); return; }
+        methodError.textContent = res.data.error || 'Save failed';
+        methodError.style.display = 'block';
+      });
+    });
+  }
+
+  var removeMethodBtn = document.getElementById('removeMethodBtn');
+  if (removeMethodBtn) removeMethodBtn.addEventListener('click', function () {
+    if (!confirm('Remove your payout method? You cannot request payouts until you add a new one.')) return;
+    post('/translations/earnings/payout-method/remove').then(function (res) {
+      if (res.ok) location.reload(); else alert(res.data.error || 'Remove failed');
     });
   });
 })();

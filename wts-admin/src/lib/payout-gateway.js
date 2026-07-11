@@ -4,11 +4,13 @@
 // Storage model (users.payout_metadata JSONB):
 //   {
 //     gateway: 'wise' | 'stripe_connect' | 'manual',
+//     method: 'bank_transfer' | 'wallet_qr',  // optional: self-service methods
 //     label: 'BCEL •••• 1234',           // masked, display-safe
 //     enc: { v, alg, iv, tag, data },    // AES-256-GCM envelope of the details
 //     updated_at: ISO string
 //   }
-// Only `gateway` and the masked `label` are ever readable without the key.
+// Only `gateway`, `method` and the masked `label` are ever readable without
+// the key.
 // Bank details are decrypted exclusively inside createTransfer() and are
 // never logged or returned to any UI.
 const crypto = require('crypto');
@@ -95,10 +97,53 @@ function buildStoredMetadata(gateway, details) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Self-service payout methods (worker-facing earnings page)
+// ---------------------------------------------------------------------------
+
+// Vendors manage these themselves: a local bank account or a wallet/QR id.
+// Both disburse through the manual/local-transfer path — gateway stays
+// 'manual' so createTransfer() never calls an external API for them; the
+// finance team settles against the decrypted details at payout time.
+const SELF_SERVICE_METHODS = ['bank_transfer', 'wallet_qr'];
+
+// Masked label: institution name (display-safe by design, like the
+// 'BCEL •••• 1234' example above) + the last four characters of the
+// identifying detail. Never includes the holder name or the full number.
+function selfServiceLabel(method, details) {
+  const institution = String((method === 'wallet_qr' ? details.provider : details.bank_name) || '').trim();
+  const source = method === 'wallet_qr' ? details.wallet_id : details.account_number;
+  const tail = String(source || '').replace(/[^0-9a-z]/gi, '').slice(-4);
+  const mask = tail ? `•••• ${tail}` : 'on file';
+  return institution ? `${institution} ${mask}` : mask;
+}
+
+// Build the stored JSONB value for a self-service method. Same envelope
+// shape as buildStoredMetadata, plus the `method` discriminator.
+function buildSelfServiceMetadata(method, details) {
+  if (!SELF_SERVICE_METHODS.includes(method)) {
+    throw Object.assign(new Error('Unknown payout method type'), { status: 400 });
+  }
+  return {
+    gateway: 'manual',
+    method,
+    label: selfServiceLabel(method, details),
+    enc: encryptPayoutDetails({ method, ...details }),
+    updated_at: new Date().toISOString(),
+  };
+}
+
 // What any UI is allowed to see about stored banking metadata.
 function describeStored(metadata) {
-  if (!metadata || !metadata.enc) return { configured: false, gateway: null, label: null };
-  return { configured: true, gateway: metadata.gateway || null, label: metadata.label || 'on file' };
+  if (!metadata || !metadata.enc) {
+    return { configured: false, gateway: null, method: null, label: null };
+  }
+  return {
+    configured: true,
+    gateway: metadata.gateway || null,
+    method: metadata.method || null,
+    label: metadata.label || 'on file',
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -214,11 +259,13 @@ async function createStripeConnectTransfer(request, details) {
 
 module.exports = {
   GATEWAYS,
+  SELF_SERVICE_METHODS,
   GatewayNotConfiguredError,
   isEncryptionConfigured,
   encryptPayoutDetails,
   decryptPayoutDetails,
   buildStoredMetadata,
+  buildSelfServiceMetadata,
   describeStored,
   createTransfer,
 };

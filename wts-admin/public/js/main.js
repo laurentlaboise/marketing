@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   initDropdowns();
   initSearch();
+  initCallButton();
   initMobileSearch();
   initAlerts();
   initSubmenuToggle();
@@ -218,75 +219,192 @@ function initDropdowns() {
   });
 }
 
-// Global search
-function initSearch() {
-  const searchForm = document.getElementById('globalSearch');
-  const searchInput = searchForm?.querySelector('.search-input');
-  const searchResults = document.getElementById('searchResults');
+// Global search (top bar): grouped type-ahead against /api/search.
+// One wiring shared by the desktop header input and the mobile overlay.
+// Response shape: { groups: [{ label, items: [{ title, meta, href }] }] }.
+const SEARCH_GROUP_ICONS = {
+  'Content': 'fa-file-alt',
+  'Translations': 'fa-language',
+  'Form Submissions': 'fa-envelope',
+  'Leads': 'fa-address-book'
+};
 
-  if (!searchInput || !searchResults) return;
+function setupSearchBox(form, input, resultsEl) {
+  if (!form || !input || !resultsEl) return;
 
   let debounceTimer;
+  let items = [];       // rendered result anchors, in visual order
+  let activeIndex = -1; // keyboard highlight
 
-  searchInput.addEventListener('input', (e) => {
-    clearTimeout(debounceTimer);
-    const query = e.target.value.trim();
+  const close = () => {
+    resultsEl.classList.remove('active');
+    resultsEl.innerHTML = '';
+    items = [];
+    activeIndex = -1;
+  };
 
-    if (query.length < 2) {
-      searchResults.classList.remove('active');
+  const setActive = (index) => {
+    if (items.length === 0) return;
+    activeIndex = (index + items.length) % items.length;
+    items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+    items[activeIndex].scrollIntoView({ block: 'nearest' });
+  };
+
+  // DOM-API rendering: every user-influenced string lands in textContent,
+  // never in markup.
+  const render = (groups) => {
+    resultsEl.innerHTML = '';
+    items = [];
+    activeIndex = -1;
+
+    if (!groups || groups.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'search-empty';
+      empty.textContent = 'No results found';
+      resultsEl.appendChild(empty);
+      resultsEl.classList.add('active');
       return;
     }
 
+    groups.forEach((group) => {
+      const label = document.createElement('div');
+      label.className = 'search-group-label';
+      label.textContent = group.label || '';
+      resultsEl.appendChild(label);
+
+      (group.items || []).forEach((item) => {
+        const a = document.createElement('a');
+        a.className = 'search-result-item';
+        a.href = item.href || '#';
+        const icon = document.createElement('i');
+        icon.className = 'fas ' + (SEARCH_GROUP_ICONS[group.label] || 'fa-file');
+        const body = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'result-title';
+        title.textContent = item.title || '';
+        const meta = document.createElement('div');
+        meta.className = 'result-type';
+        meta.textContent = item.meta || '';
+        body.appendChild(title);
+        body.appendChild(meta);
+        a.appendChild(icon);
+        a.appendChild(body);
+        resultsEl.appendChild(a);
+        items.push(a);
+      });
+    });
+
+    if (items.length > 0) setActive(0); // Enter opens the top hit by default
+    resultsEl.classList.add('active');
+  };
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const query = input.value.trim();
+    if (query.length < 2) {
+      close();
+      return;
+    }
     debounceTimer = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query.slice(0, 100))}`);
         const data = await response.json();
-
-        if (data.results && data.results.length > 0) {
-          searchResults.innerHTML = data.results.map(item => {
-            const typeIcons = {
-              'article': 'fa-newspaper',
-              'ai-tool': 'fa-robot',
-              'glossary': 'fa-book',
-              'product': 'fa-box'
-            };
-            const typeUrls = {
-              'article': '/content/articles',
-              'ai-tool': '/content/ai-tools',
-              'glossary': '/content/glossary',
-              'product': '/business/products'
-            };
-            return `
-              <a href="${typeUrls[item.type]}/${item.id}/edit" class="search-result-item">
-                <i class="fas ${typeIcons[item.type] || 'fa-file'}"></i>
-                <div>
-                  <div class="result-title">${escapeHtml(item.title)}</div>
-                  <div class="result-type">${item.type}</div>
-                </div>
-              </a>
-            `;
-          }).join('');
-          searchResults.classList.add('active');
-        } else {
-          searchResults.innerHTML = '<div class="search-result-item">No results found</div>';
-          searchResults.classList.add('active');
-        }
+        if (input.value.trim() !== query) return; // stale response, newer keystrokes pending
+        render(data.groups || []);
       } catch (error) {
         console.error('Search error:', error);
       }
-    }, 300);
+    }, 250);
   });
 
-  // Close search results on outside click
-  document.addEventListener('click', (e) => {
-    if (!searchForm.contains(e.target)) {
-      searchResults.classList.remove('active');
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      close();
+      return;
+    }
+    if (!resultsEl.classList.contains('active')) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActive(activeIndex + 1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive(activeIndex - 1);
+    } else if (e.key === 'Enter') {
+      if (activeIndex >= 0 && items[activeIndex]) {
+        e.preventDefault();
+        window.location.href = items[activeIndex].href;
+      }
     }
   });
 
-  // Prevent form submission
-  searchForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!form.contains(e.target)) close();
+  });
+
+  // Never navigate to the raw JSON endpoint; Enter is handled above.
+  form.addEventListener('submit', (e) => e.preventDefault());
+}
+
+function initSearch() {
+  const form = document.getElementById('globalSearch');
+  if (!form) return; // unauthenticated pages render no search box
+  setupSearchBox(form, form.querySelector('.search-input'), document.getElementById('searchResults'));
+}
+
+// Video call button: create a Jitsi room, open it, and let the server
+// notify the coordinators with the join link.
+function initCallButton() {
+  const btn = document.getElementById('startCallBtn');
+  if (!btn) return;
+  const fallback = document.getElementById('callLinkFallback');
+
+  const showFallback = (roomUrl) => {
+    if (!fallback) {
+      alert('Pop-up blocked. Join link: ' + roomUrl);
+      return;
+    }
+    fallback.innerHTML = '';
+    const note = document.createElement('div');
+    note.textContent = 'Pop-up blocked — open your call here:';
+    const link = document.createElement('a');
+    link.href = roomUrl;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = roomUrl;
+    fallback.appendChild(note);
+    fallback.appendChild(link);
+    fallback.classList.add('active');
+  };
+
+  document.addEventListener('click', (e) => {
+    if (fallback && fallback.classList.contains('active') &&
+        !fallback.contains(e.target) && !btn.contains(e.target)) {
+      fallback.classList.remove('active');
+    }
+  });
+
+  btn.addEventListener('click', async () => {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    try {
+      // X-CSRF-Token is attached by the global fetch wrapper above.
+      const res = await fetch('/api/call-invite', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.roomUrl) {
+        throw new Error(data.error || 'Failed to start the call');
+      }
+      const win = window.open(data.roomUrl, '_blank');
+      if (win) {
+        win.opener = null;
+      } else {
+        showFallback(data.roomUrl);
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to start the call');
+    } finally {
+      btn.disabled = false;
+    }
   });
 }
 
@@ -496,6 +614,19 @@ function initNotifications() {
     });
   }
 
+  // Category derived from each notification's link (payout wording wins
+  // over the section prefix, so "/translations/payouts" files under
+  // Payouts). Plain includes()/startsWith() — no regex on user data.
+  function notifCategory(n) {
+    const link = String(n.link || '').toLowerCase();
+    const title = String(n.title || '').toLowerCase();
+    if (link.includes('payout') || title.includes('payout')) return 'Payouts';
+    if (link.startsWith('/translations')) return 'Localization';
+    if (link.startsWith('/partners')) return 'Partners';
+    if (link.startsWith('/workforce')) return 'Workforce';
+    return 'System';
+  }
+
   async function loadNotifications() {
     try {
       const res = await fetch('/api/notifications');
@@ -504,17 +635,35 @@ function initNotifications() {
         notifList.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash"></i>No notifications yet</div>';
         return;
       }
-      notifList.innerHTML = data.notifications.map(n => {
-        const isUnread = !n.read;
-        const link = n.link || '/webdev/submissions';
-        return `<a href="${escapeHtml(link)}" class="notif-item ${isUnread ? 'unread' : ''}">
-          <div class="notif-icon"><i class="fas fa-envelope"></i></div>
-          <div class="notif-body">
-            <div class="notif-title">${escapeHtml(n.title)}</div>
-            <div class="notif-msg">${escapeHtml(n.message || '')}</div>
-            <div class="notif-time">${timeAgo(n.created_at)}</div>
-          </div>
-        </a>`;
+
+      // Group items by category, keeping newest-first order inside each
+      // group and ordering groups by their newest item (first appearance).
+      const order = [];
+      const grouped = {};
+      data.notifications.forEach(n => {
+        const cat = notifCategory(n);
+        if (!grouped[cat]) {
+          grouped[cat] = [];
+          order.push(cat);
+        }
+        grouped[cat].push(n);
+      });
+
+      notifList.innerHTML = order.map(cat => {
+        const header = `<div class="notif-group-label">${escapeHtml(cat)}</div>`;
+        const items = grouped[cat].map(n => {
+          const isUnread = !n.read;
+          const link = n.link || '/webdev/submissions';
+          return `<a href="${escapeHtml(link)}" class="notif-item ${isUnread ? 'unread' : ''}">
+            <div class="notif-icon"><i class="fas fa-envelope"></i></div>
+            <div class="notif-body">
+              <div class="notif-title">${escapeHtml(n.title)}</div>
+              <div class="notif-msg">${escapeHtml(n.message || '')}</div>
+              <div class="notif-time">${timeAgo(n.created_at)}</div>
+            </div>
+          </a>`;
+        }).join('');
+        return header + items;
       }).join('');
     } catch (err) {
       notifList.innerHTML = '<div class="notif-empty">Failed to load notifications</div>';
@@ -598,46 +747,33 @@ function initMobileSearch() {
     if (e.key === 'Escape') closeOverlay();
   });
 
-  // Search functionality (mirrors desktop search)
-  if (searchInput && searchResults && searchForm) {
-    let debounceTimer;
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(debounceTimer);
-      const query = e.target.value.trim();
-      if (query.length < 2) {
-        searchResults.classList.remove('active');
-        return;
-      }
-      debounceTimer = setTimeout(async () => {
-        try {
-          const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-          const data = await response.json();
-          if (data.results && data.results.length > 0) {
-            searchResults.innerHTML = data.results.map(item => {
-              const typeIcons = { 'article': 'fa-newspaper', 'ai-tool': 'fa-robot', 'glossary': 'fa-book', 'product': 'fa-box' };
-              const typeUrls = { 'article': '/content/articles', 'ai-tool': '/content/ai-tools', 'glossary': '/content/glossary', 'product': '/business/products' };
-              return `<a href="${typeUrls[item.type]}/${item.id}/edit" class="search-result-item">
-                <i class="fas ${typeIcons[item.type] || 'fa-file'}"></i>
-                <div><div class="result-title">${escapeHtml(item.title)}</div><div class="result-type">${item.type}</div></div>
-              </a>`;
-            }).join('');
-            searchResults.classList.add('active');
-          } else {
-            searchResults.innerHTML = '<div class="search-result-item">No results found</div>';
-            searchResults.classList.add('active');
-          }
-        } catch (error) {
-          console.error('Mobile search error:', error);
-        }
-      }, 300);
-    });
-
-    searchForm.addEventListener('submit', (e) => e.preventDefault());
-  }
+  // Search wiring shared with the desktop box (grouped results,
+  // debounce, keyboard navigation, Escape).
+  setupSearchBox(searchForm, searchInput, searchResults);
 }
 
 // Keyboard shortcuts
 function initKeyboardShortcuts() {
+  // Ctrl+K / Cmd+K focuses the global search from anywhere — including
+  // from inside other inputs, so it gets its own listener ahead of the
+  // "ignore keystrokes in form fields" rule below.
+  document.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || (e.key !== 'k' && e.key !== 'K')) return;
+    const desktopInput = document.querySelector('.header-search .search-input');
+    const desktopVisible = desktopInput &&
+      window.getComputedStyle(desktopInput.closest('.header-search')).display !== 'none';
+    if (desktopVisible) {
+      e.preventDefault();
+      desktopInput.focus();
+      desktopInput.select();
+    } else if (document.getElementById('mobileSearchBtn')) {
+      e.preventDefault();
+      document.getElementById('mobileSearchBtn').click();
+    }
+    // No search box on this page (non-admin header): let the browser keep
+    // its default Ctrl+K behavior.
+  });
+
   document.addEventListener('keydown', (e) => {
     // Don't trigger when typing in inputs
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;

@@ -50,57 +50,9 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// ==================== SEARCH ====================
-
-router.get('/search', async (req, res) => {
-  const { q, type } = req.query;
-
-  const searchQuery = (typeof q === 'string') ? q.trim() : '';
-  if (!searchQuery || searchQuery.length < 2) {
-    return respond(res, { results: [] });
-  }
-
-  try {
-    const searchTerm = `%${searchQuery}%`;
-    let results = [];
-
-    if (!type || type === 'all' || type === 'articles') {
-      const articles = await db.query(
-        'SELECT id, title, status, \'article\' as type FROM articles WHERE title ILIKE $1 LIMIT 5',
-        [searchTerm]
-      );
-      results = results.concat(articles.rows);
-    }
-
-    if (!type || type === 'all' || type === 'ai-tools') {
-      const tools = await db.query(
-        'SELECT id, name as title, status, \'ai-tool\' as type FROM ai_tools WHERE name ILIKE $1 LIMIT 5',
-        [searchTerm]
-      );
-      results = results.concat(tools.rows);
-    }
-
-    if (!type || type === 'all' || type === 'glossary') {
-      const glossary = await db.query(
-        'SELECT id, term as title, \'active\' as status, \'glossary\' as type FROM glossary WHERE term ILIKE $1 LIMIT 5',
-        [searchTerm]
-      );
-      results = results.concat(glossary.rows);
-    }
-
-    if (!type || type === 'all' || type === 'products') {
-      const products = await db.query(
-        'SELECT id, name as title, status, \'product\' as type FROM products WHERE name ILIKE $1 LIMIT 5',
-        [searchTerm]
-      );
-      results = results.concat(products.rows);
-    }
-
-    respond(res, { results });
-  } catch (error) {
-    respond(res, { error: 'Search failed' }, 500);
-  }
-});
+// Note: GET /search and POST /call-invite moved to src/routes/quick.js —
+// they serve every signed-in role and mount ahead of this admin-only
+// router (see server.js).
 
 // ==================== ACTIVITY LOGS ====================
 

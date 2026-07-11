@@ -252,6 +252,16 @@ app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/content', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, contentRoutes);
 app.use('/business', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, businessRoutes);
+// AI help assistant — serves EVERY signed-in role (workers and admins), so it
+// mounts BEFORE the ensureAdmin-guarded /api catch-all below; the router
+// carries ensureAuthenticated and its own rate limiters.
+app.use('/api/assistant', require('./src/routes/assistant'));
+// Quick-access endpoints (top-bar search + call invite) — also for EVERY
+// signed-in role, so, like the assistant, they mount BEFORE the admin /api
+// catch-all. The router guards its two routes with ensureAuthenticated and
+// its own rate limiters; every other /api path matches nothing in it and
+// falls through to the admin router below unchanged.
+app.use('/api', require('./src/routes/quick'));
 // Note: /api/machine is mounted earlier and must not require session admin auth.
 // Express still matches /api/* here for other paths only after prior routers
 // call next(); machine routes always end the response themselves.
