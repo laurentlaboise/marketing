@@ -610,13 +610,49 @@ test('verifier flow: AI draft → fix → approve → publish credits verificati
   const workspace = await verifierSession.fetch('/translations/workspace');
   assert.match(await workspace.text(), /To Verify/);
 
-  // Approve with one segment reworked.
+  // Work section by section: tick the term as-is (auto-saves, stamped
+  // unedited)…
+  const tickTerm = await verifierSession.fetch(`/translations/verify/${rowId}/section`, {
+    method: 'POST', headers: vHeaders,
+    body: JSON.stringify({ field: 'term', value: 'TestTerm Verify (ລາວ)', verified: true }),
+  });
+  assert.equal(tickTerm.status, 200);
+  const tickBody = await tickTerm.json();
+  assert.equal(tickBody.verifiedCount, 1);
+  assert.equal(tickBody.totalSections, 2);
+  assert.equal(tickBody.section.edited, false, 'unchanged section is stamped unedited');
+
+  // …try to finish early: the completeness gate asks before allowing it.
   const fixedText = 'ຄຳນິຍາມສະບັບແກ້ໄຂໂດຍຜູ້ກວດ ອ່ານເປັນທຳມະຊາດກວ່າເກົ່າ';
+  const early = await verifierSession.fetch(`/translations/verify/${rowId}/approve`, {
+    method: 'POST', headers: vHeaders,
+    body: JSON.stringify({ content_payload: { term: 'TestTerm Verify (ລາວ)', definition: fixedText } }),
+  });
+  assert.equal(early.status, 409);
+  const earlyBody = await early.json();
+  assert.equal(earlyBody.requiresAcknowledgement, true);
+  assert.deepEqual(earlyBody.unverified, ['definition']);
+
+  // …then rework and tick the definition, and finish for real.
+  const tickDef = await verifierSession.fetch(`/translations/verify/${rowId}/section`, {
+    method: 'POST', headers: vHeaders,
+    body: JSON.stringify({ field: 'definition', value: fixedText, verified: true }),
+  });
+  assert.equal(tickDef.status, 200);
+  const tickDefBody = await tickDef.json();
+  assert.equal(tickDefBody.verifiedCount, 2);
+  assert.equal(tickDefBody.section.edited, true, 'reworked section is stamped edited');
+  assert.ok(tickDefBody.section.chars > 0, 'section carries its pay-meter chars');
+
+  const stamped = (await pool.query('SELECT section_status FROM translations WHERE id = $1', [rowId])).rows[0].section_status;
+  assert.equal(stamped.definition.verified_by, verifierId, 'each sign-off is attributed');
+  assert.ok(stamped.definition.verified_at, 'each sign-off is timestamped');
+
   const approve = await verifierSession.fetch(`/translations/verify/${rowId}/approve`, {
     method: 'POST', headers: vHeaders,
     body: JSON.stringify({ content_payload: { term: 'TestTerm Verify (ລາວ)', definition: fixedText } }),
   });
-  assert.equal(approve.status, 200);
+  assert.equal(approve.status, 200, 'all sections ticked — no gate');
   const approveBody = await approve.json();
   assert.equal(approveBody.editedSegments, 1);
 
@@ -1944,11 +1980,23 @@ test('AI batch: cap counts model work only, Lao pivots off verified Thai with pr
     assert.ok(!bCall.text.includes('ENGLISH SOURCE'), 'direct drafts send the bare chunk');
 
     // Strict mode: only Lao rows with a verified Thai are drafted; the
-    // rest wait, unclaimed. force reopens already-drafted rows.
+    // rest wait, unclaimed. force reopens already-drafted rows. A carries
+    // per-section sign-offs going in — a fresh draft must clear them (the
+    // ticks vouched for text that no longer exists).
+    await pool.query(
+      `UPDATE translations SET section_status = '{"term":{"verified":true}}'::jsonb
+       WHERE entity_type = 'glossary' AND entity_id = $1 AND target_language = 'la'`,
+      [idA]
+    );
     await aiT.startBatch({ languages: ['la'], entityTypes: ['glossary'], limit: 10, force: true, laoPivotStrict: true });
     const strict = await waitForAiJob(aiT);
     assert.equal(strict.translated, 1, 'only A has a verified Thai');
     assert.equal(strict.skipReasons.awaiting_thai, 2, 'B and C wait for Thai');
+    const aRedrafted = (await pool.query(
+      `SELECT section_status FROM translations WHERE entity_type = 'glossary' AND entity_id = $1 AND target_language = 'la'`,
+      [idA]
+    )).rows[0];
+    assert.equal(aRedrafted.section_status, null, 'redraft clears per-section sign-offs');
     const cAfterStrict = (await pool.query(
       `SELECT status FROM translations WHERE entity_type = 'glossary' AND entity_id = $1 AND target_language = 'la'`,
       [idC]
@@ -2198,4 +2246,114 @@ test('portal emails carry the brand logo from an absolute https URL', () => {
   assert.match(html, /<img src="https:\/\/[^"]+\.png"[^>]*alt="/,
     'mail clients need an absolute https raster image');
   assert.ok(html.includes('Test title'));
+});
+
+// ---------------------------------------------------------------------------
+// Per-section verification: untick reopens, autosave without a tick, the
+// acknowledged early finish, resets on return/reject, and the UI surfaces.
+// ---------------------------------------------------------------------------
+
+test('per-section verify: untick, autosave, acknowledged finish, resets, surfaces', async () => {
+  const g = await pool.query(
+    `INSERT INTO glossary (term, definition, letter)
+     VALUES ('TestTerm Sections', 'A definition for section-state testing.', 'T') RETURNING id`
+  );
+  const gid = g.rows[0].id;
+  const mkRow = async () => (await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, content_payload, status, ai_model, word_count)
+     VALUES ('glossary', $1, 'la', '{"term":"ຄຳ","definition":"ນິຍາມເດີມ"}'::jsonb, 'requires_review', 'test-model', 4)
+     ON CONFLICT (entity_type, entity_id, target_language)
+     DO UPDATE SET content_payload = EXCLUDED.content_payload, status = 'requires_review',
+                   section_status = NULL, verifier_id = NULL, translator_id = NULL,
+                   ai_draft_payload = NULL, review_note = NULL
+     RETURNING id`,
+    [gid]
+  )).rows[0].id;
+
+  const verifier = new Session(server.base);
+  await verifier.login('verifier@test.local');
+  const vHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await verifier.getCsrfToken('/translations/workspace'),
+  };
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const aHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+  };
+  const section = (rowId, body) => verifier.fetch(`/translations/verify/${rowId}/section`, {
+    method: 'POST', headers: vHeaders, body: JSON.stringify(body),
+  });
+
+  try {
+    const rowId = await mkRow();
+
+    // Autosave (blur): value persists, verified state untouched.
+    const auto = await section(rowId, { field: 'definition', value: 'ນິຍາມສະບັບປັບປຸງ' });
+    assert.equal(auto.status, 200);
+    assert.equal((await auto.json()).section.verified, false);
+    let row = (await pool.query('SELECT content_payload, section_status FROM translations WHERE id = $1', [rowId])).rows[0];
+    assert.equal(row.content_payload.definition, 'ນິຍາມສະບັບປັບປຸງ', 'blur autosave persists the text');
+    assert.equal(row.section_status.definition.verified, false);
+    assert.equal(row.section_status.definition.edited, true);
+
+    // Tick then untick: reopening clears the attribution stamps.
+    await section(rowId, { field: 'definition', value: 'ນິຍາມສະບັບປັບປຸງ', verified: true });
+    const untick = await section(rowId, { field: 'definition', value: 'ນິຍາມສະບັບປັບປຸງ', verified: false });
+    assert.equal((await untick.json()).section.verified, false);
+    row = (await pool.query('SELECT section_status FROM translations WHERE id = $1', [rowId])).rows[0];
+    assert.equal(row.section_status.definition.verified, false);
+    assert.equal(row.section_status.definition.verified_by, null, 'untick clears the sign-off attribution');
+
+    // Unknown field is rejected.
+    assert.equal((await section(rowId, { field: 'nope', value: 'x' })).status, 400);
+
+    // Acknowledged early finish: nothing ticked, explicit go-ahead wins.
+    const forced = await verifier.fetch(`/translations/verify/${rowId}/approve`, {
+      method: 'POST', headers: vHeaders,
+      body: JSON.stringify({ acknowledge_incomplete: true }),
+    });
+    assert.equal(forced.status, 200, 'soft gate: acknowledged finish is allowed');
+    assert.equal((await pool.query('SELECT status FROM translations WHERE id = $1', [rowId])).rows[0].status, 'verified');
+
+    // Return-for-redo wipes section state (fresh row, tick, return).
+    const rowId2 = await mkRow();
+    await section(rowId2, { field: 'term', value: 'ຄຳ', verified: true });
+    const ret = await verifier.fetch(`/translations/verify/${rowId2}/return`, {
+      method: 'POST', headers: vHeaders,
+      body: JSON.stringify({ note: 'needs redo', reason: 'incomplete' }),
+    });
+    assert.equal(ret.status, 200);
+    row = (await pool.query('SELECT status, section_status FROM translations WHERE id = $1', [rowId2])).rows[0];
+    assert.equal(row.section_status, null, 'return-for-redo clears section sign-offs');
+
+    // Admin reject wipes it too.
+    const rowId3 = await mkRow();
+    await section(rowId3, { field: 'term', value: 'ຄຳ', verified: true });
+    const rej = await admin.fetch(`/translations/${rowId3}/reject`, {
+      method: 'POST', headers: aHeaders,
+      body: JSON.stringify({ note: 'not good enough', reason: 'tone' }),
+    });
+    assert.equal(rej.status, 200);
+    row = (await pool.query('SELECT section_status FROM translations WHERE id = $1', [rowId3])).rows[0];
+    assert.equal(row.section_status, null, 'admin reject clears section sign-offs');
+
+    // Surfaces: the editor ships the pills + progress bar; the workspace
+    // queue shows resumable progress; the review page reports sign-offs.
+    const rowId4 = await mkRow();
+    await section(rowId4, { field: 'term', value: 'ຄຳ', verified: true });
+    const editor = await verifier.fetch(`/translations/verify/${rowId4}`);
+    const editorHtml = await editor.text();
+    assert.ok(editorHtml.includes('sec-check'), 'section pills render');
+    assert.ok(editorHtml.includes('secBar'), 'progress bar renders');
+    assert.ok(editorHtml.includes('of <strong id="secTotal">2</strong> sections verified'), 'progress counts render');
+    const queue = await verifier.fetch('/translations/workspace');
+    assert.match(await queue.text(), /1 section verified/, 'queue shows resumable progress');
+    const review = await admin.fetch(`/translations/review/${rowId4}`);
+    assert.match(await review.text(), /individually signed off/, 'review page reports section sign-offs');
+  } finally {
+    await pool.query(`DELETE FROM translations WHERE entity_type = 'glossary' AND entity_id = $1`, [gid]);
+    await pool.query(`DELETE FROM glossary WHERE id = $1`, [gid]);
+  }
 });

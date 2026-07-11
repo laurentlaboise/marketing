@@ -22,10 +22,12 @@ const router = express.Router();
 
 // General budget for the interactive surfaces. The AI-batch status poll
 // is excluded — it fires on an interval while a batch runs and gets its
-// own generous limiter below, so it can never starve navigation.
+// own generous limiter below, so it can never starve navigation. Sized
+// for the per-section verify flow, where every tick and field blur is a
+// small auto-save POST (a fast verifier produces ~10 requests per item).
 router.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: Number(process.env.TRANSLATIONS_RATE_LIMIT_MAX) || 600,
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => req.path === '/ai-batch/status',
@@ -741,9 +743,11 @@ router.post('/:id/reject', ensureSuperAdmin, logActivity('translation_reject'), 
       return asJson(res, 409, { success: false, error: `Cannot reject from status "${row.status}"` });
     }
     const note = noteWithReason(req.body);
+    // Rejection sends the text back for rework — per-section sign-offs
+    // vouched for words that are about to change.
     await db.query(
       `UPDATE translations
-       SET status = 'rejected', review_note = $1, reviewed_by = $2,
+       SET status = 'rejected', review_note = $1, reviewed_by = $2, section_status = NULL,
            reviewed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
        WHERE id = $3`,
       [note, req.user.id, row.id]
@@ -1504,6 +1508,88 @@ router.get('/verify/:id/termbase', ensureTranslator, async (req, res) => {
   }
 });
 
+// The section cards the verify editor actually renders for a row — the
+// same rule the template uses (dynamic entities list their extracted
+// segments; fixed entities their configured fields; cards with neither
+// source nor target text are skipped). The completeness gate and the
+// progress counts must agree with the page, so this is the single
+// definition.
+function sectionKeysFor(row, source, entityConfig) {
+  const keys = entityConfig.dynamic
+    ? Object.keys((source && source.fields) || row.content_payload || {})
+    : entityConfig.fields;
+  return keys.filter((f) =>
+    (source && source.fields && source.fields[f]) ||
+    (row.content_payload && row.content_payload[f]));
+}
+
+// One section at a time: saves a single field's current text and
+// (optionally) flips that section's verified state. Every tick is a
+// discrete, stamped event — who signed off what, when, whether they
+// changed the AI draft, and how many target characters it carries — so
+// long items can be verified incrementally, survive reloads and
+// reassignment, and stay auditable. Aggregate pay stats on the row are
+// recomputed the same way the full save does; the final approve remains
+// the authoritative pay computation.
+router.post('/verify/:id/section', ensureTranslator, async (req, res) => {
+  try {
+    const row = await loadVerifyRow(req, res);
+    if (!row) return;
+    if (row.status !== 'requires_review') {
+      return asJson(res, 409, { success: false, error: `Cannot edit from status "${row.status}"` });
+    }
+    const field = String(req.body.field || '');
+    const checked = core.sanitizePayload(row.entity_type, {
+      [field]: req.body.value == null ? '' : String(req.body.value),
+    });
+    if (checked.error) return asJson(res, 400, { success: false, error: checked.error });
+    const value = checked.payload[field];
+
+    const draftAll = row.ai_draft_payload || row.content_payload || {};
+    const merged = { ...(row.content_payload || {}), [field]: value };
+    const stats = core.computeEditStats(draftAll, merged);
+    const prev = (row.section_status || {})[field] || {};
+    const verifiedFlag = req.body.verified === true ? true : (req.body.verified === false ? false : null);
+    const stamp = {
+      verified: verifiedFlag === null ? Boolean(prev.verified) : verifiedFlag,
+      verified_at: verifiedFlag === true ? new Date().toISOString() : (verifiedFlag === false ? null : prev.verified_at || null),
+      verified_by: verifiedFlag === true ? req.user.id : (verifiedFlag === false ? null : prev.verified_by || null),
+      edited: core.computeEditStats({ [field]: draftAll[field] || '' }, { [field]: value }).editedSegments > 0,
+      chars: core.countChars({ [field]: value }),
+    };
+
+    await db.query(
+      `UPDATE translations
+       SET content_payload = $1, verifier_id = $2,
+           ai_draft_payload = COALESCE(ai_draft_payload, $3),
+           section_status = jsonb_set(COALESCE(section_status, '{}'::jsonb), ARRAY[$4], $5::jsonb),
+           target_char_count = $6, edited_chars = $7, edited_segments = $8,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $9`,
+      [
+        JSON.stringify(merged),
+        req.user.role === 'translator' ? req.user.id : row.verifier_id,
+        JSON.stringify(row.content_payload || {}),
+        field,
+        JSON.stringify(stamp),
+        core.countChars(merged),
+        stats.editedChars,
+        stats.editedSegments,
+        row.id,
+      ]
+    );
+
+    const source = await core.fetchEntitySource(row.entity_type, row.entity_id);
+    const keys = sectionKeysFor({ ...row, content_payload: merged }, source, core.ENTITY_SOURCES[row.entity_type]);
+    const status = { ...(row.section_status || {}), [field]: stamp };
+    const verifiedCount = keys.filter((f) => status[f] && status[f].verified).length;
+    asJson(res, 200, { success: true, section: stamp, verifiedCount, totalSections: keys.length });
+  } catch (error) {
+    console.error('Section save failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Section save failed' });
+  }
+});
+
 router.post('/verify/:id/save', ensureTranslator, async (req, res) => {
   try {
     const row = await loadVerifyRow(req, res);
@@ -1558,6 +1644,24 @@ router.post('/verify/:id/approve', ensureTranslator, logActivity('translation_ve
     if (Object.keys(payload).length === 0) {
       return asJson(res, 400, { success: false, error: 'Nothing to verify — the draft is empty' });
     }
+
+    // Soft completeness gate (server-side — the client's disabled state is
+    // cosmetic): finishing with unticked sections needs an explicit
+    // acknowledgement, same interaction contract as the publish gate. The
+    // worker is never hard-blocked, but the default nudges completeness.
+    const gateSource = await core.fetchEntitySource(row.entity_type, row.entity_id);
+    const keys = sectionKeysFor({ ...row, content_payload: payload }, gateSource, core.ENTITY_SOURCES[row.entity_type]);
+    const st = row.section_status || {};
+    const unverified = keys.filter((f) => !(st[f] && st[f].verified));
+    if (keys.length > 0 && unverified.length > 0 && req.body.acknowledge_incomplete !== true) {
+      return asJson(res, 409, {
+        success: false,
+        requiresAcknowledgement: true,
+        unverified,
+        error: `${unverified.length} of ${keys.length} section(s) are not marked verified.`,
+      });
+    }
+
     const draft = row.ai_draft_payload || row.content_payload || {};
     const stats = core.computeEditStats(draft, payload);
     const verifierId = req.user.role === 'translator' ? req.user.id : (row.verifier_id || req.user.id);
@@ -1604,9 +1708,12 @@ router.post('/verify/:id/return', ensureTranslator, logActivity('translation_ver
     }
     const note = noteWithReason(req.body);
     const nextStatus = row.translator_id ? 'rejected' : 'pending';
+    // A redo invalidates every per-section sign-off: the text those ticks
+    // vouched for is about to change.
     await db.query(
       `UPDATE translations
-       SET status = $1, review_note = $2, verifier_id = NULL, updated_at = CURRENT_TIMESTAMP
+       SET status = $1, review_note = $2, verifier_id = NULL, section_status = NULL,
+           updated_at = CURRENT_TIMESTAMP
        WHERE id = $3`,
       [nextStatus, note, row.id]
     );

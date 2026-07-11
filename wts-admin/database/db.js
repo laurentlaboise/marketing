@@ -1548,6 +1548,24 @@ const db = {
         END $$;
       `);
 
+      // Per-section verification state for the verify editor: one JSONB
+      // map per row, field key → { verified, verified_at, verified_by,
+      // edited, chars }. Lets a worker sign off a long item one section
+      // at a time (progress persists across reloads/reassignment, each
+      // sign-off is stamped for audit) while the final "Mark Verified"
+      // validates completeness server-side. Deliberately NOT a new status
+      // in the row state machine — that machine gates publishing and
+      // payouts, and a partially-verified row still simply
+      // requires_review; progress lives here instead.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='section_status') THEN
+            ALTER TABLE translations ADD COLUMN section_status JSONB;
+          END IF;
+        END $$;
+      `);
+
       // AI draft provenance. English is always the canonical source;
       // ai_source_strategy records HOW the draft was produced ('direct'
       // EN→target, or 'th_pivot' — EN as authority with the entity's

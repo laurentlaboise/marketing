@@ -81,6 +81,15 @@
                 <td data-label="Source">
                   <% if (item.ai_model) { %><i class="fas fa-robot"></i> AI draft<% } else { %><i class="fas fa-user"></i> Human<% } %>
                   <% if (item.verifier_id) { %><span style="color:var(--gray-500);"> · claimed by you</span><% } %>
+                  <%
+                    // Partial progress survives leaving the page — show it so
+                    // half-verified items are easy to pick back up.
+                    var ss = item.section_status || {};
+                    var ssDone = Object.keys(ss).filter(function (k) { return ss[k] && ss[k].verified; }).length;
+                  %>
+                  <% if (ssDone > 0) { %>
+                    <span style="color:#059669; font-size:0.8rem; white-space:nowrap;"> · <i class="fas fa-list-check"></i> <%= ssDone %> section<%= ssDone === 1 ? '' : 's' %> verified</span>
+                  <% } %>
                 </td>
                 <td data-label="Actions">
                   <a href="/translations/verify/<%= item.id %>" class="btn btn-sm btn-primary">

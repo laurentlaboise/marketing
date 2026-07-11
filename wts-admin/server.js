@@ -273,7 +273,11 @@ app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webd
 const translationsRoutes = require('./src/routes/translations');
 const translationsLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  // Sized for the per-section verify flow: every section tick and field
+  // blur is a small auto-save POST, so one worker on ~10 items can send
+  // well over 100 requests in a window. Env-tunable (shared knob with the
+  // router-level limiter inside).
+  max: Number(process.env.TRANSLATIONS_RATE_LIMIT_MAX) || 600,
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => req.originalUrl.split('?')[0] === '/translations/ai-batch/status',

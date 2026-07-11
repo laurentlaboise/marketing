@@ -19,6 +19,7 @@ const TEST_ENV = {
   STRIPE_SECRET_KEY: 'sk_test_dummy_key_for_signature_tests',
   STRIPE_WEBHOOK_SECRET: 'whsec_test_secret',
   AUTH_RATE_LIMIT_MAX: '1000', // the 10/15min production limit would trip mid-suite
+  TRANSLATIONS_RATE_LIMIT_MAX: '5000', // the whole suite shares one window from one IP
 };
 
 // Create the test database if it does not exist yet (CI usually provides it).

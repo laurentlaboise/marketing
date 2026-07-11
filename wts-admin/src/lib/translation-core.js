@@ -242,9 +242,11 @@ async function syncTranslationRows({ entityTypes = ENTITY_TYPES, languages = TAR
           summary.created += 1;
           continue;
         }
+        // Reopening also clears per-section sign-offs — they vouched for
+        // a translation of the OLD English source.
         const reopened = await db.query(
           `UPDATE translations
-           SET status = 'pending', word_count = $4, updated_at = CURRENT_TIMESTAMP
+           SET status = 'pending', word_count = $4, section_status = NULL, updated_at = CURRENT_TIMESTAMP
            WHERE entity_type = $1 AND entity_id = $2 AND target_language = $3
              AND status = 'published'
              AND source_hash IS NOT NULL AND source_hash <> $5

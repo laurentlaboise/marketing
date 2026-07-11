@@ -26,6 +26,13 @@
             · verified by <%= verifier.first_name %> <%= verifier.last_name || '' %>
             (<%= item.target_char_count || 0 %> chars read<% if (item.edited_segments) { %>, <%= item.edited_segments %> segment(s) reworked — <%= item.edited_chars %> chars<% } else { %>, approved as-is<% } %>)
           <% } %>
+          <%
+            var revSS = item.section_status || {};
+            var revSSDone = Object.keys(revSS).filter(function (k) { return revSS[k] && revSS[k].verified; }).length;
+          %>
+          <% if (revSSDone > 0) { %>
+            · <span title="Sections the verifier ticked off individually, each stamped with who and when."><i class="fas fa-list-check"></i> <%= revSSDone %> section<%= revSSDone === 1 ? '' : 's' %> individually signed off</span>
+          <% } %>
         </p>
       </div>
       <div class="page-actions">

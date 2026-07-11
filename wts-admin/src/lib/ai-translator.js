@@ -434,16 +434,17 @@ async function runBatch(rows) {
       const targetChars = core.countChars(payload);
 
       // A fresh draft resets verification artifacts: the snapshot the
-      // verifier diffed against and any measured edits describe text that
-      // no longer exists. The verifier assignment itself (verifier_id)
-      // survives — the new draft still needs checking.
+      // verifier diffed against, any measured edits, and every per-section
+      // sign-off describe text that no longer exists. The verifier
+      // assignment itself (verifier_id) survives — the new draft still
+      // needs checking.
       await db.query(
         `UPDATE translations
          SET content_payload = $1, source_hash = $2, word_count = $3,
              target_char_count = $4, ai_model = $5,
              ai_source_strategy = $6, ai_pivot_ref = $7,
              ai_draft_payload = NULL, edited_chars = NULL, edited_segments = NULL,
-             verified_by = NULL, verified_at = NULL,
+             verified_by = NULL, verified_at = NULL, section_status = NULL,
              status = 'requires_review', updated_at = CURRENT_TIMESTAMP
          WHERE id = $8`,
         [
