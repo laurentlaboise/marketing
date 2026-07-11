@@ -69,6 +69,15 @@ New events to look for in GA4 (property `G-LMRKC1VBBB`): `cta_click` (with
 `open_form`, `form_submit`. Glossary pages now report traffic for the first
 time — expect a bump in measured pageviews that is measurement, not growth.
 
+### 8. Nice-to-haves spotted during review (no action required)
+- Homepage card #8 ("Quote-Request Funnel") reuses the course-creator image
+  with a home-contractor alt text — source a matching image when convenient.
+- The header wordmark SVG renders small at 40px height; a header-specific
+  logo crop would look sharper.
+- The sticky header (z-index 10000, needed to clear the glossary share dock
+  at 9999) sits above modal backdrops' top strip; raise modal z-indexes above
+  10000 if full-bleed overlays are ever wanted.
+
 ## Maintenance rules (so the automation keeps working)
 
 - **Footer content** → edit `footers.json`, never page HTML (`inject-footers.js` overwrites).

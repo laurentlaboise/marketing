@@ -403,9 +403,14 @@ function ensureFooterCss(html) {
 // render the footer icons (some resource pages), so the icons disappear. Ensure
 // every footer-bearing page loads the same cdnjs stylesheet the home page uses
 // (proven to render all the footer icons), unless it already loads it.
-const FA_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css';
+const FA_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
 function ensureFontAwesome(html) {
-  if (html.indexOf('font-awesome/6.0.0-beta3/css/all.min.css') !== -1) return html; // already linked
+  // Upgrade any previously injected footer FA link still pinned to an old version.
+  html = html.replace(
+    /(<link id="wts-footer-fa"[^>]*href=")[^"]*\/font-awesome\/[^/]+\/css\/all\.min\.css(")/,
+    '$1' + FA_CDN + '$2'
+  );
+  if (html.indexOf('font-awesome/6.5.1/css/all.min.css') !== -1) return html; // already linked
   if (html.indexOf('id="wts-footer-fa"') !== -1) return html; // already injected
   const link = '<link id="wts-footer-fa" rel="stylesheet" href="' + FA_CDN + '" crossorigin="anonymous">';
   const headClose = html.search(/<\/head>/i);
