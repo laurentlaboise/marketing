@@ -1550,16 +1550,41 @@ router.get('/:id', async (req, res) => {
 // Update SEO metadata
 router.post('/:id', async (req, res) => {
   try {
-    const { alt_text, title, description, category, tags, folder_id } = req.body;
+    const { alt_text, title, description, category, tags, folder_id, prefer_first_party, cdn_url } = req.body;
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
 
-    await db.query(
-      `UPDATE images SET alt_text = $1, title = $2, description = $3, category = $4, tags = $5, folder_id = $6, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $7`,
-      [alt_text || '', title || '', description || '', category || 'general', tagsArray, folder_id || null, req.params.id]
-    );
+    // Optional: promote primary CDN URL to first-party site host so image-search
+    // equity accrues to wordsthatsells.website (jsDelivr remains available via GH).
+    let firstPartyCdn = null;
+    if (prefer_first_party === '1' || prefer_first_party === 'on' || prefer_first_party === true) {
+      const row = await db.query('SELECT file_path, filename FROM images WHERE id = $1', [req.params.id]);
+      if (row.rows[0]) {
+        const rel = (row.rows[0].file_path || ('images/' + row.rows[0].filename) || '')
+          .replace(/^\/+/, '');
+        const pathPart = rel.startsWith('images/') ? rel : `images/${rel}`;
+        firstPartyCdn = `https://wordsthatsells.website/${pathPart}`;
+      }
+    } else if (typeof cdn_url === 'string' && /^https:\/\/wordsthatsells\.website\/images\//i.test(cdn_url.trim())) {
+      firstPartyCdn = cdn_url.trim();
+    }
 
-    req.session.successMessage = 'Image metadata updated';
+    if (firstPartyCdn) {
+      await db.query(
+        `UPDATE images SET alt_text = $1, title = $2, description = $3, category = $4, tags = $5, folder_id = $6,
+           cdn_url = $7, width = COALESCE(width, 1200), height = COALESCE(height, 628), updated_at = CURRENT_TIMESTAMP
+         WHERE id = $8`,
+        [alt_text || '', title || '', description || '', category || 'general', tagsArray, folder_id || null, firstPartyCdn, req.params.id]
+      );
+      req.session.successMessage = 'Image metadata updated (first-party CDN URL)';
+    } else {
+      await db.query(
+        `UPDATE images SET alt_text = $1, title = $2, description = $3, category = $4, tags = $5, folder_id = $6, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $7`,
+        [alt_text || '', title || '', description || '', category || 'general', tagsArray, folder_id || null, req.params.id]
+      );
+      req.session.successMessage = 'Image metadata updated';
+    }
+
     res.redirect('/images/' + req.params.id);
   } catch (error) {
     console.error('Update image error:', error);
