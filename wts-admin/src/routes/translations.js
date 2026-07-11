@@ -1768,6 +1768,18 @@ router.post('/publish-verified', ensureSuperAdmin, logActivity('translations_pub
 // Vendor earnings: ledger, banking metadata, payout requests
 // ---------------------------------------------------------------------------
 
+// Platform-wide floor for kip payout requests (bank-fee guard). Applies to
+// the LAK ledger bucket ONLY — the request endpoint bundles one payout
+// request per currency, and non-LAK buckets keep passing exactly as before,
+// gated solely by their rate-card minimum. Set PAYOUT_MIN_AMOUNT_LAK=0 to
+// disable the floor.
+function payoutMinLak() {
+  const raw = (process.env.PAYOUT_MIN_AMOUNT_LAK || '').trim();
+  if (raw === '') return 200000;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 200000;
+}
+
 router.get('/earnings', ensureWorker, async (req, res, next) => {
   try {
     const [ledger, requests, balances] = await Promise.all([
@@ -1794,6 +1806,22 @@ router.get('/earnings', ensureWorker, async (req, res, next) => {
     const rate = await core.resolveRate(req.user.id, (req.user.assigned_languages || [])[0] || null);
     const totalAvailable = balances.rows.reduce((sum, b) => sum + parseFloat(b.available), 0);
 
+    // Request gating, mirrored server-side in POST /earnings/request: a
+    // payout method must be on file and the LAK bucket must clear the
+    // platform floor. The reason string renders next to the disabled button.
+    const payout = gateway.describeStored(req.user.payout_metadata);
+    const lakMinPayout = payoutMinLak();
+    const lakRow = balances.rows.find((b) => b.currency === 'LAK');
+    const lakAvailable = lakRow ? parseFloat(lakRow.available) : 0;
+    let requestBlockReason = null;
+    if (totalAvailable <= 0) {
+      requestBlockReason = 'No available balance to request yet.';
+    } else if (!payout.configured) {
+      requestBlockReason = 'Add a payout method below to enable payout requests.';
+    } else if (lakAvailable > 0 && lakAvailable < lakMinPayout) {
+      requestBlockReason = `LAK balance is below the minimum payout of LAK ${lakMinPayout.toLocaleString('en-US')}.`;
+    }
+
     res.render('translations/earnings', {
       title: 'My Earnings - WTS Admin',
       currentPage: 'earnings',
@@ -1801,10 +1829,11 @@ router.get('/earnings', ensureWorker, async (req, res, next) => {
       requests: requests.rows,
       balances: balances.rows,
       totalAvailable,
-      payout: gateway.describeStored(req.user.payout_metadata),
+      payout,
       encryptionConfigured: gateway.isEncryptionConfigured(),
-      gateways: gateway.GATEWAYS,
       minPayout: rate ? parseFloat(rate.min_payout) || 0 : 0,
+      lakMinPayout,
+      requestBlockReason,
       languageNames: core.LANGUAGE_NAMES,
     });
   } catch (error) {
@@ -1841,6 +1870,79 @@ router.post('/earnings/banking', ensureWorker, logActivity('payout_banking_updat
   }
 });
 
+// Self-service payout method (earnings page): the account holder enters a
+// local bank account or a wallet/QR id themselves. Validation messages
+// never repeat the submitted value, and values are never logged — only the
+// masked describeStored() summary ever leaves the server.
+function validatePayoutMethodInput(body) {
+  const field = (name, min, max) => {
+    const value = typeof body[name] === 'string' ? body[name].trim() : '';
+    return value.length >= min && value.length <= max ? value : null;
+  };
+  if (body.method === 'bank_transfer') {
+    const bankName = field('bank_name', 2, 120);
+    const accountName = field('account_name', 2, 120);
+    const accountNumber = field('account_number', 6, 34);
+    if (!bankName) return { error: 'Bank name must be 2-120 characters' };
+    if (!accountName) return { error: 'Account holder name must be 2-120 characters' };
+    if (!accountNumber || !/^(?=.*[0-9])[0-9 -]+$/.test(accountNumber)) {
+      return { error: 'Account number must be 6-34 characters using digits, spaces, or dashes only' };
+    }
+    return {
+      method: 'bank_transfer',
+      details: { bank_name: bankName, account_name: accountName, account_number: accountNumber },
+    };
+  }
+  if (body.method === 'wallet_qr') {
+    const provider = field('provider', 2, 60);
+    const walletId = field('wallet_id', 4, 300);
+    if (!provider) return { error: 'Wallet provider must be 2-60 characters (e.g. OnePay, BCEL One, LaoQR)' };
+    if (!walletId) return { error: 'Wallet ID / QR payload must be 4-300 characters' };
+    return { method: 'wallet_qr', details: { provider, wallet_id: walletId } };
+  }
+  return { error: 'Choose a payout method type: bank transfer or wallet / QR' };
+}
+
+router.post('/earnings/payout-method', ensureWorker, logActivity('payout_method_update'), async (req, res) => {
+  try {
+    if (!gateway.isEncryptionConfigured()) {
+      return asJson(res, 503, {
+        success: false,
+        error: 'Payout details cannot be stored yet: the administrator has not configured encryption (PAYOUT_METADATA_KEY).',
+      });
+    }
+    const input = validatePayoutMethodInput(req.body || {});
+    if (input.error) return asJson(res, 400, { success: false, error: input.error });
+
+    // Saving again overwrites the previous method (replace = same endpoint).
+    const stored = gateway.buildSelfServiceMetadata(input.method, input.details);
+    await db.query(
+      `UPDATE users SET payout_metadata = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+      [JSON.stringify(stored), req.user.id]
+    );
+    asJson(res, 200, { success: true, payout: gateway.describeStored(stored) });
+  } catch (error) {
+    if (error.status) return asJson(res, error.status, { success: false, error: error.message });
+    console.error('Payout method update failed:', error.message); // message only — never the payload
+    asJson(res, 500, { success: false, error: 'Could not save payout method' });
+  }
+});
+
+// Remove the stored method. Works without the encryption key — clearing a
+// value never needs to read it.
+router.post('/earnings/payout-method/remove', ensureWorker, logActivity('payout_method_remove'), async (req, res) => {
+  try {
+    await db.query(
+      `UPDATE users SET payout_metadata = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+      [req.user.id]
+    );
+    asJson(res, 200, { success: true, payout: gateway.describeStored(null) });
+  } catch (error) {
+    console.error('Payout method removal failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Could not remove payout method' });
+  }
+});
+
 // Request disbursement of the full available balance. Entries are
 // bundled per currency (kip work-unit credits and USD translation
 // credits coexist) — one payout_requests row per currency, each
@@ -1860,6 +1962,15 @@ router.post('/earnings/request', ensureWorker, logActivity('payout_request'), as
       return asJson(res, 400, { success: false, error: 'No available balance to request' });
     }
 
+    // Gate: a payout method must be on file — the request snapshots the
+    // encrypted envelope, and without one there is nothing to disburse
+    // against. The earnings page disables the button for the same reason.
+    const metadata = req.user.payout_metadata && req.user.payout_metadata.enc ? req.user.payout_metadata : null;
+    if (!metadata) {
+      await client.query('ROLLBACK');
+      return asJson(res, 400, { success: false, error: 'Add a payout method before requesting a payout' });
+    }
+
     const byCurrency = {};
     for (const row of entries.rows) {
       const currency = row.currency || 'USD';
@@ -1868,11 +1979,22 @@ router.post('/earnings/request', ensureWorker, logActivity('payout_request'), as
 
     const rate = await core.resolveRate(req.user.id, (req.user.assigned_languages || [])[0] || null, client);
     const minPayout = rate ? parseFloat(rate.min_payout) || 0 : 0;
-    const metadata = req.user.payout_metadata && req.user.payout_metadata.enc ? req.user.payout_metadata : null;
+    const lakMin = payoutMinLak();
 
     const created = [];
     for (const [currency, rows] of Object.entries(byCurrency)) {
       const total = rows.reduce((sum, row) => sum + parseFloat(row.amount), 0);
+      // Platform floor for kip transfers (PAYOUT_MIN_AMOUNT_LAK). Checked
+      // against the LAK bucket only; other currency buckets pass untouched.
+      // Like the rate-card minimum below, a failing bucket aborts the whole
+      // request — bundling stays all-or-nothing.
+      if (currency === 'LAK' && total < lakMin) {
+        await client.query('ROLLBACK');
+        return asJson(res, 400, {
+          success: false,
+          error: `LAK balance ${Math.round(total).toLocaleString('en-US')} is below the minimum payout of LAK ${lakMin.toLocaleString('en-US')}`,
+        });
+      }
       // The minimum applies to the currency the rate card is written in.
       if (rate && (rate.currency || 'USD') === currency && total < minPayout) {
         await client.query('ROLLBACK');

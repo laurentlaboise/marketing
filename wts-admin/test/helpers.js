@@ -33,7 +33,10 @@ async function ensureDatabase() {
   try {
     await client.query(`CREATE DATABASE "${dbName.replace(/"/g, '""')}"`);
   } catch (err) {
-    if (err.code !== '42P04') throw err; // 42P04 = duplicate_database
+    // 42P04 = duplicate_database (it already existed). 23505 on
+    // pg_database_datname_index = two parallel suite servers raced the
+    // same CREATE DATABASE and this one lost by a nose — same outcome.
+    if (err.code !== '42P04' && err.code !== '23505') throw err;
   } finally {
     await client.end();
   }
@@ -87,7 +90,10 @@ async function startServer(port, envOverrides = {}) {
   child.stderr.on('data', (d) => { output += d; });
 
   const base = `http://127.0.0.1:${port}`;
-  const deadline = Date.now() + 20000;
+  // Fresh-database boots run the full DDL serialized behind an advisory
+  // lock across every parallel test server — with 10+ suite files the
+  // last server in that queue can legitimately need well over 20s.
+  const deadline = Date.now() + 60000;
   while (Date.now() < deadline) {
     if (child.exitCode !== null) {
       throw new Error(`server exited with code ${child.exitCode} before becoming healthy:\n${output}`);

@@ -6,6 +6,7 @@
       · <a href="mailto:privacy@wordsthatsells.website">privacy@wordsthatsells.website</a>
     </p>
   </footer>
+  <% if (typeof user !== 'undefined' && user) { %><%- include('assistant') %><% } %>
   <script src="/js/main.js"></script>
 </body>
 </html>

@@ -26,6 +26,9 @@ let payoutRequestId;
 before(async () => {
   server = await startServer(PORT, {
     PAYOUT_METADATA_KEY: PAYOUT_KEY,
+    // This suite's ledger fixtures are small (~178k LAK) — the payout
+    // minimum has its own dedicated tests in earnings.test.js.
+    PAYOUT_MIN_AMOUNT_LAK: '0',
     ANTHROPIC_API_KEY: undefined,
     // Whiteboard module on: its migrations run at boot and the collab
     // endpoints (comment language stamping, translation attach) mount.
@@ -887,11 +890,21 @@ test('work hub access: vendors in, plain users out; kip earnings request works',
   assert.equal(hub.status, 200);
   assert.match(await hub.text(), /My Work Hub/);
 
-  // The verifier's kip credits bundle into a LAK payout request.
+  // The verifier's kip credits bundle into a LAK payout request. Requests
+  // now require a payout method on file — save one through the
+  // self-service endpoint first (also exercises it end-to-end here).
   const wHeaders = {
     'content-type': 'application/json', accept: 'application/json',
     'x-csrf-token': await worker.getCsrfToken('/translations/earnings'),
   };
+  const method = await worker.fetch('/translations/earnings/payout-method', {
+    method: 'POST', headers: wHeaders,
+    body: JSON.stringify({
+      method: 'bank_transfer', bank_name: 'BCEL Test',
+      account_name: 'Kham Verifier', account_number: '0101 2345 6789',
+    }),
+  });
+  assert.equal(method.status, 200, 'verifier saves a payout method');
   const request = await worker.fetch('/translations/earnings/request', {
     method: 'POST', headers: wHeaders, body: JSON.stringify({}),
   });

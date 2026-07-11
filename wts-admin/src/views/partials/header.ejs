@@ -1,12 +1,113 @@
+<% var isAdminRole = user && ['admin', 'superadmin'].includes(user.role); %>
+<%# Workers only ever search their own translation work (/api/search is
+    role-scoped server-side), so their placeholder says so. %>
+<% var searchPlaceholder = isAdminRole ? 'Search...' : 'Search my work...'; %>
+<%# Top-bar widget styles (search dropdown grouping, keyboard highlight,
+    notification group headers, call-link fallback). Kept here instead of
+    style.css so the header partial owns its own dropdown chrome. %>
+<style>
+  .search-results { z-index: 300; }
+  .search-group-label {
+    padding: 8px 16px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-500, #6b7280);
+    background: var(--gray-50, #f9fafb);
+    border-bottom: 1px solid var(--gray-100, #f3f4f6);
+  }
+  .search-result-item {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .search-result-item.active {
+    background: var(--gray-100, #f3f4f6);
+  }
+  .search-result-item .result-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-800, #1f2937);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 300px;
+  }
+  .search-result-item .result-type {
+    font-size: 12px;
+    color: var(--gray-500, #6b7280);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 300px;
+  }
+  .search-empty {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--gray-500, #6b7280);
+  }
+  .search-kbd-hint {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--gray-400, #9ca3af);
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 4px;
+    padding: 1px 5px;
+    pointer-events: none;
+    background: var(--white, #fff);
+  }
+  .search-input:focus ~ .search-kbd-hint,
+  .search-input:not(:placeholder-shown) ~ .search-kbd-hint { display: none; }
+  .notif-group-label {
+    padding: 8px 16px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-500, #6b7280);
+    background: var(--gray-50, #f9fafb);
+    border-bottom: 1px solid var(--gray-100, #f3f4f6);
+  }
+  .call-wrapper { position: relative; }
+  .call-link-fallback {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 280px;
+    padding: 12px 16px;
+    background: var(--white, #fff);
+    border-radius: var(--radius, 8px);
+    box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,.15));
+    font-size: 13px;
+    color: var(--gray-700, #374151);
+    display: none;
+    z-index: 300;
+  }
+  .call-link-fallback.active { display: block; }
+  .call-link-fallback a {
+    color: var(--primary, #2563eb);
+    word-break: break-all;
+  }
+</style>
+
 <header class="main-header">
   <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
     <i class="fas fa-bars"></i>
   </button>
 
+  <%# Global search hits /api/search (src/routes/quick.js), which serves
+      every signed-in role and scopes results server-side: admins search
+      everything, workers only their own translation work. %>
+  <% if (user) { %>
   <div class="header-search">
     <form action="/api/search" method="GET" class="search-form" id="globalSearch">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" name="q" placeholder="Search..." class="search-input" autocomplete="off">
+      <input type="text" name="q" placeholder="<%= searchPlaceholder %>" class="search-input" autocomplete="off" maxlength="100">
+      <span class="search-kbd-hint" aria-hidden="true">Ctrl K</span>
       <div class="search-results" id="searchResults"></div>
     </form>
   </div>
@@ -14,8 +115,23 @@
   <button class="mobile-search-btn" id="mobileSearchBtn" aria-label="Search">
     <i class="fas fa-search"></i>
   </button>
+  <% } %>
 
   <div class="header-actions">
+    <% if (user) { %>
+    <%# Video call: POST /api/call-invite (src/routes/quick.js) — every
+        signed-in role can start a call; workers use it to reach their
+        coordinators, who get notified with the join link. %>
+    <div class="call-wrapper">
+      <button class="header-btn" id="startCallBtn" type="button"
+              title="Start a video call — coordinators are notified with the join link"
+              aria-label="Start a video call">
+        <i class="fas fa-video"></i>
+      </button>
+      <div id="callLinkFallback" class="call-link-fallback" role="dialog" aria-label="Video call link"></div>
+    </div>
+    <% } %>
+
     <div class="notif-wrapper">
       <button class="header-btn" id="notificationsBtn" aria-label="Notifications">
         <i class="fas fa-bell"></i>
@@ -71,6 +187,7 @@
   </div>
 </header>
 
+<% if (user) { %>
 <!-- Mobile Search Overlay -->
 <div class="mobile-search-overlay" id="mobileSearchOverlay">
   <button class="mobile-search-close" id="mobileSearchClose" aria-label="Close search">
@@ -78,10 +195,11 @@
   </button>
   <form action="/api/search" method="GET" class="search-form" id="mobileGlobalSearch">
     <i class="fas fa-search search-icon"></i>
-    <input type="text" name="q" placeholder="Search..." class="search-input" autocomplete="off" id="mobileSearchInput">
+    <input type="text" name="q" placeholder="<%= searchPlaceholder %>" class="search-input" autocomplete="off" maxlength="100" id="mobileSearchInput">
     <div class="search-results" id="mobileSearchResults"></div>
   </form>
 </div>
+<% } %>
 
 <% if (messages && messages.success) { %>
 <div class="alert alert-success" id="successAlert">
