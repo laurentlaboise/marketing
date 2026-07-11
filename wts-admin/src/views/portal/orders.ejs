@@ -1,202 +1,229 @@
 <%- include('partials/head') %>
   <style>
-    .wrap { flex: 1; max-width: 760px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
-    h1 { font-size: 1.35rem; color: #1a1a2e; margin: 0.5rem 0 0.15rem; }
-    p.sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1.25rem; }
-    .order { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem 1.15rem; margin-bottom: 0.9rem; }
+    .order { padding: 1.05rem 1.2rem; margin-bottom: 0.85rem; }
     .order-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
-    .order-head strong { color: #1a1a2e; font-size: 1rem; }
-    .order-date { color: #94a3b8; font-size: 0.8rem; }
+    .order-head strong { color: var(--wts-text); font-size: 1rem; }
+    .order-date { color: var(--wts-muted); font-size: 0.82rem; font-weight: 600; }
     .row { display: flex; justify-content: space-between; gap: 0.75rem; margin-top: 0.5rem; font-size: 0.9rem; flex-wrap: wrap; }
-    .amount { font-weight: 700; color: #1a1a2e; }
+    .amount { font-weight: 800; color: var(--wts-text); }
     .lak { color: #c8102e; font-weight: 600; font-size: 0.85rem; }
-    .badge { display: inline-block; border-radius: 999px; padding: 0.2rem 0.75rem; font-size: 0.78rem; font-weight: 600; line-height: 1.45; }
-    .badge.completed { background: #dcfce7; color: #166534; }
-    .badge.awaiting_payment { background: #fef3c7; color: #92400e; }
-    .badge.pending { background: #e2e8f0; color: #475569; }
-    .badge.expired, .badge.cancelled { background: #fee2e2; color: #991b1b; }
-    .method { font-size: 0.78rem; color: #64748b; }
+    .method { font-size: 0.78rem; color: var(--wts-muted); }
     .method .bcel { font-weight: 800; color: #c8102e; border: 1.5px solid #c8102e; border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; line-height: 1.45; }
-    .ref-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 0.55rem 0.85rem; margin-top: 0.65rem; font-size: 0.82rem; color: #991b1b; line-height: 1.45; }
+    .ref-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 0.65rem 0.9rem; margin-top: 0.7rem; font-size: 0.85rem; color: #991b1b; line-height: 1.45; }
     .ref-box code { font-weight: 700; color: #c8102e; font-size: 0.95rem; letter-spacing: 0.04em; }
-    .dl { display: inline-block; margin-top: 0.65rem; background: #d62b83; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.45rem 1rem; font-size: 0.85rem; font-weight: 600; line-height: 1.45; }
-    .pw-tip { display: flex; align-items: center; gap: 0.75rem; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.88rem; color: #831843; }
+    .dl { display: inline-block; margin-top: 0.65rem; background: var(--wts-magenta); color: #fff; text-decoration: none; border-radius: 999px; padding: 0.45rem 1.05rem; font-size: 0.85rem; font-weight: 700; line-height: 1.45; }
+    .pw-tip { display: flex; align-items: center; gap: 0.75rem; background: var(--wts-magenta-soft); border: 1px solid #fbcfe8; border-radius: var(--wts-radius); padding: 0.8rem 1rem; margin-bottom: 1.15rem; font-size: 0.88rem; color: #831843; }
     .pw-tip span { flex: 1; line-height: 1.5; }
-    .pw-tip a { color: #d62b83; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .pw-tip a { color: var(--wts-magenta); font-weight: 700; text-decoration: none; white-space: nowrap; }
     .pw-tip button { background: none; border: none; color: #be185d; font-size: 1.1rem; line-height: 1; cursor: pointer; padding: 0.2rem; font-family: inherit; }
-    .empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 2.5rem 1rem; text-align: center; color: #64748b; line-height: 1.45; }
-    .empty a { color: #d62b83; font-weight: 600; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem; margin-bottom: 1.25rem; }
-    .stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 0.8rem 1rem; }
-    .stat .num { font-size: 1.35rem; font-weight: 700; color: #1a1a2e; }
-    .stat .lbl { font-size: 0.78rem; color: #64748b; margin-top: 0.1rem; line-height: 1.45; }
-    .stat.warn { border-color: #fde68a; background: #fffbeb; }
-    .stat.warn .num { color: #92400e; }
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem 1.15rem; margin-bottom: 1.25rem; }
-    .card h2 { font-size: 1.05rem; color: #1a1a2e; margin: 0 0 0.6rem; }
-    .file-row { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; }
+    .file-row { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; }
     .file-row:last-of-type { border-bottom: none; }
-    .file-row .fmeta { color: #94a3b8; font-size: 0.78rem; }
-    .file-row a.get { color: #d62b83; font-weight: 600; text-decoration: none; white-space: nowrap; }
-    .view-all { display: inline-block; margin-top: 0.5rem; font-size: 0.85rem; color: #d62b83; font-weight: 600; text-decoration: none; }
-    .qa-btns { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-    .qa-btns button { background: #fff; border: 1.5px solid #d62b83; color: #d62b83; border-radius: 999px; padding: 0.5rem 1.1rem; font-size: 0.87rem; font-weight: 600; cursor: pointer; font-family: inherit; line-height: 1.45; }
-    .qa-btns button[aria-pressed="true"] { background: #d62b83; color: #fff; }
-    #qa-form { margin-top: 0.85rem; }
-    #qa-form textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0.65rem 0.8rem; font-family: inherit; font-size: 0.9rem; min-height: 96px; resize: vertical; }
-    #qa-form button[type="submit"] { margin-top: 0.6rem; background: #d62b83; border: none; color: #fff; border-radius: 8px; padding: 0.55rem 1.3rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; line-height: 1.45; }
-    .sent-note { background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.88rem; line-height: 1.45; }
+    .file-row .fmeta { color: var(--wts-muted); font-size: 0.78rem; }
+    .file-row a.get { color: var(--wts-magenta); font-weight: 700; text-decoration: none; white-space: nowrap; }
+    .view-all { display: inline-block; margin-top: 0.55rem; font-size: 0.88rem; color: var(--wts-magenta); font-weight: 700; text-decoration: none; }
+    .qa-btns { display: flex; gap: 0.55rem; flex-wrap: wrap; }
+    .qa-btns button { background: #fff; border: 1.5px solid var(--wts-magenta); color: var(--wts-magenta); border-radius: 999px; padding: 0.5rem 1.1rem; font-size: 0.87rem; font-weight: 700; cursor: pointer; font-family: inherit; line-height: 1.45; }
+    .qa-btns button[aria-pressed="true"] { background: var(--wts-magenta); color: #fff; }
+    #qa-form { margin-top: 0.9rem; }
+    #qa-form textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 0.7rem 0.85rem; font-family: inherit; font-size: 0.9rem; min-height: 96px; resize: vertical; }
+    #qa-form button[type="submit"] { margin-top: 0.65rem; background: var(--wts-magenta); border: none; color: #fff; border-radius: 999px; padding: 0.55rem 1.35rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit; line-height: 1.45; }
+    .service-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem; }
+    .service-chips a {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: #fff; border: 1px solid var(--wts-border); border-radius: 999px;
+      padding: 0.45rem 0.95rem; font-size: 0.85rem; font-weight: 600; color: var(--wts-text-2);
+      text-decoration: none; line-height: 1.45; box-shadow: var(--wts-shadow);
+    }
+    .service-chips a:hover { border-color: #f9a8d4; color: var(--wts-magenta-dark); }
   </style>
 </head>
-<body>
+<body class="portal-app">
   <%- include('partials/topbar') %>
-  <div class="wrap">
-    <h1><%= t('dashboard.myAccount') %></h1>
-    <p class="sub"><%- t('dashboard.signedInAs', { email: '<strong>' + esc(customer.email) + '</strong>' }) %></p>
-
+  <div class="app-shell">
     <%- include('partials/nav', { active: 'dashboard' }) %>
-
-    <% if (typeof requestSent !== 'undefined' && requestSent) { %>
-    <div class="sent-note"><%= t('dashboard.sentNote') %></div>
-    <% } %>
-
-    <%
-      var recent = (typeof recentFiles !== 'undefined' && recentFiles) ? recentFiles : [];
-      var nFiles = (typeof fileCount !== 'undefined') ? fileCount : recent.length;
-      var awaiting = orders.filter(function (o) { return o.status === 'awaiting_payment'; }).length;
-      var savedList = (typeof savedServices !== 'undefined' && savedServices) ? savedServices : [];
-    %>
-    <div class="stats">
-      <div class="stat"><div class="num"><%= savedList.length %></div><div class="lbl"><%= t('dashboard.statActiveServices') %></div></div>
-      <div class="stat"><div class="num"><%= orders.length %></div><div class="lbl"><%= t('dashboard.statOrders') %></div></div>
-      <div class="stat"><div class="num"><%= nFiles %></div><div class="lbl"><%= t('dashboard.statFiles') %></div></div>
-      <% if (awaiting > 0) { %>
-      <div class="stat warn"><div class="num"><%= awaiting %></div><div class="lbl"><%= t('dashboard.statAwaitingPayment') %></div></div>
-      <% } %>
-    </div>
-
-    <div class="card">
-      <h2><%= t('dashboard.quickActions') %></h2>
-      <div class="qa-btns">
-        <button type="button" data-kind="content"><%= t('dashboard.requestNewContent') %></button>
-        <button type="button" data-kind="question"><%= t('dashboard.askAQuestion') %></button>
-      </div>
-      <form id="qa-form" method="POST" action="/portal/request" hidden>
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <input type="hidden" name="kind" id="qa-kind" value="">
-        <textarea name="message" id="qa-message" maxlength="4000" required placeholder=""></textarea>
-        <button type="submit"><%= t('dashboard.sendRequest') %></button>
-      </form>
-    </div>
-    <script nonce="<%= cspNonce %>">
-      (function () {
-        var form = document.getElementById('qa-form');
-        var kindInput = document.getElementById('qa-kind');
-        var msg = document.getElementById('qa-message');
-        var btns = document.querySelectorAll('.qa-btns button');
-        var HINTS = { content: <%- JSON.stringify(t('dashboard.hintContent')) %>, question: <%- JSON.stringify(t('dashboard.hintQuestion')) %> };
-        btns.forEach(function (b) {
-          b.addEventListener('click', function () {
-            var kind = b.getAttribute('data-kind');
-            btns.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
-            kindInput.value = kind;
-            msg.placeholder = HINTS[kind];
-            form.hidden = false;
-            msg.focus();
-          });
-        });
-      })();
-    </script>
-
-    <div class="card">
-      <h2><%= t('dashboard.yourFiles') %></h2>
-      <% if (recent.length === 0) { %>
-        <p style="color:#64748b;font-size:0.88rem;"><%= t('dashboard.noFilesYet') %></p>
-      <% } else { %>
-        <% recent.forEach(function (f) { %>
-        <div class="file-row">
-          <span>
-            <strong style="color:#1a1a2e;"><%= f.title %></strong>
-            <span class="fmeta"> · <%= fmtDate(f.created_at) %><%= f.external_url ? ' · ' + t('dashboard.linkLabel') : (f.file_size != null ? ' · ' + fmtSize(f.file_size) : '') %></span>
-          </span>
-          <a class="get" href="/portal/files/<%= f.id %>/download"><%= f.external_url ? t('common.open') : t('common.download') %></a>
+    <main class="main">
+      <div class="main-inner">
+        <div class="page-head">
+          <p class="page-kicker"><%= t('dashboard.kicker') %></p>
+          <h1><%= t('dashboard.myAccount') %></h1>
+          <p class="sub"><%- t('dashboard.signedInAs', { email: '<strong>' + esc(customer.email) + '</strong>' }) %></p>
         </div>
-        <% }); %>
-        <a class="view-all" href="/portal/files"><%= t('dashboard.viewAllFiles') %></a>
-      <% } %>
-    </div>
 
-    <% if (typeof hasPassword !== 'undefined' && !hasPassword) { %>
-    <div class="pw-tip" id="pw-tip" hidden>
-      <span><%= t('dashboard.pwTip') %> <a href="/portal/profile"><%= t('dashboard.setPassword') %></a></span>
-      <button type="button" id="pw-tip-dismiss" aria-label="<%= t('dashboard.dismiss') %>">&times;</button>
-    </div>
-    <script nonce="<%= cspNonce %>">
-      (function () {
-        var tip = document.getElementById('pw-tip');
-        if (sessionStorage.getItem('wts-pw-nudge-dismissed') !== '1') tip.hidden = false;
-        document.getElementById('pw-tip-dismiss').addEventListener('click', function () {
-          tip.hidden = true;
-          sessionStorage.setItem('wts-pw-nudge-dismissed', '1');
-        });
-      })();
-    </script>
-    <% } %>
+        <% if (typeof requestSent !== 'undefined' && requestSent) { %>
+        <div class="sent-note"><%= t('dashboard.sentNote') %></div>
+        <% } %>
 
-    <% var saved = (typeof savedServices !== 'undefined' && savedServices) ? savedServices : []; %>
-    <% if (saved.length > 0) { %>
-    <h2 style="font-size:1.05rem;color:#1a1a2e;margin:0 0 0.6rem;"><%= t('dashboard.myServicesPlan') %></h2>
-    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.5rem;">
-      <% saved.forEach((s) => { %>
-      <a href="https://wordsthatsells.website/en/digital-marketing-services/<%= s.service_page %>/#wts-product-<%= s.slug %>"
-         style="display:inline-flex;align-items:center;gap:0.4rem;background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:0.4rem 0.9rem;font-size:0.85rem;font-weight:600;color:#334155;text-decoration:none;line-height:1.45;">
-        <span style="color:#d62b83;">&#9733;</span> <%= s.name %><%= s.billing_period ? ' · ' + s.billing_period : '' %>
-      </a>
-      <% }); %>
-    </div>
-    <% } %>
-
-    <h2 style="font-size:1.05rem;color:#1a1a2e;margin:0 0 0.6rem;"><%= t('dashboard.myOrders') %></h2>
-
-    <% if (orders.length === 0) { %>
-      <div class="empty">
-        <p style="margin-bottom:0.5rem;"><%= t('dashboard.noOrders') %></p>
-        <p style="font-size:0.85rem;"><%- t('dashboard.noOrdersBody', { email: '<strong>' + esc(customer.email) + '</strong>', browseLink: '<a href="https://wordsthatsells.website">' + esc(t('dashboard.browseServices')) + '</a>' }) %></p>
-      </div>
-    <% } %>
-
-    <% orders.forEach((order) => {
-      const meta = order.metadata || {};
-      const isBcel = order.payment_method === 'bcel_qr';
-    %>
-    <div class="order">
-      <div class="order-head">
-        <strong><%= order.product_name || t('dashboard.orderFallback') %></strong>
-        <span class="order-date"><%= fmtDate(order.created_at) %></span>
-      </div>
-      <div class="row">
-        <span>
-          <% if (order.amount != null) { %>
-            <span class="amount"><%= fmtMoney(order.amount, order.currency) %></span>
+        <%
+          var recent = (typeof recentFiles !== 'undefined' && recentFiles) ? recentFiles : [];
+          var nFiles = (typeof fileCount !== 'undefined') ? fileCount : recent.length;
+          var awaiting = orders.filter(function (o) { return o.status === 'awaiting_payment'; }).length;
+          var savedList = (typeof savedServices !== 'undefined' && savedServices) ? savedServices : [];
+        %>
+        <div class="stats">
+          <a class="stat" href="/portal/workspace">
+            <div class="stat-top"><span class="stat-ico" aria-hidden="true">◎</span></div>
+            <div class="num"><%= savedList.length %></div>
+            <div class="lbl"><%= t('dashboard.statActiveServices') %></div>
+          </a>
+          <a class="stat" href="#orders">
+            <div class="stat-top"><span class="stat-ico" aria-hidden="true">🧾</span></div>
+            <div class="num"><%= orders.length %></div>
+            <div class="lbl"><%= t('dashboard.statOrders') %></div>
+          </a>
+          <a class="stat" href="/portal/files">
+            <div class="stat-top"><span class="stat-ico" aria-hidden="true">📁</span></div>
+            <div class="num"><%= nFiles %></div>
+            <div class="lbl"><%= t('dashboard.statFiles') %></div>
+          </a>
+          <% if (awaiting > 0) { %>
+          <a class="stat warn" href="/portal/billing">
+            <div class="stat-top"><span class="stat-ico" aria-hidden="true">⚠</span></div>
+            <div class="num"><%= awaiting %></div>
+            <div class="lbl"><%= t('dashboard.statAwaitingPayment') %></div>
+          </a>
+          <% } else { %>
+          <a class="stat" href="/portal/billing">
+            <div class="stat-top"><span class="stat-ico" aria-hidden="true">💳</span></div>
+            <div class="num">0</div>
+            <div class="lbl"><%= t('dashboard.statAwaitingPayment') %></div>
+          </a>
           <% } %>
-          <% if (meta.price_lak) { %>
-            <span class="lak"><%= order.amount != null ? ' · ' : '' %><%= fmtMoney(meta.price_lak, 'LAK') %></span>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h2><span class="sec-ico" aria-hidden="true">⚡</span><%= t('dashboard.quickActions') %></h2>
+            <div class="qa-btns">
+              <button type="button" data-kind="content"><%= t('dashboard.requestNewContent') %></button>
+              <button type="button" data-kind="question"><%= t('dashboard.askAQuestion') %></button>
+            </div>
+            <form id="qa-form" method="POST" action="/portal/request" hidden>
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="kind" id="qa-kind" value="">
+              <textarea name="message" id="qa-message" maxlength="4000" required placeholder=""></textarea>
+              <button type="submit"><%= t('dashboard.sendRequest') %></button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2><span class="sec-ico" aria-hidden="true">📁</span><%= t('dashboard.yourFiles') %></h2>
+            <% if (recent.length === 0) { %>
+              <div class="empty-state" style="box-shadow:none;border-style:dashed;padding:1.25rem 1rem;">
+                <p class="lead-empty" style="font-size:0.95rem;"><%= t('dashboard.noFilesYet') %></p>
+                <a class="cta" href="/portal/chat"><%= t('nav.chat') %></a>
+              </div>
+            <% } else { %>
+              <% recent.forEach(function (f) { %>
+              <div class="file-row">
+                <span>
+                  <strong style="color:var(--wts-text);"><%= f.title %></strong>
+                  <span class="fmeta"> · <%= fmtDate(f.created_at) %><%= f.external_url ? ' · ' + t('dashboard.linkLabel') : (f.file_size != null ? ' · ' + fmtSize(f.file_size) : '') %></span>
+                </span>
+                <a class="get" href="/portal/files/<%= f.id %>/download"><%= f.external_url ? t('common.open') : t('common.download') %></a>
+              </div>
+              <% }); %>
+              <a class="view-all" href="/portal/files"><%= t('dashboard.viewAllFiles') %></a>
+            <% } %>
+          </div>
+        </div>
+
+        <script nonce="<%= cspNonce %>">
+          (function () {
+            var form = document.getElementById('qa-form');
+            var kindInput = document.getElementById('qa-kind');
+            var msg = document.getElementById('qa-message');
+            var btns = document.querySelectorAll('.qa-btns button');
+            var HINTS = { content: <%- JSON.stringify(t('dashboard.hintContent')) %>, question: <%- JSON.stringify(t('dashboard.hintQuestion')) %> };
+            btns.forEach(function (b) {
+              b.addEventListener('click', function () {
+                var kind = b.getAttribute('data-kind');
+                btns.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+                kindInput.value = kind;
+                msg.placeholder = HINTS[kind];
+                form.hidden = false;
+                msg.focus();
+              });
+            });
+          })();
+        </script>
+
+        <% if (typeof hasPassword !== 'undefined' && !hasPassword) { %>
+        <div class="pw-tip" id="pw-tip" hidden>
+          <span><%= t('dashboard.pwTip') %> <a href="/portal/profile"><%= t('dashboard.setPassword') %></a></span>
+          <button type="button" id="pw-tip-dismiss" aria-label="<%= t('dashboard.dismiss') %>">&times;</button>
+        </div>
+        <script nonce="<%= cspNonce %>">
+          (function () {
+            var tip = document.getElementById('pw-tip');
+            if (sessionStorage.getItem('wts-pw-nudge-dismissed') !== '1') tip.hidden = false;
+            document.getElementById('pw-tip-dismiss').addEventListener('click', function () {
+              tip.hidden = true;
+              sessionStorage.setItem('wts-pw-nudge-dismissed', '1');
+            });
+          })();
+        </script>
+        <% } %>
+
+        <% var saved = (typeof savedServices !== 'undefined' && savedServices) ? savedServices : []; %>
+        <% if (saved.length > 0) { %>
+        <div class="card">
+          <h2><span class="sec-ico" aria-hidden="true">★</span><%= t('dashboard.myServicesPlan') %></h2>
+          <div class="service-chips">
+            <% saved.forEach((s) => { %>
+            <a href="https://wordsthatsells.website/en/digital-marketing-services/<%= s.service_page %>/#wts-product-<%= s.slug %>">
+              <span style="color:var(--wts-magenta);">★</span> <%= s.name %><%= s.billing_period ? ' · ' + s.billing_period : '' %>
+            </a>
+            <% }); %>
+          </div>
+        </div>
+        <% } %>
+
+        <div id="orders">
+          <h2 class="section-title" style="margin:0.25rem 0 0.75rem;"><span class="sec-ico" aria-hidden="true">🧾</span><%= t('dashboard.myOrders') %></h2>
+
+          <% if (orders.length === 0) { %>
+            <div class="empty-state">
+              <div class="empty-ico" aria-hidden="true">🛒</div>
+              <p class="lead-empty"><%= t('dashboard.noOrders') %></p>
+              <p><%- t('dashboard.noOrdersBody', { email: '<strong>' + esc(customer.email) + '</strong>', browseLink: '<a href="https://wordsthatsells.website">' + esc(t('dashboard.browseServices')) + '</a>' }) %></p>
+            </div>
           <% } %>
-        </span>
-        <span>
-          <span class="method"><%- isBcel ? '<span class="bcel">' + esc(t('payment.bcel')) + '</span>' : esc(t('payment.card')) %></span>
-          &nbsp;<span class="badge <%= order.status %>"><%= t('status.' + order.status) %></span>
-        </span>
+
+          <% orders.forEach((order) => {
+            const meta = order.metadata || {};
+            const isBcel = order.payment_method === 'bcel_qr';
+          %>
+          <div class="order<%= order.status === 'awaiting_payment' ? ' warn-border' : '' %>" style="<%= order.status === 'awaiting_payment' ? 'border-color:#fcd34d;' : '' %>">
+            <div class="order-head">
+              <strong><%= order.product_name || t('dashboard.orderFallback') %></strong>
+              <span class="order-date"><%= fmtDate(order.created_at) %></span>
+            </div>
+            <div class="row">
+              <span>
+                <% if (order.amount != null) { %>
+                  <span class="amount"><%= fmtMoney(order.amount, order.currency) %></span>
+                <% } %>
+                <% if (meta.price_lak) { %>
+                  <span class="lak"><%= order.amount != null ? ' · ' : '' %><%= fmtMoney(meta.price_lak, 'LAK') %></span>
+                <% } %>
+              </span>
+              <span>
+                <span class="method"><%- isBcel ? '<span class="bcel">' + esc(t('payment.bcel')) + '</span>' : esc(t('payment.card')) %></span>
+                &nbsp;<span class="badge <%= order.status %>"><%= t('status.' + order.status) %></span>
+              </span>
+            </div>
+            <% if (isBcel && order.status === 'awaiting_payment' && meta.reference) { %>
+            <div class="ref-box">
+              <%- t('dashboard.bcelReference', { reference: '<code>' + esc(meta.reference) + '</code>' }) %>
+            </div>
+            <% } %>
+            <% if (order.status === 'completed' && order.download_url && (order.product_type === 'digital' || order.download_url)) { %>
+            <a class="dl" href="<%= order.download_url %>" rel="noopener"><%= t('dashboard.downloadYourFiles') %></a>
+            <% } %>
+          </div>
+          <% }); %>
+        </div>
       </div>
-      <% if (isBcel && order.status === 'awaiting_payment' && meta.reference) { %>
-      <div class="ref-box">
-        <%- t('dashboard.bcelReference', { reference: '<code>' + esc(meta.reference) + '</code>' }) %>
-      </div>
-      <% } %>
-      <% if (order.status === 'completed' && order.download_url && (order.product_type === 'digital' || order.download_url)) { %>
-      <a class="dl" href="<%= order.download_url %>" rel="noopener"><%= t('dashboard.downloadYourFiles') %></a>
-      <% } %>
-    </div>
-    <% }); %>
+    </main>
   </div>
   <%- include('partials/footer') %>

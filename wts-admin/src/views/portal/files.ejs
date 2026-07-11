@@ -1,45 +1,63 @@
 <%- include('partials/head') %>
   <style>
-    .wrap { flex: 1; max-width: 760px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
-    h1 { font-size: 1.35rem; color: #1a1a2e; margin: 0.5rem 0 0.15rem; }
-    p.sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; }
-    .file { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem 1.15rem; margin-bottom: 0.9rem; display: flex; justify-content: space-between; gap: 0.85rem; align-items: center; flex-wrap: wrap; }
-    .file strong { color: #1a1a2e; font-size: 0.98rem; }
-    .file .desc { color: #475569; font-size: 0.86rem; margin-top: 0.25rem; line-height: 1.5; }
-    .file .fmeta { color: #94a3b8; font-size: 0.78rem; margin-top: 0.3rem; }
+    .file {
+      padding: 1.05rem 1.2rem;
+      margin-bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.85rem;
+      align-items: center;
+      flex-wrap: wrap;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+    .file:hover { transform: translateY(-2px); box-shadow: var(--wts-shadow-hover); border-color: #f9a8d4; }
+    .file strong { color: var(--wts-text); font-size: 0.98rem; }
+    .file .desc { color: var(--wts-text-3); font-size: 0.86rem; margin-top: 0.25rem; line-height: 1.5; }
+    .file .fmeta { color: var(--wts-muted); font-size: 0.8rem; margin-top: 0.3rem; font-weight: 600; }
     .file .fmeta .link-badge { display: inline-block; background: #eff6ff; color: #1d4ed8; border-radius: 999px; padding: 0.08rem 0.55rem; font-weight: 600; line-height: 1.45; }
-    .file a.get { background: #d62b83; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.5rem 1.1rem; font-size: 0.86rem; font-weight: 600; white-space: nowrap; line-height: 1.45; }
-    .empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 2.5rem 1rem; text-align: center; color: #64748b; }
+    .file a.get { background: var(--wts-magenta); color: #fff; text-decoration: none; border-radius: 999px; padding: 0.5rem 1.15rem; font-size: 0.86rem; font-weight: 700; white-space: nowrap; line-height: 1.45; }
+    .files-grid { display: grid; gap: 0.85rem; }
+    @media (min-width: 720px) { .files-grid { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
-<body>
+<body class="portal-app">
   <%- include('partials/topbar') %>
-  <div class="wrap">
-    <h1><%= t('files.heading') %></h1>
-    <p class="sub"><%= t('files.subtitle') %></p>
-
+  <div class="app-shell">
     <%- include('partials/nav', { active: 'files' }) %>
-
-    <% if (files.length === 0) { %>
-      <div class="empty">
-        <p style="margin-bottom:0.5rem;"><%= t('files.emptyTitle') %></p>
-        <p style="font-size:0.85rem;"><%= t('files.emptyBody') %></p>
-      </div>
-    <% } %>
-
-    <% files.forEach(function (f) { %>
-    <div class="file">
-      <div style="flex:1;min-width:200px;">
-        <strong><%= f.title %></strong>
-        <% if (f.description) { %><div class="desc"><%= f.description %></div><% } %>
-        <div class="fmeta">
-          <%= fmtDate(f.created_at) %>
-          <% if (f.external_url) { %><%= t('files.metaSep') %><span class="link-badge"><%= t('files.externalLink') %></span>
-          <% } else { %><%= f.file_name ? t('files.metaSep') + f.file_name : '' %><%= f.file_size != null ? t('files.metaSep') + fmtSize(f.file_size) : '' %><% } %>
+    <main class="main">
+      <div class="main-inner">
+        <div class="page-head">
+          <p class="page-kicker"><%= t('files.kicker') %></p>
+          <h1><%= t('files.heading') %></h1>
+          <p class="sub"><%= t('files.subtitle') %></p>
         </div>
+
+        <% if (files.length === 0) { %>
+          <div class="empty-state">
+            <div class="empty-ico" aria-hidden="true">📁</div>
+            <p class="lead-empty"><%= t('files.emptyTitle') %></p>
+            <p><%= t('files.emptyBody') %></p>
+            <a class="cta" href="/portal/workspace"><%= t('nav.workspace') %></a>
+          </div>
+        <% } else { %>
+        <div class="files-grid">
+          <% files.forEach(function (f) { %>
+          <div class="file">
+            <div style="flex:1;min-width:160px;">
+              <strong><%= f.title %></strong>
+              <% if (f.description) { %><div class="desc"><%= f.description %></div><% } %>
+              <div class="fmeta">
+                <%= fmtDate(f.created_at) %>
+                <% if (f.external_url) { %><%= t('files.metaSep') %><span class="link-badge"><%= t('files.externalLink') %></span>
+                <% } else { %><%= f.file_name ? t('files.metaSep') + f.file_name : '' %><%= f.file_size != null ? t('files.metaSep') + fmtSize(f.file_size) : '' %><% } %>
+              </div>
+            </div>
+            <a class="get" href="/portal/files/<%= f.id %>/download" <%- f.external_url ? 'rel="noopener"' : '' %>><%= f.external_url ? t('common.open') : t('common.download') %></a>
+          </div>
+          <% }); %>
+        </div>
+        <% } %>
       </div>
-      <a class="get" href="/portal/files/<%= f.id %>/download" <%- f.external_url ? 'rel="noopener"' : '' %>><%= f.external_url ? t('common.open') : t('common.download') %></a>
-    </div>
-    <% }); %>
+    </main>
   </div>
   <%- include('partials/footer') %>

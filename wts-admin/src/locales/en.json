@@ -17,7 +17,12 @@
     "chat": "AI Strategist",
     "boards": "Boards",
     "profile": "Profile",
-    "programs": "Partner Programs"
+    "programs": "Partner Programs",
+    "menuLabel": "Portal navigation",
+    "openMenu": "Open menu",
+    "groupWork": "Work",
+    "groupAccount": "Account",
+    "sidebarFoot": "WordsThatSells · client portal"
   },
   "workspace": {
     "title": "Workspace - Words That Sells",
@@ -45,7 +50,14 @@
     "statusOpen": "Open",
     "statusDone": "Done",
     "due": "Due",
-    "markDone": "Mark done"
+    "markDone": "Mark done",
+    "reportsEmptyTitle": "No reports yet",
+    "reportsEmptyBody": "Your first monthly report lands here. Meanwhile, ask the AI Strategist what to expect.",
+    "reportsEmptyCta": "Ask the AI Strategist",
+    "actionsEmptyTitle": "No action items yet",
+    "actionsEmptyBody": "When we need something from you — an approval, asset, or reply — it will show up here.",
+    "actionsEmptyCta": "Open boards",
+    "kicker": "Delivery"
   },
   "login": {
     "title": "Sign in - Words That Sells",
@@ -130,7 +142,8 @@
     "bcelReference": "Waiting for your BCEL One transfer. Include reference {reference} in the payment note — we confirm within one business day of receiving it.",
     "downloadYourFiles": "Download your files",
     "title": "My Account - Words That Sells",
-    "loadError": "Failed to load your orders. Please try again."
+    "loadError": "Failed to load your orders. Please try again.",
+    "kicker": "Overview"
   },
   "status": {
     "completed": "Completed",
@@ -161,7 +174,8 @@
     "invoiceNote": "Need an invoice or receipt for any payment? {link} and we'll email it over.",
     "invoiceNoteLink": "Ask us from your dashboard",
     "title": "Billing - Words That Sells",
-    "loadError": "Failed to load your billing history. Please try again."
+    "loadError": "Failed to load your billing history. Please try again.",
+    "kicker": "Account"
   },
   "files": {
     "heading": "My Files",
@@ -175,7 +189,8 @@
     "notFound": "This file does not exist.",
     "linkInvalid": "This file link is not valid.",
     "noContent": "This file has no content.",
-    "downloadError": "Failed to download the file."
+    "downloadError": "Failed to download the file.",
+    "kicker": "Library"
   },
   "chat": {
     "heading": "AI Marketing Strategist",
@@ -194,7 +209,12 @@
     "rateLimited": "You are sending messages a little fast — give it a few minutes and try again.",
     "unavailable": "The AI Strategist is not available yet. Please use the quick actions on your dashboard instead.",
     "emptyMessage": "Type a message first.",
-    "upstreamError": "The strategist is having a moment — please try again shortly, or send us a quick request from your dashboard."
+    "upstreamError": "The strategist is having a moment — please try again shortly, or send us a quick request from your dashboard.",
+    "kicker": "Flagship",
+    "suggest1": "What should I expect this month on my plan?",
+    "suggest2": "How do I approve a deliverable on a board?",
+    "suggest3": "Draft a Facebook post idea for my business",
+    "avatarLabel": "AI Strategist"
   },
   "profile": {
     "heading": "My Profile",
@@ -227,7 +247,8 @@
     "loadError": "Failed to load your profile.",
     "saveError": "Failed to save your profile.",
     "passwordTooShort": "The password must be at least 8 characters.",
-    "passwordMismatch": "The two passwords don’t match."
+    "passwordMismatch": "The two passwords don’t match.",
+    "kicker": "Account"
   },
   "boards": {
     "title": "My Boards - Words That Sells",
@@ -413,7 +434,11 @@
       "paidChecking": "Payment received — checking with the bank…",
       "paidConfirmed": "Payment confirmed — your download is unlocked!",
       "paidPending": "Payment is still being confirmed — this page will keep checking."
-    }
+    },
+    "kicker": "Collaboration",
+    "emptyTitle": "No boards yet",
+    "emptyBody": "When we open a review board for a campaign or deliverable, it will appear here.",
+    "emptyCta": "Go to workspace"
   },
   "emails": {
     "reviewRequested": {
@@ -507,6 +532,7 @@
       "name": "White Label",
       "desc": "Offer our services under your own brand. Your clients see your name and logo; our team does the delivery.",
       "earn": "Earn: agency pricing on everything we deliver for your clients."
-    }
+    },
+    "kicker": "Partners"
   }
 }

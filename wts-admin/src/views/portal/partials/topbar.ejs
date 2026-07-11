@@ -1,11 +1,25 @@
 <%# Portal topbar. Pass { minimal: true } on unauthenticated pages
-    (login, error) to hide the profile link and sign-out button. %>
+    (login, error) to hide the profile link, sign-out, and menu toggle. %>
 <% var isMinimal = typeof minimal !== 'undefined' && minimal; %>
 <div class="topbar">
-  <a class="brand" href="https://wordsthatsells.website"><%= t('common.brand') %></a>
+  <div class="topbar-left">
+    <% if (!isMinimal) { %>
+    <button type="button" class="menu-toggle" id="nav-toggle" aria-label="<%= t('nav.openMenu') %>" aria-controls="portal-sidebar" aria-expanded="false">☰</button>
+    <% } %>
+    <a class="brand" href="<%= isMinimal ? 'https://wordsthatsells.website' : '/portal/' %>">
+      <img
+        src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg"
+        alt=""
+        width="120"
+        height="30"
+        onerror="this.style.display='none'">
+      <span><%= t('common.brand') %></span>
+    </a>
+  </div>
   <div class="top-actions">
-    <span class="lang-switch">
-      <a href="?lang=en" class="<%= locale === 'en' ? 'active' : '' %>">EN</a>·<a href="?lang=th" lang="th" class="<%= locale === 'th' ? 'active' : '' %>">ไทย</a>
+    <span class="lang-switch" role="group" aria-label="Language">
+      <a href="?lang=en" class="<%= locale === 'en' ? 'active' : '' %>" hreflang="en">EN</a>
+      <a href="?lang=th" lang="th" class="<%= locale === 'th' ? 'active' : '' %>" hreflang="th">ไทย</a>
     </span>
     <% if (!isMinimal) { %>
       <a class="pill" href="/portal/profile"><%= t('common.myProfile') %></a>
@@ -16,3 +30,29 @@
     <% } %>
   </div>
 </div>
+<% if (!isMinimal) { %>
+<script>
+  (function () {
+    var btn = document.getElementById('nav-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        document.body.classList.remove('nav-open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    // Close drawer when a nav link is tapped (mobile)
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('.sidebar a.nav-item');
+      if (a) {
+        document.body.classList.remove('nav-open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  })();
+</script>
+<% } %>

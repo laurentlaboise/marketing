@@ -1,5 +1,6 @@
 <%# Portal page footer; closes the document opened by partials/head.
-    Pass { simpleFooter: true } for the brand-only help line (login, error). %>
+    Pass { simpleFooter: true } for the brand-only help line (login, error).
+    Authenticated app pages hide heavy legal entity/agree via CSS. %>
   <footer class="portal-legal-footer" role="contentinfo">
     <% if (!(typeof simpleFooter !== 'undefined' && simpleFooter)) { %>
     <div class="foot foot-help"><%= t('common.footerHelp') %></div>

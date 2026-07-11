@@ -1,19 +1,15 @@
 <%- include('partials/head') %>
   <style>
-    .wrap { flex: 1; max-width: 560px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
-    h1 { font-size: 1.35rem; color: #1a1a2e; margin: 0.5rem 0 0.15rem; }
-    p.sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1.25rem; }
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.35rem; margin-bottom: 1rem; }
-    h2 { font-size: 1rem; color: #1a1a2e; margin: 0 0 0.9rem; }
-    label { display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; }
-    input, select { width: 100%; padding: 0.65rem 0.8rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.98rem; font-family: inherit; margin-bottom: 0.95rem; }
-    select { background: #fff; color: inherit; }
-    input:focus, select:focus { outline: 2px solid #d62b83; border-color: transparent; }
-    input[disabled] { background: #f8fafc; color: #64748b; }
-    .note { font-size: 0.78rem; color: #94a3b8; margin: -0.6rem 0 0.95rem; line-height: 1.5; }
-    button.save { width: 100%; background: #d62b83; color: #fff; border: none; border-radius: 10px; padding: 0.8rem; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-    button.save:hover { background: #b91c6f; }
-    .banner { border-radius: 10px; padding: 0.8rem 1rem; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
+    .profile-form { max-width: 560px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--wts-text-2); margin-bottom: 0.35rem; }
+    input, select { width: 100%; padding: 0.7rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 0.98rem; font-family: inherit; margin-bottom: 0.95rem; background: #fff; color: inherit; }
+    select { background: #fff; }
+    input:focus, select:focus { outline: 2px solid var(--wts-magenta); border-color: transparent; }
+    input[disabled] { background: #f8fafc; color: var(--wts-muted); }
+    .note { font-size: 0.8rem; color: var(--wts-muted); margin: -0.55rem 0 0.95rem; line-height: 1.5; font-weight: 500; }
+    button.save { width: 100%; background: var(--wts-magenta); color: #fff; border: none; border-radius: 12px; padding: 0.85rem; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    button.save:hover { background: var(--wts-magenta-dark); }
+    .banner { border-radius: 12px; padding: 0.8rem 1rem; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
     .banner.ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
     .banner.err { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
     .pw-state { display: inline-block; font-size: 0.75rem; font-weight: 600; border-radius: 999px; padding: 0.15rem 0.7rem; margin-left: 0.4rem; line-height: 1.45; }
@@ -21,59 +17,66 @@
     .pw-state.unset { background: #e2e8f0; color: #475569; }
   </style>
 </head>
-<body>
+<body class="portal-app">
   <%- include('partials/topbar') %>
-  <div class="wrap">
+  <div class="app-shell">
     <%- include('partials/nav', { active: 'profile' }) %>
-    <h1><%= t('profile.heading') %></h1>
-    <p class="sub"><%= customer.email %></p>
+    <main class="main">
+      <div class="main-inner">
+        <div class="page-head">
+          <p class="page-kicker"><%= t('profile.kicker') %></p>
+          <h1><%= t('profile.heading') %></h1>
+          <p class="sub"><%= customer.email %></p>
+        </div>
 
-    <% if (typeof saved !== 'undefined' && saved) { %>
-    <div class="banner ok"><%= (typeof passwordChanged !== 'undefined' && passwordChanged) ? t('profile.savedPasswordSet') : t('profile.saved') %></div>
-    <% } %>
-    <% if (typeof error !== 'undefined' && error) { %>
-    <div class="banner err"><%= error %></div>
-    <% } %>
+        <% if (typeof saved !== 'undefined' && saved) { %>
+        <div class="banner ok"><%= (typeof passwordChanged !== 'undefined' && passwordChanged) ? t('profile.savedPasswordSet') : t('profile.saved') %></div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="banner err"><%= error %></div>
+        <% } %>
 
-    <form method="POST" action="/portal/profile">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <form method="POST" action="/portal/profile" class="profile-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-      <div class="card">
-        <h2><%= t('profile.contactHeading') %></h2>
-        <label for="pf-email"><%= t('profile.emailLabel') %></label>
-        <input type="email" id="pf-email" value="<%= customer.email %>" disabled>
-        <p class="note"><%= t('profile.emailNote') %></p>
-        <label for="pf-name"><%= t('profile.nameLabel') %></label>
-        <input type="text" id="pf-name" name="name" maxlength="255" value="<%= customer.name || '' %>" autocomplete="name" placeholder="<%= t('profile.namePlaceholder') %>">
-        <label for="pf-company"><%= t('profile.companyLabel') %> <span style="font-weight:400;color:#94a3b8;"><%= t('profile.optional') %></span></label>
-        <input type="text" id="pf-company" name="company" maxlength="255" value="<%= customer.company || '' %>" autocomplete="organization" placeholder="<%= t('profile.companyPlaceholder') %>">
-        <label for="pf-phone"><%= t('profile.phoneLabel') %> <span style="font-weight:400;color:#94a3b8;"><%= t('profile.optional') %></span></label>
-        <input type="tel" id="pf-phone" name="phone" maxlength="50" value="<%= customer.phone || '' %>" autocomplete="tel" placeholder="<%= t('profile.phonePlaceholder') %>">
+          <div class="card">
+            <h2><span class="sec-ico" aria-hidden="true">✉</span><%= t('profile.contactHeading') %></h2>
+            <label for="pf-email"><%= t('profile.emailLabel') %></label>
+            <input type="email" id="pf-email" value="<%= customer.email %>" disabled>
+            <p class="note"><%= t('profile.emailNote') %></p>
+            <label for="pf-name"><%= t('profile.nameLabel') %></label>
+            <input type="text" id="pf-name" name="name" maxlength="255" value="<%= customer.name || '' %>" autocomplete="name" placeholder="<%= t('profile.namePlaceholder') %>">
+            <label for="pf-company"><%= t('profile.companyLabel') %> <span style="font-weight:500;color:var(--wts-muted);"><%= t('profile.optional') %></span></label>
+            <input type="text" id="pf-company" name="company" maxlength="255" value="<%= customer.company || '' %>" autocomplete="organization" placeholder="<%= t('profile.companyPlaceholder') %>">
+            <label for="pf-phone"><%= t('profile.phoneLabel') %> <span style="font-weight:500;color:var(--wts-muted);"><%= t('profile.optional') %></span></label>
+            <input type="tel" id="pf-phone" name="phone" maxlength="50" value="<%= customer.phone || '' %>" autocomplete="tel" placeholder="<%= t('profile.phonePlaceholder') %>">
+          </div>
+
+          <div class="card">
+            <h2><span class="sec-ico" aria-hidden="true">🔑</span><%= t('profile.passwordHeading') %>
+              <% if (customer.password_hash) { %><span class="pw-state set"><%= t('profile.pwSet') %></span><% } else { %><span class="pw-state unset"><%= t('profile.pwUnset') %></span><% } %>
+            </h2>
+            <label for="pf-pass"><%= customer.password_hash ? t('profile.newPasswordLabel') : t('profile.choosePasswordLabel') %></label>
+            <input type="password" id="pf-pass" name="new_password" maxlength="200" autocomplete="new-password" placeholder="<%= t('profile.newPasswordPlaceholder') %>">
+            <label for="pf-pass2"><%= t('profile.confirmPasswordLabel') %></label>
+            <input type="password" id="pf-pass2" name="confirm_password" maxlength="200" autocomplete="new-password" placeholder="<%= t('profile.confirmPasswordPlaceholder') %>">
+            <p class="note"><%= t('profile.passwordNote') %></p>
+          </div>
+
+          <div class="card">
+            <h2><span class="sec-ico" aria-hidden="true">🌐</span><%= t('profile.preferencesHeading') %></h2>
+            <label for="language"><%= t('profile.languageLabel') %></label>
+            <% var prefLang = customer.preferred_language || locale; %>
+            <select name="language" id="language">
+              <option value="en" <%= prefLang === 'en' ? 'selected' : '' %>>English</option>
+              <option value="th" lang="th" <%= prefLang === 'th' ? 'selected' : '' %>>ไทย</option>
+            </select>
+            <p class="note"><%= t('profile.languageNote') %></p>
+          </div>
+
+          <button type="submit" class="save"><%= t('profile.saveButton') %></button>
+        </form>
       </div>
-
-      <div class="card">
-        <h2><%= t('profile.passwordHeading') %>
-          <% if (customer.password_hash) { %><span class="pw-state set"><%= t('profile.pwSet') %></span><% } else { %><span class="pw-state unset"><%= t('profile.pwUnset') %></span><% } %>
-        </h2>
-        <label for="pf-pass"><%= customer.password_hash ? t('profile.newPasswordLabel') : t('profile.choosePasswordLabel') %></label>
-        <input type="password" id="pf-pass" name="new_password" maxlength="200" autocomplete="new-password" placeholder="<%= t('profile.newPasswordPlaceholder') %>">
-        <label for="pf-pass2"><%= t('profile.confirmPasswordLabel') %></label>
-        <input type="password" id="pf-pass2" name="confirm_password" maxlength="200" autocomplete="new-password" placeholder="<%= t('profile.confirmPasswordPlaceholder') %>">
-        <p class="note"><%= t('profile.passwordNote') %></p>
-      </div>
-
-      <div class="card">
-        <h2><%= t('profile.preferencesHeading') %></h2>
-        <label for="language"><%= t('profile.languageLabel') %></label>
-        <% var prefLang = customer.preferred_language || locale; %>
-        <select name="language" id="language">
-          <option value="en" <%= prefLang === 'en' ? 'selected' : '' %>>English</option>
-          <option value="th" lang="th" <%= prefLang === 'th' ? 'selected' : '' %>>ไทย</option>
-        </select>
-        <p class="note"><%= t('profile.languageNote') %></p>
-      </div>
-
-      <button type="submit" class="save"><%= t('profile.saveButton') %></button>
-    </form>
+    </main>
   </div>
   <%- include('partials/footer') %>

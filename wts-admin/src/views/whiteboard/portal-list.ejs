@@ -1,52 +1,86 @@
 <%- include('../portal/partials/head') %>
   <style>
-    .wrap { flex: 1; max-width: 760px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
-    h1 { font-size: 1.35rem; color: #1a1a2e; margin: 0.5rem 0 0.15rem; }
-    p.sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; }
-    .board { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem 1.15rem; margin-bottom: 0.9rem; display: flex; justify-content: space-between; gap: 0.85rem; align-items: center; flex-wrap: wrap; }
-    .board strong { color: #1a1a2e; font-size: 0.98rem; }
-    .board .bmeta { color: #94a3b8; font-size: 0.78rem; margin-top: 0.3rem; }
+    .board-card {
+      padding: 1.15rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-height: 150px;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+    .board-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--wts-shadow-hover);
+      border-color: #f9a8d4;
+    }
+    .board-card strong { color: var(--wts-text); font-size: 1.02rem; display: block; margin-bottom: 0.4rem; }
+    .board-card .bmeta { color: var(--wts-muted); font-size: 0.8rem; margin-top: auto; font-weight: 600; }
+    .board-card .tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
     .role-badge { display: inline-block; border-radius: 999px; padding: 0.15rem 0.65rem; font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; line-height: 1.45; }
     .role-badge.editor { background: #dcfce7; color: #166534; }
     .role-badge.commenter { background: #fef3c7; color: #92400e; }
     .role-badge.viewer { background: #e0f2fe; color: #075985; }
-    .board a.open { background: #d62b83; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.5rem 1.1rem; font-size: 0.86rem; font-weight: 600; white-space: nowrap; line-height: 1.45; }
-    .empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 2.5rem 1rem; text-align: center; color: #64748b; }
+    .board-card a.open {
+      align-self: flex-start;
+      background: var(--wts-magenta);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 0.5rem 1.15rem;
+      font-size: 0.86rem;
+      font-weight: 700;
+      white-space: nowrap;
+      line-height: 1.45;
+    }
+    .board-card a.open:hover { background: var(--wts-magenta-dark); }
   </style>
 </head>
-<body>
+<body class="portal-app">
   <%- include('../portal/partials/topbar') %>
-  <div class="wrap">
-    <h1><%= t('boards.heading') %></h1>
-    <p class="sub"><%= t('boards.subtitle') %></p>
-
+  <div class="app-shell">
     <%- include('../portal/partials/nav', { active: 'boards' }) %>
+    <main class="main">
+      <div class="main-inner">
+        <div class="page-head">
+          <p class="page-kicker"><%= t('boards.kicker') %></p>
+          <h1><%= t('boards.heading') %></h1>
+          <p class="sub"><%= t('boards.subtitle') %></p>
+        </div>
 
-    <% if (boards.length === 0) { %>
-      <div class="empty">
-        <p style="margin-bottom:0.5rem;"><%= t('boards.empty') %></p>
-      </div>
-    <% } %>
-
-    <% boards.forEach(function (b) { %>
-    <div class="board">
-      <div style="flex:1;min-width:200px;">
-        <strong><%= b.title %></strong>
-        <span class="role-badge <%= b.role %>"><%= t('boards.role.' + b.role) %></span>
-        <% if (b.approval_status) {
-             var apKnown = { awaiting_review: true, needs_changes: true, approved: true }[b.approval_status];
-             var apLabel = apKnown ? t('boards.approval.' + b.approval_status) : b.approval_status;
-             var apStyle = { awaiting_review: 'background:#fef3c7;color:#92400e;', needs_changes: 'background:#fee2e2;color:#b91c1c;', approved: 'background:#dcfce7;color:#166534;' }[b.approval_status] || 'background:#e2e8f0;color:#475569;';
-        %>
-        <span style="display:inline-block;border-radius:999px;padding:0.15rem 0.65rem;font-size:0.74rem;font-weight:600;white-space:nowrap;line-height:1.45;<%= apStyle %>"><%= apLabel %></span>
+        <% if (boards.length === 0) { %>
+          <div class="empty-state">
+            <div class="empty-ico" aria-hidden="true">📋</div>
+            <p class="lead-empty"><%= t('boards.emptyTitle') %></p>
+            <p><%= t('boards.emptyBody') %></p>
+            <a class="cta" href="/portal/workspace"><%= t('boards.emptyCta') %></a>
+          </div>
+        <% } else { %>
+        <div class="grid-boards">
+          <% boards.forEach(function (b) { %>
+          <div class="board board-card">
+            <div>
+              <strong><%= b.title %></strong>
+              <div class="tags">
+                <span class="role-badge <%= b.role %>"><%= t('boards.role.' + b.role) %></span>
+                <% if (b.approval_status) {
+                     var apKnown = { awaiting_review: true, needs_changes: true, approved: true }[b.approval_status];
+                     var apLabel = apKnown ? t('boards.approval.' + b.approval_status) : b.approval_status;
+                     var apClass = { awaiting_review: 'awaiting_review', needs_changes: 'needs_changes', approved: 'approved' }[b.approval_status] || '';
+                %>
+                <span class="badge <%= apClass %>"><%= apLabel %></span>
+                <% } %>
+                <% if (b.unresolved_comments > 0) { %>
+                <span title="<%= t('boards.openCommentsTooltip') %>" class="badge" style="background:#e0f2fe;color:#075985;"><%= t(b.unresolved_comments === 1 ? 'boards.openCommentsOne' : 'boards.openCommentsMany', { count: b.unresolved_comments }) %></span>
+                <% } %>
+              </div>
+              <div class="bmeta"><%= t('boards.updated', { date: fmtDate(b.updated_at) }) %></div>
+            </div>
+            <a class="open" href="/portal/boards/<%= b.id %>"><%= t('boards.openBoard') %></a>
+          </div>
+          <% }); %>
+        </div>
         <% } %>
-        <% if (b.unresolved_comments > 0) { %>
-        <span title="<%= t('boards.openCommentsTooltip') %>" style="display:inline-block;border-radius:999px;padding:0.15rem 0.65rem;font-size:0.74rem;font-weight:600;white-space:nowrap;line-height:1.45;background:#e0f2fe;color:#075985;"><%= t(b.unresolved_comments === 1 ? 'boards.openCommentsOne' : 'boards.openCommentsMany', { count: b.unresolved_comments }) %></span>
-        <% } %>
-        <div class="bmeta"><%= t('boards.updated', { date: fmtDate(b.updated_at) }) %></div>
       </div>
-      <a class="open" href="/portal/boards/<%= b.id %>"><%= t('boards.openBoard') %></a>
-    </div>
-    <% }); %>
+    </main>
   </div>
   <%- include('../portal/partials/footer') %>
