@@ -88,42 +88,173 @@
         main > section { scroll-margin-top: 1rem; }
         .section p + p { margin-top: 0.85rem; }
 
-        .header { text-align: center; padding: 2.75rem 0 1.25rem; }
-        .header p { font-size: 1.1rem; color: #334155; max-width: 36rem; margin: 0.65rem auto 0 auto; line-height: 1.65; }
-        .header .audience-note { font-size: 0.95rem; color: #475569; margin-top: 0.75rem; }
-
-        .trust-strip {
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1rem;
-            margin: 1.5rem auto 0.5rem; padding: 0.65rem 0;
-            background: transparent; border: none; border-radius: 0;
-            font-size: 0.9rem; font-weight: 600; color: #334155;
+        /* Plans intro control panel */
+        #pricing-intro.pricing-intro {
+            text-align: center;
+            padding: 2.5rem 0 2rem;
+            max-width: 42rem;
+            margin: 0 auto;
         }
-        .trust-strip i { color: var(--color-accent-magenta); margin-right: 0.35rem; }
+        .pricing-intro__eyebrow {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-accent-magenta);
+            margin: 0 0 0.75rem;
+        }
+        .pricing-intro__title {
+            font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            color: #0f172a;
+            margin: 0 0 0.65rem;
+        }
+        .pricing-intro__sub {
+            font-size: 1.08rem;
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0 auto 1.75rem;
+            max-width: 28rem;
+        }
+        .pricing-intro__panel {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+            padding: 1.35rem 1.25rem 1.15rem;
+            text-align: center;
+        }
+        .pricing-intro__trust {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.45rem;
+            margin: 0 0 1.15rem;
+            list-style: none;
+            padding: 0;
+        }
+        .pricing-intro__trust li {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 999px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        .pricing-intro__trust i {
+            color: var(--color-accent-magenta);
+            font-size: 0.78rem;
+        }
+        .pricing-intro__billing-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin: 0 0 0.55rem;
+        }
+        /* Segmented billing control */
+        .billing-seg {
+            display: inline-flex;
+            align-items: stretch;
+            background: #f1f5f9;
+            border-radius: 999px;
+            padding: 0.25rem;
+            gap: 0.15rem;
+            margin: 0 auto;
+            position: relative;
+        }
+        .billing-seg input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .billing-seg__opt {
+            appearance: none;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #64748b;
+            padding: 0.55rem 1.15rem;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            line-height: 1.2;
+        }
+        .billing-seg__opt.is-active {
+            background: #fff;
+            color: #0f172a;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+        }
+        .billing-seg__opt:focus-visible {
+            outline: 2px solid var(--color-accent-magenta);
+            outline-offset: 2px;
+        }
+        .billing-seg__save {
+            display: inline-block;
+            margin-left: 0.35rem;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.15rem 0.4rem;
+            border-radius: 999px;
+            vertical-align: middle;
+        }
+        .billing-toggle-hint {
+            font-size: 0.88rem;
+            color: #64748b;
+            text-align: center;
+            margin: 0.75rem 0 0;
+            min-height: 1.25em;
+            font-weight: 500;
+            line-height: 1.45;
+        }
+        .pricing-intro__partners {
+            margin: 1.15rem 0 0;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        .pricing-intro__partners span {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 0.45rem;
+            color: #94a3b8;
+        }
+        .pricing-intro__partners a {
+            color: #0f172a;
+            font-weight: 700;
+            text-decoration: none;
+            margin: 0 0.35rem;
+        }
+        .pricing-intro__partners a:hover {
+            color: var(--color-accent-magenta);
+            text-decoration: underline;
+        }
+        /* keep legacy class hooks for JS billing toggle labels if needed */
+        .bill-label { cursor: pointer; }
+        .bill-label.is-active { }
+        .savings-badge { /* unused in new seg; keep for safety */ }
+        #billing-cycle-toggle { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
         .card-trust {
             margin-top: 0.75rem; font-size: 0.8rem; font-weight: 600; color: #334155;
             display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35rem 0.85rem;
         }
         .card-trust span { display: inline-flex; align-items: center; gap: 0.3rem; }
         .card-trust i { color: var(--color-accent-magenta); font-size: 0.75rem; }
-
-        .billing-toggle {
-            margin: 1.5rem auto 0.5rem; display: flex; justify-content: center; align-items: center;
-            gap: 0.85rem; font-weight: 600; color: #1e3a4f; flex-wrap: wrap;
-        }
-        .billing-toggle .bill-label { transition: color 0.2s, opacity 0.2s; opacity: 0.5; cursor: pointer; user-select: none; }
-        .billing-toggle .bill-label.is-active { opacity: 1; color: #0f172a; }
-        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; flex-shrink: 0; }
-        .toggle-switch input {
-            position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0;
-            cursor: pointer; z-index: 2;
-        }
-        .toggle-switch input:focus-visible + .slider { outline: 3px solid var(--color-accent-magenta); outline-offset: 3px; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #94a3b8; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
-        input:checked + .slider { background-color: var(--color-primary-base); }
-        input:checked + .slider:before { transform: translateX(26px); }
-        .savings-badge { background-color: var(--color-success); color: white; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; margin-left: 0.25rem; }
-        .billing-toggle-hint { font-size: 0.9rem; color: #1e3a4f; text-align: center; margin: 0.35rem 0 0; min-height: 1.25em; font-weight: 500; }
         
         /* Ad Account Menu */
         .ad-account-menu-container {
@@ -1230,29 +1361,38 @@
 
     <div class="container">
         <!-- Intro + billing (below full-bleed hero) -->
-        <header class="header" id="pricing-intro">
-            <p class="section-kicker" style="margin-bottom:0.35rem;">Plans &amp; prices</p>
-            <h2>Pick a plan. Know what’s included.</h2>
-            <p>Monthly scope is fixed—so you always know what you’re paying for.</p>
-            <div class="trust-strip" role="list">
-                <span role="listitem"><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</span>
-                <span role="listitem"><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</span>
-                <span role="listitem"><i class="fas fa-file-alt" aria-hidden="true"></i> Plain-language reports</span>
+        <header class="pricing-intro" id="pricing-intro">
+            <p class="pricing-intro__eyebrow">Plans &amp; prices</p>
+            <h2 class="pricing-intro__title">Pick a plan. Know what’s included.</h2>
+            <p class="pricing-intro__sub">Fixed monthly scope—so you always know what you’re paying for.</p>
+
+            <div class="pricing-intro__panel">
+                <ul class="pricing-intro__trust" aria-label="Trust">
+                    <li><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</li>
+                    <li><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</li>
+                    <li><i class="fas fa-file-alt" aria-hidden="true"></i> Plain-language reports</li>
+                </ul>
+
+                <p class="pricing-intro__billing-label" id="billing-label">Billing</p>
+                <div class="billing-seg" role="group" aria-labelledby="billing-label">
+                    <!-- hidden checkbox kept for existing applyBillingCycle JS -->
+                    <input type="checkbox" id="billing-cycle-toggle" aria-describedby="billing-toggle-hint" tabindex="-1">
+                    <button type="button" class="billing-seg__opt is-active" id="monthly-label" data-billing="monthly" aria-pressed="true">
+                        Monthly
+                    </button>
+                    <button type="button" class="billing-seg__opt" id="annually-label" data-billing="annual" aria-pressed="false">
+                        Annual <span class="billing-seg__save">−20%</span>
+                    </button>
+                </div>
+                <p id="billing-toggle-hint" class="billing-toggle-hint">Showing monthly price. Switch to Annual to save 20% (billed once a year).</p>
+
+                <div class="pricing-intro__partners">
+                    <span>Partners</span>
+                    <a href="/en/company/affiliate-sales/">Affiliate program</a>
+                    <span style="color:#cbd5e1;font-weight:400;letter-spacing:0;text-transform:none;display:inline;margin:0 0.15rem;">·</span>
+                    <a href="/en/company/digital-agencies/">White-label agencies</a>
+                </div>
             </div>
-            <div class="billing-toggle" role="group" aria-label="Billing cycle">
-                <span id="monthly-label" class="bill-label is-active">Monthly</span>
-                <label class="toggle-switch" for="billing-cycle-toggle">
-                    <input type="checkbox" id="billing-cycle-toggle" aria-describedby="billing-toggle-hint" aria-label="Switch between monthly and annual billing">
-                    <span class="slider" aria-hidden="true"></span>
-                </label>
-                <span id="annually-label" class="bill-label">Annual <span class="savings-badge">Save 20%</span></span>
-            </div>
-            <p id="billing-toggle-hint" class="billing-toggle-hint">Per month shown. Annual = 20% off, billed once a year.</p>
-            <p class="audience-note">Partners:
-                <a href="/en/company/affiliate-sales/" style="color:var(--color-accent-magenta);font-weight:700;">Affiliate</a>
-                ·
-                <a href="/en/company/digital-agencies/" style="color:var(--color-accent-magenta);font-weight:700;">White-label</a>
-            </p>
         </header>
 
         <main>
@@ -2287,12 +2427,19 @@
                 const monthlyLabel = document.getElementById('monthly-label');
                 const annualLabel = document.getElementById('annually-label');
                 const hint = document.getElementById('billing-toggle-hint');
-                if (monthlyLabel) monthlyLabel.classList.toggle('is-active', !isAnnual);
-                if (annualLabel) annualLabel.classList.toggle('is-active', isAnnual);
+                if (monthlyLabel) {
+                    monthlyLabel.classList.toggle('is-active', !isAnnual);
+                    monthlyLabel.setAttribute('aria-pressed', (!isAnnual).toString());
+                }
+                if (annualLabel) {
+                    annualLabel.classList.toggle('is-active', isAnnual);
+                    annualLabel.setAttribute('aria-pressed', isAnnual.toString());
+                }
+                if (billingToggle) billingToggle.checked = !!isAnnual;
                 if (hint) {
                     hint.textContent = isAnnual
-                        ? 'Annual billing: you pay once per year (20% off). Prices below show the monthly equivalent.'
-                        : 'Prices show per month. Switch to Annual to save 20% (billed once a year).';
+                        ? 'Annual: pay once a year (20% off). Prices below show the monthly equivalent.'
+                        : 'Showing monthly price. Switch to Annual to save 20% (billed once a year).';
                 }
                 document.querySelectorAll('.subscription-card .plan-price[data-price]').forEach(el => {
                     const basePrice = parseFloat(el.dataset.price);
@@ -2346,10 +2493,20 @@
                 const monthlyLabel = document.getElementById('monthly-label');
                 const annualLabel = document.getElementById('annually-label');
                 if (monthlyLabel) monthlyLabel.addEventListener('click', () => {
-                    if (billingToggle.checked) { billingToggle.checked = false; billingToggle.dispatchEvent(new Event('change')); }
+                    if (billingToggle.checked) {
+                        billingToggle.checked = false;
+                        billingToggle.dispatchEvent(new Event('change'));
+                    } else {
+                        applyBillingCycle(false);
+                    }
                 });
                 if (annualLabel) annualLabel.addEventListener('click', () => {
-                    if (!billingToggle.checked) { billingToggle.checked = true; billingToggle.dispatchEvent(new Event('change')); }
+                    if (!billingToggle.checked) {
+                        billingToggle.checked = true;
+                        billingToggle.dispatchEvent(new Event('change'));
+                    } else {
+                        applyBillingCycle(true);
+                    }
                 });
             }
 
