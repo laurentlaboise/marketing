@@ -79,6 +79,11 @@ async function establishCustomerSession(req, customer, opts = {}) {
     }
   }
   await linkOrdersByEmail(customer.id, customer.email);
+  // Persist before the caller redirects: express-session's end-of-response
+  // auto-save is fire-and-forget, so without this the browser can follow
+  // the redirect and hit requireCustomer before the store write lands —
+  // bouncing a freshly signed-in customer back to the login page.
+  await new Promise((resolve, reject) => req.session.save((err) => err ? reject(err) : resolve()));
 }
 
 // Mint a single-use magic-link token and email it. The one token path for
