@@ -987,7 +987,7 @@ router.get('/customers/:id', async (req, res) => {
       req.session.errorMessage = 'Client not found';
       return res.redirect('/business/customers');
     }
-    const [orders, saved, deliverables] = await Promise.all([
+    const [orders, saved, deliverables, actionItems] = await Promise.all([
       db.query(
         `SELECT o.*, p.name AS product_name
          FROM orders o LEFT JOIN products p ON o.product_id = p.id
@@ -1004,10 +1004,19 @@ router.get('/customers/:id', async (req, res) => {
         [req.params.id]
       ).catch(() => ({ rows: [] })),
       db.query(
-        `SELECT id, title, description, external_url, file_name, file_size, created_at
+        `SELECT id, title, description, external_url, file_name, file_size, created_at,
+                COALESCE(category, 'file') AS category
          FROM deliverables
          WHERE customer_id = $1
          ORDER BY created_at DESC`,
+        [req.params.id]
+      ).catch(() => ({ rows: [] })),
+      db.query(
+        `SELECT id, title, notes, status, due_date, created_at, completed_at
+         FROM client_action_items
+         WHERE customer_id = $1
+         ORDER BY CASE WHEN status = 'open' THEN 0 ELSE 1 END, created_at DESC
+         LIMIT 40`,
         [req.params.id]
       ).catch(() => ({ rows: [] }))
     ]);
@@ -1017,6 +1026,7 @@ router.get('/customers/:id', async (req, res) => {
       orders: orders.rows,
       savedServices: saved.rows,
       deliverables: deliverables.rows,
+      actionItems: actionItems.rows,
       currentPage: 'customers'
     });
   } catch (error) {
@@ -1080,6 +1090,8 @@ router.post('/customers/:id/deliverables', (req, res) => {
       const title = String(req.body.title || '').trim().slice(0, 200);
       const description = String(req.body.description || '').trim().slice(0, 500) || null;
       const orderId = /^[0-9a-f-]{36}$/i.test(String(req.body.order_id || '')) ? req.body.order_id : null;
+      const catRaw = String(req.body.category || 'file').toLowerCase();
+      const category = ['report', 'file', 'design', 'other'].includes(catRaw) ? catRaw : 'file';
       const file = req.file && req.file.size > 0 ? req.file : null;
 
       let externalUrl = null;
@@ -1103,12 +1115,12 @@ router.post('/customers/:id/deliverables', (req, res) => {
 
       const safeName = file ? String(file.originalname || 'file').split(/[\\/]/).pop().slice(0, 255) : null;
       await db.query(
-        `INSERT INTO deliverables (customer_id, order_id, title, description, external_url, file_name, file_mime, file_size, file_data)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        `INSERT INTO deliverables (customer_id, order_id, title, description, external_url, file_name, file_mime, file_size, file_data, category)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [
           customer.rows[0].id, orderId, title, description, externalUrl,
           safeName, file ? (file.mimetype || 'application/octet-stream').slice(0, 120) : null,
-          file ? file.size : null, file ? file.buffer : null
+          file ? file.size : null, file ? file.buffer : null, category
         ]
       );
 
@@ -1151,6 +1163,50 @@ router.post('/customers/:id/deliverables/:did/delete', async (req, res) => {
   } catch (error) {
     console.error('Delete deliverable error:', error);
     req.session.errorMessage = 'Failed to remove the deliverable';
+  }
+  res.redirect(`/business/customers/${req.params.id}`);
+});
+
+// Client workspace action items (portal /workspace — staff creates, client marks done).
+router.post('/customers/:id/actions', async (req, res) => {
+  const back = `/business/customers/${req.params.id}`;
+  try {
+    const customer = await db.query('SELECT id FROM customers WHERE id = $1', [req.params.id]);
+    if (!customer.rows.length) {
+      req.session.errorMessage = 'Client not found';
+      return res.redirect('/business/customers');
+    }
+    const title = String(req.body.title || '').trim().slice(0, 280);
+    const notes = String(req.body.notes || '').trim().slice(0, 1000) || null;
+    const dueRaw = String(req.body.due_date || '').trim();
+    const dueDate = /^\d{4}-\d{2}-\d{2}$/.test(dueRaw) ? dueRaw : null;
+    if (!title) {
+      req.session.errorMessage = 'Action title is required';
+      return res.redirect(back);
+    }
+    await db.query(
+      `INSERT INTO client_action_items (customer_id, title, notes, due_date, created_by)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [req.params.id, title, notes, dueDate, req.user && req.user.id ? req.user.id : null]
+    );
+    req.session.successMessage = 'Action item added — client can see it under Workspace';
+  } catch (error) {
+    console.error('Create action item error:', error);
+    req.session.errorMessage = 'Failed to add action item';
+  }
+  res.redirect(back);
+});
+
+router.post('/customers/:id/actions/:aid/delete', async (req, res) => {
+  try {
+    await db.query(
+      'DELETE FROM client_action_items WHERE id = $1 AND customer_id = $2',
+      [req.params.aid, req.params.id]
+    );
+    req.session.successMessage = 'Action item removed';
+  } catch (error) {
+    console.error('Delete action item error:', error);
+    req.session.errorMessage = 'Failed to remove action item';
   }
   res.redirect(`/business/customers/${req.params.id}`);
 });

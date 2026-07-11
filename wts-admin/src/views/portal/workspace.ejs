@@ -1,0 +1,107 @@
+<%- include('partials/head') %>
+  <style>
+    .wrap { flex: 1; max-width: 760px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
+    h1 { font-size: 1.35rem; color: #1a1a2e; margin: 0.5rem 0 0.15rem; }
+    p.sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.55; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.15rem 1.25rem; margin-bottom: 1rem; }
+    .card h2 { font-size: 1.05rem; color: #1a1a2e; margin: 0 0 0.55rem; }
+    .card p.lead { color: #475569; font-size: 0.9rem; line-height: 1.55; margin: 0 0 0.75rem; }
+    .scope-list { margin: 0; padding-left: 1.15rem; color: #334155; font-size: 0.88rem; line-height: 1.55; }
+    .scope-list li { margin-bottom: 0.25rem; }
+    .scope-note { margin: 0.75rem 0 0; font-size: 0.82rem; color: #64748b; line-height: 1.5; }
+    .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+    .row:last-child { border-bottom: none; }
+    .row .meta { color: #94a3b8; font-size: 0.78rem; margin-top: 0.2rem; }
+    .row a.get { color: #d62b83; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .badge { display: inline-block; border-radius: 999px; padding: 0.12rem 0.55rem; font-size: 0.72rem; font-weight: 600; line-height: 1.4; }
+    .badge.open { background: #fef3c7; color: #92400e; }
+    .badge.done { background: #dcfce7; color: #166534; }
+    .badge.report { background: #ede9fe; color: #5b21b6; }
+    .empty { color: #64748b; font-size: 0.9rem; line-height: 1.5; margin: 0; }
+    .btn-done { background: #fff; border: 1.5px solid #d62b83; color: #d62b83; border-radius: 8px; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .btn-done:hover { background: #d62b83; color: #fff; }
+    .sent-note { background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.88rem; }
+  </style>
+</head>
+<body>
+  <%- include('partials/topbar') %>
+  <div class="wrap">
+    <h1><%= t('workspace.heading') %></h1>
+    <p class="sub"><%= t('workspace.intro') %></p>
+
+    <%- include('partials/nav', { active: 'workspace' }) %>
+
+    <% if (typeof markedDone !== 'undefined' && markedDone) { %>
+    <div class="sent-note"><%= t('workspace.markedDone') %></div>
+    <% } %>
+
+    <div class="card">
+      <h2><%= t('workspace.scopeTitle') %></h2>
+      <p class="lead"><%= t('workspace.scopeLead') %></p>
+      <% if (scopeHints && scopeHints.length) { %>
+      <ul class="scope-list">
+        <% scopeHints.forEach(function (h) { %><li><%= h %></li><% }); %>
+      </ul>
+      <% } else { %>
+      <ul class="scope-list">
+        <li><%= t('workspace.scopeDefault1') %></li>
+        <li><%= t('workspace.scopeDefault2') %></li>
+        <li><%= t('workspace.scopeDefault3') %></li>
+      </ul>
+      <% } %>
+      <p class="scope-note"><%= t('workspace.scopeNote') %></p>
+    </div>
+
+    <div class="card">
+      <h2><%= t('workspace.reportsTitle') %></h2>
+      <p class="lead"><%= t('workspace.reportsLead') %></p>
+      <% if (reports && reports.length) { %>
+        <% reports.forEach(function (f) { %>
+        <div class="row">
+          <div>
+            <strong><%= f.title %></strong>
+            <span class="badge report"><%= t('workspace.badgeReport') %></span>
+            <% if (f.description) { %><div class="meta"><%= f.description %></div><% } %>
+            <div class="meta"><%= new Date(f.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %></div>
+          </div>
+          <% if (f.external_url) { %>
+            <a class="get" href="<%= f.external_url %>" rel="noopener" target="_blank"><%= t('common.open') %></a>
+          <% } else { %>
+            <a class="get" href="/portal/files/<%= f.id %>/download"><%= t('common.download') %></a>
+          <% } %>
+        </div>
+        <% }); %>
+      <% } else { %>
+        <p class="empty"><%= t('workspace.reportsEmpty') %></p>
+      <% } %>
+    </div>
+
+    <div class="card">
+      <h2><%= t('workspace.actionsTitle') %></h2>
+      <p class="lead"><%= t('workspace.actionsLead') %></p>
+      <% if (actions && actions.length) { %>
+        <% actions.forEach(function (a) { %>
+        <div class="row">
+          <div>
+            <strong><%= a.title %></strong>
+            <span class="badge <%= a.status === 'done' ? 'done' : 'open' %>"><%= a.status === 'done' ? t('workspace.statusDone') : t('workspace.statusOpen') %></span>
+            <% if (a.notes) { %><div class="meta"><%= a.notes %></div><% } %>
+            <div class="meta">
+              <% if (a.due_date) { %><%= t('workspace.due') %>: <%= new Date(a.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %> · <% } %>
+              <%= new Date(a.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+            </div>
+          </div>
+          <% if (a.status !== 'done') { %>
+          <form method="POST" action="/portal/workspace/actions/<%= a.id %>/done">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn-done"><%= t('workspace.markDone') %></button>
+          </form>
+          <% } %>
+        </div>
+        <% }); %>
+      <% } else { %>
+        <p class="empty"><%= t('workspace.actionsEmpty') %></p>
+      <% } %>
+    </div>
+  </div>
+  <%- include('partials/footer') %>

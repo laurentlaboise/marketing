@@ -54,6 +54,21 @@ after(async () => {
 // Social sign-in
 // ---------------------------------------------------------------------------
 
+test('portal workspace page renders for signed-in customer', async () => {
+  const { session, customer } = await customerSession(`portal-test-ws-${Date.now()}@example.com`);
+  await pool.query(
+    `INSERT INTO client_action_items (customer_id, title, notes, status)
+     VALUES ($1, 'Approve content calendar', 'Reply in chat when ready', 'open')`,
+    [customer.id]
+  );
+  const res = await session.fetch('/portal/workspace');
+  assert.equal(res.status, 200);
+  const html = await res.text();
+  assert.match(html, /Your workspace|พื้นที่ทำงาน/, 'workspace heading present');
+  assert.match(html, /Approve content calendar/, 'action item visible');
+  assert.match(html, /href="\/portal\/workspace"/, 'nav includes workspace');
+});
+
 test('portal social sign-in: hidden when unconfigured, live hand-off when configured', async () => {
   // This server has no OAuth credentials: no buttons, and the routes
   // bounce quietly back to the login page.

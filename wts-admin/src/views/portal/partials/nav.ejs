@@ -1,6 +1,7 @@
-<%# Portal section nav. Pass { active: 'dashboard'|'files'|'billing'|'chat'|'boards'|'profile' }. %>
+<%# Portal section nav. Pass { active: 'dashboard'|'workspace'|'files'|'billing'|'chat'|'boards'|'profile' }. %>
 <div class="nav-links">
   <a href="/portal/" class="<%= active === 'dashboard' ? 'active' : '' %>"><%= t('nav.dashboard') %></a>
+  <a href="/portal/workspace" class="<%= active === 'workspace' ? 'active' : '' %>"><%= t('nav.workspace') %></a>
   <a href="/portal/files" class="<%= active === 'files' ? 'active' : '' %>"><%= t('nav.files') %></a>
   <a href="/portal/billing" class="<%= active === 'billing' ? 'active' : '' %>"><%= t('nav.billing') %></a>
   <a href="/portal/chat" class="<%= active === 'chat' ? 'active' : '' %>"><%= t('nav.chat') %></a>

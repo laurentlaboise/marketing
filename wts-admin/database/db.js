@@ -997,6 +997,38 @@ const db = {
         CREATE INDEX IF NOT EXISTS idx_deliverables_customer ON deliverables (customer_id, created_at DESC)
       `);
 
+      // Deliverable category — adapted from NGO ops "Zone B reports" for WTS clients:
+      // report | file | design | other. Portal Workspace surfaces category=report.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='deliverables' AND column_name='category') THEN
+            ALTER TABLE deliverables ADD COLUMN category VARCHAR(40) DEFAULT 'file';
+          END IF;
+        END $$;
+      `);
+
+      // Client action items (HITL / meeting follow-ups — NGO F18 idea, thin for WTS).
+      // Staff create; client can mark done. No AI pipeline yet.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS client_action_items (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+          title VARCHAR(280) NOT NULL,
+          notes TEXT,
+          status VARCHAR(20) NOT NULL DEFAULT 'open',
+          due_date DATE,
+          created_by UUID REFERENCES users(id),
+          completed_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_client_action_items_customer
+        ON client_action_items (customer_id, status, created_at DESC)
+      `);
+
       // Price Models table
       await client.query(`
         CREATE TABLE IF NOT EXISTS price_models (

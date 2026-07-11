@@ -6,6 +6,11 @@
 - Login endpoints are rate-limited (about 8 attempts per 15 minutes) — if locked out, wait a few minutes and retry.
 - Sessions last up to 30 days. If an account is not active, all sign-in methods are blocked and the customer must contact the team.
 
+## Workspace (/portal/workspace)
+- Package scope hints (what retainers typically include — hard monthly caps, not unlimited catalogue).
+- Reports: deliverables marked category=report (or titles containing report/monthly/performance).
+- Action items: next steps created by the WTS team; client can Mark done. Staff manage these on Admin → Clients → client detail.
+
 ## Dashboard & Orders (/portal/)
 - Home page shows order history, stats, recent files, saved services, and two quick-request forms: "Request new content" and "Ask a question" (messages up to 4,000 characters). The team replies by email within one business day.
 - Order statuses:

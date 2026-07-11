@@ -102,6 +102,9 @@ const requireCustomer = (req, res, next) => {
   return res.redirect('/portal/login');
 };
 
+// Scoped id checks — used by deliverable download and action-item mark-done.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // Tight limit on the endpoints that send email / mint sessions.
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -384,12 +387,113 @@ router.get('/billing', requireCustomer, async (req, res) => {
   }
 });
 
+// ── Workspace (reports + action items + package scope) ──────────
+// Thin WTS adaptation of NGO ops dashboard ideas (HITL reports, action
+// items, program context) — not the full NGO product.
+
+function inferScopeHints(productNames, t) {
+  const joined = (productNames || []).join(' ').toLowerCase();
+  const hints = [];
+  if (/footprint|social foundation|social/.test(joined)) {
+    hints.push(t('workspace.hintFootprint'));
+  }
+  if (/growth|seo|engine/.test(joined)) {
+    hints.push(t('workspace.hintGrowth'));
+  }
+  if (/automation|crm|email/.test(joined)) {
+    hints.push(t('workspace.hintAutomation'));
+  }
+  if (/landing|website|web|site|page/.test(joined)) {
+    hints.push(t('workspace.hintWeb'));
+  }
+  return hints;
+}
+
+router.get('/workspace', requireCustomer, async (req, res) => {
+  try {
+    const cid = req.session.customerId;
+    const [reports, actions, saved, orders] = await Promise.all([
+      db.query(
+        `SELECT id, title, description, external_url, file_name, file_size, created_at, category
+         FROM deliverables
+         WHERE customer_id = $1
+           AND (
+             LOWER(COALESCE(category, 'file')) = 'report'
+             OR title ILIKE '%report%'
+             OR title ILIKE '%monthly%'
+             OR title ILIKE '%performance%'
+           )
+         ORDER BY created_at DESC
+         LIMIT 50`,
+        [cid]
+      ).catch(() => ({ rows: [] })),
+      db.query(
+        `SELECT id, title, notes, status, due_date, created_at, completed_at
+         FROM client_action_items
+         WHERE customer_id = $1
+         ORDER BY CASE WHEN status = 'open' THEN 0 ELSE 1 END, created_at DESC
+         LIMIT 50`,
+        [cid]
+      ).catch(() => ({ rows: [] })),
+      db.query(
+        `SELECT p.name FROM saved_services s JOIN products p ON p.id = s.product_id
+         WHERE s.customer_id = $1`,
+        [cid]
+      ).catch(() => ({ rows: [] })),
+      db.query(
+        `SELECT p.name AS product_name FROM orders o
+         LEFT JOIN products p ON o.product_id = p.id
+         WHERE o.customer_id = $1 AND o.status = 'completed'
+         ORDER BY o.created_at DESC LIMIT 20`,
+        [cid]
+      ).catch(() => ({ rows: [] }))
+    ]);
+    const names = [
+      ...saved.rows.map((r) => r.name),
+      ...orders.rows.map((r) => r.product_name)
+    ].filter(Boolean);
+    res.render('portal/workspace', {
+      title: req.t('workspace.title'),
+      reports: reports.rows,
+      actions: actions.rows,
+      scopeHints: inferScopeHints(names, (key) => req.t(key)),
+      markedDone: !!(req.query && req.query.done === '1')
+    });
+  } catch (e) {
+    console.error('Portal workspace error:', e);
+    res.status(500).render('portal/error', {
+      title: req.t('errors.serverErrorTitle'),
+      message: req.t('workspace.loadError'),
+      code: 500
+    });
+  }
+});
+
+router.post('/workspace/actions/:id/done', requireCustomer, async (req, res) => {
+  try {
+    if (!UUID_RE.test(req.params.id)) {
+      return res.redirect('/portal/workspace');
+    }
+    await db.query(
+      `UPDATE client_action_items
+         SET status = 'done', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND customer_id = $2 AND status = 'open'`,
+      [req.params.id, req.session.customerId]
+    );
+    res.redirect('/portal/workspace?done=1');
+  } catch (e) {
+    console.error('Portal action done error:', e);
+    res.redirect('/portal/workspace');
+  }
+});
+
 // ── Files & deliverables ────────────────────────────────────────
 
 router.get('/files', requireCustomer, async (req, res) => {
   try {
     const files = await db.query(
-      `SELECT id, title, description, external_url, file_name, file_mime, file_size, created_at
+      `SELECT id, title, description, external_url, file_name, file_mime, file_size, created_at,
+              COALESCE(category, 'file') AS category
        FROM deliverables
        WHERE customer_id = $1
        ORDER BY created_at DESC`,
@@ -407,8 +511,6 @@ router.get('/files', requireCustomer, async (req, res) => {
 
 // Scoped to the signed-in customer — an id belonging to someone else 404s,
 // so deliverable ids can never be enumerated across accounts.
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 router.get('/files/:id/download', requireCustomer, async (req, res) => {
   try {
     if (!UUID_RE.test(req.params.id)) {
