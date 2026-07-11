@@ -8,5 +8,12 @@
   </footer>
   <% if (typeof user !== 'undefined' && user) { %><%- include('assistant') %><% } %>
   <script src="/js/main.js"></script>
+  <% if (typeof helpAiEnabled !== 'undefined' && helpAiEnabled && typeof user !== 'undefined' && user) { %>
+  <!-- AI Guide: floating help assistant, backed by the server-side
+       /api/help-ai proxy (see docs/ODYSSEUS-INTEGRATION.md). Renders only
+       for signed-in staff when the feature flag is on. -->
+  <div id="helpAiRoot" data-endpoint="/api/help-ai"></div>
+  <script src="/js/help-widget.js" defer></script>
+  <% } %>
 </body>
 </html>

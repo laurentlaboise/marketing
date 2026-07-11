@@ -87,8 +87,11 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests, please try again later.',
-  // Machine API has its own higher budget (automation / CI)
-  skip: (req) => (req.originalUrl || '').startsWith('/api/machine'),
+  // Machine API and the Help AI carry their own budgets — the Help AI
+  // especially must not drain this shared bucket out from under the
+  // header search and notification polling.
+  skip: (req) => (req.originalUrl || '').startsWith('/api/machine')
+    || (req.originalUrl || '').startsWith('/api/help-ai'),
 });
 app.use('/api/', limiter);
 
@@ -180,6 +183,16 @@ app.use(async (req, res, next) => {
   // Attach unread notification count for authenticated users.
   // Non-critical: failures degrade to a zero badge, but are logged
   // (rate-limited to one warning per minute) instead of swallowed.
+  // Staff Help AI ("AI Guide"): footer.ejs renders the widget only when
+  // the feature is on AND this is a signed-in staff account. Env checks
+  // only — no I/O per request.
+  res.locals.helpAiEnabled = false;
+  if (req.user && req.user.id) {
+    try {
+      res.locals.helpAiEnabled = require('./src/lib/help-ai').adminEnabled();
+    } catch (e) { /* widget simply doesn't render */ }
+  }
+
   res.locals.unreadCount = 0;
   if (req.user && req.user.id) {
     try {
@@ -225,6 +238,12 @@ app.use('/api/webhooks', webhooksApiRoutes);
 // the admin's passport auth — a customer session only ever carries
 // req.session.customerId, which no admin guard accepts).
 app.use('/portal', portalRoutes);
+
+// Staff Help AI ("AI Guide") — session-authenticated + CSRF-protected, with
+// its own rate limiter. Mounted before the admin /api router so translator
+// vendors (who are staff but not admins) can reach it too; the router does
+// its own role gate.
+app.use('/api/help-ai', require('./src/routes/help-ai'));
 
 // On the customer subdomain (my.wordsthatsells.website → same service),
 // the portal is the site root.
