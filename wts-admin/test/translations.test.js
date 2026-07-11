@@ -30,9 +30,25 @@ before(async () => {
 
   // Reset platform tables so reruns are deterministic.
   await pool.query('TRUNCATE payout_ledger, payout_requests, payout_rates, translations, comp_rates, leads, engagement_logs');
-  // Whiteboard tables exist once the flagged server has booted (its module
-  // migrations create them at startup); board_translations has no FK to
-  // boards, so it is truncated by name.
+  // The whiteboard module migrates AFTER the HTTP listener is up (its WS
+  // handler needs the server handle, and module failure must never block
+  // boot), so /health — the readiness signal — can answer before the board
+  // tables exist on a fresh database. And boot DDL is serialized across the
+  // suite's parallel servers by an advisory lock, so those migrations may
+  // queue for several seconds. Wait for them before resetting board state;
+  // fail loudly if the module never attached. board_translations has no FK
+  // to boards, so it is truncated by name.
+  const whiteboardDeadline = Date.now() + 15000;
+  for (;;) {
+    const reg = await pool.query(
+      "SELECT to_regclass('boards') AS boards, to_regclass('board_translations') AS translations"
+    );
+    if (reg.rows[0].boards && reg.rows[0].translations) break;
+    if (Date.now() > whiteboardDeadline) {
+      throw new Error('whiteboard tables never appeared — did the module fail to attach?\n' + server.getOutput());
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
   await pool.query('TRUNCATE boards, board_translations CASCADE');
   await pool.query(`DELETE FROM glossary WHERE term LIKE 'TestTerm%'`);
   await pool.query(`DELETE FROM notifications WHERE title IN ('Translation submitted for review', 'Payout requested')`);
