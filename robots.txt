@@ -27,3 +27,4 @@ Sitemap: https://wordsthatsells.website/sitemap-google.xml
 
 # LLM guidance
 Allow: /llms.txt
+Sitemap: https://wordsthatsells.website/sitemap-images.xml

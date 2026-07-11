@@ -688,32 +688,62 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
       description,
       width,
       height,
+      new_filename,
+      new_cdn_url,
+      also_match,
     } = req.body || {};
 
-    if (!id && !filename && !cdn_url) {
-      return fail(res, 'id, filename, or cdn_url is required');
+    if (!id && !filename && !cdn_url && !also_match) {
+      return fail(res, 'id, filename, cdn_url, or also_match is required');
     }
 
     let row;
     if (id) {
       row = await db.query('SELECT id, filename, cdn_url FROM images WHERE id = $1 LIMIT 1', [id]);
-    } else if (filename) {
-      row = await db.query(
-        `SELECT id, filename, cdn_url FROM images
-         WHERE filename = $1 OR original_filename = $1 OR filename ILIKE $1
-         ORDER BY updated_at DESC NULLS LAST LIMIT 1`,
-        [String(filename).trim()]
-      );
     } else {
+      const keys = [filename, cdn_url, also_match].filter(Boolean).map(String);
       row = await db.query(
         `SELECT id, filename, cdn_url FROM images
-         WHERE cdn_url = $1 OR cdn_url LIKE '%' || $1 OR $1 LIKE '%' || filename
+         WHERE status = 'active' AND (
+           filename = ANY($1::text[])
+           OR original_filename = ANY($1::text[])
+           OR cdn_url = ANY($1::text[])
+           OR EXISTS (
+             SELECT 1 FROM unnest($1::text[]) k
+             WHERE cdn_url LIKE '%' || k OR filename ILIKE k
+           )
+         )
          ORDER BY updated_at DESC NULLS LAST LIMIT 1`,
-        [String(cdn_url).trim()]
+        [keys]
       );
     }
 
     if (!row.rows.length) {
+      // Register a new library row if we have a new filename + cdn (file already on GH Pages)
+      if (new_filename && new_cdn_url) {
+        const inserted = await db.query(
+          `INSERT INTO images (
+             original_filename, filename, file_path, file_size, mime_type,
+             width, height, alt_text, title, description, category, tags, cdn_url, status
+           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'seo',ARRAY[]::text[],$11,'active')
+           RETURNING id, filename, cdn_url`,
+          [
+            new_filename,
+            new_filename,
+            'images/' + new_filename,
+            0,
+            'image/webp',
+            width ? Number(width) : 1200,
+            height ? Number(height) : 628,
+            alt_text || '',
+            title || '',
+            description || '',
+            new_cdn_url,
+          ]
+        );
+        await audit(req, 'images/seo-create', new_filename);
+        return ok(res, { action: 'created', ...inserted.rows[0] });
+      }
       return fail(res, 'Image not found in Image Library', 404);
     }
 
@@ -730,20 +760,29 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
     add('description', description !== undefined ? String(description) : undefined);
     if (width !== undefined && width !== null && width !== '') add('width', Number(width) || null);
     if (height !== undefined && height !== null && height !== '') add('height', Number(height) || null);
+    if (new_filename) {
+      add('filename', String(new_filename));
+      add('file_path', 'images/' + String(new_filename));
+    }
+    if (new_cdn_url) add('cdn_url', String(new_cdn_url));
 
     if (!sets.length) return fail(res, 'No SEO fields to update');
 
     params.push(imgId);
-    await db.query(
-      `UPDATE images SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${params.length}`,
+    const updated = await db.query(
+      `UPDATE images SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $${params.length}
+       RETURNING id, filename, cdn_url, alt_text, title`,
       params
     );
-    await audit(req, 'images/seo-upsert', row.rows[0].filename || imgId);
+    await audit(req, 'images/seo-upsert', updated.rows[0].filename || imgId);
     return ok(res, {
       action: 'updated',
-      id: imgId,
-      filename: row.rows[0].filename,
-      cdn_url: row.rows[0].cdn_url,
+      id: updated.rows[0].id,
+      filename: updated.rows[0].filename,
+      cdn_url: updated.rows[0].cdn_url,
+      alt_text: updated.rows[0].alt_text,
+      title: updated.rows[0].title,
     });
   } catch (e) {
     console.error('[machine-api] images seo-upsert', e);
