@@ -8,10 +8,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
     <noscript>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     </noscript>
 
     <title>Contact Us | AI + Human Marketing Team in Vientiane</title>
@@ -1566,6 +1566,7 @@
 
 </head>
 <body>
+<header id="wts-site-header" data-header-variant="main"><nav class="wts-header-nav" aria-label="Primary"><a class="wts-header-brand" href="/en/" aria-label="WordsThatSells.website - AI Digital Marketing Agency in Laos"><img src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" width="160" height="40" decoding="async" onerror="this.onerror=null;this.src='https://wordsthatsells.website/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg'"></a><input type="checkbox" id="wts-nav-toggle" class="wts-nav-toggle"><label class="wts-nav-burger" for="wts-nav-toggle" aria-label="Menu"><span class="wts-nav-burger-bar"></span><span class="wts-nav-burger-bar"></span><span class="wts-nav-burger-bar"></span></label><div class="wts-nav-menu"><a class="wts-nav-link" href="/en/digital-marketing-services/">Services</a><a class="wts-nav-link" href="/en/digital-marketing-services/prices/">Pricing</a><a class="wts-nav-link" href="/en/resources/glossary/">Resources</a><a class="wts-nav-link" href="/en/company/affiliate-sales/">Partners</a><a class="wts-nav-link" href="/en/company/contact-us/">Contact</a><a class="wts-nav-portal" href="https://admin.wordsthatsells.website/portal/login?from=header&amp;src=nav" target="_blank" rel="noopener noreferrer" onclick="typeof gtag==='function'&&gtag('event','cta_click',{cta_id:'header_portal',page_type:'header',destination:'portal'})">Client portal</a></div></nav></header>
 
     <header class="hero-section">
     <div class="hero-background">
@@ -1664,6 +1665,14 @@
                                   tooldescription="Submit a contact or consultation request to WordsThatSells digital marketing agency in Vientiane, Laos. Use for SEO, content, social, web, or automation enquiries.">
                                 <input type="hidden" name="form_type" value="contact">
                                 <div class="form-fields">
+                                    <select name="persona" required aria-label="Which best describes you?"
+                                            toolparamdescription="Which persona best describes the requester: SME business owner, affiliate partner, white-label agency, or not sure yet" aria-description="Which persona best describes the requester: SME business owner, affiliate partner, white-label agency, or not sure yet">
+                                        <option value="">Which best describes you?</option>
+                                        <option value="I run a business (SME)">I run a business (SME)</option>
+                                        <option value="I want to refer clients (Affiliate partner)">I want to refer clients (Affiliate partner)</option>
+                                        <option value="I'm an agency (white-label)">I'm an agency (white-label)</option>
+                                        <option value="Not sure yet">Not sure yet</option>
+                                    </select>
                                     <input type="text" name="name" required placeholder="Your Name" aria-label="Full name"
                                            toolparamdescription="Full name of the person making the request" aria-description="Full name of the person making the request">
                                     <input type="email" name="email" required placeholder="Your Email" aria-label="Email"
@@ -1803,6 +1812,28 @@
     
     <script type="module" src="/js/main.js"></script>
     <script src="/js/services/page-sidebar.js" defer></script>
+    <script>
+      // Persona-first intent (WP7): guarantee the persona choice reaches the
+      // backend by prefixing it into the message field. Runs in the CAPTURE
+      // phase so it executes before the shared submit handler in
+      // js/modules/firebase.js reads the form fields. If mountAdminForms()
+      // swaps in an admin template at runtime, the replaced form has neither
+      // the #contact-static-form id nor a persona select, so the element
+      // guards below make this a safe no-op on that path.
+      (function () {
+        document.addEventListener('submit', function (event) {
+          var form = event.target;
+          if (!form || form.id !== 'contact-static-form') return;
+          var persona = form.querySelector('select[name="persona"]');
+          var message = form.querySelector('[name="message"]');
+          if (!persona || !message || !persona.value) return;
+          // Exactly one prefix, always reflecting the current selection:
+          // strip any prefix left by a previous (failed) submit, then re-apply.
+          var body = message.value.replace(/^\[Persona: [^\]]*\]\s*/, '');
+          message.value = '[Persona: ' + persona.value + '] ' + body;
+        }, true);
+      })();
+    </script>
 
 </body>
 </html>
