@@ -1,0 +1,193 @@
+[
+  {
+    "name": "Landing Page Sprint",
+    "slug": "wts-landing-page-sprint",
+    "sku": "WTS-LANDING",
+    "service_page": "web-development",
+    "subcategory": "landing-pages",
+    "description": "Conversion-focused landing page with CTA, lead form, tracking, and mobile layout. Mapped from legacy COWE01 for SEA SMEs.",
+    "features": [
+      "Branded page URL",
+      "CTA + lead form",
+      "Tracking code",
+      "1 hero visual",
+      "1 revision round"
+    ],
+    "industries": [
+      "smes",
+      "entrepreneurs",
+      "consultants"
+    ],
+    "price": 349,
+    "currency": "USD",
+    "pricing_type": "one_time",
+    "price_unit": "fixed",
+    "product_type": "service",
+    "purchase_mode": "consult",
+    "status": "active",
+    "icon_class": "fas fa-rocket",
+    "sort_order": 10,
+    "warnings": [],
+    "monthly_price": null,
+    "yearly_price": null
+  },
+  {
+    "name": "Professional Page",
+    "slug": "wts-professional-page",
+    "sku": "WTS-PRO-PAGE",
+    "service_page": "web-development",
+    "subcategory": "landing-pages",
+    "description": "Multi-section professional page with SEO basics, form (up to 5 fields), image SEO, and two design touch-ups. Legacy COWE02.",
+    "features": [
+      "Multi-section layout",
+      "Static form up to 5 fields",
+      "On-page SEO basics",
+      "Image SEO",
+      "2 touch-ups"
+    ],
+    "industries": [
+      "smes",
+      "agencies",
+      "consultants"
+    ],
+    "price": 899,
+    "currency": "USD",
+    "pricing_type": "one_time",
+    "price_unit": "fixed",
+    "product_type": "service",
+    "purchase_mode": "consult",
+    "status": "active",
+    "icon_class": "fas fa-file-alt",
+    "sort_order": 11,
+    "warnings": [],
+    "monthly_price": null,
+    "yearly_price": null
+  },
+  {
+    "name": "Multi-Page Site Starter",
+    "slug": "wts-multi-page-site-starter",
+    "sku": "WTS-SITE-STARTER",
+    "service_page": "web-development",
+    "subcategory": "wordpress-divi",
+    "description": "Home + 2 core pages + contact, lead form wired to admin, resources shell, analytics and basic SEO. Legacy COWE03.",
+    "features": [
+      "Home + 2 pages + contact",
+      "Lead form to admin",
+      "Blog/resources shell",
+      "Analytics + basic SEO",
+      "3 revisions"
+    ],
+    "industries": [
+      "smes",
+      "entrepreneurs"
+    ],
+    "price": 2490,
+    "currency": "USD",
+    "pricing_type": "one_time",
+    "price_unit": "fixed",
+    "product_type": "service",
+    "purchase_mode": "consult",
+    "status": "active",
+    "icon_class": "fas fa-globe",
+    "sort_order": 12,
+    "warnings": [],
+    "monthly_price": null,
+    "yearly_price": null
+  },
+  {
+    "name": "Lead Form + Pipeline",
+    "slug": "wts-lead-form-pipeline",
+    "sku": "WTS-FORM-LEAD",
+    "service_page": "web-development",
+    "subcategory": "online-forms",
+    "description": "Form Builder setup, admin submissions, lead stages, email alerts. Legacy COWE04/05/07.",
+    "features": [
+      "Form Builder template",
+      "Admin submissions",
+      "Lead stages",
+      "Email alert",
+      "WhatsApp CTA link"
+    ],
+    "industries": [
+      "smes",
+      "sales-teams",
+      "agencies"
+    ],
+    "price": 490,
+    "currency": "USD",
+    "pricing_type": "one_time",
+    "price_unit": "fixed",
+    "product_type": "service",
+    "purchase_mode": "consult",
+    "status": "active",
+    "icon_class": "fas fa-filter",
+    "sort_order": 13,
+    "warnings": [],
+    "monthly_price": null,
+    "yearly_price": null
+  },
+  {
+    "name": "SEO Content Pack (5)",
+    "slug": "wts-seo-content-pack-5",
+    "sku": "WTS-SEO-CONTENT",
+    "service_page": "content-creation",
+    "subcategory": "copywriting",
+    "description": "Five SEO pages/articles or glossary deep-dives with keyword brief, on-page SEO, image SEO, internal links.",
+    "features": [
+      "5 SEO pieces",
+      "Keyword brief",
+      "On-page SEO",
+      "Image SEO",
+      "Internal linking + publish"
+    ],
+    "industries": [
+      "smes",
+      "content-creators",
+      "agencies"
+    ],
+    "price": 750,
+    "currency": "USD",
+    "pricing_type": "one_time",
+    "price_unit": "fixed",
+    "product_type": "service",
+    "purchase_mode": "consult",
+    "status": "active",
+    "icon_class": "fas fa-pen-nib",
+    "sort_order": 14,
+    "warnings": [],
+    "monthly_price": null,
+    "yearly_price": null
+  },
+  {
+    "name": "Lead Magnet Kit",
+    "slug": "wts-lead-magnet-kit",
+    "sku": "WTS-LEAD-MAGNET",
+    "service_page": "content-creation",
+    "subcategory": "copywriting",
+    "description": "E-guide/resource concept, capture form, thank-you delivery, basic design. Legacy COLM.",
+    "features": [
+      "E-guide concept",
+      "Capture form",
+      "Thank-you delivery",
+      "Basic design",
+      "1 revision"
+    ],
+    "industries": [
+      "smes",
+      "coaches-recruiters",
+      "consultants"
+    ],
+    "price": 390,
+    "currency": "USD",
+    "pricing_type": "one_time",
+    "price_unit": "fixed",
+    "product_type": "service",
+    "purchase_mode": "consult",
+    "status": "active",
+    "icon_class": "fas fa-gift",
+    "sort_order": 15,
+    "warnings": [],
+    "monthly_price": null,
+    "yearly_price": null
+  }
+]
