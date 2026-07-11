@@ -45,8 +45,8 @@ const sendPasswordResetEmail = async (email, token, firstName) => {
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background-color: #f4f4f4;">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
           <tr>
-            <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Words That Sells</h1>
+            <td style="padding: 32px 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <img src="${process.env.EMAIL_LOGO_URL || 'https://wordsthatsells.website/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with_words_white_colour_PNG_900x900.png'}" alt="Words That Sells" height="48" style="height:48px;max-width:100%;border:0;">
               <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Admin Dashboard</p>
             </td>
           </tr>

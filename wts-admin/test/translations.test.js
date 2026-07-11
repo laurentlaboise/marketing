@@ -2088,3 +2088,114 @@ test('retranslate guards, batch preview and Thai reference surfaces', async () =
     await pool.query(`DELETE FROM glossary WHERE id = ANY($1::uuid[])`, [ids]);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Invite activation session hygiene + multi-position team model + branded
+// email shell (fourth assessment report).
+// ---------------------------------------------------------------------------
+
+test('activation inside an admin session rebinds the browser to the new worker', async () => {
+  // The reported bug: the admin invites a worker, opens the activation
+  // link in their OWN logged-in browser, and the panel keeps showing the
+  // ADMIN (full access) — because setting the password used to leave the
+  // old session alive and /auth/login bounces authenticated browsers.
+  await pool.query(`DELETE FROM users WHERE email = 'louise@test.local'`);
+  const browser = new Session(server.base);
+  await browser.login('admin@test.local');
+  const headers = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await browser.getCsrfToken('/dashboard'),
+  };
+
+  const invite = await browser.fetch('/translations/vendors/invite', {
+    method: 'POST', headers,
+    body: JSON.stringify({
+      email: 'louise@test.local', first_name: 'Louise',
+      assigned_languages: ['fr'],
+      positions: ['translator', 'content_verifier'],
+    }),
+  });
+  assert.equal(invite.status, 201);
+  const token = (await invite.json()).inviteLink.split('/auth/reset-password/')[1];
+
+  const formToken = await browser.getCsrfToken(`/auth/reset-password/${token}`);
+  const setRes = await browser.fetch(`/auth/reset-password/${token}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      password: 'Password123!', confirmPassword: 'Password123!', _csrf: formToken,
+    }).toString(),
+  });
+  assert.equal(setRes.status, 302);
+  assert.match(setRes.headers.get('location'), /\/dashboard/);
+
+  // This browser now IS Louise: worker home, no admin surfaces.
+  const home = await browser.fetch('/dashboard');
+  assert.equal(home.status, 302);
+  assert.match(home.headers.get('location'), /\/translations\/workspace/,
+    'the session belongs to the invited worker, not the inviter');
+  const adminSurface = await browser.fetch('/translations', { headers: { accept: 'application/json' } });
+  assert.equal(adminSurface.status, 403, 'the admin session was replaced, not kept');
+
+  // Several hats from day one, with the legacy column mirrored.
+  const row = (await pool.query(
+    `SELECT positions, position, role, is_vendor FROM users WHERE email = 'louise@test.local'`
+  )).rows[0];
+  assert.deepEqual(row.positions, ['translator', 'content_verifier']);
+  assert.equal(row.position, 'translator');
+  assert.equal(row.role, 'translator');
+  assert.equal(row.is_vendor, true);
+});
+
+test('one worker can hold several positions; legacy single-position calls still work', async () => {
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const headers = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+  };
+
+  try {
+    const multi = await admin.fetch(`/workforce/team/${translatorId}`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ positions: ['translator', 'engagement_associate', 'lead_verifier'] }),
+    });
+    assert.equal(multi.status, 200);
+    let row = (await pool.query('SELECT positions, position FROM users WHERE id = $1', [translatorId])).rows[0];
+    assert.deepEqual(row.positions, ['translator', 'engagement_associate', 'lead_verifier']);
+    assert.equal(row.position, 'translator', 'legacy column mirrors the first position');
+
+    const invalid = await admin.fetch(`/workforce/team/${translatorId}`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ positions: ['translator', 'chief_dreamer'] }),
+    });
+    assert.equal(invalid.status, 400);
+
+    const legacy = await admin.fetch(`/workforce/team/${translatorId}`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ position: 'content_verifier' }),
+    });
+    assert.equal(legacy.status, 200);
+    row = (await pool.query('SELECT positions, position FROM users WHERE id = $1', [translatorId])).rows[0];
+    assert.deepEqual(row.positions, ['content_verifier']);
+    assert.equal(row.position, 'content_verifier');
+
+    // Team page offers the checkbox model (table rows + invite form).
+    const page = await admin.fetch('/translations/vendors');
+    const html = await page.text();
+    assert.ok(html.includes('position-check'), 'per-user position checkboxes render');
+    assert.ok(html.includes('invite_position'), 'invite form offers multiple positions');
+  } finally {
+    await admin.fetch(`/workforce/team/${translatorId}`, {
+      method: 'POST', headers, body: JSON.stringify({ positions: [] }),
+    });
+  }
+});
+
+test('portal emails carry the brand logo from an absolute https URL', () => {
+  const { emailShell } = require('../src/utils/mailer');
+  const html = emailShell('Test title', '<p>Body</p>');
+  assert.match(html, /<img src="https:\/\/[^"]+\.png"[^>]*alt="/,
+    'mail clients need an absolute https raster image');
+  assert.ok(html.includes('Test title'));
+});

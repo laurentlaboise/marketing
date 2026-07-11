@@ -789,7 +789,7 @@ router.get('/vendors', ensureSuperAdmin, async (req, res, next) => {
   try {
     const users = await db.query(
       `SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.assigned_languages,
-              u.is_vendor, u.payout_metadata, u.position, u.manager_id,
+              u.is_vendor, u.payout_metadata, u.position, u.positions, u.manager_id,
               m.first_name AS manager_first_name, m.last_name AS manager_last_name
        FROM users u
        LEFT JOIN users m ON m.id = u.manager_id
@@ -847,18 +847,23 @@ router.post('/vendors/invite', ensureSuperAdmin, logActivity('translation_vendor
       ? req.body.assigned_languages.filter((l) => core.TARGET_LANGUAGES.includes(l))
       : [];
     const { POSITIONS } = require('./workforce');
-    const position = POSITIONS.includes(req.body.position) ? req.body.position : null;
+    // One worker can wear several hats from day one (positions array);
+    // the legacy single `position` field still works and mirrors the
+    // first entry.
+    const positions = Array.isArray(req.body.positions)
+      ? [...new Set(req.body.positions.filter((p) => POSITIONS.includes(p)))]
+      : (POSITIONS.includes(req.body.position) ? [req.body.position] : []);
 
     const { randomUUID } = require('crypto');
     const inviteToken = randomUUID();
     const expires = new Date(Date.now() + 7 * 24 * 3600 * 1000); // 7 days to accept
 
     const created = await db.query(
-      `INSERT INTO users (email, first_name, last_name, role, assigned_languages, is_vendor, position,
+      `INSERT INTO users (email, first_name, last_name, role, assigned_languages, is_vendor, positions, position,
                           reset_token, reset_token_expires, email_verified)
-       VALUES ($1, $2, $3, 'translator', $4, TRUE, $5, $6, $7, TRUE)
+       VALUES ($1, $2, $3, 'translator', $4, TRUE, $5, $6, $7, $8, TRUE)
        RETURNING id`,
-      [email, firstName, lastName, languages, position, inviteToken, expires]
+      [email, firstName, lastName, languages, positions, positions[0] || null, inviteToken, expires]
     );
 
     const base = (process.env.APP_ADMIN_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
@@ -866,14 +871,23 @@ router.post('/vendors/invite', ensureSuperAdmin, logActivity('translation_vendor
 
     let emailed = false;
     try {
-      const { sendEmail } = require('../utils/mailer');
+      const { sendEmail, emailShell } = require('../utils/mailer');
+      const langNames = languages.map((l) => core.LANGUAGE_NAMES[l] || l).join(', ');
       await sendEmail({
         to: email,
         subject: 'You\'re invited to the WordsThatSells workspace',
-        html: `<p>Hello${firstName ? ' ' + firstName : ''},</p>
-<p>You've been invited to the WordsThatSells translation workspace${languages.length ? ` (${languages.map((l) => core.LANGUAGE_NAMES[l] || l).join(', ')})` : ''}.</p>
-<p><a href="${inviteLink}">Set your password</a> to get started (link valid for 7 days), then sign in at <a href="${base}/auth/login">${base}/auth/login</a>.</p>`,
-        text: `You've been invited to the WordsThatSells translation workspace. Set your password (valid 7 days): ${inviteLink}`,
+        // Branded shell (logo header) — mail clients only load absolute
+        // https images, which emailShell handles.
+        html: emailShell('You\'re invited', `
+      <p style="color:#334155;font-size:0.95rem;line-height:1.6;">Hello${firstName ? ' ' + firstName : ''},</p>
+      <p style="color:#334155;font-size:0.95rem;line-height:1.6;">You've been invited to the WordsThatSells workspace${langNames ? ` (${langNames})` : ''}.</p>
+      <p style="text-align:center;margin:24px 0;">
+        <a href="${inviteLink}" style="background:#d62b83;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:bold;display:inline-block;">Set your password</a>
+      </p>
+      <p style="color:#94a3b8;font-size:0.8rem;line-height:1.5;">The link is valid for 7 days. If the button doesn't work, copy this address into your browser:<br>${inviteLink}</p>
+      <p style="color:#94a3b8;font-size:0.8rem;">Afterwards, sign in any time at <a href="${base}/auth/login">${base}/auth/login</a>.</p>
+        `),
+        text: `You've been invited to the WordsThatSells workspace. Set your password (valid 7 days): ${inviteLink}`,
       });
       emailed = true;
     } catch (e) {
