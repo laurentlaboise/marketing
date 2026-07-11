@@ -125,24 +125,29 @@ async function creditWork({
   const amount = computeCompAmount(rate, { unitIndex, saleValue });
   if (amount <= 0) return { credited: false, reason: 'zero_rate' };
 
-  try {
-    await client.query(
-      `INSERT INTO payout_ledger (translator_id, amount, currency, type, status, description, metadata)
-       VALUES ($1, $2, $3, $4, 'available', $5, $6)`,
-      [
-        userId,
-        amount,
-        rate.currency || 'LAK',
-        LEDGER_TYPE_BY_WORK[workType],
-        description,
-        JSON.stringify({ ...metadata, work_type: workType, rate_id: rate.id, unit_index: unitIndex, reference_id: referenceId }),
-      ]
-    );
-  } catch (error) {
-    // uq_payout_ledger_work_reference: a concurrent approval already paid
-    // this exact work unit — idempotent, not an error.
-    if (error.code === '23505') return { credited: false, reason: 'already_credited' };
-    throw error;
+  // ON CONFLICT (against uq_payout_ledger_work_reference) instead of
+  // catching the unique violation: an error would put the caller's open
+  // transaction into an aborted state and roll back sibling credits from
+  // the same approval. DO NOTHING keeps the duplicate isolated — zero
+  // rows returned means a concurrent approval already paid this unit.
+  const inserted = await client.query(
+    `INSERT INTO payout_ledger (translator_id, amount, currency, type, status, description, metadata)
+     VALUES ($1, $2, $3, $4, 'available', $5, $6)
+     ON CONFLICT ((metadata->>'reference_id'), (metadata->>'work_type'))
+       WHERE metadata->>'reference_id' IS NOT NULL
+     DO NOTHING
+     RETURNING id`,
+    [
+      userId,
+      amount,
+      rate.currency || 'LAK',
+      LEDGER_TYPE_BY_WORK[workType],
+      description,
+      JSON.stringify({ ...metadata, work_type: workType, rate_id: rate.id, unit_index: unitIndex, reference_id: referenceId }),
+    ]
+  );
+  if (inserted.rows.length === 0) {
+    return { credited: false, reason: 'already_credited' };
   }
   return { credited: true, amount, currency: rate.currency || 'LAK', workType, unitIndex };
 }

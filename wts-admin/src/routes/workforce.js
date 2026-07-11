@@ -360,15 +360,18 @@ router.post('/leads/:id/convert', ensureSuperAdmin, logActivity('lead_convert'),
       return asJson(res, 409, { success: false, error: 'Junk leads cannot be converted' });
     }
     const workerId = lead.assigned_to || lead.entered_by;
-    const saleValue = req.body.sale_value != null && req.body.sale_value !== ''
+    // Normalize once: non-numeric input becomes null everywhere (DB write,
+    // bonus math, metadata) so the percent-of-sale path never sees NaN.
+    const parsedSale = req.body.sale_value != null && req.body.sale_value !== ''
       ? parseFloat(req.body.sale_value) : null;
+    const saleValue = Number.isFinite(parsedSale) ? parsedSale : null;
 
     await client.query('BEGIN');
     await client.query(
       `UPDATE leads SET status = 'converted', sale_value = $1,
          converted_at = COALESCE(converted_at, CURRENT_TIMESTAMP), updated_at = CURRENT_TIMESTAMP
        WHERE id = $2`,
-      [Number.isFinite(saleValue) ? saleValue : null, lead.id]
+      [saleValue, lead.id]
     );
     let bonus = null;
     if (workerId && !(await comp.alreadyCreditedFor(lead.id, 'lead_conversion', client))) {

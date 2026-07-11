@@ -769,6 +769,41 @@ test('engagement: worker logs, admin approves per-unit, rejected pays nothing', 
   assert.equal(noCredit.rows.length, 0, 'rejected work pays nothing');
 });
 
+test('a duplicate credit inside one transaction skips without aborting it', async () => {
+  // The failure mode: swallowing a unique violation would leave the
+  // caller's transaction aborted, rolling back sibling credits while the
+  // route reports success. ON CONFLICT DO NOTHING must keep the
+  // transaction fully usable.
+  const comp = require('../src/lib/comp-engine');
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const first = await comp.creditWork({
+      userId: translatorId, workType: 'lead_entry', referenceId: 'txn-dup-test',
+      description: 'transaction duplicate test', client,
+    });
+    const second = await comp.creditWork({
+      userId: translatorId, workType: 'lead_entry', referenceId: 'txn-dup-test',
+      description: 'transaction duplicate test (again)', client,
+    });
+    // The transaction must still accept statements after the duplicate…
+    const alive = await client.query('SELECT 1 AS ok');
+    assert.equal(alive.rows[0].ok, 1, 'transaction not aborted by the duplicate');
+    await client.query('COMMIT');
+
+    assert.equal(first.credited, true);
+    assert.equal(second.credited, false);
+    assert.equal(second.reason, 'already_credited');
+  } finally {
+    client.release();
+  }
+  // …and exactly one ledger row survives the commit.
+  const rows = await pool.query(
+    `SELECT COUNT(*)::int AS c FROM payout_ledger WHERE metadata->>'reference_id' = 'txn-dup-test'`
+  );
+  assert.equal(rows.rows[0].c, 1);
+});
+
 test('work hub access: vendors in, plain users out; kip earnings request works', async () => {
   const anonUser = new Session(server.base);
   await anonUser.login('user@test.local');
