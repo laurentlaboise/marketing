@@ -31,8 +31,10 @@ const core = require('./translation-core');
 // ~1500 tokens of English prose per request keeps well under output
 // limits even for expansion-heavy targets (Thai).
 const MAX_CHUNK_CHARS = 6000;
-// Thai reference text longer than this is dropped from pivot prompts
-// (attached whole to every chunk of a field, so it must stay bounded).
+// Thai reference text longer than this is dropped from pivot prompts.
+// Together with the single-chunk gate below (pivot only when the English
+// field fits in one request), it bounds the extra input a pivot can cost:
+// a reference is sent at most once per field, never once per chunk.
 const PIVOT_REF_MAX_CHARS = 12000;
 const DEFAULT_AI_LANGUAGES = ['th', 'fr', 'la'];
 const DEFAULT_BATCH_LIMIT = 50;
@@ -153,9 +155,12 @@ async function callModel(client, { system, text, targetLanguage }) {
   return response.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
 }
 
-// Translate one field. When referenceText is set (Lao pivot), every chunk
-// carries the full reference — fields long enough to chunk are usually
-// gated out by PIVOT_REF_MAX_CHARS first, so duplication stays bounded.
+// Translate one field. When referenceText is set (Lao pivot), the caller
+// has already guaranteed the English fits in a single chunk, so the
+// reference goes out exactly once; the per-chunk attach below never
+// duplicates it in practice. Fields long enough to chunk are drafted
+// direct instead — a reference on chunk 1 with unguided chunks 2..N would
+// drift register mid-field, and re-sending it N times multiplies cost.
 async function translateText(client, text, targetLanguage, { referenceText = null, referenceLanguage = null, termPairs = [] } = {}) {
   const system = buildSystemPrompt(targetLanguage, {
     pivotLanguage: referenceText ? referenceLanguage : null,
@@ -389,7 +394,11 @@ async function runBatch(rows) {
       let pivotedFields = 0;
       for (const [field, value] of Object.entries(source.fields)) {
         const thaiText = pivotRef ? String(pivotRef.content_payload[field] || '').trim() : '';
-        const canPivot = thaiText.length > 0 && thaiText.length <= PIVOT_REF_MAX_CHARS;
+        // Pivot only single-chunk fields: the reference must ride along
+        // exactly once, and a field styled by the reference on chunk 1 but
+        // not on later chunks would drift register mid-field.
+        const canPivot = thaiText.length > 0 && thaiText.length <= PIVOT_REF_MAX_CHARS
+          && String(value).length <= MAX_CHUNK_CHARS;
         payload[field] = await translateText(anthropic, value, row.target_language, {
           referenceText: canPivot ? thaiText : null,
           referenceLanguage: canPivot ? 'th' : null,
