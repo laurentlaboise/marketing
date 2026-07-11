@@ -391,7 +391,10 @@
         .pricing-hero__shade {
             position: absolute;
             inset: 0;
-            background: linear-gradient(105deg, rgba(18,42,63,0.88) 0%, rgba(18,42,63,0.55) 48%, rgba(214,43,131,0.35) 100%);
+            /* Stronger WCAG-oriented overlay so white/near-white type stays readable on photo */
+            background:
+                linear-gradient(105deg, rgba(10,22,34,0.94) 0%, rgba(18,42,63,0.88) 42%, rgba(18,42,63,0.72) 68%, rgba(88,20,56,0.55) 100%),
+                linear-gradient(to top, rgba(10,22,34,0.55) 0%, transparent 45%);
         }
         .pricing-hero__content {
             position: relative;
@@ -420,11 +423,12 @@
             text-align: left;
         }
         .pricing-hero__lead {
-            font-size: clamp(1.1rem, 2vw, 1.35rem);
+            font-size: clamp(1.15rem, 2vw, 1.4rem);
             line-height: 1.65;
-            color: #e2e8f0;
+            color: #f8fafc;
             max-width: 38rem;
             margin: 0 0 1.75rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.45);
         }
         .pricing-hero__culture {
             display: flex;
@@ -500,8 +504,29 @@
         .accordion-item.active .accordion-content { display: block; }
         .service-item-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
         .service-item-card { background: var(--color-light); border: 1px solid var(--color-border); padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
-        .service-item-card .title { font-weight: 500; font-size: 1.1rem; }
-        .service-item-card .description { font-size: 0.9rem; color: var(--color-slate-500); }
+        .service-item-card .title { font-weight: 600; font-size: 1.1rem; color: #0f172a; }
+        .service-item-card .description { font-size: 0.95rem; color: #1e3a4f; line-height: 1.5; }
+        .service-item-card details.nfc-group {
+            width: 100%;
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            background: #fff;
+        }
+        .service-item-card details.nfc-group summary {
+            cursor: pointer;
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 1.05rem;
+        }
+        .service-item-card details.nfc-group .nfc-option {
+            border-top: 1px solid #e2e8f0;
+            padding: 0.65rem 0 0.25rem;
+            margin-top: 0.55rem;
+            color: #1e3a4f;
+            font-size: 0.95rem;
+        }
+        .service-item-card details.nfc-group .nfc-option strong { color: #0f172a; }
 
         /* New Affiliate Program Section Styles */
         .affiliate-section {
@@ -614,9 +639,9 @@
         }
         .pricing-faq-item[open] summary::after { content: '−'; }
         .pricing-faq-item p {
-            color: #1e3a4f;
-            font-size: 1.02rem;
-            line-height: 1.65;
+            color: #0f172a;
+            font-size: 1.05rem;
+            line-height: 1.7;
             margin: 0 0 1rem;
             padding: 0 0.25rem 0.5rem;
         }
@@ -746,30 +771,16 @@
             align-items: center;
             margin-top: 1.75rem;
         }
-        .lao-price-pill {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.15rem;
-            padding: 0.75rem 1.25rem;
+        .lao-price-pill-inline {
+            display: inline-block;
+            margin-top: 0.65rem;
+            padding: 0.35rem 0.85rem;
             border-radius: 999px;
-            background: rgba(255,255,255,0.95);
-            color: #9d174d;
-            font-weight: 800;
-            font-size: 1rem;
-            text-decoration: none;
-            border: 2px solid #fbcfe8;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .lao-price-pill small {
-            font-weight: 600;
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-        .lao-price-pill:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(0,0,0,0.28);
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.35);
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.88rem;
         }
         .lao-cta-pulse {
             animation: laoPulse 2.4s ease-in-out infinite;
@@ -1118,7 +1129,7 @@
                                 <li class="excluded"><i class="fas fa-times" style="opacity:0.5;"></i> Not included: ad spend, full websites, unlimited revisions</li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
+                        <button type="button" class="btn btn-accent" data-plan="Digital Footprint" onclick="openFormModal('consultation', this)">Get started</button>
                         <div class="card-trust" aria-label="Purchase reassurance">
                             <span><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</span>
                             <span><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</span>
@@ -1142,7 +1153,7 @@
                                 <li class="excluded"><i class="fas fa-times" style="opacity:0.5;"></i> Not included: media budget, unlimited content</li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
+                        <button type="button" class="btn btn-accent" data-plan="Growth Engine" onclick="openFormModal('consultation', this)">Get started</button>
                         <div class="card-trust" aria-label="Purchase reassurance">
                             <span><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</span>
                             <span><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</span>
@@ -1165,14 +1176,14 @@
                                 <li class="excluded"><i class="fas fa-times" style="opacity:0.5;"></i> Not included: custom apps, third-party license fees</li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
+                        <button type="button" class="btn btn-accent" data-plan="Automation Pro" onclick="openFormModal('consultation', this)">Get started</button>
                         <div class="card-trust" aria-label="Purchase reassurance">
                             <span><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</span>
                             <span><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</span>
                         </div>
                     </div>
                 </div>
-                <p style="text-align:center;margin:1rem auto 0;max-width:36rem;font-size:0.82rem;color:#475569;line-height:1.5;">*Money-back applies to eligible monthly plans as stated in our terms. Card payments use SSL encryption.</p>
+                <p style="text-align:center;margin:1rem auto 0;max-width:36rem;font-size:0.9rem;color:#334155;line-height:1.5;">*Money-back applies to eligible monthly plans as stated in our terms. Card payments use SSL encryption.</p>
 
                 <div id="plan-compare" class="compare-wrap" style="margin-top:2.5rem;">
                     <table class="compare-table" aria-label="Compare monthly plans">
@@ -1286,7 +1297,7 @@
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Tracking + mobile layout</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> 1 revision</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation', this)" data-plan="Landing Page Sprint">Get started</button>
                     </div>
                     <div class="card bundle-card">
                         <h3>Professional Page</h3>
@@ -1297,7 +1308,7 @@
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form ≤5 fields + SEO basics</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> 2 design touch-ups</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation', this)" data-plan="Professional Page">Get started</button>
                     </div>
                     <div class="card bundle-card highlight">
                         <h3>Multi-Page Site Starter</h3>
@@ -1308,7 +1319,7 @@
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form wired to your lead inbox</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> SEO + analytics setup</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation', this)" data-plan="Multi-Page Site Starter">Get started</button>
                     </div>
                     <div class="card bundle-card">
                         <h3>Lead Form + Pipeline</h3>
@@ -1319,7 +1330,7 @@
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Lead stages + alerts</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> WhatsApp CTA ready</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation', this)" data-plan="Lead Form + Pipeline">Get started</button>
                     </div>
                     <div class="card bundle-card">
                         <h3>SEO Content Pack (5)</h3>
@@ -1330,7 +1341,7 @@
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Keyword brief + image SEO</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Publish on your site</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation', this)" data-plan="SEO Content Pack (5)">Get started</button>
                     </div>
                     <div class="card bundle-card">
                         <h3>Lead Magnet Kit</h3>
@@ -1341,7 +1352,7 @@
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Capture form + delivery</li>
                             <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Basic design + 1 revision</li>
                         </ul>
-                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Get started</button>
+                        <button type="button" class="btn btn-accent" onclick="openFormModal('consultation', this)" data-plan="Lead Magnet Kit">Get started</button>
                     </div>
                 </div>
             </section>
@@ -1454,11 +1465,13 @@
                     </p>
                     <div class="lao-program-actions">
                         <button type="button" class="btn btn-accent lao-cta-pulse" onclick="openFormModal('free-support')">Apply to the community program</button>
-                        <a class="lao-price-pill" href="https://admin.wordsthatsells.website/portal/" target="_blank" rel="noopener noreferrer">
-                            Find out about the pricing <span aria-hidden="true">→</span>
-                            <small>Apply first · then client portal</small>
-                        </a>
                     </div>
+                    <p class="lao-program-note" style="margin-top:1rem;">
+                        After you apply and if you’re invited, open the
+                        <a href="https://admin.wordsthatsells.website/portal/" target="_blank" rel="noopener noreferrer" style="color:#fff;font-weight:800;text-decoration:underline;">client portal</a>
+                        to see program pricing for your approved scope.
+                        <span class="lao-price-pill-inline">Find out about the pricing → after apply</span>
+                    </p>
                 </div>
             </section>
             
@@ -1750,6 +1763,53 @@
         // Render functions
         // ============================================================
 
+        function isNfcCardService(service) {
+            const t = ((service.serviceTitle || service.name || '') + ' ' + (service.description || '')).toLowerCase();
+            return /nfc|utap|metal\s*card|business\s*card/.test(t) &&
+                (/\d+\s*(pcs|pack|cards?|units?)?/i.test(t) || /volume|qty|quantity/i.test(t) || /nfc|utap/.test(t));
+        }
+
+        function renderServiceCards(serviceList) {
+            const nfc = [];
+            const rest = [];
+            (serviceList || []).forEach(s => {
+                if (isNfcCardService(s)) nfc.push(s);
+                else rest.push(s);
+            });
+
+            let html = rest.map(service => `
+                <div class="service-item-card">
+                    <div class="title">${service.serviceTitle || service.name || ''}</div>
+                    <div class="description">${service.description || ''}</div>
+                </div>
+            `).join('');
+
+            // Collapse repetitive NFC / Metal UTAP volume SKUs into one expandable line
+            if (nfc.length >= 2) {
+                const options = nfc.map(s => {
+                    const title = s.serviceTitle || s.name || 'Option';
+                    const desc = s.description ? ` — ${s.description}` : '';
+                    return `<div class="nfc-option"><strong>${title}</strong>${desc}</div>`;
+                }).join('');
+                html += `
+                <div class="service-item-card">
+                    <details class="nfc-group">
+                        <summary>NFC / Metal UTAP cards (${nfc.length} volume options)</summary>
+                        <p class="description" style="margin:0.5rem 0 0;">Same product family — pick pack size when you order.</p>
+                        ${options}
+                    </details>
+                </div>`;
+            } else {
+                html += nfc.map(service => `
+                    <div class="service-item-card">
+                        <div class="title">${service.serviceTitle || service.name || ''}</div>
+                        <div class="description">${service.description || ''}</div>
+                    </div>
+                `).join('');
+            }
+            return html;
+        }
+
         function renderIndividualServices(services) {
             const accordionContainer = document.getElementById('services-accordion');
             if (!accordionContainer || !services || !services.length) return;
@@ -1759,13 +1819,7 @@
                 const accordionItem = document.createElement('div');
                 accordionItem.className = 'accordion-item';
                 const catName = category.category || category.name || 'Services';
-
-                const servicesHtml = (category.services || []).map(service => `
-                    <div class="service-item-card">
-                        <div class="title">${service.serviceTitle || service.name || ''}</div>
-                        <div class="description">${service.description || ''}</div>
-                    </div>
-                `).join('');
+                const servicesHtml = renderServiceCards(category.services || []);
 
                 accordionItem.innerHTML = `
                     <button type="button" class="accordion-header" aria-expanded="false">
@@ -1892,10 +1946,15 @@
                     const upsellBannerHtml = upsellTarget
                         ? `<div class="upsell-banner" data-upsell-target="${plan.upsell_target_id}"><i class="fas fa-rocket"></i> See ${upsellTarget.name} &rarr;</div>` : '';
 
-                    const ctaText = plan.cta_text || 'Choose Plan';
-                    const ctaUrl = plan.cta_url || '#';
+                    const ctaText = 'Get started';
+                    const ctaUrl = plan.cta_url || '';
                     const paygoText = plan.pay_as_you_go_text || '';
                     const discount = plan.annual_discount_pct != null ? plan.annual_discount_pct : 20;
+                    const planName = (plan.name || '').replace(/"/g, '&quot;');
+                    // Prefer consultation modal with plan prefill over bare # links
+                    const ctaHtml = (ctaUrl && ctaUrl !== '#')
+                        ? `<a href="${ctaUrl}" class="btn btn-accent" data-plan="${planName}" data-price="${plan.price}" style="margin-top:auto;">${ctaText}</a>`
+                        : `<button type="button" class="btn btn-accent" data-plan="${planName}" data-price="${plan.price}" style="margin-top:auto;" onclick="openFormModal('consultation', this)">${ctaText}</button>`;
 
                     // Never surface admin “retail range” jargon on customer cards
                     let tagline = (plan.description || '').trim();
@@ -1916,7 +1975,7 @@
                         <div class="feature-section">${featuresHtml}</div>
                         <div class="card-footer">
                             ${paygoText ? '<div class="pay-as-you-go">' + paygoText + '</div>' : ''}
-                            <a href="${ctaUrl}" class="btn btn-accent" data-plan="${plan.name}" data-price="${plan.price}" style="margin-top:auto;">Get started</a>
+                            ${ctaHtml}
                             <div class="card-trust" aria-label="Purchase reassurance">
                                 <span><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</span>
                                 <span><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</span>
@@ -2129,7 +2188,7 @@
     <script>
         const FORM_API = 'https://admin.wordsthatsells.website/api/public/submissions';
 
-        function openFormModal(type) {
+        function openFormModal(type, sourceEl) {
             const overlay = document.getElementById('form-modal-' + type);
             if (!overlay) return;
             // Reset to form view (in case it was showing success)
@@ -2139,13 +2198,34 @@
             if (successEl) successEl.remove();
             const errEl = document.getElementById('form-error-' + type);
             if (errEl) errEl.style.display = 'none';
+            // Prefill consultation with plan/project when Get started is used
+            if (type === 'consultation' && form) {
+                const plan = (sourceEl && sourceEl.getAttribute && sourceEl.getAttribute('data-plan')) || '';
+                const msg = form.querySelector('textarea[name="message"]');
+                if (msg && plan) {
+                    const prefix = 'Interested in: ' + plan + '.';
+                    if (!msg.value || msg.value.indexOf('Interested in:') === 0) {
+                        msg.value = prefix + ' ';
+                    }
+                }
+                if (form.querySelector('input[name="plan_interest"]')) {
+                    form.querySelector('input[name="plan_interest"]').value = plan;
+                } else if (plan) {
+                    const hid = document.createElement('input');
+                    hid.type = 'hidden';
+                    hid.name = 'plan_interest';
+                    hid.value = plan;
+                    form.appendChild(hid);
+                }
+            }
             // Show modal
             overlay.style.display = 'flex';
             requestAnimationFrame(() => overlay.classList.add('active'));
             document.body.classList.add('no-scroll');
             // GA tracking
             if (typeof gtag === 'function') {
-                gtag('event', 'open_form', { event_category: 'Forms', event_label: type });
+                const plan = (sourceEl && sourceEl.getAttribute && sourceEl.getAttribute('data-plan')) || '';
+                gtag('event', 'open_form', { event_category: 'Forms', event_label: type, plan_interest: plan });
             }
         }
 
