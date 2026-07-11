@@ -195,4 +195,8 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   }));
 }
 
+// Customer-portal social strategies (portal-google / portal-facebook):
+// same credentials, separate callback URLs and customer semantics.
+require('./portal-oauth').registerPortalOAuth();
+
 module.exports = passport;

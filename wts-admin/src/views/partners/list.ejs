@@ -1,0 +1,123 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Partner Programs</h1>
+        <p class="page-subtitle">
+          Applications from the client portal (affiliate · dropshipping · white label). Approving is what
+          unlocks earning capability — accounts are cheap, capability is human-approved.
+        </p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:center;">
+        <span><strong><%= counts.pending || 0 %></strong> pending</span>
+        <span><strong><%= counts.active || 0 %></strong> active</span>
+        <span><strong><%= counts.rejected || 0 %></strong> rejected</span>
+        <span><strong><%= counts.suspended || 0 %></strong> suspended</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <% if (enrollments.length === 0) { %>
+          <div class="empty-state" style="padding:2rem;">
+            <div class="empty-state-icon"><i class="fas fa-handshake"></i></div>
+            <h3>No applications yet</h3>
+            <p>When a portal customer applies to a partner program, it appears here for review.</p>
+          </div>
+        <% } else { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Partner</th>
+                <th>Program</th>
+                <th>Status</th>
+                <th>Their note</th>
+                <th>Decision</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% enrollments.forEach(e => { %>
+              <tr data-enrollment="<%= e.id %>">
+                <td data-label="Partner">
+                  <strong><%= e.name || e.email %></strong><br>
+                  <span style="color:var(--gray-500); font-size:0.85rem;"><%= e.email %><%= e.company ? ' · ' + e.company : '' %></span><br>
+                  <span style="color:var(--gray-500); font-size:0.75rem;">applied <%= new Date(e.created_at).toLocaleDateString() %></span>
+                </td>
+                <td data-label="Program"><%= programLabels[e.program] || e.program %></td>
+                <td data-label="Status">
+                  <span style="font-weight:600; <%= e.status === 'pending' ? 'color:#b45309;' : e.status === 'active' ? 'color:#059669;' : 'color:var(--gray-500);' %>">
+                    <%= e.status %>
+                  </span>
+                  <% if (e.decided_by_name) { %>
+                    <br><span style="color:var(--gray-500); font-size:0.75rem;">by <%= e.decided_by_name %><%= e.decided_at ? ' · ' + new Date(e.decided_at).toLocaleDateString() : '' %></span>
+                  <% } %>
+                </td>
+                <td data-label="Their note" style="max-width:280px;">
+                  <span style="font-size:0.85rem; color:var(--gray-600);"><%= e.note || '—' %></span>
+                  <% if (e.admin_note) { %>
+                    <br><span style="font-size:0.78rem; color:var(--gray-500);">our note: <%= e.admin_note %></span>
+                  <% } %>
+                </td>
+                <td data-label="Decision">
+                  <input type="text" class="form-input decision-note" placeholder="Note to applicant (optional)" maxlength="500"
+                    style="max-width:210px; padding:0.3rem 0.5rem; font-size:0.82rem; margin-bottom:0.35rem;">
+                  <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+                    <% if (e.status === 'pending' || e.status === 'rejected') { %>
+                      <button type="button" class="btn btn-sm btn-primary decide" data-action="approve"><i class="fas fa-check"></i> Approve</button>
+                    <% } %>
+                    <% if (e.status === 'pending') { %>
+                      <button type="button" class="btn btn-sm btn-danger decide" data-action="reject"><i class="fas fa-xmark"></i> Reject</button>
+                    <% } %>
+                    <% if (e.status === 'active') { %>
+                      <button type="button" class="btn btn-sm btn-secondary decide" data-action="suspend"><i class="fas fa-pause"></i> Suspend</button>
+                    <% } %>
+                    <% if (e.status === 'suspended') { %>
+                      <button type="button" class="btn btn-sm btn-primary decide" data-action="reactivate"><i class="fas fa-play"></i> Reactivate</button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  document.querySelectorAll('.decide').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var row = btn.closest('tr');
+      var action = btn.dataset.action;
+      if (!confirm(action.charAt(0).toUpperCase() + action.slice(1) + ' this application? The applicant is emailed the decision.')) return;
+      btn.disabled = true;
+      fetch('/partners/' + row.dataset.enrollment + '/decision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+        body: JSON.stringify({ action: action, note: row.querySelector('.decision-note').value.trim() })
+      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(function (res) {
+          if (res.ok) location.reload();
+          else { btn.disabled = false; alert(res.data.error || 'Decision failed'); }
+        })
+        .catch(function () { btn.disabled = false; alert('Network error'); });
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>

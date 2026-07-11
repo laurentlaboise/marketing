@@ -15,7 +15,8 @@
     "billing": "Billing",
     "chat": "AI Strategist",
     "boards": "Boards",
-    "profile": "Profile"
+    "profile": "Profile",
+    "programs": "Partner Programs"
   },
   "login": {
     "title": "Sign in - Words That Sells",
@@ -39,7 +40,12 @@
     "errorLinkInvalid": "That sign-in link is not valid. Request a new one below.",
     "errorLinkExpired": "That sign-in link has expired or was already used. Request a new one below.",
     "errorInactive": "This account is not active. Contact us if you think this is a mistake.",
-    "errorGeneric": "Something went wrong signing you in. Please request a new link."
+    "errorGeneric": "Something went wrong signing you in. Please request a new link.",
+    "orContinueWith": "or continue with",
+    "continueGoogle": "Continue with Google",
+    "continueFacebook": "Continue with Facebook",
+    "errorSocial": "Social sign-in didn't complete. Please try again, or sign in with your email.",
+    "errorSocialEmail": "Your social account didn't share an email address — please sign in with your email instead."
   },
   "errors": {
     "backToPortal": "Back to portal",
@@ -404,6 +410,18 @@
       "button": "Open your portal",
       "footer": "{brand} · wordsthatsells.website",
       "text": "A new file is ready for you: {title}. Open your portal: {portalUrl}"
+    },
+    "partner": {
+      "approvedSubject": "Your {program} application is approved",
+      "approvedTitle": "Welcome aboard!",
+      "approvedBody": "Your application to the {program} at {brand} has been approved. Sign in to your portal to see your program tools as they roll out.",
+      "rejectedSubject": "About your {program} application",
+      "rejectedTitle": "Application update",
+      "rejectedBody": "Thanks for your interest in the {program} at {brand}. We can't approve this application right now — you're welcome to apply again with more details.",
+      "suspendedSubject": "Your {program} access is paused",
+      "suspendedTitle": "Program paused",
+      "suspendedBody": "Your access to the {program} at {brand} has been paused. Reply to this email if you have questions.",
+      "cta": "Open your portal"
     }
   },
   "portalApi": {
@@ -411,5 +429,38 @@
     "emailRequired": "A valid email is required.",
     "loginRateLimited": "Too many sign-in attempts. Please wait a few minutes and try again.",
     "loginFailed": "The email or password doesn't match our records. Please try again, or use an email sign-in link instead."
+  },
+  "programs": {
+    "title": "Partner Programs - Words That Sells",
+    "heading": "Partner Programs",
+    "intro": "Earn with Words That Sells. Apply to any program below — a member of our team reviews every application personally, usually within one business day.",
+    "noteLabel": "Tell us a little about you (optional)",
+    "notePlaceholder": "Your website, audience, or how you plan to work with us",
+    "apply": "Apply",
+    "reapply": "Apply again",
+    "statusPending": "Under review",
+    "statusActive": "Active",
+    "statusRejected": "Not approved",
+    "statusSuspended": "Suspended",
+    "pendingBody": "Thanks for applying! We're reviewing your application and will email you when it's decided.",
+    "rejectedBody": "This application wasn't approved. You're welcome to apply again with more details.",
+    "suspendedBody": "This program is paused on your account. Contact us if you think this is a mistake.",
+    "activeBody": "You're in! Program tools appear here as they roll out.",
+    "adminNoteLabel": "Note from our team",
+    "affiliate": {
+      "name": "Affiliate Program",
+      "desc": "Share your personal referral link. When someone you referred becomes a paying client, you earn a commission on what they spend.",
+      "earn": "Earn: commission on referred sales, paid to your partner wallet."
+    },
+    "dropship": {
+      "name": "Digital Dropshipping",
+      "desc": "Sell our digital products and services to your own customers. You bring the client, we deliver the work under the hood.",
+      "earn": "Earn: a margin on every order you place for your customers."
+    },
+    "white_label": {
+      "name": "White Label",
+      "desc": "Offer our services under your own brand. Your clients see your name and logo; our team does the delivery.",
+      "earn": "Earn: agency pricing on everything we deliver for your clients."
+    }
   }
 }

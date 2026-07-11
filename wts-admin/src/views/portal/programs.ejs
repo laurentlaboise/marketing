@@ -1,0 +1,72 @@
+<%- include('partials/head') %>
+  <style>
+    .wrap { flex: 1; max-width: 760px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
+    h1 { font-size: 1.35rem; color: #1a1a2e; margin: 0.5rem 0 0.15rem; }
+    p.sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.55; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.15rem 1.25rem; margin-bottom: 1rem; }
+    .card h2 { font-size: 1.05rem; color: #1a1a2e; margin: 0 0 0.25rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .card p.desc { color: #475569; font-size: 0.9rem; line-height: 1.55; margin: 0 0 0.35rem; }
+    .card p.earn { color: #9d174d; font-size: 0.84rem; font-weight: 600; margin: 0 0 0.75rem; }
+    .badge { display: inline-block; border-radius: 999px; padding: 0.15rem 0.65rem; font-size: 0.74rem; font-weight: 600; line-height: 1.45; }
+    .badge.pending { background: #fef3c7; color: #92400e; }
+    .badge.active { background: #dcfce7; color: #166534; }
+    .badge.rejected { background: #fee2e2; color: #991b1b; }
+    .badge.suspended { background: #e2e8f0; color: #475569; }
+    .state-note { font-size: 0.84rem; color: #64748b; line-height: 1.5; margin: 0; }
+    .admin-note { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.6rem 0.8rem; font-size: 0.84rem; color: #334155; margin-top: 0.5rem; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin: 0.25rem 0 0.3rem; }
+    textarea { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem; font-family: inherit; box-sizing: border-box; resize: vertical; }
+    textarea:focus { outline: 2px solid #d62b83; border-color: transparent; }
+    button { margin-top: 0.6rem; background: #d62b83; color: #fff; border: none; border-radius: 10px; padding: 0.6rem 1.4rem; font-size: 0.92rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    button:hover { background: #b91c6f; }
+  </style>
+</head>
+<body>
+  <%- include('partials/topbar') %>
+  <div class="wrap">
+    <h1><%= t('programs.heading') %></h1>
+    <p class="sub"><%= t('programs.intro') %></p>
+
+    <%- include('partials/nav', { active: 'programs' }) %>
+
+    <% programs.forEach(function (program) {
+         var enr = byProgram[program];
+         var status = enr ? enr.status : null; %>
+      <div class="card">
+        <h2>
+          <%= t('programs.' + program + '.name') %>
+          <% if (status) { %>
+            <span class="badge <%= status %>"><%= t('programs.status' + status.charAt(0).toUpperCase() + status.slice(1)) %></span>
+          <% } %>
+        </h2>
+        <p class="desc"><%= t('programs.' + program + '.desc') %></p>
+        <p class="earn"><%= t('programs.' + program + '.earn') %></p>
+
+        <% if (!status || status === 'rejected') { %>
+          <% if (status === 'rejected') { %>
+            <p class="state-note"><%= t('programs.rejectedBody') %></p>
+            <% if (enr && enr.admin_note) { %>
+              <div class="admin-note"><strong><%= t('programs.adminNoteLabel') %>:</strong> <%= enr.admin_note %></div>
+            <% } %>
+          <% } %>
+          <form method="POST" action="/portal/programs/enroll">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="program" value="<%= program %>">
+            <label for="note-<%= program %>"><%= t('programs.noteLabel') %></label>
+            <textarea id="note-<%= program %>" name="note" rows="2" maxlength="1000" placeholder="<%= t('programs.notePlaceholder') %>"><%= enr && enr.note ? enr.note : '' %></textarea>
+            <button type="submit"><%= status === 'rejected' ? t('programs.reapply') : t('programs.apply') %></button>
+          </form>
+        <% } else if (status === 'pending') { %>
+          <p class="state-note"><%= t('programs.pendingBody') %></p>
+        <% } else if (status === 'active') { %>
+          <p class="state-note"><%= t('programs.activeBody') %></p>
+        <% } else if (status === 'suspended') { %>
+          <p class="state-note"><%= t('programs.suspendedBody') %></p>
+          <% if (enr && enr.admin_note) { %>
+            <div class="admin-note"><strong><%= t('programs.adminNoteLabel') %>:</strong> <%= enr.admin_note %></div>
+          <% } %>
+        <% } %>
+      </div>
+    <% }); %>
+  </div>
+  <%- include('partials/footer', { simpleFooter: true }) %>
