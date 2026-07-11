@@ -110,33 +110,33 @@ li{margin-bottom:8px}
 .related-terms li{margin:0}
 .related-terms a{display:inline-block;background:var(--surface);padding:8px 14px;border-radius:999px;font-size:.9rem;font-weight:600;border:1px solid #e5e7eb}
 .related-terms a:hover{background:#e8f4fc;text-decoration:none}
-.cta{margin:48px 0;padding:32px 28px;background:#d62b83;color:#0f172a;border-radius:14px;text-align:center;box-shadow:0 10px 24px rgba(214,43,131,.35);font-weight:600}
-.cta p{color:#0f172a}
-.cta a{color:#0f172a;font-weight:800;text-decoration:underline;text-underline-offset:3px}
-.cta a:hover{color:#111827;opacity:1}
+.cta{margin:48px 0;padding:32px 28px;background:#d62b83;color:#ffffff;border-radius:14px;text-align:center;box-shadow:0 10px 24px rgba(214,43,131,.35);font-weight:600}
+.cta p{color:#ffffff}
+.cta a{color:#ffffff;font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.cta a:hover{color:#ffffff;opacity:.95}
 .checklist li{margin-bottom:10px}
 .video-wrap{position:relative;width:100%;padding-bottom:56.25%;height:0;margin:20px 0 12px;border-radius:12px;overflow:hidden;background:#0f172a;box-shadow:0 8px 24px rgba(15,23,42,.2)}
 .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .video-fallback{font-size:.95rem;margin-top:0}
-/* Sticky share dock — mobile bottom bar; desktop left rail */
+/* Sticky share dock — icon-only, one floating strip */
 .share-dock{
   position:fixed;z-index:900;
-  display:flex;align-items:center;gap:8px;
+  display:flex;align-items:center;gap:6px;
   background:rgba(255,255,255,.97);
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
-  box-shadow:0 -4px 20px rgba(15,23,42,.14);
+  box-shadow:0 6px 20px rgba(15,23,42,.16);
   border:1px solid #e5e7eb;
 }
-.share-dock .share-label{font-weight:700;color:var(--primary);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.share-dock .share-label{display:none}
 .share-dock .share-btn{
   display:inline-flex;align-items:center;justify-content:center;
-  width:44px;height:44px;min-width:44px;min-height:44px;
-  border-radius:50%;font-size:1.05rem;color:#fff!important;text-decoration:none;border:0;cursor:pointer;padding:0;
+  width:36px;height:36px;min-width:36px;min-height:36px;
+  border-radius:50%;font-size:.95rem;color:#fff!important;text-decoration:none;border:0;cursor:pointer;padding:0;
   -webkit-tap-highlight-color:transparent;
 }
-.share-dock .share-btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-.share-dock .share-btn:hover,.share-dock .share-btn:focus{filter:brightness(1.08);color:#fff!important;outline:2px solid #d62b83;outline-offset:2px}
+.share-dock .share-btn span{display:none!important}
+.share-dock .share-btn:hover,.share-dock .share-btn:focus{filter:brightness(1.08);color:#fff!important;outline:2px solid #d62b83;outline-offset:1px}
 .share-dock .share-btn.fb{background:#1877f2}
 .share-dock .share-btn.x{background:#111827}
 .share-dock .share-btn.li{background:#0a66c2}
@@ -144,28 +144,29 @@ li{margin-bottom:8px}
 .share-dock .share-btn.tg{background:#229ed9}
 .share-dock .share-btn.copy{background:#64748b}
 .share-dock .share-btn.native{background:#d62b83}
+/* Mobile: one slim bottom sticky strip */
 @media (max-width:899px){
   .share-dock{
-    left:0;right:0;bottom:0;
-    justify-content:space-around;
-    padding:10px 6px calc(10px + env(safe-area-inset-bottom,0px));
-    border-radius:16px 16px 0 0;
-    border-bottom:0;
+    left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%);
+    justify-content:center;
+    padding:8px 10px;
+    border-radius:999px;
+    gap:6px;
+    max-width:calc(100vw - 24px);
   }
-  body{padding-bottom:78px}
-  .share-dock .share-label{display:none}
+  body{padding-bottom:64px}
 }
+/* Desktop: one slim left sticky pill */
 @media (min-width:900px){
   .share-dock{
     left:14px;top:50%;transform:translateY(-50%);
     flex-direction:column;
-    padding:14px 10px;
-    border-radius:16px;
-    gap:10px;
-    box-shadow:0 8px 28px rgba(15,23,42,.16);
+    padding:10px 8px;
+    border-radius:999px;
+    gap:8px;
   }
-  .share-dock .share-label{writing-mode:vertical-rl;transform:rotate(180deg);margin:2px 0 6px}
-  .share-dock .share-btn{width:46px;height:46px}
+  .share-dock .share-btn{width:38px;height:38px;min-width:38px;min-height:38px}
 }
 """
 
