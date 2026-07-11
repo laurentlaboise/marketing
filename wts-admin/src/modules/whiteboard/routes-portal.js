@@ -7,6 +7,7 @@
 
 const express = require('express');
 const db = require('../../../database/db');
+const i18n = require('../../lib/i18n');
 const { UUID_RE, colorForCustomer } = require('./util');
 const { addCollabRoutes } = require('./collab');
 const { addAssetRoutes } = require('./assets');
@@ -101,7 +102,11 @@ function createPortalRouter() {
         canComment: COMMENTER_ROLES.has(board.member_role),
         canApprove: false,
         canDecide: COMMENTER_ROLES.has(board.member_role),
-        canUpload: ['owner', 'editor'].includes(board.member_role)
+        canUpload: ['owner', 'editor'].includes(board.member_role),
+        // The board island renders client-side: ship it the customer's
+        // locale and the full string set (English-backfilled).
+        viewerLang: req.locale || 'en',
+        boardStrings: i18n.dictionary(req.locale || 'en', 'boards.island')
       });
     } catch (e) {
       console.error('Whiteboard portal board error:', e);

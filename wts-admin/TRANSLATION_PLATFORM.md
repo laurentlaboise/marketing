@@ -137,3 +137,32 @@ rewrites are staged in `_redirects` comments, to be enabled when the
 localized article apps are generated. Published translations are
 consumable at `GET /api/public/translations/:lang/:entityType` for the
 static build pipeline.
+
+## Board conversation auto-translation (whiteboard)
+
+The client-portal review board is cross-language: everyone writes in
+their own language and everyone reads in their own language.
+
+- Every board comment and approval note stores the author's language
+  (`source_lang` — the portal locale for customers, `en` for staff) and
+  the text exactly as typed. The original is always the source of truth.
+- `src/lib/snippet-translator.js` translates each message once per target
+  language in the background (fire-and-forget after the write) and caches
+  it in `board_translations`, keyed by source hash — edited text
+  re-translates, unchanged text is never paid for twice. Distinct from
+  `ai-translator.js` (long-form batches): snippets default to the fast
+  model tier (`AI_SNIPPET_MODEL`, default `claude-haiku-4-5-20251001`).
+- The collab endpoints attach the viewer's cached rendering next to the
+  original (`translation: { lang, body }`); the board UI shows it with a
+  "Translated from … · Show original" toggle. Until the cache fills (a
+  second or two) the original renders with a "translating…" hint.
+- Without `ANTHROPIC_API_KEY` the feature degrades silently: everyone
+  sees originals, nothing breaks (`autoTranslate: false` in responses).
+- Approval decisions store `decided_rendering` — which rendering
+  (original or translation, and its exact text) the customer had on
+  screen when they clicked Approve/Request changes — so a disputed
+  machine translation can always be traced to what was actually decided.
+- Board UI chrome ships from `src/locales/{en,th}.json` under
+  `boards.island` (the island renders client-side; strings are passed via
+  `__WTS_BOARD__`). The Thai strings were machine-drafted and should get
+  a native pass — same caveat as the Lao site chrome.

@@ -18,6 +18,7 @@ const { UUID_RE } = require('./util');
 const broadcast = () => {};
 const { sendEmail } = require('../../utils/mailer');
 const { translate, SUPPORTED } = require('../../lib/i18n');
+const snippets = require('../../lib/snippet-translator');
 
 const COMMENTER_ROLES = new Set(['owner', 'editor', 'commenter']);
 const MAX_BODY = 2000;
@@ -26,6 +27,46 @@ const MAX_NOTE = 2000;
 // These handlers serve both the admin router (no i18n middleware, so no
 // req.locale) and the portal router; translate() falls back to English.
 const msg = (req, key, vars) => translate(req.locale || 'en', key, vars);
+
+// The language this caller writes AND reads in: the portal locale for
+// customers, English for staff. Used both to stamp source_lang on writes
+// and to pick which cached translation to attach on reads.
+const langFor = (req, side) =>
+  side === 'portal' && SUPPORTED.includes(req.locale) ? req.locale : 'en';
+
+// Attach the viewer's rendering of an approval's notes (never mutates the
+// meaning: originals stay in place, translations ride alongside).
+async function decorateApproval(approval, viewerLang) {
+  if (!approval) return approval;
+  const map = await snippets.translationsFor([
+    { entityType: 'board_approval_request_note', entityId: approval.id },
+    { entityType: 'board_approval_reviewer_note', entityId: approval.id },
+  ]);
+  const requestNote = snippets.pickTranslation(
+    map, 'board_approval_request_note', approval.id,
+    approval.request_note_lang, approval.request_note, viewerLang);
+  const reviewerNote = snippets.pickTranslation(
+    map, 'board_approval_reviewer_note', approval.id,
+    approval.reviewer_note_lang, approval.reviewer_note, viewerLang);
+  return {
+    ...approval,
+    request_note_translation: requestNote ? { lang: viewerLang, body: requestNote } : null,
+    reviewer_note_translation: reviewerNote ? { lang: viewerLang, body: reviewerNote } : null,
+  };
+}
+
+// Sanitized audit record of what the decider had on screen (client-supplied,
+// so bound every field). Returns null unless it looks like the real shape.
+function validRendering(r) {
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return null;
+  const mode = r.mode === 'translated' ? 'translated' : (r.mode === 'original' ? 'original' : null);
+  if (!mode) return null;
+  return {
+    mode,
+    lang: String(r.lang || '').slice(0, 5),
+    body_shown: String(r.bodyShown == null ? '' : r.bodyShown).slice(0, MAX_NOTE * 2),
+  };
+}
 
 const PORTAL_BASE = () =>
   (process.env.PORTAL_URL || process.env.APP_ADMIN_URL || 'https://admin.wordsthatsells.website')
@@ -158,7 +199,17 @@ function addCollabRoutes(router, side) {
         'SELECT * FROM board_comments WHERE board_id = $1 ORDER BY created_at ASC',
         [actor.boardId]
       )).rows;
-      res.json({ comments });
+      // Everyone reads in their own language: attach the viewer's cached
+      // rendering next to (never instead of) the original text.
+      const viewerLang = langFor(req, side);
+      const map = await snippets.translationsFor(
+        comments.map((c) => ({ entityType: 'board_comment', entityId: c.id }))
+      );
+      const decorated = comments.map((c) => {
+        const body = snippets.pickTranslation(map, 'board_comment', c.id, c.source_lang, c.body, viewerLang);
+        return { ...c, translation: body ? { lang: viewerLang, body } : null };
+      });
+      res.json({ comments: decorated, viewerLang, autoTranslate: snippets.isConfigured() });
     } catch (e) {
       console.error('Whiteboard comments list error:', e);
       jsonError(res, 500, msg(req, 'boards.errors.loadComments'));
@@ -191,13 +242,21 @@ function addCollabRoutes(router, side) {
         parentId = parent.parent_id || parent.id;
       }
 
+      // Stamp the language the author wrote in, then translate into the
+      // other conversation languages in the background — the comment posts
+      // instantly either way, and readers see the translation appear on the
+      // next poll.
+      const sourceLang = langFor(req, side);
       const comment = (await db.query(
-        `INSERT INTO board_comments (board_id, parent_id, anchor, author_type, author_id, author_name, body)
-         VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7)
+        `INSERT INTO board_comments (board_id, parent_id, anchor, author_type, author_id, author_name, body, source_lang)
+         VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, $8)
          RETURNING *`,
         [actor.boardId, parentId, anchor ? JSON.stringify(anchor) : null,
-          actor.type, actor.id, actor.name, body]
+          actor.type, actor.id, actor.name, body, sourceLang]
       )).rows[0];
+      snippets.queueSnippetTranslations({
+        entityType: 'board_comment', entityId: comment.id, text: body, sourceLang,
+      });
 
       broadcast(actor.boardId, { type: 'wts-refresh', kind: 'comments' });
       res.status(201).json({ comment });
@@ -239,7 +298,8 @@ function addCollabRoutes(router, side) {
     try {
       const actor = await resolveActor(req, res, side);
       if (!actor) return;
-      res.json({ approval: await latestApproval(actor.boardId) });
+      const approval = await decorateApproval(await latestApproval(actor.boardId), langFor(req, side));
+      res.json({ approval });
     } catch (e) {
       console.error('Whiteboard approval fetch error:', e);
       jsonError(res, 500, msg(req, 'boards.errors.loadApprovalStatus'));
@@ -264,23 +324,30 @@ function addCollabRoutes(router, side) {
         // otherwise (none yet, or already decided) open a fresh one so the
         // decision history is kept.
         const open = await latestApproval(actor.boardId);
+        const noteLang = langFor(req, side); // admin side → 'en'
         let approval;
         if (open && open.status === 'awaiting_review') {
           approval = (await db.query(
             `UPDATE board_approvals
-             SET requested_by = $1, request_note = $2, due_at = $3,
-                 reviewer_note = NULL, updated_at = CURRENT_TIMESTAMP
-             WHERE id = $4
+             SET requested_by = $1, request_note = $2, request_note_lang = $3, due_at = $4,
+                 reviewer_note = NULL, reviewer_note_lang = NULL, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $5
              RETURNING *`,
-            [actor.name, note, dueAt, open.id]
+            [actor.name, note, note ? noteLang : null, dueAt, open.id]
           )).rows[0];
         } else {
           approval = (await db.query(
-            `INSERT INTO board_approvals (board_id, status, requested_by, request_note, due_at)
-             VALUES ($1, 'awaiting_review', $2, $3, $4)
+            `INSERT INTO board_approvals (board_id, status, requested_by, request_note, request_note_lang, due_at)
+             VALUES ($1, 'awaiting_review', $2, $3, $4, $5)
              RETURNING *`,
-            [actor.boardId, actor.name, note, dueAt]
+            [actor.boardId, actor.name, note, note ? noteLang : null, dueAt]
           )).rows[0];
+        }
+        if (note) {
+          snippets.queueSnippetTranslations({
+            entityType: 'board_approval_request_note', entityId: approval.id,
+            text: note, sourceLang: noteLang,
+          });
         }
 
         broadcast(actor.boardId, { type: 'wts-refresh', kind: 'approval' });
@@ -307,15 +374,29 @@ function addCollabRoutes(router, side) {
           return jsonError(res, 400, msg(req, 'boards.errors.invalidDecision'));
         }
         const note = req.body.note ? String(req.body.note).trim().slice(0, MAX_NOTE) : null;
+        const noteLang = langFor(req, side);
+        // Audit which rendering of the request note the customer decided
+        // on (original vs machine translation) — kept with the decision so
+        // a disputed translation can be traced to exactly what was shown.
+        const rendering = validRendering(req.body.rendering);
 
         const approval = (await db.query(
           `UPDATE board_approvals
-           SET status = $1, reviewer_note = $2, updated_at = CURRENT_TIMESTAMP
-           WHERE id = $3 AND board_id = $4 AND status = 'awaiting_review'
+           SET status = $1, reviewer_note = $2, reviewer_note_lang = $3,
+               decided_rendering = $4::jsonb, updated_at = CURRENT_TIMESTAMP
+           WHERE id = $5 AND board_id = $6 AND status = 'awaiting_review'
            RETURNING *`,
-          [decision, note, req.params.aid, actor.boardId]
+          [decision, note, note ? noteLang : null,
+            rendering ? JSON.stringify(rendering) : null,
+            req.params.aid, actor.boardId]
         )).rows[0];
         if (!approval) return jsonError(res, 404, msg(req, 'boards.errors.noOpenApproval'));
+        if (note) {
+          snippets.queueSnippetTranslations({
+            entityType: 'board_approval_reviewer_note', entityId: approval.id,
+            text: note, sourceLang: noteLang,
+          });
+        }
 
         broadcast(actor.boardId, { type: 'wts-refresh', kind: 'approval' });
         res.json({ approval });
