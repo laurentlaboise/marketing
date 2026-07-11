@@ -22,9 +22,12 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
-Sitemap: https://wordsthatsells.website/sitemap.xml
+# Prefer the sitemap index (clean Google fetch). Children are also listed
+# so crawlers that ignore indexes still find every surface.
+Sitemap: https://wordsthatsells.website/sitemap-index.xml
 Sitemap: https://wordsthatsells.website/sitemap-google.xml
+Sitemap: https://wordsthatsells.website/sitemap.xml
+Sitemap: https://wordsthatsells.website/sitemap-images.xml
 
 # LLM guidance
 Allow: /llms.txt
-Sitemap: https://wordsthatsells.website/sitemap-images.xml

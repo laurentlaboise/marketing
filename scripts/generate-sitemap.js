@@ -45,10 +45,18 @@ function walkHtml(dir, base = dir) {
   return files.sort();
 }
 
+function isRedirectStub(html) {
+  return /Moved permanently — WordsThatSells|This page has moved/i.test(html)
+    || (/meta\s+http-equiv=["']refresh["']/i.test(html)
+      && /noindex/i.test(html)
+      && html.length < 4000);
+}
+
 function isIndexable(absFile, relFile) {
   if (relFile.startsWith('checkout/')) return false;
   if (/example-article|index-static-backup|articles-dynamic/i.test(relFile)) return false;
   const html = fs.readFileSync(absFile, 'utf8');
+  if (isRedirectStub(html)) return false;
   const robots = /<meta\b[^>]*name="robots"[^>]*content="([^"]*)"/i.exec(html.slice(0, 4000));
   if (robots && /noindex/i.test(robots[1])) return false;
   // Placeholder files (e.g. the glossary term stubs, which hold a content
@@ -56,6 +64,17 @@ function isIndexable(absFile, relFile) {
   // segments — keep them out of the sitemap until real pages exist.
   const { extractSegments } = require('./lib/html-l10n');
   if (Object.keys(extractSegments(html)).length === 0) return false;
+  return true;
+}
+
+/** True only when a localized mirror is a real published page (not a legacy redirect stub). */
+function isRealLangPage(dir, rel) {
+  const abs = path.join(ROOT, dir, rel);
+  if (!fs.existsSync(abs)) return false;
+  const html = fs.readFileSync(abs, 'utf8');
+  if (isRedirectStub(html)) return false;
+  const robots = /<meta\b[^>]*name="robots"[^>]*content="([^"]*)"/i.exec(html.slice(0, 4000));
+  if (robots && /noindex/i.test(robots[1])) return false;
   return true;
 }
 
@@ -186,7 +205,8 @@ function main() {
     const enHtml = fs.readFileSync(enAbs, 'utf8');
     const pageImage = extractPageImage(enHtml);
 
-    const presentDirs = LANG_DIRS.filter((dir) => fs.existsSync(path.join(ROOT, dir, rel)));
+    // Only real published mirrors — skip language-root redirect stubs.
+    const presentDirs = LANG_DIRS.filter((dir) => isRealLangPage(dir, rel));
     const alternates = presentDirs.map((dir) => ({
       hreflang: HREFLANG_BY_DIR[dir],
       href: `${SITE_ORIGIN}/${dir}${sitePath}`,

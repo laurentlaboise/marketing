@@ -5,27 +5,31 @@
       "@type": "WebSite",
       "@id": "https://wordsthatsells.website/#website",
       "url": "https://wordsthatsells.website",
-      "name": "AI Digital Marketing Agency Laos",
-      "description": "Leading AI Digital Marketing Agency in Laos offering SEO and business automation solutions.",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://wordsthatsells.website/search?q={search_term_string}",
-        "query-input": "required name=search_term_string"
+      "name": "WordsThatSells",
+      "alternateName": "Words That Sells",
+      "description": "AI-powered digital marketing agency in Laos — SEO, content, social media, and business automation for SMEs in Southeast Asia.",
+      "inLanguage": ["en", "th", "lo", "fr"],
+      "publisher": {
+        "@id": "https://wordsthatsells.website/#organization"
       }
     },
     {
       "@type": "Organization",
       "@id": "https://wordsthatsells.website/#organization",
-      "name": "AI Digital Marketing Agency Laos",
+      "name": "WordsThatSells",
+      "legalName": "Laboise eworker Laos enterprise",
       "url": "https://wordsthatsells.website",
-      "logo": "https://wordsthatsells.website/logo.png",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://wordsthatsells.website/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg"
+      },
       "contactPoint": {
         "@type": "ContactPoint",
         "telephone": "+8562055528034",
-        "contactType": "Customer Service",
-        "email": "contact@wordsthatsells.website",
-        "areaServed": ["LA", "TH"],
-        "availableLanguage": ["English", "Lao"]
+        "contactType": "customer service",
+        "email": "info@wordsthatsells.website",
+        "areaServed": ["LA", "TH", "SEA"],
+        "availableLanguage": ["English", "Lao", "Thai", "French"]
       },
       "sameAs": [
         "https://www.facebook.com/wordsthatsells",
@@ -38,169 +42,32 @@
     {
       "@type": "LocalBusiness",
       "@id": "https://wordsthatsells.website/#localbusiness",
-      "name": "WordsThatSells.Website - AI Digital Marketing Agency Laos",
-      "url": "https://wordsthatsells.website",
+      "name": "WordsThatSells — AI Digital Marketing Agency Laos",
+      "url": "https://wordsthatsells.website/en/",
+      "image": "https://wordsthatsells.website/images/AIDigitalMarketingthailandlaossoutheastasia.webp",
+      "telephone": "+8562055528034",
+      "email": "info@wordsthatsells.website",
+      "priceRange": "$$",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "20 Rue Samsenthai",
         "addressLocality": "Vientiane",
-        "addressRegion": "VT",
-        "postalCode": "01300",
+        "addressRegion": "Vientiane Prefecture",
         "addressCountry": "LA"
       },
       "geo": {
         "@type": "GeoCoordinates",
-        "latitude": 17.974855,
-        "longitude": 102.630867
+        "latitude": 17.9700946,
+        "longitude": 102.5969311
       },
-      "priceRange": "$$$",
-      "telephone": "+8562055528034",
-      "email": "contact@wordsthatsells.website",
-      "openingHoursSpecification": {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday"
-        ],
-        "opens": "09:00",
-        "closes": "17:00"
-      },
-      "image": "https://wordsthatsells.website/images/ai-digital-marketing-laos.jpg"
-    },
-    {
-      "@type": "Service",
-      "@id": "https://wordsthatsells.website/#seo-service",
-      "name": "SEO Content Creation",
-      "description": "AI-driven SEO content creation to boost search rankings and drive organic traffic.",
-      "provider": {
+      "parentOrganization": {
         "@id": "https://wordsthatsells.website/#organization"
       },
-      "areaServed": {
-        "@type": "Country",
-        "name": ["Laos", "Thailand"]
-      },
-      "serviceType": "SEO Content Writing",
-      "offers": {
-        "@type": "Offer",
-        "priceCurrency": "USD",
-        "price": "499.00",
-        "url": "https://wordsthatsells.website/seo-digital-marketing/content-creation"
-      }
-    },
-    {
-      "@type": "Article",
-      "@id": "https://wordsthatsells.website/#article",
-      "headline": "How AI is Transforming Digital Marketing in Laos",
-      "author": {
-        "@id": "https://wordsthatsells.website/#organization"
-      },
-      "publisher": {
-        "@id": "https://wordsthatsells.website/#organization"
-      },
-      "datePublished": "2024-10-15",
-      "dateModified": "2025-07-26",
-      "image": "https://wordsthatsells.website/images/ai-digital-marketing-laos.jpg",
-      "articleSection": "Digital Marketing",
-      "url": "https://wordsthatsells.website/blog/ai-digital-marketing-laos"
-    },
-    {
-      "@type": "Review",
-      "@id": "https://wordsthatsells.website/#review",
-      "itemReviewed": {
-        "@id": "https://wordsthatsells.website/#seo-service"
-      },
-      "author": {
-        "@type": "Person",
-        "name": "Sarah Lee"
-      },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5",
-        "bestRating": "5"
-      },
-      "reviewBody": "The AI Digital Marketing Agency in Laos transformed our online presence with their SEO services. Highly recommend!"
-    },
-    {
-      "@type": "AggregateRating",
-      "@id": "https://wordsthatsells.website/#aggregaterating",
-      "itemReviewed": {
-        "@id": "https://wordsthatsells.website/#organization"
-      },
-      "ratingValue": "4.8",
-      "ratingCount": "25",
-      "bestRating": "5",
-      "worstRating": "1"
-    },
-    {
-      "@type": "BreadcrumbList",
-      "@id": "https://wordsthatsells.website/#breadcrumblist",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://wordsthatsells.website"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Digital Marketing Services",
-          "item": "https://wordsthatsells.website/seo-digital-marketing"
-        }
+      "areaServed": [
+        { "@type": "Country", "name": "Laos" },
+        { "@type": "Country", "name": "Thailand" },
+        { "@type": "Place", "name": "Southeast Asia" }
       ]
-    },
-    {
-      "@type": "FAQPage",
-      "@id": "https://wordsthatsells.website/#faqpage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What services does your AI Digital Marketing Agency in Laos offer?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "We provide AI-driven SEO, content creation, local business SEO services, Google My Business optimization, web and app development, and business automation for SMEs in Laos and Thailand."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "How do you optimize Google My Business for local SEO?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "We optimize Google My Business by ensuring accurate business details, using high-quality images, actively responding to reviews, and creating regular, localized updates to improve visibility in Vientiane and beyond."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "How does AI improve my marketing results?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "AI helps automate tasks, analyze data, and personalize campaigns, resulting in faster execution, better targeting, and higher ROI for your business."
-          }
-        }
-      ]
-    },
-    {
-      "@type": "Product",
-      "@id": "https://wordsthatsells.website/#product",
-      "name": "AI Marketing Hub - Annual Subscription",
-      "description": "The best reason to revolutionize your marketing now with our AI Marketing Hub! This comprehensive platform leverages advanced artificial intelligence to automate routine tasks, analyze complex data, and personalize customer interactions, empowering your business to achieve unprecedented efficiency and targeted reach.",
-      "sku": "AI-HUB-001",
-      "brand": {
-        "@type": "Brand",
-        "name": "WordsThatSells.Website"
-      },
-      "offers": {
-        "@type": "Offer",
-        "priceCurrency": "USD",
-        "price": "10000.00",
-        "url": "https://wordsthatsells.website/ai-marketing-hub",
-        "availability": "https://schema.org/InStock",
-        "priceValidUntil": "2026-12-31"
-      }
     }
   ]
 }
-```

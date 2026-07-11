@@ -87,6 +87,43 @@
                 return;
             }
 
+            // 2b. Legacy unprefixed paths (pre-/en structure) → English.
+            //    Static redirect stubs cover the known set; this is a safety net
+            //    for any remaining legacy crawl URLs.
+            const LEGACY_PREFIXES = [
+                '/digital-marketing-services',
+                '/seo-digital-marketing',
+                '/resources',
+                '/company',
+                '/articles',
+                '/checkout',
+                '/digital-business-services-lao-asia',
+                '/digitizing-business-services-lao-asia'
+            ];
+            for (let i = 0; i < LEGACY_PREFIXES.length; i++) {
+                const p = LEGACY_PREFIXES[i];
+                if (path === p || path === p + '/' || path.indexOf(p + '/') === 0) {
+                    if (p === '/seo-digital-marketing') {
+                        window.location.replace('/en/digital-marketing-services/' + window.location.search + window.location.hash);
+                    } else if (p === '/digital-business-services-lao-asia' || p === '/digitizing-business-services-lao-asia') {
+                        window.location.replace('/en/' + window.location.search + window.location.hash);
+                    } else {
+                        window.location.replace('/en' + path + window.location.search + window.location.hash);
+                    }
+                    return;
+                }
+            }
+            // Bare non-en language codes sometimes used as /lo (ISO) vs /la (site)
+            if (path === '/lo' || path === '/lo/') {
+                window.location.replace('/en/' + window.location.search + window.location.hash);
+                return;
+            }
+            // Fake sitelinks-searchbox URL from old WebSite SearchAction schema
+            if (path === '/search' || path.indexOf('/search') === 0) {
+                window.location.replace('/en/resources/glossary/' + window.location.search + window.location.hash);
+                return;
+            }
+
             // 3. Localized 404 message (strings mirror src/locales/site/*.json).
             const MESSAGES = {
                 en: { title: '404 - Page Not Found', body: 'The page you are looking for does not exist.', home: 'Go to Homepage', dir: 'en' },
