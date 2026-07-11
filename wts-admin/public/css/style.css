@@ -408,13 +408,25 @@ input, textarea, select {
   text-decoration: underline;
 }
 
-/* Sitewide admin legal footer (canonical public policies) */
+/* Sitewide admin legal footer (canonical public policies).
+   Full-width row under main (dashboard-layout is flex-direction: column). */
 .admin-legal-footer {
-  margin-top: auto;
+  flex: 0 0 auto;
+  width: calc(100% - var(--sidebar-width));
+  max-width: calc(100% - var(--sidebar-width));
+  margin-left: var(--sidebar-width);
+  margin-top: 0;
   padding: 1rem 1.25rem 1.35rem;
   border-top: 1px solid var(--gray-200, #e2e8f0);
   background: var(--gray-50, #f8fafc);
   text-align: center;
+  box-sizing: border-box;
+}
+
+body:not(.dashboard-layout) .admin-legal-footer {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
 }
 
 .admin-legal-note {
@@ -529,9 +541,14 @@ input, textarea, select {
    Dashboard Layout
    =================================== */
 
+/* Column stack: sidebar is position:fixed (out of flow). main + legal footer
+   must stack vertically — a row flex treated the footer as a side sibling and
+   crushed .main-content to ~min-content width (wide tables appeared "empty"). */
 .dashboard-layout {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  width: 100%;
 }
 
 /* Sidebar */
@@ -779,15 +796,21 @@ input, textarea, select {
   z-index: 999;
 }
 
-/* Main Content */
+/* Main Content
+   Sidebar is fixed, so width is viewport minus sidebar — not 100vw + margin.
+   min-width: 0 is required so flex children can shrink/scroll instead of
+   locking the column to table min-content width. */
 .main-content {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: calc(100% - var(--sidebar-width));
+  max-width: calc(100% - var(--sidebar-width));
   margin-left: var(--sidebar-width);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
-  max-width: 100vw;
+  overflow-x: hidden; /* page chrome stays clean; tables scroll inside .table-container */
+  box-sizing: border-box;
 }
 
 /* Header */
@@ -1171,7 +1194,10 @@ input, textarea, select {
 /* Page Content */
 .page-content {
   flex: 1;
+  min-width: 0;
+  width: 100%;
   padding: var(--space-lg);
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -1205,7 +1231,9 @@ input, textarea, select {
   background: var(--white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow: hidden; /* keep rounded corners */
+  min-width: 0;
+  max-width: 100%;
 }
 
 .card-header {
@@ -1293,10 +1321,14 @@ input, textarea, select {
   margin-top: 4px;
 }
 
-/* Tables */
+/* Tables — allow horizontal scroll for wide multi-column grids */
 .table-container {
   width: 100%;
-  overflow: hidden;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
@@ -1535,6 +1567,14 @@ select.form-input {
 
   .main-content {
     margin-left: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .admin-legal-footer {
+    margin-left: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
   .mobile-menu-btn {
