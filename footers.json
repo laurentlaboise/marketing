@@ -2,12 +2,12 @@
   "default": "main",
   "assignments": [
     {
-      "match": "/en/resources",
-      "variant": "keep"
+      "match": "/en/resources/*",
+      "variant": "main"
     },
     {
-      "match": "/en/resources/*",
-      "variant": "keep"
+      "match": "/en/resources",
+      "variant": "main"
     }
   ],
   "variants": {
@@ -164,7 +164,7 @@
           "href": "https://wordsthatsells.website/en/company/legal/cookie-policy.html"
         }
       ],
-      "copyright": "© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253"
+      "copyright": "\u00a9 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 \u2013 000001253"
     }
   }
 }
