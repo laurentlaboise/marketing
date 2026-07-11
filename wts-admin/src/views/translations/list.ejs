@@ -43,6 +43,28 @@
       </div>
     </div>
 
+    <!-- Per-language progress: the operations view of the pipeline -->
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-body" style="display:flex; gap:1.25rem; flex-wrap:wrap;">
+        <% languages.forEach(function (l) {
+             var s = (typeof langStats !== 'undefined' && langStats[l]) || {};
+             var total = Object.values(s).reduce(function (a, b) { return a + b; }, 0);
+             var published = s.published || 0;
+             var pct = total ? Math.round(published * 100 / total) : 0; %>
+          <a href="/translations?lang=<%= l %>" style="text-decoration:none; color:inherit; min-width:150px;">
+            <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);"><%= languageNames[l] || l %></div>
+            <div style="font-size:1.15rem; font-weight:700;"><%= pct %>% <span style="font-size:0.75rem; font-weight:400; color:var(--gray-500);">published</span></div>
+            <div style="height:6px; background:var(--gray-200); border-radius:999px; overflow:hidden; margin:0.25rem 0;">
+              <div style="height:100%; width:<%= pct %>%; background:#059669;"></div>
+            </div>
+            <div style="font-size:0.72rem; color:var(--gray-500);">
+              <%= published %> live · <%= (s.verified || 0) %> verified · <%= (s.requires_review || 0) %> in review · <%= (s.pending || 0) + (s.translating || 0) %> queued<%= s.rejected ? ' \u00b7 ' + s.rejected + ' returned' : '' %>
+            </div>
+          </a>
+        <% }); %>
+      </div>
+    </div>
+
     <div class="card" style="margin-bottom: 1rem;">
       <div class="card-body">
         <form method="GET" action="/translations" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end;">
@@ -81,10 +103,24 @@
     <div class="card">
       <div class="card-body" style="padding: 0;">
         <% if (items.length > 0) { %>
+        <!-- Bulk actions for the checked rows -->
+        <div id="bulkBar" hidden style="display:flex; gap:0.75rem; align-items:center; padding:0.75rem 1rem; border-bottom:1px solid var(--gray-200); background:var(--gray-50, #f9fafb);">
+          <strong><span id="bulkCount">0</span> selected</strong>
+          <select class="form-input" id="bulkWorker" style="max-width:220px; padding:0.25rem;">
+            <option value="">Choose worker&hellip;</option>
+            <% translators.forEach(t => { %>
+              <option value="<%= t.id %>" data-langs="<%= (t.assigned_languages || []).join(',') %>"><%= t.first_name %> <%= t.last_name || '' %> (<%= (t.assigned_languages || []).join(', ') || 'no languages' %>)</option>
+            <% }); %>
+          </select>
+          <button type="button" class="btn btn-sm btn-secondary" id="bulkAssignBtn"><i class="fas fa-user-pen"></i> Assign as translator</button>
+          <button type="button" class="btn btn-sm btn-secondary" id="bulkVerifyBtn"><i class="fas fa-clipboard-check"></i> Send to verify</button>
+          <span style="color:var(--gray-500); font-size:0.8rem;">Rows the worker can't take (language, self-verification, status) are skipped and reported.</span>
+        </div>
         <div class="table-container">
           <table class="table table-responsive-cards">
             <thead>
               <tr>
+                <th style="width:2rem;"><input type="checkbox" id="selectAll" title="Select all on this page"></th>
                 <th>Content</th>
                 <th>Language</th>
                 <th>Status</th>
@@ -98,6 +134,7 @@
             <tbody>
               <% items.forEach(item => { %>
               <tr>
+                <td data-label="Select"><input type="checkbox" class="row-check" value="<%= item.id %>"></td>
                 <td data-label="Content">
                   <span style="color:var(--gray-500);"><%= item.entity_type %></span>
                   <% if (item.entity_title || item.page_path) { %>
@@ -331,6 +368,56 @@
         alert(res.data.error || 'Bulk publish failed');
       }
     });
+  });
+
+  // Bulk assignment: loops the checked rows through the existing per-row
+  // endpoints; the server enforces language/self-verification/status per
+  // row, so partial success reports honestly instead of failing the batch.
+  function checkedIds() {
+    return Array.prototype.map.call(document.querySelectorAll('.row-check:checked'), function (c) { return c.value; });
+  }
+  function refreshBulkBar() {
+    var n = checkedIds().length;
+    var bar = document.getElementById('bulkBar');
+    if (bar) { bar.hidden = n === 0; document.getElementById('bulkCount').textContent = n; }
+  }
+  var selectAll = document.getElementById('selectAll');
+  if (selectAll) selectAll.addEventListener('change', function () {
+    document.querySelectorAll('.row-check').forEach(function (c) { c.checked = selectAll.checked; });
+    refreshBulkBar();
+  });
+  document.querySelectorAll('.row-check').forEach(function (c) { c.addEventListener('change', refreshBulkBar); });
+
+  function bulkRun(pathFor, body) {
+    var ids = checkedIds();
+    var worker = document.getElementById('bulkWorker').value;
+    if (!worker) return alert('Choose a worker first.');
+    if (!ids.length) return;
+    var done = 0, ok = 0, skipped = [];
+    var btns = [document.getElementById('bulkAssignBtn'), document.getElementById('bulkVerifyBtn')];
+    btns.forEach(function (b) { b.disabled = true; });
+    function next() {
+      if (done >= ids.length) {
+        btns.forEach(function (b) { b.disabled = false; });
+        alert(ok + ' of ' + ids.length + ' assigned.' + (skipped.length ? '\n\nSkipped:\n' + skipped.join('\n') : ''));
+        if (ok) location.reload();
+        return;
+      }
+      var rowId = ids[done++];
+      post('/translations/' + rowId + pathFor, body(worker)).then(function (res) {
+        if (res.ok) ok++; else skipped.push((res.data.error || 'error') + ' (' + rowId.slice(0, 8) + ')');
+        next();
+      }).catch(function () { skipped.push('network error (' + rowId.slice(0, 8) + ')'); next(); });
+    }
+    next();
+  }
+  var bulkAssignBtn = document.getElementById('bulkAssignBtn');
+  if (bulkAssignBtn) bulkAssignBtn.addEventListener('click', function () {
+    bulkRun('/assign', function (w) { return { translator_id: w }; });
+  });
+  var bulkVerifyBtn = document.getElementById('bulkVerifyBtn');
+  if (bulkVerifyBtn) bulkVerifyBtn.addEventListener('click', function () {
+    bulkRun('/assign-verifier', function (w) { return { verifier_id: w }; });
   });
 
   document.querySelectorAll('.assign-select').forEach(function (select) {
