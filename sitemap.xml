@@ -2,156 +2,172 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
-  <!-- EN-only sitemap. SPA shell /en/articles/ excluded (noindex). -->
-  <!-- URL count: 24 | generated 2026-07-09 -->
+  <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->
+  <!-- URL count: 107 | generated 2026-07-11 by scripts/generate-sitemap.js -->
 
   <url>
     <loc>https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/articles/example-article.html</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/articles/example-article.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/articles/example-article.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/about-us/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/about-us/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/about-us/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/affiliate-sales/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/affiliate-sales/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/affiliate-sales/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/contact-us/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/contact-us/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/contact-us/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/digital-agencies/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/digital-agencies/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/digital-agencies/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/cookie-policy.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/cookie-policy.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/cookie-policy.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/privacy-policy.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/terms-and-conditions.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/business-tools/</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/content-creation/</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/prices/</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/social-media-management/</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/web-development/</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/" />
@@ -159,42 +175,690 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/ai-tools/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/articles/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/articles/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/articles/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/agile-content-development-for-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/agile-content-development-for-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/agile-content-development-for-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/alt-attributes-seo-and-accessibility-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/alt-attributes-seo-and-accessibility-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/alt-attributes-seo-and-accessibility-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/amp-accelerated-mobile-pages-guide-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/amp-accelerated-mobile-pages-guide-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/amp-accelerated-mobile-pages-guide-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/anchor-text-optimization-guide-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/anchor-text-optimization-guide-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/anchor-text-optimization-guide-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/backlinks-building-strategy-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/backlinks-building-strategy-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/backlinks-building-strategy-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/bad-neighborhood-links-risks-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/bad-neighborhood-links-risks-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/bad-neighborhood-links-risks-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/broken-link-building-guide-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/broken-link-building-guide-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/broken-link-building-guide-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/business-directory-submissions-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/business-directory-submissions-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/business-directory-submissions-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/cloaking-seo-penalty-risk-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/cloaking-seo-penalty-risk-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/cloaking-seo-penalty-risk-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/content-blockers-in-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/content-blockers-in-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/content-blockers-in-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/content-gap-analysis-strategy-guide-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/content-gap-analysis-strategy-guide-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/content-gap-analysis-strategy-guide-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/content-marketing-strategy-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/content-marketing-strategy-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/content-marketing-strategy-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/content-relevance-signals-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/content-relevance-signals-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/content-relevance-signals-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/cookies-and-seo-impact-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/cookies-and-seo-impact-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/cookies-and-seo-impact-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/domain-popularity-metrics-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/domain-popularity-metrics-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/domain-popularity-metrics-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/domain-trust-signals-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/domain-trust-signals-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/domain-trust-signals-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/duplicate-content-issues-and-fixes-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/duplicate-content-issues-and-fixes-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/duplicate-content-issues-and-fixes-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/featured-snippets-optimization-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/featured-snippets-optimization-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/featured-snippets-optimization-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/finding-seo-ranking-opportunities-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/finding-seo-ranking-opportunities-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/finding-seo-ranking-opportunities-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/frames-and-seo-problems-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/frames-and-seo-problems-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/frames-and-seo-problems-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/geo-generative-engine-optimization-strategies-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/geo-generative-engine-optimization-strategies-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/geo-generative-engine-optimization-strategies-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/google-ads-strategy-2026-guide.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/google-ads-strategy-2026-guide.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/google-ads-strategy-2026-guide.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/google-business-profile-optimization-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/google-business-profile-optimization-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/google-business-profile-optimization-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/google-knowledge-graph-optimization-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/google-knowledge-graph-optimization-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/google-knowledge-graph-optimization-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/google-lighthouse-audit-guide-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/google-lighthouse-audit-guide-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/google-lighthouse-audit-guide-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/google-maps-seo-guide-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/google-maps-seo-guide-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/google-maps-seo-guide-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/google-news-seo-strategy-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/google-news-seo-strategy-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/google-news-seo-strategy-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/google-webmaster-guidelines-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/google-webmaster-guidelines-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/google-webmaster-guidelines-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/how-search-engines-work-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/how-search-engines-work-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/how-search-engines-work-2026.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/glossary/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/internal-linking-strategy-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/internal-linking-strategy-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/internal-linking-strategy-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/keyword-cannibalization-detection-and-fix-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/keyword-cannibalization-detection-and-fix-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/keyword-cannibalization-detection-and-fix-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/keyword-density-myths-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/keyword-density-myths-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/keyword-density-myths-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/keyword-proximity-in-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/keyword-proximity-in-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/keyword-proximity-in-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/keyword-stuffing-penalties-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/keyword-stuffing-penalties-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/keyword-stuffing-penalties-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/keywords-in-seo-2026-guide.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/keywords-in-seo-2026-guide.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/keywords-in-seo-2026-guide.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/link-juice-flow-strategy-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/link-juice-flow-strategy-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/link-juice-flow-strategy-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/link-popularity-metrics-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/link-popularity-metrics-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/link-popularity-metrics-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/link-text-anchor-best-practices-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/link-text-anchor-best-practices-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/link-text-anchor-best-practices-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/meta-description-optimization-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/meta-description-optimization-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/meta-description-optimization-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/meta-tags-for-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/meta-tags-for-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/meta-tags-for-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/offpage-optimization-strategies-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/offpage-optimization-strategies-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/offpage-optimization-strategies-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/onpage-optimization-checklist-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/onpage-optimization-checklist-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/onpage-optimization-checklist-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/optimizing-web-pages-for-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/optimizing-web-pages-for-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/optimizing-web-pages-for-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/page-content-optimization-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/page-content-optimization-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/page-content-optimization-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/page-title-optimization-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/page-title-optimization-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/page-title-optimization-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/paid-listings-vs-organic-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/paid-listings-vs-organic-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/paid-listings-vs-organic-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/rich-snippets-with-structured-data-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/rich-snippets-with-structured-data-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/rich-snippets-with-structured-data-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/robots-txt-best-practices-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/robots-txt-best-practices-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/robots-txt-best-practices-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-engine-advertising-sea-guide-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-engine-advertising-sea-guide-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-engine-advertising-sea-guide-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-engine-crawlers-guide-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-engine-crawlers-guide-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-engine-crawlers-guide-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-engine-guidelines-compliance-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-engine-guidelines-compliance-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-engine-guidelines-compliance-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-engine-marketing-sem-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-engine-marketing-sem-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-engine-marketing-sem-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-engine-optimization-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-engine-optimization-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-engine-optimization-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-engine-spam-penalties-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-engine-spam-penalties-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-engine-spam-penalties-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-engine-submission-myths-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-engine-submission-myths-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-engine-submission-myths-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-index-management-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-index-management-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-index-management-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-intent-optimization-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-intent-optimization-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-intent-optimization-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-terms-vs-keywords-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-terms-vs-keywords-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-terms-vs-keywords-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/search-volume-analysis-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/search-volume-analysis-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/search-volume-analysis-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/seo-briefing-template-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/seo-briefing-template-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/seo-briefing-template-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/seo-competition-analysis-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/seo-competition-analysis-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/seo-competition-analysis-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/seo-content-editor-role-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/seo-content-editor-role-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/seo-content-editor-role-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/seo-conversion-optimization-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/seo-conversion-optimization-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/seo-conversion-optimization-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/seo-ranking-factors-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/seo-ranking-factors-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/seo-ranking-factors-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/seo-visibility-metrics-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/seo-visibility-metrics-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/seo-visibility-metrics-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/sitemap-xml-best-practices-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/sitemap-xml-best-practices-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/sitemap-xml-best-practices-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/ssl-encryption-for-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/ssl-encryption-for-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/ssl-encryption-for-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/structured-data-implementation-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/structured-data-implementation-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/structured-data-implementation-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/topic-explorer-tools-for-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/topic-explorer-tools-for-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/topic-explorer-tools-for-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/topical-relevance-and-authority-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/topical-relevance-and-authority-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/topical-relevance-and-authority-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/tracking-seo-rankings-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/tracking-seo-rankings-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/tracking-seo-rankings-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/understanding-search-results-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/understanding-search-results-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/understanding-search-results-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/universal-search-optimization-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/universal-search-optimization-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/universal-search-optimization-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/url-structure-for-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/url-structure-for-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/url-structure-for-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/user-experience-ux-in-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/user-experience-ux-in-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/user-experience-ux-in-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/user-signals-in-ranking-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/user-signals-in-ranking-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/user-signals-in-ranking-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/web-catalogues-and-directories-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/web-catalogues-and-directories-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/web-catalogues-and-directories-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/web-directory-submissions-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/web-directory-submissions-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/web-directory-submissions-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/website-seo-fundamentals-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/website-seo-fundamentals-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/website-seo-fundamentals-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/website-structure-for-seo-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/website-structure-for-seo-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/website-structure-for-seo-2026.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/glossary/zero-click-searches-impact-and-strategy-2026.html</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/zero-click-searches-impact-and-strategy-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/zero-click-searches-impact-and-strategy-2026.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/guides/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/guides/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/guides/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/" />
   </url>
 </urlset>
