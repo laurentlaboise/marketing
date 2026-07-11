@@ -1,5 +1,11 @@
-# Root → English (works on Netlify/Cloudflare; GH Pages uses meta refresh in index.html)
-/    /en/    301
+# Root → browser language (Netlify parses the Accept-Language header for
+# the Language condition), else English. 302 — a visitor's language is not
+# permanent. On GitHub Pages (the live host) the same sequence runs
+# client-side in /index.html: wts_lang cookie → navigator.languages → /en/.
+/    /th/    302    Language=th
+/    /la/    302    Language=lo
+/    /fr/    302    Language=fr
+/    /en/    302
 
 # Clean article SPA rewrite (if hosted on Netlify)
 /en/articles/*  /en/articles/index.html  200

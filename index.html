@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="/css/main.css">
@@ -12,7 +14,6 @@
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     </noscript>
 
-    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>WordsThatSells | AI Digital Marketing Agency in Laos</title>
     <meta name="description" content="AI Digital Marketing Agency in Laos — SEO, content, social media, and business automation for SMEs in Southeast Asia.">
     <meta name="robots" content="noindex, follow">
@@ -36,21 +37,32 @@
       gtag('config', 'G-LMRKC1VBBB');
     </script>
     <script>
-      // Language router: saved preference (wts_lang cookie, written by the
-      // language switcher) wins, then the browser language, else English.
-      // The meta refresh above stays as the no-JS fallback to /en/. Missing
-      // localized trees are safe — the 404 handler bounces any
-      // not-yet-generated /th /la /fr path back to /en.
+      // Language router — absolute locale routing from the root:
+      //   1. saved preference (wts_lang cookie, written by the footer
+      //      language selector) wins;
+      //   2. else the browser's language list (navigator.languages is the
+      //      client-side mirror of the Accept-Language header) — the FIRST
+      //      supported entry decides (th → /th/, lo → /la/, fr → /fr/,
+      //      en → /en/);
+      //   3. unsupported or undetectable → /en/ immediately.
+      // Targets are always root-absolute ('/xx/'), so the locale can never
+      // stack onto an existing path. The meta refresh above stays as the
+      // no-JS fallback to /en/. Missing localized trees are safe — the 404
+      // handler bounces any not-yet-generated /th /la /fr path back to /en.
       (function () {
+        var SUPPORTED = { en: 'en', th: 'th', lo: 'la', fr: 'fr' };
         var m = document.cookie.match(/(?:^|;\s*)wts_lang=(en|th|la|fr)/);
         var target = m && m[1];
         if (!target) {
-          var nav = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase();
-          if (nav.indexOf('th') === 0) target = 'th';
-          else if (nav.indexOf('lo') === 0) target = 'la';
-          else if (nav.indexOf('fr') === 0) target = 'fr';
+          var prefs = (navigator.languages && navigator.languages.length)
+            ? navigator.languages
+            : [navigator.language || ''];
+          for (var i = 0; i < prefs.length && !target; i++) {
+            var primary = String(prefs[i] || '').toLowerCase().split('-')[0];
+            if (SUPPORTED[primary]) target = SUPPORTED[primary];
+          }
         }
-        window.location.replace('/' + (target || 'en') + '/');
+        window.location.replace('/' + (target || 'en') + '/' + window.location.search + window.location.hash);
       })();
     </script>
   </head>
