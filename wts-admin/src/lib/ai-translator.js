@@ -215,12 +215,20 @@ async function runBatch(rows) {
         payload[field] = await translateText(anthropic, value, row.target_language);
       }
 
+      // Meter the billable target characters at draft time (Lao/Thai have
+      // no word breaks, so verification and edit payouts are per-character).
+      // Storing it here — rather than backfilling at publish — means the
+      // count is visible in the pipeline the moment the AI finishes and is
+      // the exact figure a verifier's per-1,000-character rate applies to.
+      const targetChars = core.countChars(payload);
+
       await db.query(
         `UPDATE translations
-         SET content_payload = $1, source_hash = $2, word_count = $3, ai_model = $4,
+         SET content_payload = $1, source_hash = $2, word_count = $3,
+             target_char_count = $4, ai_model = $5,
              status = 'requires_review', updated_at = CURRENT_TIMESTAMP
-         WHERE id = $5`,
-        [JSON.stringify(payload), source.hash, source.wordCount, model(), row.id]
+         WHERE id = $6`,
+        [JSON.stringify(payload), source.hash, source.wordCount, targetChars, model(), row.id]
       );
       job.translated += 1;
     } catch (error) {

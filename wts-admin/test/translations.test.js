@@ -1187,3 +1187,95 @@ test('approval notes stamp language, attach translations, and the board ships it
   assert.ok(html.includes('Request approval'), 'island strings shipped');
   assert.ok(!html.includes('boards.island.'), 'no raw locale keys leak into the page');
 });
+
+// ---------------------------------------------------------------------------
+// Pipeline batching (pagination) + assign-to-verifier (push side)
+// ---------------------------------------------------------------------------
+
+// Minimal drafted row straight into the pipeline (bypasses sync/AI so the
+// pagination + assignment routes can be exercised deterministically).
+async function seedTranslation(overrides = {}) {
+  const o = {
+    entity_type: 'glossary', target_language: 'la', status: 'requires_review',
+    payload: { definition: 'ຄຳ ນິຍາມ ທົດ ສອບ' }, translatorId: null, charCount: 40, ...overrides,
+  };
+  const row = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, translator_id, target_char_count, ai_model)
+     VALUES ($1, gen_random_uuid(), $2, $3, $4::jsonb, $5, $6, $7) RETURNING id`,
+    [o.entity_type, o.target_language, o.status, JSON.stringify(o.payload), o.translatorId, o.charCount, o.aiModel || null]
+  );
+  return row.rows[0].id;
+}
+
+test('pipeline list batches results and clamps the page to the filtered total', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+
+  // Isolate from other tests' rows by asserting against a filtered view I
+  // fully own: fr + requires_review. requires_review rows never carry
+  // payout_ledger entries (credits happen only at publish), so clearing
+  // and re-seeding them is FK-safe regardless of test order.
+  const scope = `lang=fr&status=requires_review`;
+  await pool.query(`DELETE FROM translations WHERE target_language = 'fr' AND status = 'requires_review'`);
+  for (let i = 0; i < 55; i++) await seedTranslation({ target_language: 'fr', aiModel: 'claude-test' });
+
+  // Page 1 at 50/page: 55 in the filtered set across 2 pages, batch 1 is 1–50.
+  const p1 = await (await session.fetch(`/translations?${scope}&per_page=50&page=1`)).text();
+  assert.ok(/of\s*<strong>55<\/strong>/.test(p1), 'shows the filtered total');
+  assert.ok(/Showing\s*<strong>1<\/strong>[\s\S]*?<strong>50<\/strong>/.test(p1), 'first batch is 1–50');
+  assert.ok(/Page\s*1\s*\/\s*2/.test(p1), 'two pages at 50/page');
+
+  // An out-of-range page clamps to the last real page instead of empty.
+  const pOver = await (await session.fetch(`/translations?${scope}&per_page=50&page=99`)).text();
+  assert.ok(/Page\s*2\s*\/\s*2/.test(pOver), 'over-range page clamps to the last');
+  assert.ok(/Showing\s*<strong>51<\/strong>[\s\S]*?<strong>55<\/strong>/.test(pOver), 'last batch is 51–55');
+
+  // A larger batch size collapses it to a single page.
+  const big = await (await session.fetch(`/translations?${scope}&per_page=200`)).text();
+  assert.ok(/Page\s*1\s*\/\s*1/.test(big), '200/page fits all 55 on one page');
+
+  await pool.query(`DELETE FROM translations WHERE target_language = 'fr' AND status = 'requires_review'`);
+});
+
+test('assign-verifier routes a drafted row to a verifier with the right guards', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+  const verifierId = (await pool.query(`SELECT id FROM users WHERE email = 'verifier@test.local'`)).rows[0].id;
+  const seeded = [];
+  const seed = async (o) => { const id = await seedTranslation(o); seeded.push(id); return id; };
+
+  // AI draft (no translator) → any same-language verifier may take it.
+  const aiRow = await seed({ aiModel: 'claude-test' });
+  const ok = await session.fetch(`/translations/${aiRow}/assign-verifier`, {
+    method: 'POST', headers, body: JSON.stringify({ verifier_id: verifierId }),
+  });
+  assert.equal(ok.status, 200);
+  const after = (await pool.query('SELECT verifier_id FROM translations WHERE id = $1', [aiRow])).rows[0];
+  assert.equal(String(after.verifier_id), String(verifierId));
+
+  // Self-verification is refused: the row's own translator can't verify it.
+  const humanRow = await seed({ translatorId: verifierId });
+  const selfRes = await session.fetch(`/translations/${humanRow}/assign-verifier`, {
+    method: 'POST', headers, body: JSON.stringify({ verifier_id: verifierId }),
+  });
+  assert.equal(selfRes.status, 400);
+  assert.match((await selfRes.json()).error, /own work/i);
+
+  // Wrong language: the verifier is assigned {la}, this row is Thai.
+  const thRow = await seed({ target_language: 'th' });
+  const langRes = await session.fetch(`/translations/${thRow}/assign-verifier`, {
+    method: 'POST', headers, body: JSON.stringify({ verifier_id: verifierId }),
+  });
+  assert.equal(langRes.status, 400);
+
+  // Only a drafted (requires_review) row can be routed to a verifier.
+  const publishedRow = await seed({ status: 'published' });
+  const stateRes = await session.fetch(`/translations/${publishedRow}/assign-verifier`, {
+    method: 'POST', headers, body: JSON.stringify({ verifier_id: verifierId }),
+  });
+  assert.equal(stateRes.status, 409);
+
+  await pool.query('DELETE FROM translations WHERE id = ANY($1)', [seeded]);
+});

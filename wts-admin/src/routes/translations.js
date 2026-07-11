@@ -87,15 +87,39 @@ router.get('/', ensureSuperAdmin, async (req, res, next) => {
       where.push(`t.entity_type = $${params.length}`);
     }
 
+    const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+
+    // Gmail-style batching: the filtered set is paged in fixed sizes so a
+    // long pipeline never becomes one endless scroll. per_page is clamped
+    // to a whitelist; page is derived from the filtered total so an
+    // out-of-range ?page= (e.g. after tightening a filter) lands on the
+    // last real page instead of an empty one.
+    const PER_PAGE_CHOICES = [50, 100, 200];
+    const perPage = PER_PAGE_CHOICES.includes(parseInt(req.query.per_page, 10))
+      ? parseInt(req.query.per_page, 10) : 50;
+
+    const totalRow = await db.query(
+      `SELECT COUNT(*)::int AS total FROM translations t ${whereSql}`,
+      params
+    );
+    const totalItems = totalRow.rows[0].total;
+    const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
+    let page = parseInt(req.query.page, 10) || 1;
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    const offset = (page - 1) * perPage;
+
     const rows = await db.query(
       `SELECT t.*, u.first_name AS translator_first_name, u.last_name AS translator_last_name,
+              v.first_name AS verifier_first_name, v.last_name AS verifier_last_name,
               sp.path AS page_path
        FROM translations t
        LEFT JOIN users u ON u.id = t.translator_id
+       LEFT JOIN users v ON v.id = t.verifier_id
        LEFT JOIN site_pages sp ON t.entity_type = 'page' AND sp.id = t.entity_id
-       ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+       ${whereSql}
        ORDER BY t.updated_at DESC
-       LIMIT 200`,
+       LIMIT ${perPage} OFFSET ${offset}`,
       params
     );
 
@@ -118,6 +142,8 @@ router.get('/', ensureSuperAdmin, async (req, res, next) => {
       languageNames: core.LANGUAGE_NAMES,
       entityTypes: core.ENTITY_TYPES,
       statuses: core.STATUSES,
+      pagination: { page, perPage, totalItems, totalPages, perPageChoices: PER_PAGE_CHOICES,
+        from: totalItems === 0 ? 0 : offset + 1, to: Math.min(offset + perPage, totalItems) },
       aiJob: aiTranslator.getJobStatus(),
       aiConfigured: aiTranslator.isConfigured(),
     });
@@ -263,6 +289,71 @@ router.post('/:id/assign', ensureSuperAdmin, logActivity('translation_assign'), 
   } catch (error) {
     console.error('Assign failed:', error.message);
     asJson(res, 500, { success: false, error: 'Assign failed' });
+  }
+});
+
+// Hand a drafted translation (AI or human) to a specific person to verify.
+// This is the push side of the verify queue: setting verifier_id routes the
+// row straight to that verifier's Verify queue (the workspace query already
+// filters on verifier_id). The verifier is paid per character read, plus a
+// separate per-character edit credit for anything they change — all metered
+// off target_char_count at publish. Guardrails mirror the verify flow:
+// verifier must be a translator assigned the row's language, may not be the
+// row's own translator (no self-verification), and the row must be drafted.
+router.post('/:id/assign-verifier', ensureSuperAdmin, logActivity('translation_assign_verifier'), async (req, res) => {
+  try {
+    const row = await loadTranslation(req, res);
+    if (!row) return;
+    const verifierId = req.body.verifier_id || null;
+
+    if (row.status !== 'requires_review') {
+      return asJson(res, 409, {
+        success: false,
+        error: 'Only a translation awaiting review can be assigned to a verifier.',
+      });
+    }
+
+    if (verifierId) {
+      if (!core.isUuid(verifierId)) {
+        return asJson(res, 400, { success: false, error: 'Invalid verifier id' });
+      }
+      if (row.translator_id && String(row.translator_id) === String(verifierId)) {
+        return asJson(res, 400, {
+          success: false,
+          error: 'A translator cannot verify their own work.',
+        });
+      }
+      const verifier = (await db.query(
+        `SELECT id, role, assigned_languages FROM users WHERE id = $1`,
+        [verifierId]
+      )).rows[0];
+      if (!verifier || verifier.role !== 'translator') {
+        return asJson(res, 400, { success: false, error: 'User is not a verifier' });
+      }
+      if (!(verifier.assigned_languages || []).includes(row.target_language)) {
+        return asJson(res, 400, {
+          success: false,
+          error: `Verifier is not assigned language "${row.target_language}"`,
+        });
+      }
+    }
+
+    await db.query(
+      `UPDATE translations SET verifier_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+      [verifierId, row.id]
+    );
+    if (verifierId) {
+      await core.notifyUser(
+        verifierId,
+        'Translation to verify',
+        `You were asked to verify a ${row.entity_type} translation (${core.LANGUAGE_NAMES[row.target_language] || row.target_language}).`,
+        '/translations/workspace'
+      );
+    }
+    asJson(res, 200, { success: true });
+  } catch (error) {
+    console.error('Verifier assign failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Verifier assign failed' });
   }
 });
 
