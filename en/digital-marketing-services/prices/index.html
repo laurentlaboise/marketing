@@ -70,24 +70,29 @@
         
         body.no-scroll { overflow: hidden; }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .container { max-width: 1140px; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; }
         h1, h2, h3 { font-family: var(--font-family-heading); font-weight: 700; color: var(--color-slate-900); }
         h1 { font-size: clamp(2rem, 4.5vw, 3.25rem); text-align: center; line-height: 1.15; }
-        h2 { font-size: clamp(1.75rem, 3.2vw, 2.5rem); text-align: center; margin-bottom: 1.5rem; line-height: 1.2; }
-        h3 { font-size: clamp(1.25rem, 2vw, 1.65rem); }
+        h2 { font-size: clamp(1.65rem, 3vw, 2.25rem); text-align: center; margin-bottom: 0.85rem; line-height: 1.25; letter-spacing: -0.02em; }
+        h3 { font-size: clamp(1.2rem, 2vw, 1.45rem); }
 
-        .section { padding: 3.5rem 0; }
-        .section-alt { background-color: var(--color-light); border-radius: 16px; padding: 3.5rem 2rem; }
+        .section { padding: 4rem 0 3.25rem; }
+        .section-alt {
+            background-color: #f8fafc;
+            border-radius: 20px;
+            padding: 3rem 1.5rem 3.25rem;
+            border: 1px solid #eef2f7;
+        }
 
-        .header { text-align: center; padding: 2.5rem 0 1.5rem; }
-        .header p { font-size: clamp(1.1rem, 1.6vw, 1.25rem); color: #1e3a4f; max-width: 760px; margin: 1rem auto 0 auto; line-height: 1.7; }
-        .header .audience-note { font-size: 1.05rem; color: #1e3a4f; margin-top: 0.85rem; }
+        .header { text-align: center; padding: 2.75rem 0 1.25rem; }
+        .header p { font-size: 1.1rem; color: #334155; max-width: 36rem; margin: 0.65rem auto 0 auto; line-height: 1.65; }
+        .header .audience-note { font-size: 0.95rem; color: #475569; margin-top: 0.75rem; }
 
         .trust-strip {
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem 1.25rem;
-            margin: 0 auto 1.25rem; padding: 0.85rem 1rem;
-            background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 12px;
-            font-size: 0.92rem; font-weight: 600; color: #0f172a;
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1rem;
+            margin: 1.5rem auto 0.5rem; padding: 0.65rem 0;
+            background: transparent; border: none; border-radius: 0;
+            font-size: 0.9rem; font-weight: 600; color: #334155;
         }
         .trust-strip i { color: var(--color-accent-magenta); margin-right: 0.35rem; }
         .card-trust {
@@ -187,31 +192,50 @@
         @media(min-width: 640px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
         @media(min-width: 1024px) { .grid-4 { grid-template-columns: repeat(3, 1fr); } }
 
-        .card { background-color: var(--color-light); border-radius: 24px; border: 1px solid var(--color-border); padding: 2rem; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; }
+        .card {
+            background-color: #fff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            padding: 1.75rem 1.5rem;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+        }
         
         .lao-card { border-left: 5px solid var(--color-accent-magenta); }
         .lao-card h3 { color: var(--color-accent-magenta); }
 
         .section-kicker {
-            text-align: center; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em;
-            text-transform: uppercase; color: var(--color-accent-magenta); margin: 0 0 0.5rem;
+            text-align: center; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--color-accent-magenta); margin: 0 0 0.65rem;
         }
         .section-lead {
-            text-align: center; max-width: 640px; margin: -0.5rem auto 2rem;
-            color: #1e3a4f; font-size: 1.05rem; line-height: 1.65;
+            text-align: center; max-width: 34rem; margin: 0 auto 2.5rem;
+            color: #475569; font-size: 1.05rem; line-height: 1.65;
         }
 
-        /* Subscription Cards */
-        .subscription-card { text-align: center; position: relative; overflow: visible; background: #fff; }
-        .subscription-card.highlight {
-            border-color: var(--color-accent-magenta); border-width: 3px;
-            transform: scale(1.045);
-            box-shadow: 0 20px 48px rgba(214, 43, 131, 0.18);
-            z-index: 1;
-            background: linear-gradient(180deg, #fff 0%, #fdf2f8 100%);
+        .grid-3 { gap: 1.75rem !important; }
+        .grid-4 { gap: 1.5rem !important; }
+
+        /* Subscription Cards — airier, less heavy */
+        .subscription-card {
+            text-align: center; position: relative; overflow: visible;
+            background: #fff;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04) !important;
+            padding: 1.75rem 1.5rem 1.5rem !important;
+            border-radius: 20px !important;
         }
-        @media (max-width: 899px) {
-            .subscription-card.highlight { transform: none; box-shadow: 0 12px 28px rgba(214, 43, 131, 0.14); }
+        .subscription-card.highlight {
+            border-color: var(--color-accent-magenta) !important;
+            border-width: 2px !important;
+            transform: none;
+            box-shadow: 0 12px 32px rgba(214, 43, 131, 0.12) !important;
+            z-index: 1;
+            background: #fff !important;
+        }
+        @media (min-width: 900px) {
+            .subscription-card.highlight { transform: translateY(-6px); }
         }
 
         .popular-pill-badge { 
