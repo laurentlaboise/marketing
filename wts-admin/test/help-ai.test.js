@@ -11,9 +11,12 @@ const crypto = require('crypto');
 const { Pool } = require('pg');
 const { startServer, Session, TEST_DB_URL } = require('./helpers');
 
-const PORT = 3213;
-const DISABLED_PORT = 3214;
-const STUB_PORT = 3215;
+// Dedicated high ports — do not reuse 3201–3215 (other suites run in
+// parallel under `node --test` and collide on bind; that was producing
+// environmental 503 / wrong-server flakes after Help AI landed).
+const PORT = 3220;
+const DISABLED_PORT = 3221;
+const STUB_PORT = 3222;
 const STUB_TOKEN = 'ody_test-token-for-help-ai-suite';
 
 // ---------------------------------------------------------------------------
@@ -122,10 +125,22 @@ async function postJson(session, path, body, csrfFrom = '/dashboard') {
   });
 }
 
+// Explicit empties (not mere delete) so a local .env or inherited shell
+// ODYSSEUS_*/HELP_AI_* cannot re-enable the feature via dotenv.config()
+// inside server.js — dotenv does not override already-set keys.
+const DISABLED_ENV = {
+  HELP_AI_ENABLED: '',
+  HELP_AI_MODE: '',
+  ODYSSEUS_BASE_URL: '',
+  ODYSSEUS_API_TOKEN: '',
+  ODYSSEUS_ENDPOINT_ID: '',
+  ODYSSEUS_MODEL: '',
+};
+
 before(async () => {
   await startStub();
   server = await startServer(PORT, HELP_ENV);
-  disabledServer = await startServer(DISABLED_PORT); // no HELP_AI_* env at all
+  disabledServer = await startServer(DISABLED_PORT, DISABLED_ENV);
   pool = new Pool({ connectionString: TEST_DB_URL });
   await pool.query(`DELETE FROM customers WHERE email LIKE 'help-test-%'`);
 });
