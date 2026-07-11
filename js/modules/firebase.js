@@ -16,6 +16,7 @@ function detectFormType() {
   const modalTitle = document.querySelector('#quote-modal-container .modal-title');
   if (modalTitle) {
     const text = modalTitle.textContent.toLowerCase();
+    if (text.includes('white-label') || text.includes('white label') || text.includes('agency partner')) return 'white-label';
     if (text.includes('affiliate')) return 'affiliate';
   }
   return 'general-inquiry';
@@ -542,11 +543,22 @@ export async function handleFormSubmit(event) {
   const formData = new FormData(form);
   const agentInvoked = !!(event && event.agentInvoked);
 
-  const name = (formData.get('name') || '').trim();
-  const email = (formData.get('email') || '').trim();
-  const company = (formData.get('company') || '').trim();
-  const service = (formData.get('service') || '').trim();
-  const message = (formData.get('message') || '').trim();
+  // Known top-level fields; everything else (location, years_in_business, etc.) → metadata
+  const knownFields = ['name', 'email', 'company', 'phone', 'message', 'form_type'];
+  const data = {};
+  const metadata = {};
+  for (const [key, value] of formData.entries()) {
+    const val = (value || '').trim();
+    if (!val || key === 'form_type') continue;
+    if (knownFields.includes(key)) {
+      data[key] = val;
+    } else {
+      metadata[key] = val;
+    }
+  }
+
+  const name = data.name || '';
+  const email = data.email || '';
 
   if (!name || !email) {
     const err = 'Please fill in your name and email.';
@@ -563,9 +575,10 @@ export async function handleFormSubmit(event) {
     form_type: formType,
     name,
     email,
-    company: company || undefined,
-    message: message || undefined,
-    metadata: service ? { service } : undefined
+    company: data.company || undefined,
+    phone: data.phone || undefined,
+    message: data.message || undefined,
+    metadata: Object.keys(metadata).length > 0 ? metadata : undefined
   };
 
   if (submitBtn) {
