@@ -6,6 +6,8 @@ permalink: pretty
 # Ensure critical files are included in the build output
 include:
   - sitemap.xml
+  - sitemap-images.xml
+  - sitemap-google.xml
   - robots.txt
   - llms.txt
   - llm.txt

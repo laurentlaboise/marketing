@@ -9,6 +9,10 @@
  *     (never a soft-fallback URL), plus x-default → English
  *   - localized pages get their own <url> entries with the same cluster
  *
+ * Also emits sitemap-images.xml (Google image sitemap) from on-page
+ * og:image / featured <img> + alt/title/caption so Image Library SEO
+ * on the front is discoverable by Google Images.
+ *
  * Skips: pages whose <meta name="robots"> contains noindex (e.g. the
  * /xx/articles/ SPA shells), checkout pages, and backup/dynamic files.
  *
@@ -26,6 +30,7 @@ const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
 const outIndex = args.indexOf('--out');
 const OUT_FILE = outIndex !== -1 ? path.resolve(args[outIndex + 1]) : path.join(ROOT, 'sitemap.xml');
+const IMAGE_OUT = path.join(ROOT, 'sitemap-images.xml');
 
 function walkHtml(dir, base = dir) {
   if (!fs.existsSync(dir)) return [];
@@ -84,7 +89,50 @@ function lastmod(absFile) {
   return fs.statSync(absFile).mtime.toISOString().slice(0, 10);
 }
 
-function urlEntry(loc, meta, mod, alternates) {
+function escapeXml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Pull primary image + SEO fields from page HTML (own-domain preferred). */
+function extractPageImage(html) {
+  const og = /property=["']og:image["'][^>]*content=["']([^"']+)["']/i.exec(html)
+    || /content=["']([^"']+)["'][^>]*property=["']og:image["']/i.exec(html);
+  const ogAlt = /property=["']og:image:alt["'][^>]*content=["']([^"']+)["']/i.exec(html)
+    || /content=["']([^"']+)["'][^>]*property=["']og:image:alt["']/i.exec(html);
+  const fig = /<figcaption[^>]*>([\s\S]*?)<\/figcaption>/i.exec(html);
+  const imgBlock = /<img\b[^>]*class=["'][^"']*featured-image[^"']*["'][^>]*>/i.exec(html)
+    || /<img\b[^>]*src=["'][^"']*\/images\/[^"']+["'][^>]*>/i.exec(html);
+  let src = og ? og[1] : '';
+  let alt = ogAlt ? ogAlt[1] : '';
+  let title = '';
+  if (imgBlock) {
+    const tag = imgBlock[0];
+    const srcM = /\bsrc=["']([^"']+)["']/i.exec(tag);
+    const altM = /\balt=["']([^"']*)["']/i.exec(tag);
+    const titleM = /\btitle=["']([^"']*)["']/i.exec(tag);
+    if (!src && srcM) src = srcM[1];
+    if (!alt && altM) alt = altM[1];
+    if (titleM) title = titleM[1];
+  }
+  if (!src || !/\/images\//i.test(src)) return null;
+  // Prefer first-party host
+  if (src.startsWith('/')) src = `${SITE_ORIGIN}${src}`;
+  // Skip logos, icons, favicons — not ranking assets
+  if (/logo|favicon|icon[_-]|sprite|placeholder/i.test(src)) return null;
+  if (/\.svg(\?|$)/i.test(src)) return null;
+  const caption = fig ? fig[1].replace(/<[^>]+>/g, '').trim() : '';
+  return {
+    loc: src.split(/\s/)[0],
+    title: title || alt || '',
+    caption: caption || alt || '',
+  };
+}
+
+function urlEntry(loc, meta, mod, alternates, image) {
   const lines = [
     '  <url>',
     `    <loc>${loc}</loc>`,
@@ -95,7 +143,27 @@ function urlEntry(loc, meta, mod, alternates) {
   for (const alt of alternates) {
     lines.push(`    <xhtml:link rel="alternate" hreflang="${alt.hreflang}" href="${alt.href}" />`);
   }
+  if (image && image.loc) {
+    lines.push('    <image:image>');
+    lines.push(`      <image:loc>${escapeXml(image.loc)}</image:loc>`);
+    if (image.title) lines.push(`      <image:title>${escapeXml(image.title)}</image:title>`);
+    if (image.caption) lines.push(`      <image:caption>${escapeXml(image.caption)}</image:caption>`);
+    lines.push('    </image:image>');
+  }
   lines.push('  </url>');
+  return lines.join('\n');
+}
+
+function imageOnlyEntry(pageLoc, image) {
+  const lines = [
+    '  <url>',
+    `    <loc>${escapeXml(pageLoc)}</loc>`,
+    '    <image:image>',
+    `      <image:loc>${escapeXml(image.loc)}</image:loc>`,
+  ];
+  if (image.title) lines.push(`      <image:title>${escapeXml(image.title)}</image:title>`);
+  if (image.caption) lines.push(`      <image:caption>${escapeXml(image.caption)}</image:caption>`);
+  lines.push('    </image:image>', '  </url>');
   return lines.join('\n');
 }
 
@@ -108,11 +176,15 @@ function main() {
   });
 
   const entries = [];
+  const imageEntries = [];
   let urlCount = 0;
 
   for (const rel of enPages) {
     const sitePath = filePathToSitePath(rel);
     const meta = pageMeta(rel);
+    const enAbs = path.join(ROOT, 'en', rel);
+    const enHtml = fs.readFileSync(enAbs, 'utf8');
+    const pageImage = extractPageImage(enHtml);
 
     const presentDirs = LANG_DIRS.filter((dir) => fs.existsSync(path.join(ROOT, dir, rel)));
     const alternates = presentDirs.map((dir) => ({
@@ -122,22 +194,32 @@ function main() {
     alternates.push({ hreflang: 'x-default', href: `${SITE_ORIGIN}/en${sitePath}` });
 
     for (const dir of presentDirs) {
+      const pageLoc = `${SITE_ORIGIN}/${dir}${sitePath}`;
+      // Image tags only on English (primary) to avoid duplicate image URLs
+      const img = dir === 'en' ? pageImage : null;
       entries.push(urlEntry(
-        `${SITE_ORIGIN}/${dir}${sitePath}`,
+        pageLoc,
         meta,
         lastmod(path.join(ROOT, dir, rel)),
         // Only emit the cluster when a page really has alternates.
-        presentDirs.length > 1 ? alternates : alternates.filter((a) => ['en', 'x-default'].includes(a.hreflang))
+        presentDirs.length > 1 ? alternates : alternates.filter((a) => ['en', 'x-default'].includes(a.hreflang)),
+        img
       ));
       urlCount += 1;
+      if (dir === 'en' && pageImage) {
+        imageEntries.push(imageOnlyEntry(pageLoc, pageImage));
+      }
     }
   }
 
   const generated = new Date().toISOString().slice(0, 10);
+  const hasImages = entries.some((e) => e.includes('<image:image>'));
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
-    '        xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+    '        xmlns:xhtml="http://www.w3.org/1999/xhtml"'
+      + (hasImages ? '\n        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' : '')
+      + '>',
     '',
     '  <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->',
     `  <!-- URL count: ${urlCount} | generated ${generated} by scripts/generate-sitemap.js -->`,
@@ -147,12 +229,26 @@ function main() {
     '',
   ].join('\n');
 
+  const imageXml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+    '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
+    `  <!-- Image sitemap | ${imageEntries.length} pages with images | generated ${generated} -->`,
+    imageEntries.join('\n'),
+    '</urlset>',
+    '',
+  ].join('\n');
+
   if (DRY_RUN) {
     console.log(xml);
+    console.error('--- sitemap-images.xml ---');
+    console.log(imageXml);
   } else {
     fs.writeFileSync(OUT_FILE, xml, 'utf8');
+    fs.writeFileSync(IMAGE_OUT, imageXml, 'utf8');
   }
   console.error(`[sitemap] ${urlCount} URLs (${enPages.length} English pages) → ${DRY_RUN ? 'stdout' : path.relative(ROOT, OUT_FILE)}`);
+  console.error(`[sitemap-images] ${imageEntries.length} image pages → ${DRY_RUN ? 'stdout' : path.relative(ROOT, IMAGE_OUT)}`);
 }
 
 main();

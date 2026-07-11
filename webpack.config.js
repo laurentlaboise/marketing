@@ -62,6 +62,11 @@ module.exports = {
         { from: 'google*.html', to: '[name][ext]', noErrorOnMissing: true },
         { from: 'robots.txt', to: 'robots.txt', noErrorOnMissing: true },
         { from: 'sitemap.xml', to: 'sitemap.xml', noErrorOnMissing: true },
+        // Image + clean Google sitemaps (must ship for GSC / Google Images)
+        { from: 'sitemap-images.xml', to: 'sitemap-images.xml', noErrorOnMissing: true },
+        { from: 'sitemap-google.xml', to: 'sitemap-google.xml', noErrorOnMissing: true },
+        { from: 'llms.txt', to: 'llms.txt', noErrorOnMissing: true },
+        { from: 'llm.txt', to: 'llm.txt', noErrorOnMissing: true },
         { from: '_headers', to: '[name]', noErrorOnMissing: true },
         { from: '_redirects', to: '[name]', noErrorOnMissing: true },
       ]
