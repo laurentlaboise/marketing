@@ -4871,5 +4871,5 @@ img, video, iframe, canvas, svg, embed, object {
   .bottom-dock button i { font-size: 1.05rem; }
   .bottom-dock a.active { color: var(--primary-color, #d62b83); }
   /* Keep page content clear of the dock */
-  .main-content { padding-bottom: 68px; }
+  .main-content { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
 }

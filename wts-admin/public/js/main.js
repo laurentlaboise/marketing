@@ -176,12 +176,21 @@ function initRailToggle() {
   const railToggle = document.getElementById('railToggle');
   if (!railToggle) return;
   const KEY = 'wts_sidebar_rail';
+  const reflect = () => {
+    const collapsed = document.body.classList.contains('rail-collapsed');
+    const label = collapsed ? 'Expand menu' : 'Collapse menu';
+    railToggle.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+    railToggle.setAttribute('aria-label', label);
+    railToggle.setAttribute('title', label);
+  };
   try {
     if (localStorage.getItem(KEY) === '1') document.body.classList.add('rail-collapsed');
   } catch (e) { /* ignore */ }
+  reflect();
   railToggle.addEventListener('click', () => {
     const collapsed = document.body.classList.toggle('rail-collapsed');
     try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch (e) { /* ignore */ }
+    reflect();
   });
 }
 
