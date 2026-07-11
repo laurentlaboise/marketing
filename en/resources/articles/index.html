@@ -958,6 +958,36 @@
         const ARTICLES_URL = `${API_BASE_URL}/articles`;
         const SITE_BASE_URL = 'https://wordsthatsells.website';
 
+        // Static SEO pages always listed (so the blog never looks empty if API lags or URL is wrong)
+        const STATIC_ARTICLES = [
+            {
+                id: 'static-korea-ai-law',
+                title: 'South Korea AI Law Compliance: What Marketers Need to Know in 2026',
+                slug: 'south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026',
+                categories: ['AI', 'Compliance', 'Marketing Strategy'],
+                image: 'https://wordsthatsells.website/images/south-korea-ai-law-compliance-2026-1200.jpg',
+                short_description: 'South Korea’s AI Basic Act is live. Practical compliance steps for marketers and SEA teams targeting Korean markets.',
+                date: '2026-01-27',
+                featured: true,
+                published_url: 'https://wordsthatsells.website/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html',
+                sidebar_content: '<p>Risk classes, labeling, fines, and a practical roadmap for marketers.</p>',
+                full_article_content: ''
+            },
+            {
+                id: 'static-sea-ai',
+                title: 'AI in Southeast Asia: Market Opportunities and Business Transformation in 2026',
+                slug: 'ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026',
+                categories: ['AI', 'Southeast Asia', 'Marketing Strategy'],
+                image: 'https://wordsthatsells.website/images/AIDigitalMarketingthailandlaossoutheastasia-1280.webp',
+                short_description: 'Where AI creates real ROI for SMEs across Laos, Thailand, Vietnam, Indonesia, and Singapore—and a 90-day playbook.',
+                date: '2026-01-26',
+                featured: true,
+                published_url: 'https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html',
+                sidebar_content: '<p>Opportunities, risks, SEO/content use cases, and a practical adoption plan.</p>',
+                full_article_content: ''
+            }
+        ];
+
         // Global state
         let blogPosts = [];
         let categories = [];
@@ -975,6 +1005,48 @@
             initFloatingButtons();
         });
 
+        function normalizeArticleUrl(url, slug) {
+            if (!url || typeof url !== 'string') {
+                return `${SITE_BASE_URL}/en/articles/${slug}.html`;
+            }
+            // Fix known wrong admin URL (Korea article pointed at SEA path without .html)
+            if (/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026\/?$/.test(url)
+                && /korea|compliance/i.test(slug || '')) {
+                return `${SITE_BASE_URL}/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html`;
+            }
+            if (url.indexOf('/en/articles/') !== -1 && !url.endsWith('.html') && !url.endsWith('/')) {
+                return url + '.html';
+            }
+            return url;
+        }
+
+        function mergeStaticArticles(apiPosts) {
+            const bySlug = new Map();
+            (apiPosts || []).forEach(p => {
+                if (!p || !p.slug) return;
+                p.published_url = normalizeArticleUrl(p.published_url, p.slug);
+                bySlug.set(p.slug, p);
+            });
+            STATIC_ARTICLES.forEach(s => {
+                if (!bySlug.has(s.slug)) bySlug.set(s.slug, s);
+                else {
+                    // Prefer correct static URL when API URL is wrong
+                    const existing = bySlug.get(s.slug);
+                    existing.published_url = normalizeArticleUrl(existing.published_url || s.published_url, s.slug);
+                    if (!existing.image || existing.image.indexOf('placehold') !== -1) existing.image = s.image;
+                    if (!existing.short_description) existing.short_description = s.short_description;
+                }
+            });
+            // Also match Korea API slug variant
+            const koreaApi = [...bySlug.values()].find(p => /south-korea-ai-law/i.test(p.slug || '') || /korea ai law/i.test(p.title || ''));
+            if (koreaApi) {
+                koreaApi.published_url = STATIC_ARTICLES[0].published_url;
+                koreaApi.slug = STATIC_ARTICLES[0].slug;
+                bySlug.set(STATIC_ARTICLES[0].slug, koreaApi);
+            }
+            return [...bySlug.values()].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        }
+
         // Fetch data from API
         async function fetchDataFromAPI() {
             try {
@@ -989,10 +1061,11 @@
                 }
 
                 const articlesData = await articlesResponse.json();
+                const list = Array.isArray(articlesData) ? articlesData : (articlesData.articles || []);
 
                 // Transform API data to match expected format
                 // Note: API already returns only published articles
-                blogPosts = articlesData.map(article => transformArticle(article));
+                blogPosts = mergeStaticArticles(list.map(article => transformArticle(article)));
 
                 // Extract unique categories from all articles
                 categories = [...new Set(blogPosts.flatMap(post => post.categories))].filter(cat => cat && cat.trim()).sort();
@@ -1004,28 +1077,33 @@
                 hasError = false;
             } catch (error) {
                 console.error('Error fetching data:', error);
+                // Fallback: still show static articles so the blog is never empty
+                blogPosts = mergeStaticArticles([]);
+                categories = [...new Set(blogPosts.flatMap(post => post.categories))].filter(Boolean).sort();
+                featuredPosts = blogPosts.filter(post => post.featured);
                 isLoading = false;
-                hasError = true;
-                showErrorState(error.message);
+                hasError = blogPosts.length === 0;
+                if (hasError) showErrorState(error.message);
             }
         }
 
         // Transform API article to internal format
         function transformArticle(article) {
             const sm = article.social_meta || {};
+            const slug = article.slug || '';
             return {
                 id: article.id,
                 title: article.title,
-                slug: article.slug,
-                categories: article.categories || [],
+                slug: slug,
+                categories: article.categories || (article.category ? [article.category] : []),
                 image: article.featured_image_url || 'https://placehold.co/800x400/122a3f/ffffff?text=No+Image',
                 short_description: article.description || '',
-                date: article.created_at,
+                date: article.created_at || article.published_at || '',
                 updated_at: article.updated_at,
                 featured: article.featured || false,
-                sidebar_content: article.sidebar_content || article.content || '<p>Preview not available.</p>',
-                full_article_content: article.full_article_content || article.content || '<p>Content not available.</p>',
-                published_url: article.published_url || '',
+                sidebar_content: article.sidebar_content || article.description || '<p>Preview not available.</p>',
+                full_article_content: article.full_article_content || '',
+                published_url: normalizeArticleUrl(article.published_url || '', slug),
                 // Social metadata from admin backend
                 social_meta: {
                     og_title: sm.og_title || '',
