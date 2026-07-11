@@ -1862,7 +1862,7 @@
                 <div class="partner-links">
                     <a href="/en/company/affiliate-sales/">Affiliate program (20–25% recurring) →</a>
                     <a href="/en/company/digital-agencies/">White-label for agencies →</a>
-                    <button type="button" class="btn btn-outline" style="border-radius:999px;padding:0.65rem 1.15rem;" onclick="openFormModal('white-label')">Apply for white-label</button>
+                    <button type="button" class="btn btn-outline" style="border-radius:999px;padding:0.65rem 1.15rem;" id="btn-white-label-partners">Apply for white-label</button>
                     <a href="#individual-services" id="partner-services-jump">Browse à la carte categories</a>
                 </div>
             </section>
@@ -1874,12 +1874,12 @@
                 <p class="section-lead">Optional add-ons and project lines—names only here. Open the client portal for current pricing.</p>
                 <div id="services-accordion">
                     <p id="services-accordion-empty" style="text-align:center;color:#1e3a4f;max-width:32rem;margin:0 auto;line-height:1.6;">
-                        Browse one-time packages above, or <button type="button" class="btn btn-outline" style="margin-top:0.75rem;" onclick="return goToPortal('consultation')">open client portal</button>
+                        Browse one-time packages above, or <a class="btn btn-outline" style="margin-top:0.75rem;display:inline-block;" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=alacarte_empty">open client portal</a>
                     </p>
                 </div>
                  <div style="text-align: center; margin-top: 2.5rem; display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
-                    <button type="button" class="btn btn-accent" onclick="return goToPortal('consultation')">Open client portal</button>
-                    <button type="button" class="btn btn-outline" onclick="openFormModal('white-label')">Apply for white-label partnership</button>
+                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=alacarte" id="btn-open-portal">Open client portal</a>
+                    <button type="button" class="btn btn-outline" id="btn-white-label">Apply for white-label partnership</button>
                 </div>
             </section>
             
@@ -2692,6 +2692,8 @@
             }
             return false;
         }
+        // Ensure inline onclick handlers always find these (global)
+        window.goToPortal = goToPortal;
 
         function openFormModal(type, sourceEl) {
             const overlay = document.getElementById('form-modal-' + type);
@@ -2733,6 +2735,7 @@
                 gtag('event', 'open_form', { event_category: 'Forms', event_label: type, plan_interest: plan });
             }
         }
+        window.openFormModal = openFormModal;
 
         function closeFormModal(type) {
             const overlay = document.getElementById('form-modal-' + type);
@@ -2740,6 +2743,25 @@
             overlay.classList.remove('active');
             document.body.classList.remove('no-scroll');
             setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+        window.closeFormModal = closeFormModal;
+
+        // Wire white-label buttons without relying only on inline onclick
+        function bindWhiteLabelButtons() {
+            ['btn-white-label', 'btn-white-label-partners'].forEach(function (id) {
+                const el = document.getElementById(id);
+                if (!el || el.dataset.bound === '1') return;
+                el.dataset.bound = '1';
+                el.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    openFormModal('white-label');
+                });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindWhiteLabelButtons);
+        } else {
+            bindWhiteLabelButtons();
         }
 
         // Close on overlay click
@@ -2863,7 +2885,7 @@
                     const header = document.createElement('div');
                     header.className = 'form-modal-header';
                     header.innerHTML = '<h3>' + escapeFormHtml(tpl.title) + '</h3>' +
-                        '<button type="button" class="modal-close-btn" onclick="closeFormModal('' + type + '')">&times;</button>';
+                        '<button type="button" class="modal-close-btn" onclick="closeFormModal(\'' + type + '\')">&times;</button>';
                     modal.appendChild(header);
 
                     // Body
