@@ -57,10 +57,19 @@ jobs:
           find server.js src database scripts test -name '*.js' -print0 | xargs -0 -n1 node --check
           echo "all files parse"
 
+      # Help AI (Odysseus) is hermetically stubbed in test/help-ai.test.js —
+      # no real ODYSSEUS_* / HELP_AI_* secrets are required (or wanted) in CI.
+      # Suites use fixed unique ports so parallel node --test does not collide.
       - name: Run tests
         run: npm test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wts_admin_test
+          # Keep Help AI off in the parent process; suites that need it pass
+          # overrides into startServer(). Empty strings beat dotenv reload.
+          HELP_AI_ENABLED: '0'
+          ODYSSEUS_BASE_URL: ''
+          ODYSSEUS_API_TOKEN: ''
+          ODYSSEUS_ENDPOINT_ID: ''
 
       - name: Audit dependencies
         run: npm audit --audit-level=high
