@@ -3,11 +3,31 @@
   "assignments": [
     {
       "match": "/en/resources/*",
-      "variant": "main"
+      "variant": "articles"
     },
     {
       "match": "/en/resources",
-      "variant": "main"
+      "variant": "articles"
+    },
+    {
+      "match": "/en/articles/*",
+      "variant": "articles"
+    },
+    {
+      "match": "/en/articles",
+      "variant": "articles"
+    },
+    {
+      "match": "/th/resources/*",
+      "variant": "articles"
+    },
+    {
+      "match": "/la/resources/*",
+      "variant": "articles"
+    },
+    {
+      "match": "/fr/resources/*",
+      "variant": "articles"
     }
   ],
   "variants": {
@@ -64,6 +84,138 @@
           "text": "info@wordsthatsells.website"
         }
       ],
+      "columns": [
+        {
+          "heading": "Solutions",
+          "links": [
+            {
+              "text": "Digital Marketing",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/"
+            },
+            {
+              "text": "Web Development",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/web-development/"
+            },
+            {
+              "text": "Content Creation",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/content-creation/"
+            },
+            {
+              "text": "Social Media",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/social-media-management/"
+            },
+            {
+              "text": "Business Tools",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/business-tools/"
+            }
+          ]
+        },
+        {
+          "heading": "Services",
+          "links": [
+            {
+              "text": "Pricing",
+              "href": "https://wordsthatsells.website/en/digital-marketing-services/prices/"
+            },
+            {
+              "text": "Affiliate Program",
+              "href": "https://wordsthatsells.website/en/company/affiliate-sales/"
+            },
+            {
+              "text": "Agencies",
+              "href": "https://wordsthatsells.website/en/company/digital-agencies/"
+            },
+            {
+              "text": "Automation",
+              "href": "https://wordsthatsells.website/en/resources/ai-tools/"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Articles",
+              "href": "https://wordsthatsells.website/en/resources/articles/"
+            },
+            {
+              "text": "Glossary",
+              "href": "https://wordsthatsells.website/en/resources/glossary/"
+            },
+            {
+              "text": "Ai Tools",
+              "href": "https://wordsthatsells.website/en/resources/ai-tools/"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "href": "https://wordsthatsells.website/en/company/legal/privacy-policy.html"
+            },
+            {
+              "text": "Terms & Conditions",
+              "href": "https://wordsthatsells.website/en/company/legal/terms-and-conditions.html"
+            },
+            {
+              "text": "Cookie Policy",
+              "href": "https://wordsthatsells.website/en/company/legal/cookie-policy.html"
+            },
+            {
+              "text": "All legal documents",
+              "href": "https://wordsthatsells.website/en/company/legal/"
+            }
+          ]
+        }
+      ],
+      "legal": [
+        {
+          "text": "Privacy",
+          "href": "https://wordsthatsells.website/en/company/legal/privacy-policy.html"
+        },
+        {
+          "text": "Terms",
+          "href": "https://wordsthatsells.website/en/company/legal/terms-and-conditions.html"
+        },
+        {
+          "text": "Cookies",
+          "href": "https://wordsthatsells.website/en/company/legal/cookie-policy.html"
+        }
+      ],
+      "copyright": "\u00a9 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 \u2013 000001253"
+    },
+    "articles": {
+      "social": [
+        {
+          "icon": "fab fa-instagram",
+          "href": "https://www.instagram.com/wordsthatsells.website.laos/",
+          "label": "Instagram"
+        },
+        {
+          "icon": "fab fa-linkedin",
+          "href": "https://www.linkedin.com/company/wordsthatsells",
+          "label": "LinkedIn"
+        },
+        {
+          "icon": "fab fa-facebook-square",
+          "href": "https://www.facebook.com/wordsthatsells/",
+          "label": "Facebook"
+        },
+        {
+          "icon": "fab fa-twitter-square",
+          "href": "https://x.com/wordsthatsells/",
+          "label": "Twitter"
+        },
+        {
+          "icon": "fab fa-youtube-square",
+          "href": "https://www.youtube.com/@wordsthatsells928",
+          "label": "YouTube"
+        }
+      ],
+      "contactHeading": "",
+      "contact": [],
       "columns": [
         {
           "heading": "Solutions",
