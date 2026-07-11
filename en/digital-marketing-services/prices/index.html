@@ -72,16 +72,16 @@
 
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
         h1, h2, h3 { font-family: var(--font-family-heading); font-weight: 700; color: var(--color-slate-900); }
-        h1 { font-size: 2.5rem; text-align: center; }
-        h2 { font-size: 2rem; text-align: center; margin-bottom: 2.5rem; }
-        h3 { font-size: 1.5rem; }
+        h1 { font-size: clamp(2rem, 4.5vw, 3.25rem); text-align: center; line-height: 1.15; }
+        h2 { font-size: clamp(1.75rem, 3.2vw, 2.5rem); text-align: center; margin-bottom: 1.5rem; line-height: 1.2; }
+        h3 { font-size: clamp(1.25rem, 2vw, 1.65rem); }
 
-        .section { padding: 3rem 0; }
-        .section-alt { background-color: var(--color-light); border-radius: 16px; padding: 3rem; }
+        .section { padding: 3.5rem 0; }
+        .section-alt { background-color: var(--color-light); border-radius: 16px; padding: 3.5rem 2rem; }
 
-        .header { text-align: center; padding: 2rem 0; }
-        .header p { font-size: 1.125rem; color: #1e3a4f; max-width: 720px; margin: 1rem auto 0 auto; line-height: 1.65; }
-        .header .audience-note { font-size: 0.95rem; color: #1e3a4f; margin-top: 0.75rem; }
+        .header { text-align: center; padding: 2.5rem 0 1.5rem; }
+        .header p { font-size: clamp(1.1rem, 1.6vw, 1.25rem); color: #1e3a4f; max-width: 760px; margin: 1rem auto 0 auto; line-height: 1.7; }
+        .header .audience-note { font-size: 1.05rem; color: #1e3a4f; margin-top: 0.85rem; }
 
         .trust-strip {
             display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem 1.25rem;
@@ -366,18 +366,119 @@
             font-size: 1.5rem;
         }
 
-        /* Hero Banner Styles */
-        .hero-banner {
-            max-width: 1200px;
-            margin: 0 auto 3rem auto;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
-        }
-        .hero-banner img {
+        /* Full-bleed cultural hero */
+        .pricing-hero {
+            position: relative;
             width: 100%;
-            height: auto;
+            min-height: min(88vh, 720px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #122a3f;
+        }
+        .pricing-hero__media {
+            position: absolute;
+            inset: 0;
+        }
+        .pricing-hero__media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 30%;
             display: block;
+        }
+        .pricing-hero__shade {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(105deg, rgba(18,42,63,0.88) 0%, rgba(18,42,63,0.55) 48%, rgba(214,43,131,0.35) 100%);
+        }
+        .pricing-hero__content {
+            position: relative;
+            z-index: 1;
+            width: min(1100px, 92%);
+            padding: 4rem 0;
+            color: #fff;
+            text-align: left;
+        }
+        .pricing-hero__kicker {
+            display: inline-block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #fbcfe8;
+            margin-bottom: 0.85rem;
+        }
+        .pricing-hero__title {
+            font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+            line-height: 1.1;
+            font-weight: 800;
+            color: #fff;
+            max-width: 16ch;
+            margin: 0 0 1rem;
+            text-align: left;
+        }
+        .pricing-hero__lead {
+            font-size: clamp(1.1rem, 2vw, 1.35rem);
+            line-height: 1.65;
+            color: #e2e8f0;
+            max-width: 38rem;
+            margin: 0 0 1.75rem;
+        }
+        .pricing-hero__culture {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 0.65rem;
+            margin: 0 0 1.75rem;
+        }
+        .pricing-hero__culture span {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.28);
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .pricing-hero__actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .pricing-hero__actions .btn {
+            font-size: 1.05rem;
+            padding: 0.9rem 1.6rem;
+        }
+        .pricing-hero__actions .btn-ghost {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.75);
+            color: #fff;
+        }
+        .pricing-hero__actions .btn-ghost:hover {
+            background: rgba(255,255,255,0.12);
+            box-shadow: none;
+        }
+        .pricing-hero__scroll {
+            position: absolute;
+            bottom: 1.25rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            color: rgba(255,255,255,0.85);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+        }
+        @media (max-width: 640px) {
+            .pricing-hero { min-height: 78vh; }
+            .pricing-hero__content { text-align: center; }
+            .pricing-hero__title { text-align: center; max-width: none; margin-left: auto; margin-right: auto; }
+            .pricing-hero__lead { margin-left: auto; margin-right: auto; }
+            .pricing-hero__culture { justify-content: center; }
+            .pricing-hero__actions { justify-content: center; }
         }
 
         /* Bundles & A La Carte */
@@ -429,28 +530,265 @@
             color: var(--color-slate-700);
         }
         
-        /* New Two-Column Section Styles */
+        /* Two-column story + graphic blocks */
         .two-column-promo {
             display: grid;
-            gap: 2rem;
+            gap: 2.5rem;
             align-items: center;
-            padding: 2rem;
+            padding: 2.5rem 1.5rem;
             background-color: var(--color-light);
-            border-radius: 16px;
+            border-radius: 20px;
         }
+        .two-column-promo.reverse .text-column { order: 2; }
+        .two-column-promo.reverse .image-column { order: 1; }
 
         @media(min-width: 768px) {
             .two-column-promo {
                 grid-template-columns: 1fr 1fr;
+                gap: 3rem;
+                padding: 3rem 2.5rem;
             }
+            .two-column-promo.reverse .text-column { order: 2; }
+            .two-column-promo.reverse .image-column { order: 1; }
         }
-        .text-column {
-            text-align: left;
+        .text-column { text-align: left; }
+        .text-column h2 { text-align: left; font-size: clamp(1.75rem, 3vw, 2.35rem); margin-bottom: 1rem; }
+        .text-column p {
+            font-size: clamp(1.05rem, 1.5vw, 1.2rem);
+            color: #1e3a4f;
+            line-height: 1.7;
+            margin-bottom: 0.75rem;
         }
         .image-column {
             position: relative;
             text-align: center;
-            padding: 2rem;
+            padding: 0;
+        }
+        .image-column img {
+            width: 100%;
+            max-height: 420px;
+            object-fit: cover;
+            border-radius: 18px;
+            box-shadow: 0 16px 40px rgba(18, 42, 63, 0.18);
+            display: block;
+        }
+        .story-band {
+            margin: 1rem 0 0;
+        }
+        .section-lead {
+            font-size: clamp(1.1rem, 1.6vw, 1.25rem) !important;
+        }
+        .compare-table {
+            font-size: 1rem;
+        }
+        .compare-table th, .compare-table td {
+            padding: 1rem 1.1rem;
+        }
+        .subscription-card .plan-name { font-size: clamp(1.35rem, 2vw, 1.65rem) !important; }
+        .subscription-card .plan-price { font-size: clamp(2.5rem, 4vw, 3.1rem) !important; }
+        .bundle-card .price { font-size: clamp(2.2rem, 3vw, 2.75rem) !important; }
+        .bundle-card h3 { font-size: clamp(1.2rem, 2vw, 1.45rem); }
+
+        /* Interactive FAQ */
+        .pricing-faq-item {
+            background: #fff;
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            padding: 0.25rem 1rem 0.25rem;
+        }
+        .pricing-faq-item summary {
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--color-slate-900);
+            padding: 1rem 0.25rem;
+            list-style: none;
+        }
+        .pricing-faq-item summary::-webkit-details-marker { display: none; }
+        .pricing-faq-item summary::after {
+            content: '+';
+            float: right;
+            color: var(--color-accent-magenta);
+            font-weight: 800;
+        }
+        .pricing-faq-item[open] summary::after { content: '−'; }
+        .pricing-faq-item p {
+            color: #1e3a4f;
+            font-size: 1.02rem;
+            line-height: 1.65;
+            margin: 0 0 1rem;
+            padding: 0 0.25rem 0.5rem;
+        }
+        .pricing-faq-item a { color: var(--color-accent-magenta); font-weight: 700; }
+
+        /* Laos community program panel */
+        .lao-program-panel {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #122a3f 0%, #154266 55%, #9d174d 140%);
+            color: #fff;
+            border-radius: 20px;
+            padding: clamp(2rem, 4vw, 3.5rem);
+            text-align: center;
+        }
+        .lao-program-glow {
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(214,43,131,0.35) 0%, transparent 70%);
+            top: -120px;
+            right: -80px;
+            animation: laoGlow 8s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        @keyframes laoGlow {
+            from { transform: translate(0, 0) scale(1); opacity: 0.7; }
+            to { transform: translate(-40px, 30px) scale(1.15); opacity: 1; }
+        }
+        .lao-program-lead {
+            position: relative;
+            max-width: 48rem;
+            margin: 0 auto 1.5rem;
+            font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+            line-height: 1.7;
+            color: #e2e8f0;
+            text-align: left;
+        }
+        .lao-program-pills {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0 auto 2rem;
+        }
+        .lao-pill {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.28);
+            border-radius: 999px;
+            padding: 0.4rem 0.95rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .lao-program-grid {
+            position: relative;
+            display: grid;
+            gap: 1.25rem;
+            text-align: left;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        @media (min-width: 800px) {
+            .lao-program-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .lao-program-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 14px;
+            padding: 1.25rem 1.35rem;
+            backdrop-filter: blur(6px);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .lao-program-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+        }
+        .lao-card-anim {
+            animation: laoCardIn 0.7s ease both;
+            animation-delay: var(--d, 0s);
+        }
+        @keyframes laoCardIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .lao-card-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(214,43,131,0.35);
+            color: #fff;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+        .lao-program-card h3 {
+            color: #fff;
+            font-size: 1.15rem;
+            margin: 0 0 0.75rem;
+        }
+        .lao-program-card ul, .lao-program-card ol {
+            margin: 0;
+            padding-left: 1.15rem;
+            color: #e2e8f0;
+            font-size: 0.98rem;
+            line-height: 1.55;
+        }
+        .lao-program-card li { margin-bottom: 0.4rem; }
+        .lao-program-note {
+            position: relative;
+            max-width: 40rem;
+            margin: 1.75rem auto 0;
+            font-size: 0.95rem;
+            color: #fbcfe8;
+            line-height: 1.55;
+        }
+        .lao-program-actions {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1.75rem;
+        }
+        .lao-price-pill {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.15rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.95);
+            color: #9d174d;
+            font-weight: 800;
+            font-size: 1rem;
+            text-decoration: none;
+            border: 2px solid #fbcfe8;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .lao-price-pill small {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        .lao-price-pill:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.28);
+        }
+        .lao-cta-pulse {
+            animation: laoPulse 2.4s ease-in-out infinite;
+        }
+        @keyframes laoPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(214,43,131,0.45); }
+            50% { box-shadow: 0 0 0 10px rgba(214,43,131,0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .lao-program-glow, .lao-card-anim, .lao-cta-pulse { animation: none; }
+        }
+        .form-group select {
+            width: 100%;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            background: #fff;
         }
         .image-column img {
             width: 100%;
@@ -698,15 +1036,47 @@
 <link id="wts-footer-fa" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous"></head>
 <body>
 
-    <div class="hero-banner">
-        <img src="/images/wts-pricing-banner-1200.webp" alt="Marketing Banners with AI">
-    </div>
+    <header class="pricing-hero" role="banner">
+        <div class="pricing-hero__media" aria-hidden="true">
+            <img
+                src="/images/AIDigitalMarketingthailandlaossoutheastasia-1920.webp"
+                srcset="/images/AIDigitalMarketingthailandlaossoutheastasia-960.webp 960w,
+                        /images/AIDigitalMarketingthailandlaossoutheastasia-1280.webp 1280w,
+                        /images/AIDigitalMarketingthailandlaossoutheastasia-1920.webp 1920w"
+                sizes="100vw"
+                width="1920"
+                height="1080"
+                alt=""
+                fetchpriority="high"
+                decoding="async">
+            <div class="pricing-hero__shade"></div>
+        </div>
+        <div class="pricing-hero__content">
+            <p class="pricing-hero__kicker">Laos · Thailand · Southeast Asia</p>
+            <h1 class="pricing-hero__title">Pricing that grows with your market</h1>
+            <p class="pricing-hero__lead">
+                Clear monthly plans for SMEs who sell on Facebook, LINE, and WhatsApp—and want a real digital footprint, not guesswork.
+                Built in Vientiane for the way SEA businesses actually buy and trust.
+            </p>
+            <div class="pricing-hero__culture" aria-label="Regional focus">
+                <span>Facebook-first Laos</span>
+                <span>LINE &amp; TikTok ready</span>
+                <span>Plain-language reports</span>
+                <span>Scoped monthly plans</span>
+            </div>
+            <div class="pricing-hero__actions">
+                <a class="btn btn-accent" href="#pricing-plans">See plans &amp; prices</a>
+                <button type="button" class="btn btn-ghost" onclick="openFormModal('consultation')">Talk to us</button>
+            </div>
+        </div>
+        <a class="pricing-hero__scroll" href="#pricing-intro">Scroll for plans ↓</a>
+    </header>
 
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>Digital marketing pricing for SEA SMEs</h1>
-            <p>Clear monthly plans to get found online, win more leads, and grow—built for businesses in Laos and Thailand. You get a fixed monthly scope so you always know what you are paying for.</p>
+        <!-- Intro + billing (below full-bleed hero) -->
+        <header class="header" id="pricing-intro">
+            <h2 style="margin-bottom:0.5rem;">Digital marketing pricing for SEA SMEs</h2>
+            <p>You get a fixed monthly scope so you always know what you are paying for—start online, win more leads, then automate follow-up as you grow.</p>
             <p class="audience-note">Looking for <a href="/en/company/affiliate-sales/" style="color:var(--color-accent-magenta);font-weight:700;">affiliate</a> or <a href="/en/company/digital-agencies/" style="color:var(--color-accent-magenta);font-weight:700;">white-label agency</a> options? Partner details live on those pages.</p>
             <div class="trust-strip" role="list">
                 <span role="listitem"><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back on eligible plans</span>
@@ -866,17 +1236,36 @@
                         </tbody>
                     </table>
                 </div>
-                <div style="text-align: center; margin-top: 1.25rem;">
-                    <button type="button" id="compare-plans-btn" class="btn btn-outline">
-                        <i class="fas fa-columns" style="margin-right: 0.5rem;"></i> Open detailed comparison
-                    </button>
-                </div>
                 <div class="card" style="max-width:820px;margin:2rem auto 0;padding:1.25rem 1.5rem;text-align:left;background:var(--color-white,#fff);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);">
                     <p style="margin:0 0 0.75rem;font-weight:700;color:var(--color-slate-900);">What’s included each month is capped on purpose</p>
                     <p style="margin:0;font-size:0.95rem;line-height:1.65;color:var(--color-slate-700);">
                         Every plan lists platforms, posts, and deliverables so we can deliver reliably. Need more? We quote an add-on or recommend the next tier—no surprise unlimited scope.
                         In Laos we focus on Facebook-first ROI; in Thailand we can include LINE or TikTok within your platform caps or as add-on modules.
                     </p>
+                </div>
+            </section>
+
+            <!-- Visual story: Laos / Thailand -->
+            <section class="section story-band" aria-label="How we work in SEA">
+                <div class="two-column-promo">
+                    <div class="text-column">
+                        <p class="section-kicker" style="text-align:left;">Built for how SEA buys</p>
+                        <h2>From Facebook shops to real growth systems</h2>
+                        <p>Most local businesses start on social. We meet you there—then build the website, forms, SEO, and follow-up that turn chats into customers.</p>
+                        <p>Plans stay scoped on purpose: clear posts, platforms, and deliverables each month so price matches capacity.</p>
+                        <a class="btn btn-accent" href="#product-menu-packages" style="margin-top:0.5rem;">See one-time projects</a>
+                    </div>
+                    <div class="image-column">
+                        <img
+                            src="/images/wts-team-collaboration-hero-1280.webp"
+                            srcset="/images/wts-team-collaboration-hero-960.webp 960w, /images/wts-team-collaboration-hero-1280.webp 1280w, /images/wts-team-collaboration-hero-1920.webp 1920w"
+                            sizes="(min-width: 768px) 50vw, 100vw"
+                            width="1280"
+                            height="720"
+                            alt="WordsThatSells team collaborating on digital marketing for Southeast Asia"
+                            loading="lazy"
+                            decoding="async">
+                    </div>
                 </div>
             </section>
 
@@ -957,35 +1346,120 @@
                 </div>
             </section>
 
-            <!-- New Two-Column Section -->
-            <section class="section">
-                <div class="two-column-promo">
+            <!-- Two-column: custom + culture -->
+            <section class="section story-band">
+                <div class="two-column-promo reverse">
                     <div class="text-column">
-                        <h2>Explore Custom Solutions</h2>
-                        <p>Our team of experts can develop a unique strategy and custom software to fit your specific business needs. Schedule a free consultation to discuss your project.</p>
-                        <button type="button" class="btn btn-accent" style="margin-top: 1rem;" onclick="openFormModal('consultation')">Schedule a Consultation</button>
+                        <p class="section-kicker" style="text-align:left;">Custom when you need it</p>
+                        <h2>Not sure which plan fits?</h2>
+                        <p>We can map your goals to Footprint, Growth, or Automation—or design a one-off project stack (site + forms + content).</p>
+                        <p>Same team that builds for SMEs across Laos and Thailand. Tell us your market; we’ll recommend the simplest path.</p>
+                        <button type="button" class="btn btn-accent" style="margin-top: 0.5rem;" onclick="openFormModal('consultation')">Schedule a consultation</button>
                     </div>
                     <div class="image-column">
-                        <img src="/images/wts-team-collaboration-hero-960.webp" alt="Custom solutions and web development">
+                        <img
+                            src="/images/wts-pricing-banner-1200.webp"
+                            width="1200"
+                            height="600"
+                            alt="WordsThatSells digital marketing packages and pricing for SEA SMEs"
+                            loading="lazy"
+                            decoding="async">
                     </div>
                 </div>
             </section>
             
-            <!-- Lao Specific Programs -->
-            <section id="lao-programs" class="section section-alt" style="padding: 4rem 2rem; background-color: var(--color-primary-base); color: var(--color-white); text-align: center; border-radius: 16px;">
-                <h2 style="color: var(--color-white); margin-bottom: 1rem; font-size: 2.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">
-                    Our Love for Laos: Free Digital Growth
-                </h2>
-                <p style="max-width: 800px; margin: 0 auto 2.5rem; font-size: 1.125rem;">We are dedicated to empowering local businesses, startups, and NGOs in Laos. Our mission is to accelerate digital growth and foster a vibrant local economy with our free marketing services.</p>
-                <div style="max-width: 900px; margin: 0 auto;">
-                    <ul style="list-style: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; text-align: left;">
-                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> <strong>Zero Cost</strong>: Essential services offered at no charge.</li>
-                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> <strong>Expert Support</strong>: Receive guidance from our professional team.</li>
-                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> <strong>Sustainable Growth</strong>: Tools to help your business thrive long-term.</li>
-                        <li style="flex-basis: 300px; display: flex; align-items: center; gap: 1rem;"><i class="fas fa-check-circle" style="font-size: 1.5rem; background-color: var(--color-accent-magenta); color: var(--color-white); border-radius: 50%; padding: 4px;"></i> <strong>Community Focus</strong>: Exclusively for local Lao businesses and organizations.</li>
-                    </ul>
+            <!-- Interactive plan details (more info without second table) -->
+            <section id="plan-faq" class="section" aria-labelledby="plan-faq-heading">
+                <p class="section-kicker">More information</p>
+                <h2 id="plan-faq-heading">Common questions before you choose</h2>
+                <p class="section-lead">Tap a row for detail. The comparison table above is still the fastest way to scan plans.</p>
+                <div class="pricing-faq" style="max-width:820px;margin:0 auto;">
+                    <details class="pricing-faq-item">
+                        <summary>What’s the difference between a retainer and a one-time project?</summary>
+                        <p>Retainers (Footprint / Growth / Automation) are monthly capacity—posts, SEO, ops—with a fixed scope. One-time projects (landing pages, sites, content packs) are delivered once with listed revisions. Many clients start with a project, then move onto a retainer.</p>
+                    </details>
+                    <details class="pricing-faq-item">
+                        <summary>What does “scoped” monthly mean?</summary>
+                        <p>We cap platforms, posts, and deliverables so delivery stays reliable. Need more? We quote an add-on or suggest the next tier—never unlimited work at the lowest price.</p>
+                    </details>
+                    <details class="pricing-faq-item">
+                        <summary>Does annual billing change what I get?</summary>
+                        <p>Same monthly scope. Annual is 20% off, paid once for the year. Use the toggle above the plans to see the monthly equivalent and year total.</p>
+                    </details>
+                    <details class="pricing-faq-item">
+                        <summary>Can affiliates or agencies buy these plans?</summary>
+                        <p>Yes. Affiliates earn recurring commission; agencies can white-label delivery. Those tracks have their own pages so this page stays focused on buying for your business.</p>
+                        <p><a href="/en/company/affiliate-sales/">Affiliate program →</a> · <a href="/en/company/digital-agencies/">Agencies →</a></p>
+                    </details>
+                    <details class="pricing-faq-item">
+                        <summary>Is there a free option for Lao community / NGO-backed work?</summary>
+                        <p>There is a <strong>qualified community program</strong>—not open free support for everyone. See the section below: criteria, application, and NGO-funded pathway when you qualify.</p>
+                        <p><a href="#lao-programs">Jump to community program →</a></p>
+                    </details>
                 </div>
-                <button type="button" class="btn btn-accent" style="margin-top: 3rem;" onclick="openFormModal('free-support')">Apply for Free Support</button>
+            </section>
+
+            <!-- Lao community / NGO-qualified program (apply first; pricing gated) -->
+            <section id="lao-programs" class="section" aria-labelledby="lao-programs-heading">
+                <div class="lao-program-panel">
+                    <div class="lao-program-glow" aria-hidden="true"></div>
+                    <p class="section-kicker" style="color:#fbcfe8;">Community · Laos · NGO-backed pathway</p>
+                    <h2 id="lao-programs-heading" style="color:#fff;margin-bottom:1rem;">Our love for Laos: community digital growth</h2>
+                    <p class="lao-program-lead">
+                        This is <strong>not</strong> open “apply for free support.”
+                        It is a <strong>formatted community-building program</strong>: you must meet clear criteria, complete a full application,
+                        and (when seats exist) an <strong>NGO or partner funds</strong> professional marketing delivery so the work is compensated properly.
+                        Package pricing for this track is shared only after you apply and open your <strong>client portal</strong>—not on this public page.
+                    </p>
+                    <div class="lao-program-pills" aria-label="Program highlights">
+                        <span class="lao-pill">Community building</span>
+                        <span class="lao-pill">Qualification required</span>
+                        <span class="lao-pill">NGO / partner funded</span>
+                        <span class="lao-pill">Limited seats</span>
+                    </div>
+                    <div class="lao-program-grid">
+                        <div class="lao-program-card lao-card-anim" style="--d:0s">
+                            <div class="lao-card-icon" aria-hidden="true"><i class="fas fa-users"></i></div>
+                            <h3>What it’s for</h3>
+                            <ul>
+                                <li>Local Lao SMEs &amp; community organizations</li>
+                                <li>Digital literacy and long-term local growth</li>
+                                <li>NGOs that want measurable SME outcomes</li>
+                            </ul>
+                        </div>
+                        <div class="lao-program-card lao-card-anim" style="--d:0.08s">
+                            <div class="lao-card-icon" aria-hidden="true"><i class="fas fa-clipboard-check"></i></div>
+                            <h3>Criteria to meet</h3>
+                            <ul>
+                                <li>Based in Laos · real operating activity</li>
+                                <li>Right profile / experience for the cycle</li>
+                                <li>Full application + verification call</li>
+                                <li>Fit with current NGO funding capacity</li>
+                            </ul>
+                        </div>
+                        <div class="lao-program-card lao-card-anim" style="--d:0.16s">
+                            <div class="lao-card-icon" aria-hidden="true"><i class="fas fa-route"></i></div>
+                            <h3>Path to placement</h3>
+                            <ol>
+                                <li>Apply (detailed form)</li>
+                                <li>Review &amp; shortlist</li>
+                                <li>Portal access if invited</li>
+                                <li>NGO-funded scope if approved</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <p class="lao-program-note">
+                        Standard paid plans above stay open to everyone with public prices.
+                        Community-track pricing is private: apply first, then see details in the client portal when invited.
+                    </p>
+                    <div class="lao-program-actions">
+                        <button type="button" class="btn btn-accent lao-cta-pulse" onclick="openFormModal('free-support')">Apply to the community program</button>
+                        <a class="lao-price-pill" href="https://admin.wordsthatsells.website/portal/" target="_blank" rel="noopener noreferrer">
+                            Find out about the pricing <span aria-hidden="true">→</span>
+                            <small>Apply first · then client portal</small>
+                        </a>
+                    </div>
+                </div>
             </section>
             
             <!-- Partners (secondary — full detail on dedicated pages) -->
@@ -996,7 +1470,8 @@
                 <div class="partner-links">
                     <a href="/en/company/affiliate-sales/">Affiliate program (20–25% recurring) →</a>
                     <a href="/en/company/digital-agencies/">White-label for agencies →</a>
-                    <a href="#individual-services" id="partner-services-jump">Browse à la carte service categories</a>
+                    <button type="button" class="btn btn-outline" style="border-radius:999px;padding:0.65rem 1.15rem;" onclick="openFormModal('white-label')">Apply for white-label</button>
+                    <a href="#individual-services" id="partner-services-jump">Browse à la carte categories</a>
                 </div>
             </section>
             
@@ -1004,14 +1479,15 @@
             <section id="individual-services" class="section section-alt">
                 <p class="section-kicker">More services</p>
                 <h2>À la carte categories</h2>
-                <p class="section-lead">Optional add-ons and project lines. Click a category to expand its services, or request a quote.</p>
+                <p class="section-lead">Optional add-ons and project lines. Click a category to expand its services, or start a consultation for paid work.</p>
                 <div id="services-accordion">
                     <p id="services-accordion-empty" style="text-align:center;color:#1e3a4f;max-width:32rem;margin:0 auto;line-height:1.6;">
-                        Browse one-time packages above, or <button type="button" class="btn btn-outline" style="margin-top:0.75rem;" onclick="openFormModal('consultation')">request a custom quote</button>
+                        Browse one-time packages above, or <button type="button" class="btn btn-outline" style="margin-top:0.75rem;" onclick="openFormModal('consultation')">start a consultation</button>
                     </p>
                 </div>
-                 <div style="text-align: center; margin-top: 2.5rem;">
-                    <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Request a quote</button>
+                 <div style="text-align: center; margin-top: 2.5rem; display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
+                    <button type="button" class="btn btn-accent" onclick="openFormModal('consultation')">Start a consultation</button>
+                    <button type="button" class="btn btn-outline" onclick="openFormModal('white-label')">Apply for white-label partnership</button>
                 </div>
             </section>
             
@@ -1074,17 +1550,17 @@
         </div>
     </div>
 
-    <!-- Free Support Form -->
+    <!-- Community / NGO-qualified program application (not open free-for-all) -->
     <div id="form-modal-free-support" class="form-modal-overlay">
-        <div class="form-modal">
+        <div class="form-modal" style="max-width:560px;">
             <div class="form-modal-header">
-                <h3><i class="fas fa-heart" style="color:var(--color-accent-magenta);margin-right:0.5rem;"></i> Apply for Free Support</h3>
+                <h3><i class="fas fa-heart" style="color:var(--color-accent-magenta);margin-right:0.5rem;"></i> Community program application</h3>
                 <button type="button" class="modal-close-btn" onclick="closeFormModal('free-support')">&times;</button>
             </div>
             <div class="form-modal-body">
-                <p class="form-subtitle">Our free program is designed for Lao businesses, startups, and NGOs. Tell us about your organization and how we can help.</p>
+                <p class="form-subtitle">Apply first. If you qualify and seats exist, we invite you to the <strong>client portal</strong> where program pricing and next steps are shared. Completing this form does not guarantee acceptance. Public paid plans stay available to everyone above.</p>
                 <div class="form-error" id="form-error-free-support"></div>
-                <form id="form-free-support" onsubmit="submitForm(event, 'free-support')" toolname="request_free_support" tooldescription="Request free support information from WordsThatSells.">
+                <form id="form-free-support" onsubmit="submitForm(event, 'free-support')" toolname="request_free_support" tooldescription="Apply to WordsThatSells Laos community / NGO-funded digital growth program.">
                     <div class="form-group">
                         <label>Full Name <span class="required">*</span></label>
                         <input type="text" name="name" required placeholder="Your name" toolparamdescription="Full name of the person making the request">
@@ -1094,18 +1570,59 @@
                         <input type="email" name="email" required placeholder="your@email.com" toolparamdescription="Work email address for follow-up">
                     </div>
                     <div class="form-group">
-                        <label>Organization / Business Name</label>
-                        <input type="text" name="company" placeholder="Your business or organization" toolparamdescription="Company or business name">
+                        <label>Business / organization name <span class="required">*</span></label>
+                        <input type="text" name="company" required placeholder="Registered name if available" toolparamdescription="Company or organization name">
                     </div>
                     <div class="form-group">
-                        <label>Phone</label>
-                        <input type="tel" name="phone" placeholder="+856 20 xxxx xxxx" toolparamdescription="Phone or WhatsApp number">
+                        <label>Phone / WhatsApp <span class="required">*</span></label>
+                        <input type="tel" name="phone" required placeholder="+856 20 xxxx xxxx" toolparamdescription="Phone or WhatsApp number">
                     </div>
                     <div class="form-group">
-                        <label>Tell us about your needs</label>
-                        <textarea name="message" placeholder="Describe your business and how digital marketing can help you grow." toolparamdescription="Details about the request or project"></textarea>
+                        <label>Province / city in Laos <span class="required">*</span></label>
+                        <input type="text" name="location" required placeholder="e.g. Vientiane Capital" toolparamdescription="Location in Laos">
                     </div>
-                    <button type="submit" class="form-submit-btn">Submit Application</button>
+                    <div class="form-group">
+                        <label>Business type <span class="required">*</span></label>
+                        <select name="business_type" required toolparamdescription="Type of business or organization">
+                            <option value="">Select…</option>
+                            <option value="local_sme">Local SME / shop / service</option>
+                            <option value="community_org">Community organization</option>
+                            <option value="startup">Startup</option>
+                            <option value="ngo_partner">NGO / development partner</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Years operating <span class="required">*</span></label>
+                        <select name="years_operating" required toolparamdescription="Years the business has been operating">
+                            <option value="">Select…</option>
+                            <option value="under_1">Under 1 year</option>
+                            <option value="1_3">1–3 years</option>
+                            <option value="3_5">3–5 years</option>
+                            <option value="5_plus">5+ years</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Current digital presence <span class="required">*</span></label>
+                        <select name="digital_presence" required toolparamdescription="Current digital presence">
+                            <option value="">Select…</option>
+                            <option value="none">None yet</option>
+                            <option value="fb_only">Facebook / social only</option>
+                            <option value="site_basic">Basic website</option>
+                            <option value="active_marketing">Already doing paid/organic marketing</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Why community / NGO-funded support? <span class="required">*</span></label>
+                        <textarea name="message" required rows="4" placeholder="Community impact, who you serve, what marketing help would change, any NGO or sponsor already involved." toolparamdescription="Motivation and community impact"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label style="display:flex;gap:0.5rem;align-items:flex-start;font-weight:500;">
+                            <input type="checkbox" name="criteria_ack" value="yes" required style="margin-top:0.35rem;">
+                            <span>I understand this is a <strong>qualified</strong> program with limited seats, not automatic free marketing, and that funding depends on NGO / partner capacity.</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="form-submit-btn">Submit application for review</button>
                 </form>
             </div>
         </div>
@@ -1152,13 +1669,13 @@
     <div id="form-modal-white-label" class="form-modal-overlay">
         <div class="form-modal">
             <div class="form-modal-header">
-                <h3><i class="fas fa-building" style="color:var(--color-primary-base);margin-right:0.5rem;"></i> White Label Partnership</h3>
+                <h3><i class="fas fa-building" style="color:var(--color-primary-base);margin-right:0.5rem;"></i> White-label application</h3>
                 <button type="button" class="modal-close-btn" onclick="closeFormModal('white-label')">&times;</button>
             </div>
             <div class="form-modal-body">
-                <p class="form-subtitle">Expand your agency's offerings with our white-label services. Sell premium digital marketing solutions under your own brand.</p>
+                <p class="form-subtitle">This is a <strong>partnership application</strong>, not a price quote. Tell us about your agency—we review fit, then share delivery terms and next steps if you qualify.</p>
                 <div class="form-error" id="form-error-white-label"></div>
-                <form id="form-white-label" onsubmit="submitForm(event, 'white-label')" toolname="request_white_label" tooldescription="Request white-label agency partnership with WordsThatSells.">
+                <form id="form-white-label" onsubmit="submitForm(event, 'white-label')" toolname="request_white_label" tooldescription="Apply for white-label agency partnership with WordsThatSells.">
                     <div class="form-group">
                         <label>Full Name <span class="required">*</span></label>
                         <input type="text" name="name" required placeholder="Your name" toolparamdescription="Full name of the person making the request">
@@ -1168,18 +1685,18 @@
                         <input type="email" name="email" required placeholder="your@email.com" toolparamdescription="Work email address for follow-up">
                     </div>
                     <div class="form-group">
-                        <label>Agency / Company Name</label>
-                        <input type="text" name="company" placeholder="Your agency or company name" toolparamdescription="Company or business name">
+                        <label>Agency / Company Name <span class="required">*</span></label>
+                        <input type="text" name="company" required placeholder="Your agency or company name" toolparamdescription="Company or business name">
                     </div>
                     <div class="form-group">
-                        <label>Phone</label>
-                        <input type="tel" name="phone" placeholder="+1 (555) 000-0000" toolparamdescription="Phone or WhatsApp number">
+                        <label>Phone / WhatsApp</label>
+                        <input type="tel" name="phone" placeholder="+856 / +66 …" toolparamdescription="Phone or WhatsApp number">
                     </div>
                     <div class="form-group">
-                        <label>Tell us about your agency</label>
-                        <textarea name="message" placeholder="What services do you currently offer? How many clients do you serve?" toolparamdescription="Details about the request or project"></textarea>
+                        <label>Tell us about your agency <span class="required">*</span></label>
+                        <textarea name="message" required placeholder="Services you offer, client count, markets (Laos/Thailand/SEA), why white-label." toolparamdescription="Agency background for partnership application"></textarea>
                     </div>
-                    <button type="submit" class="form-submit-btn">Apply for White Label Partnership</button>
+                    <button type="submit" class="form-submit-btn">Submit white-label application</button>
                 </form>
             </div>
         </div>
@@ -1439,6 +1956,7 @@
 
             const renderModal = () => {
                 if (!pricingData.subscriptions || !pricingData.featureCategories) return;
+                if (!modalTableHead || !modalTableBody) return; // secondary modal table retired
 
                 let modalHeadHTML = '<tr><th>Features</th>';
                 let modalBodyHTML = '';
@@ -1569,30 +2087,31 @@
                 });
             }
 
-            // --- Modal controls (detailed feature matrix from admin when available) ---
-            const modalOverlay = document.getElementById('comparison-modal-overlay');
-            const compareBtn = document.getElementById('compare-plans-btn');
-            if (compareBtn) compareBtn.addEventListener('click', () => {
-                trackEvent('open_comparison', 'Pricing', 'Compare All Plans');
-                // If admin feature matrix is empty, scroll to the always-visible table instead
-                const hasMatrix = modalTableBody && modalTableBody.children.length > 0;
-                if (!hasMatrix || !hasApiPlans) {
-                    const table = document.getElementById('plan-compare');
-                    if (table) table.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    return;
+            // Secondary comparison modal removed — single on-page table is the source of truth.
+            // If admin returns a rich feature matrix, fold it into #plan-compare (below the static rows).
+            if (hasApiPlans && pricingData.featureCategories && pricingData.featureCategories.length && modalTableBody) {
+                const compareTable = document.querySelector('#plan-compare .compare-table tbody');
+                if (compareTable) {
+                    const plans = pricingData.subscriptions || [];
+                    pricingData.featureCategories.forEach(category => {
+                        (category.features || []).forEach(feature => {
+                            const tr = document.createElement('tr');
+                            let cells = `<td>${feature.name || ''}</td>`;
+                            plans.forEach((plan, idx) => {
+                                const has = plan.features && plan.features[feature.key];
+                                const pop = plan.highlight || /growth/i.test(plan.slug || plan.name || '') ? ' class="col-pop"' : '';
+                                cells += `<td${pop}>${has ? '<span class="yes"><i class="fas fa-check"></i></span>' : '<span class="no">—</span>'}</td>`;
+                            });
+                            // Pad to 3 plan columns if API returns fewer
+                            while ((cells.match(/<td/g) || []).length < 4) {
+                                cells += '<td class="no">—</td>';
+                            }
+                            tr.innerHTML = cells;
+                            compareTable.appendChild(tr);
+                        });
+                    });
                 }
-                modalOverlay.classList.add('active');
-                document.body.classList.add('no-scroll');
-            });
-            const closeModal = () => {
-                modalOverlay.classList.remove('active');
-                document.body.classList.remove('no-scroll');
-            };
-            const modalCloseBtn = document.getElementById('modal-close-btn');
-            if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) closeModal();
-            });
+            }
 
             const infoModalCloseBtn = document.getElementById('info-modal-close-btn');
             if (infoModalCloseBtn) infoModalCloseBtn.addEventListener('click', () => {
