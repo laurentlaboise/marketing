@@ -23,6 +23,7 @@ User-agent: Bingbot
 Allow: /
 
 Sitemap: https://wordsthatsells.website/sitemap.xml
+Sitemap: https://wordsthatsells.website/sitemap-google.xml
 
 # LLM guidance
 Allow: /llms.txt
