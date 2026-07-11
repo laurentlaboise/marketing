@@ -71,6 +71,8 @@ https://admin.wordsthatsells.website/api/machine/v1
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/health` | Auth + DB check |
+| GET | `/glossary` | List glossary terms (id, term, slug, image) |
+| POST | `/glossary/bulk-upsert` | Upsert glossary terms from `{ "terms": [ ... ] }` |
 | GET | `/pricing` | Packages + feature catalog |
 | POST | `/seed/pricing` | Upsert Drive-backed packages, features, affiliate solutions |
 | PUT | `/pricing/packages/:slug` | Upsert one package |
