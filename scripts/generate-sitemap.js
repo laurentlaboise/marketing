@@ -42,6 +42,7 @@ function walkHtml(dir, base = dir) {
 
 function isIndexable(absFile, relFile) {
   if (relFile.startsWith('checkout/')) return false;
+  if (/example-article|index-static-backup|articles-dynamic/i.test(relFile)) return false;
   const html = fs.readFileSync(absFile, 'utf8');
   const robots = /<meta\b[^>]*name="robots"[^>]*content="([^"]*)"/i.exec(html.slice(0, 4000));
   if (robots && /noindex/i.test(robots[1])) return false;

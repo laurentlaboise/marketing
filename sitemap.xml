@@ -3,7 +3,7 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
   <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->
-  <!-- URL count: 107 | generated 2026-07-11 by scripts/generate-sitemap.js -->
+  <!-- URL count: 106 | generated 2026-07-11 by scripts/generate-sitemap.js -->
 
   <url>
     <loc>https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html</loc>
@@ -12,14 +12,6 @@
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html" />
-  </url>
-  <url>
-    <loc>https://wordsthatsells.website/en/articles/example-article.html</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/articles/example-article.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/articles/example-article.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html</loc>
@@ -135,7 +127,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/" />
@@ -167,7 +159,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/" />
@@ -423,7 +415,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/glossary/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/" />
