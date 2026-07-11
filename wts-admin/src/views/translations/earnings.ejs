@@ -47,12 +47,25 @@
       </div>
     </div>
 
-    <!-- Payout method (self-service: the account holder enters their own
-         details; the form is never prefilled — only the masked label is
-         ever readable back) -->
+    <!-- Payout method (self-service). Same APIs/tests: methodForm + bank_transfer/wallet_qr.
+         UI: big method cards + popular bank chips for activation clarity. -->
     <div class="card" style="margin-bottom:1rem;">
       <div class="card-body">
-        <h3 style="margin:0 0 0.5rem;">Payout Method</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:flex-start; justify-content:space-between; margin-bottom:0.5rem;">
+          <div>
+            <h3 style="margin:0 0 0.35rem;">Payout Method</h3>
+            <p style="margin:0; color:var(--gray-600); font-size:0.95rem;">
+              Activate how you get paid — local bank (BCEL and others) or wallet / QR.
+            </p>
+          </div>
+          <% if (payout.configured) { %>
+            <div style="padding:0.45rem 0.8rem; border-radius:999px; background:rgba(31,138,86,0.12); color:#166534; font-weight:600; font-size:0.85rem;">
+              <i class="fas fa-circle-check"></i>
+              Active: <%= payout.method === 'bank_transfer' ? 'Bank transfer' : (payout.method === 'wallet_qr' ? 'Wallet / QR' : payout.gateway) %>
+              <span style="font-weight:500; opacity:0.9;"><%= payout.label %></span>
+            </div>
+          <% } %>
+        </div>
         <% if (payout.configured) { %>
           <p style="margin:0 0 1rem; color:var(--gray-600);">
             Current: <strong><%= payout.method === 'bank_transfer' ? 'Bank transfer' : (payout.method === 'wallet_qr' ? 'Wallet / QR' : payout.gateway) %></strong>
@@ -67,44 +80,75 @@
           <p style="color:#d97706; margin:0;"><i class="fas fa-triangle-exclamation"></i> Banking details cannot be stored until the administrator configures encryption (PAYOUT_METADATA_KEY).</p>
         <% } else { %>
         <form id="methodForm" autocomplete="off">
-          <div style="display:flex; gap:1.25rem; margin-bottom:0.75rem; flex-wrap:wrap;">
-            <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
-              <input type="radio" name="method" value="bank_transfer" checked> Bank transfer
+          <p style="margin:0 0 0.5rem; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--gray-500); font-weight:600;">1 · Choose method</p>
+          <div id="methodPicker" role="group" aria-label="Payout method" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:0.6rem; margin-bottom:1rem;">
+            <label class="payout-method-card is-selected" data-method="bank_transfer">
+              <input type="radio" name="method" value="bank_transfer" checked style="position:absolute;opacity:0;pointer-events:none;">
+              <span class="pmc-icon"><i class="fas fa-building-columns"></i></span>
+              <span class="pmc-title">Bank transfer</span>
+              <span class="pmc-sub">BCEL, LDB, JDB…</span>
             </label>
-            <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
-              <input type="radio" name="method" value="wallet_qr"> Wallet / QR
+            <label class="payout-method-card" data-method="wallet_qr">
+              <input type="radio" name="method" value="wallet_qr" style="position:absolute;opacity:0;pointer-events:none;">
+              <span class="pmc-icon"><i class="fas fa-qrcode"></i></span>
+              <span class="pmc-title">Wallet / QR</span>
+              <span class="pmc-sub">OnePay, BCEL One, LaoQR…</span>
             </label>
+          </div>
+
+          <p style="margin:0 0 0.5rem; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--gray-500); font-weight:600;">2 · Account details</p>
+          <div id="bankChips" style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.75rem;">
+            <span style="font-size:0.8rem; color:var(--gray-500); margin-right:0.25rem; align-self:center;">Popular banks:</span>
+            <% ['BCEL', 'LDB', 'JDB', 'APB', 'BIC', 'Other'].forEach(function (b) { %>
+              <button type="button" class="btn btn-sm bank-chip" data-bank="<%= b %>" style="border-radius:999px;"><%= b %></button>
+            <% }); %>
           </div>
           <div id="bankFields" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem;">
             <div class="form-group" style="margin:0;">
-              <label class="form-label">Bank name</label>
-              <input class="form-input" name="bank_name" maxlength="120" autocomplete="off" placeholder="e.g. BCEL">
+              <label class="form-label" for="bank_name">Bank name</label>
+              <input class="form-input" id="bank_name" name="bank_name" maxlength="120" autocomplete="off" placeholder="e.g. BCEL">
             </div>
             <div class="form-group" style="margin:0;">
-              <label class="form-label">Account holder name</label>
-              <input class="form-input" name="account_name" maxlength="120" autocomplete="off">
+              <label class="form-label" for="account_name">Account holder name</label>
+              <input class="form-input" id="account_name" name="account_name" maxlength="120" autocomplete="off">
             </div>
             <div class="form-group" style="margin:0;">
-              <label class="form-label">Account number</label>
-              <input class="form-input" name="account_number" maxlength="34" inputmode="numeric" autocomplete="off" placeholder="digits, spaces, dashes">
+              <label class="form-label" for="account_number">Account number</label>
+              <input class="form-input" id="account_number" name="account_number" maxlength="34" inputmode="numeric" autocomplete="off" placeholder="digits, spaces, dashes">
             </div>
           </div>
           <div id="walletFields" style="display:none; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem;">
             <div class="form-group" style="margin:0;">
-              <label class="form-label">Provider</label>
-              <input class="form-input" name="provider" maxlength="60" autocomplete="off" placeholder="OnePay, BCEL One, LaoQR…">
+              <label class="form-label" for="provider">Provider</label>
+              <input class="form-input" id="provider" name="provider" maxlength="60" autocomplete="off" placeholder="OnePay, BCEL One, LaoQR…">
             </div>
             <div class="form-group" style="margin:0;">
-              <label class="form-label">Wallet ID / QR payload</label>
-              <input class="form-input" name="wallet_id" maxlength="300" autocomplete="off" placeholder="Wallet number or the QR code text">
+              <label class="form-label" for="wallet_id">Wallet ID / QR payload</label>
+              <input class="form-input" id="wallet_id" name="wallet_id" maxlength="300" autocomplete="off" placeholder="Wallet number or the QR code text">
             </div>
           </div>
-          <div style="margin-top:0.75rem;">
-            <button type="submit" class="btn btn-primary"><i class="fas fa-lock"></i> Save (encrypted)</button>
-            <span style="font-size:0.8rem; color:var(--gray-500); margin-left:0.5rem;">Details are encrypted at rest; only a masked label is ever shown.</span>
-            <div id="methodError" style="display:none; color:#b91c1c; font-size:0.85rem; margin-top:0.5rem;"></div>
+          <div style="margin-top:0.9rem; display:flex; flex-wrap:wrap; gap:0.65rem; align-items:center;">
+            <button type="submit" class="btn btn-primary" id="saveMethodBtn"><i class="fas fa-lock"></i> <%= payout.configured ? 'Update method (encrypted)' : 'Activate payout method' %></button>
+            <span style="font-size:0.8rem; color:var(--gray-500);">Details are encrypted at rest; only a masked label is ever shown. Save (encrypted).</span>
+            <div id="methodError" style="display:none; color:#b91c1c; font-size:0.85rem; width:100%;"></div>
           </div>
         </form>
+        <style>
+          .payout-method-card {
+            position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem;
+            text-align: left; padding: 0.85rem 1rem; border-radius: 14px;
+            border: 2px solid var(--gray-200, #e5e7eb); background: #fff; cursor: pointer;
+            transition: border-color 150ms, box-shadow 150ms, background 150ms;
+          }
+          .payout-method-card:hover { border-color: var(--gray-400, #9ca3af); }
+          .payout-method-card:focus-within, .payout-method-card.is-selected {
+            border-color: #1f8a56; background: rgba(31,138,86,0.06); box-shadow: 0 0 0 1px #1f8a56;
+          }
+          .payout-method-card .pmc-icon { font-size: 1.2rem; color: #1f8a56; }
+          .payout-method-card .pmc-title { font-weight: 700; font-size: 0.95rem; }
+          .payout-method-card .pmc-sub { font-size: 0.75rem; color: var(--gray-500, #6b7280); }
+          .bank-chip.is-selected { background: #1f8a56; color: #fff; border-color: #1f8a56; }
+        </style>
         <% } %>
       </div>
     </div>
@@ -187,18 +231,62 @@
   if (methodForm) {
     var bankFields = document.getElementById('bankFields');
     var walletFields = document.getElementById('walletFields');
+    var bankChips = document.getElementById('bankChips');
     var methodError = document.getElementById('methodError');
+    var saveBtn = document.getElementById('saveMethodBtn');
     var currentMethod = function () {
       var checked = methodForm.querySelector('input[name="method"]:checked');
       return checked ? checked.value : 'bank_transfer';
     };
+    var clearInactive = function (method) {
+      if (method === 'wallet_qr') {
+        ['bank_name', 'account_name', 'account_number'].forEach(function (n) {
+          var f = methodForm.querySelector('[name="' + n + '"]');
+          if (f) f.value = '';
+        });
+        document.querySelectorAll('.bank-chip').forEach(function (c) { c.classList.remove('is-selected'); });
+      } else {
+        ['provider', 'wallet_id'].forEach(function (n) {
+          var f = methodForm.querySelector('[name="' + n + '"]');
+          if (f) f.value = '';
+        });
+      }
+    };
     var syncFields = function () {
-      var wallet = currentMethod() === 'wallet_qr';
+      var method = currentMethod();
+      var wallet = method === 'wallet_qr';
       bankFields.style.display = wallet ? 'none' : 'grid';
       walletFields.style.display = wallet ? 'grid' : 'none';
+      if (bankChips) bankChips.style.display = wallet ? 'none' : 'flex';
+      document.querySelectorAll('.payout-method-card').forEach(function (card) {
+        var on = card.getAttribute('data-method') === method;
+        card.classList.toggle('is-selected', on);
+      });
     };
     methodForm.querySelectorAll('input[name="method"]').forEach(function (radio) {
-      radio.addEventListener('change', syncFields);
+      radio.addEventListener('change', function () {
+        clearInactive(currentMethod());
+        syncFields();
+      });
+    });
+    document.querySelectorAll('.payout-method-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var radio = card.querySelector('input[type="radio"]');
+        if (radio && !radio.checked) {
+          radio.checked = true;
+          radio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+    document.querySelectorAll('.bank-chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var name = chip.getAttribute('data-bank');
+        document.querySelectorAll('.bank-chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        chip.classList.add('is-selected');
+        var bankName = methodForm.querySelector('[name="bank_name"]');
+        if (bankName && name !== 'Other') bankName.value = name;
+        if (name === 'Other' && bankName) { bankName.focus(); bankName.select(); }
+      });
     });
     syncFields();
 
@@ -214,9 +302,15 @@
         var field = methodForm.querySelector('[name="' + name + '"]');
         if (field && field.value.trim()) body[name] = field.value.trim();
       });
+      if (saveBtn) saveBtn.disabled = true;
       post('/translations/earnings/payout-method', body).then(function (res) {
         if (res.ok) { location.reload(); return; }
+        if (saveBtn) saveBtn.disabled = false;
         methodError.textContent = res.data.error || 'Save failed';
+        methodError.style.display = 'block';
+      }).catch(function () {
+        if (saveBtn) saveBtn.disabled = false;
+        methodError.textContent = 'Network error — try again';
         methodError.style.display = 'block';
       });
     });
@@ -227,7 +321,7 @@
     if (!confirm('Remove your payout method? You cannot request payouts until you add a new one.')) return;
     post('/translations/earnings/payout-method/remove').then(function (res) {
       if (res.ok) location.reload(); else alert(res.data.error || 'Remove failed');
-    });
+    }).catch(function () { alert('Network error — try again'); });
   });
 })();
 </script>
