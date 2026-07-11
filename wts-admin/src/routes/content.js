@@ -265,6 +265,91 @@ router.get('/articles/api/link-terms', async (req, res) => {
   }
 });
 
+// ── Internal-link injection (one click per article, or the whole site) ──
+//
+// Same engine as the translation pipeline's "Link SEO Terms" button
+// (src/lib/interlink.js): hyperlink first mentions of glossary terms, SEO
+// terms, OTHER published articles' titles, and imported site pages inside
+// the article body — descriptive anchors, capped density, never inside
+// headings or existing links, idempotent on re-runs. This is internal
+// linking (site authority + crawl paths + the topic clusters AI search
+// engines read); links FROM other domains can't be manufactured here.
+const interlinkLib = require('../lib/interlink');
+const ARTICLE_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function interlinkArticle(article, terms) {
+  const updates = {};
+  const linked = [];
+  for (const field of ['content', 'excerpt']) {
+    if (!article[field] || typeof article[field] !== 'string') continue;
+    const remaining = interlinkLib.DEFAULT_MAX_LINKS - linked.length;
+    if (remaining <= 0) break;
+    const result = interlinkLib.injectTermLinks(
+      article[field],
+      terms.filter((t) => !linked.some((l) => l.term.toLowerCase() === t.matchName.toLowerCase())),
+      { lang: 'en', maxLinks: remaining }
+    );
+    if (result.count > 0) {
+      updates[field] = result.html;
+      linked.push(...result.linked);
+    }
+  }
+  if (linked.length > 0) {
+    await db.query(
+      `UPDATE articles SET content = COALESCE($1, content), excerpt = COALESCE($2, excerpt),
+              updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3`,
+      [updates.content || null, updates.excerpt || null, article.id]
+    );
+  }
+  return linked;
+}
+
+// Bulk: every published article in one pass. Registered before the /:id
+// routes so 'interlink-all' is never captured as an id.
+router.post('/articles/interlink-all', logActivity('articles_interlink_all'), async (req, res) => {
+  try {
+    const articles = (await db.query(
+      `SELECT id, title, content, excerpt FROM articles WHERE status = 'published' ORDER BY published_at DESC`
+    )).rows;
+    let totalLinks = 0;
+    let touched = 0;
+    for (const article of articles) {
+      const terms = await interlinkLib.buildTermIndex('en', {
+        exclude: { entityType: 'article', entityId: article.id },
+      });
+      const linked = await interlinkArticle(article, terms);
+      if (linked.length > 0) { touched += 1; totalLinks += linked.length; }
+    }
+    res.json({ success: true, articles: articles.length, updated: touched, links: totalLinks });
+  } catch (error) {
+    console.error('Bulk interlink error:', error);
+    res.status(500).json({ success: false, error: 'Bulk interlink failed' });
+  }
+});
+
+router.post('/articles/:id/interlink', logActivity('article_interlink'), async (req, res) => {
+  try {
+    if (!ARTICLE_UUID_RE.test(req.params.id)) {
+      return res.status(400).json({ success: false, error: 'Invalid article id' });
+    }
+    const article = (await db.query(
+      'SELECT id, title, content, excerpt FROM articles WHERE id = $1',
+      [req.params.id]
+    )).rows[0];
+    if (!article) return res.status(404).json({ success: false, error: 'Article not found' });
+
+    const terms = await interlinkLib.buildTermIndex('en', {
+      exclude: { entityType: 'article', entityId: article.id },
+    });
+    const linked = await interlinkArticle(article, terms);
+    res.json({ success: true, count: linked.length, linked });
+  } catch (error) {
+    console.error('Article interlink error:', error);
+    res.status(500).json({ success: false, error: 'Interlink failed' });
+  }
+});
+
 // Edit article form
 router.get('/articles/:id/edit', async (req, res) => {
   try {

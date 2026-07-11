@@ -1406,3 +1406,60 @@ test('interlink route links a Lao draft using published term names and localized
   await pool.query('DELETE FROM translations WHERE id = ANY($1)', [cleanup.translations]);
   await pool.query('DELETE FROM glossary WHERE id = ANY($1)', [cleanup.glossary]);
 });
+
+// ---------------------------------------------------------------------------
+// Article interlinking (one click per article + sitewide pass)
+// ---------------------------------------------------------------------------
+
+test('article interlink links glossary terms and other articles, never itself', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  const g = await pool.query(
+    `INSERT INTO glossary (term, definition, letter, slug)
+     VALUES ('TestTerm Anchor Text', 'The clickable words of a link.', 'T', 'testterm-anchor-text')
+     RETURNING id`
+  );
+  const other = await pool.query(
+    `INSERT INTO articles (title, slug, content, excerpt, status)
+     VALUES ('TestTerm Local SEO Playbook | WordsThatSells', 'testterm-local-seo-playbook',
+             '<p>Standalone piece.</p>', 'How Lao SMEs win locally.', 'published')
+     RETURNING id`
+  );
+  const mine = await pool.query(
+    `INSERT INTO articles (title, slug, content, excerpt, status)
+     VALUES ('TestTerm Interlinking Guide', 'testterm-interlinking-guide',
+             '<p>Good TestTerm Anchor Text improves clarity. Read the TestTerm Local SEO Playbook next. This TestTerm Interlinking Guide repeats its own name.</p>',
+             null, 'published')
+     RETURNING id`
+  );
+
+  try {
+    const res = await session.fetch(`/content/articles/${mine.rows[0].id}/interlink`, { method: 'POST', headers, body: '{}' });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    const linkedTerms = data.linked.map((l) => l.term);
+    assert.ok(linkedTerms.includes('TestTerm Anchor Text'), 'glossary term linked');
+    assert.ok(linkedTerms.includes('TestTerm Local SEO Playbook'), 'other article linked via cleaned title (brand suffix stripped)');
+    assert.ok(!linkedTerms.includes('TestTerm Interlinking Guide'), 'an article never links to itself');
+
+    const saved = (await pool.query('SELECT content FROM articles WHERE id = $1', [mine.rows[0].id])).rows[0];
+    assert.ok(saved.content.includes('href="/en/resources/glossary/testterm-anchor-text.html"'));
+    assert.ok(saved.content.includes('href="/en/articles/testterm-local-seo-playbook"'));
+
+    // Sitewide pass right after: everything already linked → no new links
+    // on this article (idempotent), and the endpoint reports its coverage.
+    const bulk = await session.fetch('/content/articles/interlink-all', { method: 'POST', headers, body: '{}' });
+    assert.equal(bulk.status, 200);
+    const bulkData = await bulk.json();
+    assert.ok(bulkData.articles >= 2, 'bulk pass sweeps the published set');
+    const after = (await pool.query('SELECT content FROM articles WHERE id = $1', [mine.rows[0].id])).rows[0];
+    const anchors = (after.content.match(/auto-linked/g) || []).length;
+    assert.equal(anchors, saved.content.match(/auto-linked/g).length, 'bulk re-run adds nothing to an already-linked article');
+  } finally {
+    await pool.query(`DELETE FROM articles WHERE slug LIKE 'testterm-%'`);
+    await pool.query('DELETE FROM glossary WHERE id = $1', [g.rows[0].id]);
+  }
+});

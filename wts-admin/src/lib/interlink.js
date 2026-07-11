@@ -43,10 +43,19 @@ function escAttr(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// Page/article titles carry branding suffixes ("… | WordsThatSells",
+// "… — WTS") that never appear verbatim in prose; the matchable phrase is
+// the part before the separator.
+function titlePhrase(title) {
+  return String(title || '').split(/\s+[|—–·]\s+/)[0].trim();
+}
+
 // Linkable terms for a language, longest name first. `exclude` skips one
-// entity (a term's own page must not link to itself).
+// entity (a term's own page must not link to itself). Sources: glossary
+// terms, SEO terms, published article titles, and imported site pages —
+// so one pass cross-links a document into the whole library.
 async function buildTermIndex(lang, { exclude = null, client = db } = {}) {
-  const [glossary, seoTerms] = await Promise.all([
+  const [glossary, seoTerms, articles, sitePages] = await Promise.all([
     client.query(
       `SELECT id, term, definition, slug FROM glossary
        WHERE slug IS NOT NULL AND slug <> ''`
@@ -57,6 +66,16 @@ async function buildTermIndex(lang, { exclude = null, client = db } = {}) {
        FROM seo_terms
        WHERE COALESCE(article_link, glossary_link) IS NOT NULL`
     ),
+    client.query(
+      `SELECT id, title, excerpt, slug FROM articles
+       WHERE status = 'published' AND slug IS NOT NULL AND slug <> ''`
+    ),
+    // Real pages only — the importer stores content-prompt stubs with empty
+    // segment sets; anything it extracted segments from is a served page.
+    client.query(
+      `SELECT id, path, title FROM site_pages
+       WHERE COALESCE(title, '') <> '' AND path <> '/' AND segments::text <> '{}'`
+    ).catch(() => ({ rows: [] })), // table absent on minimal installs
   ]);
 
   const base = [
@@ -71,6 +90,16 @@ async function buildTermIndex(lang, { exclude = null, client = db } = {}) {
       link: s.article_link || s.glossary_link,
       localizedLink: localizeLink(s.article_link || s.glossary_link, lang),
     })),
+    ...articles.rows.map((a) => ({
+      entityType: 'article', entityId: String(a.id), type: 'article',
+      name: titlePhrase(a.title), definition: (a.excerpt || '').slice(0, 200),
+      link: `/en/articles/${a.slug}`, localizedLink: `/${lang}/articles/${a.slug}`,
+    })),
+    ...sitePages.rows.map((p) => ({
+      entityType: 'page', entityId: String(p.id), type: 'page',
+      name: titlePhrase(p.title), definition: '',
+      link: p.path, localizedLink: localizeLink(p.path, lang),
+    })),
   ].filter((t) => t.name && t.link);
 
   let entries;
@@ -78,21 +107,27 @@ async function buildTermIndex(lang, { exclude = null, client = db } = {}) {
     entries = base.map((t) => ({ ...t, matchName: t.name, href: t.link }));
   } else {
     // Only published (human-approved) translated names are matchable.
+    // Terms match on their translated 'term'; articles on their translated
+    // title. Site pages have no clean translated title (segment-keyed
+    // payloads) and simply drop out for non-English passes.
     const translated = await client.query(
-      `SELECT entity_type, entity_id, content_payload->>'term' AS term
+      `SELECT entity_type, entity_id,
+              COALESCE(content_payload->>'term', content_payload->>'title') AS name
        FROM translations
-       WHERE entity_type IN ('glossary', 'seo_term')
+       WHERE entity_type IN ('glossary', 'seo_term', 'article')
          AND target_language = $1 AND status = 'published'
-         AND COALESCE(content_payload->>'term', '') <> ''`,
+         AND COALESCE(content_payload->>'term', content_payload->>'title', '') <> ''`,
       [lang]
     );
     const names = new Map(
-      translated.rows.map((r) => [`${r.entity_type}:${r.entity_id}`, r.term])
+      translated.rows.map((r) => [`${r.entity_type}:${r.entity_id}`, r.name])
     );
     entries = base
       .map((t) => {
         const name = names.get(`${t.entityType}:${t.entityId}`);
-        return name ? { ...t, matchName: name, href: t.localizedLink } : null;
+        return name
+          ? { ...t, matchName: t.entityType === 'article' ? titlePhrase(name) : name, href: t.localizedLink }
+          : null;
       })
       .filter(Boolean);
   }
