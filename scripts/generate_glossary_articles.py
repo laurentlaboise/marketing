@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Generate full SEO glossary articles for WordsThatSells (sidebar "Read full article" targets)."""
+"""Generate full SEO glossary articles (sidebar "Read full article" targets).
+
+Includes: definition, examples, related-term links, YouTube embed, social share
+buttons, solid brand-pink CTA, schema.org Article markup.
+"""
 from __future__ import annotations
 
 import html
@@ -7,18 +11,14 @@ import json
 import re
 from datetime import date
 from pathlib import Path
+from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[1]
 SEED = json.loads((ROOT / "wts-admin/database/glossary_seed_data.json").read_text())
 OUT = ROOT / "en/resources/glossary"
 
-# Footer extracted from existing glossary pages (FA + styles + footer markup)
 FOOTER_CANDIDATE = Path("/tmp/wts-glossary-footer.html")
-if FOOTER_CANDIDATE.exists():
-    FOOTER_SRC = FOOTER_CANDIDATE.read_text()
-else:
-    # minimal fallback
-    FOOTER_SRC = "</body></html>"
+FOOTER_SRC = FOOTER_CANDIDATE.read_text() if FOOTER_CANDIDATE.exists() else ""
 
 
 def esc(s: str) -> str:
@@ -69,6 +69,11 @@ def related_html(related: list) -> str:
     return f'<ul class="related-terms">\n{items}\n    </ul>'
 
 
+def youtube_id(url: str) -> str:
+    m = re.search(r"(?:v=|youtu\.be/|embed/)([A-Za-z0-9_-]{6,})", url or "")
+    return m.group(1) if m else ""
+
+
 def footer_for(filename: str) -> str:
     f = FOOTER_SRC
     f = re.sub(r"/en/resources/glossary/[^\"']+\.html", f"/en/resources/glossary/{filename}", f)
@@ -79,7 +84,7 @@ def footer_for(filename: str) -> str:
 
 
 CSS = """
-:root { --primary:#2c3e50; --accent:#2980b9; --bg:#fff; --text:#333; --text-light:#555; --surface:#f8f9fa; --border-radius:8px; }
+:root { --primary:#2c3e50; --accent:#2980b9; --brand:#d62b83; --bg:#fff; --text:#333; --text-light:#555; --surface:#f8f9fa; --border-radius:8px; }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Poppins','Segoe UI',Helvetica,Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.75;font-size:17px}
 .container{max-width:900px;margin:0 auto;padding:0 20px}
@@ -106,9 +111,24 @@ li{margin-bottom:8px}
 .related-terms a{display:inline-block;background:var(--surface);padding:8px 14px;border-radius:999px;font-size:.9rem;font-weight:600;border:1px solid #e5e7eb}
 .related-terms a:hover{background:#e8f4fc;text-decoration:none}
 .cta{margin:48px 0;padding:32px 28px;background:#d62b83;color:#fff;border-radius:14px;text-align:center;box-shadow:0 10px 24px rgba(214,43,131,.35)}
-      .cta a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
-      .cta a:hover{color:#fff;opacity:.92}
+.cta a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.cta a:hover{color:#fff;opacity:.92}
 .checklist li{margin-bottom:10px}
+.video-wrap{position:relative;width:100%;padding-bottom:56.25%;height:0;margin:20px 0 12px;border-radius:12px;overflow:hidden;background:#0f172a;box-shadow:0 8px 24px rgba(15,23,42,.2)}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.video-fallback{font-size:.95rem;margin-top:0}
+.share-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:28px 0 8px;padding:16px 18px;background:var(--surface);border-radius:12px;border:1px solid #e5e7eb}
+.share-bar .share-label{font-weight:600;color:var(--primary);margin-right:6px}
+.share-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;font-size:.9rem;font-weight:600;text-decoration:none;border:1px solid transparent;color:#fff}
+.share-btn:hover{filter:brightness(1.06);text-decoration:none;color:#fff}
+.share-btn.fb{background:#1877f2}
+.share-btn.x{background:#111827}
+.share-btn.li{background:#0a66c2}
+.share-btn.wa{background:#25d366}
+.share-btn.tg{background:#229ed9}
+.share-btn.copy{background:#64748b}
+.share-btn.native{background:#d62b83}
+.share-note{width:100%;font-size:.85rem;color:var(--text-light);margin:4px 0 0}
 """
 
 
@@ -129,27 +149,92 @@ def build_article(t: dict, filename: str) -> str:
     canonical = f"https://wordsthatsells.website/en/resources/glossary/{filename}"
     related_inline = ", ".join(related_link(r) for r in related[:4]) if related else "related SEO terms"
 
+    share_text = f"{term} — SEO guide on WordsThatSells"
+    u = quote(canonical, safe="")
+    txt = quote(share_text, safe="")
+    # Social share URLs (Instagram/TikTok have no public page-share API; use copy + native share)
+    fb = f"https://www.facebook.com/sharer/sharer.php?u={u}"
+    tw = f"https://twitter.com/intent/tweet?url={u}&text={txt}"
+    li = f"https://www.linkedin.com/sharing/share-offsite/?url={u}"
+    wa = f"https://api.whatsapp.com/send?text={txt}%20{u}"
+    tg = f"https://t.me/share/url?url={u}&text={txt}"
+
     og_image_tag = f'<meta property="og:image" content="{esc(img)}">' if img else ""
     img_block = ""
     if img:
-        img_block = f'''
+        img_block = f"""
     <div class="featured-image-wrapper">
       <img class="featured-image" src="{esc(img)}" width="1200" height="630" alt="{esc(term)} — SEO glossary illustration" loading="eager" decoding="async">
-    </div>'''
+    </div>"""
 
     example_block = ""
     if example:
-        example_block = f'''
+        example_block = f"""
     <h2>Real-world example (Southeast Asia)</h2>
     <div class="example-box">
       <p><strong>In practice:</strong> {esc_text(example)}</p>
-    </div>'''
+    </div>"""
 
-    video_block = ""
-    if video:
-        video_block = f'''
+    ytid = youtube_id(video)
+    if ytid:
+        video_block = f"""
     <h2>Watch a quick explainer</h2>
-    <p>Prefer video? Start here: <a href="{esc(video)}" target="_blank" rel="noopener noreferrer">Watch on YouTube</a>.</p>'''
+    <div class="video-wrap">
+      <iframe
+        src="https://www.youtube.com/embed/{ytid}"
+        title="{esc(term)} — YouTube explainer"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>
+    <p class="video-fallback"><a href="{esc(video)}" target="_blank" rel="noopener noreferrer">Open on YouTube</a></p>"""
+    elif video:
+        video_block = f"""
+    <h2>Watch a quick explainer</h2>
+    <p><a href="{esc(video)}" target="_blank" rel="noopener noreferrer">Watch on YouTube</a></p>"""
+    else:
+        video_block = ""
+
+    share_block = f"""
+    <div class="share-bar" aria-label="Share this article">
+      <span class="share-label">Share:</span>
+      <a class="share-btn fb" href="{fb}" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
+      <a class="share-btn x" href="{tw}" target="_blank" rel="noopener noreferrer" aria-label="Share on X"><i class="fab fa-x-twitter"></i> X</a>
+      <a class="share-btn li" href="{li}" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn"><i class="fab fa-linkedin-in"></i> LinkedIn</a>
+      <a class="share-btn wa" href="{wa}" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+      <a class="share-btn tg" href="{tg}" target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram"><i class="fab fa-telegram-plane"></i> Telegram</a>
+      <button type="button" class="share-btn copy" id="copy-link-btn" aria-label="Copy link"><i class="fas fa-link"></i> Copy link</button>
+      <button type="button" class="share-btn native" id="native-share-btn" aria-label="More share options"><i class="fas fa-share-alt"></i> More</button>
+      <p class="share-note">Instagram &amp; TikTok: use <strong>Copy link</strong> or <strong>More</strong> (phone share sheet) — they don’t allow direct web share buttons for external articles.</p>
+    </div>
+    <script>
+    (function() {{
+      var url = {json.dumps(canonical)};
+      var title = {json.dumps(share_text)};
+      var copyBtn = document.getElementById('copy-link-btn');
+      var moreBtn = document.getElementById('native-share-btn');
+      if (copyBtn) {{
+        copyBtn.addEventListener('click', function() {{
+          if (navigator.clipboard && navigator.clipboard.writeText) {{
+            navigator.clipboard.writeText(url).then(function() {{
+              copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied';
+              setTimeout(function() {{ copyBtn.innerHTML = '<i class="fas fa-link"></i> Copy link'; }}, 1800);
+            }});
+          }} else {{
+            window.prompt('Copy this link:', url);
+          }}
+        }});
+      }}
+      if (moreBtn) {{
+        if (!navigator.share) {{ moreBtn.style.display = 'none'; }}
+        moreBtn.addEventListener('click', function() {{
+          navigator.share({{ title: title, url: url, text: title }}).catch(function(){{}});
+        }});
+      }}
+    }})();
+    </script>
+    """
 
     schema = {
         "@context": "https://schema.org",
@@ -167,6 +252,13 @@ def build_article(t: dict, filename: str) -> str:
         "image": img or None,
         "about": {"@type": "DefinedTerm", "name": term, "description": definition},
     }
+    if ytid:
+        schema["video"] = {
+            "@type": "VideoObject",
+            "name": f"{term} explainer",
+            "embedUrl": f"https://www.youtube.com/embed/{ytid}",
+            "contentUrl": video,
+        }
     schema_json = json.dumps(schema, ensure_ascii=False)
 
     why = f"""
@@ -256,6 +348,7 @@ def build_article(t: dict, filename: str) -> str:
       </div>
     </header>
     {img_block}
+    {share_block}
     <article>
     <h2>What is {esc_text(term)}?</h2>
     <p>{esc_text(definition)}</p>
@@ -277,6 +370,7 @@ def build_article(t: dict, filename: str) -> str:
       <a href="https://wordsthatsells.website/en/contact/">Talk to our team</a> ·
       <a href="/en/resources/glossary/">Browse the full glossary</a></p>
     </div>
+    {share_block}
     </article>
   </main>
 {footer_for(filename)}
@@ -287,24 +381,22 @@ def build_article(t: dict, filename: str) -> str:
 
 def main() -> None:
     written = 0
+    with_video = 0
     for t in SEED:
         fn = term_to_file.get(t["term"]) or f"{t.get('slug') or 'term'}-2026.html"
-        (OUT / fn).write_text(build_article(t, fn), encoding="utf-8")
+        html_doc = build_article(t, fn)
+        (OUT / fn).write_text(html_doc, encoding="utf-8")
         written += 1
+        if youtube_id(t.get("video_url") or ""):
+            with_video += 1
 
-    counts = []
-    for p in OUT.glob("*.html"):
-        if p.name == "index.html":
-            continue
-        text = re.sub(r"<[^>]+>", " ", p.read_text(errors="ignore"))
-        counts.append(len(text.split()))
-    print(
-        f"written={written} words min/median/max={min(counts)}/{sorted(counts)[len(counts)//2]}/{max(counts)}"
-    )
     sample = (OUT / "backlinks-building-strategy-2026.html").read_text()
-    print("stub_prompt_gone", "Write 1400" not in sample)
-    print("has_h1", "<h1>" in sample)
-    print("has_related", "related-terms" in sample)
+    print(
+        f"written={written} with_youtube_embed={with_video} "
+        f"has_iframe={'youtube.com/embed' in sample} "
+        f"has_share={'share-bar' in sample} "
+        f"solid_pink_cta={'background:#d62b83' in sample}"
+    )
 
 
 if __name__ == "__main__":
