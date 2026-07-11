@@ -6,6 +6,7 @@
 
 const express = require('express');
 const db = require('../../../database/db');
+const i18n = require('../../lib/i18n');
 const { UUID_RE, notFound } = require('./util');
 const { addCollabRoutes } = require('./collab');
 const { addAssetRoutes } = require('./assets');
@@ -145,7 +146,11 @@ function createAdminRouter() {
         canComment: true,
         canApprove: true,
         canDecide: false,
-        canUpload: true
+        canUpload: true,
+        // Staff side renders in English; customer text arrives with a
+        // machine translation attached by the collab endpoints.
+        viewerLang: 'en',
+        boardStrings: i18n.dictionary('en', 'boards.island')
       });
     } catch (e) {
       console.error('Whiteboard board page error:', e);

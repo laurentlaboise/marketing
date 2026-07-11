@@ -180,6 +180,52 @@ async function runMigrations() {
     FROM ranked
     WHERE a.id = ranked.id
   `);
+
+  // ── Cross-language conversation (auto-translation) ────────────
+  // Everyone writes in their own language; everyone reads in their own.
+  // The original text is always the source of truth — translations are a
+  // cached, clearly-labelled rendering of it.
+
+  // Language the author wrote in (portal locale for customers, 'en' for
+  // staff). NULL on legacy rows = unknown → always rendered as-is.
+  await db.query(`
+    ALTER TABLE board_comments ADD COLUMN IF NOT EXISTS source_lang VARCHAR(5)
+  `);
+  await db.query(`
+    ALTER TABLE board_approvals ADD COLUMN IF NOT EXISTS request_note_lang VARCHAR(5)
+  `);
+  await db.query(`
+    ALTER TABLE board_approvals ADD COLUMN IF NOT EXISTS reviewer_note_lang VARCHAR(5)
+  `);
+  // Audit: which rendering of the request note the customer had on screen
+  // when they decided ({ lang, mode: 'original'|'translated', body_shown }).
+  // If a machine translation is ever disputed, this records what was
+  // actually approved against.
+  await db.query(`
+    ALTER TABLE board_approvals ADD COLUMN IF NOT EXISTS decided_rendering JSONB
+  `);
+
+  // Cached machine translations of conversational text. One row per
+  // (entity, language); source_hash pins the translation to the exact text
+  // it was made from, so edited sources re-translate and stale rows are
+  // never shown (see snippet-translator.pickTranslation).
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS board_translations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      entity_type VARCHAR(40) NOT NULL,
+      entity_id UUID NOT NULL,
+      lang VARCHAR(5) NOT NULL,
+      body TEXT NOT NULL,
+      source_hash VARCHAR(64) NOT NULL,
+      model VARCHAR(80),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (entity_type, entity_id, lang)
+    )
+  `);
+  await db.query(`
+    CREATE INDEX IF NOT EXISTS idx_board_translations_entity
+    ON board_translations (entity_type, entity_id)
+  `);
 }
 
 module.exports = { runMigrations };

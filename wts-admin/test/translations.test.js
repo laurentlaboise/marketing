@@ -19,11 +19,21 @@ let translatorId;
 let payoutRequestId;
 
 before(async () => {
-  server = await startServer(PORT, { PAYOUT_METADATA_KEY: PAYOUT_KEY, ANTHROPIC_API_KEY: undefined });
+  server = await startServer(PORT, {
+    PAYOUT_METADATA_KEY: PAYOUT_KEY,
+    ANTHROPIC_API_KEY: undefined,
+    // Whiteboard module on: its migrations run at boot and the collab
+    // endpoints (comment language stamping, translation attach) mount.
+    FEATURE_WHITEBOARD: '1',
+  });
   pool = new Pool({ connectionString: TEST_DB_URL });
 
   // Reset platform tables so reruns are deterministic.
   await pool.query('TRUNCATE payout_ledger, payout_requests, payout_rates, translations, comp_rates, leads, engagement_logs');
+  // Whiteboard tables exist once the flagged server has booted (its module
+  // migrations create them at startup); board_translations has no FK to
+  // boards, so it is truncated by name.
+  await pool.query('TRUNCATE boards, board_translations CASCADE');
   await pool.query(`DELETE FROM glossary WHERE term LIKE 'TestTerm%'`);
   await pool.query(`DELETE FROM notifications WHERE title IN ('Translation submitted for review', 'Payout requested')`);
 
@@ -1022,4 +1032,158 @@ test('article translation is served by slug for the localized shell', async () =
 
   const badLang = await anon.fetch('/api/public/translations/xx/article/test-localized-article');
   assert.equal(badLang.status, 400);
+});
+
+// ---------------------------------------------------------------------------
+// Whiteboard: cross-language conversation (snippet auto-translation)
+// ---------------------------------------------------------------------------
+
+test('snippet translations cache per language and re-translate on edit', async () => {
+  const snippets = require('../src/lib/snippet-translator');
+  process.env.ANTHROPIC_API_KEY = 'test-key'; // gate open in THIS process
+  let calls = 0;
+  snippets._setTransport((text, from, to) => { calls++; return `[${to}] ${text}`; });
+
+  try {
+    const board = await pool.query(`INSERT INTO boards (title) VALUES ('TR cache board') RETURNING id`);
+    const boardId = board.rows[0].id;
+    const c = await pool.query(
+      `INSERT INTO board_comments (board_id, author_type, author_id, author_name, body, source_lang)
+       VALUES ($1, 'customer', 'c1', 'Somchai', 'สวัสดีครับ', 'th') RETURNING id`,
+      [boardId]
+    );
+    const cid = c.rows[0].id;
+
+    await snippets.ensureSnippetTranslations({ entityType: 'board_comment', entityId: cid, text: 'สวัสดีครับ', sourceLang: 'th' });
+    assert.equal(calls, 1, 'translates into the one other conversation language');
+    await snippets.ensureSnippetTranslations({ entityType: 'board_comment', entityId: cid, text: 'สวัสดีครับ', sourceLang: 'th' });
+    assert.equal(calls, 1, 'unchanged text is never translated twice');
+
+    const rows = (await pool.query('SELECT lang, body FROM board_translations WHERE entity_id = $1', [cid])).rows;
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].lang, 'en');
+    assert.equal(rows[0].body, '[en] สวัสดีครับ');
+
+    // pickTranslation: cross-language viewer gets it; same-language viewer
+    // and stale-source lookups get null (an edited comment must never show
+    // the previous text's translation).
+    const map = await snippets.translationsFor([{ entityType: 'board_comment', entityId: cid }]);
+    assert.equal(snippets.pickTranslation(map, 'board_comment', cid, 'th', 'สวัสดีครับ', 'en'), '[en] สวัสดีครับ');
+    assert.equal(snippets.pickTranslation(map, 'board_comment', cid, 'th', 'สวัสดีครับ', 'th'), null);
+    assert.equal(snippets.pickTranslation(map, 'board_comment', cid, 'th', 'edited text', 'en'), null);
+
+    // Edited source → one more model call, translation replaced in place.
+    await snippets.ensureSnippetTranslations({ entityType: 'board_comment', entityId: cid, text: 'ขอบคุณมาก', sourceLang: 'th' });
+    assert.equal(calls, 2);
+    const after2 = (await pool.query(`SELECT body FROM board_translations WHERE entity_id = $1 AND lang = 'en'`, [cid])).rows;
+    assert.equal(after2.length, 1);
+    assert.equal(after2[0].body, '[en] ขอบคุณมาก');
+
+    // Without an API key the feature degrades to a silent no-op.
+    delete process.env.ANTHROPIC_API_KEY;
+    const res = await snippets.ensureSnippetTranslations({ entityType: 'board_comment', entityId: cid, text: 'อีกครั้ง', sourceLang: 'th' });
+    assert.equal(res.translated, 0);
+    assert.equal(calls, 2);
+  } finally {
+    delete process.env.ANTHROPIC_API_KEY;
+    snippets._setTransport(null);
+  }
+});
+
+test('board comments stamp the author language and attach viewer translations', async () => {
+  const snippets = require('../src/lib/snippet-translator');
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+
+  const board = await pool.query(`INSERT INTO boards (title) VALUES ('Bilingual board') RETURNING id`);
+  const boardId = board.rows[0].id;
+
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  // Staff write → stamped English at the route layer.
+  const created = await session.fetch(`/business/boards/${boardId}/comments`, {
+    method: 'POST', headers, body: JSON.stringify({ body: 'Please review the header design.' }),
+  });
+  assert.equal(created.status, 201);
+  const adminComment = (await created.json()).comment;
+  assert.equal(adminComment.source_lang, 'en');
+
+  // A Thai customer comment with a cached English translation, seeded
+  // directly: the spawned server runs WITHOUT an API key, so its own
+  // translation queue is off (autoTranslate:false) and the attach path is
+  // exercised against the seeded cache.
+  const thc = await pool.query(
+    `INSERT INTO board_comments (board_id, author_type, author_id, author_name, body, source_lang)
+     VALUES ($1, 'customer', 'c9', 'Malee', 'ช่วยแก้สีพื้นหลังหน่อยค่ะ', 'th') RETURNING id`,
+    [boardId]
+  );
+  const thId = thc.rows[0].id;
+  await pool.query(
+    `INSERT INTO board_translations (entity_type, entity_id, lang, body, source_hash, model)
+     VALUES ('board_comment', $1, 'en', 'Please fix the background color.', $2, 'seed')`,
+    [thId, snippets.sourceHash('ช่วยแก้สีพื้นหลังหน่อยค่ะ')]
+  );
+
+  const list = await session.fetch(`/business/boards/${boardId}/comments`, { headers: { accept: 'application/json' } });
+  assert.equal(list.status, 200);
+  const data = await list.json();
+  assert.equal(data.viewerLang, 'en');
+  assert.equal(data.autoTranslate, false, 'no API key in the server env → feature reports off');
+
+  const mine = data.comments.find((c) => c.id === adminComment.id);
+  assert.equal(mine.translation, null, 'same-language comments carry no translation');
+  const th = data.comments.find((c) => c.id === thId);
+  assert.ok(th.translation, 'cross-language comment arrives with the viewer rendering');
+  assert.equal(th.translation.lang, 'en');
+  assert.equal(th.translation.body, 'Please fix the background color.');
+  assert.equal(th.body, 'ช่วยแก้สีพื้นหลังหน่อยค่ะ', 'original text always ships alongside');
+});
+
+test('approval notes stamp language, attach translations, and the board ships its strings', async () => {
+  const snippets = require('../src/lib/snippet-translator');
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+
+  const board = await pool.query(`INSERT INTO boards (title) VALUES ('Approval board') RETURNING id`);
+  const boardId = board.rows[0].id;
+
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  const requested = await session.fetch(`/business/boards/${boardId}/approvals`, {
+    method: 'POST', headers, body: JSON.stringify({ note: 'Please approve version 2.' }),
+  });
+  assert.equal(requested.status, 201);
+  const approval = (await requested.json()).approval;
+  assert.equal(approval.request_note_lang, 'en');
+
+  // Simulate the customer's Thai decision landing (decide is a portal
+  // session flow) + a cached English rendering of it for staff.
+  await pool.query(
+    `UPDATE board_approvals SET status = 'needs_changes', reviewer_note = $1, reviewer_note_lang = 'th',
+       decided_rendering = '{"mode":"translated","lang":"th","body_shown":"โปรดอนุมัติเวอร์ชัน 2"}'::jsonb
+     WHERE id = $2`,
+    ['ขอปรับสีโลโก้ให้เข้มขึ้น', approval.id]
+  );
+  await pool.query(
+    `INSERT INTO board_translations (entity_type, entity_id, lang, body, source_hash, model)
+     VALUES ('board_approval_reviewer_note', $1, 'en', 'Please make the logo color darker.', $2, 'seed')`,
+    [approval.id, snippets.sourceHash('ขอปรับสีโลโก้ให้เข้มขึ้น')]
+  );
+
+  const got = await session.fetch(`/business/boards/${boardId}/approvals`, { headers: { accept: 'application/json' } });
+  const gotData = await got.json();
+  assert.equal(gotData.approval.reviewer_note, 'ขอปรับสีโลโก้ให้เข้มขึ้น');
+  assert.equal(gotData.approval.reviewer_note_translation.body, 'Please make the logo color darker.');
+  assert.equal(gotData.approval.decided_rendering.mode, 'translated');
+
+  // The board page bootstraps the island with locale strings — no raw keys.
+  const page = await session.fetch(`/business/boards/${boardId}`);
+  assert.equal(page.status, 200);
+  const html = await page.text();
+  assert.ok(html.includes('__WTS_BOARD__'));
+  assert.ok(html.includes('"viewerLang":"en"'));
+  assert.ok(html.includes('Request approval'), 'island strings shipped');
+  assert.ok(!html.includes('boards.island.'), 'no raw locale keys leak into the page');
 });

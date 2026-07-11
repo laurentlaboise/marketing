@@ -127,6 +127,12 @@
       .main { flex-direction: column; }
       .panel { width: 100%; flex: 0 0 42%; border-left: none; border-top: 1px solid #e2e8f0; }
     }
+    /* Machine-translation affordances: the label under a translated
+       message and the toggle back to the original. */
+    .tr-tag { display: inline-block; font-size: .72rem; color: #94a3b8; margin-top: 2px; }
+    .tr-toggle { background: none; border: none; padding: 0; color: #64748b; font-size: .72rem; text-decoration: underline; cursor: pointer; }
+    .tr-alt { display: block; }
+    .tr-alt[hidden] { display: none; }
   </style>
 </head>
 <body>
@@ -141,12 +147,14 @@
       canComment: canComment,
       canApprove: canApprove,
       canDecide: canDecide,
-      canUpload: canUpload
+      canUpload: canUpload,
+      viewerLang: viewerLang,
+      strings: boardStrings
     }).replace(/</g, '\\u003c') %>;
   </script>
 
   <div class="topbar">
-    <a class="back" href="<%= backUrl %>">&larr; Back</a>
+    <a class="back" href="<%= backUrl %>"><%= boardStrings.back %></a>
     <span class="title"><%= board.title %></span>
     <span class="count" id="c-count"></span>
   </div>
@@ -162,15 +170,15 @@
           <button type="button" id="zoom-out">&minus;</button>
           <span class="pct" id="zoom-pct">100%</span>
           <button type="button" id="zoom-in">+</button>
-          <button type="button" id="zoom-fit">Fit</button>
-          <button type="button" id="tidy" hidden>Tidy</button>
+          <button type="button" id="zoom-fit"><%= boardStrings.fit %></button>
+          <button type="button" id="tidy" hidden><%= boardStrings.tidy %></button>
         </div>
         <div class="node-tools" id="node-tools" hidden></div>
       </div>
     </div>
     <div class="panel">
-      <h2 id="panel-title">Comments</h2>
-      <div class="threads" id="threads"><div class="muted">Loading&hellip;</div></div>
+      <h2 id="panel-title"><%= boardStrings.comments %></h2>
+      <div class="threads" id="threads"><div class="muted"><%= boardStrings.loading %></div></div>
     </div>
   </div>
   <input type="file" id="file-input" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
@@ -180,6 +188,25 @@
     'use strict';
     var cfg = window.__WTS_BOARD__;
     window.__WTS_BOARD_MOUNTED = true;
+
+    // UI strings in the viewer's language (shipped by the route from the
+    // portal locale files; English-backfilled). Use S.key for plain
+    // strings, fmt('key', {vars}) when the string interpolates {vars}.
+    // NOTE: not named `t` — renderFilm() has a local `var t` (an <img>).
+    var S = cfg.strings || {};
+    function fmt(key, vars) {
+      var s = S[key] != null ? S[key] : key;
+      if (vars) {
+        s = s.replace(/\{(\w+)\}/g, function (m, name) {
+          return vars[name] !== undefined ? String(vars[name]) : m;
+        });
+      }
+      return s;
+    }
+    function langName(code) {
+      var key = { en: 'langEn', th: 'langTh', lo: 'langLo', la: 'langLo', fr: 'langFr' }[code];
+      return key && S[key] ? S[key] : (code || '');
+    }
 
     var MIN_ZOOM = 0.05, MAX_ZOOM = 8;
     var VP_KEY = 'wts:board-viewport:' + cfg.boardId;
@@ -191,7 +218,8 @@
       comments: [],
       approval: null,
       activeThread: null,
-      canArrange: false  // from GET /assets (server-derived role)
+      canArrange: false, // from GET /assets (server-derived role)
+      autoTranslate: false // from GET /comments (server has an API key)
     };
     var naturals = {};   // imageId -> {w, h} from decode (h fallback for h:null)
     var nodesById = {};  // imageId -> node element
@@ -645,7 +673,7 @@
       }
       return fetch(cfg.apiBase + path, opts).then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (d) {
-          if (!r.ok) throw new Error(d.error || 'HTTP ' + r.status);
+          if (!r.ok) throw new Error(d.error || fmt('httpError', { status: r.status }));
           return d;
         });
       });
@@ -662,10 +690,10 @@
     function esc(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
     function ago(iso) {
       var s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-      if (s < 60) return 'just now';
-      if (s < 3600) return Math.floor(s / 60) + 'm ago';
-      if (s < 86400) return Math.floor(s / 3600) + 'h ago';
-      return Math.floor(s / 86400) + 'd ago';
+      if (s < 60) return S.justNow;
+      if (s < 3600) return fmt('minutesAgo', { n: Math.floor(s / 60) });
+      if (s < 86400) return fmt('hoursAgo', { n: Math.floor(s / 3600) });
+      return fmt('daysAgo', { n: Math.floor(s / 86400) });
     }
     function fmtPrice(p) { return '$' + Number(p).toFixed(2); }
 
@@ -683,6 +711,7 @@
           });
           state.canArrange = !!r[0].can_arrange;
           state.comments = r[1].comments || [];
+          state.autoTranslate = !!r[1].autoTranslate;
           state.approval = r[2].approval || null;
           if (!state.current || !state.images.some(function (i) { return i.id === state.current; })) {
             state.current = state.images.length ? state.images[state.images.length - 1].id : null;
@@ -702,7 +731,7 @@
         .catch(function (e) {
           document.getElementById('canvas-empty').hidden = false;
           document.getElementById('canvas-empty').innerHTML =
-            'Couldn&rsquo;t load this board (' + esc(e.message) + ').<br>Please refresh the page.';
+            fmt('loadError', { message: esc(e.message) });
         });
     }
     setInterval(function () { loadAll(); }, 12000);
@@ -737,7 +766,7 @@
           node.setAttribute('data-id', img.id);
           var im = document.createElement('img');
           im.src = img.src;
-          im.alt = 'design under review';
+          im.alt = S.altUnderReview;
           im.draggable = false;
           im.decoding = 'async';
           im.addEventListener('load', function () {
@@ -761,9 +790,7 @@
       var empty = document.getElementById('canvas-empty');
       if (!state.images.length) {
         empty.hidden = false;
-        empty.innerHTML = cfg.canUpload
-          ? 'No designs on this board yet.<br>Use <strong>+ Add image</strong> above to upload the first one.'
-          : 'No designs to review yet &mdash; your strategist will add them shortly.';
+        empty.innerHTML = cfg.canUpload ? S.emptyUploader : S.emptyViewer;
       } else {
         empty.hidden = true;
       }
@@ -788,7 +815,7 @@
       var payBtn = document.createElement('button');
       payBtn.type = 'button';
       payBtn.className = 'abtn gold';
-      payBtn.innerHTML = '&#128274; Pay to download' + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '');
+      payBtn.innerHTML = S.payToDownload + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '');
       payBtn.addEventListener('click', function (e) { e.stopPropagation(); payFor(img); });
       ov.appendChild(payBtn);
       node.appendChild(ov);
@@ -845,8 +872,8 @@
       var py = Math.min(Math.max(ay - vr.top + 10, 8), vr.height - 140);
       pop.style.left = px + 'px';
       pop.style.top = py + 'px';
-      pop.innerHTML = '<textarea maxlength="2000" placeholder="e.g. change this font&hellip;"></textarea>' +
-        '<div class="row"><button type="button" class="cancel">Cancel</button><button type="button" class="send">Pin comment</button></div>';
+      pop.innerHTML = '<textarea maxlength="2000" placeholder="' + S.composerPlaceholder + '"></textarea>' +
+        '<div class="row"><button type="button" class="cancel">' + S.cancel + '</button><button type="button" class="send">' + S.pinComment + '</button></div>';
       viewport.appendChild(pop);
       var ta = pop.querySelector('textarea');
       ta.focus();
@@ -902,11 +929,11 @@
         fitAll();
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && state.canArrange && img) {
         e.preventDefault();
-        if (img.is_final && !cfg.isAdmin) { toast('Only the WTS team can remove a final deliverable.'); return; }
-        if (!confirm('Remove this image from the board? Its comments stay in the panel as history.')) return;
+        if (img.is_final && !cfg.isAdmin) { toast(S.removeFinalDenied); return; }
+        if (!confirm(S.removeConfirm)) return;
         api('POST', '/assets/' + img.id + '/delete')
           .then(function () { state.current = null; return loadAll(); })
-          .then(function () { toast('Image removed.'); })
+          .then(function () { toast(S.removedToast); })
           .catch(function (er) { toast(er.message); });
       }
     });
@@ -916,7 +943,7 @@
       api('POST', '/assets/' + img.id + '/checkout')
         .then(function (d) {
           if (d.url) window.location.href = d.url;
-          else toast('Could not start the payment — please contact us.');
+          else toast(S.checkoutFailed);
         })
         .catch(function (e) { toast(e.message); });
     }
@@ -935,15 +962,15 @@
           wrap.className = 'bcel-modal';
           wrap.innerHTML =
             '<div class="bcel-card">' +
-              '<h3>Pay by bank transfer &middot; &#8203;BCEL OnePay</h3>' +
-              (d.qr_url ? '<img class="bcel-qr" src="' + esc(d.qr_url) + '" alt="BCEL OnePay QR">' : '') +
+              '<h3>' + S.bcelHeading + '</h3>' +
+              (d.qr_url ? '<img class="bcel-qr" src="' + esc(d.qr_url) + '" alt="' + S.bcelQrAlt + '">' : '') +
               (d.account_note ? '<p class="bcel-note">' + esc(d.account_note) + '</p>' : '') +
-              '<p>Amount: <strong>' + fmtPrice(d.amount) + '</strong></p>' +
-              '<p>Put this reference in the transfer note:</p>' +
+              '<p>' + S.amountLabel + ' <strong>' + fmtPrice(d.amount) + '</strong></p>' +
+              '<p>' + S.referenceInstruction + '</p>' +
               '<div class="bcel-ref">' + esc(d.reference) + '</div>' +
-              '<p class="bcel-hint">We unlock your download as soon as the transfer is confirmed — usually within a few hours.<br>' +
+              '<p class="bcel-hint">' + S.bcelHint + '<br>' +
               'ໃສ່ລະຫັດອ້າງອີງນີ້ໃນໝາຍເຫດການໂອນ. ພວກເຮົາຈະປົດລັອກໄຟລ໌ຂອງທ່ານທັນທີທີ່ຢືນຢັນການໂອນແລ້ວ.</p>' +
-              '<div class="row"><button type="button" class="abtn ghost bcel-close">Close</button></div>' +
+              '<div class="row"><button type="button" class="abtn ghost bcel-close">' + S.close + '</button></div>' +
             '</div>';
           document.body.appendChild(wrap);
           wrap.querySelector('.bcel-close').addEventListener('click', function () { wrap.remove(); });
@@ -952,26 +979,26 @@
         .catch(function (e) { toast(e.message); });
     }
     function markFinal(img) {
-      var raw = prompt('Price in USD for the final file (0 = free download):', img.price != null ? img.price : '');
+      var raw = prompt(S.pricePrompt, img.price != null ? img.price : '');
       if (raw === null) return;
       var price = parseFloat(raw);
-      if (!isFinite(price) || price < 0) { toast('Enter a price of 0 or more.'); return; }
-      var title = prompt('Name for the downloaded file (optional):', img.title || cfg.boardTitle) || '';
+      if (!isFinite(price) || price < 0) { toast(S.priceInvalid); return; }
+      var title = prompt(S.filenamePrompt, img.title || cfg.boardTitle) || '';
       api('POST', '/assets/' + img.id + '/final', { price: price, title: title })
         .then(loadAll)
-        .then(function () { toast(price > 0 ? 'Marked as final — locked until paid.' : 'Marked as final — free to download.'); })
+        .then(function () { toast(price > 0 ? S.markedLockedToast : S.markedFreeToast); })
         .catch(function (e) { toast(e.message); });
     }
     function unmarkFinal(img) {
-      if (!confirm('Remove the final-deliverable mark from this image?')) return;
+      if (!confirm(S.unmarkConfirm)) return;
       api('POST', '/assets/' + img.id + '/final', { remove: true })
-        .then(loadAll).then(function () { toast('No longer marked as final.'); })
+        .then(loadAll).then(function () { toast(S.unmarkedToast); })
         .catch(function (e) { toast(e.message); });
     }
     function unlockFinal(img) {
-      if (!confirm('Mark this deliverable as paid and unlock the client download?')) return;
+      if (!confirm(S.unlockConfirm)) return;
       api('POST', '/assets/' + img.id + '/unlock')
-        .then(loadAll).then(function () { toast('Unlocked — the client can download it now.'); })
+        .then(loadAll).then(function () { toast(S.unlockedToast); })
         .catch(function (e) { toast(e.message); });
     }
 
@@ -993,7 +1020,7 @@
         if (selected && !handle) {
           handle = document.createElement('div');
           handle.className = 'rs-handle';
-          handle.title = 'Drag to resize';
+          handle.title = S.resizeTooltip;
           node.appendChild(handle);
         } else if (!selected && handle) {
           handle.remove();
@@ -1010,11 +1037,11 @@
       el.hidden = false;
       var canDelete = state.canArrange && (!img.is_final || cfg.isAdmin);
       el.innerHTML =
-        '<button type="button" data-t="export">&#10515; Export</button>' +
+        '<button type="button" data-t="export">' + S.export + '</button>' +
         (state.canArrange
-          ? '<button type="button" data-t="front">&#8613; Front</button>' +
-            '<button type="button" data-t="back">&#8615; Back</button>' +
-            (canDelete ? '<button type="button" class="danger" data-t="remove">Remove</button>' : '')
+          ? '<button type="button" data-t="front">' + S.bringFront + '</button>' +
+            '<button type="button" data-t="back">' + S.sendBack + '</button>' +
+            (canDelete ? '<button type="button" class="danger" data-t="remove">' + S.remove + '</button>' : '')
           : '');
       el.querySelectorAll('button[data-t]').forEach(function (b) {
         b.addEventListener('click', function () {
@@ -1029,10 +1056,10 @@
             persistPlacement(img, { z: 0 });
             applyPlacement(nodesById[img.id], img);
           } else if (act === 'remove') {
-            if (!confirm('Remove this image from the board? Its comments stay in the panel as history.')) return;
+            if (!confirm(S.removeConfirm)) return;
             api('POST', '/assets/' + img.id + '/delete')
               .then(function () { state.current = null; return loadAll(); })
-              .then(function () { toast('Image removed.'); })
+              .then(function () { toast(S.removedToast); })
               .catch(function (er) { toast(er.message); });
           }
         });
@@ -1052,7 +1079,7 @@
         var u = URL.createObjectURL(blob);
         var im = new Image();
         im.onload = function () { URL.revokeObjectURL(u); res(im); };
-        im.onerror = function () { URL.revokeObjectURL(u); rej(new Error('Could not read the image.')); };
+        im.onerror = function () { URL.revokeObjectURL(u); rej(new Error(S.exportErrRead)); };
         im.src = u;
       });
     }
@@ -1082,16 +1109,16 @@
       var locked = img.is_final && img.payment_status === 'locked' && !cfg.isAdmin;
       var wantAnnots = locked ? true : !!opts.annotations;
       var wantLegend = wantAnnots && !!opts.legend;
-      toast('Preparing export…');
+      toast(S.exportPreparing);
       fetch(img.src, { credentials: 'same-origin' })
         .then(function (r) {
-          if (!r.ok) throw new Error('Could not fetch the image (' + r.status + ').');
+          if (!r.ok) throw new Error(fmt('exportErrFetch', { status: r.status }));
           return r.blob();
         })
         .then(decodeBlob)
         .then(function (bmp) {
           var nw = bmp.width, nh = bmp.height;
-          if (!nw || !nh) throw new Error('Could not read the image.');
+          if (!nw || !nh) throw new Error(S.exportErrRead);
           // Memory clamps: Safari misbehaves past ~16M px / 8192 a side.
           var s = 1;
           if (locked) s = Math.min(s, 1600 / Math.max(nw, nh));
@@ -1114,7 +1141,7 @@
             var mctx = document.createElement('canvas').getContext('2d');
             mctx.font = '400 ' + fontPx + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
             visible.forEach(function (c) {
-              var text = (c.author_name || 'Comment') + ': ' + String(c.body || '').slice(0, 200) + (c.body && c.body.length > 200 ? '…' : '');
+              var text = (c.author_name || S.legendComment) + ': ' + String(c.body || '').slice(0, 200) + (c.body && c.body.length > 200 ? '…' : '');
               var words = text.split(/\s+/);
               var lines = [];
               var line = '';
@@ -1190,7 +1217,7 @@
           return new Promise(function (res, rej) {
             canvas.toBlob(function (b) {
               if (b) res({ blob: b, locked: locked, annotated: wantAnnots });
-              else rej(new Error('This image is too large to export here — try on a desktop browser.'));
+              else rej(new Error(S.exportErrLarge));
             }, 'image/png');
           });
         })
@@ -1207,7 +1234,7 @@
           a.click();
           a.remove();
           setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
-          toast(out.locked ? 'Watermarked proof exported.' : 'Export downloaded.');
+          toast(out.locked ? S.exportProofDone : S.exportDone);
         })
         .catch(function (e) { toast(e.message); });
     }
@@ -1220,11 +1247,11 @@
       var pop = document.createElement('div');
       pop.className = 'export-pop';
       pop.innerHTML =
-        '<label><input type="checkbox" id="x-annot" checked' + (locked ? ' disabled' : '') + '> Comment pins</label>' +
-        '<label><input type="checkbox" id="x-res"> Include resolved</label>' +
-        '<label><input type="checkbox" id="x-legend"> Comment legend</label>' +
-        (locked ? '<div class="note">&#128274; Locked final &mdash; exports as a watermarked proof. The clean file unlocks with payment.</div>' : '') +
-        '<div class="row"><button type="button" class="cancel">Cancel</button><button type="button" class="go">Export PNG</button></div>';
+        '<label><input type="checkbox" id="x-annot" checked' + (locked ? ' disabled' : '') + '> ' + S.exportPins + '</label>' +
+        '<label><input type="checkbox" id="x-res"> ' + S.exportIncludeResolved + '</label>' +
+        '<label><input type="checkbox" id="x-legend"> ' + S.exportLegend + '</label>' +
+        (locked ? '<div class="note">' + S.exportLockedNote + '</div>' : '') +
+        '<div class="row"><button type="button" class="cancel">' + S.cancel + '</button><button type="button" class="go">' + S.exportPng + '</button></div>';
       viewport.appendChild(pop);
       pop.querySelector('.cancel').addEventListener('click', function () { pop.remove(); });
       pop.querySelector('.go').addEventListener('click', function () {
@@ -1250,7 +1277,7 @@
       });
       api('POST', '/assets/arrange', { placements: placements })
         .then(loadAll)
-        .then(function () { fitAll(); toast('Board tidied.'); })
+        .then(function () { fitAll(); toast(S.tidiedToast); })
         .catch(function (e) { toast(e.message); });
     });
 
@@ -1263,43 +1290,68 @@
 
     function renderCount() {
       var open = roots().filter(function (c) { return !c.resolved_at; }).length;
-      document.getElementById('c-count').textContent = open + ' open comment' + (open === 1 ? '' : 's');
+      document.getElementById('c-count').textContent = fmt(open === 1 ? 'openCommentOne' : 'openCommentMany', { n: open });
+    }
+
+    // Audit payload for a decision: exactly which rendering of the request
+    // note the decider had on screen — the machine translation or the
+    // original. Stored server-side with the decision so a disputed
+    // translation can be traced to what was actually approved against.
+    function requestNoteRendering() {
+      var a = state.approval;
+      if (!a || !a.request_note) return null;
+      var tr = a.request_note_translation;
+      return tr && tr.body
+        ? { mode: 'translated', lang: tr.lang, bodyShown: tr.body }
+        : { mode: 'original', lang: a.request_note_lang || '', bodyShown: a.request_note };
     }
 
     function renderApproval() {
       var el = document.getElementById('approval');
       var a = state.approval;
-      var LABELS = { awaiting_review: 'Awaiting review', needs_changes: 'Changes requested', approved: 'Approved' };
+      var LABELS = { awaiting_review: S.statusAwaiting, needs_changes: S.statusChanges, approved: S.statusApproved };
       var h = '';
       if (a) {
-        h += '<span class="chip ' + esc(a.status) + '">' + LABELS[a.status] + '</span>';
-        var note = a.status === 'awaiting_review' ? a.request_note : a.reviewer_note;
-        if (note) h += '<span class="note">&ldquo;' + esc(note) + '&rdquo;</span>';
+        h += '<span class="chip ' + esc(a.status) + '">' + esc(LABELS[a.status] || a.status) + '</span>';
+        var isRequest = a.status === 'awaiting_review';
+        var note = isRequest ? a.request_note : a.reviewer_note;
+        var noteTr = isRequest ? a.request_note_translation : a.reviewer_note_translation;
+        var noteLang = isRequest ? a.request_note_lang : a.reviewer_note_lang;
+        if (note) {
+          var shown = noteTr && noteTr.body ? noteTr.body : note;
+          h += '<span class="note">&ldquo;' + esc(shown) + '&rdquo;' +
+            (noteTr && noteTr.body
+              ? ' <span class="tr-tag" title="' + esc(note) + '">' + esc(fmt('translatedFrom', { lang: langName(noteLang) })) + '</span>'
+              : '') +
+            '</span>';
+        }
       } else {
-        h += '<span class="note">' + (cfg.isAdmin ? 'No approval requested yet.' : 'Nothing awaiting your approval.') + '</span>';
+        h += '<span class="note">' + esc(cfg.isAdmin ? S.noApprovalAdmin : S.noApprovalClient) + '</span>';
       }
       h += '<span class="spacer"></span>';
-      if (cfg.canApprove && (!a || a.status !== 'awaiting_review')) h += '<button class="abtn primary" id="btn-request">Request approval</button>';
+      if (cfg.canApprove && (!a || a.status !== 'awaiting_review')) h += '<button class="abtn primary" id="btn-request">' + esc(S.requestApproval) + '</button>';
       if (cfg.canDecide && a && a.status === 'awaiting_review') {
-        h += '<button class="abtn approve" id="btn-approve">Approve</button>' +
-             '<button class="abtn changes" id="btn-changes">Request changes</button>';
+        h += '<button class="abtn approve" id="btn-approve">' + esc(S.approve) + '</button>' +
+             '<button class="abtn changes" id="btn-changes">' + esc(S.requestChanges) + '</button>';
       }
       el.innerHTML = h;
       var rq = document.getElementById('btn-request');
       if (rq) rq.addEventListener('click', function () {
-        var note = prompt('Add a note for the client (optional):') || '';
-        api('POST', '/approvals', { note: note }).then(loadAll).then(function () { toast('Review requested — the client has been emailed.'); })
+        var note = prompt(S.requestNotePrompt) || '';
+        api('POST', '/approvals', { note: note }).then(loadAll).then(function () { toast(S.requestedToast); })
           .catch(function (e) { toast(e.message); });
       });
       var ap = document.getElementById('btn-approve');
       if (ap) ap.addEventListener('click', function () {
-        api('POST', '/approvals/' + state.approval.id + '/decide', { decision: 'approved' }).then(loadAll).then(function () { toast('Approved — thank you!'); })
+        api('POST', '/approvals/' + state.approval.id + '/decide', { decision: 'approved', rendering: requestNoteRendering() })
+          .then(loadAll).then(function () { toast(S.approvedToast); })
           .catch(function (e) { toast(e.message); });
       });
       var ch = document.getElementById('btn-changes');
       if (ch) ch.addEventListener('click', function () {
-        var note = prompt('What should we change?') || '';
-        api('POST', '/approvals/' + state.approval.id + '/decide', { decision: 'needs_changes', note: note }).then(loadAll).then(function () { toast('Change request sent.'); })
+        var note = prompt(S.changesPrompt) || '';
+        api('POST', '/approvals/' + state.approval.id + '/decide', { decision: 'needs_changes', note: note, rendering: requestNoteRendering() })
+          .then(loadAll).then(function () { toast(S.changesSentToast); })
           .catch(function (e) { toast(e.message); });
       });
     }
@@ -1312,7 +1364,7 @@
         wrap.className = 'thumb';
         var t = document.createElement('img');
         t.src = img.src;
-        t.alt = 'design';
+        t.alt = S.altDesign;
         if (img.id === state.current) t.className = 'active';
         t.addEventListener('click', function () {
           state.current = img.id;
@@ -1325,7 +1377,7 @@
           var s = document.createElement('span');
           s.className = 'star';
           s.innerHTML = '&#9733;';
-          s.title = 'Final deliverable';
+          s.title = S.finalDeliverable;
           wrap.appendChild(s);
         }
         el.appendChild(wrap);
@@ -1334,7 +1386,7 @@
         var add = document.createElement('button');
         add.className = 'add';
         add.type = 'button';
-        add.textContent = '+ Add image';
+        add.textContent = S.addImage;
         add.addEventListener('click', function () { document.getElementById('file-input').click(); });
         el.appendChild(add);
       }
@@ -1350,10 +1402,10 @@
       fetch(cfg.apiBase + '/assets', {
         method: 'POST', credentials: 'same-origin',
         headers: { 'X-CSRF-Token': cfg.csrfToken }, body: fd
-      }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || 'Upload failed'); }); })
+      }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || S.uploadFailed); }); })
         .then(loadAll)
         .then(function () {
-          toast('Image added.');
+          toast(S.imageAddedToast);
           var latest = state.images[state.images.length - 1];
           if (latest) { state.current = latest.id; renderChrome(); zoomToNode(latest); }
         })
@@ -1369,24 +1421,24 @@
       if (img.is_final) {
         var locked = img.payment_status === 'locked';
         el.className = 'deliverable ' + (locked ? 'locked' : 'unlocked');
-        h += '<span>&#9733; <strong>Final deliverable</strong>' +
+        h += '<span>&#9733; <strong>' + S.finalDeliverable + '</strong>' +
              (img.title ? ' &mdash; ' + esc(img.title) : '') +
              (locked && img.price != null ? ' &middot; ' + fmtPrice(img.price) : '') + '</span>';
         h += '<span class="spacer"></span>';
         if (cfg.isAdmin) {
-          h += '<button type="button" class="abtn ghost" data-d="download">&#8595; Download</button>';
-          if (locked) h += '<button type="button" class="abtn approve" data-d="unlock">Mark paid &mdash; unlock</button>';
-          h += '<button type="button" class="abtn ghost" data-d="unmark">Unmark final</button>';
+          h += '<button type="button" class="abtn ghost" data-d="download">' + S.download + '</button>';
+          if (locked) h += '<button type="button" class="abtn approve" data-d="unlock">' + S.markPaidUnlock + '</button>';
+          h += '<button type="button" class="abtn ghost" data-d="unmark">' + S.unmarkFinal + '</button>';
         } else if (locked) {
-          h += '<button type="button" class="abtn gold" data-d="pay">&#128274; Pay to download' + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '') + '</button>';
-          h += '<button type="button" class="abtn ghost" data-d="bcel">Pay by bank transfer</button>';
+          h += '<button type="button" class="abtn gold" data-d="pay">' + S.payToDownload + (img.price != null ? ' &mdash; ' + fmtPrice(img.price) : '') + '</button>';
+          h += '<button type="button" class="abtn ghost" data-d="bcel">' + S.payByBank + '</button>';
         } else {
-          h += '<button type="button" class="abtn approve" data-d="download">&#8595; Download final</button>';
+          h += '<button type="button" class="abtn approve" data-d="download">' + S.downloadFinal + '</button>';
         }
       } else {
         el.className = 'deliverable plain';
-        h += '<span>Working file &mdash; not marked as the final deliverable.</span><span class="spacer"></span>' +
-             '<button type="button" class="abtn ghost" data-d="mark">Mark as final&hellip;</button>';
+        h += '<span>' + S.workingFile + '</span><span class="spacer"></span>' +
+             '<button type="button" class="abtn ghost" data-d="mark">' + S.markAsFinal + '</button>';
       }
       el.innerHTML = h;
       el.querySelectorAll('button[data-d]').forEach(function (b) {
@@ -1402,23 +1454,44 @@
       });
     }
 
+    // Comment body in the viewer's language. A cached machine translation
+    // renders in place of the original with a labelled toggle back to it —
+    // the original text always ships alongside and stays the source of
+    // truth. Before the translation lands (or when auto-translation is
+    // off), the original renders as-is, with a subtle "translating…" hint
+    // only while one is actually expected.
+    function bodyHtml(c) {
+      var tr = c.translation && c.translation.body;
+      if (!tr) {
+        var pending = state.autoTranslate && c.source_lang && c.source_lang !== cfg.viewerLang;
+        return '<div class="body">' + esc(c.body) +
+          (pending ? ' <span class="tr-tag">' + esc(S.translating) + '</span>' : '') + '</div>';
+      }
+      return '<div class="body tr-wrap">' +
+        '<span class="tr-alt" data-view="tr">' + esc(tr) + '</span>' +
+        '<span class="tr-alt" data-view="orig" hidden>' + esc(c.body) + '</span>' +
+        '<span class="tr-tag">' + esc(fmt('translatedFrom', { lang: langName(c.source_lang) })) +
+        ' · <button type="button" class="tr-toggle">' + esc(S.showOriginal) + '</button></span>' +
+        '</div>';
+    }
+
     function threadHtml(c, n) {
       var reps = repliesOf(c.id);
       var h = '<div class="thread' + (c.resolved_at ? ' resolved-t' : '') + (state.activeThread === c.id ? ' active' : '') + '" data-thread="' + c.id + '">' +
         '<div class="meta">' + (n != null ? '<span class="pin-n">' + n + '</span>' : '') +
         '<span class="who">' + esc(c.author_name) + '</span><span>' + ago(c.created_at) + '</span>' +
-        (c.resolved_at ? '<span>· resolved</span>' : '') + '</div>' +
-        '<div class="body">' + esc(c.body) + '</div>';
+        (c.resolved_at ? '<span>' + esc(S.resolvedMarker) + '</span>' : '') + '</div>' +
+        bodyHtml(c);
       reps.forEach(function (r) {
         h += '<div class="reply"><div class="meta"><span class="who">' + esc(r.author_name) + '</span><span>' + ago(r.created_at) + '</span></div>' +
-             '<div class="body">' + esc(r.body) + '</div></div>';
+             bodyHtml(r) + '</div>';
       });
       if (cfg.canComment) {
         h += '<div class="actions">' +
-          '<button type="button" data-act="reply" data-id="' + c.id + '">Reply</button>' +
+          '<button type="button" data-act="reply" data-id="' + c.id + '">' + S.reply + '</button>' +
           (c.resolved_at
-            ? '<button type="button" class="unres" data-act="unresolve" data-id="' + c.id + '">Reopen</button>'
-            : '<button type="button" class="res" data-act="resolve" data-id="' + c.id + '">&#10003; Resolve</button>') +
+            ? '<button type="button" class="unres" data-act="unresolve" data-id="' + c.id + '">' + S.reopen + '</button>'
+            : '<button type="button" class="res" data-act="resolve" data-id="' + c.id + '">' + esc(S.resolve) + '</button>') +
           '</div>';
       }
       return h + '</div>';
@@ -1433,19 +1506,19 @@
       var gen = generals();
       var h = '';
       if (cfg.canComment) {
-        h += '<div class="muted" style="text-align:left;">' + (img ? 'Tap an image to pin a comment. Drag to pan, pinch or ctrl+scroll to zoom.' + (state.canArrange ? ' Drag an image to move it.' : '') : '') + '</div>';
+        h += '<div class="muted" style="text-align:left;">' + (img ? S.hintPin + (state.canArrange ? ' ' + S.hintMove : '') : '') + '</div>';
       }
-      if (!pins.length && !gen.length) h += '<div class="muted">No comments yet.</div>';
+      if (!pins.length && !gen.length) h += '<div class="muted">' + S.noComments + '</div>';
       open.forEach(function (c) { h += threadHtml(c, pins.indexOf(c) + 1); });
       if (gen.length) {
-        h += '<div class="resolved-h">General</div>';
+        h += '<div class="resolved-h">' + S.general + '</div>';
         gen.forEach(function (c) {
           var removed = c.anchor && c.anchor.imageId;
-          h += threadHtml(c, null).replace('</div>' /* first meta close */, (removed ? '<span>&middot; image removed</span>' : '') + '</div>');
+          h += threadHtml(c, null).replace('</div>' /* first meta close */, (removed ? '<span>' + S.imageRemoved + '</span>' : '') + '</div>');
         });
       }
       if (done.length) {
-        h += '<div class="resolved-h">Resolved</div>';
+        h += '<div class="resolved-h">' + S.resolvedHeading + '</div>';
         done.forEach(function (c) { h += threadHtml(c, pins.indexOf(c) + 1); });
       }
       el.innerHTML = h;
@@ -1455,6 +1528,21 @@
           state.activeThread = t.getAttribute('data-thread');
           flyToThread(state.activeThread);
           renderChrome();
+        });
+      });
+      // Per-message language toggle: swap between the machine translation
+      // and the author's original without touching thread selection.
+      el.querySelectorAll('.tr-toggle').forEach(function (b) {
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var wrap = b.closest('.tr-wrap');
+          if (!wrap) return;
+          var trEl = wrap.querySelector('[data-view="tr"]');
+          var origEl = wrap.querySelector('[data-view="orig"]');
+          var showingTr = !trEl.hidden;
+          trEl.hidden = showingTr;
+          origEl.hidden = !showingTr;
+          b.textContent = showingTr ? S.showTranslation : S.showOriginal;
         });
       });
       el.querySelectorAll('button[data-act]').forEach(function (b) {
@@ -1470,7 +1558,7 @@
           if (thread.querySelector('textarea')) return;
           var ta = document.createElement('textarea');
           ta.maxLength = 2000;
-          ta.placeholder = 'Reply…';
+          ta.placeholder = S.replyPlaceholder;
           thread.appendChild(ta);
           ta.focus();
           ta.addEventListener('click', function (ev) { ev.stopPropagation(); });
@@ -1491,7 +1579,7 @@
     // webhook has flipped the asset to 'unlocked' — the Download button
     // should appear near-instantly, not on the lazy 12s cycle.
     if (/[?&]paid=1(&|$)/.test(window.location.search)) {
-      toast('Payment received — checking with the bank…');
+      toast(S.paidChecking);
       try { history.replaceState(null, '', window.location.pathname); } catch (e) { /* ignore */ }
       var paidTries = 0;
       var paidTimer = setInterval(function () {
@@ -1500,10 +1588,10 @@
           var unlocked = state.images.some(function (i) { return i.is_final && i.payment_status === 'unlocked'; });
           if (unlocked) {
             clearInterval(paidTimer);
-            toast('Payment confirmed — your download is unlocked!');
+            toast(S.paidConfirmed);
           } else if (paidTries >= 15) {
             clearInterval(paidTimer);
-            toast('Payment is still being confirmed — this page will keep checking.');
+            toast(S.paidPending);
           }
         });
       }, 2000);

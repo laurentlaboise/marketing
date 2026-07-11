@@ -102,4 +102,13 @@ function middleware(db) {
   };
 }
 
-module.exports = { SUPPORTED, DEFAULT_LOCALE, translate, middleware };
+// Whole flat subtree of the dictionary (e.g. 'boards.island'), with the
+// English strings underneath as fallback for locale gaps — used to ship a
+// strings object to client-side islands that render outside EJS.
+function dictionary(locale, prefix) {
+  const en = lookup(dictionaries.en, prefix);
+  const loc = locale === 'en' ? null : lookup(dictionaries[locale] || {}, prefix);
+  return { ...(en || {}), ...(loc || {}) };
+}
+
+module.exports = { SUPPORTED, DEFAULT_LOCALE, translate, middleware, dictionary };
