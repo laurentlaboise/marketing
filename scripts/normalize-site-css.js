@@ -16,7 +16,7 @@ const ROOT = path.join(__dirname, '..');
 const POPPINS_HREF =
   'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap';
 const FA_HREF =
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css';
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
 const MAIN_CSS = '/css/main.css';
 
 const STANDARD_LINKS = `    <link rel="preconnect" href="https://fonts.googleapis.com">
