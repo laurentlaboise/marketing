@@ -639,7 +639,10 @@ router.get('/vendors', ensureSuperAdmin, async (req, res, next) => {
 router.post('/vendors/invite', ensureSuperAdmin, logActivity('translation_vendor_invite'), async (req, res) => {
   try {
     const email = String(req.body.email || '').trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    // Linear-time shape check: dot-separated segments each exclude dots,
+    // so the regex can never backtrack ambiguously (CodeQL
+    // js/polynomial-redos), plus the RFC 5321 length cap.
+    if (email.length > 254 || !/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email)) {
       return asJson(res, 400, { success: false, error: 'Enter a valid email address' });
     }
     const existing = await db.query('SELECT id FROM users WHERE email = $1', [email]);
