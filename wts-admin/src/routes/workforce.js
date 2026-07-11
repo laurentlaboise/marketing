@@ -536,21 +536,34 @@ router.post('/comp-rates', ensureSuperAdmin, logActivity('comp_rate_save'), asyn
   }
 });
 
-// Position + manager assignment (team structure from the briefs).
+// Position + manager assignment (team structure from the briefs). One
+// person can hold several positions at once (translator + content
+// verifier + engagement associate …) — pay resolves per action, so each
+// hat earns its own way. Accepts `positions` (array) or the legacy single
+// `position`; the legacy column mirrors the first entry for old readers.
 router.post('/team/:id', ensureSuperAdmin, logActivity('team_update'), async (req, res) => {
   try {
     if (!core.isUuid(req.params.id)) return asJson(res, 404, { success: false, error: 'User not found' });
-    const position = req.body.position === '' ? null : req.body.position;
-    if (position && !POSITIONS.includes(position)) {
-      return asJson(res, 400, { success: false, error: 'Invalid position' });
+    let positions;
+    if (Array.isArray(req.body.positions)) {
+      if (req.body.positions.some((p) => !POSITIONS.includes(p))) {
+        return asJson(res, 400, { success: false, error: 'Invalid position' });
+      }
+      positions = [...new Set(req.body.positions)];
+    } else {
+      const single = req.body.position === '' ? null : req.body.position;
+      if (single && !POSITIONS.includes(single)) {
+        return asJson(res, 400, { success: false, error: 'Invalid position' });
+      }
+      positions = single ? [single] : [];
     }
     const managerId = req.body.manager_id && core.isUuid(req.body.manager_id) ? req.body.manager_id : null;
     if (managerId === req.params.id) {
       return asJson(res, 400, { success: false, error: 'A user cannot manage themselves' });
     }
     await db.query(
-      `UPDATE users SET position = $1, manager_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3`,
-      [position, managerId, req.params.id]
+      `UPDATE users SET positions = $1, position = $2, manager_id = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4`,
+      [positions, positions[0] || null, managerId, req.params.id]
     );
     asJson(res, 200, { success: true });
   } catch (error) {

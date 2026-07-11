@@ -48,6 +48,12 @@ async function sendEmail({ to, subject, html, text }) {
   return { sent: true };
 }
 
+// Absolute https URL so mail clients (which never resolve relative paths
+// and mostly block SVG) can load the logo; white PNG reads on the dark
+// header band. Overridable per deployment.
+const LOGO_URL = () => process.env.EMAIL_LOGO_URL ||
+  'https://wordsthatsells.website/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with_words_white_colour_PNG_900x900.png';
+
 // Branded shell so every portal email reads as one system.
 function emailShell(title, bodyHtml, locale = 'en') {
   // The brand name is defined once and interpolated into every string that
@@ -55,8 +61,8 @@ function emailShell(title, bodyHtml, locale = 'en') {
   const brand = translate(locale, 'emails.shell.brand');
   return `<!doctype html><html><body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
   <div style="max-width:520px;margin:24px auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
-    <div style="background:#122a3f;padding:18px 24px;">
-      <span style="color:#ffffff;font-size:1.05rem;font-weight:bold;">${brand}</span>
+    <div style="background:#122a3f;padding:14px 24px;">
+      <img src="${LOGO_URL()}" alt="${brand}" height="42" style="height:42px;max-width:100%;border:0;vertical-align:middle;">
     </div>
     <div style="padding:24px;">
       <h2 style="margin:0 0 12px;color:#1a1a2e;font-size:1.15rem;">${title}</h2>
@@ -86,4 +92,4 @@ async function sendMagicLink(to, link, locale = 'en') {
   });
 }
 
-module.exports = { sendEmail, sendMagicLink, isConfigured };
+module.exports = { sendEmail, sendMagicLink, emailShell, isConfigured };

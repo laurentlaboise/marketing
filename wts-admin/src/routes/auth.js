@@ -302,12 +302,28 @@ router.post('/reset-password/:token', [
 
     // Update password and clear reset token
     await db.query(
-      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
+      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL, last_login = CURRENT_TIMESTAMP WHERE id = $2',
       [passwordHash, user.id]
     );
 
-    req.session.successMessage = 'Password reset successful. Please log in with your new password.';
-    res.redirect('/auth/login');
+    // Whoever just proved control of this token IS this browser's user
+    // now. req.logIn regenerates the session id (passport >= 0.6) and
+    // rebinds the session to the token's account, replacing any session
+    // already in the browser — e.g. the admin who sent an invite and then
+    // opened the activation link themselves. Without this, /auth/login's
+    // authenticated-bounce would land that browser back on the ADMIN's
+    // dashboard and the new worker could never sign in from it.
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        console.error('Auto-login after password reset failed:', loginErr);
+        req.session.successMessage = 'Password reset successful. Please log in with your new password.';
+        return res.redirect('/auth/login');
+      }
+      req.session.successMessage = 'Password set — welcome!';
+      // Role-aware home: translators land in their workspace, field
+      // workers in the work hub, admins on the dashboard.
+      res.redirect('/dashboard');
+    });
   } catch (error) {
     console.error('Reset password error:', error);
     res.render('auth/reset-password', {

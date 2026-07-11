@@ -42,11 +42,14 @@
             </span>
           </div>
           <div class="form-group" style="margin:0;">
-            <label class="form-label">Position</label>
-            <select class="form-input" name="position">
-              <option value="">—</option>
-              <% positions.forEach(p => { %><option value="<%= p %>"><%= p.replace(/_/g, ' ') %></option><% }); %>
-            </select>
+            <label class="form-label">Positions <span style="font-weight:normal; color:var(--gray-500);">(one person can hold several)</span></label>
+            <span style="display:inline-flex; gap:0.6rem; padding:0.45rem 0; flex-wrap:wrap;">
+              <% positions.forEach(p => { %>
+                <label style="font-weight:normal; display:inline-flex; gap:0.25rem; align-items:center; white-space:nowrap;">
+                  <input type="checkbox" name="invite_position" value="<%= p %>"> <%= p.replace(/_/g, ' ') %>
+                </label>
+              <% }); %>
+            </span>
           </div>
           <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Invite</button>
         </form>
@@ -65,7 +68,7 @@
               <tr>
                 <th>User</th>
                 <th>Role</th>
-                <th>Position</th>
+                <th>Positions</th>
                 <th>Manager</th>
                 <th>Languages</th>
                 <th>Payable Vendor</th>
@@ -92,16 +95,18 @@
                     </select>
                   <% } %>
                 </td>
-                <td data-label="Position">
+                <td data-label="Positions">
                   <% if (isAdminAccount) { %>
                     —
                   <% } else { %>
-                    <select class="form-input position-select" style="max-width:190px; padding:0.25rem;">
-                      <option value="">none</option>
-                      <% positions.forEach(p => { %>
-                        <option value="<%= p %>" <%= u.position === p ? 'selected' : '' %>><%= p.replace(/_/g, ' ') %></option>
-                      <% }); %>
-                    </select>
+                    <% var held = u.positions || (u.position ? [u.position] : []); %>
+                    <% positions.forEach(p => { %>
+                      <label style="display:block; white-space:nowrap; font-weight:normal;">
+                        <input type="checkbox" class="position-check" value="<%= p %>"
+                          <%= held.includes(p) ? 'checked' : '' %>>
+                        <%= p.replace(/_/g, ' ') %>
+                      </label>
+                    <% }); %>
                   <% } %>
                 </td>
                 <td data-label="Manager">
@@ -178,7 +183,7 @@
       first_name: inviteForm.querySelector('[name="first_name"]').value.trim(),
       last_name: inviteForm.querySelector('[name="last_name"]').value.trim(),
       assigned_languages: langs,
-      position: inviteForm.querySelector('[name="position"]').value
+      positions: Array.prototype.map.call(inviteForm.querySelectorAll('input[name="invite_position"]:checked'), function (c) { return c.value; })
     };
     fetch('/translations/vendors/invite', {
       method: 'POST',
@@ -216,7 +221,7 @@
       }).then(function (res) {
         if (!res.ok) throw new Error(res.data.error || 'Update failed');
         return post('/workforce/team/' + id, {
-          position: row.querySelector('.position-select').value,
+          positions: Array.prototype.slice.call(row.querySelectorAll('.position-check:checked')).map(function (c) { return c.value; }),
           manager_id: row.querySelector('.manager-select').value || null
         });
       }).then(function (res) {

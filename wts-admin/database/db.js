@@ -1581,6 +1581,26 @@ const db = {
         END $$;
       `);
 
+      // One person, several hats: positions[] lets the same worker be e.g.
+      // translator (FR) + content verifier (Lao) + engagement associate at
+      // once. Pay already resolves per ACTION (payout_rates by work_type,
+      // comp_rates by work_type), so multiple positions means multiple ways
+      // to earn with no schema change to the money tables. The legacy
+      // single `position` column stays mirrored to positions[1] for old
+      // readers. Backfill is a no-op after the first boot.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='positions') THEN
+            ALTER TABLE users ADD COLUMN positions TEXT[];
+          END IF;
+        END $$;
+      `);
+      await client.query(`
+        UPDATE users SET positions = ARRAY[position]
+        WHERE position IS NOT NULL AND positions IS NULL
+      `);
+
       // payout_rates grows a work_type axis so translating, verifying and
       // editing pay differently, and a per-1000-character rate type for
       // scripts without word breaks.
