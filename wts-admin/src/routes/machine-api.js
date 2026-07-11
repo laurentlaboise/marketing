@@ -615,6 +615,61 @@ router.get('/v1/glossary', async (req, res) => {
   }
 });
 
+// ── Form templates (admin Form Builder) ─────────────────────────────
+
+/**
+ * POST /v1/form-templates/upsert
+ * Body: { form_type, title, subtitle?, fields[], submit_button_text?, success_message?, status? }
+ * Creates/updates a row in form_templates so it appears in Web Dev → Form Builder.
+ */
+router.post('/v1/form-templates/upsert', async (req, res) => {
+  try {
+    const {
+      form_type,
+      title,
+      subtitle,
+      fields,
+      submit_button_text,
+      success_message,
+      status,
+    } = req.body || {};
+    if (!form_type || !title) return fail(res, 'form_type and title are required');
+    if (!Array.isArray(fields) || !fields.length) return fail(res, 'fields[] is required');
+    if (!/^[a-z0-9][a-z0-9-]{0,59}$/.test(String(form_type).trim())) {
+      return fail(res, 'form_type must be lowercase slug (a-z, 0-9, hyphens)');
+    }
+
+    const ft = String(form_type).trim();
+    const existing = await db.query('SELECT id FROM form_templates WHERE form_type = $1 LIMIT 1', [ft]);
+    const fieldsJson = JSON.stringify(fields);
+    const subBtn = submit_button_text || 'Send message';
+    const success = success_message || 'Thank you! We received your message.';
+    const st = status || 'active';
+
+    if (existing.rows.length) {
+      await db.query(
+        `UPDATE form_templates SET title=$1, subtitle=$2, fields=$3,
+         submit_button_text=$4, success_message=$5, status=$6, updated_at=CURRENT_TIMESTAMP
+         WHERE form_type=$7`,
+        [title.trim(), subtitle || null, fieldsJson, subBtn, success, st, ft]
+      );
+      await audit(req, 'form-templates/update', ft);
+      return ok(res, { action: 'updated', form_type: ft, id: existing.rows[0].id });
+    }
+
+    const inserted = await db.query(
+      `INSERT INTO form_templates (form_type, title, subtitle, fields, submit_button_text, success_message, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+      [ft, title.trim(), subtitle || null, fieldsJson, subBtn, success, st]
+    );
+    await audit(req, 'form-templates/create', ft);
+    return ok(res, { action: 'created', form_type: ft, id: inserted.rows[0].id });
+  } catch (e) {
+    console.error('[machine-api] form-templates upsert', e);
+    return fail(res, 'Form template upsert failed: ' + e.message, 500);
+  }
+});
+
 // ── 404 for unknown v1 routes ───────────────────────────────────────
 
 router.use('/v1', (req, res) => {

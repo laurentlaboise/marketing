@@ -37,7 +37,7 @@ SHARE_CSS_NEW = """\
 .share-dock .share-btn.native:hover{background:#1e3a5f}"""
 
 SLIDE_CSS = """
-/* Sliding contact form connected to admin form_type=contact */
+/* Sliding contact form connected to admin form_type=glossary-talk-to-team */
 .wts-slide-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1200;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
 .wts-slide-overlay.is-open{opacity:1;visibility:visible}
 .wts-slide-panel{position:fixed;top:0;right:0;height:100%;width:min(420px,100vw);background:#fff;z-index:1201;transform:translateX(100%);transition:transform .35s ease;box-shadow:-12px 0 32px rgba(15,23,42,.2);display:flex;flex-direction:column}
@@ -78,7 +78,7 @@ def contact_panel(term: str, page_url: str) -> str:
       <button type="button" class="wts-slide-close" id="team-form-close" aria-label="Close">&times;</button>
     </div>
     <div class="wts-slide-body">
-      <p style="margin-top:0;color:#555">Connected to the WordsThatSells admin contact form. We reply within one business day.</p>
+      <p style="margin-top:0;color:#555">Connected to the WordsThatSells Form Builder (glossary-talk-to-team). We reply within one business day.</p>
       <form id="team-contact-form">
         <div class="form-group"><label for="tc-name">Your name</label>
           <input id="tc-name" name="name" type="text" required placeholder="Full name" autocomplete="name"></div>
@@ -125,7 +125,7 @@ def contact_panel(term: str, page_url: str) -> str:
         statusEl.textContent='Sending…'; statusEl.className='form-status';
         var fd=new FormData(form);
         var payload={{
-          form_type:'contact',
+          form_type:'glossary-talk-to-team',
           name:fd.get('name'),
           email:fd.get('email'),
           company:fd.get('company')||'',
