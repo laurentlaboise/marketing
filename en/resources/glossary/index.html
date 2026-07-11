@@ -1323,6 +1323,239 @@
         .back-link:hover {
             color: var(--color-slate-900);
         }
+
+        /* --- Glossary hub UX (2026) --- */
+        .glossary-hero {
+            text-align: center;
+            max-width: 720px;
+            margin: 0 auto var(--spacing-xl);
+        }
+        .glossary-hero h1 {
+            margin-bottom: 0.75rem;
+        }
+        .glossary-hero .lead {
+            font-size: 1.05rem;
+            color: var(--color-slate-700);
+            line-height: 1.65;
+            margin: 0 auto 1.25rem;
+        }
+        .glossary-featured {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0 0 0.5rem;
+        }
+        .glossary-featured a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 999px;
+            background: #1e3a5f;
+            color: #fff !important;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none !important;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .glossary-featured a:hover {
+            background: #d62b83;
+            transform: translateY(-1px);
+        }
+        .glossary-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(8px);
+            padding: 0.75rem 0 0.5rem;
+            margin: 0 0 0.5rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .glossary-toolbar .search-bar {
+            margin-top: 0;
+            margin-bottom: 0.75rem;
+        }
+        #glossary-container.services-grid {
+            display: block;
+            margin-top: 1rem;
+        }
+        .alphabet-group {
+            margin-bottom: 2rem;
+        }
+        .glossary-letter-heading {
+            font-size: 1.5rem;
+            color: #1e3a5f;
+            margin: 0 0 1rem;
+            padding-bottom: 0.35rem;
+            border-bottom: 2px solid #d62b83;
+            position: sticky;
+            top: 5.5rem;
+            background: #fff;
+            z-index: 5;
+        }
+        .glossary-letter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+        a.glossary-term-card,
+        .glossary-term-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 1.15rem 1.2rem;
+            border-radius: 12px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+            text-decoration: none !important;
+            color: inherit;
+            min-height: 140px;
+        }
+        a.glossary-term-card:hover,
+        .glossary-term-card:hover {
+            border-color: #d62b83;
+            box-shadow: 0 8px 24px rgba(30,58,95,0.12);
+            transform: translateY(-3px);
+        }
+        .glossary-term-card h3 {
+            font-size: 1.05rem;
+            line-height: 1.3;
+            margin: 0;
+            color: #1e3a5f;
+        }
+        .glossary-term-card p {
+            margin: 0;
+            flex: 1;
+            font-size: 0.9rem;
+            color: #475569;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .glossary-term-card .card-cta {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #d62b83;
+            margin-top: 0.25rem;
+        }
+        .glossary-empty {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: #64748b;
+        }
+        #glossary-crawl-index {
+            margin-top: 2.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+            overflow: hidden;
+        }
+        #glossary-crawl-index > summary {
+            cursor: pointer;
+            list-style: none;
+            padding: 1rem 1.25rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        #glossary-crawl-index > summary::-webkit-details-marker { display: none; }
+        #glossary-crawl-index > summary::after {
+            content: "Show A–Z";
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #d62b83;
+        }
+        #glossary-crawl-index[open] > summary::after { content: "Hide"; }
+        #glossary-crawl-index .crawl-body {
+            padding: 0 1.25rem 1.25rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        #glossary-crawl-index .crawl-body p {
+            margin: 0.75rem 0 1rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        #glossary-crawl-index ul {
+            columns: 2 200px;
+            column-gap: 1.5rem;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            line-height: 1.85;
+        }
+        #glossary-crawl-index li {
+            break-inside: avoid;
+        }
+        #glossary-crawl-index a {
+            color: #1e3a5f;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.92rem;
+        }
+        #glossary-crawl-index a:hover { color: #d62b83; text-decoration: underline; }
+        .term-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .term-row h3 {
+            flex: 1;
+            margin: 0;
+        }
+        .term-article-icon {
+            flex-shrink: 0;
+            width: 2.25rem;
+            height: 2.25rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #1e3a5f !important;
+            text-decoration: none !important;
+            border: 1px solid #dbe3f0;
+            transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+        }
+        .term-article-icon:hover {
+            background: #d62b83;
+            color: #fff !important;
+            border-color: #d62b83;
+            transform: scale(1.05);
+        }
+        .term-article-icon:focus-visible {
+            outline: 2px solid #d62b83;
+            outline-offset: 2px;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+        button.glossary-term-card {
+            width: 100%;
+            text-align: left;
+            font: inherit;
+            cursor: pointer;
+            appearance: none;
+        }
+        @media (max-width: 640px) {
+            .glossary-letter-heading { top: 7rem; }
+            #glossary-crawl-index ul { columns: 1; }
+        }
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMRKC1VBBB"></script>
@@ -1340,117 +1573,123 @@
         <div class="section">
             <div class="container">
                 <a href="/en/digital-marketing-services/" class="back-link" aria-label="Return to Digital Marketing Services"><i class="fas fa-arrow-left"></i> Digital Marketing Services</a>
-                <div class="section-header reveal">
-                    <center>
-                        <div class="heading-accent-line"></div>
-                    </center>
+
+                <div class="glossary-hero reveal">
+                    <div class="heading-accent-line" style="margin:0 auto 1rem;"></div>
                     <h1>SEO Glossary for Southeast Asia</h1>
-                    <p class="section-description">The free <strong>SEO glossary</strong> and digital marketing dictionary built for businesses in <strong>Laos, Thailand, Vietnam, Indonesia, Singapore</strong>, and the wider SEA region. Learn search engine optimization terms in plain language, open full 2026 guides, and connect related keywords so Google can understand your topic cluster — and so you can rank for the searches your customers use.</p>
-                    <p class="section-description" style="margin-top:0.75rem">Start with high-impact terms: <a href="/en/resources/glossary/search-engine-optimization-seo-2026.html">SEO</a>, <a href="/en/resources/glossary/content-marketing-strategy-2026.html">content marketing</a>, <a href="/en/resources/glossary/backlinks-building-strategy-2026.html">backlinks</a>, <a href="/en/resources/glossary/keywords-in-seo-2026-guide.html">keywords</a>, <a href="/en/resources/glossary/onpage-optimization-checklist-2026.html">on-page SEO</a>, and <a href="/en/resources/glossary/google-business-profile-optimization-2026.html">Google Business Profile</a>. Use search and filters below, or jump A–Z.</p>
+                    <p class="lead">Plain-language SEO &amp; digital marketing terms for businesses in Laos, Thailand, Vietnam, Indonesia, and Singapore. Search a term, open a short definition, then read the full guide.</p>
+                    <div class="glossary-featured" aria-label="Popular terms">
+                      <a href="/en/resources/glossary/search-engine-optimization-seo-2026.html">SEO</a>
+                      <a href="/en/resources/glossary/content-marketing-strategy-2026.html">Content marketing</a>
+                      <a href="/en/resources/glossary/backlinks-building-strategy-2026.html">Backlinks</a>
+                      <a href="/en/resources/glossary/keywords-in-seo-2026-guide.html">Keywords</a>
+                      <a href="/en/resources/glossary/onpage-optimization-checklist-2026.html">On-page SEO</a>
+                      <a href="/en/resources/glossary/google-business-profile-optimization-2026.html">Google Business</a>
+                    </div>
                 </div>
 
-                <!-- Search and Filters Section -->
-                <div class="text-center reveal reveal-delay-1">
-                    <input type="text" id="glossary-search" class="search-bar" placeholder="Search for a term...">
-                    <div id="glossary-filters" class="glossary-filters"></div>
+                <div class="glossary-toolbar reveal reveal-delay-1">
+                    <div class="text-center">
+                      <input type="search" id="glossary-search" class="search-bar" placeholder="Search terms (e.g. backlinks, meta description…)" autocomplete="off" aria-label="Search glossary terms">
+                      <div id="glossary-filters" class="glossary-filters"></div>
+                    </div>
+                    <nav class="alphabet-nav reveal-delay-2" id="alphabet-nav" aria-label="Jump to letter"></nav>
                 </div>
 
-                <!-- Alphabet Navigation -->
-                <nav class="alphabet-nav reveal reveal-delay-2" id="alphabet-nav"></nav>
+                <div id="glossary-container" class="services-grid" style="margin-top: var(--spacing-md);" aria-live="polite">
+                  <div class="glossary-empty"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Loading terms…</div>
+                </div>
 
-                <!-- Glossary List -->
-                <div id="glossary-container" class="services-grid" style="margin-top: var(--spacing-xl);"></div>
-
-                <!-- Crawlable term index (static links for Google; interactive cards load via JS) -->
-                <section id="glossary-crawl-index" class="reveal" style="margin-top:var(--spacing-2xl);padding:var(--spacing-xl);background:var(--color-slate-100);border-radius:var(--border-radius-xl);">
-                    <h2 style="margin-bottom:0.5rem;color:var(--color-slate-900);">All SEO &amp; digital marketing terms (A–Z)</h2>
-                    <p style="margin-bottom:1rem;color:var(--color-slate-700);">Full glossary of <strong>82 SEO terms</strong> with deep-dive guides for ranking in Southeast Asia. These links are crawlable for Googlebot.</p>
-                    <ul style="columns:1 280px;column-gap:2rem;list-style:disc;padding-left:1.25rem;line-height:1.7;">
-        <li><a href="/en/resources/glossary/amp-accelerated-mobile-pages-guide-2026.html">Accelerated Mobile Pages (AMP)</a> — An open-source framework designed to create fast-loading mobile web pages, enhancing mobile SEO performance, user experience, and search eng</li>
-        <li><a href="/en/resources/glossary/agile-content-development-for-seo-2026.html">Agile Content Development</a> — A dynamic approach to creating and optimizing content iteratively using real-time search data and SEO analytics to continuously improve orga</li>
-        <li><a href="/en/resources/glossary/alt-attributes-seo-and-accessibility-2026.html">Alt Attributes</a> — HTML tags providing text descriptions for images, crucial for web accessibility and image SEO, helping search engine crawlers understand and</li>
-        <li><a href="/en/resources/glossary/anchor-text-optimization-guide-2026.html">Anchor Text</a> — The clickable, visible text in a hyperlink, vital for SEO as it provides context and relevance signals to search engines about the linked pa</li>
-        <li><a href="/en/resources/glossary/backlinks-building-strategy-2026.html">Backlinks</a> — Incoming links from external websites to your site, serving as a major ranking factor in SEO by signaling authority, trust, and domain popul</li>
-        <li><a href="/en/resources/glossary/bad-neighborhood-links-risks-2026.html">Bad Neighborhood</a> — A group of websites with poor reputation or spammy practices; linking to or from them can severely harm your website&#x27;s SEO rankings and doma</li>
-        <li><a href="/en/resources/glossary/content-blockers-in-seo-2026.html">Blocker</a> — Technical obstacles or scripts, like robots.txt disallows or heavy JavaScript, that prevent search engine crawlers from accessing, indexing,</li>
-        <li><a href="/en/resources/glossary/seo-briefing-template-2026.html">Briefing</a> — A detailed document outlining content requirements, target keywords, search intent, and SEO guidelines to ensure writers create optimized, h</li>
-        <li><a href="/en/resources/glossary/broken-link-building-guide-2026.html">Broken Link</a> — A hyperlink that points to a non-existent or deleted webpage, resulting in a 404 error, which negatively impacts user experience and website</li>
-        <li><a href="/en/resources/glossary/business-directory-submissions-2026.html">Business Directory</a> — An online database of businesses categorized by niche or location, useful for local SEO and building authoritative citations and backlinks t</li>
-        <li><a href="/en/resources/glossary/cloaking-seo-penalty-risk-2026.html">Cloaking</a> — A deceptive black-hat SEO technique where different content or URLs are presented to search engine spiders than to human users, violating se</li>
-        <li><a href="/en/resources/glossary/seo-competition-analysis-2026.html">Competition</a> — Rival websites targeting the same keywords and audience in search engine results pages (SERPs), requiring competitive analysis to identify S</li>
-        <li><a href="/en/resources/glossary/seo-content-editor-role-2026.html">Content Editor</a> — A tool or professional responsible for optimizing written material, ensuring proper keyword density, readability, and alignment with search </li>
-        <li><a href="/en/resources/glossary/content-gap-analysis-strategy-guide-2026.html">Content Gap Analysis</a> — The process of evaluating existing content against competitors to identify missing topics and keywords, creating strategic opportunities to </li>
-        <li><a href="/en/resources/glossary/content-marketing-strategy-2026.html">Content Marketing</a> — A strategic marketing approach focused on creating and distributing valuable, relevant content to attract a defined audience and drive profi</li>
-        <li><a href="/en/resources/glossary/content-relevance-signals-2026.html">Content Relevance</a> — The degree to which a webpage&#x27;s content matches the user&#x27;s search query and intent, a critical ranking factor for search engines determining</li>
-        <li><a href="/en/resources/glossary/seo-conversion-optimization-2026.html">Conversion</a> — The successful completion of a desired action by a website visitor, such as a purchase or signup, often the ultimate goal of targeted SEO tr</li>
-        <li><a href="/en/resources/glossary/cookies-and-seo-impact-2026.html">Cookies</a> — Small text files stored on a user&#x27;s device by a web browser, used to track user behavior, preferences, and sessions, impacting personalized </li>
-        <li><a href="/en/resources/glossary/search-engine-crawlers-guide-2026.html">Crawlers</a> — Automated software programs used by search engines to systematically browse the internet, discovering, rendering, and indexing web pages for</li>
-        <li><a href="/en/resources/glossary/domain-popularity-metrics-2026.html">Domain Popularity</a> — A metric reflecting the quantity and quality of inbound links pointing to a specific domain, heavily influencing its overall authority and s</li>
-        <li><a href="/en/resources/glossary/domain-trust-signals-2026.html">Domain Trust</a> — The level of confidence search engines have in a website&#x27;s credibility, built over time through high-quality backlinks, secure protocols, an</li>
-        <li><a href="/en/resources/glossary/duplicate-content-issues-and-fixes-2026.html">Duplicate Content</a> — Substantial blocks of content within or across domains that completely match or are appreciably similar, which can confuse crawlers and dilu</li>
-        <li><a href="/en/resources/glossary/featured-snippets-optimization-2026.html">Featured Snippets</a> — Highlighted search results appearing at the top of Google&#x27;s SERPs, designed to provide quick, direct answers to user queries, significantly </li>
-        <li><a href="/en/resources/glossary/frames-and-seo-problems-2026.html">Frame</a> — An outdated HTML technique dividing a webpage into separate segments, generally detrimental to SEO as it complicates crawling, indexing, and</li>
-        <li><a href="/en/resources/glossary/geo-generative-engine-optimization-strategies-2026.html">Generative Engine Optimization (GEO)</a> — The practice of optimizing content specifically to be discovered and referenced by AI-driven generative search engines, focusing on comprehe</li>
-        <li><a href="/en/resources/glossary/google-ads-strategy-2026-guide.html">Google Ads (AdWords)</a> — Google&#x27;s pay-per-click (PPC) advertising platform, allowing businesses to bid on keywords and display ads in search results, complementing o</li>
-        <li><a href="/en/resources/glossary/google-knowledge-graph-optimization-2026.html">Google Knowledge Graph</a> — Google&#x27;s vast database of interconnected entities and facts, used to enhance search results with semantic understanding and provide rich, co</li>
-        <li><a href="/en/resources/glossary/google-lighthouse-audit-guide-2026.html">Google Lighthouse</a> — An open-source, automated tool by Google for improving web page quality, providing audits for performance, accessibility, and technical SEO </li>
-        <li><a href="/en/resources/glossary/google-maps-seo-guide-2026.html">Google Maps</a> — Google&#x27;s web mapping service, essential for local SEO as it displays business locations, reviews, and directions, driving foot traffic and l</li>
-        <li><a href="/en/resources/glossary/google-business-profile-optimization-2026.html">Google My Business</a> — A free tool for businesses to manage their online presence across Google Search and Maps, a foundational element for successful local SEO an</li>
-        <li><a href="/en/resources/glossary/google-news-seo-strategy-2026.html">Google News</a> — A news aggregator by Google that indexes timely, authoritative articles, offering significant traffic opportunities for publishers who optim</li>
-        <li><a href="/en/resources/glossary/search-index-management-2026.html">Index</a> — The massive database where search engines store collected and processed web page data, which is queried to generate relevant search results </li>
-        <li><a href="/en/resources/glossary/internal-linking-strategy-2026.html">Internal Links</a> — Hyperlinks connecting pages within the same domain, crucial for establishing website structure, distributing link juice, and helping crawler</li>
-        <li><a href="/en/resources/glossary/keywords-in-seo-2026-guide.html">Keyword</a> — A specific word or phrase that users enter into search engines, serving as the foundation for SEO strategies, content creation, and targeted</li>
-        <li><a href="/en/resources/glossary/keyword-cannibalization-detection-and-fix-2026.html">Keyword Cannibalization</a> — An SEO issue where multiple pages on the same website compete for the same keyword, diluting ranking power and confusing search engine algor</li>
-        <li><a href="/en/resources/glossary/keyword-density-myths-2026.html">Keyword Density</a> — The percentage of times a specific keyword appears on a webpage compared to the total word count, once a major ranking factor but now less c</li>
-        <li><a href="/en/resources/glossary/keyword-proximity-in-seo-2026.html">Keyword Proximity</a> — The physical distance between related keywords within a text block, which search engines analyze to determine contextual relevance and seman</li>
-        <li><a href="/en/resources/glossary/keyword-stuffing-penalties-2026.html">Keyword Stuffing</a> — A penalized black-hat SEO tactic involving the unnatural overuse of target keywords in a webpage&#x27;s content or meta tags to manipulate search</li>
-        <li><a href="/en/resources/glossary/link-juice-flow-strategy-2026.html">Link Juice</a> — The SEO value or equity passed from one webpage to another through hyperlinks, enhancing the receiving page&#x27;s authority and potential to ran</li>
-        <li><a href="/en/resources/glossary/link-popularity-metrics-2026.html">Link Popularity</a> — A measure of a webpage&#x27;s authority based on the number and quality of inbound links it receives, directly impacting its search engine rankin</li>
-        <li><a href="/en/resources/glossary/link-text-anchor-best-practices-2026.html">Link Text</a> — The clickable text of a hyperlink, also known as anchor text, which provides context to search engines about the linked page&#x27;s topic and rel</li>
-        <li><a href="/en/resources/glossary/meta-description-optimization-2026.html">Meta Description</a> — An HTML attribute providing a brief summary of a webpage&#x27;s content, displayed in search results to improve click-through rates and user enga</li>
-        <li><a href="/en/resources/glossary/meta-tags-for-seo-2026.html">Meta Tag</a> — HTML snippets placed in a webpage&#x27;s header to provide structured metadata to search engines, including the title, description, and character</li>
-        <li><a href="/en/resources/glossary/offpage-optimization-strategies-2026.html">Offpage Optimization</a> — Actions taken outside of your own website to impact your rankings within search engine results pages, primarily focusing on link building an</li>
-        <li><a href="/en/resources/glossary/onpage-optimization-checklist-2026.html">Onpage Optimization</a> — The practice of optimizing individual webpages to rank higher and earn more relevant traffic, encompassing content quality, keyword usage, a</li>
-        <li><a href="/en/resources/glossary/page-content-optimization-2026.html">Page Content</a> — The text, images, videos, and interactive elements on a webpage, which must be high-quality, relevant, and optimized for keywords to achieve</li>
-        <li><a href="/en/resources/glossary/page-title-optimization-2026.html">Page Title</a> — The HTML title tag defining a webpage&#x27;s name, displayed as the clickable headline in search results and a critical on-page SEO ranking facto</li>
-        <li><a href="/en/resources/glossary/paid-listings-vs-organic-2026.html">Paid Listing</a> — Search engine results that appear because an advertiser paid for their placement, typically marked as Ad or Sponsored, distinct from organic</li>
-        <li><a href="/en/resources/glossary/onpage-optimization-checklist-2026.html">Progressive Web Apps (PWA)</a> — Web applications delivering an app-like experience through a browser, offering fast load times, offline capabilities, and improved user enga</li>
-        <li><a href="/en/resources/glossary/seo-ranking-factors-2026.html">Ranking Factor</a> — Any specific criteria applied by search engine algorithms to evaluate and rank webpages, such as page speed, mobile-friendliness, backlinks,</li>
-        <li><a href="/en/resources/glossary/finding-seo-ranking-opportunities-2026.html">Ranking Opportunities</a> — Identified gaps in search engine results where a website has a high potential to rank well by creating targeted, high-quality content for sp</li>
-        <li><a href="/en/resources/glossary/tracking-seo-rankings-2026.html">Rankings</a> — The specific positions a website&#x27;s pages hold in search engine results pages (SERPs) for particular keywords, directly determining organic v</li>
-        <li><a href="/en/resources/glossary/rich-snippets-with-structured-data-2026.html">Rich Snippets</a> — Enhanced search results displaying additional information like ratings, prices, or images, generated using structured data markup to improve</li>
-        <li><a href="/en/resources/glossary/robots-txt-best-practices-2026.html">Robots.txt</a> — A text file placed in a website&#x27;s root directory instructing search engine crawlers which pages or sections they are allowed or forbidden to</li>
-        <li><a href="/en/resources/glossary/how-search-engines-work-2026.html">Search Engine</a> — A software system designed to carry out web searches, crawling, indexing, and ranking internet content to provide the most relevant results </li>
-        <li><a href="/en/resources/glossary/search-engine-advertising-sea-guide-2026.html">Search Engine Advertising</a> — The practice of placing paid advertisements on search engine results pages, commonly known as Pay-Per-Click (PPC), to gain immediate visibil</li>
-        <li><a href="/en/resources/glossary/search-engine-guidelines-compliance-2026.html">Search Engine Guidelines</a> — Official rules and best practices published by search engines detailing how to optimize websites properly and avoid penalties for manipulati</li>
-        <li><a href="/en/resources/glossary/search-engine-marketing-sem-2026.html">Search Engine Marketing</a> — A broad digital marketing strategy encompassing both organic Search Engine Optimization (SEO) and paid Search Engine Advertising (SEA) to in</li>
-        <li><a href="/en/resources/glossary/search-engine-optimization-seo-2026.html">Search Engine Optimization (SEO)</a> — The systematic process of improving a website&#x27;s technical configuration, content relevance, and link popularity to increase its visibility a</li>
-        <li><a href="/en/resources/glossary/search-engine-submission-myths-2026.html">Search Engine Registration</a> — The process of submitting a website&#x27;s URL or sitemap directly to a search engine to ensure it is discovered, crawled, and indexed promptly.</li>
-        <li><a href="/en/resources/glossary/search-engine-spam-penalties-2026.html">Search Engine Spam</a> — Manipulative, black-hat techniques designed to deceive search engines and artificially inflate rankings, often resulting in severe penalties</li>
-        <li><a href="/en/resources/glossary/understanding-search-results-2026.html">Search Result</a> — The list of webpages, images, videos, or other content returned by a search engine in response to a user&#x27;s specific query or keyword.</li>
-        <li><a href="/en/resources/glossary/search-terms-vs-keywords-2026.html">Search Term</a> — The exact word or phrase a user types into a search engine, which SEO professionals analyze to understand search intent and optimize webpage</li>
-        <li><a href="/en/resources/glossary/search-volume-analysis-2026.html">Search Volume</a> — The estimated number of times a specific keyword is searched for within a given timeframe, used to gauge potential traffic and prioritize SE</li>
-        <li><a href="/en/resources/glossary/seo-visibility-metrics-2026.html">SEO Visibility</a> — A metric indicating how prominently a website appears in search engine results overall, based on its ranking positions and the search volume</li>
-        <li><a href="/en/resources/glossary/sitemap-xml-best-practices-2026.html">Sitemap.xml</a> — An XML file listing all essential URLs on a website, serving as a roadmap to help search engine crawlers discover and index content efficien</li>
-        <li><a href="/en/resources/glossary/ssl-encryption-for-seo-2026.html">SSL Encryption</a> — A security protocol (HTTPS) that encrypts data between a user&#x27;s browser and a website, functioning as a confirmed ranking signal for Google&#x27;</li>
-        <li><a href="/en/resources/glossary/rich-snippets-with-structured-data-2026.html">Structured Data</a> — Standardized code added to HTML to help search engines understand page content contextually, enabling the display of rich snippets in SERPs.</li>
-        <li><a href="/en/resources/glossary/topic-explorer-tools-for-seo-2026.html">Topic Explorer</a> — An SEO tool or feature used to discover related subtopics, questions, and keywords around a main subject to build comprehensive, topically r</li>
-        <li><a href="/en/resources/glossary/topical-relevance-and-authority-2026.html">Topical Relevance</a> — The depth and comprehensiveness of content covering a specific subject, signaling to search engines that a website is an authority on that p</li>
-        <li><a href="/en/resources/glossary/universal-search-optimization-2026.html">Universal Search</a> — The integration of diverse media types—such as images, videos, news, and maps—into standard organic search results to provide a richer user </li>
-        <li><a href="/en/resources/glossary/url-structure-for-seo-2026.html">URL</a> — The Uniform Resource Locator, the specific web address of a page, which should be clean, descriptive, and keyword-optimized for better searc</li>
-        <li><a href="/en/resources/glossary/user-experience-ux-in-seo-2026.html">User Experience</a> — The overall experience a user has while interacting with a website, including site speed, navigation, and mobile-friendliness, increasingly </li>
-        <li><a href="/en/resources/glossary/user-signals-in-ranking-2026.html">User Signals</a> — Behavioral metrics like click-through rate, bounce rate, and dwell time that indicate to search engines how users interact with and value a </li>
-        <li><a href="/en/resources/glossary/search-intent-optimization-2026.html">User/Search Intent</a> — The underlying goal or purpose behind a user&#x27;s search query—whether informational, navigational, or transactional—crucial for aligning conte</li>
-        <li><a href="/en/resources/glossary/web-catalogues-and-directories-2026.html">Web Catalogues</a> — Curated online directories listing websites by category, once popular for link building but now generally less effective for SEO unless high</li>
-        <li><a href="/en/resources/glossary/web-directory-submissions-2026.html">Web Directory</a> — An online list or catalog of websites categorized by topic or industry, occasionally useful for local SEO citations if the directory maintai</li>
-        <li><a href="/en/resources/glossary/optimizing-web-pages-for-seo-2026.html">Web Pages</a> — Individual HTML documents accessible via the internet, which must be individually optimized with unique content, titles, and meta tags for e</li>
-        <li><a href="/en/resources/glossary/google-webmaster-guidelines-2026.html">Webmaster Guidelines</a> — Google&#x27;s official documentation detailing best practices for website design, technical setup, and content quality to ensure optimal crawling</li>
-        <li><a href="/en/resources/glossary/website-seo-fundamentals-2026.html">Website</a> — A collection of interconnected web pages under a single domain name, requiring a logical structure, strong technical foundation, and high-qu</li>
-        <li><a href="/en/resources/glossary/website-structure-for-seo-2026.html">Website Structure</a> — The hierarchical organization and internal linking framework of a website, critical for user navigation and helping search engines crawl and</li>
-        <li><a href="/en/resources/glossary/zero-click-searches-impact-and-strategy-2026.html">Zero Click Searches</a> — Search engine queries where the user finds the answer directly on the SERP without clicking through to any website.</li>
+                <details id="glossary-crawl-index">
+                  <summary>Full A–Z term index <span style="font-weight:500;color:#64748b">(optional)</span></summary>
+                  <div class="crawl-body">
+                    <p>Prefer the cards above. This list is a complete A–Z for power users.</p>
+                    <ul>
+          <li><a href="/en/resources/glossary/amp-accelerated-mobile-pages-guide-2026.html">Accelerated Mobile Pages (AMP)</a></li>
+          <li><a href="/en/resources/glossary/agile-content-development-for-seo-2026.html">Agile Content Development</a></li>
+          <li><a href="/en/resources/glossary/alt-attributes-seo-and-accessibility-2026.html">Alt Attributes</a></li>
+          <li><a href="/en/resources/glossary/anchor-text-optimization-guide-2026.html">Anchor Text</a></li>
+          <li><a href="/en/resources/glossary/backlinks-building-strategy-2026.html">Backlinks</a></li>
+          <li><a href="/en/resources/glossary/bad-neighborhood-links-risks-2026.html">Bad Neighborhood</a></li>
+          <li><a href="/en/resources/glossary/content-blockers-in-seo-2026.html">Blocker</a></li>
+          <li><a href="/en/resources/glossary/seo-briefing-template-2026.html">Briefing</a></li>
+          <li><a href="/en/resources/glossary/broken-link-building-guide-2026.html">Broken Link</a></li>
+          <li><a href="/en/resources/glossary/business-directory-submissions-2026.html">Business Directory</a></li>
+          <li><a href="/en/resources/glossary/cloaking-seo-penalty-risk-2026.html">Cloaking</a></li>
+          <li><a href="/en/resources/glossary/seo-competition-analysis-2026.html">Competition</a></li>
+          <li><a href="/en/resources/glossary/seo-content-editor-role-2026.html">Content Editor</a></li>
+          <li><a href="/en/resources/glossary/content-gap-analysis-strategy-guide-2026.html">Content Gap Analysis</a></li>
+          <li><a href="/en/resources/glossary/content-marketing-strategy-2026.html">Content Marketing</a></li>
+          <li><a href="/en/resources/glossary/content-relevance-signals-2026.html">Content Relevance</a></li>
+          <li><a href="/en/resources/glossary/seo-conversion-optimization-2026.html">Conversion</a></li>
+          <li><a href="/en/resources/glossary/cookies-and-seo-impact-2026.html">Cookies</a></li>
+          <li><a href="/en/resources/glossary/search-engine-crawlers-guide-2026.html">Crawlers</a></li>
+          <li><a href="/en/resources/glossary/domain-popularity-metrics-2026.html">Domain Popularity</a></li>
+          <li><a href="/en/resources/glossary/domain-trust-signals-2026.html">Domain Trust</a></li>
+          <li><a href="/en/resources/glossary/duplicate-content-issues-and-fixes-2026.html">Duplicate Content</a></li>
+          <li><a href="/en/resources/glossary/featured-snippets-optimization-2026.html">Featured Snippets</a></li>
+          <li><a href="/en/resources/glossary/frames-and-seo-problems-2026.html">Frame</a></li>
+          <li><a href="/en/resources/glossary/geo-generative-engine-optimization-strategies-2026.html">Generative Engine Optimization (GEO)</a></li>
+          <li><a href="/en/resources/glossary/google-ads-strategy-2026-guide.html">Google Ads (AdWords)</a></li>
+          <li><a href="/en/resources/glossary/google-knowledge-graph-optimization-2026.html">Google Knowledge Graph</a></li>
+          <li><a href="/en/resources/glossary/google-lighthouse-audit-guide-2026.html">Google Lighthouse</a></li>
+          <li><a href="/en/resources/glossary/google-maps-seo-guide-2026.html">Google Maps</a></li>
+          <li><a href="/en/resources/glossary/google-business-profile-optimization-2026.html">Google My Business</a></li>
+          <li><a href="/en/resources/glossary/google-news-seo-strategy-2026.html">Google News</a></li>
+          <li><a href="/en/resources/glossary/search-index-management-2026.html">Index</a></li>
+          <li><a href="/en/resources/glossary/internal-linking-strategy-2026.html">Internal Links</a></li>
+          <li><a href="/en/resources/glossary/keywords-in-seo-2026-guide.html">Keyword</a></li>
+          <li><a href="/en/resources/glossary/keyword-cannibalization-detection-and-fix-2026.html">Keyword Cannibalization</a></li>
+          <li><a href="/en/resources/glossary/keyword-density-myths-2026.html">Keyword Density</a></li>
+          <li><a href="/en/resources/glossary/keyword-proximity-in-seo-2026.html">Keyword Proximity</a></li>
+          <li><a href="/en/resources/glossary/keyword-stuffing-penalties-2026.html">Keyword Stuffing</a></li>
+          <li><a href="/en/resources/glossary/link-juice-flow-strategy-2026.html">Link Juice</a></li>
+          <li><a href="/en/resources/glossary/link-popularity-metrics-2026.html">Link Popularity</a></li>
+          <li><a href="/en/resources/glossary/link-text-anchor-best-practices-2026.html">Link Text</a></li>
+          <li><a href="/en/resources/glossary/meta-description-optimization-2026.html">Meta Description</a></li>
+          <li><a href="/en/resources/glossary/meta-tags-for-seo-2026.html">Meta Tag</a></li>
+          <li><a href="/en/resources/glossary/offpage-optimization-strategies-2026.html">Offpage Optimization</a></li>
+          <li><a href="/en/resources/glossary/onpage-optimization-checklist-2026.html">Onpage Optimization</a></li>
+          <li><a href="/en/resources/glossary/page-content-optimization-2026.html">Page Content</a></li>
+          <li><a href="/en/resources/glossary/page-title-optimization-2026.html">Page Title</a></li>
+          <li><a href="/en/resources/glossary/paid-listings-vs-organic-2026.html">Paid Listing</a></li>
+          <li><a href="/en/resources/glossary/onpage-optimization-checklist-2026.html">Progressive Web Apps (PWA)</a></li>
+          <li><a href="/en/resources/glossary/seo-ranking-factors-2026.html">Ranking Factor</a></li>
+          <li><a href="/en/resources/glossary/finding-seo-ranking-opportunities-2026.html">Ranking Opportunities</a></li>
+          <li><a href="/en/resources/glossary/tracking-seo-rankings-2026.html">Rankings</a></li>
+          <li><a href="/en/resources/glossary/rich-snippets-with-structured-data-2026.html">Rich Snippets</a></li>
+          <li><a href="/en/resources/glossary/robots-txt-best-practices-2026.html">Robots.txt</a></li>
+          <li><a href="/en/resources/glossary/how-search-engines-work-2026.html">Search Engine</a></li>
+          <li><a href="/en/resources/glossary/search-engine-advertising-sea-guide-2026.html">Search Engine Advertising</a></li>
+          <li><a href="/en/resources/glossary/search-engine-guidelines-compliance-2026.html">Search Engine Guidelines</a></li>
+          <li><a href="/en/resources/glossary/search-engine-marketing-sem-2026.html">Search Engine Marketing</a></li>
+          <li><a href="/en/resources/glossary/search-engine-optimization-seo-2026.html">Search Engine Optimization (SEO)</a></li>
+          <li><a href="/en/resources/glossary/search-engine-submission-myths-2026.html">Search Engine Registration</a></li>
+          <li><a href="/en/resources/glossary/search-engine-spam-penalties-2026.html">Search Engine Spam</a></li>
+          <li><a href="/en/resources/glossary/understanding-search-results-2026.html">Search Result</a></li>
+          <li><a href="/en/resources/glossary/search-terms-vs-keywords-2026.html">Search Term</a></li>
+          <li><a href="/en/resources/glossary/search-volume-analysis-2026.html">Search Volume</a></li>
+          <li><a href="/en/resources/glossary/seo-visibility-metrics-2026.html">SEO Visibility</a></li>
+          <li><a href="/en/resources/glossary/sitemap-xml-best-practices-2026.html">Sitemap.xml</a></li>
+          <li><a href="/en/resources/glossary/ssl-encryption-for-seo-2026.html">SSL Encryption</a></li>
+          <li><a href="/en/resources/glossary/rich-snippets-with-structured-data-2026.html">Structured Data</a></li>
+          <li><a href="/en/resources/glossary/topic-explorer-tools-for-seo-2026.html">Topic Explorer</a></li>
+          <li><a href="/en/resources/glossary/topical-relevance-and-authority-2026.html">Topical Relevance</a></li>
+          <li><a href="/en/resources/glossary/universal-search-optimization-2026.html">Universal Search</a></li>
+          <li><a href="/en/resources/glossary/url-structure-for-seo-2026.html">URL</a></li>
+          <li><a href="/en/resources/glossary/user-experience-ux-in-seo-2026.html">User Experience</a></li>
+          <li><a href="/en/resources/glossary/user-signals-in-ranking-2026.html">User Signals</a></li>
+          <li><a href="/en/resources/glossary/search-intent-optimization-2026.html">User/Search Intent</a></li>
+          <li><a href="/en/resources/glossary/web-catalogues-and-directories-2026.html">Web Catalogues</a></li>
+          <li><a href="/en/resources/glossary/web-directory-submissions-2026.html">Web Directory</a></li>
+          <li><a href="/en/resources/glossary/optimizing-web-pages-for-seo-2026.html">Web Pages</a></li>
+          <li><a href="/en/resources/glossary/google-webmaster-guidelines-2026.html">Webmaster Guidelines</a></li>
+          <li><a href="/en/resources/glossary/website-seo-fundamentals-2026.html">Website</a></li>
+          <li><a href="/en/resources/glossary/website-structure-for-seo-2026.html">Website Structure</a></li>
+          <li><a href="/en/resources/glossary/zero-click-searches-impact-and-strategy-2026.html">Zero Click Searches</a></li>
                     </ul>
-                </section>
-
+                  </div>
+                </details>
             </div>
         </div>
     </main>
@@ -1868,7 +2107,12 @@
                 return acc;
             }, {});
 
-            Object.keys(grouped).sort().forEach(letter => {
+            const letters = Object.keys(grouped).sort();
+            if (!letters.length) {
+                glossaryContainer.innerHTML = '<div class="glossary-empty">No terms match your search. Try another keyword or clear filters.</div>';
+                return;
+            }
+            letters.forEach(letter => {
                 const letterGroup = document.createElement('div');
                 letterGroup.className = 'alphabet-group';
                 letterGroup.id = 'glossary-letter-' + letter;
@@ -1878,46 +2122,70 @@
                 letterHeading.textContent = letter;
                 letterGroup.appendChild(letterHeading);
 
+                const grid = document.createElement('div');
+                grid.className = 'glossary-letter-grid';
+
                 grouped[letter].forEach(term => {
                     const articleHref = (term.definition.article_link && term.definition.article_link !== '#')
                         ? term.definition.article_link
                         : null;
-                    const termCard = document.createElement(articleHref ? 'a' : 'div');
-                    if (articleHref) {
-                        termCard.href = articleHref;
-                        termCard.setAttribute('aria-label', 'Open full SEO guide: ' + term.term);
-                    }
-                    termCard.className = 'card glossary-term-card reveal';
+
+                    // Card = open slide-out definition (does not navigate away)
+                    const termCard = document.createElement('button');
+                    termCard.type = 'button';
+                    termCard.className = 'glossary-term-card reveal';
                     termCard.setAttribute('data-term', term.term);
-                    termCard.style.textDecoration = 'none';
-                    termCard.style.color = 'inherit';
-                    termCard.style.display = 'block';
+                    termCard.setAttribute('aria-label', 'Open definition: ' + term.term);
+
+                    const row = document.createElement('div');
+                    row.className = 'term-row';
 
                     const h3 = document.createElement('h3');
                     h3.textContent = term.term;
-                    termCard.appendChild(h3);
+                    row.appendChild(h3);
+
+                    // Icon next to term → full article (optional path)
+                    if (articleHref) {
+                        // Real crawlable <a href> for SEO (Google follows these); icon UX for humans
+                        const icon = document.createElement('a');
+                        icon.href = articleHref;
+                        icon.className = 'term-article-icon';
+                        icon.title = 'Read full SEO guide: ' + term.term;
+                        icon.setAttribute('aria-label', 'Read full SEO guide about ' + term.term);
+                        icon.setAttribute('data-seo-term', term.term);
+                        // Internal link — no nofollow; keep same-tab for UX (panel vs article is explicit)
+                        icon.innerHTML = '<i class="fas fa-book-open" aria-hidden="true"></i><span class="sr-only"> Full guide: ' + term.term + '</span>';
+                        icon.addEventListener('click', (e) => {
+                            // Do not open the slide panel when choosing the full article
+                            e.stopPropagation();
+                        });
+                        row.appendChild(icon);
+                    }
+                    termCard.appendChild(row);
 
                     const p = document.createElement('p');
-                    p.textContent = term.definition.paragraph;
+                    const blurb = (term.definition.paragraph || '').trim();
+                    p.textContent = blurb.length > 160 ? blurb.slice(0, 157) + '…' : blurb;
                     termCard.appendChild(p);
 
                     const catDiv = document.createElement('div');
                     catDiv.className = 'glossary-categories';
-                    term.categories.forEach(cat => {
+                    (term.categories || []).forEach(cat => {
                         const span = document.createElement('span');
                         span.textContent = cat;
                         catDiv.appendChild(span);
                     });
                     termCard.appendChild(catDiv);
 
-                    // Keep slide-in preview on click without blocking crawlable href (middle-click / open in new tab still works)
-                    termCard.addEventListener('click', (e) => {
-                        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
-                        e.preventDefault();
-                        openPanel(term);
-                    });
-                    letterGroup.appendChild(termCard);
+                    const cta = document.createElement('span');
+                    cta.className = 'card-cta';
+                    cta.textContent = 'Quick definition →';
+                    termCard.appendChild(cta);
+
+                    termCard.addEventListener('click', () => openPanel(term));
+                    grid.appendChild(termCard);
                 });
+                letterGroup.appendChild(grid);
                 glossaryContainer.appendChild(letterGroup);
             });
             document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
