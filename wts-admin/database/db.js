@@ -1548,6 +1548,25 @@ const db = {
         END $$;
       `);
 
+      // AI draft provenance. English is always the canonical source;
+      // ai_source_strategy records HOW the draft was produced ('direct'
+      // EN→target, or 'th_pivot' — EN as authority with the entity's
+      // verified Thai attached as a style reference for Lao). ai_pivot_ref
+      // stores which Thai revision guided the draft ({language,
+      // translation_id, source_hash, updated_at, fields}) so review can
+      // flag drafts whose reference has since been re-verified.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='ai_source_strategy') THEN
+            ALTER TABLE translations ADD COLUMN ai_source_strategy VARCHAR(30);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='ai_pivot_ref') THEN
+            ALTER TABLE translations ADD COLUMN ai_pivot_ref JSONB;
+          END IF;
+        END $$;
+      `);
+
       // Team structure: position labels from the role briefs and a
       // manager chain (e.g. Cascade Coordinator managing associates).
       await client.query(`

@@ -239,8 +239,12 @@ router.post('/ai-batch', ensureSuperAdmin, logActivity('translations_ai_batch'),
     const job = await aiTranslator.startBatch({
       languages: req.body.languages,
       entityTypes: req.body.entity_types,
-      limit: req.body.limit,
+      // 'all' = one maximal run; the engine still caps a single run's model
+      // work and reports capped/remaining so the operator re-runs to finish.
+      limit: req.body.limit === 'all' ? 500 : req.body.limit,
       force: req.body.force === true || req.body.force === 'true',
+      laoPivot: req.body.lao_pivot !== false && req.body.lao_pivot !== 'false',
+      laoPivotStrict: req.body.lao_pivot_strict === true || req.body.lao_pivot_strict === 'true',
       startedBy: req.user.id,
     });
     asJson(res, 202, { success: true, job });
@@ -249,13 +253,112 @@ router.post('/ai-batch', ensureSuperAdmin, logActivity('translations_ai_batch'),
   }
 });
 
+// What a batch WOULD pick up, per language, before anyone commits to a
+// run: the pre-run modal shows these live counts. "queued" rows have no
+// draft yet; "drafted" rows re-enter only if their English source changed
+// (hash-checked at run time — too heavy to precompute here, said so in the
+// UI). with_thai counts Lao rows whose Thai sibling is trusted enough
+// (verified/published) to serve as a pivot reference.
+router.get('/ai-batch/preview', ensureSuperAdmin, async (req, res) => {
+  try {
+    const langs = String(req.query.languages || '').split(',').filter((l) => core.TARGET_LANGUAGES.includes(l));
+    const types = String(req.query.entity_types || '').split(',').filter((t) => core.ENTITY_TYPES.includes(t));
+    const rows = (await db.query(
+      `SELECT target_language AS lang,
+              COUNT(*)::int AS candidates,
+              COUNT(*) FILTER (WHERE content_payload IS NULL OR content_payload = '{}'::jsonb)::int AS queued,
+              COUNT(*) FILTER (
+                WHERE target_language = 'la' AND EXISTS (
+                  SELECT 1 FROM translations th
+                  WHERE th.entity_type = translations.entity_type
+                    AND th.entity_id = translations.entity_id
+                    AND th.target_language = 'th'
+                    AND th.status = ANY($3)
+                )
+              )::int AS with_thai
+       FROM translations
+       WHERE target_language = ANY($1) AND entity_type = ANY($2)
+         AND translator_id IS NULL
+         AND status IN ('pending', 'translating', 'requires_review')
+       GROUP BY 1`,
+      [
+        langs.length ? langs : core.TARGET_LANGUAGES,
+        types.length ? types : core.ENTITY_TYPES,
+        aiTranslator.TRUSTED_PIVOT_STATUSES,
+      ]
+    )).rows;
+    asJson(res, 200, { success: true, preview: rows });
+  } catch (error) {
+    console.error('AI batch preview failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Preview failed' });
+  }
+});
+
 router.get('/ai-batch/status', statusPollLimiter, ensureSuperAdmin, (req, res) => {
   asJson(res, 200, { success: true, job: aiTranslator.getJobStatus(), configured: aiTranslator.isConfigured() });
+});
+
+// Per-item AI redraft ("Re-translate with AI" on the review page). Same
+// engine and job registry as the batch — the page polls the shared status
+// endpoint. Guards mirror the batch's claim semantics, checked here too so
+// the operator gets a specific message instead of a silent skip: human
+// vendors own their rows, and verified/published text never gets stomped
+// (reopen or return-for-redo first). Stays an unpaid AI draft.
+router.post('/:id/retranslate', ensureSuperAdmin, logActivity('translation_retranslate'), async (req, res) => {
+  try {
+    const row = await loadTranslation(req, res);
+    if (!row) return;
+    if (row.translator_id) {
+      return asJson(res, 409, {
+        success: false,
+        error: 'This row is assigned to a human translator — unassign it before AI redrafting.',
+      });
+    }
+    if (!['pending', 'translating', 'requires_review', 'rejected'].includes(row.status)) {
+      return asJson(res, 409, {
+        success: false,
+        error: `Cannot AI-redraft from status "${row.status}" — reopen or return it first.`,
+      });
+    }
+    const job = await aiTranslator.startBatch({
+      onlyId: row.id,
+      laoPivot: req.body.lao_pivot !== false && req.body.lao_pivot !== 'false',
+      startedBy: req.user.id,
+    });
+    asJson(res, 202, { success: true, job });
+  } catch (error) {
+    asJson(res, error.status || 500, { success: false, error: error.message });
+  }
 });
 
 // ---------------------------------------------------------------------------
 // SuperAdmin: review, assign, approve / reject / reopen
 // ---------------------------------------------------------------------------
+
+// The trusted Thai sibling of a Lao row (verified/published, non-empty) —
+// rendered as a read-only reference column on Lao review/verify screens.
+// English remains the authoritative source; the Thai column exists because
+// the reviewer pool reads Thai fluently and the Lao AI drafts lean on it.
+async function loadThaiReference(row) {
+  if (row.target_language !== 'la') return null;
+  const ref = (await db.query(
+    `SELECT id, content_payload, source_hash, updated_at, status
+     FROM translations
+     WHERE entity_type = $1 AND entity_id = $2 AND target_language = 'th'
+       AND status = ANY($3)`,
+    [row.entity_type, row.entity_id, aiTranslator.TRUSTED_PIVOT_STATUSES]
+  )).rows[0];
+  if (!ref || !ref.content_payload || Object.keys(ref.content_payload).length === 0) return null;
+  return ref;
+}
+
+// A Thai-pivot draft is stale when the Thai TEXT it leaned on has changed
+// since drafting (content hash drift). Metadata-only touches don't count.
+function isPivotStale(row, thaiRef) {
+  if (row.ai_source_strategy !== 'th_pivot' || !row.ai_pivot_ref || !thaiRef) return false;
+  const recorded = row.ai_pivot_ref.content_hash;
+  return Boolean(recorded) && core.sourceHash(thaiRef.content_payload) !== recorded;
+}
 
 router.get('/review/:id', ensureSuperAdmin, async (req, res, next) => {
   try {
@@ -273,6 +376,7 @@ router.get('/review/:id', ensureSuperAdmin, async (req, res, next) => {
       `SELECT * FROM payout_ledger WHERE translation_id = $1 AND type = 'translation_credit' LIMIT 1`,
       [row.id]
     )).rows[0] || null;
+    const thaiRef = await loadThaiReference(row);
 
     res.render('translations/review', {
       title: 'Review Translation - WTS Admin',
@@ -283,6 +387,8 @@ router.get('/review/:id', ensureSuperAdmin, async (req, res, next) => {
       verifier,
       payoutPreview,
       ledgerEntry,
+      thaiRef,
+      pivotStale: isPivotStale(row, thaiRef),
       languageNames: core.LANGUAGE_NAMES,
       entityConfig: core.ENTITY_SOURCES[row.entity_type],
     });
@@ -1334,6 +1440,7 @@ router.get('/verify/:id', ensureTranslator, async (req, res, next) => {
       currentPage: 'workspace',
       item: row,
       source,
+      thaiRef: await loadThaiReference(row),
       languageNames: core.LANGUAGE_NAMES,
       entityConfig: core.ENTITY_SOURCES[row.entity_type],
       readOnly: row.status === 'verified',
