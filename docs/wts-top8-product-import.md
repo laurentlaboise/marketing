@@ -67,3 +67,11 @@ Call to Action: Build lead magnet
 
 7. Social Foundation ≈ Digital Footprint subscription $329/mo
 8. Growth Engine Retainer ≈ Growth Engine subscription $649/mo
+
+## Operating system (2026-07-12)
+
+See **`WTS-Revenue-Affiliate-OS.md`** (repo) and Obsidian `Projects/wts-revenue-affiliate-os.md`.
+
+- **B + E** = revenue OS (commissions + Footprint/Growth/Automation scope caps)
+- **A** = affiliate face (Regional Hustler)
+- **C + D parked** — AI SEA directory + digital cards feed forms/CRM/cards later; do **not** replace agency + affiliate model now
