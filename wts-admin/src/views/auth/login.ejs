@@ -46,20 +46,28 @@
       </button>
     </form>
 
+    <% var showGoogle = typeof googleEnabled === 'undefined' || googleEnabled; %>
+    <% var showFacebook = typeof facebookEnabled === 'undefined' || facebookEnabled; %>
+    <% if (showGoogle || showFacebook) { %>
     <div class="auth-divider">
       <span>or continue with</span>
     </div>
 
     <div class="social-login">
+      <% if (showGoogle) { %>
       <a href="/auth/google" class="social-btn google">
         <i class="fab fa-google"></i>
         Google
       </a>
+      <% } %>
+      <% if (showFacebook) { %>
       <a href="/auth/facebook" class="social-btn facebook">
         <i class="fab fa-facebook-f"></i>
         Facebook
       </a>
+      <% } %>
     </div>
+    <% } %>
 
     <% if (typeof signupEnabled !== 'undefined' && signupEnabled) { %>
     <div class="auth-footer">
