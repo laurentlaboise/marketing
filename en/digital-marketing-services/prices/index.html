@@ -151,76 +151,9 @@
             color: var(--color-accent-magenta);
             font-size: 0.78rem;
         }
-        .pricing-intro__billing-label {
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: #94a3b8;
-            margin: 0 0 0.55rem;
-        }
-        /* Segmented billing control */
-        .billing-seg {
-            display: inline-flex;
-            align-items: stretch;
-            background: #f1f5f9;
-            border-radius: 999px;
-            padding: 0.25rem;
-            gap: 0.15rem;
-            margin: 0 auto;
-            position: relative;
-        }
-        .billing-seg input {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .billing-seg__opt {
-            appearance: none;
-            border: none;
-            background: transparent;
-            font-family: inherit;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #64748b;
-            padding: 0.55rem 1.15rem;
-            border-radius: 999px;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-            line-height: 1.2;
-        }
-        .billing-seg__opt.is-active {
-            background: #fff;
-            color: #0f172a;
-            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
-        }
-        .billing-seg__opt:focus-visible {
-            outline: 2px solid var(--color-accent-magenta);
-            outline-offset: 2px;
-        }
-        .billing-seg__save {
-            display: inline-block;
-            margin-left: 0.35rem;
-            background: #dcfce7;
-            color: #166534;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 0.15rem 0.4rem;
-            border-radius: 999px;
-            vertical-align: middle;
-        }
-        .billing-toggle-hint {
-            font-size: 0.88rem;
-            color: #64748b;
-            text-align: center;
-            margin: 0.75rem 0 0;
-            min-height: 1.25em;
-            font-weight: 500;
-            line-height: 1.45;
-        }
         .pricing-intro__partners {
-            margin: 1.15rem 0 0;
-            padding-top: 1rem;
+            margin: 0.85rem 0 0;
+            padding-top: 0.95rem;
             border-top: 1px solid #f1f5f9;
             font-size: 0.9rem;
             color: #94a3b8;
@@ -243,6 +176,91 @@
         .pricing-intro__partners a:hover {
             color: var(--color-accent-magenta);
             text-decoration: underline;
+        }
+
+        /* Billing control — sits under plan section title, above cards */
+        .plan-billing-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.65rem;
+            margin: 0 auto 2.25rem;
+            max-width: 28rem;
+        }
+        .plan-billing-bar__label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin: 0;
+        }
+        .billing-seg {
+            display: inline-flex;
+            align-items: stretch;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            padding: 0.3rem;
+            gap: 0.2rem;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+        }
+        .billing-seg input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            height: 0;
+        }
+        .billing-seg__opt {
+            appearance: none;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: #64748b;
+            padding: 0.65rem 1.35rem;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            line-height: 1.2;
+            min-width: 7.5rem;
+        }
+        .billing-seg__opt.is-active {
+            background: #122a3f;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(18, 42, 63, 0.25);
+        }
+        .billing-seg__opt.is-active .billing-seg__save {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+        .billing-seg__opt:focus-visible {
+            outline: 2px solid var(--color-accent-magenta);
+            outline-offset: 2px;
+        }
+        .billing-seg__save {
+            display: inline-block;
+            margin-left: 0.4rem;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 0.18rem 0.45rem;
+            border-radius: 999px;
+            vertical-align: middle;
+        }
+        .billing-toggle-hint {
+            font-size: 0.9rem;
+            color: #64748b;
+            text-align: center;
+            margin: 0;
+            min-height: 1.25em;
+            font-weight: 500;
+            line-height: 1.45;
         }
         /* keep legacy class hooks for JS billing toggle labels if needed */
         .bill-label { cursor: pointer; }
@@ -1372,20 +1390,6 @@
                     <li><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</li>
                     <li><i class="fas fa-file-alt" aria-hidden="true"></i> Plain-language reports</li>
                 </ul>
-
-                <p class="pricing-intro__billing-label" id="billing-label">Billing</p>
-                <div class="billing-seg" role="group" aria-labelledby="billing-label">
-                    <!-- hidden checkbox kept for existing applyBillingCycle JS -->
-                    <input type="checkbox" id="billing-cycle-toggle" aria-describedby="billing-toggle-hint" tabindex="-1">
-                    <button type="button" class="billing-seg__opt is-active" id="monthly-label" data-billing="monthly" aria-pressed="true">
-                        Monthly
-                    </button>
-                    <button type="button" class="billing-seg__opt" id="annually-label" data-billing="annual" aria-pressed="false">
-                        Annual <span class="billing-seg__save">−20%</span>
-                    </button>
-                </div>
-                <p id="billing-toggle-hint" class="billing-toggle-hint">Showing monthly price. Switch to Annual to save 20% (billed once a year).</p>
-
                 <div class="pricing-intro__partners">
                     <span>Partners</span>
                     <a href="/en/company/affiliate-sales/">Affiliate program</a>
@@ -1401,6 +1405,22 @@
                 <p class="section-kicker">Ongoing retainers</p>
                 <h2 id="retainers-heading">Three clear plans</h2>
                 <p class="section-lead">Start simple. Add growth. Then automate.</p>
+
+                <!-- Billing control: directly above plan cards (UX) -->
+                <div class="plan-billing-bar">
+                    <p class="plan-billing-bar__label" id="billing-label">Choose how you pay</p>
+                    <div class="billing-seg" role="group" aria-labelledby="billing-label">
+                        <input type="checkbox" id="billing-cycle-toggle" aria-describedby="billing-toggle-hint" tabindex="-1">
+                        <button type="button" class="billing-seg__opt is-active" id="monthly-label" data-billing="monthly" aria-pressed="true">
+                            Monthly
+                        </button>
+                        <button type="button" class="billing-seg__opt" id="annually-label" data-billing="annual" aria-pressed="false">
+                            Annual <span class="billing-seg__save">−20%</span>
+                        </button>
+                    </div>
+                    <p id="billing-toggle-hint" class="billing-toggle-hint">Prices below update when you switch.</p>
+                </div>
+
                 <div id="subscriptions-grid" class="grid-3">
                     <div class="card subscription-card" data-fallback-plan="digital-footprint">
                         <h3 class="plan-name">Digital Footprint</h3>
