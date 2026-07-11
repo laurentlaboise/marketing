@@ -16,6 +16,7 @@ const {
 const core = require('../lib/translation-core');
 const aiTranslator = require('../lib/ai-translator');
 const gateway = require('../lib/payout-gateway');
+const interlink = require('../lib/interlink');
 
 const router = express.Router();
 
@@ -119,8 +120,8 @@ router.get('/', ensureSuperAdmin, async (req, res, next) => {
        LEFT JOIN site_pages sp ON t.entity_type = 'page' AND sp.id = t.entity_id
        ${whereSql}
        ORDER BY t.updated_at DESC
-       LIMIT ${perPage} OFFSET ${offset}`,
-      params
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, perPage, offset]
     );
 
     const counts = await db.query(
@@ -338,10 +339,20 @@ router.post('/:id/assign-verifier', ensureSuperAdmin, logActivity('translation_a
       }
     }
 
-    await db.query(
-      `UPDATE translations SET verifier_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+    // Status re-checked atomically: a concurrent verify/approve between the
+    // guard above and this write would otherwise leave verifier_id set on a
+    // non-draft row and send a misleading notification.
+    const updated = await db.query(
+      `UPDATE translations SET verifier_id = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2 AND status = 'requires_review' RETURNING id`,
       [verifierId, row.id]
     );
+    if (updated.rows.length === 0) {
+      return asJson(res, 409, {
+        success: false,
+        error: 'Only a translation awaiting review can be assigned to a verifier.',
+      });
+    }
     if (verifierId) {
       await core.notifyUser(
         verifierId,
@@ -354,6 +365,66 @@ router.post('/:id/assign-verifier', ensureSuperAdmin, logActivity('translation_a
   } catch (error) {
     console.error('Verifier assign failed:', error.message);
     asJson(res, 500, { success: false, error: 'Verifier assign failed' });
+  }
+});
+
+// Inject glossary / SEO-term links into a drafted translation's long-form
+// fields (the interlinking half of the article editor's auto-hyperlink
+// feature, applied to translated content). Matchable names per language
+// come from PUBLISHED term translations; links point at the localized term
+// pages. Runs before publish so the reviewer sees exactly what ships.
+// target_char_count is recomputed but countChars strips tags — adding
+// links never changes what a verifier or translator is paid.
+const INTERLINK_FIELDS = new Set(['content', 'definition', 'example', 'examples', 'excerpt', 'body', 'short_definition']);
+
+router.post('/:id/interlink', ensureSuperAdmin, logActivity('translation_interlink'), async (req, res) => {
+  try {
+    const row = await loadTranslation(req, res);
+    if (!row) return;
+    if (!['requires_review', 'verified'].includes(row.status)) {
+      return asJson(res, 409, {
+        success: false,
+        error: 'Term links are added while a translation is in review — before publishing.',
+      });
+    }
+
+    const terms = await interlink.buildTermIndex(row.target_language, {
+      exclude: { entityType: row.entity_type, entityId: row.entity_id },
+    });
+    if (!terms.length) {
+      return asJson(res, 200, {
+        success: true, count: 0, linked: [],
+        note: `No linkable ${core.LANGUAGE_NAMES[row.target_language] || row.target_language} term names yet — publish glossary/SEO-term translations first.`,
+      });
+    }
+
+    const payload = { ...(row.content_payload || {}) };
+    const allLinked = [];
+    for (const [field, value] of Object.entries(payload)) {
+      if (!INTERLINK_FIELDS.has(field) || typeof value !== 'string' || !value.trim()) continue;
+      const remaining = interlink.DEFAULT_MAX_LINKS - allLinked.length;
+      if (remaining <= 0) break;
+      const result = interlink.injectTermLinks(value, terms.filter(
+        (t) => !allLinked.some((l) => l.term.toLowerCase() === t.matchName.toLowerCase())
+      ), { lang: row.target_language, maxLinks: remaining });
+      if (result.count > 0) {
+        payload[field] = result.html;
+        allLinked.push(...result.linked);
+      }
+    }
+
+    if (allLinked.length > 0) {
+      await db.query(
+        `UPDATE translations
+         SET content_payload = $1, target_char_count = $2, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3`,
+        [JSON.stringify(payload), core.countChars(payload), row.id]
+      );
+    }
+    asJson(res, 200, { success: true, count: allLinked.length, linked: allLinked });
+  } catch (error) {
+    console.error('Interlink failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Interlink failed' });
   }
 });
 
