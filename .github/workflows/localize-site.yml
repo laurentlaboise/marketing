@@ -72,14 +72,18 @@ jobs:
         run: node scripts/check-hreflang.js
 
       - name: Commit changes (if any)
+        # reason is free text — inject via env, never inline into the
+        # script (shell injection), and keep it out of the YAML block
+        # scalar (a column-1 line inside `run: |` ends the block and
+        # invalidates the whole workflow file).
+        env:
+          REASON: ${{ github.event.inputs.reason || 'manual run' }}
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "wts-localize-bot"
             git config user.email "actions@users.noreply.github.com"
             git add th la fr en sitemap.xml 2>/dev/null || true
-            git commit -m "Regenerate localized pages from published translations
-
-Triggered: ${{ github.event.inputs.reason || 'manual run' }}"
+            git commit -m "Regenerate localized pages from published translations" -m "Triggered: $REASON"
             git push
           else
             echo "No changes to commit."
