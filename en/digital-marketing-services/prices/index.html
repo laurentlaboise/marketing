@@ -790,14 +790,265 @@
             .pricing-hero__actions { justify-content: center; }
         }
 
-        /* Bundles & A La Carte */
+        /* Bundles & A La Carte (legacy) */
         .bundle-card { border-top: 4px solid var(--color-primary-base); text-align: center; display:flex; flex-direction: column; }
         .bundle-card.highlight { border-color: var(--color-accent-magenta); }
-        .bundle-card .value { font-size: 0.9rem; text-decoration: line-through; color: var(--color-slate-500); }
+        .bundle-card .value { font-size: 0.9rem; color: var(--color-slate-500); }
         .bundle-card .price { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; }
         .bundle-card .save { color: var(--color-success); font-weight: 600; }
         .bundle-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: left; flex-grow: 1; }
         .bundle-card li i { color: var(--color-primary-base); margin-right: 0.75rem; }
+
+        /* One-time project flip cards (no public prices) */
+        .project-flip-grid {
+            display: grid;
+            gap: 1.5rem;
+            align-items: stretch;
+        }
+        @media (min-width: 640px) {
+            .project-flip-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 1024px) {
+            .project-flip-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .project-flip {
+            perspective: 1200px;
+            min-height: 340px;
+        }
+        .project-flip__inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 340px;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .project-flip.is-flipped .project-flip__inner {
+            transform: rotateY(180deg);
+        }
+        .project-flip__face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+            padding: 1.5rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+        .project-flip__front {
+            border-top: 4px solid var(--color-primary-base);
+        }
+        .project-flip.is-highlight .project-flip__front {
+            border-top-color: var(--color-accent-magenta);
+        }
+        .project-flip__back {
+            transform: rotateY(180deg);
+            background: linear-gradient(160deg, #122a3f 0%, #1a3a55 50%, #9d174d 130%);
+            border-color: transparent;
+            color: #fff;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+        .project-flip__front h3 {
+            margin: 0 0 0.35rem;
+            font-size: 1.25rem;
+            color: #0f172a;
+        }
+        .project-flip__front .value {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin: 0 0 0.75rem;
+            font-weight: 600;
+        }
+        .project-flip__front ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1rem;
+            text-align: left;
+            flex-grow: 1;
+            font-size: 0.92rem;
+            color: #1e3a4f;
+        }
+        .project-flip__front li {
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+        }
+        .project-flip__front li i {
+            color: var(--color-accent-magenta);
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+        .project-flip__actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: auto;
+        }
+        .project-flip__flip-btn {
+            background: none;
+            border: none;
+            color: var(--color-accent-magenta);
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 0.35rem;
+        }
+        .project-flip__flip-btn:hover { text-decoration: underline; }
+        .project-play-btn {
+            width: 5.25rem;
+            height: 5.25rem;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.85);
+            background: radial-gradient(circle at 35% 30%, #f472b6 0%, #d62b83 45%, #9d174d 100%);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            padding: 0;
+        }
+        .project-play-btn:hover {
+            transform: scale(1.06);
+            box-shadow: 0 14px 32px rgba(214, 43, 131, 0.45);
+        }
+        .project-play-btn:focus-visible {
+            outline: 3px solid #fbcfe8;
+            outline-offset: 4px;
+        }
+        .project-play-btn i {
+            font-size: 1.75rem;
+            margin-left: 0.2rem; /* optical center for play triangle */
+        }
+        .project-play-label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin: 0;
+        }
+        .project-play-sub {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            margin: 0;
+            max-width: 14rem;
+            line-height: 1.45;
+        }
+        .project-flip__back .btn-ghost-light {
+            background: transparent;
+            border: 1.5px solid rgba(255,255,255,0.55);
+            color: #fff;
+            border-radius: 999px;
+            padding: 0.45rem 1rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .project-flip__back .btn-ghost-light:hover {
+            background: rgba(255,255,255,0.12);
+        }
+        /* Project video modal (blank placeholder until Manus clip) */
+        .project-video-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 4000;
+            background: rgba(10, 22, 34, 0.82);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .project-video-overlay.is-open {
+            display: flex;
+            opacity: 1;
+        }
+        .project-video-box {
+            position: relative;
+            width: min(720px, 100%);
+            background: #0f172a;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .project-video-box header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            background: #122a3f;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .project-video-box header button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 0.25rem;
+        }
+        .project-video-stage {
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(145deg, #1e293b 0%, #122a3f 50%, #3b0a2a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .project-video-stage video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            background: #000;
+        }
+        .project-video-stage.has-src video { display: block; }
+        .project-video-stage.has-src .project-video-placeholder { display: none; }
+        .project-video-placeholder {
+            max-width: 22rem;
+        }
+        .project-video-placeholder .brand-play {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            background: #d62b83;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+            color: #fff;
+            font-size: 1.35rem;
+            box-shadow: 0 8px 24px rgba(214, 43, 131, 0.4);
+        }
+        .project-video-placeholder p {
+            font-size: 0.92rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+            margin: 0;
+        }
+        .project-video-placeholder strong { color: #fff; }
+        @media (prefers-reduced-motion: reduce) {
+            .project-flip__inner { transition: none; }
+        }
         
         .accordion-item { background-color: var(--color-white); border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 1rem; transition: box-shadow 0.3s ease; }
         .accordion-item:hover { box-shadow: var(--shadow-md); }
@@ -1659,82 +1910,194 @@
                 </div>
             </section>
 
-            <!-- One-time projects only -->
+            <!-- One-time projects: flip cards, no public prices (portal for pricing) -->
             <section id="product-menu-packages" class="section section-alt" aria-labelledby="projects-heading">
                 <p class="section-kicker">One-time projects</p>
                 <h2 id="projects-heading">Web, forms &amp; content packages</h2>
                 <p class="section-lead">
-                    Need a page, form, or content pack without a monthly retainer? These are fixed-scope projects with clear deliverables.
+                    Fixed-scope projects without a monthly retainer. Flip a card for a short video overview.
+                    <strong>Pricing is in the client portal</strong>—not listed here.
                 </p>
-                <div class="grid-4" style="align-items:stretch;">
-                    <div class="card bundle-card">
-                        <h3>Landing Page Sprint</h3>
-                        <p class="value">One-time project</p>
-                        <p class="price">$349</p>
-                        <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> CTA + lead form</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Tracking + mobile layout</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> 1 revision</li>
-                        </ul>
-                        <button type="button" class="btn btn-accent" onclick="return goToPortal('get_started', 'Landing Page Sprint')" data-plan="Landing Page Sprint">Get started</button>
+                <div class="project-flip-grid" id="project-flip-grid">
+                    <!-- Landing Page Sprint -->
+                    <div class="project-flip" data-project="Landing Page Sprint" data-video="">
+                        <div class="project-flip__inner">
+                            <div class="project-flip__face project-flip__front">
+                                <h3>Landing Page Sprint</h3>
+                                <p class="value">One-time project</p>
+                                <ul>
+                                    <li><i class="fas fa-check"></i> CTA + lead form</li>
+                                    <li><i class="fas fa-check"></i> Tracking + mobile layout</li>
+                                    <li><i class="fas fa-check"></i> 1 revision</li>
+                                </ul>
+                                <div class="project-flip__actions">
+                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
+                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Landing%20Page%20Sprint">See price in portal</a>
+                                </div>
+                            </div>
+                            <div class="project-flip__face project-flip__back">
+                                <button type="button" class="project-play-btn" data-play aria-label="Play Landing Page Sprint overview">
+                                    <i class="fas fa-play" aria-hidden="true"></i>
+                                </button>
+                                <p class="project-play-label">Landing Page Sprint</p>
+                                <p class="project-play-sub">30-second overview — play to open</p>
+                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card bundle-card">
-                        <h3>Professional Page</h3>
-                        <p class="value">One-time project</p>
-                        <p class="price">$899</p>
-                        <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Multi-section page</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form ≤5 fields + SEO basics</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> 2 design touch-ups</li>
-                        </ul>
-                        <button type="button" class="btn btn-accent" onclick="return goToPortal('get_started', 'Professional Page')" data-plan="Professional Page">Get started</button>
+                    <!-- Professional Page -->
+                    <div class="project-flip" data-project="Professional Page" data-video="">
+                        <div class="project-flip__inner">
+                            <div class="project-flip__face project-flip__front">
+                                <h3>Professional Page</h3>
+                                <p class="value">One-time project</p>
+                                <ul>
+                                    <li><i class="fas fa-check"></i> Multi-section page</li>
+                                    <li><i class="fas fa-check"></i> Form ≤5 fields + SEO basics</li>
+                                    <li><i class="fas fa-check"></i> 2 design touch-ups</li>
+                                </ul>
+                                <div class="project-flip__actions">
+                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
+                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Professional%20Page">See price in portal</a>
+                                </div>
+                            </div>
+                            <div class="project-flip__face project-flip__back">
+                                <button type="button" class="project-play-btn" data-play aria-label="Play Professional Page overview">
+                                    <i class="fas fa-play" aria-hidden="true"></i>
+                                </button>
+                                <p class="project-play-label">Professional Page</p>
+                                <p class="project-play-sub">30-second overview — play to open</p>
+                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card bundle-card highlight">
-                        <h3>Multi-Page Site Starter</h3>
-                        <p class="value">One-time · best for new brands</p>
-                        <p class="price">$2,490</p>
-                        <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Home + 2 pages + contact</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form wired to your lead inbox</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> SEO + analytics setup</li>
-                        </ul>
-                        <button type="button" class="btn btn-accent" onclick="return goToPortal('get_started', 'Multi-Page Site Starter')" data-plan="Multi-Page Site Starter">Get started</button>
+                    <!-- Multi-Page Site Starter -->
+                    <div class="project-flip is-highlight" data-project="Multi-Page Site Starter" data-video="">
+                        <div class="project-flip__inner">
+                            <div class="project-flip__face project-flip__front">
+                                <h3>Multi-Page Site Starter</h3>
+                                <p class="value">One-time · best for new brands</p>
+                                <ul>
+                                    <li><i class="fas fa-check"></i> Home + 2 pages + contact</li>
+                                    <li><i class="fas fa-check"></i> Form wired to your lead inbox</li>
+                                    <li><i class="fas fa-check"></i> SEO + analytics setup</li>
+                                </ul>
+                                <div class="project-flip__actions">
+                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
+                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Multi-Page%20Site%20Starter">See price in portal</a>
+                                </div>
+                            </div>
+                            <div class="project-flip__face project-flip__back">
+                                <button type="button" class="project-play-btn" data-play aria-label="Play Multi-Page Site Starter overview">
+                                    <i class="fas fa-play" aria-hidden="true"></i>
+                                </button>
+                                <p class="project-play-label">Multi-Page Site Starter</p>
+                                <p class="project-play-sub">30-second overview — play to open</p>
+                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card bundle-card">
-                        <h3>Lead Form + Pipeline</h3>
-                        <p class="value">One-time project</p>
-                        <p class="price">$490</p>
-                        <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Form Builder setup</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Lead stages + alerts</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> WhatsApp CTA ready</li>
-                        </ul>
-                        <button type="button" class="btn btn-accent" onclick="return goToPortal('get_started', 'Lead Form + Pipeline')" data-plan="Lead Form + Pipeline">Get started</button>
+                    <!-- Lead Form + Pipeline -->
+                    <div class="project-flip" data-project="Lead Form + Pipeline" data-video="">
+                        <div class="project-flip__inner">
+                            <div class="project-flip__face project-flip__front">
+                                <h3>Lead Form + Pipeline</h3>
+                                <p class="value">One-time project</p>
+                                <ul>
+                                    <li><i class="fas fa-check"></i> Form Builder setup</li>
+                                    <li><i class="fas fa-check"></i> Lead stages + alerts</li>
+                                    <li><i class="fas fa-check"></i> WhatsApp CTA ready</li>
+                                </ul>
+                                <div class="project-flip__actions">
+                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
+                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Lead%20Form%20%2B%20Pipeline">See price in portal</a>
+                                </div>
+                            </div>
+                            <div class="project-flip__face project-flip__back">
+                                <button type="button" class="project-play-btn" data-play aria-label="Play Lead Form overview">
+                                    <i class="fas fa-play" aria-hidden="true"></i>
+                                </button>
+                                <p class="project-play-label">Lead Form + Pipeline</p>
+                                <p class="project-play-sub">30-second overview — play to open</p>
+                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card bundle-card">
-                        <h3>SEO Content Pack (5)</h3>
-                        <p class="value">One-time project</p>
-                        <p class="price">$750</p>
-                        <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> 5 SEO pages / guides</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Keyword brief + image SEO</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Publish on your site</li>
-                        </ul>
-                        <button type="button" class="btn btn-accent" onclick="return goToPortal('get_started', 'SEO Content Pack (5)')" data-plan="SEO Content Pack (5)">Get started</button>
+                    <!-- SEO Content Pack -->
+                    <div class="project-flip" data-project="SEO Content Pack (5)" data-video="">
+                        <div class="project-flip__inner">
+                            <div class="project-flip__face project-flip__front">
+                                <h3>SEO Content Pack (5)</h3>
+                                <p class="value">One-time project</p>
+                                <ul>
+                                    <li><i class="fas fa-check"></i> 5 SEO pages / guides</li>
+                                    <li><i class="fas fa-check"></i> Keyword brief + image SEO</li>
+                                    <li><i class="fas fa-check"></i> Publish on your site</li>
+                                </ul>
+                                <div class="project-flip__actions">
+                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
+                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=SEO%20Content%20Pack%20(5)">See price in portal</a>
+                                </div>
+                            </div>
+                            <div class="project-flip__face project-flip__back">
+                                <button type="button" class="project-play-btn" data-play aria-label="Play SEO Content Pack overview">
+                                    <i class="fas fa-play" aria-hidden="true"></i>
+                                </button>
+                                <p class="project-play-label">SEO Content Pack (5)</p>
+                                <p class="project-play-sub">30-second overview — play to open</p>
+                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card bundle-card">
-                        <h3>Lead Magnet Kit</h3>
-                        <p class="value">One-time project</p>
-                        <p class="price">$390</p>
-                        <ul style="text-align:left;list-style:none;padding:0;margin:1rem 0;font-size:0.92rem;">
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> E-guide / resource concept</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Capture form + delivery</li>
-                            <li><i class="fas fa-check" style="color:#d62b83;margin-right:0.4rem;"></i> Basic design + 1 revision</li>
-                        </ul>
-                        <button type="button" class="btn btn-accent" onclick="return goToPortal('get_started', 'Lead Magnet Kit')" data-plan="Lead Magnet Kit">Get started</button>
+                    <!-- Lead Magnet Kit -->
+                    <div class="project-flip" data-project="Lead Magnet Kit" data-video="">
+                        <div class="project-flip__inner">
+                            <div class="project-flip__face project-flip__front">
+                                <h3>Lead Magnet Kit</h3>
+                                <p class="value">One-time project</p>
+                                <ul>
+                                    <li><i class="fas fa-check"></i> E-guide / resource concept</li>
+                                    <li><i class="fas fa-check"></i> Capture form + delivery</li>
+                                    <li><i class="fas fa-check"></i> Basic design + 1 revision</li>
+                                </ul>
+                                <div class="project-flip__actions">
+                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
+                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Lead%20Magnet%20Kit">See price in portal</a>
+                                </div>
+                            </div>
+                            <div class="project-flip__face project-flip__back">
+                                <button type="button" class="project-play-btn" data-play aria-label="Play Lead Magnet Kit overview">
+                                    <i class="fas fa-play" aria-hidden="true"></i>
+                                </button>
+                                <p class="project-play-label">Lead Magnet Kit</p>
+                                <p class="project-play-sub">30-second overview — play to open</p>
+                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
+
+            <!-- Project video lightbox (blank until data-video / Manus clip is set) -->
+            <div id="project-video-overlay" class="project-video-overlay" role="dialog" aria-modal="true" aria-labelledby="project-video-title" hidden>
+                <div class="project-video-box">
+                    <header>
+                        <span id="project-video-title">Project overview</span>
+                        <button type="button" id="project-video-close" aria-label="Close video">&times;</button>
+                    </header>
+                    <div class="project-video-stage" id="project-video-stage">
+                        <video id="project-video-el" controls playsinline preload="none"></video>
+                        <div class="project-video-placeholder" id="project-video-placeholder">
+                            <div class="brand-play" aria-hidden="true"><i class="fas fa-play"></i></div>
+                            <p><strong>Video coming soon</strong></p>
+                            <p>Drop a 30-second Manus clip on this card later — stage is ready. For pricing, open the client portal.</p>
+                            <p style="margin-top:0.75rem;">
+                                <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project_video" style="display:inline-block;">Open client portal</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Two-column: custom + culture -->
             <section class="section story-band">
@@ -2694,6 +3057,90 @@
         }
         // Ensure inline onclick handlers always find these (global)
         window.goToPortal = goToPortal;
+
+        // One-time project flip cards + video lightbox
+        (function initProjectFlipCards() {
+            const grid = document.getElementById('project-flip-grid');
+            const overlay = document.getElementById('project-video-overlay');
+            const stage = document.getElementById('project-video-stage');
+            const videoEl = document.getElementById('project-video-el');
+            const titleEl = document.getElementById('project-video-title');
+            const closeBtn = document.getElementById('project-video-close');
+            if (!grid) return;
+
+            function closeVideo() {
+                if (!overlay) return;
+                overlay.classList.remove('is-open');
+                overlay.setAttribute('hidden', '');
+                document.body.classList.remove('no-scroll');
+                if (videoEl) {
+                    try { videoEl.pause(); } catch (e) { /* ignore */ }
+                    videoEl.removeAttribute('src');
+                    videoEl.load();
+                }
+                if (stage) stage.classList.remove('has-src');
+            }
+
+            function openVideo(card) {
+                if (!overlay || !card) return;
+                const name = card.getAttribute('data-project') || 'Project overview';
+                const src = (card.getAttribute('data-video') || '').trim();
+                if (titleEl) titleEl.textContent = name;
+                if (stage) stage.classList.toggle('has-src', !!src);
+                if (videoEl && src) {
+                    videoEl.src = src;
+                    videoEl.play().catch(function () { /* autoplay blocked ok */ });
+                }
+                overlay.removeAttribute('hidden');
+                overlay.classList.add('is-open');
+                document.body.classList.add('no-scroll');
+                if (typeof gtag === 'function') {
+                    gtag('event', 'project_video_open', {
+                        event_category: 'Pricing',
+                        event_label: name,
+                        has_src: !!src
+                    });
+                }
+            }
+
+            grid.querySelectorAll('.project-flip').forEach(function (card) {
+                card.querySelectorAll('[data-flip]').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        card.classList.toggle('is-flipped');
+                    });
+                });
+                card.querySelectorAll('[data-play]').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openVideo(card);
+                    });
+                });
+            });
+
+            if (closeBtn) closeBtn.addEventListener('click', closeVideo);
+            if (overlay) {
+                overlay.addEventListener('click', function (e) {
+                    if (e.target === overlay) closeVideo();
+                });
+            }
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && overlay && overlay.classList.contains('is-open')) {
+                    closeVideo();
+                }
+            });
+
+            // Public helper: set video URL later (e.g. after Manus upload)
+            // WTSProjectVideo.set('Landing Page Sprint', 'https://…/clip.mp4')
+            window.WTSProjectVideo = {
+                set: function (projectName, url) {
+                    const card = grid.querySelector('.project-flip[data-project="' + projectName.replace(/"/g, '') + '"]');
+                    if (card) card.setAttribute('data-video', url || '');
+                }
+            };
+        })();
 
         function openFormModal(type, sourceEl) {
             const overlay = document.getElementById('form-modal-' + type);
