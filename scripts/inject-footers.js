@@ -223,17 +223,39 @@ const SWITCHER_LANGS = [
   { dir: 'fr', hreflang: 'fr', label: 'FR', name: 'Français' },
 ];
 
+// A language is only LINKED when its mirror really exists as a file in the
+// tree being written. The /th /la /fr trees are materialized by
+// scripts/generate-localized-pages.js from PUBLISHED translations only, so
+// until a page is published in a language its localized URL 404s — and a
+// crawlable link to a 404 is an SEO liability, not a nice-to-have. Missing
+// languages render as an inert "coming soon" span (same label, no href, no
+// data-lang-dir, so js/modules/lang-switcher.js leaves them alone).
+//
+// This mirrors the generator's own `presentDirs` rule, which builds hreflang
+// clusters from files on disk. Both surfaces therefore agree, and re-running
+// this script after the generator restores the real links by itself — there
+// is nothing to hand-edit back.
+function mirrorExists(base, dir, fileRest) {
+  return fs.existsSync(path.join(base, dir, fileRest));
+}
+
 // Build the selector for a page file, or null when the file is not under a
 // language directory. index.html collapses to its directory URL.
-function langSwitcherFor(file) {
-  const rel = '/' + path.relative(BASE, file).split(path.sep).join('/');
+function langSwitcherFor(file, base = BASE) {
+  const rel = '/' + path.relative(base, file).split(path.sep).join('/');
   const m = /^\/(en|th|la|fr)(\/.*)?$/.exec(rel);
   if (!m) return null;
   const lang = m[1];
-  const rest = (m[2] || '/').replace(/(^|\/)index\.html$/, '$1');
-  const links = SWITCHER_LANGS.map((l) =>
-    `<a href="/${l.dir}${rest}" data-lang-dir="${l.dir}" hreflang="${l.hreflang}" lang="${l.hreflang}" title="${esc(l.name)}"${l.dir === lang ? ' aria-current="true"' : ''}>${l.label}</a>`
-  ).join('');
+  // fileRest keeps index.html (it's a disk lookup); rest drops it (it's a URL).
+  const fileRest = m[2] || '/index.html';
+  const rest = fileRest.replace(/(^|\/)index\.html$/, '$1');
+  const links = SWITCHER_LANGS.map((l) => {
+    // The current language is the file being written — it exists by definition.
+    if (l.dir !== lang && !mirrorExists(base, l.dir, fileRest)) {
+      return `<span class="lang-soon" lang="${l.hreflang}" title="${esc(l.name)} translation coming soon" aria-disabled="true">${l.label}</span>`;
+    }
+    return `<a href="/${l.dir}${rest}" data-lang-dir="${l.dir}" hreflang="${l.hreflang}" lang="${l.hreflang}" title="${esc(l.name)}"${l.dir === lang ? ' aria-current="true"' : ''}>${l.label}</a>`;
+  }).join('');
   return `<nav class="lang-switcher" aria-label="Language" data-current="${lang}">${links}</nav>`;
 }
 
@@ -245,8 +267,8 @@ const SWITCHER_RE = /[ \t]*<nav class="lang-switcher"[^>]*>[\s\S]*?<\/nav>\r?\n?
 // previous copies (stale links from earlier runs or from the localized-page
 // generator's link rewriting), then append inside .footer-bottom, falling
 // back to just before </footer>. Pages without a footer are left alone.
-function ensureLangSwitcher(html, file) {
-  const nav = langSwitcherFor(file);
+function ensureLangSwitcher(html, file, base = BASE) {
+  const nav = langSwitcherFor(file, base);
   if (!nav) return html;
   const out = html.replace(SWITCHER_RE, '');
   const fm = findFooterBlock(out);
@@ -571,4 +593,8 @@ function main() {
     `kept ${stats.kept}, no-footer ${stats.noFooter}, errors ${stats.errored}`);
 }
 
-main();
+if (require.main === module) main();
+
+// Exported for tests (wts-admin/test/footer-lang-switcher.test.js), which
+// pass an explicit fixture `base` instead of the repo's real tree.
+module.exports = { langSwitcherFor, ensureLangSwitcher };

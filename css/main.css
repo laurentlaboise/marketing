@@ -579,7 +579,8 @@ justify-content: center;
 gap: 0.5rem;
 margin-top: 1rem;
 }
-.footer .lang-switcher a {
+.footer .lang-switcher a,
+.footer .lang-switcher .lang-soon {
 display: inline-flex;
 align-items: center;
 justify-content: center;
@@ -606,6 +607,10 @@ font-weight: 600;
 .footer .lang-switcher a:focus-visible {
 outline: 2px solid #fff;
 outline-offset: 2px;
+}
+.footer .lang-switcher .lang-soon {
+opacity: 0.55;
+cursor: default;
 }
 @keyframes fadeIn {
 from { opacity: 0; transform: translateY(-20px); }
