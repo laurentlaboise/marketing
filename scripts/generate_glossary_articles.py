@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """Generate full SEO glossary articles (sidebar "Read full article" targets).
 
+!!! DO NOT RE-RUN THIS GENERATOR OVER THE LIVE GLOSSARY !!!
+The committed pages in en/resources/glossary/ carry post-generation work
+(per-page og:image packages, TOCs, image SEO, the slide-panel contact form,
+baked footers) that this script would overwrite. Its footer source
+(/tmp/wts-glossary-footer.html) is also not committed, so output would ship
+an empty footer. To change existing pages, use the idempotent patchers
+instead: scripts/patch_glossary_ui.py, scripts/patch_glossary_cta.py.
+
 Includes: definition, examples, related-term links, YouTube embed,
 sticky mobile-friendly social share dock, solid brand-pink CTA, schema.
 """
