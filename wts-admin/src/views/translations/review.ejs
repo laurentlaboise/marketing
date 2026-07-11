@@ -33,6 +33,9 @@
           <button type="button" class="btn btn-danger" id="rejectBtn">
             <i class="fas fa-rotate-left"></i> Reject with Note
           </button>
+          <button type="button" class="btn btn-secondary" id="interlinkBtn" title="Hyperlink glossary and SEO term mentions in this translation to their term pages (internal-link SEO)">
+            <i class="fas fa-link"></i> Link SEO Terms
+          </button>
         <% } else if (item.status === 'published') { %>
           <button type="button" class="btn btn-secondary" id="reopenBtn">
             <i class="fas fa-lock-open"></i> Reopen for Editing
@@ -130,6 +133,25 @@
     if (!confirm('Reopen this published translation for editing? Re-publishing will NOT credit the vendor again.')) return;
     post('/translations/' + id + '/reopen').then(function (res) {
       if (res.ok) location.reload(); else alert(res.data.error || 'Reopen failed');
+    });
+  });
+
+  // Hyperlink glossary/SEO term mentions to their term pages in this
+  // language (internal-link SEO). Idempotent: linked terms sit inside
+  // anchors, which the injector never touches again.
+  var interlinkBtn = document.getElementById('interlinkBtn');
+  if (interlinkBtn) interlinkBtn.addEventListener('click', function () {
+    var btn = this;
+    btn.disabled = true;
+    post('/translations/' + id + '/interlink').then(function (res) {
+      if (!res.ok) { btn.disabled = false; return alert(res.data.error || 'Linking failed'); }
+      if (res.data.count > 0) {
+        alert('Linked ' + res.data.count + ' term(s): ' + res.data.linked.map(function (l) { return l.term; }).join(', '));
+        location.reload();
+      } else {
+        btn.disabled = false;
+        alert(res.data.note || 'No linkable term mentions found in this translation.');
+      }
     });
   });
 })();

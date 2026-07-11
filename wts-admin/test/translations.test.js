@@ -1279,3 +1279,114 @@ test('assign-verifier routes a drafted row to a verifier with the right guards',
 
   await pool.query('DELETE FROM translations WHERE id = ANY($1)', [seeded]);
 });
+
+// ---------------------------------------------------------------------------
+// Glossary/SEO interlinking (internal-link SEO inside the translation flow)
+// ---------------------------------------------------------------------------
+
+test('injectTermLinks links first mentions only, in eligible text, longest term first', () => {
+  const { injectTermLinks } = require('../src/lib/interlink');
+  const terms = [
+    { matchName: 'technical SEO', href: '/en/resources/glossary/technical-seo.html', type: 'glossary', definition: 'Deep "stuff"' },
+    { matchName: 'SEO', href: '/en/resources/glossary/seo.html', type: 'seo', definition: '' },
+  ].sort((a, b) => b.matchName.length - a.matchName.length);
+
+  const html = '<h2>SEO basics</h2><p>Learn technical SEO today. SEO is not SEOULITE. ' +
+    '<a href="/x">SEO inside a link</a> stays untouched.</p>';
+  const out = injectTermLinks(html, terms, { lang: 'en' });
+
+  assert.equal(out.count, 2);
+  // Longest first: "technical SEO" got its own link…
+  assert.ok(out.html.includes('href="/en/resources/glossary/technical-seo.html"'));
+  // …and the standalone "SEO" after it got the short link (word-bounded:
+  // SEOULITE untouched; heading + existing anchor untouched).
+  assert.ok(/today\. <a [^>]*seo\.html[^>]*>SEO<\/a> is not SEOULITE/.test(out.html));
+  assert.ok(out.html.includes('<h2>SEO basics</h2>'), 'headings are never linked');
+  assert.ok(out.html.includes('>SEO inside a link</a> stays'), 'existing anchors are never re-linked');
+  // Attribute context is escaped (the definition carries a double quote).
+  assert.ok(out.html.includes('title="Deep &quot;stuff&quot;"'));
+
+  // Idempotent: a second pass finds everything already inside anchors.
+  const again = injectTermLinks(out.html, terms, { lang: 'en' });
+  assert.equal(again.count, 0);
+});
+
+test('injectTermLinks matches Thai/Lao by substring and respects the cap', () => {
+  const { injectTermLinks } = require('../src/lib/interlink');
+  const terms = [
+    { matchName: 'ການຕະຫຼາດ', href: '/la/resources/glossary/marketing.html', type: 'glossary', definition: '' },
+    { matchName: 'ເອສອີໂອ', href: '/la/resources/glossary/seo.html', type: 'seo', definition: '' },
+  ];
+  const text = 'ພວກເຮົາເຮັດການຕະຫຼາດດິຈິຕອນ ແລະ ເອສອີໂອ ໃນລາວ';
+  const out = injectTermLinks(text, terms, { lang: 'la' });
+  assert.equal(out.count, 2, 'no-word-break scripts match by substring');
+  assert.ok(out.html.includes('href="/la/resources/glossary/marketing.html"'));
+
+  const capped = injectTermLinks(text, terms, { lang: 'la', maxLinks: 1 });
+  assert.equal(capped.count, 1, 'the link budget is a hard cap');
+});
+
+test('interlink route links a Lao draft using published term names and localized URLs', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+  const cleanup = { translations: [], glossary: [] };
+
+  // A glossary term with a slug + its PUBLISHED Lao name.
+  const g = await pool.query(
+    `INSERT INTO glossary (term, definition, letter, slug)
+     VALUES ('TestTerm Backlink', 'A link from one page to another.', 'T', 'testterm-backlink')
+     RETURNING id`
+  );
+  cleanup.glossary.push(g.rows[0].id);
+  const publishedName = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+     VALUES ('glossary', $1, 'la', 'published', '{"term":"ແບັກລິ້ງ"}'::jsonb) RETURNING id`,
+    [g.rows[0].id]
+  );
+  cleanup.translations.push(publishedName.rows[0].id);
+
+  // A drafted Lao article translation that mentions the term.
+  const draft = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, target_char_count)
+     VALUES ('article', gen_random_uuid(), 'la', 'requires_review',
+             '{"title":"ຫົວຂໍ້","content":"<p>ການສ້າງ ແບັກລິ້ງ ຊ່ວຍ SEO ຂອງທ່ານ</p>"}'::jsonb, 34)
+     RETURNING id`
+  );
+  cleanup.translations.push(draft.rows[0].id);
+
+  const res = await session.fetch(`/translations/${draft.rows[0].id}/interlink`, { method: 'POST', headers, body: '{}' });
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.count, 1);
+  assert.equal(data.linked[0].term, 'ແບັກລິ້ງ');
+
+  const after = (await pool.query('SELECT content_payload, target_char_count FROM translations WHERE id = $1', [draft.rows[0].id])).rows[0];
+  assert.ok(after.content_payload.content.includes('href="/la/resources/glossary/testterm-backlink.html"'),
+    'link points at the LOCALIZED term page');
+  assert.ok(after.content_payload.content.includes('class="auto-linked auto-linked-glossary"'));
+  assert.equal(after.content_payload.title, 'ຫົວຂໍ້', 'short fields are never touched');
+  // countChars strips tags: adding links must not change what anyone is paid.
+  const core = require('../src/lib/translation-core');
+  assert.equal(Number(after.target_char_count), core.countChars({ title: 'ຫົວຂໍ້', content: 'ການສ້າງ ແບັກລິ້ງ ຊ່ວຍ SEO ຂອງທ່ານ' }));
+
+  // The term's own page never links to itself: interlink the glossary
+  // row's own (drafted) translation and expect zero.
+  const selfDraft = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+     VALUES ('glossary', $1, 'la', 'requires_review', '{"term":"ແບັກລິ້ງ","definition":"ຄຳອະທິບາຍ ແບັກລິ້ງ"}'::jsonb)
+     ON CONFLICT (entity_type, entity_id, target_language) DO NOTHING
+     RETURNING id`,
+    [g.rows[0].id]
+  );
+  if (selfDraft.rows.length) {
+    cleanup.translations.push(selfDraft.rows[0].id);
+    const selfRes = await session.fetch(`/translations/${selfDraft.rows[0].id}/interlink`, { method: 'POST', headers, body: '{}' });
+    const selfData = await selfRes.json();
+    assert.equal(selfData.count, 0, 'a term page must not link to itself');
+  }
+
+  await pool.query('DELETE FROM translations WHERE id = ANY($1)', [cleanup.translations]);
+  await pool.query('DELETE FROM glossary WHERE id = ANY($1)', [cleanup.glossary]);
+});
