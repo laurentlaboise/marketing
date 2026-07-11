@@ -13,8 +13,9 @@
 | **C** | [AI-First SEA Business Directory Spec](https://docs.google.com/document/d/1qRygOFE16GSqhYKP8Z6GwFzVnRpJAkXStZUHafyNjPs) | **Future platform** — feed forms/CRM/directory ideas later; do **not** replace agency+affiliate now |
 | **D** | [SEA Digital Business Card Strategy](https://docs.google.com/document/d/1M5ohlm4RHpbEJATEw_RHV-2RT4LbdMvPhei2QFkcVzs) | **Future platform** — cards → pipeline story later; do **not** replace agency+affiliate now |
 | **E** | [Digital Marketing Pricing Strategy SEA](https://docs.google.com/document/d/1SQH_TQKQ51UnQejp1gwgp1Gss9WT4oZFhHolIuoFOa8) | **Product OS** — Footprint / Growth / Automation, Laos vs Thailand, white-label |
+| **F** | [NLHS internal strategy — Digital Marketing Supremacy via Home Show](https://docs.google.com/document/d/1HwZFql9KXHw1ChD2OnnDwxYa2vEAgJSzzjsWRDI8A5Y) | **Laos campaign flywheel** — National Lao Home Show as acquisition + digitization engine that **feeds** WTS retainers/projects/affiliates; not a second product model |
 
-**Rule:** B + E run revenue. A is the public affiliate face. C + D are R&D inputs only until explicitly promoted.
+**Rule:** B + E run revenue. A is the public affiliate face. **F** is the Laos GTM / demand engine (expo → vendor digitization → recurring services). C + D are R&D inputs only until explicitly promoted.
 
 ## Package economics rule (Doc B)
 
@@ -81,6 +82,35 @@ Full legacy map: `docs/WTS-Product-Menu-from-Legacy-Deck.xlsx` (31 DO · 17 LATE
 
 Resell Footprint → Growth → Automation under partner brand. Suggested retail $299–$1,199/mo. Partner keeps client; WTS delivers. Surface: `/en/company/digital-agencies/`.
 
+## Doc F — NLHS flywheel (feeds B+E, does not replace)
+
+**Source (confidential internal):** [Internal Strategy for Digital Marketing Supremacy… using the NLHS](https://docs.google.com/document/d/1HwZFql9KXHw1ChD2OnnDwxYa2vEAgJSzzjsWRDI8A5Y)  
+**Obsidian (restricted framing):** `Projects/wts-nlhs-flywheel-doc-f.md` · vault private notes as needed  
+**Public narrative only:** SME digital empowerment, consumer education, national digital literacy, family expo — **never** put internal “dominance / dependency” framing on the website, affiliate page, or partner decks.
+
+### What F is for shipping WTS **now**
+
+| NLHS motion | Maps to live WTS offer |
+|-------------|------------------------|
+| Mandatory vendor **website** / digital presence | Top 8 web SKUs: Landing, Pro Page, Site Starter |
+| Inclusive SEO / social / AI tools in booth packages | Footprint / Growth / Automation retainers (scoped) |
+| Post-expo year-round selling | Recurring retainers > event booth revenue (success metric) |
+| Host staff + youth interface | Ops/hiring for events — not a website SKU |
+| Affiliate + white-label “invisible ubiquity” | Doc A face + Doc B commissions + `/digital-agencies/` |
+| Workshops / education → warm pipeline | Affiliate talking points + consultation forms |
+| NFC / digital cards at expo | **Doc D** later (card → Form Builder → CRM) |
+| AI chatbots / recommendation / data | Ops + **Doc C** adjacent later — not public “surveillance” copy |
+| Multi-city simultaneous expo | NLHS production plan (separate project), not marketing site IA |
+| Regional playbook (KH / VN provinces) | After Laos LTV proven; still sell same B+E packages |
+
+**Thesis (ops, clean language):** The expo is the **on-ramp**. WTS agency + affiliates are the **highway** (recurring digital services). Platform/directory/cards are later lanes — not a pivot away from retainers and affiliates.
+
+### F implementation priorities (relative to A–E)
+
+1. **Already shipping:** package ladder + affiliate OS (A/B/E).  
+2. **When NLHS cycles run:** vendor digitization SOW templates = Site Starter + Footprint/Growth; form capture for booth leads; affiliate recruitment at the floor.  
+3. **Later:** cards (D), directory (C), full marketplace/transaction layer — only after delivery capacity and scoped unit economics hold.
+
 ## Future platforms (parked — C + D)
 
 | Doc | Idea | When it feeds shipping product |
@@ -102,13 +132,15 @@ Do **not** re-architect the public site around directory or cards until P0 OS is
 
 ## Implementation priorities
 
-1. **P0 (now):** Scope matrix on prices + affiliate clarity; commissions/tiers public; OS in Obsidian/repo.
-2. **P1:** Thai LINE/TikTok modules + persona creatives (Messenger/LINE first).
-3. **P2:** Card → pipeline (Doc D ideas into Form Builder).
-4. **P3:** Lead scoring / multi-channel notify (Doc C adjacent).
+1. **P0 (now):** Scope matrix on prices + affiliate clarity; commissions/tiers public; OS in Obsidian/repo.  
+2. **P1:** Thai LINE/TikTok modules + persona creatives (Messenger/LINE first).  
+3. **P1b (NLHS when event is live):** Vendor digitization packages (web SKUs + Footprint) as booth-inclusive SOWs; floor lead forms → admin; affiliate recruitment kit.  
+4. **P2:** Card → pipeline (Doc D / NLHS NFC ideas into Form Builder).  
+5. **P3:** Lead scoring / multi-channel notify (Doc C adjacent).
 
 ## Sources
 
-- Docs A–E links above  
+- Docs A–F links above  
 - Product menu xlsx + `wts-top8-product-import.md`  
 - Live site: wordsthatsells.website  
+- Full confidential NLHS narrative stays in Google Doc + Obsidian restricted note — not mirrored on the public site.

@@ -74,4 +74,5 @@ See **`WTS-Revenue-Affiliate-OS.md`** (repo) and Obsidian `Projects/wts-revenue-
 
 - **B + E** = revenue OS (commissions + Footprint/Growth/Automation scope caps)
 - **A** = affiliate face (Regional Hustler)
+- **F** = NLHS flywheel — Home Show → vendor websites + retainers (feeds SKUs; does not replace them). Doc: https://docs.google.com/document/d/1HwZFql9KXHw1ChD2OnnDwxYa2vEAgJSzzjsWRDI8A5Y
 - **C + D parked** — AI SEA directory + digital cards feed forms/CRM/cards later; do **not** replace agency + affiliate model now
