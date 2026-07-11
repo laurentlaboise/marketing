@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate full SEO glossary articles (sidebar "Read full article" targets).
 
-Includes: definition, examples, related-term links, YouTube embed, social share
-buttons, solid brand-pink CTA, schema.org Article markup.
+Includes: definition, examples, related-term links, YouTube embed,
+sticky mobile-friendly social share dock, solid brand-pink CTA, schema.
 """
 from __future__ import annotations
 
@@ -118,18 +118,55 @@ li{margin-bottom:8px}
 .video-wrap{position:relative;width:100%;padding-bottom:56.25%;height:0;margin:20px 0 12px;border-radius:12px;overflow:hidden;background:#0f172a;box-shadow:0 8px 24px rgba(15,23,42,.2)}
 .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .video-fallback{font-size:.95rem;margin-top:0}
-.share-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:28px 0 8px;padding:16px 18px;background:var(--surface);border-radius:12px;border:1px solid #e5e7eb}
-.share-bar .share-label{font-weight:600;color:var(--primary);margin-right:6px}
-.share-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;font-size:.9rem;font-weight:600;text-decoration:none;border:1px solid transparent;color:#fff}
-.share-btn:hover{filter:brightness(1.06);text-decoration:none;color:#fff}
-.share-btn.fb{background:#1877f2}
-.share-btn.x{background:#111827}
-.share-btn.li{background:#0a66c2}
-.share-btn.wa{background:#25d366}
-.share-btn.tg{background:#229ed9}
-.share-btn.copy{background:#64748b}
-.share-btn.native{background:#d62b83}
-.share-note{width:100%;font-size:.85rem;color:var(--text-light);margin:4px 0 0}
+/* Sticky share dock — mobile bottom bar; desktop left rail */
+.share-dock{
+  position:fixed;z-index:900;
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.97);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  box-shadow:0 -4px 20px rgba(15,23,42,.14);
+  border:1px solid #e5e7eb;
+}
+.share-dock .share-label{font-weight:700;color:var(--primary);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.share-dock .share-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;min-width:44px;min-height:44px;
+  border-radius:50%;font-size:1.05rem;color:#fff!important;text-decoration:none;border:0;cursor:pointer;padding:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.share-dock .share-btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.share-dock .share-btn:hover,.share-dock .share-btn:focus{filter:brightness(1.08);color:#fff!important;outline:2px solid #d62b83;outline-offset:2px}
+.share-dock .share-btn.fb{background:#1877f2}
+.share-dock .share-btn.x{background:#111827}
+.share-dock .share-btn.li{background:#0a66c2}
+.share-dock .share-btn.wa{background:#25d366}
+.share-dock .share-btn.tg{background:#229ed9}
+.share-dock .share-btn.copy{background:#64748b}
+.share-dock .share-btn.native{background:#d62b83}
+@media (max-width:899px){
+  .share-dock{
+    left:0;right:0;bottom:0;
+    justify-content:space-around;
+    padding:10px 6px calc(10px + env(safe-area-inset-bottom,0px));
+    border-radius:16px 16px 0 0;
+    border-bottom:0;
+  }
+  body{padding-bottom:78px}
+  .share-dock .share-label{display:none}
+}
+@media (min-width:900px){
+  .share-dock{
+    left:14px;top:50%;transform:translateY(-50%);
+    flex-direction:column;
+    padding:14px 10px;
+    border-radius:16px;
+    gap:10px;
+    box-shadow:0 8px 28px rgba(15,23,42,.16);
+  }
+  .share-dock .share-label{writing-mode:vertical-rl;transform:rotate(180deg);margin:2px 0 6px}
+  .share-dock .share-btn{width:46px;height:46px}
+}
 """
 
 
@@ -153,7 +190,6 @@ def build_article(t: dict, filename: str) -> str:
     share_text = f"{term} — SEO guide on WordsThatSells"
     u = quote(canonical, safe="")
     txt = quote(share_text, safe="")
-    # Social share URLs (Instagram/TikTok have no public page-share API; use copy + native share)
     fb = f"https://www.facebook.com/sharer/sharer.php?u={u}"
     tw = f"https://twitter.com/intent/tweet?url={u}&text={txt}"
     li = f"https://www.linkedin.com/sharing/share-offsite/?url={u}"
@@ -198,17 +234,16 @@ def build_article(t: dict, filename: str) -> str:
         video_block = ""
 
     share_block = f"""
-    <div class="share-bar" aria-label="Share this article">
-      <span class="share-label">Share:</span>
-      <a class="share-btn fb" href="{fb}" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
-      <a class="share-btn x" href="{tw}" target="_blank" rel="noopener noreferrer" aria-label="Share on X"><i class="fab fa-x-twitter"></i> X</a>
-      <a class="share-btn li" href="{li}" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn"><i class="fab fa-linkedin-in"></i> LinkedIn</a>
-      <a class="share-btn wa" href="{wa}" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-      <a class="share-btn tg" href="{tg}" target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram"><i class="fab fa-telegram-plane"></i> Telegram</a>
-      <button type="button" class="share-btn copy" id="copy-link-btn" aria-label="Copy link"><i class="fas fa-link"></i> Copy link</button>
-      <button type="button" class="share-btn native" id="native-share-btn" aria-label="More share options"><i class="fas fa-share-alt"></i> More</button>
-      <p class="share-note">Instagram &amp; TikTok: use <strong>Copy link</strong> or <strong>More</strong> (phone share sheet) — they don’t allow direct web share buttons for external articles.</p>
-    </div>
+    <nav class="share-dock" aria-label="Share this article">
+      <span class="share-label">Share</span>
+      <a class="share-btn fb" href="{fb}" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" title="Facebook"><i class="fab fa-facebook-f"></i><span>Facebook</span></a>
+      <a class="share-btn x" href="{tw}" target="_blank" rel="noopener noreferrer" aria-label="Share on X" title="X"><i class="fab fa-x-twitter"></i><span>X</span></a>
+      <a class="share-btn li" href="{li}" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn" title="LinkedIn"><i class="fab fa-linkedin-in"></i><span>LinkedIn</span></a>
+      <a class="share-btn wa" href="{wa}" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" title="WhatsApp"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></a>
+      <a class="share-btn tg" href="{tg}" target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram" title="Telegram"><i class="fab fa-telegram-plane"></i><span>Telegram</span></a>
+      <button type="button" class="share-btn copy" id="copy-link-btn" aria-label="Copy link" title="Copy link"><i class="fas fa-link"></i><span>Copy</span></button>
+      <button type="button" class="share-btn native" id="native-share-btn" aria-label="More share options" title="More"><i class="fas fa-share-alt"></i><span>More</span></button>
+    </nav>
     <script>
     (function() {{
       var url = {json.dumps(canonical)};
@@ -219,12 +254,10 @@ def build_article(t: dict, filename: str) -> str:
         copyBtn.addEventListener('click', function() {{
           if (navigator.clipboard && navigator.clipboard.writeText) {{
             navigator.clipboard.writeText(url).then(function() {{
-              copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied';
-              setTimeout(function() {{ copyBtn.innerHTML = '<i class="fas fa-link"></i> Copy link'; }}, 1800);
+              copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied</span>';
+              setTimeout(function() {{ copyBtn.innerHTML = '<i class="fas fa-link"></i><span>Copy</span>'; }}, 1600);
             }});
-          }} else {{
-            window.prompt('Copy this link:', url);
-          }}
+          }} else {{ window.prompt('Copy this link:', url); }}
         }});
       }}
       if (moreBtn) {{
@@ -349,7 +382,6 @@ def build_article(t: dict, filename: str) -> str:
       </div>
     </header>
     {img_block}
-    {share_block}
     <article>
     <h2>What is {esc_text(term)}?</h2>
     <p>{esc_text(definition)}</p>
@@ -371,9 +403,9 @@ def build_article(t: dict, filename: str) -> str:
       <a href="https://wordsthatsells.website/en/contact/">Talk to our team</a> ·
       <a href="/en/resources/glossary/">Browse the full glossary</a></p>
     </div>
-    {share_block}
     </article>
   </main>
+  {share_block}
 {footer_for(filename)}
 </body>
 </html>
@@ -382,21 +414,15 @@ def build_article(t: dict, filename: str) -> str:
 
 def main() -> None:
     written = 0
-    with_video = 0
     for t in SEED:
         fn = term_to_file.get(t["term"]) or f"{t.get('slug') or 'term'}-2026.html"
-        html_doc = build_article(t, fn)
-        (OUT / fn).write_text(html_doc, encoding="utf-8")
+        (OUT / fn).write_text(build_article(t, fn), encoding="utf-8")
         written += 1
-        if youtube_id(t.get("video_url") or ""):
-            with_video += 1
-
     sample = (OUT / "backlinks-building-strategy-2026.html").read_text()
     print(
-        f"written={written} with_youtube_embed={with_video} "
-        f"has_iframe={'youtube.com/embed' in sample} "
-        f"has_share={'share-bar' in sample} "
-        f"solid_pink_cta={'background:#d62b83' in sample}"
+        f"written={written} sticky={'.share-dock' in sample and 'position:fixed' in sample} "
+        f"embed={'youtube.com/embed' in sample} pink_cta={'background:#d62b83' in sample} "
+        f"dark_font={'color:#0f172a' in sample}"
     )
 
 
