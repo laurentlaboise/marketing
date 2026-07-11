@@ -265,6 +265,68 @@ router.get('/articles/api/link-terms', async (req, res) => {
   }
 });
 
+// ── Internal-link injection (one click per article, or the whole site) ──
+//
+// Same engine as the translation pipeline's "Link SEO Terms" button
+// (src/lib/interlink.js): hyperlink first mentions of glossary terms, SEO
+// terms, OTHER published articles' titles, and imported site pages inside
+// the article body — descriptive anchors, capped density, never inside
+// headings or existing links, idempotent on re-runs. This is internal
+// linking (site authority + crawl paths + the topic clusters AI search
+// engines read); links FROM other domains can't be manufactured here.
+const interlinkLib = require('../lib/interlink');
+const ARTICLE_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// The whole library in one pass: articles, glossary definitions, SEO-term
+// definitions, guides and products, all cross-linked into one mesh.
+// Published translations keep their source_hash refreshed inside the
+// sweep, so linking never re-opens paid translation work.
+router.post('/interlink-library', logActivity('interlink_library'), async (req, res) => {
+  try {
+    const stats = await interlinkLib.interlinkLibrary();
+    const totals = Object.values(stats).reduce(
+      (acc, s) => ({ records: acc.records + s.records, updated: acc.updated + s.updated, links: acc.links + s.links }),
+      { records: 0, updated: 0, links: 0 }
+    );
+    res.json({ success: true, totals, byType: stats });
+  } catch (error) {
+    if (error.status === 409) {
+      return res.status(409).json({ success: false, error: error.message });
+    }
+    console.error('Library interlink error:', error);
+    res.status(500).json({ success: false, error: 'Library interlink failed' });
+  }
+});
+
+// Bulk over published articles only. Registered before the /:id routes so
+// 'interlink-all' is never captured as an id.
+router.post('/articles/interlink-all', logActivity('articles_interlink_all'), async (req, res) => {
+  try {
+    const stats = (await interlinkLib.interlinkLibrary({ types: ['article'] })).article;
+    res.json({ success: true, articles: stats.records, updated: stats.updated, links: stats.links });
+  } catch (error) {
+    console.error('Bulk interlink error:', error);
+    res.status(500).json({ success: false, error: 'Bulk interlink failed' });
+  }
+});
+
+router.post('/articles/:id/interlink', logActivity('article_interlink'), async (req, res) => {
+  try {
+    if (!ARTICLE_UUID_RE.test(req.params.id)) {
+      return res.status(400).json({ success: false, error: 'Invalid article id' });
+    }
+    const exists = (await db.query('SELECT 1 FROM articles WHERE id = $1', [req.params.id])).rows[0];
+    if (!exists) return res.status(404).json({ success: false, error: 'Article not found' });
+
+    const stats = (await interlinkLib.interlinkLibrary({ types: ['article'], onlyId: req.params.id })).article;
+    const linked = (stats.details && stats.details[0] && stats.details[0].linked) || [];
+    res.json({ success: true, count: linked.length, linked });
+  } catch (error) {
+    console.error('Article interlink error:', error);
+    res.status(500).json({ success: false, error: 'Interlink failed' });
+  }
+});
+
 // Edit article form
 router.get('/articles/:id/edit', async (req, res) => {
   try {

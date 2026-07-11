@@ -1406,3 +1406,144 @@ test('interlink route links a Lao draft using published term names and localized
   await pool.query('DELETE FROM translations WHERE id = ANY($1)', [cleanup.translations]);
   await pool.query('DELETE FROM glossary WHERE id = ANY($1)', [cleanup.glossary]);
 });
+
+// ---------------------------------------------------------------------------
+// Article interlinking (one click per article + sitewide pass)
+// ---------------------------------------------------------------------------
+
+test('article interlink links glossary terms and other articles, never itself', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  const g = await pool.query(
+    `INSERT INTO glossary (term, definition, letter, slug)
+     VALUES ('TestTerm Anchor Text', 'The clickable words of a link.', 'T', 'testterm-anchor-text')
+     RETURNING id`
+  );
+  const other = await pool.query(
+    `INSERT INTO articles (title, slug, content, excerpt, status)
+     VALUES ('TestTerm Local SEO Playbook | WordsThatSells', 'testterm-local-seo-playbook',
+             '<p>Standalone piece.</p>', 'How Lao SMEs win locally.', 'published')
+     RETURNING id`
+  );
+  const mine = await pool.query(
+    `INSERT INTO articles (title, slug, content, excerpt, status)
+     VALUES ('TestTerm Interlinking Guide', 'testterm-interlinking-guide',
+             '<p>Good TestTerm Anchor Text improves clarity. Read the TestTerm Local SEO Playbook next. This TestTerm Interlinking Guide repeats its own name.</p>',
+             null, 'published')
+     RETURNING id`
+  );
+
+  try {
+    const res = await session.fetch(`/content/articles/${mine.rows[0].id}/interlink`, { method: 'POST', headers, body: '{}' });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    const linkedTerms = data.linked.map((l) => l.term);
+    assert.ok(linkedTerms.includes('TestTerm Anchor Text'), 'glossary term linked');
+    assert.ok(linkedTerms.includes('TestTerm Local SEO Playbook'), 'other article linked via cleaned title (brand suffix stripped)');
+    assert.ok(!linkedTerms.includes('TestTerm Interlinking Guide'), 'an article never links to itself');
+
+    const saved = (await pool.query('SELECT content FROM articles WHERE id = $1', [mine.rows[0].id])).rows[0];
+    assert.ok(saved.content.includes('href="/en/resources/glossary/testterm-anchor-text.html"'));
+    assert.ok(saved.content.includes('href="/en/articles/testterm-local-seo-playbook"'));
+
+    // Sitewide pass right after: everything already linked → no new links
+    // on this article (idempotent), and the endpoint reports its coverage.
+    const bulk = await session.fetch('/content/articles/interlink-all', { method: 'POST', headers, body: '{}' });
+    assert.equal(bulk.status, 200);
+    const bulkData = await bulk.json();
+    assert.ok(bulkData.articles >= 2, 'bulk pass sweeps the published set');
+    const after = (await pool.query('SELECT content FROM articles WHERE id = $1', [mine.rows[0].id])).rows[0];
+    const anchors = (after.content.match(/auto-linked/g) || []).length;
+    assert.equal(anchors, saved.content.match(/auto-linked/g).length, 'bulk re-run adds nothing to an already-linked article');
+  } finally {
+    await pool.query(`DELETE FROM articles WHERE slug LIKE 'testterm-%'`);
+    await pool.query('DELETE FROM glossary WHERE id = $1', [g.rows[0].id]);
+  }
+});
+
+test('library sweep cross-links every content type and never re-opens paid translations', async () => {
+  const core = require('../src/lib/translation-core');
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  // Term A's definition mentions term B, so the sweep must REWRITE term A
+  // — which is what makes the published-translation hash refresh
+  // observable (a self-mention alone is banned and changes nothing).
+  const g = await pool.query(
+    `INSERT INTO glossary (term, definition, letter, slug)
+     VALUES ('TestTerm Meta Description', 'A TestTerm Meta Description shown in TestTerm SERP Snippet results.', 'T', 'testterm-meta-description')
+     RETURNING id`
+  );
+  const gid = g.rows[0].id;
+  const g2 = await pool.query(
+    `INSERT INTO glossary (term, definition, letter, slug)
+     VALUES ('TestTerm SERP Snippet', 'A TestTerm SERP Snippet is the preview a result shows.', 'T', 'testterm-serp-snippet')
+     RETURNING id`
+  );
+  // Published Lao translation of the term — the paid work that must stay closed.
+  const source = await core.fetchEntitySource('glossary', String(gid));
+  const tr = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, source_hash)
+     VALUES ('glossary', $1, 'la', 'published', '{"term":"ຄຳອະທິບາຍເມຕາ"}'::jsonb, $2) RETURNING id`,
+    [gid, source.hash]
+  );
+  const seo = await pool.query(
+    `INSERT INTO seo_terms (term, definition)
+     VALUES ('TestTerm Sweep SERP', 'Write a TestTerm Meta Description that earns the click.')
+     RETURNING id`
+  );
+  const guide = await pool.query(
+    `INSERT INTO guides (title, slug, short_description, long_content, status)
+     VALUES ('TestTerm Guide', 'testterm-sweep-guide', 'Covers the TestTerm Meta Description basics.', '<p>Long form.</p>', 'published')
+     RETURNING id`
+  );
+  const product = await pool.query(
+    `INSERT INTO products (name, description, status)
+     VALUES ('TestTerm Product', 'Includes a TestTerm Meta Description audit.', 'active')
+     RETURNING id`
+  );
+
+  try {
+    const res = await session.fetch('/content/interlink-library', { method: 'POST', headers, body: '{}' });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.ok(data.totals.links >= 3, 'seo_term, guide and product each link the glossary term');
+
+    const termHref = 'href="/en/resources/glossary/testterm-meta-description.html"';
+    const seoAfter = (await pool.query('SELECT definition FROM seo_terms WHERE id = $1', [seo.rows[0].id])).rows[0];
+    const guideAfter = (await pool.query('SELECT short_description FROM guides WHERE id = $1', [guide.rows[0].id])).rows[0];
+    const productAfter = (await pool.query('SELECT description FROM products WHERE id = $1', [product.rows[0].id])).rows[0];
+    assert.ok(seoAfter.definition.includes(termHref), 'SEO term definition links the glossary page');
+    assert.ok(guideAfter.short_description.includes(termHref), 'guide links the glossary page');
+    assert.ok(productAfter.description.includes(termHref), 'product links the glossary page');
+
+    // Term A was rewritten (link to term B injected), never to itself.
+    assert.ok(data.byType.glossary.updated >= 1, 'the glossary sweep rewrote at least term A');
+    const gAfter = (await pool.query('SELECT definition FROM glossary WHERE id = $1', [gid])).rows[0];
+    assert.ok(!gAfter.definition.includes(termHref), 'a term never links to its own page');
+    assert.ok(gAfter.definition.includes('href="/en/resources/glossary/testterm-serp-snippet.html"'),
+      'term A links term B');
+    const g2After = (await pool.query('SELECT definition FROM glossary WHERE id = $1', [g2.rows[0].id])).rows[0];
+    assert.ok(!g2After.definition.includes('testterm-serp-snippet.html'), 'term B never links itself either');
+
+    // Money-safety, exercised for real: term A's source text CHANGED, so
+    // its hash moved — and the published Lao row must carry the NEW hash
+    // (refreshed inside the sweep), or the next sync would flip paid work
+    // back to pending.
+    const freshSource = await core.fetchEntitySource('glossary', String(gid));
+    assert.notEqual(freshSource.hash, source.hash, 'linking changed the source hash');
+    const trAfter = (await pool.query('SELECT source_hash FROM translations WHERE id = $1', [tr.rows[0].id])).rows[0];
+    assert.equal(trAfter.source_hash, freshSource.hash, 'published translation hash refreshed with the linked source');
+  } finally {
+    await pool.query('DELETE FROM translations WHERE id = $1', [tr.rows[0].id]);
+    await pool.query(`DELETE FROM seo_terms WHERE term = 'TestTerm Sweep SERP'`);
+    await pool.query(`DELETE FROM guides WHERE slug = 'testterm-sweep-guide'`);
+    await pool.query(`DELETE FROM products WHERE name = 'TestTerm Product'`);
+    await pool.query('DELETE FROM glossary WHERE id = ANY($1)', [[gid, g2.rows[0].id]]);
+  }
+});

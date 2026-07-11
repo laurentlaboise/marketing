@@ -12,6 +12,9 @@
         <p class="page-subtitle">Manage your blog articles</p>
       </div>
       <div class="page-actions">
+        <button type="button" class="btn btn-secondary" id="interlinkAllBtn" title="Cross-link the WHOLE content library: articles, glossary definitions, SEO terms, guides and products all link to each other (first mentions, capped, idempotent, never re-opens paid translations)">
+          <i class="fas fa-link"></i> Link the Whole Library
+        </button>
         <a href="/content/articles/new" class="btn btn-primary">
           <i class="fas fa-plus"></i> New Article
         </a>
@@ -100,6 +103,9 @@
                     <a href="/content/articles/<%= article.id %>/edit" class="btn btn-sm btn-secondary" title="Edit">
                       <i class="fas fa-edit"></i>
                     </a>
+                    <button type="button" class="btn btn-sm btn-secondary interlink-btn" data-id="<%= article.id %>" title="Link glossary/SEO terms, other articles and site pages in this article">
+                      <i class="fas fa-link"></i>
+                    </button>
                     <form action="/content/articles/<%= article.id %>/delete" method="POST" style="display: inline;">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="btn btn-sm btn-danger" title="Delete" data-confirm-delete="Are you sure you want to delete this article?">
@@ -153,5 +159,55 @@
     </div>
   </div>
 </main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  function post(url) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+      body: '{}'
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  document.querySelectorAll('.interlink-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.disabled = true;
+      post('/content/articles/' + btn.dataset.id + '/interlink').then(function (res) {
+        btn.disabled = false;
+        if (!res.ok) return alert(res.data.error || 'Linking failed');
+        alert(res.data.count > 0
+          ? 'Linked ' + res.data.count + ' term(s): ' + res.data.linked.map(function (l) { return l.term; }).join(', ')
+          : 'No new linkable mentions found (already linked mentions are left alone).');
+      }).catch(function (e) {
+        btn.disabled = false;
+        alert('Linking failed: ' + (e && e.message ? e.message : 'network error'));
+      });
+    });
+  });
+
+  var allBtn = document.getElementById('interlinkAllBtn');
+  if (allBtn) allBtn.addEventListener('click', function () {
+    if (!confirm('Cross-link the WHOLE library? Articles, glossary definitions, SEO terms, guides and products all get first-mention links to each other. Capped per record, safe to re-run, never re-opens paid translations.')) return;
+    allBtn.disabled = true;
+    allBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Linking\u2026';
+    post('/content/interlink-library').then(function (res) {
+      allBtn.disabled = false;
+      allBtn.innerHTML = '<i class="fas fa-link"></i> Link the Whole Library';
+      if (!res.ok) return alert(res.data.error || 'Library linking failed');
+      var lines = Object.keys(res.data.byType).map(function (t) {
+        var s2 = res.data.byType[t];
+        return '  ' + t + ': ' + s2.links + ' link(s) in ' + s2.updated + ' of ' + s2.records;
+      });
+      alert('Library cross-linked: ' + res.data.totals.links + ' link(s) across ' + res.data.totals.updated + ' record(s).\n\n' + lines.join('\n'));
+    }).catch(function (e) {
+      allBtn.disabled = false;
+      allBtn.innerHTML = '<i class="fas fa-link"></i> Link the Whole Library';
+      alert('Library linking failed: ' + (e && e.message ? e.message : 'network error'));
+    });
+  });
+})();
+</script>
 
 <%- include('../../partials/footer') %>
