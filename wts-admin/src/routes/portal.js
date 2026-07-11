@@ -528,6 +528,15 @@ router.post('/profile', requireCustomer, async (req, res) => {
 });
 
 // ── AI Marketing Strategist chat ────────────────────────────────
+//
+// Two interchangeable backends behind the same UI and history handling:
+//  - legacy (default): the Anthropic strategist in src/utils/strategist.js
+//  - odysseus: the self-hosted Help AI via src/lib/help-ai.js, selected
+//    with HELP_AI_ENABLED=1 + HELP_AI_MODE=odysseus. Same customer-scoped
+//    context, same "no actions, ask the team" rules — see
+//    docs/ODYSSEUS-INTEGRATION.md in the repo root.
+// Either way the backend can be down; the page renders and the POST
+// answers a localized error instead of taking the portal with it.
 
 const chatLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -539,23 +548,33 @@ const chatLimiter = rateLimit({
 
 router.get('/chat', requireCustomer, (req, res) => {
   const strategist = require('../utils/strategist');
+  const helpAi = require('../lib/help-ai');
   res.render('portal/chat', {
     title: req.t('chat.title'),
-    enabled: strategist.isConfigured(),
+    enabled: helpAi.portalUsesOdysseus() || strategist.isConfigured(),
     history: (req.session.chatHistory || []).slice(-12)
   });
 });
 
 router.post('/chat', requireCustomer, chatLimiter, async (req, res) => {
   const strategist = require('../utils/strategist');
-  if (!strategist.isConfigured()) {
+  const helpAi = require('../lib/help-ai');
+  const useOdysseus = helpAi.portalUsesOdysseus();
+  if (!useOdysseus && !strategist.isConfigured()) {
     return res.status(503).json({ error: req.t('chat.unavailable') });
   }
   const message = String(req.body.message || '').trim().slice(0, 2000);
   if (!message) return res.status(400).json({ error: req.t('chat.emptyMessage') });
   try {
     if (!Array.isArray(req.session.chatHistory)) req.session.chatHistory = [];
-    const reply = await strategist.chatReply(req.session.customerId, req.session.chatHistory, message);
+    const reply = useOdysseus
+      ? await helpAi.portalReply({
+          sessionID: req.sessionID,
+          customerId: req.session.customerId,
+          history: req.session.chatHistory,
+          message
+        })
+      : await strategist.chatReply(req.session.customerId, req.session.chatHistory, message);
     req.session.chatHistory = req.session.chatHistory
       .concat([{ role: 'user', content: message }, { role: 'assistant', content: reply }])
       .slice(-12);
