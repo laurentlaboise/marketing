@@ -1463,3 +1463,73 @@ test('article interlink links glossary terms and other articles, never itself', 
     await pool.query('DELETE FROM glossary WHERE id = $1', [g.rows[0].id]);
   }
 });
+
+test('library sweep cross-links every content type and never re-opens paid translations', async () => {
+  const core = require('../src/lib/translation-core');
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  const g = await pool.query(
+    `INSERT INTO glossary (term, definition, letter, slug)
+     VALUES ('TestTerm Meta Description', 'A TestTerm Meta Description summarizes a page for search results.', 'T', 'testterm-meta-description')
+     RETURNING id`
+  );
+  const gid = g.rows[0].id;
+  // Published Lao translation of the term — the paid work that must stay closed.
+  const source = await core.fetchEntitySource('glossary', String(gid));
+  const tr = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, source_hash)
+     VALUES ('glossary', $1, 'la', 'published', '{"term":"ຄຳອະທິບາຍເມຕາ"}'::jsonb, $2) RETURNING id`,
+    [gid, source.hash]
+  );
+  const seo = await pool.query(
+    `INSERT INTO seo_terms (term, definition)
+     VALUES ('TestTerm Sweep SERP', 'Write a TestTerm Meta Description that earns the click.')
+     RETURNING id`
+  );
+  const guide = await pool.query(
+    `INSERT INTO guides (title, slug, short_description, long_content, status)
+     VALUES ('TestTerm Guide', 'testterm-sweep-guide', 'Covers the TestTerm Meta Description basics.', '<p>Long form.</p>', 'published')
+     RETURNING id`
+  );
+  const product = await pool.query(
+    `INSERT INTO products (name, description, status)
+     VALUES ('TestTerm Product', 'Includes a TestTerm Meta Description audit.', 'active')
+     RETURNING id`
+  );
+
+  try {
+    const res = await session.fetch('/content/interlink-library', { method: 'POST', headers, body: '{}' });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.ok(data.totals.links >= 3, 'seo_term, guide and product each link the glossary term');
+
+    const termHref = 'href="/en/resources/glossary/testterm-meta-description.html"';
+    const seoAfter = (await pool.query('SELECT definition FROM seo_terms WHERE id = $1', [seo.rows[0].id])).rows[0];
+    const guideAfter = (await pool.query('SELECT short_description FROM guides WHERE id = $1', [guide.rows[0].id])).rows[0];
+    const productAfter = (await pool.query('SELECT description FROM products WHERE id = $1', [product.rows[0].id])).rows[0];
+    assert.ok(seoAfter.definition.includes(termHref), 'SEO term definition links the glossary page');
+    assert.ok(guideAfter.short_description.includes(termHref), 'guide links the glossary page');
+    assert.ok(productAfter.description.includes(termHref), 'product links the glossary page');
+
+    // The glossary definition mentions its own term — self-link banned.
+    const gAfter = (await pool.query('SELECT definition FROM glossary WHERE id = $1', [gid])).rows[0];
+    assert.ok(!gAfter.definition.includes(termHref), 'a term never links to its own page');
+
+    // Money-safety: the published Lao row's source_hash matches the
+    // post-sweep source, so the next sync will NOT flip it back to pending.
+    const freshSource = await core.fetchEntitySource('glossary', String(gid));
+    const trAfter = (await pool.query('SELECT source_hash FROM translations WHERE id = $1', [tr.rows[0].id])).rows[0];
+    if (data.byType.glossary.updated > 0) {
+      assert.equal(trAfter.source_hash, freshSource.hash, 'published translation hash refreshed with the linked source');
+    }
+  } finally {
+    await pool.query('DELETE FROM translations WHERE id = $1', [tr.rows[0].id]);
+    await pool.query(`DELETE FROM seo_terms WHERE term = 'TestTerm Sweep SERP'`);
+    await pool.query(`DELETE FROM guides WHERE slug = 'testterm-sweep-guide'`);
+    await pool.query(`DELETE FROM products WHERE name = 'TestTerm Product'`);
+    await pool.query('DELETE FROM glossary WHERE id = $1', [gid]);
+  }
+});

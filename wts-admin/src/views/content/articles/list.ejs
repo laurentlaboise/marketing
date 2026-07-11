@@ -12,8 +12,8 @@
         <p class="page-subtitle">Manage your blog articles</p>
       </div>
       <div class="page-actions">
-        <button type="button" class="btn btn-secondary" id="interlinkAllBtn" title="Hyperlink glossary terms, SEO terms, other articles and site pages inside every published article (first mentions, capped, idempotent)">
-          <i class="fas fa-link"></i> Link Terms in All Published
+        <button type="button" class="btn btn-secondary" id="interlinkAllBtn" title="Cross-link the WHOLE content library: articles, glossary definitions, SEO terms, guides and products all link to each other (first mentions, capped, idempotent, never re-opens paid translations)">
+          <i class="fas fa-link"></i> Link the Whole Library
         </button>
         <a href="/content/articles/new" class="btn btn-primary">
           <i class="fas fa-plus"></i> New Article
@@ -186,14 +186,18 @@
 
   var allBtn = document.getElementById('interlinkAllBtn');
   if (allBtn) allBtn.addEventListener('click', function () {
-    if (!confirm('Hyperlink glossary terms, SEO terms, other articles and site pages inside EVERY published article? First mentions only, capped per article, safe to re-run.')) return;
+    if (!confirm('Cross-link the WHOLE library? Articles, glossary definitions, SEO terms, guides and products all get first-mention links to each other. Capped per record, safe to re-run, never re-opens paid translations.')) return;
     allBtn.disabled = true;
     allBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Linking\u2026';
-    post('/content/articles/interlink-all').then(function (res) {
+    post('/content/interlink-library').then(function (res) {
       allBtn.disabled = false;
-      allBtn.innerHTML = '<i class="fas fa-link"></i> Link Terms in All Published';
-      if (!res.ok) return alert(res.data.error || 'Bulk linking failed');
-      alert('Done: ' + res.data.links + ' link(s) added across ' + res.data.updated + ' of ' + res.data.articles + ' published article(s).');
+      allBtn.innerHTML = '<i class="fas fa-link"></i> Link the Whole Library';
+      if (!res.ok) return alert(res.data.error || 'Library linking failed');
+      var lines = Object.keys(res.data.byType).map(function (t) {
+        var s2 = res.data.byType[t];
+        return '  ' + t + ': ' + s2.links + ' link(s) in ' + s2.updated + ' of ' + s2.records;
+      });
+      alert('Library cross-linked: ' + res.data.totals.links + ' link(s) across ' + res.data.totals.updated + ' record(s).\n\n' + lines.join('\n'));
     });
   });
 })();

@@ -277,51 +277,30 @@ router.get('/articles/api/link-terms', async (req, res) => {
 const interlinkLib = require('../lib/interlink');
 const ARTICLE_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function interlinkArticle(article, terms) {
-  const updates = {};
-  const linked = [];
-  for (const field of ['content', 'excerpt']) {
-    if (!article[field] || typeof article[field] !== 'string') continue;
-    const remaining = interlinkLib.DEFAULT_MAX_LINKS - linked.length;
-    if (remaining <= 0) break;
-    const result = interlinkLib.injectTermLinks(
-      article[field],
-      terms.filter((t) => !linked.some((l) => l.term.toLowerCase() === t.matchName.toLowerCase())),
-      { lang: 'en', maxLinks: remaining }
+// The whole library in one pass: articles, glossary definitions, SEO-term
+// definitions, guides and products, all cross-linked into one mesh.
+// Published translations keep their source_hash refreshed inside the
+// sweep, so linking never re-opens paid translation work.
+router.post('/interlink-library', logActivity('interlink_library'), async (req, res) => {
+  try {
+    const stats = await interlinkLib.interlinkLibrary();
+    const totals = Object.values(stats).reduce(
+      (acc, s) => ({ records: acc.records + s.records, updated: acc.updated + s.updated, links: acc.links + s.links }),
+      { records: 0, updated: 0, links: 0 }
     );
-    if (result.count > 0) {
-      updates[field] = result.html;
-      linked.push(...result.linked);
-    }
+    res.json({ success: true, totals, byType: stats });
+  } catch (error) {
+    console.error('Library interlink error:', error);
+    res.status(500).json({ success: false, error: 'Library interlink failed' });
   }
-  if (linked.length > 0) {
-    await db.query(
-      `UPDATE articles SET content = COALESCE($1, content), excerpt = COALESCE($2, excerpt),
-              updated_at = CURRENT_TIMESTAMP
-       WHERE id = $3`,
-      [updates.content || null, updates.excerpt || null, article.id]
-    );
-  }
-  return linked;
-}
+});
 
-// Bulk: every published article in one pass. Registered before the /:id
-// routes so 'interlink-all' is never captured as an id.
+// Bulk over published articles only. Registered before the /:id routes so
+// 'interlink-all' is never captured as an id.
 router.post('/articles/interlink-all', logActivity('articles_interlink_all'), async (req, res) => {
   try {
-    const articles = (await db.query(
-      `SELECT id, title, content, excerpt FROM articles WHERE status = 'published' ORDER BY published_at DESC`
-    )).rows;
-    let totalLinks = 0;
-    let touched = 0;
-    for (const article of articles) {
-      const terms = await interlinkLib.buildTermIndex('en', {
-        exclude: { entityType: 'article', entityId: article.id },
-      });
-      const linked = await interlinkArticle(article, terms);
-      if (linked.length > 0) { touched += 1; totalLinks += linked.length; }
-    }
-    res.json({ success: true, articles: articles.length, updated: touched, links: totalLinks });
+    const stats = (await interlinkLib.interlinkLibrary({ types: ['article'] })).article;
+    res.json({ success: true, articles: stats.records, updated: stats.updated, links: stats.links });
   } catch (error) {
     console.error('Bulk interlink error:', error);
     res.status(500).json({ success: false, error: 'Bulk interlink failed' });
@@ -333,16 +312,11 @@ router.post('/articles/:id/interlink', logActivity('article_interlink'), async (
     if (!ARTICLE_UUID_RE.test(req.params.id)) {
       return res.status(400).json({ success: false, error: 'Invalid article id' });
     }
-    const article = (await db.query(
-      'SELECT id, title, content, excerpt FROM articles WHERE id = $1',
-      [req.params.id]
-    )).rows[0];
-    if (!article) return res.status(404).json({ success: false, error: 'Article not found' });
+    const exists = (await db.query('SELECT 1 FROM articles WHERE id = $1', [req.params.id])).rows[0];
+    if (!exists) return res.status(404).json({ success: false, error: 'Article not found' });
 
-    const terms = await interlinkLib.buildTermIndex('en', {
-      exclude: { entityType: 'article', entityId: article.id },
-    });
-    const linked = await interlinkArticle(article, terms);
+    const stats = (await interlinkLib.interlinkLibrary({ types: ['article'], onlyId: req.params.id })).article;
+    const linked = (stats.details && stats.details[0] && stats.details[0].linked) || [];
     res.json({ success: true, count: linked.length, linked });
   } catch (error) {
     console.error('Article interlink error:', error);

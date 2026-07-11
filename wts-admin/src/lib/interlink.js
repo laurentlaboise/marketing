@@ -248,4 +248,100 @@ function injectTermLinks(html, terms, { lang = 'en', maxLinks = DEFAULT_MAX_LINK
   };
 }
 
-module.exports = { buildTermIndex, injectTermLinks, localizeLink, DEFAULT_MAX_LINKS };
+// ── Library-wide sweep ──────────────────────────────────────────
+//
+// One pass over every long-form field in the content library: articles,
+// glossary definitions, SEO-term definitions, guides and products all get
+// interlinked into the same mesh. Title/name/meta fields stay bare —
+// links belong in prose. The term index is built ONCE per sweep; each
+// record just filters itself out (no self-links).
+//
+// Money-safety, both directions:
+//   - edit pay: computeEditStats strips tags before comparing, so
+//     injected anchors never count as verifier edits;
+//   - sync: these rows are translation SOURCES, and changing their text
+//     changes source_hash — which would flip published translations back
+//     to pending ("source changed") and re-open paid work. After updating
+//     a record, its PUBLISHED translations get their source_hash
+//     refreshed to the new value, so linking never re-opens them.
+//     (Translated copies get their own links via the translation-side
+//     interlink button — anchors are never machine-copied across
+//     languages.)
+const LIBRARY_SOURCES = {
+  article: { table: 'articles', fields: ['content', 'excerpt'], where: `status = 'published'` },
+  glossary: { table: 'glossary', fields: ['definition', 'example'], where: '' },
+  seo_term: { table: 'seo_terms', fields: ['definition', 'short_definition', 'examples'], where: '' },
+  guide: { table: 'guides', fields: ['short_description', 'long_content'], where: `status = 'published'` },
+  product: { table: 'products', fields: ['description', 'slide_in_content'], where: `status = 'active'` },
+};
+
+async function interlinkLibrary({ types = Object.keys(LIBRARY_SOURCES), onlyId = null, client = db } = {}) {
+  const core = require('./translation-core');
+  const terms = await buildTermIndex('en', { client });
+  const stats = {};
+
+  for (const type of types) {
+    const src = LIBRARY_SOURCES[type];
+    if (!src) continue;
+    // An explicit single-record target overrides the sweep filter (drafts
+    // can be linked before publishing); sweeps stay published/active-only.
+    const conditions = onlyId ? 'id = $1' : src.where;
+    const rows = (await client.query(
+      `SELECT id, ${src.fields.join(', ')} FROM ${src.table}
+       ${conditions ? 'WHERE ' + conditions : ''}`,
+      onlyId ? [onlyId] : []
+    ).catch(() => ({ rows: [] }))).rows; // tolerate absent optional tables
+
+    let updated = 0;
+    let links = 0;
+    const linkedDetails = [];
+    for (const row of rows) {
+      const own = terms.filter(
+        (t) => !(t.entityType === type && t.entityId === String(row.id))
+      );
+      const changes = {};
+      const linked = [];
+      for (const field of src.fields) {
+        if (!row[field] || typeof row[field] !== 'string') continue;
+        const remaining = DEFAULT_MAX_LINKS - linked.length;
+        if (remaining <= 0) break;
+        const result = injectTermLinks(row[field], own.filter(
+          (t) => !linked.some((l) => l.term.toLowerCase() === t.matchName.toLowerCase())
+        ), { lang: 'en', maxLinks: remaining });
+        if (result.count > 0) {
+          changes[field] = result.html;
+          linked.push(...result.linked);
+        }
+      }
+      if (!linked.length) continue;
+
+      const setSql = Object.keys(changes)
+        .map((field, i) => `${field} = $${i + 1}`) // field names come from LIBRARY_SOURCES, never input
+        .join(', ');
+      await client.query(
+        `UPDATE ${src.table} SET ${setSql}, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $${Object.keys(changes).length + 1}`,
+        [...Object.values(changes), row.id]
+      );
+
+      // Keep published translations closed: refresh their source hash to
+      // the post-linking value so the next sync doesn't re-open paid work.
+      const source = await core.fetchEntitySource(type, String(row.id), client);
+      if (source) {
+        await client.query(
+          `UPDATE translations SET source_hash = $1
+           WHERE entity_type = $2 AND entity_id = $3 AND status = 'published'`,
+          [source.hash, type, String(row.id)]
+        );
+      }
+
+      updated += 1;
+      links += linked.length;
+      linkedDetails.push({ id: row.id, linked });
+    }
+    stats[type] = { records: rows.length, updated, links, details: onlyId ? linkedDetails : undefined };
+  }
+  return stats;
+}
+
+module.exports = { buildTermIndex, injectTermLinks, interlinkLibrary, LIBRARY_SOURCES, localizeLink, DEFAULT_MAX_LINKS };
