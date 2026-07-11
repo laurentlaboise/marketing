@@ -7,10 +7,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <noscript>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     </noscript>
     <title>Web Catalogues: SEO Guide 2026 | WordsThatSells</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
@@ -64,59 +64,98 @@ li{margin-bottom:8px}
 .video-wrap{position:relative;width:100%;padding-bottom:56.25%;height:0;margin:20px 0 12px;border-radius:12px;overflow:hidden;background:#0f172a;box-shadow:0 8px 24px rgba(15,23,42,.2)}
 .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .video-fallback{font-size:.95rem;margin-top:0}
-/* Sticky share dock — icon-only, one floating strip */
+/* Sticky share dock — branded navy, white logos, icon-only */
 .share-dock{
-  position:fixed;z-index:900;
-  display:flex;align-items:center;gap:6px;
-  background:rgba(255,255,255,.97);
+  position:fixed !important;
+  z-index:9999 !important;
+  display:flex !important;
+  align-items:center;
+  gap:6px;
+  background:rgba(255,255,255,.98) !important;
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
-  box-shadow:0 6px 20px rgba(15,23,42,.16);
-  border:1px solid #e5e7eb;
+  box-shadow:0 6px 20px rgba(15,23,42,.18) !important;
+  border:1px solid #e5e7eb !important;
+  margin:0 !important;
+  list-style:none !important;
 }
-.share-dock .share-label{display:none}
+.share-dock .share-label{display:none !important}
+a.share-btn,
+button.share-btn,
 .share-dock .share-btn{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:36px;height:36px;min-width:36px;min-height:36px;
-  border-radius:50%;font-size:.95rem;color:#fff!important;text-decoration:none;border:0;cursor:pointer;padding:0;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
+  min-height:36px !important;
+  border-radius:50% !important;
+  font-size:0.95rem !important;
+  line-height:1 !important;
+  color:#ffffff !important;
+  background:#1e3a5f !important;
+  text-decoration:none !important;
+  border:0 !important;
+  cursor:pointer !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-shadow:none !important;
+  -webkit-appearance:none !important;
+  appearance:none !important;
   -webkit-tap-highlight-color:transparent;
 }
-.share-dock .share-btn span{display:none!important}
-.share-dock .share-btn:hover,.share-dock .share-btn:focus{filter:brightness(1.08);color:#fff!important;outline:2px solid #d62b83;outline-offset:1px}
-.share-dock .share-btn.fb,
-.share-dock .share-btn.x,
-.share-dock .share-btn.li,
-.share-dock .share-btn.wa,
-.share-dock .share-btn.tg,
-.share-dock .share-btn.copy{background:#1e3a5f}
-.share-dock .share-btn.native{background:#d62b83}
-.share-dock .share-btn i{color:#fff!important;font-size:1em;line-height:1}
-.share-dock .share-btn:hover,.share-dock .share-btn:focus{background:#d62b83;color:#fff!important}
-.share-dock .share-btn.native:hover{background:#1e3a5f}
-/* Mobile: one slim bottom sticky strip */
+.share-dock .share-btn span{display:none !important;position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.share-dock .share-btn i,
+.share-dock .share-btn .fab,
+.share-dock .share-btn .fas{
+  color:#ffffff !important;
+  font-size:1rem !important;
+  line-height:1 !important;
+  width:1em !important;
+  height:1em !important;
+  display:inline-block !important;
+}
+.share-dock .share-btn:hover,
+.share-dock .share-btn:focus{
+  background:#d62b83 !important;
+  color:#ffffff !important;
+  filter:none !important;
+  outline:2px solid #1e3a5f !important;
+  outline-offset:1px !important;
+  text-decoration:none !important;
+}
+.share-dock .share-btn.native{background:#d62b83 !important}
+.share-dock .share-btn.native:hover{background:#1e3a5f !important}
 @media (max-width:899px){
   .share-dock{
-    left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));
-    transform:translateX(-50%);
-    justify-content:center;
-    padding:8px 10px;
-    border-radius:999px;
-    gap:6px;
-    max-width:calc(100vw - 24px);
+    left:50% !important;
+    right:auto !important;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px)) !important;
+    top:auto !important;
+    transform:translateX(-50%) !important;
+    justify-content:center !important;
+    padding:8px 10px !important;
+    border-radius:999px !important;
+    gap:6px !important;
+    max-width:calc(100vw - 24px) !important;
   }
-  body{padding-bottom:64px}
+  body{padding-bottom:64px !important}
 }
-/* Desktop: one slim left sticky pill */
 @media (min-width:900px){
   .share-dock{
-    left:14px;top:50%;transform:translateY(-50%);
-    flex-direction:column;
-    padding:10px 8px;
-    border-radius:999px;
-    gap:8px;
+    left:14px !important;
+    top:50% !important;
+    bottom:auto !important;
+    transform:translateY(-50%) !important;
+    flex-direction:column !important;
+    padding:10px 8px !important;
+    border-radius:999px !important;
+    gap:8px !important;
   }
-  .share-dock .share-btn{width:38px;height:38px;min-width:38px;min-height:38px}
+  .share-dock .share-btn{width:38px !important;height:38px !important;min-width:38px !important;min-height:38px !important}
 }
+
 
 /* Sliding contact form connected to admin form_type=contact */
 .wts-slide-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1200;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
@@ -271,7 +310,7 @@ li{margin-bottom:8px}
     })();
     </script>
     
-<link id="wts-footer-fa" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous"><style id="wts-footer-css">.footer { 
+<link id="wts-footer-fa" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"><style id="wts-footer-css">.footer { 
     background-color: #122a3f; 
     color: #ffffff; 
     padding: 4rem 0; 

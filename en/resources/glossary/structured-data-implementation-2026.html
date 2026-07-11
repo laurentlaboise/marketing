@@ -1,5 +1,5 @@
 Write 1200–1500 word article targeting “structured data”, secondaries “schema markup SEO”. Structure: H1: Structured Data Implementation 2026 → Intro (rich results) → H2: Schema Types → H2: JSON-LD Best Practices → H2: Testing → Conclusion: Priority schema list.
-<link id="wts-footer-fa" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous"><style id="wts-footer-css">.footer { 
+<link id="wts-footer-fa" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"><style id="wts-footer-css">.footer { 
     background-color: #122a3f; 
     color: #ffffff; 
     padding: 4rem 0; 
@@ -203,6 +203,99 @@ Write 1200–1500 word article targeting “structured data”, secondaries “s
 .wts-slide-body .form-status.ok{color:#047857}
 .wts-slide-body .form-status.err{color:#b91c1c}
 .cta button.cta-team-btn{background:none;border:0;color:#fff;font:inherit;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0;margin:0 4px}
+
+
+/* Sticky share dock — branded navy, white logos, icon-only */
+.share-dock{
+  position:fixed !important;
+  z-index:9999 !important;
+  display:flex !important;
+  align-items:center;
+  gap:6px;
+  background:rgba(255,255,255,.98) !important;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  box-shadow:0 6px 20px rgba(15,23,42,.18) !important;
+  border:1px solid #e5e7eb !important;
+  margin:0 !important;
+  list-style:none !important;
+}
+.share-dock .share-label{display:none !important}
+a.share-btn,
+button.share-btn,
+.share-dock .share-btn{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
+  min-height:36px !important;
+  border-radius:50% !important;
+  font-size:0.95rem !important;
+  line-height:1 !important;
+  color:#ffffff !important;
+  background:#1e3a5f !important;
+  text-decoration:none !important;
+  border:0 !important;
+  cursor:pointer !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-shadow:none !important;
+  -webkit-appearance:none !important;
+  appearance:none !important;
+  -webkit-tap-highlight-color:transparent;
+}
+.share-dock .share-btn span{display:none !important;position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.share-dock .share-btn i,
+.share-dock .share-btn .fab,
+.share-dock .share-btn .fas{
+  color:#ffffff !important;
+  font-size:1rem !important;
+  line-height:1 !important;
+  width:1em !important;
+  height:1em !important;
+  display:inline-block !important;
+}
+.share-dock .share-btn:hover,
+.share-dock .share-btn:focus{
+  background:#d62b83 !important;
+  color:#ffffff !important;
+  filter:none !important;
+  outline:2px solid #1e3a5f !important;
+  outline-offset:1px !important;
+  text-decoration:none !important;
+}
+.share-dock .share-btn.native{background:#d62b83 !important}
+.share-dock .share-btn.native:hover{background:#1e3a5f !important}
+@media (max-width:899px){
+  .share-dock{
+    left:50% !important;
+    right:auto !important;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px)) !important;
+    top:auto !important;
+    transform:translateX(-50%) !important;
+    justify-content:center !important;
+    padding:8px 10px !important;
+    border-radius:999px !important;
+    gap:6px !important;
+    max-width:calc(100vw - 24px) !important;
+  }
+  body{padding-bottom:64px !important}
+}
+@media (min-width:900px){
+  .share-dock{
+    left:14px !important;
+    top:50% !important;
+    bottom:auto !important;
+    transform:translateY(-50%) !important;
+    flex-direction:column !important;
+    padding:10px 8px !important;
+    border-radius:999px !important;
+    gap:8px !important;
+  }
+  .share-dock .share-btn{width:38px !important;height:38px !important;min-width:38px !important;min-height:38px !important}
+}
 
 </style><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png"><link rel="shortcut icon" href="/favicon/favicon.ico"><link rel="manifest" href="/favicon/site.webmanifest"><footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">Contact Us</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane, 
 <br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">Find us on Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">02055528034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Solutions</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">Web Development</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">Digital Marketing</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">Content Creation</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">Social Media</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">Business Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Services</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">Pricing</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">affiliate-sales</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">Agencies</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Automation</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Resources</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">Articles</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">Glossary</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Ai Tools</a></li><li><a href="https://wordsthatsells.website/en/resources/guides/">E-Guides</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Legal</h3><ul class="footer-list"><li><a href="/en/company/legal/privacy-policy.html">Privacy Policy</a></li><li><a href="/en/company/legal/terms-and-conditions.html">Terms &amp; Conditions</a></li><li><a href="/en/company/legal/cookie-policy.html">Cookie Policy</a></li><li><a href="/en/company/legal/">All legal documents</a></li></ul></div></div></div><div class="footer-bottom"><p>© 2025 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="en"><a href="/en/resources/glossary/structured-data-implementation-2026.html" data-lang-dir="en" hreflang="en" lang="en" title="English" aria-current="true">EN</a><a href="/th/resources/glossary/structured-data-implementation-2026.html" data-lang-dir="th" hreflang="th" lang="th" title="ไทย (Thai)">ไทย</a><a href="/la/resources/glossary/structured-data-implementation-2026.html" data-lang-dir="la" hreflang="lo" lang="lo" title="ລາວ (Lao)">ລາວ</a><a href="/fr/resources/glossary/structured-data-implementation-2026.html" data-lang-dir="fr" hreflang="fr" lang="fr" title="Français">FR</a></nav></div></div></footer>
