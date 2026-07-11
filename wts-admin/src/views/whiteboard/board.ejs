@@ -688,6 +688,15 @@
     }
 
     function esc(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
+    // Attribute context: esc() (textContent→innerHTML) leaves quotes
+    // intact, so it must never be interpolated inside a quoted attribute —
+    // a stored '" onmouseover=…' would break out. This escapes both quote
+    // kinds on top of the element-context set.
+    function escAttr(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
     function ago(iso) {
       var s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
       if (s < 60) return S.justNow;
@@ -963,7 +972,7 @@
           wrap.innerHTML =
             '<div class="bcel-card">' +
               '<h3>' + S.bcelHeading + '</h3>' +
-              (d.qr_url ? '<img class="bcel-qr" src="' + esc(d.qr_url) + '" alt="' + S.bcelQrAlt + '">' : '') +
+              (d.qr_url ? '<img class="bcel-qr" src="' + escAttr(d.qr_url) + '" alt="' + S.bcelQrAlt + '">' : '') +
               (d.account_note ? '<p class="bcel-note">' + esc(d.account_note) + '</p>' : '') +
               '<p>' + S.amountLabel + ' <strong>' + fmtPrice(d.amount) + '</strong></p>' +
               '<p>' + S.referenceInstruction + '</p>' +
@@ -1321,7 +1330,7 @@
           var shown = noteTr && noteTr.body ? noteTr.body : note;
           h += '<span class="note">&ldquo;' + esc(shown) + '&rdquo;' +
             (noteTr && noteTr.body
-              ? ' <span class="tr-tag" title="' + esc(note) + '">' + esc(fmt('translatedFrom', { lang: langName(noteLang) })) + '</span>'
+              ? ' <span class="tr-tag" title="' + escAttr(note) + '">' + esc(fmt('translatedFrom', { lang: langName(noteLang) })) + '</span>'
               : '') +
             '</span>';
         }
