@@ -8,6 +8,21 @@
 const db = require('../../../database/db');
 
 async function runMigrations() {
+  // Same boot-DDL advisory lock as database/db.js initialize(): parallel
+  // server boots (test suite, rolling deploys) must not run IF NOT EXISTS
+  // DDL concurrently. Session-scoped here (no wrapping transaction), so
+  // the unlock lives in finally on the same connection.
+  const lock = await db.getClient();
+  try {
+    await lock.query('SELECT pg_advisory_lock(727150001)');
+    await migrate();
+  } finally {
+    await lock.query('SELECT pg_advisory_unlock(727150001)').catch(() => {});
+    lock.release();
+  }
+}
+
+async function migrate() {
   await db.query(`
     CREATE TABLE IF NOT EXISTS boards (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

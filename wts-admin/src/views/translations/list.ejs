@@ -89,7 +89,8 @@
                 <th>Language</th>
                 <th>Status</th>
                 <th>Translator</th>
-                <th>Words</th>
+                <th>Verifier</th>
+                <th>Chars</th>
                 <th>Updated</th>
                 <th>Actions</th>
               </tr>
@@ -128,7 +129,35 @@
                     </select>
                   <% } %>
                 </td>
-                <td data-label="Words"><%= item.word_count || '-' %></td>
+                <td data-label="Verifier">
+                  <% if (item.verifier_id) { %>
+                    <%= item.verifier_first_name || '' %> <%= item.verifier_last_name || '' %>
+                  <% } else if (item.status === 'requires_review') { %>
+                    <%
+                      // Push a drafted row to a specific verifier: same-language
+                      // translators, never the row's own translator (no
+                      // self-verification). AI rows (no translator_id) can go
+                      // to anyone assigned the language.
+                      var eligibleVerifiers = translators.filter(function (t) {
+                        return (t.assigned_languages || []).includes(item.target_language)
+                          && String(t.id) !== String(item.translator_id || '');
+                      });
+                    %>
+                    <% if (eligibleVerifiers.length) { %>
+                      <select class="form-input verifier-select" data-id="<%= item.id %>" style="max-width:170px; padding:0.25rem;">
+                        <option value="">Send to verify…</option>
+                        <% eligibleVerifiers.forEach(function (t) { %>
+                          <option value="<%= t.id %>"><%= t.first_name %> <%= t.last_name || '' %></option>
+                        <% }); %>
+                      </select>
+                    <% } else { %>
+                      <span style="color:var(--gray-400);">—</span>
+                    <% } %>
+                  <% } else { %>
+                    <span style="color:var(--gray-400);">—</span>
+                  <% } %>
+                </td>
+                <td data-label="Chars"><%= item.target_char_count ? Number(item.target_char_count).toLocaleString() : '-' %></td>
                 <td data-label="Updated"><%= new Date(item.updated_at).toLocaleDateString() %></td>
                 <td data-label="Actions">
                   <a href="/translations/review/<%= item.id %>" class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> Review</a>
@@ -137,6 +166,48 @@
               <% }); %>
             </tbody>
           </table>
+        </div>
+
+        <!-- Batch navigation (Gmail-style): choose 50 / 100 / 200 per page
+             and step through; the filter querystring is preserved so paging
+             never drops the active status/language/type filter. -->
+        <div class="pagination-bar" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-top:1rem;">
+          <div style="color:var(--gray-600); font-size:0.9rem;">
+            Showing <strong><%= pagination.from %></strong>–<strong><%= pagination.to %></strong> of <strong><%= pagination.totalItems.toLocaleString() %></strong>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.9rem;">
+            <label for="perPageSelect" style="color:var(--gray-600);">Per page</label>
+            <select id="perPageSelect" class="form-input" style="width:auto; padding:0.25rem 0.5rem;">
+              <% pagination.perPageChoices.forEach(function (n) { %>
+                <option value="<%= n %>" <%= pagination.perPage === n ? 'selected' : '' %>><%= n %></option>
+              <% }); %>
+            </select>
+          </div>
+          <%
+            // Build a filter-preserving querystring for the page links.
+            var qs = function (p) {
+              var parts = [];
+              if (filters.status) parts.push('status=' + encodeURIComponent(filters.status));
+              if (filters.lang) parts.push('lang=' + encodeURIComponent(filters.lang));
+              if (filters.entity_type) parts.push('entity_type=' + encodeURIComponent(filters.entity_type));
+              parts.push('per_page=' + pagination.perPage);
+              parts.push('page=' + p);
+              return '/translations?' + parts.join('&');
+            };
+          %>
+          <div style="margin-left:auto; display:flex; align-items:center; gap:0.5rem;">
+            <% if (pagination.page > 1) { %>
+              <a class="btn btn-sm btn-secondary" href="<%= qs(pagination.page - 1) %>"><i class="fas fa-chevron-left"></i> Prev</a>
+            <% } else { %>
+              <span class="btn btn-sm btn-secondary" style="opacity:0.5; pointer-events:none;"><i class="fas fa-chevron-left"></i> Prev</span>
+            <% } %>
+            <span style="font-size:0.9rem; color:var(--gray-600);">Page <%= pagination.page %> / <%= pagination.totalPages %></span>
+            <% if (pagination.page < pagination.totalPages) { %>
+              <a class="btn btn-sm btn-secondary" href="<%= qs(pagination.page + 1) %>">Next <i class="fas fa-chevron-right"></i></a>
+            <% } else { %>
+              <span class="btn btn-sm btn-secondary" style="opacity:0.5; pointer-events:none;">Next <i class="fas fa-chevron-right"></i></span>
+            <% } %>
+          </div>
         </div>
         <% } else { %>
         <div class="empty-state">
@@ -268,6 +339,25 @@
         if (res.ok) location.reload(); else alert(res.data.error || 'Assign failed');
       });
     });
+  });
+
+  // Send a drafted (AI or human) translation to a chosen verifier.
+  document.querySelectorAll('.verifier-select').forEach(function (select) {
+    select.addEventListener('change', function () {
+      if (!this.value) return;
+      post('/translations/' + this.dataset.id + '/assign-verifier', { verifier_id: this.value }).then(function (res) {
+        if (res.ok) location.reload(); else alert(res.data.error || 'Assign failed');
+      });
+    });
+  });
+
+  // Batch size selector: reset to page 1 at the new size, keeping filters.
+  var perPageSelect = document.getElementById('perPageSelect');
+  if (perPageSelect) perPageSelect.addEventListener('change', function () {
+    var url = new URL(window.location.href);
+    url.searchParams.set('per_page', this.value);
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
   });
 })();
 </script>

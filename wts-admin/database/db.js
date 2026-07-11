@@ -167,6 +167,17 @@ const db = {
     try {
       await client.query('BEGIN');
 
+      // Boot-DDL serialization: CREATE TABLE IF NOT EXISTS is not
+      // concurrency-safe in Postgres — two processes can both pass the
+      // NOT EXISTS check and race to insert the same pg_type row
+      // ("duplicate key value violates pg_type_typname_nsp_index").
+      // Parallel test servers and rolling deploys boot concurrently, so
+      // take a transaction-scoped advisory lock (auto-released at
+      // COMMIT/ROLLBACK): initializers run one at a time and every
+      // IF NOT EXISTS stays truthful. The key is arbitrary but must match
+      // src/modules/whiteboard/migrations.js.
+      await client.query('SELECT pg_advisory_xact_lock(727150001)');
+
       // Users table
       await client.query(`
         CREATE TABLE IF NOT EXISTS users (

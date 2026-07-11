@@ -30,9 +30,25 @@ before(async () => {
 
   // Reset platform tables so reruns are deterministic.
   await pool.query('TRUNCATE payout_ledger, payout_requests, payout_rates, translations, comp_rates, leads, engagement_logs');
-  // Whiteboard tables exist once the flagged server has booted (its module
-  // migrations create them at startup); board_translations has no FK to
-  // boards, so it is truncated by name.
+  // The whiteboard module migrates AFTER the HTTP listener is up (its WS
+  // handler needs the server handle, and module failure must never block
+  // boot), so /health — the readiness signal — can answer before the board
+  // tables exist on a fresh database. And boot DDL is serialized across the
+  // suite's parallel servers by an advisory lock, so those migrations may
+  // queue for several seconds. Wait for them before resetting board state;
+  // fail loudly if the module never attached. board_translations has no FK
+  // to boards, so it is truncated by name.
+  const whiteboardDeadline = Date.now() + 15000;
+  for (;;) {
+    const reg = await pool.query(
+      "SELECT to_regclass('boards') AS boards, to_regclass('board_translations') AS translations"
+    );
+    if (reg.rows[0].boards && reg.rows[0].translations) break;
+    if (Date.now() > whiteboardDeadline) {
+      throw new Error('whiteboard tables never appeared — did the module fail to attach?\n' + server.getOutput());
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
   await pool.query('TRUNCATE boards, board_translations CASCADE');
   await pool.query(`DELETE FROM glossary WHERE term LIKE 'TestTerm%'`);
   await pool.query(`DELETE FROM notifications WHERE title IN ('Translation submitted for review', 'Payout requested')`);
@@ -1186,4 +1202,207 @@ test('approval notes stamp language, attach translations, and the board ships it
   assert.ok(html.includes('"viewerLang":"en"'));
   assert.ok(html.includes('Request approval'), 'island strings shipped');
   assert.ok(!html.includes('boards.island.'), 'no raw locale keys leak into the page');
+});
+
+// ---------------------------------------------------------------------------
+// Pipeline batching (pagination) + assign-to-verifier (push side)
+// ---------------------------------------------------------------------------
+
+// Minimal drafted row straight into the pipeline (bypasses sync/AI so the
+// pagination + assignment routes can be exercised deterministically).
+async function seedTranslation(overrides = {}) {
+  const o = {
+    entity_type: 'glossary', target_language: 'la', status: 'requires_review',
+    payload: { definition: 'ຄຳ ນິຍາມ ທົດ ສອບ' }, translatorId: null, charCount: 40, ...overrides,
+  };
+  const row = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, translator_id, target_char_count, ai_model)
+     VALUES ($1, gen_random_uuid(), $2, $3, $4::jsonb, $5, $6, $7) RETURNING id`,
+    [o.entity_type, o.target_language, o.status, JSON.stringify(o.payload), o.translatorId, o.charCount, o.aiModel || null]
+  );
+  return row.rows[0].id;
+}
+
+test('pipeline list batches results and clamps the page to the filtered total', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+
+  // Isolate from other tests' rows by asserting against a filtered view I
+  // fully own: fr + requires_review. requires_review rows never carry
+  // payout_ledger entries (credits happen only at publish), so clearing
+  // and re-seeding them is FK-safe regardless of test order.
+  const scope = `lang=fr&status=requires_review`;
+  await pool.query(`DELETE FROM translations WHERE target_language = 'fr' AND status = 'requires_review'`);
+  for (let i = 0; i < 55; i++) await seedTranslation({ target_language: 'fr', aiModel: 'claude-test' });
+
+  // Page 1 at 50/page: 55 in the filtered set across 2 pages, batch 1 is 1–50.
+  const p1 = await (await session.fetch(`/translations?${scope}&per_page=50&page=1`)).text();
+  assert.ok(/of\s*<strong>55<\/strong>/.test(p1), 'shows the filtered total');
+  assert.ok(/Showing\s*<strong>1<\/strong>[\s\S]*?<strong>50<\/strong>/.test(p1), 'first batch is 1–50');
+  assert.ok(/Page\s*1\s*\/\s*2/.test(p1), 'two pages at 50/page');
+
+  // An out-of-range page clamps to the last real page instead of empty.
+  const pOver = await (await session.fetch(`/translations?${scope}&per_page=50&page=99`)).text();
+  assert.ok(/Page\s*2\s*\/\s*2/.test(pOver), 'over-range page clamps to the last');
+  assert.ok(/Showing\s*<strong>51<\/strong>[\s\S]*?<strong>55<\/strong>/.test(pOver), 'last batch is 51–55');
+
+  // A larger batch size collapses it to a single page.
+  const big = await (await session.fetch(`/translations?${scope}&per_page=200`)).text();
+  assert.ok(/Page\s*1\s*\/\s*1/.test(big), '200/page fits all 55 on one page');
+
+  await pool.query(`DELETE FROM translations WHERE target_language = 'fr' AND status = 'requires_review'`);
+});
+
+test('assign-verifier routes a drafted row to a verifier with the right guards', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+  const verifierId = (await pool.query(`SELECT id FROM users WHERE email = 'verifier@test.local'`)).rows[0].id;
+  const seeded = [];
+  const seed = async (o) => { const id = await seedTranslation(o); seeded.push(id); return id; };
+
+  // AI draft (no translator) → any same-language verifier may take it.
+  const aiRow = await seed({ aiModel: 'claude-test' });
+  const ok = await session.fetch(`/translations/${aiRow}/assign-verifier`, {
+    method: 'POST', headers, body: JSON.stringify({ verifier_id: verifierId }),
+  });
+  assert.equal(ok.status, 200);
+  const after = (await pool.query('SELECT verifier_id FROM translations WHERE id = $1', [aiRow])).rows[0];
+  assert.equal(String(after.verifier_id), String(verifierId));
+
+  // Self-verification is refused: the row's own translator can't verify it.
+  const humanRow = await seed({ translatorId: verifierId });
+  const selfRes = await session.fetch(`/translations/${humanRow}/assign-verifier`, {
+    method: 'POST', headers, body: JSON.stringify({ verifier_id: verifierId }),
+  });
+  assert.equal(selfRes.status, 400);
+  assert.match((await selfRes.json()).error, /own work/i);
+
+  // Wrong language: the verifier is assigned {la}, this row is Thai.
+  const thRow = await seed({ target_language: 'th' });
+  const langRes = await session.fetch(`/translations/${thRow}/assign-verifier`, {
+    method: 'POST', headers, body: JSON.stringify({ verifier_id: verifierId }),
+  });
+  assert.equal(langRes.status, 400);
+
+  // Only a drafted (requires_review) row can be routed to a verifier.
+  const publishedRow = await seed({ status: 'published' });
+  const stateRes = await session.fetch(`/translations/${publishedRow}/assign-verifier`, {
+    method: 'POST', headers, body: JSON.stringify({ verifier_id: verifierId }),
+  });
+  assert.equal(stateRes.status, 409);
+
+  await pool.query('DELETE FROM translations WHERE id = ANY($1)', [seeded]);
+});
+
+// ---------------------------------------------------------------------------
+// Glossary/SEO interlinking (internal-link SEO inside the translation flow)
+// ---------------------------------------------------------------------------
+
+test('injectTermLinks links first mentions only, in eligible text, longest term first', () => {
+  const { injectTermLinks } = require('../src/lib/interlink');
+  const terms = [
+    { matchName: 'technical SEO', href: '/en/resources/glossary/technical-seo.html', type: 'glossary', definition: 'Deep "stuff"' },
+    { matchName: 'SEO', href: '/en/resources/glossary/seo.html', type: 'seo', definition: '' },
+  ].sort((a, b) => b.matchName.length - a.matchName.length);
+
+  const html = '<h2>SEO basics</h2><p>Learn technical SEO today. SEO is not SEOULITE. ' +
+    '<a href="/x">SEO inside a link</a> stays untouched.</p>';
+  const out = injectTermLinks(html, terms, { lang: 'en' });
+
+  assert.equal(out.count, 2);
+  // Longest first: "technical SEO" got its own link…
+  assert.ok(out.html.includes('href="/en/resources/glossary/technical-seo.html"'));
+  // …and the standalone "SEO" after it got the short link (word-bounded:
+  // SEOULITE untouched; heading + existing anchor untouched).
+  assert.ok(/today\. <a [^>]*seo\.html[^>]*>SEO<\/a> is not SEOULITE/.test(out.html));
+  assert.ok(out.html.includes('<h2>SEO basics</h2>'), 'headings are never linked');
+  assert.ok(out.html.includes('>SEO inside a link</a> stays'), 'existing anchors are never re-linked');
+  // Attribute context is escaped (the definition carries a double quote).
+  assert.ok(out.html.includes('title="Deep &quot;stuff&quot;"'));
+
+  // Idempotent: a second pass finds everything already inside anchors.
+  const again = injectTermLinks(out.html, terms, { lang: 'en' });
+  assert.equal(again.count, 0);
+});
+
+test('injectTermLinks matches Thai/Lao by substring and respects the cap', () => {
+  const { injectTermLinks } = require('../src/lib/interlink');
+  const terms = [
+    { matchName: 'ການຕະຫຼາດ', href: '/la/resources/glossary/marketing.html', type: 'glossary', definition: '' },
+    { matchName: 'ເອສອີໂອ', href: '/la/resources/glossary/seo.html', type: 'seo', definition: '' },
+  ];
+  const text = 'ພວກເຮົາເຮັດການຕະຫຼາດດິຈິຕອນ ແລະ ເອສອີໂອ ໃນລາວ';
+  const out = injectTermLinks(text, terms, { lang: 'la' });
+  assert.equal(out.count, 2, 'no-word-break scripts match by substring');
+  assert.ok(out.html.includes('href="/la/resources/glossary/marketing.html"'));
+
+  const capped = injectTermLinks(text, terms, { lang: 'la', maxLinks: 1 });
+  assert.equal(capped.count, 1, 'the link budget is a hard cap');
+});
+
+test('interlink route links a Lao draft using published term names and localized URLs', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+  const cleanup = { translations: [], glossary: [] };
+
+  // A glossary term with a slug + its PUBLISHED Lao name.
+  const g = await pool.query(
+    `INSERT INTO glossary (term, definition, letter, slug)
+     VALUES ('TestTerm Backlink', 'A link from one page to another.', 'T', 'testterm-backlink')
+     RETURNING id`
+  );
+  cleanup.glossary.push(g.rows[0].id);
+  const publishedName = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+     VALUES ('glossary', $1, 'la', 'published', '{"term":"ແບັກລິ້ງ"}'::jsonb) RETURNING id`,
+    [g.rows[0].id]
+  );
+  cleanup.translations.push(publishedName.rows[0].id);
+
+  // A drafted Lao article translation that mentions the term.
+  const draft = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, target_char_count)
+     VALUES ('article', gen_random_uuid(), 'la', 'requires_review',
+             '{"title":"ຫົວຂໍ້","content":"<p>ການສ້າງ ແບັກລິ້ງ ຊ່ວຍ SEO ຂອງທ່ານ</p>"}'::jsonb, 34)
+     RETURNING id`
+  );
+  cleanup.translations.push(draft.rows[0].id);
+
+  const res = await session.fetch(`/translations/${draft.rows[0].id}/interlink`, { method: 'POST', headers, body: '{}' });
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.count, 1);
+  assert.equal(data.linked[0].term, 'ແບັກລິ້ງ');
+
+  const after = (await pool.query('SELECT content_payload, target_char_count FROM translations WHERE id = $1', [draft.rows[0].id])).rows[0];
+  assert.ok(after.content_payload.content.includes('href="/la/resources/glossary/testterm-backlink.html"'),
+    'link points at the LOCALIZED term page');
+  assert.ok(after.content_payload.content.includes('class="auto-linked auto-linked-glossary"'));
+  assert.equal(after.content_payload.title, 'ຫົວຂໍ້', 'short fields are never touched');
+  // countChars strips tags: adding links must not change what anyone is paid.
+  const core = require('../src/lib/translation-core');
+  assert.equal(Number(after.target_char_count), core.countChars({ title: 'ຫົວຂໍ້', content: 'ການສ້າງ ແບັກລິ້ງ ຊ່ວຍ SEO ຂອງທ່ານ' }));
+
+  // The term's own page never links to itself: interlink the glossary
+  // row's own (drafted) translation and expect zero.
+  const selfDraft = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+     VALUES ('glossary', $1, 'la', 'requires_review', '{"term":"ແບັກລິ້ງ","definition":"ຄຳອະທິບາຍ ແບັກລິ້ງ"}'::jsonb)
+     ON CONFLICT (entity_type, entity_id, target_language) DO NOTHING
+     RETURNING id`,
+    [g.rows[0].id]
+  );
+  if (selfDraft.rows.length) {
+    cleanup.translations.push(selfDraft.rows[0].id);
+    const selfRes = await session.fetch(`/translations/${selfDraft.rows[0].id}/interlink`, { method: 'POST', headers, body: '{}' });
+    const selfData = await selfRes.json();
+    assert.equal(selfData.count, 0, 'a term page must not link to itself');
+  }
+
+  await pool.query('DELETE FROM translations WHERE id = ANY($1)', [cleanup.translations]);
+  await pool.query('DELETE FROM glossary WHERE id = ANY($1)', [cleanup.glossary]);
 });
