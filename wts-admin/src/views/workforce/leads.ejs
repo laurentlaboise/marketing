@@ -1,0 +1,149 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Leads CRM</h1>
+        <p class="page-subtitle">The single system of record — only entered, de-duplicated, real records count and pay.</p>
+      </div>
+      <div class="page-actions">
+        <button type="button" class="btn btn-secondary" id="importBtn" title="Pull new form submissions in as leads">
+          <i class="fas fa-inbox"></i> Import Submissions<%= pendingSubmissions ? ' (' + pendingSubmissions + ')' : '' %>
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+        <% statuses.forEach(s => { %>
+          <a href="/workforce/leads?status=<%= s %>" style="text-decoration:none;">
+            <strong><%= counts[s] || 0 %></strong> <%= s.replace('_', ' ') %>
+          </a>
+        <% }); %>
+        <a href="/workforce/leads" style="margin-left:auto; text-decoration:none;">all</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <% if (leads.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead><tr><th>Lead</th><th>Contact</th><th>Worker</th><th>Status</th><th>Sale</th><th>Actions</th></tr></thead>
+            <tbody>
+              <% leads.forEach(l => { %>
+              <tr data-lead="<%= l.id %>">
+                <td data-label="Lead">
+                  <strong><%= l.name || l.company || '—' %></strong>
+                  <br><span style="color:var(--gray-500); font-size:0.8rem;"><%= l.source %><%= l.category ? ' · ' + l.category : '' %></span>
+                  <% if (l.interest) { %><br><span style="font-size:0.8rem;"><%= l.interest.slice(0, 80) %></span><% } %>
+                </td>
+                <td data-label="Contact"><%= l.phone || '—' %><% if (l.email) { %><br><span style="color:var(--gray-500); font-size:0.8rem;"><%= l.email %></span><% } %></td>
+                <td data-label="Worker">
+                  <select class="form-input assign-worker" style="max-width:170px; padding:0.25rem;">
+                    <option value="">Unassigned</option>
+                    <% workers.forEach(w => { %>
+                      <option value="<%= w.id %>" <%= l.assigned_to === w.id ? 'selected' : '' %>><%= w.first_name %> <%= w.last_name || '' %></option>
+                    <% }); %>
+                  </select>
+                </td>
+                <td data-label="Status">
+                  <span style="display:inline-block; padding:0.15rem 0.5rem; border-radius:999px; font-size:0.75rem; color:#fff; background:<%= { new:'#6b7280', entered:'#2563eb', call_verified:'#7c3aed', qualified:'#d97706', converted:'#059669', junk:'#dc2626' }[l.status] || '#6b7280' %>;"><%= l.status.replace('_',' ') %></span>
+                  <div style="font-size:0.7rem; color:var(--gray-500); margin-top:2px;">
+                    <%= l.entered_at ? 'entered ' : '' %><%= l.call_verified_at ? '· called ' : '' %><%= l.qualified_at ? '· qualified' : '' %>
+                  </div>
+                </td>
+                <td data-label="Sale"><%= l.sale_value ? parseFloat(l.sale_value).toLocaleString() : '—' %></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <% if (l.status !== 'junk' && l.status !== 'converted') { %>
+                      <button type="button" class="btn btn-sm btn-primary lead-action" data-action="approve" title="Credit all reached, unpaid milestones (entry / call / qualified tier)"><i class="fas fa-coins"></i> Approve &amp; credit</button>
+                      <button type="button" class="btn btn-sm btn-secondary lead-action" data-action="convert"><i class="fas fa-handshake"></i> Converted</button>
+                      <button type="button" class="btn btn-sm btn-danger lead-action" data-action="junk" title="Unreachable / fake / duplicate — pays nothing"><i class="fas fa-ban"></i></button>
+                    <% } else if (l.status === 'converted') { %>
+                      <span style="color:var(--gray-500); font-size:0.8rem;">closed<%= l.converted_at ? ' ' + new Date(l.converted_at).toLocaleDateString() : '' %></span>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-address-book"></i></div>
+          <h3>No Leads<%= filters.status ? ' in "' + filters.status.replace('_',' ') + '"' : ' Yet' %></h3>
+          <p>Workers capture leads from their hub; form submissions can be imported with the button above.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify(body || {})
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  document.getElementById('importBtn').addEventListener('click', function () {
+    post('/workforce/leads/import-submissions').then(function (res) {
+      if (res.ok) { alert('Imported ' + res.data.imported + ' submission(s) as leads.'); location.reload(); }
+      else alert(res.data.error || 'Import failed');
+    });
+  });
+
+  document.querySelectorAll('.assign-worker').forEach(function (select) {
+    select.addEventListener('change', function () {
+      post('/workforce/leads/' + select.closest('tr').dataset.lead + '/assign', { worker_id: select.value || null })
+        .then(function (res) { if (!res.ok) alert(res.data.error || 'Assign failed'); });
+    });
+  });
+
+  document.querySelectorAll('.lead-action').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = btn.closest('tr').dataset.lead;
+      var action = btn.dataset.action;
+      if (action === 'approve') {
+        post('/workforce/leads/' + id + '/approve').then(function (res) {
+          if (res.ok) {
+            var paid = res.data.credits.filter(function (c) { return c.credited; });
+            alert(paid.length
+              ? 'Credited: ' + paid.map(function (c) { return c.workType + ' → ' + c.currency + ' ' + c.amount.toLocaleString(); }).join(', ')
+              : 'Nothing new to credit (already paid, or no rate configured — check Payout Ledger → Work-Unit Rates).');
+            location.reload();
+          } else alert(res.data.error || 'Approve failed');
+        });
+      } else if (action === 'convert') {
+        var value = prompt('Sale value (optional — leave empty for the flat bounty / floor):');
+        if (value === null) return;
+        post('/workforce/leads/' + id + '/convert', { sale_value: value }).then(function (res) {
+          if (res.ok) {
+            var b = res.data.bonus;
+            alert(b && b.credited ? 'Conversion bonus credited: ' + b.currency + ' ' + b.amount.toLocaleString() : 'Marked converted.' );
+            location.reload();
+          } else alert(res.data.error || 'Convert failed');
+        });
+      } else if (action === 'junk') {
+        if (!confirm('Mark as junk? Junk pays nothing and is excluded from counts.')) return;
+        post('/workforce/leads/' + id + '/junk').then(function (res) {
+          if (res.ok) location.reload(); else alert(res.data.error || 'Update failed');
+        });
+      }
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>

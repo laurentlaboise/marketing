@@ -23,7 +23,7 @@ before(async () => {
   pool = new Pool({ connectionString: TEST_DB_URL });
 
   // Reset platform tables so reruns are deterministic.
-  await pool.query('TRUNCATE payout_ledger, payout_requests, payout_rates, translations');
+  await pool.query('TRUNCATE payout_ledger, payout_requests, payout_rates, translations, comp_rates, leads, engagement_logs');
   await pool.query(`DELETE FROM glossary WHERE term LIKE 'TestTerm%'`);
   await pool.query(`DELETE FROM notifications WHERE title IN ('Translation submitted for review', 'Payout requested')`);
 
@@ -38,6 +38,16 @@ before(async () => {
     [hash]
   );
   translatorId = translator.rows[0].id;
+
+  // Lao verifier (Content Verifier position) — seeded here so the verify,
+  // leads, engagement and work-hub tests are each independently runnable.
+  await pool.query(
+    `INSERT INTO users (email, password_hash, first_name, last_name, role, assigned_languages, is_vendor, position)
+     VALUES ('verifier@test.local', $1, 'Kham', 'Verifier', 'translator', '{la}', TRUE, 'content_verifier')
+     ON CONFLICT (email) DO UPDATE
+       SET password_hash = $1, role = 'translator', assigned_languages = '{la}', is_vendor = TRUE`,
+    [hash]
+  );
 
   // One translatable entity.
   const glossary = await pool.query(
@@ -486,6 +496,338 @@ test('superadmin surfaces render: pipeline, review, vendors, payouts, workspace'
     const res = await session.fetch(route);
     assert.equal(res.status, 200, `${route} should render for superadmin`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// Workforce: verification pay (write vs check vs rework), leads CRM
+// tiers, engagement credits — all in kip, all admin-gated.
+// ---------------------------------------------------------------------------
+
+test('edit stats and comp math: chars, tiers, conversion floors, kip rounding', () => {
+  const c = require('../src/lib/translation-core');
+  const stats = c.computeEditStats(
+    { a: 'Original text here', b: 'Untouched', c: 'Old' },
+    { a: 'Changed text here!', b: 'Untouched', c: 'Old' }
+  );
+  assert.equal(stats.editedSegments, 1);
+  assert.equal(stats.editedChars, 'Changed text here!'.length);
+  assert.equal(c.roundMoney(1234.56, 'LAK'), 1235);
+  assert.equal(c.roundMoney(1.23456, 'USD'), 1.2346);
+  assert.equal(c.countChars({ x: '<p>ສະບາຍດີ</p>' }), 'ສະບາຍດີ'.length);
+
+  const comp = require('../src/lib/comp-engine');
+  const tiers = [{ min: 1, max: 20, rate: 20000 }, { min: 21, max: 50, rate: 28000 }, { min: 51, rate: 35000 }];
+  assert.equal(comp.tierRate(tiers, 1), 20000);
+  assert.equal(comp.tierRate(tiers, 21), 28000);
+  assert.equal(comp.tierRate(tiers, 999), 35000);
+  // 3% of 5,000,000 kip = 150,000 (above the 50k floor)
+  assert.equal(comp.computeCompAmount(
+    { work_type: 'lead_conversion', bonus_percent: 3, bonus_floor: 50000, currency: 'LAK' },
+    { saleValue: 5000000 }
+  ), 150000);
+  // Small sale → floor applies
+  assert.equal(comp.computeCompAmount(
+    { work_type: 'lead_conversion', bonus_percent: 3, bonus_floor: 50000, currency: 'LAK' },
+    { saleValue: 100000 }
+  ), 50000);
+});
+
+test('verifier flow: AI draft → fix → approve → publish credits verification + edit in kip', async () => {
+  // The verifier user is seeded in before().
+  const verifier = await pool.query(`SELECT id FROM users WHERE email = 'verifier@test.local'`);
+  const verifierId = verifier.rows[0].id;
+
+  // Per-1000-char kip rates for checking and reworking.
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const aHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+  };
+  for (const [workType, amount] of [['verification', 30000], ['edit', 15000]]) {
+    const rateRes = await admin.fetch('/translations/payouts/rates', {
+      method: 'POST', headers: aHeaders,
+      body: JSON.stringify({ work_type: workType, rate_type: 'per_1000_chars', rate_amount: amount, currency: 'LAK', target_language: 'la' }),
+    });
+    assert.equal(rateRes.status, 200);
+  }
+
+  // An "AI-drafted" Lao row awaiting review.
+  const glossary = await pool.query(
+    `INSERT INTO glossary (term, definition, letter) VALUES ('TestTerm Verify', 'A definition to verify.', 'T') RETURNING id`
+  );
+  const draftText = 'ຄຳນິຍາມທີ່ AI ຂຽນໄວ້ສຳລັບການກວດສອບ ມີເນື້ອຫາຍາວພໍສົມຄວນ';
+  const row = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, content_payload, status, ai_model, word_count)
+     VALUES ('glossary', $1, 'la', $2, 'requires_review', 'test-model', 5) RETURNING id`,
+    [glossary.rows[0].id, JSON.stringify({ term: 'TestTerm Verify (ລາວ)', definition: draftText })]
+  );
+  const rowId = row.rows[0].id;
+
+  const verifierSession = new Session(server.base);
+  await verifierSession.login('verifier@test.local');
+  const vHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await verifierSession.getCsrfToken('/translations/workspace'),
+  };
+
+  // The row shows in the verify queue.
+  const workspace = await verifierSession.fetch('/translations/workspace');
+  assert.match(await workspace.text(), /To Verify/);
+
+  // Approve with one segment reworked.
+  const fixedText = 'ຄຳນິຍາມສະບັບແກ້ໄຂໂດຍຜູ້ກວດ ອ່ານເປັນທຳມະຊາດກວ່າເກົ່າ';
+  const approve = await verifierSession.fetch(`/translations/verify/${rowId}/approve`, {
+    method: 'POST', headers: vHeaders,
+    body: JSON.stringify({ content_payload: { term: 'TestTerm Verify (ລາວ)', definition: fixedText } }),
+  });
+  assert.equal(approve.status, 200);
+  const approveBody = await approve.json();
+  assert.equal(approveBody.editedSegments, 1);
+
+  const verifiedRow = (await pool.query('SELECT * FROM translations WHERE id = $1', [rowId])).rows[0];
+  assert.equal(verifiedRow.status, 'verified');
+  assert.equal(verifiedRow.verified_by, verifierId);
+  assert.ok(verifiedRow.target_char_count > 0);
+  assert.ok(verifiedRow.ai_draft_payload, 'draft snapshot kept for edit metering');
+
+  // Admin publishes from 'verified' → verifier gets verification + edit
+  // credits (kip); no translation credit for the AI row.
+  const publish = await admin.fetch(`/translations/${rowId}/approve`, {
+    method: 'POST', headers: aHeaders, body: JSON.stringify({}),
+  });
+  assert.equal(publish.status, 200);
+  const publishBody = await publish.json();
+  assert.equal(publishBody.payoutSkipReason, 'ai_translation');
+  assert.equal(publishBody.credits.length, 2);
+
+  const credits = await pool.query(
+    `SELECT type, amount, currency FROM payout_ledger WHERE translation_id = $1 ORDER BY type`,
+    [rowId]
+  );
+  assert.deepEqual(credits.rows.map((r) => r.type).sort(), ['edit_credit', 'verification_credit']);
+  const verification = credits.rows.find((r) => r.type === 'verification_credit');
+  assert.equal(verification.currency, 'LAK');
+  const expectedVerification = Math.round((30000 * verifiedRow.target_char_count) / 1000);
+  assert.equal(Math.round(parseFloat(verification.amount)), expectedVerification);
+  const edit = credits.rows.find((r) => r.type === 'edit_credit');
+  assert.equal(Math.round(parseFloat(edit.amount)), Math.round((15000 * verifiedRow.edited_chars) / 1000));
+
+  // Re-publishing after a reopen never double-pays.
+  await admin.fetch(`/translations/${rowId}/reopen`, { method: 'POST', headers: aHeaders, body: JSON.stringify({}) });
+  await pool.query(`UPDATE translations SET status = 'verified' WHERE id = $1`, [rowId]);
+  await admin.fetch(`/translations/${rowId}/approve`, { method: 'POST', headers: aHeaders, body: JSON.stringify({}) });
+  const creditCount = (await pool.query(
+    `SELECT COUNT(*)::int AS c FROM payout_ledger WHERE translation_id = $1`, [rowId]
+  )).rows[0].c;
+  assert.equal(creditCount, 2, 'no duplicate credits on re-publish');
+});
+
+test('a translator cannot verify their own translation', async () => {
+  const glossary = await pool.query(
+    `INSERT INTO glossary (term, definition, letter) VALUES ('TestTerm SelfVerify', 'Self check.', 'T') RETURNING id`
+  );
+  const row = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, content_payload, status, translator_id, word_count)
+     VALUES ('glossary', $1, 'la', $2, 'requires_review',
+             (SELECT id FROM users WHERE email = 'translator@test.local'), 2)
+     RETURNING id`,
+    [glossary.rows[0].id, JSON.stringify({ term: 'ຂ້ອຍແປເອງ' })]
+  );
+  const session = new Session(server.base);
+  await session.login('translator@test.local');
+  const res = await session.fetch(`/translations/verify/${row.rows[0].id}/approve`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json', accept: 'application/json',
+      'x-csrf-token': await session.getCsrfToken('/translations/workspace'),
+    },
+    body: JSON.stringify({}),
+  });
+  assert.equal(res.status, 403);
+  assert.match((await res.json()).error, /own translation/);
+});
+
+test('leads: capture → dedupe → qualify → admin approves tier credit → conversion bonus', async () => {
+  // Kip work-unit rates (from the Lead Verifier brief).
+  await pool.query(`UPDATE comp_rates SET is_active = FALSE WHERE is_active = TRUE`);
+  await pool.query(
+    `INSERT INTO comp_rates (work_type, rate_amount, currency) VALUES ('lead_entry', 1500, 'LAK')`
+  );
+  await pool.query(
+    `INSERT INTO comp_rates (work_type, rate_amount, currency, tiers)
+     VALUES ('lead_qualified', 20000, 'LAK', $1)`,
+    [JSON.stringify([{ min: 1, max: 20, rate: 20000 }, { min: 21, max: 50, rate: 28000 }, { min: 51, rate: 35000 }])]
+  );
+  await pool.query(
+    `INSERT INTO comp_rates (work_type, rate_amount, currency, bonus_percent, bonus_floor)
+     VALUES ('lead_conversion', 0, 'LAK', 3, 50000)`
+  );
+  await pool.query(`DELETE FROM leads WHERE phone LIKE '%2055500%'`);
+
+  const worker = new Session(server.base);
+  await worker.login('verifier@test.local'); // vendor → work hub access
+  const wHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await worker.getCsrfToken('/workforce/my'),
+  };
+
+  const capture = await worker.fetch('/workforce/my/leads', {
+    method: 'POST', headers: wHeaders,
+    body: JSON.stringify({ name: 'Somchai Test', phone: '+856 20 5550 0111', interest: 'SEO package', source: 'social' }),
+  });
+  assert.equal(capture.status, 200);
+  const leadId = (await capture.json()).lead.id;
+
+  // De-dup: same phone (different formatting) never enters twice.
+  const duplicate = await worker.fetch('/workforce/my/leads', {
+    method: 'POST', headers: wHeaders,
+    body: JSON.stringify({ name: 'Somchai Again', phone: '8562055500111' }),
+  });
+  assert.equal(duplicate.status, 409);
+
+  // Worker qualifies the lead (claim), admin approves → entry + tier-1 credit.
+  const qualify = await worker.fetch(`/workforce/my/leads/${leadId}`, {
+    method: 'POST', headers: wHeaders, body: JSON.stringify({ claim_status: 'qualified' }),
+  });
+  assert.equal(qualify.status, 200);
+
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const aHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+  };
+  const approve = await admin.fetch(`/workforce/leads/${leadId}/approve`, {
+    method: 'POST', headers: aHeaders, body: JSON.stringify({}),
+  });
+  assert.equal(approve.status, 200);
+  const approveBody = await approve.json();
+  const paid = approveBody.credits.filter((c) => c.credited);
+  assert.deepEqual(paid.map((c) => c.workType).sort(), ['lead_entry', 'lead_qualified']);
+  assert.equal(paid.find((c) => c.workType === 'lead_qualified').amount, 20000, 'first qualified lead of the month pays tier 1');
+
+  // Approving again credits nothing (idempotent per milestone).
+  const again = await admin.fetch(`/workforce/leads/${leadId}/approve`, {
+    method: 'POST', headers: aHeaders, body: JSON.stringify({}),
+  });
+  assert.equal((await again.json()).credits.filter((c) => c.credited).length, 0);
+
+  // Conversion: 3% of 5,000,000 kip = 150,000.
+  const convert = await admin.fetch(`/workforce/leads/${leadId}/convert`, {
+    method: 'POST', headers: aHeaders, body: JSON.stringify({ sale_value: 5000000 }),
+  });
+  assert.equal(convert.status, 200);
+  const bonus = (await convert.json()).bonus;
+  assert.equal(bonus.credited, true);
+  assert.equal(bonus.amount, 150000);
+});
+
+test('engagement: worker logs, admin approves per-unit, rejected pays nothing', async () => {
+  await pool.query(
+    `INSERT INTO comp_rates (work_type, rate_amount, currency) VALUES ('community_response', 3500, 'LAK')`
+  );
+  const worker = new Session(server.base);
+  await worker.login('verifier@test.local');
+  const wHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await worker.getCsrfToken('/workforce/my'),
+  };
+  const logged = [];
+  for (let i = 0; i < 2; i += 1) {
+    const res = await worker.fetch('/workforce/my/engagement', {
+      method: 'POST', headers: wHeaders,
+      body: JSON.stringify({ track: 'community_response', reference_url: `https://facebook.com/post/${i}` }),
+    });
+    assert.equal(res.status, 200);
+    logged.push((await res.json()).log.id);
+  }
+
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const aHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+  };
+  const approveOne = await admin.fetch('/workforce/engagement/review', {
+    method: 'POST', headers: aHeaders, body: JSON.stringify({ ids: [logged[0]], decision: 'approve' }),
+  });
+  assert.equal((await approveOne.json()).credited, 1);
+  const rejectOne = await admin.fetch('/workforce/engagement/review', {
+    method: 'POST', headers: aHeaders, body: JSON.stringify({ ids: [logged[1]], decision: 'reject' }),
+  });
+  assert.equal((await rejectOne.json()).credited, 0);
+
+  const credit = await pool.query(
+    `SELECT amount, currency FROM payout_ledger WHERE metadata->>'reference_id' = $1`, [logged[0]]
+  );
+  assert.equal(credit.rows.length, 1);
+  assert.equal(Math.round(parseFloat(credit.rows[0].amount)), 3500);
+  const noCredit = await pool.query(
+    `SELECT 1 FROM payout_ledger WHERE metadata->>'reference_id' = $1`, [logged[1]]
+  );
+  assert.equal(noCredit.rows.length, 0, 'rejected work pays nothing');
+});
+
+test('a duplicate credit inside one transaction skips without aborting it', async () => {
+  // The failure mode: swallowing a unique violation would leave the
+  // caller's transaction aborted, rolling back sibling credits while the
+  // route reports success. ON CONFLICT DO NOTHING must keep the
+  // transaction fully usable.
+  const comp = require('../src/lib/comp-engine');
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const first = await comp.creditWork({
+      userId: translatorId, workType: 'lead_entry', referenceId: 'txn-dup-test',
+      description: 'transaction duplicate test', client,
+    });
+    const second = await comp.creditWork({
+      userId: translatorId, workType: 'lead_entry', referenceId: 'txn-dup-test',
+      description: 'transaction duplicate test (again)', client,
+    });
+    // The transaction must still accept statements after the duplicate…
+    const alive = await client.query('SELECT 1 AS ok');
+    assert.equal(alive.rows[0].ok, 1, 'transaction not aborted by the duplicate');
+    await client.query('COMMIT');
+
+    assert.equal(first.credited, true);
+    assert.equal(second.credited, false);
+    assert.equal(second.reason, 'already_credited');
+  } finally {
+    client.release();
+  }
+  // …and exactly one ledger row survives the commit.
+  const rows = await pool.query(
+    `SELECT COUNT(*)::int AS c FROM payout_ledger WHERE metadata->>'reference_id' = 'txn-dup-test'`
+  );
+  assert.equal(rows.rows[0].c, 1);
+});
+
+test('work hub access: vendors in, plain users out; kip earnings request works', async () => {
+  const anonUser = new Session(server.base);
+  await anonUser.login('user@test.local');
+  const denied = await anonUser.fetch('/workforce/my', { headers: { accept: 'application/json' } });
+  assert.equal(denied.status, 403);
+
+  const worker = new Session(server.base);
+  await worker.login('verifier@test.local');
+  const hub = await worker.fetch('/workforce/my');
+  assert.equal(hub.status, 200);
+  assert.match(await hub.text(), /My Work Hub/);
+
+  // The verifier's kip credits bundle into a LAK payout request.
+  const wHeaders = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await worker.getCsrfToken('/translations/earnings'),
+  };
+  const request = await worker.fetch('/translations/earnings/request', {
+    method: 'POST', headers: wHeaders, body: JSON.stringify({}),
+  });
+  assert.equal(request.status, 200);
+  const body = await request.json();
+  assert.ok(body.requests.every((r) => r.currency === 'LAK'), 'verifier balance is kip-only');
+  assert.ok(parseFloat(body.requests[0].amount) > 0);
 });
 
 test('AI batch reports missing configuration cleanly', async () => {

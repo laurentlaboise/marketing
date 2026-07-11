@@ -291,6 +291,12 @@ const translationsLimiter = rateLimit({
 });
 app.use('/translations', translationsLimiter, ensureAuthenticated, translationsRoutes);
 
+// Workforce module (leads CRM, engagement/cascade log, comp rates, team).
+// Per-route RBAC inside: worker hub for vendors, admin surfaces for
+// superadmins.
+const workforceRoutes = require('./src/routes/workforce');
+app.use('/workforce', adminSurfaceLimiter(), ensureAuthenticated, workforceRoutes.router);
+
 // Serve images from the local working copy for admin previews.
 // The local copy is env-configurable (IMAGES_DIR, e.g. a Railway volume);
 // when a file is missing locally — typical after a redeploy on an

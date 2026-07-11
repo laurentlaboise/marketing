@@ -1,0 +1,198 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">My Work Hub</h1>
+        <p class="page-subtitle">Leads, community responses and cascade shares — verified output is what pays.</p>
+      </div>
+      <div class="page-actions">
+        <a href="/translations/earnings" class="btn btn-secondary"><i class="fas fa-coins"></i> My Earnings</a>
+      </div>
+    </div>
+
+    <!-- Month counters -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="display:flex; gap:2.5rem; flex-wrap:wrap; align-items:center;">
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Qualified leads this month</div>
+          <div style="font-size:1.5rem; font-weight:700;"><%= counters.qualified_month %></div>
+        </div>
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Conversions this month</div>
+          <div style="font-size:1.5rem;"><%= counters.converted_month %></div>
+        </div>
+        <% monthCredits.forEach(c => { %>
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Earned this month (<%= c.currency %>)</div>
+          <div style="font-size:1.5rem;"><%= c.currency === 'LAK' ? Math.round(parseFloat(c.earned)).toLocaleString() : parseFloat(c.earned).toFixed(2) %></div>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- Capture a lead -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body">
+        <h3 style="margin:0 0 0.25rem;"><i class="fas fa-user-plus"></i> Capture a Lead</h3>
+        <p style="color:var(--gray-500); font-size:0.85rem; margin:0 0 0.75rem;">
+          Real name, reachable phone, stated interest. Duplicates and unreachable entries don't count — clean data is the job.
+        </p>
+        <form id="leadForm" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:0.75rem;">
+          <input class="form-input" name="name" placeholder="Full name *" required>
+          <input class="form-input" name="phone" placeholder="Phone *" required>
+          <input class="form-input" name="email" placeholder="Email">
+          <input class="form-input" name="company" placeholder="Business / company">
+          <select class="form-input" name="source">
+            <% leadSources.filter(s => s !== 'form').forEach(s => { %><option value="<%= s %>"><%= s %></option><% }); %>
+          </select>
+          <input class="form-input" name="interest" placeholder="Stated interest (what do they want?)" style="grid-column: span 2;">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add to CRM</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- My leads -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0;">
+        <div style="padding:1rem 1rem 0.5rem;">
+          <h3 style="margin:0;"><i class="fas fa-address-book"></i> My Leads</h3>
+          <p style="color:var(--gray-500); font-size:0.85rem; margin:0.25rem 0 0.5rem;">
+            Work each record: confirm by call (directory), qualify when warm &amp; contactable. The admin approves and credits verified work.
+          </p>
+        </div>
+        <% if (leads.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead><tr><th>Lead</th><th>Contact</th><th>Interest</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <% leads.forEach(l => { %>
+              <tr data-lead="<%= l.id %>">
+                <td data-label="Lead"><strong><%= l.name || l.company || '—' %></strong><br><span style="color:var(--gray-500); font-size:0.8rem;"><%= l.source %></span></td>
+                <td data-label="Contact"><%= l.phone || '—' %><% if (l.email) { %><br><span style="color:var(--gray-500); font-size:0.8rem;"><%= l.email %></span><% } %></td>
+                <td data-label="Interest" style="max-width:260px;"><%= (l.interest || '').slice(0, 100) %></td>
+                <td data-label="Status"><span style="display:inline-block; padding:0.15rem 0.5rem; border-radius:999px; font-size:0.75rem; color:#fff; background:<%= { new:'#6b7280', entered:'#2563eb', call_verified:'#7c3aed', qualified:'#d97706', converted:'#059669' }[l.status] || '#6b7280' %>;"><%= l.status.replace('_',' ') %></span></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <% if (l.status === 'new') { %>
+                      <button type="button" class="btn btn-sm btn-secondary lead-claim" data-claim="entered">Mark entered</button>
+                    <% } %>
+                    <% if (['new','entered'].includes(l.status)) { %>
+                      <button type="button" class="btn btn-sm btn-secondary lead-claim" data-claim="call_verified" title="Directory record confirmed/updated by phone">Verified by call</button>
+                    <% } %>
+                    <% if (['new','entered','call_verified'].includes(l.status)) { %>
+                      <button type="button" class="btn btn-sm btn-primary lead-claim" data-claim="qualified" title="Warm, contactable, genuinely interested">Qualified</button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state" style="padding:1.5rem;"><p style="margin:0; color:var(--gray-500);">No leads assigned yet — capture one above or ask the admin for a directory batch.</p></div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Log engagement -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body">
+        <h3 style="margin:0 0 0.25rem;"><i class="fas fa-comments"></i> Log Engagement Work</h3>
+        <p style="color:var(--gray-500); font-size:0.85rem; margin:0 0 0.75rem;">
+          One row per unit: a community response you posted, or one cascade share into a group (with wave 1–3). Paste the link as proof.
+        </p>
+        <form id="engagementForm" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:0.75rem;">
+          <select class="form-input" name="track">
+            <option value="community_response">Community response</option>
+            <option value="cascade_share">Cascade share</option>
+          </select>
+          <input class="form-input" name="reference_url" placeholder="Link to the post/reply *" required>
+          <input class="form-input" name="group_name" placeholder="Group name (cascades)">
+          <select class="form-input" name="wave">
+            <option value="">Wave (cascades)</option>
+            <option value="1">Wave 1 (day 0)</option>
+            <option value="2">Wave 2 (24h)</option>
+            <option value="3">Wave 3 (48–72h)</option>
+          </select>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Log It</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Recent logs -->
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <div style="padding:1rem 1rem 0.5rem;"><h3 style="margin:0;">Recent Engagement Logs</h3></div>
+        <div class="table-container">
+          <table class="table">
+            <thead><tr><th>Date</th><th>Track</th><th>Group / Wave</th><th>Link</th><th>Status</th></tr></thead>
+            <tbody>
+              <% logs.forEach(g => { %>
+              <tr>
+                <td><%= new Date(g.created_at).toLocaleDateString() %></td>
+                <td><%= g.track.replace('_', ' ') %></td>
+                <td><%= g.group_name || '—' %><%= g.wave ? ' · W' + g.wave : '' %></td>
+                <td><a href="<%= g.reference_url %>" target="_blank" rel="noopener noreferrer">open</a></td>
+                <td><%= g.status %></td>
+              </tr>
+              <% }); %>
+              <% if (logs.length === 0) { %><tr><td colspan="5" style="color:var(--gray-500);">Nothing logged yet.</td></tr><% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script nonce="<%= cspNonce %>">
+(function () {
+  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify(body || {})
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  document.getElementById('leadForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = e.target, body = {};
+    ['name','phone','email','company','source','interest'].forEach(function (k) {
+      if (f[k] && f[k].value.trim()) body[k] = f[k].value.trim();
+    });
+    post('/workforce/my/leads', body).then(function (res) {
+      if (res.ok) location.reload(); else alert(res.data.error || 'Could not save the lead');
+    });
+  });
+
+  document.querySelectorAll('.lead-claim').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = btn.closest('tr').dataset.lead;
+      post('/workforce/my/leads/' + id, { claim_status: btn.dataset.claim }).then(function (res) {
+        if (res.ok) location.reload(); else alert(res.data.error || 'Update failed');
+      });
+    });
+  });
+
+  document.getElementById('engagementForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = e.target, body = {};
+    ['track','reference_url','group_name','wave'].forEach(function (k) {
+      if (f[k] && f[k].value.trim()) body[k] = f[k].value.trim();
+    });
+    post('/workforce/my/engagement', body).then(function (res) {
+      if (res.ok) location.reload(); else alert(res.data.error || 'Could not save the log');
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>

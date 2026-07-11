@@ -12,27 +12,30 @@
       </div>
     </div>
 
-    <!-- Balance summary -->
+    <!-- Balance summary (one row per currency — kip work credits and USD
+         translation credits are kept separate all the way to payout) -->
     <div class="card" style="margin-bottom:1rem;">
       <div class="card-body" style="display:flex; gap:2.5rem; flex-wrap:wrap; align-items:center;">
+        <% var fmt = function (v, c) { return (c === 'LAK' ? Math.round(parseFloat(v)).toLocaleString() : parseFloat(v).toFixed(2)); }; %>
+        <% if (balances.length === 0) { %>
+          <div>
+            <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Available</div>
+            <div style="font-size:1.5rem; font-weight:700;">0.00</div>
+          </div>
+        <% } %>
+        <% balances.forEach(b => { %>
         <div>
-          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Available</div>
-          <div style="font-size:1.5rem; font-weight:700;">$<%= parseFloat(balance.available).toFixed(2) %></div>
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Available (<%= b.currency %>)</div>
+          <div style="font-size:1.5rem; font-weight:700;"><%= fmt(b.available, b.currency) %></div>
+          <div style="font-size:0.75rem; color:var(--gray-500);">requested <%= fmt(b.requested, b.currency) %> · paid <%= fmt(b.paid, b.currency) %></div>
         </div>
-        <div>
-          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Requested</div>
-          <div style="font-size:1.5rem;">$<%= parseFloat(balance.requested).toFixed(2) %></div>
-        </div>
-        <div>
-          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500);">Paid out</div>
-          <div style="font-size:1.5rem;">$<%= parseFloat(balance.paid).toFixed(2) %></div>
-        </div>
+        <% }); %>
         <div style="margin-left:auto;">
-          <button type="button" class="btn btn-primary" id="requestBtn" <%= parseFloat(balance.available) > 0 ? '' : 'disabled' %>>
+          <button type="button" class="btn btn-primary" id="requestBtn" <%= totalAvailable > 0 ? '' : 'disabled' %>>
             <i class="fas fa-hand-holding-dollar"></i> Request Payout
           </button>
           <% if (minPayout > 0) { %>
-            <div style="font-size:0.75rem; color:var(--gray-500); margin-top:0.25rem;">Minimum payout: $<%= minPayout.toFixed(2) %></div>
+            <div style="font-size:0.75rem; color:var(--gray-500); margin-top:0.25rem;">Minimum payout: <%= minPayout.toFixed(2) %></div>
           <% } %>
         </div>
       </div>
@@ -129,18 +132,19 @@
         <h3 style="margin:0 0 0.75rem;">Ledger History</h3>
         <div class="table-container">
           <table class="table">
-            <thead><tr><th>Date</th><th>Amount</th><th>Status</th><th>Description</th></tr></thead>
+            <thead><tr><th>Date</th><th>Work</th><th>Amount</th><th>Status</th><th>Description</th></tr></thead>
             <tbody>
               <% ledger.forEach(l => { %>
               <tr>
                 <td><%= new Date(l.created_at).toLocaleDateString() %></td>
-                <td><%= l.currency %> <%= parseFloat(l.amount).toFixed(2) %></td>
+                <td><span style="font-size:0.8rem;"><%= (l.type || '').replace(/_/g, ' ') %></span></td>
+                <td><%= l.currency %> <%= l.currency === 'LAK' ? Math.round(parseFloat(l.amount)).toLocaleString() : parseFloat(l.amount).toFixed(2) %></td>
                 <td><%= l.status %></td>
                 <td style="color:var(--gray-500);"><%= l.description || l.type %></td>
               </tr>
               <% }); %>
               <% if (ledger.length === 0) { %>
-              <tr><td colspan="4" style="color:var(--gray-500);">No credits yet — they appear when your submitted translations are approved and published.</td></tr>
+              <tr><td colspan="5" style="color:var(--gray-500);">No credits yet — they appear when your submitted translations are approved and published.</td></tr>
               <% } %>
             </tbody>
           </table>

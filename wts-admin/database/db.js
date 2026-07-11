@@ -1498,6 +1498,170 @@ const db = {
         CREATE INDEX IF NOT EXISTS idx_site_pages_status_tier ON site_pages (status, tier)
       `);
 
+      // ------------------------------------------------------------------
+      // Workforce platform: native verification, leads CRM, engagement
+      // ------------------------------------------------------------------
+
+      // Human verification layer on translations (the Content Verifier
+      // role): a native speaker claims a drafted row, fixes light issues
+      // directly, and approves it (status 'verified') before the admin
+      // publishes. ai_draft_payload snapshots the draft at claim time so
+      // edit compensation can be measured against what the verifier
+      // actually changed. Character counts are the pay meter — Lao and
+      // Thai have no word breaks, so verification pay is per 1,000
+      // characters of target text.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='verifier_id') THEN
+            ALTER TABLE translations ADD COLUMN verifier_id UUID REFERENCES users(id);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='verified_by') THEN
+            ALTER TABLE translations ADD COLUMN verified_by UUID REFERENCES users(id);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='verified_at') THEN
+            ALTER TABLE translations ADD COLUMN verified_at TIMESTAMP;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='ai_draft_payload') THEN
+            ALTER TABLE translations ADD COLUMN ai_draft_payload JSONB;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='target_char_count') THEN
+            ALTER TABLE translations ADD COLUMN target_char_count INTEGER;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='edited_chars') THEN
+            ALTER TABLE translations ADD COLUMN edited_chars INTEGER;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='translations' AND column_name='edited_segments') THEN
+            ALTER TABLE translations ADD COLUMN edited_segments INTEGER;
+          END IF;
+        END $$;
+      `);
+
+      // Team structure: position labels from the role briefs and a
+      // manager chain (e.g. Cascade Coordinator managing associates).
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='position') THEN
+            ALTER TABLE users ADD COLUMN position VARCHAR(60);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='manager_id') THEN
+            ALTER TABLE users ADD COLUMN manager_id UUID REFERENCES users(id);
+          END IF;
+        END $$;
+      `);
+
+      // payout_rates grows a work_type axis so translating, verifying and
+      // editing pay differently, and a per-1000-character rate type for
+      // scripts without word breaks.
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payout_rates' AND column_name='work_type') THEN
+            ALTER TABLE payout_rates ADD COLUMN work_type VARCHAR(30) DEFAULT 'translation';
+          END IF;
+        END $$;
+      `);
+
+      // Compensation rates for non-translation work units (from the
+      // position briefs, all amounts editable): lead data entry,
+      // call-verified directory records, qualified leads (marginal
+      // volume tiers), conversion bonuses (percent with a floor, or
+      // flat), community responses, cascade shares. tiers example:
+      // [{"min":1,"max":20,"rate":20000},{"min":21,"max":50,"rate":28000},{"min":51,"rate":35000}]
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS comp_rates (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          work_type VARCHAR(40) NOT NULL,
+          rate_amount DECIMAL(14,2) DEFAULT 0,
+          currency VARCHAR(3) DEFAULT 'LAK',
+          tiers JSONB,
+          bonus_percent DECIMAL(6,3),
+          bonus_floor DECIMAL(14,2),
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Leads CRM — the single system of record from the Lead Verifier
+      // brief: only entered, de-duplicated, real records count and pay.
+      // status: new → entered (clean data entry) → call_verified
+      // (directory record confirmed by phone) → qualified (warm,
+      // contactable) → converted (closed sale) | junk (pays nothing).
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS leads (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          source VARCHAR(40) DEFAULT 'manual',
+          name VARCHAR(255),
+          phone VARCHAR(60),
+          email VARCHAR(255),
+          company VARCHAR(255),
+          category VARCHAR(120),
+          interest TEXT,
+          status VARCHAR(30) DEFAULT 'new',
+          assigned_to UUID REFERENCES users(id),
+          entered_by UUID REFERENCES users(id),
+          notes TEXT,
+          sale_value DECIMAL(14,2),
+          form_submission_id UUID,
+          entered_at TIMESTAMP,
+          call_verified_at TIMESTAMP,
+          qualified_at TIMESTAMP,
+          converted_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Engagement / cascade work log (Tracks B + cascade brief): each
+      // row is one community response or one cascade share with proof.
+      // Admin approval credits the ledger; rejected rows pay nothing.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS engagement_logs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL REFERENCES users(id),
+          track VARCHAR(30) NOT NULL,
+          reference_url TEXT,
+          group_name VARCHAR(255),
+          wave INTEGER,
+          note TEXT,
+          status VARCHAR(20) DEFAULT 'pending',
+          reviewed_by UUID REFERENCES users(id),
+          reviewed_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_comp_rates_lookup ON comp_rates (work_type, user_id, is_active);
+        CREATE INDEX IF NOT EXISTS idx_leads_status ON leads (status, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_leads_assigned ON leads (assigned_to, status);
+        CREATE INDEX IF NOT EXISTS idx_leads_phone ON leads (phone);
+        CREATE INDEX IF NOT EXISTS idx_engagement_user ON engagement_logs (user_id, status, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_engagement_status ON engagement_logs (status, created_at DESC);
+      `);
+
+      // Money-integrity guarantees enforced by the database, not just the
+      // application checks:
+      //  - one credit per (work unit, work type): concurrent approvals
+      //    collapse into a single ledger row (creditWork treats the
+      //    unique violation as already-credited)
+      //  - one lead per form submission: concurrent imports can't
+      //    duplicate
+      //  - the phone-dedupe lookup matches its normalized expression so
+      //    Postgres can use an index for it
+      await client.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_payout_ledger_work_reference
+          ON payout_ledger ((metadata->>'reference_id'), (metadata->>'work_type'))
+          WHERE metadata->>'reference_id' IS NOT NULL;
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_leads_form_submission
+          ON leads (form_submission_id) WHERE form_submission_id IS NOT NULL;
+        CREATE INDEX IF NOT EXISTS idx_leads_phone_normalized
+          ON leads (regexp_replace(COALESCE(phone, ''), '[^0-9]', '', 'g'));
+      `);
+
       await client.query(`
         CREATE INDEX IF NOT EXISTS idx_translations_status ON translations (status);
         CREATE INDEX IF NOT EXISTS idx_translations_translator ON translations (translator_id);

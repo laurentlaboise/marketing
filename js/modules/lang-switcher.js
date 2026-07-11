@@ -63,12 +63,74 @@ function buildSwitcher({ lang, rest }, variant) {
   return nav;
 }
 
+// "View this page in your language?" — shown once per visitor when the
+// browser language doesn't match the page language (e.g. a Thai visitor
+// landing on /en from a search result). A suggestion, never a forced
+// redirect: SEO-safe and dismissible for 30 days.
+const BANNER_STRINGS = {
+  th: { text: 'ดูเว็บไซต์นี้เป็นภาษาไทยไหม?', cta: 'ดูภาษาไทย' },
+  la: { text: 'ເບິ່ງເວັບໄຊນີ້ເປັນພາສາລາວບໍ?', cta: 'ເບິ່ງພາສາລາວ' },
+  fr: { text: 'Voir ce site en français ?', cta: 'Voir en français' },
+  en: { text: 'View this site in English?', cta: 'View in English' },
+};
+
+function browserPreferredDir() {
+  const nav = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase();
+  if (nav.indexOf('th') === 0) return 'th';
+  if (nav.indexOf('lo') === 0) return 'la';
+  if (nav.indexOf('fr') === 0) return 'fr';
+  if (nav.indexOf('en') === 0) return 'en';
+  return null;
+}
+
+function maybeShowLanguageBanner(context) {
+  const preferred = browserPreferredDir();
+  if (!preferred || preferred === context.lang) return;
+  if (/(?:^|;\s*)wts_lang_banner=off/.test(document.cookie)) return;
+  const saved = document.cookie.match(/(?:^|;\s*)wts_lang=(en|th|la|fr)/);
+  if (saved && saved[1] === context.lang) return; // explicit choice wins
+
+  const strings = BANNER_STRINGS[preferred];
+  const banner = document.createElement('div');
+  banner.className = 'lang-banner';
+  banner.setAttribute('role', 'region');
+  banner.setAttribute('aria-label', 'Language suggestion');
+
+  const text = document.createElement('span');
+  text.textContent = strings.text;
+  banner.appendChild(text);
+
+  const go = document.createElement('a');
+  go.href = `/${preferred}${context.rest}`;
+  go.textContent = strings.cta;
+  go.addEventListener('click', () => setLangCookie(preferred));
+  banner.appendChild(go);
+
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.textContent = '×';
+  close.setAttribute('aria-label', 'Dismiss');
+  close.addEventListener('click', () => {
+    document.cookie = `wts_lang_banner=off;path=/;max-age=${60 * 60 * 24 * 30};SameSite=Lax`;
+    banner.remove();
+  });
+  banner.appendChild(close);
+
+  document.body.appendChild(banner);
+}
+
+const BANNER_STYLES = `
+.lang-banner{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:1300;display:flex;gap:12px;align-items:center;background:#122a3f;color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:10px 14px;font-size:.9rem;line-height:1.7;box-shadow:0 4px 16px rgba(0,0,0,.3);max-width:92vw}
+.lang-banner a{color:#fff;background:#d62b83;border-radius:999px;padding:4px 14px;text-decoration:none;white-space:nowrap}
+.lang-banner button{background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;padding:0 2px}
+`;
+
 export function initLangSwitcher() {
   const context = currentLanguageContext();
   if (!context) return; // root, admin previews, non-language pages
 
   const style = document.createElement('style');
-  style.textContent = STYLES;
+  style.textContent = STYLES + BANNER_STYLES;
   document.head.appendChild(style);
 
   // Header role: floating pill (the homepage has no navbar, so a fixed
@@ -78,4 +140,6 @@ export function initLangSwitcher() {
   // Footer copy, inside the bottom bar when present.
   const footerBottom = document.querySelector('.footer-bottom') || document.querySelector('footer');
   if (footerBottom) footerBottom.appendChild(buildSwitcher(context, 'footer'));
+
+  maybeShowLanguageBanner(context);
 }

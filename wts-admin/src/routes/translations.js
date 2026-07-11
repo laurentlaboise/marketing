@@ -9,6 +9,7 @@ const db = require('../../database/db');
 const {
   ensureSuperAdmin,
   ensureTranslator,
+  ensureWorker,
   isSuperAdmin,
   logActivity,
 } = require('../middleware/auth');
@@ -195,6 +196,9 @@ router.get('/review/:id', ensureSuperAdmin, async (req, res, next) => {
     const translator = row.translator_id
       ? (await db.query('SELECT id, first_name, last_name, email, is_vendor FROM users WHERE id = $1', [row.translator_id])).rows[0]
       : null;
+    const verifier = row.verified_by
+      ? (await db.query('SELECT id, first_name, last_name, email, is_vendor FROM users WHERE id = $1', [row.verified_by])).rows[0]
+      : null;
     const payoutPreview = row.translator_id ? await core.calculatePayout(row) : null;
     const ledgerEntry = (await db.query(
       `SELECT * FROM payout_ledger WHERE translation_id = $1 AND type = 'translation_credit' LIMIT 1`,
@@ -207,6 +211,7 @@ router.get('/review/:id', ensureSuperAdmin, async (req, res, next) => {
       item: row,
       source,
       translator,
+      verifier,
       payoutPreview,
       ledgerEntry,
       languageNames: core.LANGUAGE_NAMES,
@@ -289,7 +294,7 @@ router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve')
     if (!core.isUuid(req.params.id)) {
       return asJson(res, 404, { success: false, error: 'Translation not found' });
     }
-    const { translation, payout, payoutSkipReason } = await core.onTranslationPublished(
+    const { translation, payout, payoutSkipReason, credits } = await core.onTranslationPublished(
       req.params.id,
       req.user.id
     );
@@ -309,6 +314,7 @@ router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve')
       translation,
       payout,
       payoutSkipReason,
+      credits,
       regeneration: regeneration ? { dispatched: regeneration.ok, reason: regeneration.ok ? undefined : regeneration.reason } : null,
     });
   } catch (error) {
@@ -376,22 +382,30 @@ router.get('/vendors', ensureSuperAdmin, async (req, res, next) => {
   try {
     const users = await db.query(
       `SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.assigned_languages,
-              u.is_vendor, u.payout_metadata,
-              COALESCE(b.available, 0) AS available_balance
+              u.is_vendor, u.payout_metadata, u.position, u.manager_id,
+              m.first_name AS manager_first_name, m.last_name AS manager_last_name
        FROM users u
-       LEFT JOIN (
-         SELECT translator_id, SUM(amount) AS available
-         FROM payout_ledger WHERE status = 'available' GROUP BY translator_id
-       ) b ON b.translator_id = u.id
-       ORDER BY (u.role = 'translator') DESC, u.created_at DESC`
+       LEFT JOIN users m ON m.id = u.manager_id
+       ORDER BY (u.role = 'translator' OR u.is_vendor) DESC, u.created_at DESC`
     );
+    const balances = await db.query(
+      `SELECT translator_id, currency, SUM(amount) AS available
+       FROM payout_ledger WHERE status = 'available' GROUP BY translator_id, currency`
+    );
+    const balancesByUser = {};
+    for (const row of balances.rows) {
+      (balancesByUser[row.translator_id] = balancesByUser[row.translator_id] || []).push(row);
+    }
+    const { POSITIONS } = require('./workforce');
     res.render('translations/vendors', {
-      title: 'Translation Vendors - WTS Admin',
+      title: 'Team & Vendors - WTS Admin',
       currentPage: 'translation-vendors',
       users: users.rows.map((u) => ({
         ...u,
         payout: gateway.describeStored(u.payout_metadata),
+        balances: balancesByUser[u.id] || [],
       })),
+      positions: POSITIONS,
       languages: core.TARGET_LANGUAGES,
       languageNames: core.LANGUAGE_NAMES,
     });
@@ -442,15 +456,15 @@ router.post('/vendors/:id', ensureSuperAdmin, logActivity('translation_vendor_up
 
 router.get('/payouts', ensureSuperAdmin, async (req, res, next) => {
   try {
-    const [balances, requests, rates, recentLedger] = await Promise.all([
+    const [balances, requests, rates, compRates, recentLedger] = await Promise.all([
       db.query(
-        `SELECT u.id, u.email, u.first_name, u.last_name,
+        `SELECT u.id, u.email, u.first_name, u.last_name, l.currency,
                 COALESCE(SUM(l.amount) FILTER (WHERE l.status = 'available'), 0) AS available,
                 COALESCE(SUM(l.amount) FILTER (WHERE l.status = 'requested'), 0) AS requested,
                 COALESCE(SUM(l.amount) FILTER (WHERE l.status = 'paid'), 0) AS paid
          FROM users u
          JOIN payout_ledger l ON l.translator_id = u.id
-         GROUP BY u.id, u.email, u.first_name, u.last_name
+         GROUP BY u.id, u.email, u.first_name, u.last_name, l.currency
          ORDER BY available DESC`
       ),
       db.query(
@@ -462,7 +476,13 @@ router.get('/payouts', ensureSuperAdmin, async (req, res, next) => {
         `SELECT r.*, u.email AS translator_email
          FROM payout_rates r LEFT JOIN users u ON u.id = r.translator_id
          WHERE r.is_active = TRUE
-         ORDER BY r.translator_id NULLS LAST, r.target_language NULLS LAST`
+         ORDER BY r.work_type, r.translator_id NULLS LAST, r.target_language NULLS LAST`
+      ),
+      db.query(
+        `SELECT c.*, u.email AS worker_email
+         FROM comp_rates c LEFT JOIN users u ON u.id = c.user_id
+         WHERE c.is_active = TRUE
+         ORDER BY c.work_type, c.user_id NULLS LAST`
       ),
       db.query(
         `SELECT l.*, u.email AS translator_email
@@ -471,12 +491,15 @@ router.get('/payouts', ensureSuperAdmin, async (req, res, next) => {
       ),
     ]);
 
+    const { WORK_TYPES } = require('../lib/comp-engine');
     res.render('translations/payouts', {
       title: 'Payout Ledger - WTS Admin',
       currentPage: 'translation-payouts',
       balances: balances.rows,
       requests: requests.rows,
       rates: rates.rows,
+      compRates: compRates.rows,
+      compWorkTypes: WORK_TYPES,
       ledger: recentLedger.rows,
       languages: core.TARGET_LANGUAGES,
       languageNames: core.LANGUAGE_NAMES,
@@ -489,12 +512,16 @@ router.get('/payouts', ensureSuperAdmin, async (req, res, next) => {
 router.post('/payouts/rates', ensureSuperAdmin, logActivity('payout_rate_save'), async (req, res) => {
   try {
     const { translator_id: translatorId, target_language: targetLanguage, rate_type: rateType } = req.body;
+    const workType = req.body.work_type || 'translation';
     const rateAmount = parseFloat(req.body.rate_amount);
     const minPayout = parseFloat(req.body.min_payout) || 0;
     const currency = /^[A-Z]{3}$/.test(req.body.currency || '') ? req.body.currency : 'USD';
 
-    if (!['per_word', 'per_article', 'fixed'].includes(rateType)) {
-      return asJson(res, 400, { success: false, error: 'rate_type must be per_word, per_article or fixed' });
+    if (!['per_word', 'per_1000_chars', 'per_article', 'fixed'].includes(rateType)) {
+      return asJson(res, 400, { success: false, error: 'rate_type must be per_word, per_1000_chars, per_article or fixed' });
+    }
+    if (!['translation', 'verification', 'edit'].includes(workType)) {
+      return asJson(res, 400, { success: false, error: 'work_type must be translation, verification or edit' });
     }
     if (!Number.isFinite(rateAmount) || rateAmount < 0) {
       return asJson(res, 400, { success: false, error: 'rate_amount must be a non-negative number' });
@@ -506,18 +533,19 @@ router.post('/payouts/rates', ensureSuperAdmin, logActivity('payout_rate_save'),
       return asJson(res, 400, { success: false, error: 'Invalid target language' });
     }
 
-    // One active card per (translator, language) scope: deactivate then insert.
+    // One active card per (translator, language, work type) scope.
     await db.query(
       `UPDATE payout_rates SET is_active = FALSE, updated_at = CURRENT_TIMESTAMP
        WHERE is_active = TRUE
+         AND work_type = $3
          AND translator_id IS NOT DISTINCT FROM $1
          AND target_language IS NOT DISTINCT FROM $2`,
-      [translatorId || null, targetLanguage || null]
+      [translatorId || null, targetLanguage || null, workType]
     );
     const inserted = await db.query(
-      `INSERT INTO payout_rates (translator_id, target_language, rate_type, rate_amount, currency, min_payout)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [translatorId || null, targetLanguage || null, rateType, rateAmount, currency, minPayout]
+      `INSERT INTO payout_rates (translator_id, target_language, work_type, rate_type, rate_amount, currency, min_payout)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [translatorId || null, targetLanguage || null, workType, rateType, rateAmount, currency, minPayout]
     );
     asJson(res, 200, { success: true, rate: inserted.rows[0] });
   } catch (error) {
@@ -700,28 +728,49 @@ router.get('/workspace', ensureTranslator, async (req, res, next) => {
         title: 'Translation Workspace - WTS Admin',
         currentPage: 'workspace',
         items: [],
+        verifyItems: [],
         assigned,
         languageNames: core.LANGUAGE_NAMES,
         noLanguages: true,
       });
     }
-    // Translators see rows in their languages that are unclaimed or theirs.
-    const rows = await db.query(
+
+    // Translate queue: my claimed rows plus unclaimed rows that need a
+    // human translation pass (pending / rejected).
+    const translateRows = await db.query(
       admin
-        ? `SELECT * FROM translations ORDER BY updated_at DESC LIMIT 200`
+        ? `SELECT * FROM translations WHERE status <> 'requires_review' ORDER BY updated_at DESC LIMIT 150`
         : `SELECT * FROM translations
            WHERE target_language = ANY($1)
-             AND (translator_id IS NULL OR translator_id = $2)
-             AND status IN ('pending', 'translating', 'rejected', 'requires_review', 'published')
+             AND (translator_id = $2 OR (translator_id IS NULL AND status IN ('pending', 'rejected')))
+             AND status IN ('pending', 'translating', 'rejected', 'requires_review', 'verified', 'published')
            ORDER BY (status = 'rejected') DESC, (status = 'pending') DESC, updated_at DESC
-           LIMIT 200`,
+           LIMIT 150`,
+      admin ? [] : [assigned, req.user.id]
+    );
+
+    // Verify queue: drafted rows awaiting a native sign-off — someone
+    // else's (or AI's) work, unclaimed or claimed by me. "If it's
+    // translated by AI, they can check it" — but never their own.
+    const verifyRows = await db.query(
+      admin
+        ? `SELECT * FROM translations WHERE status = 'requires_review' ORDER BY updated_at ASC LIMIT 150`
+        : `SELECT * FROM translations
+           WHERE target_language = ANY($1)
+             AND status = 'requires_review'
+             AND (translator_id IS NULL OR translator_id <> $2)
+             AND (verifier_id IS NULL OR verifier_id = $2)
+             AND content_payload::text <> '{}'
+           ORDER BY (verifier_id = $2) DESC, updated_at ASC
+           LIMIT 150`,
       admin ? [] : [assigned, req.user.id]
     );
 
     // Resolve entity titles for display (per type, one query).
     const titles = {};
+    const allRows = [...translateRows.rows, ...verifyRows.rows];
     for (const type of core.ENTITY_TYPES) {
-      const ids = rows.rows.filter((r) => r.entity_type === type).map((r) => r.entity_id);
+      const ids = allRows.filter((r) => r.entity_type === type).map((r) => r.entity_id);
       if (ids.length === 0) continue;
       const config = core.ENTITY_SOURCES[type];
       const found = await db.query(
@@ -730,11 +779,13 @@ router.get('/workspace', ensureTranslator, async (req, res, next) => {
       );
       for (const row of found.rows) titles[`${type}:${row.id}`] = row.title;
     }
+    const withTitle = (r) => ({ ...r, entity_title: titles[`${r.entity_type}:${r.entity_id}`] || r.entity_id });
 
     res.render('translations/workspace-list', {
       title: 'Translation Workspace - WTS Admin',
       currentPage: 'workspace',
-      items: rows.rows.map((r) => ({ ...r, entity_title: titles[`${r.entity_type}:${r.entity_id}`] || r.entity_id })),
+      items: translateRows.rows.map(withTitle),
+      verifyItems: verifyRows.rows.map(withTitle),
       assigned,
       languageNames: core.LANGUAGE_NAMES,
       noLanguages: false,
@@ -845,12 +896,217 @@ router.post('/workspace/:id/submit', ensureTranslator, logActivity('translation_
 });
 
 // ---------------------------------------------------------------------------
+// Verification workspace (Content Verifier brief: proof · localize ·
+// approve). A native speaker signs off drafted rows before publish —
+// fixing light issues directly, returning heavy problems upstream.
+// Verifiers never review their own translations.
+// ---------------------------------------------------------------------------
+
+async function loadVerifyRow(req, res) {
+  const row = await loadTranslation(req, res);
+  if (!row) return null;
+  const reason = core.verifyAccessError(req.user, row);
+  if (reason) {
+    asJson(res, 403, { success: false, error: reason });
+    return null;
+  }
+  return row;
+}
+
+router.get('/verify/:id', ensureTranslator, async (req, res, next) => {
+  try {
+    const row = await loadTranslation(req, res);
+    if (!row) return;
+    const reason = core.verifyAccessError(req.user, row);
+    if (reason) {
+      return res.status(403).render('error', { title: 'Access Denied', message: reason, code: 403 });
+    }
+    if (!['requires_review', 'verified'].includes(row.status)) {
+      return res.status(409).render('error', {
+        title: 'Not Ready',
+        message: `This item is "${row.status.replace('_', ' ')}" — only drafts awaiting review can be verified.`,
+        code: 409,
+      });
+    }
+    const source = await core.fetchEntitySource(row.entity_type, row.entity_id);
+    res.render('translations/verify-editor', {
+      title: 'Verify - WTS Admin',
+      currentPage: 'workspace',
+      item: row,
+      source,
+      languageNames: core.LANGUAGE_NAMES,
+      entityConfig: core.ENTITY_SOURCES[row.entity_type],
+      readOnly: row.status === 'verified',
+      targetChars: core.countChars(row.content_payload),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Claim + save fixes. First write snapshots the draft (ai_draft_payload)
+// so edit compensation is measured against what the verifier started
+// from, and locks the row to this verifier.
+router.post('/verify/:id/save', ensureTranslator, async (req, res) => {
+  try {
+    const row = await loadVerifyRow(req, res);
+    if (!row) return;
+    if (row.status !== 'requires_review') {
+      return asJson(res, 409, { success: false, error: `Cannot edit from status "${row.status}"` });
+    }
+    const { payload, error } = core.sanitizePayload(row.entity_type, req.body.content_payload);
+    if (error) return asJson(res, 400, { success: false, error });
+
+    const draft = row.ai_draft_payload || row.content_payload || {};
+    const stats = core.computeEditStats(draft, payload);
+    await db.query(
+      `UPDATE translations
+       SET content_payload = $1, verifier_id = $2,
+           ai_draft_payload = COALESCE(ai_draft_payload, $3),
+           target_char_count = $4, edited_chars = $5, edited_segments = $6,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $7`,
+      [
+        JSON.stringify(payload),
+        req.user.role === 'translator' ? req.user.id : row.verifier_id,
+        JSON.stringify(row.content_payload || {}),
+        core.countChars(payload),
+        stats.editedChars,
+        stats.editedSegments,
+        row.id,
+      ]
+    );
+    asJson(res, 200, { success: true, editedChars: stats.editedChars, editedSegments: stats.editedSegments });
+  } catch (error) {
+    console.error('Verify save failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Save failed' });
+  }
+});
+
+// Approve: requires_review → verified. Accepts a final payload in the
+// same call so "approve as-is" and "approve with fixes" are one action.
+router.post('/verify/:id/approve', ensureTranslator, logActivity('translation_verify'), async (req, res) => {
+  try {
+    const row = await loadVerifyRow(req, res);
+    if (!row) return;
+    if (!core.canTransition(row.status, 'verified')) {
+      return asJson(res, 409, { success: false, error: `Cannot verify from status "${row.status}"` });
+    }
+    let payload = row.content_payload || {};
+    if (req.body.content_payload) {
+      const checked = core.sanitizePayload(row.entity_type, req.body.content_payload);
+      if (checked.error) return asJson(res, 400, { success: false, error: checked.error });
+      payload = checked.payload;
+    }
+    if (Object.keys(payload).length === 0) {
+      return asJson(res, 400, { success: false, error: 'Nothing to verify — the draft is empty' });
+    }
+    const draft = row.ai_draft_payload || row.content_payload || {};
+    const stats = core.computeEditStats(draft, payload);
+    const verifierId = req.user.role === 'translator' ? req.user.id : (row.verifier_id || req.user.id);
+
+    await db.query(
+      `UPDATE translations
+       SET content_payload = $1, status = 'verified',
+           verifier_id = $2, verified_by = $2, verified_at = CURRENT_TIMESTAMP,
+           ai_draft_payload = COALESCE(ai_draft_payload, $3),
+           target_char_count = $4, edited_chars = $5, edited_segments = $6,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $7`,
+      [
+        JSON.stringify(payload),
+        verifierId,
+        JSON.stringify(row.content_payload || {}),
+        core.countChars(payload),
+        stats.editedChars,
+        stats.editedSegments,
+        row.id,
+      ]
+    );
+    await core.notifySuperAdmins(
+      'Translation verified',
+      `${req.user.first_name || req.user.email} verified a ${row.entity_type} (${core.LANGUAGE_NAMES[row.target_language] || row.target_language})${stats.editedSegments ? ` with ${stats.editedSegments} segment(s) reworked` : ' as-is'}.`,
+      `/translations/review/${row.id}`
+    );
+    asJson(res, 200, { success: true, editedChars: stats.editedChars, editedSegments: stats.editedSegments });
+  } catch (error) {
+    console.error('Verify approve failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Approve failed' });
+  }
+});
+
+// Return upstream: the draft needs a full re-do, not a quick fix. Human
+// translations go back to their translator (rejected); AI rows re-queue
+// as pending for the next batch or a human takeover.
+router.post('/verify/:id/return', ensureTranslator, logActivity('translation_verify_return'), async (req, res) => {
+  try {
+    const row = await loadVerifyRow(req, res);
+    if (!row) return;
+    if (row.status !== 'requires_review') {
+      return asJson(res, 409, { success: false, error: `Cannot return from status "${row.status}"` });
+    }
+    const note = typeof req.body.note === 'string' ? req.body.note.slice(0, 2000) : null;
+    const nextStatus = row.translator_id ? 'rejected' : 'pending';
+    await db.query(
+      `UPDATE translations
+       SET status = $1, review_note = $2, verifier_id = NULL, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3`,
+      [nextStatus, note, row.id]
+    );
+    if (row.translator_id) {
+      await core.notifyUser(
+        row.translator_id,
+        'Translation returned by verifier',
+        note ? `Verifier note: ${note}` : 'Your translation needs a rework.',
+        '/translations/workspace'
+      );
+    }
+    await core.notifySuperAdmins(
+      'Draft returned for re-translation',
+      `${req.user.first_name || req.user.email} returned a ${row.entity_type} draft (${core.LANGUAGE_NAMES[row.target_language] || row.target_language})${note ? `: ${note}` : '.'}`,
+      '/translations?status=' + nextStatus
+    );
+    asJson(res, 200, { success: true, status: nextStatus });
+  } catch (error) {
+    console.error('Verify return failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Return failed' });
+  }
+});
+
+// Bulk publish everything verified (optionally per language) — the admin
+// doesn't read Lao; the native verifier is the quality gate, publishing
+// is the financial gate.
+router.post('/publish-verified', ensureSuperAdmin, logActivity('translations_publish_verified'), async (req, res) => {
+  try {
+    const lang = core.TARGET_LANGUAGES.includes(req.body.lang) ? req.body.lang : null;
+    const rows = await db.query(
+      `SELECT id FROM translations WHERE status = 'verified' ${lang ? 'AND target_language = $1' : ''} LIMIT 100`,
+      lang ? [lang] : []
+    );
+    let published = 0;
+    const errors = [];
+    for (const row of rows.rows) {
+      try {
+        await core.onTranslationPublished(row.id, req.user.id);
+        published += 1;
+      } catch (error) {
+        errors.push({ id: row.id, error: error.message });
+      }
+    }
+    asJson(res, 200, { success: true, published, errors });
+  } catch (error) {
+    console.error('Bulk publish failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Bulk publish failed' });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Vendor earnings: ledger, banking metadata, payout requests
 // ---------------------------------------------------------------------------
 
-router.get('/earnings', ensureTranslator, async (req, res, next) => {
+router.get('/earnings', ensureWorker, async (req, res, next) => {
   try {
-    const [ledger, requests, balance] = await Promise.all([
+    const [ledger, requests, balances] = await Promise.all([
       db.query(
         `SELECT l.*, t.entity_type, t.target_language
          FROM payout_ledger l LEFT JOIN translations t ON t.id = l.translation_id
@@ -862,21 +1118,25 @@ router.get('/earnings', ensureTranslator, async (req, res, next) => {
         [req.user.id]
       ),
       db.query(
-        `SELECT COALESCE(SUM(amount) FILTER (WHERE status = 'available'), 0) AS available,
+        `SELECT currency,
+                COALESCE(SUM(amount) FILTER (WHERE status = 'available'), 0) AS available,
                 COALESCE(SUM(amount) FILTER (WHERE status = 'requested'), 0) AS requested,
                 COALESCE(SUM(amount) FILTER (WHERE status = 'paid'), 0) AS paid
-         FROM payout_ledger WHERE translator_id = $1`,
+         FROM payout_ledger WHERE translator_id = $1
+         GROUP BY currency ORDER BY currency`,
         [req.user.id]
       ),
     ]);
     const rate = await core.resolveRate(req.user.id, (req.user.assigned_languages || [])[0] || null);
+    const totalAvailable = balances.rows.reduce((sum, b) => sum + parseFloat(b.available), 0);
 
     res.render('translations/earnings', {
       title: 'My Earnings - WTS Admin',
       currentPage: 'earnings',
       ledger: ledger.rows,
       requests: requests.rows,
-      balance: balance.rows[0],
+      balances: balances.rows,
+      totalAvailable,
       payout: gateway.describeStored(req.user.payout_metadata),
       encryptionConfigured: gateway.isEncryptionConfigured(),
       gateways: gateway.GATEWAYS,
@@ -889,7 +1149,7 @@ router.get('/earnings', ensureTranslator, async (req, res, next) => {
 });
 
 // Store banking details — encrypted envelope only, never plaintext.
-router.post('/earnings/banking', ensureTranslator, logActivity('payout_banking_update'), async (req, res) => {
+router.post('/earnings/banking', ensureWorker, logActivity('payout_banking_update'), async (req, res) => {
   try {
     const gatewayName = req.body.gateway;
     if (!gateway.GATEWAYS.includes(gatewayName)) {
@@ -917,10 +1177,12 @@ router.post('/earnings/banking', ensureTranslator, logActivity('payout_banking_u
   }
 });
 
-// Request disbursement of the full available balance. Bundles the
-// available ledger entries into one payout_requests row and snapshots the
-// banking envelope so later profile edits can't redirect this payout.
-router.post('/earnings/request', ensureTranslator, logActivity('payout_request'), async (req, res) => {
+// Request disbursement of the full available balance. Entries are
+// bundled per currency (kip work-unit credits and USD translation
+// credits coexist) — one payout_requests row per currency, each
+// snapshotting the banking envelope so later profile edits can't
+// redirect an in-flight payout.
+router.post('/earnings/request', ensureWorker, logActivity('payout_request'), async (req, res) => {
   const client = await db.getClient();
   try {
     await client.query('BEGIN');
@@ -933,38 +1195,47 @@ router.post('/earnings/request', ensureTranslator, logActivity('payout_request')
       await client.query('ROLLBACK');
       return asJson(res, 400, { success: false, error: 'No available balance to request' });
     }
-    const total = entries.rows.reduce((sum, row) => sum + parseFloat(row.amount), 0);
-    const currency = entries.rows[0].currency || 'USD';
+
+    const byCurrency = {};
+    for (const row of entries.rows) {
+      const currency = row.currency || 'USD';
+      (byCurrency[currency] = byCurrency[currency] || []).push(row);
+    }
 
     const rate = await core.resolveRate(req.user.id, (req.user.assigned_languages || [])[0] || null, client);
     const minPayout = rate ? parseFloat(rate.min_payout) || 0 : 0;
-    if (total < minPayout) {
-      await client.query('ROLLBACK');
-      return asJson(res, 400, {
-        success: false,
-        error: `Balance ${currency} ${total.toFixed(2)} is below the minimum payout of ${currency} ${minPayout.toFixed(2)}`,
-      });
-    }
-
     const metadata = req.user.payout_metadata && req.user.payout_metadata.enc ? req.user.payout_metadata : null;
-    const request = await client.query(
-      `INSERT INTO payout_requests (translator_id, amount, currency, status, gateway, bank_metadata_snapshot)
-       VALUES ($1, $2, $3, 'requested', $4, $5) RETURNING *`,
-      [req.user.id, total.toFixed(4), currency, metadata ? metadata.gateway : 'manual', metadata ? JSON.stringify(metadata) : null]
-    );
-    await client.query(
-      `UPDATE payout_ledger SET status = 'requested', payout_request_id = $1
-       WHERE id = ANY($2)`,
-      [request.rows[0].id, entries.rows.map((r) => r.id)]
-    );
+
+    const created = [];
+    for (const [currency, rows] of Object.entries(byCurrency)) {
+      const total = rows.reduce((sum, row) => sum + parseFloat(row.amount), 0);
+      // The minimum applies to the currency the rate card is written in.
+      if (rate && (rate.currency || 'USD') === currency && total < minPayout) {
+        await client.query('ROLLBACK');
+        return asJson(res, 400, {
+          success: false,
+          error: `Balance ${currency} ${total.toFixed(2)} is below the minimum payout of ${currency} ${minPayout.toFixed(2)}`,
+        });
+      }
+      const request = await client.query(
+        `INSERT INTO payout_requests (translator_id, amount, currency, status, gateway, bank_metadata_snapshot)
+         VALUES ($1, $2, $3, 'requested', $4, $5) RETURNING *`,
+        [req.user.id, total.toFixed(4), currency, metadata ? metadata.gateway : 'manual', metadata ? JSON.stringify(metadata) : null]
+      );
+      await client.query(
+        `UPDATE payout_ledger SET status = 'requested', payout_request_id = $1 WHERE id = ANY($2)`,
+        [request.rows[0].id, rows.map((r) => r.id)]
+      );
+      created.push(request.rows[0]);
+    }
     await client.query('COMMIT');
 
     await core.notifySuperAdmins(
       'Payout requested',
-      `${req.user.first_name || req.user.email} requested a payout of ${currency} ${total.toFixed(2)}.`,
+      `${req.user.first_name || req.user.email} requested ${created.map((r) => `${r.currency} ${parseFloat(r.amount).toFixed(2)}`).join(' + ')}.`,
       '/translations/payouts'
     );
-    asJson(res, 200, { success: true, request: request.rows[0] });
+    asJson(res, 200, { success: true, requests: created, request: created[0] });
   } catch (error) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('Payout request failed:', error.message);

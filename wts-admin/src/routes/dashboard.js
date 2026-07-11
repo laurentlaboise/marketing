@@ -17,9 +17,12 @@ router.use(ensureAuthenticated);
 
 // Main dashboard
 router.get('/', async (req, res) => {
-  // Translators' home is their workspace, not the admin dashboard.
+  // Workers' home is their workspace/hub, not the admin dashboard.
   if (req.user && req.user.role === 'translator') {
     return res.redirect('/translations/workspace');
+  }
+  if (req.user && req.user.is_vendor === true && !['admin', 'superadmin'].includes(req.user.role)) {
+    return res.redirect('/workforce/my');
   }
 
   // Non-admin users get a restricted dashboard without content stats,
