@@ -35,6 +35,19 @@
       </span>
     </div>
 
+    <!-- Termbase: terms the source mentions, with the approved name for
+         this language. Presence re-checks live as the worker types. -->
+    <div class="card" id="termPanel" hidden style="margin-bottom:1rem;">
+      <div class="card-body">
+        <h3 style="margin:0 0 0.5rem; font-size:0.9rem;"><i class="fas fa-book"></i> Glossary terms in this content</h3>
+        <div id="termList" style="display:flex; flex-wrap:wrap; gap:0.5rem;"></div>
+        <p style="margin:0.5rem 0 0; font-size:0.75rem; color:var(--gray-500);">
+          Green = the approved name is used in your translation · red = missing. Using approved names keeps
+          terminology consistent across the whole site.
+        </p>
+      </div>
+    </div>
+
     <form id="verifyForm">
       <%
         var fieldList = entityConfig.dynamic
@@ -67,6 +80,15 @@
                   rows="<%= isLong ? 14 : 3 %>"
                   style="width:100%; font-family:inherit; resize:vertical; line-height:1.7;"
                   <%= readOnly ? 'readonly' : '' %>><%= targetValue %></textarea>
+                <div style="display:flex; gap:0.75rem; align-items:center; font-size:0.72rem; color:var(--gray-500); margin-top:0.25rem;">
+                  <span class="vf-count" data-for="<%= field %>"></span>
+                  <span class="vf-edited" data-for="<%= field %>" hidden style="color:#d97706;">&#9679; reworked — paid on top</span>
+                  <button type="button" class="vf-draft-toggle" data-for="<%= field %>" hidden
+                    style="background:none; border:none; padding:0; color:#2563eb; cursor:pointer; font-size:0.72rem; text-decoration:underline;">View AI draft (diff)</button>
+                  <span class="vf-copy-slot" data-for="<%= field %>"></span>
+                </div>
+                <div class="vf-draft" data-for="<%= field %>" hidden
+                  style="border:1px dashed var(--gray-300); border-radius:6px; padding:0.5rem; margin-top:0.25rem; font-size:0.85rem; line-height:1.8; white-space:pre-wrap; background:#fffbeb; max-height:260px; overflow:auto;"></div>
               </div>
             </div>
           </div>
@@ -77,14 +99,177 @@
 </main>
 
 <script nonce="<%= cspNonce %>">
+  // Baseline for edit tracking: the AI draft snapshot when it exists (that
+  // is what edit pay is measured against server-side), else the payload as
+  // loaded. Sources ship only when short — TM-lite needs them to spot
+  // repeated fields, and page-length sources aren't repeated fields.
+  window.__VERIFY_BASE__ = <%- JSON.stringify(item.ai_draft_payload || item.content_payload || {}).replace(/</g, '\\u003c') %>;
+  window.__VERIFY_SRC__ = <%- JSON.stringify((function () {
+      var out = {};
+      if (source && source.fields) Object.keys(source.fields).forEach(function (f) {
+        var v = String(source.fields[f] == null ? '' : source.fields[f]);
+        if (v && v.length <= 400) out[f] = v;
+      });
+      return out;
+    })()).replace(/</g, '\\u003c') %>;
+</script>
+<script nonce="<%= cspNonce %>">
 (function () {
   var csrf = document.querySelector('meta[name="csrf-token"]').content;
   var id = '<%= item.id %>';
   var dirty = false;
+  var BASE = window.__VERIFY_BASE__ || {};
+  var SRC = window.__VERIFY_SRC__ || {};
+
+  function esc(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
+  // Mirrors the server's pay meter: tags stripped, whitespace collapsed —
+  // the counter shows exactly what is billable.
+  function payText(v) { return String(v == null ? '' : v).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+  // Compact word-level diff (LCS). Deletions struck red, insertions green.
+  function wordDiff(a, b) {
+    var A = payText(a).split(' '), B = payText(b).split(' ');
+    if (A.length * B.length > 160000) return null; // too large — skip gracefully
+    var m = A.length, n = B.length, i, j;
+    var L = [];
+    for (i = 0; i <= m; i++) { L.push(new Uint16Array(n + 1)); }
+    for (i = m - 1; i >= 0; i--) for (j = n - 1; j >= 0; j--) {
+      L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    }
+    var out = [];
+    i = 0; j = 0;
+    while (i < m && j < n) {
+      if (A[i] === B[j]) { out.push(esc(A[i])); i++; j++; }
+      else if (L[i + 1][j] >= L[i][j + 1]) { out.push('<del style="color:#dc2626; background:#fee2e2;">' + esc(A[i]) + '</del>'); i++; }
+      else { out.push('<ins style="color:#059669; background:#d1fae5; text-decoration:none;">' + esc(B[j]) + '</ins>'); j++; }
+    }
+    while (i < m) { out.push('<del style="color:#dc2626; background:#fee2e2;">' + esc(A[i++]) + '</del>'); }
+    while (j < n) { out.push('<ins style="color:#059669; background:#d1fae5; text-decoration:none;">' + esc(B[j++]) + '</ins>'); }
+    return out.join(' ');
+  }
+
+  function fieldEl(cls, name) { return document.querySelector('.' + cls + '[data-for="' + CSS.escape(name) + '"]'); }
+
+  function refreshField(field) {
+    var name = field.name;
+    var current = field.value;
+    var counter = fieldEl('vf-count', name);
+    if (counter) counter.textContent = payText(current).length.toLocaleString() + ' chars';
+    var base = BASE[name];
+    var edited = base != null && payText(base) !== payText(current);
+    var badge = fieldEl('vf-edited', name);
+    if (badge) badge.hidden = !edited;
+    var toggle = fieldEl('vf-draft-toggle', name);
+    if (toggle) toggle.hidden = !(edited && payText(base || ''));
+    var draftBox = fieldEl('vf-draft', name);
+    if (draftBox && !draftBox.hidden) renderDraft(name); // keep an open diff live
+  }
+
+  function refreshTotal() {
+    var total = 0;
+    document.querySelectorAll('.verify-field').forEach(function (f) { total += payText(f.value).length; });
+    var el = document.getElementById('charCount');
+    if (el) el.textContent = total.toLocaleString();
+  }
+
+  function renderDraft(name) {
+    var field = document.querySelector('.verify-field[name="' + CSS.escape(name) + '"]');
+    var box = fieldEl('vf-draft', name);
+    if (!field || !box) return;
+    var diff = wordDiff(BASE[name] || '', field.value);
+    box.innerHTML = diff !== null
+      ? diff
+      : esc(payText(BASE[name] || '')); // too large to diff — show the draft plain
+  }
+
+  document.querySelectorAll('.vf-draft-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var name = btn.getAttribute('data-for');
+      var box = fieldEl('vf-draft', name);
+      box.hidden = !box.hidden;
+      if (!box.hidden) renderDraft(name);
+      btn.textContent = box.hidden ? 'View AI draft (diff)' : 'Hide AI draft';
+    });
+  });
+
+  // TM-lite: identical source fields should carry identical translations —
+  // offer one-click copy when one is filled and its twin differs.
+  (function tmLite() {
+    var groups = {};
+    Object.keys(SRC).forEach(function (f) {
+      var key = payText(SRC[f]).toLowerCase();
+      if (!key) return;
+      (groups[key] = groups[key] || []).push(f);
+    });
+    Object.keys(groups).forEach(function (key) {
+      var fields = groups[key];
+      if (fields.length < 2) return;
+      fields.forEach(function (name) {
+        var slot = fieldEl('vf-copy-slot', name);
+        var mine = document.querySelector('.verify-field[name="' + CSS.escape(name) + '"]');
+        if (!slot || !mine) return;
+        var twin = fields.find(function (other) {
+          if (other === name) return false;
+          var el = document.querySelector('.verify-field[name="' + CSS.escape(other) + '"]');
+          return el && payText(el.value) && payText(el.value) !== payText(mine.value);
+        });
+        if (!twin) return;
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = 'Same source as \u201C' + twin.replace(/_/g, ' ') + '\u201D — copy its translation';
+        b.style.cssText = 'background:none;border:none;padding:0;color:#2563eb;cursor:pointer;font-size:0.72rem;text-decoration:underline;';
+        b.addEventListener('click', function () {
+          var from = document.querySelector('.verify-field[name="' + CSS.escape(twin) + '"]');
+          mine.value = from.value;
+          mine.dispatchEvent(new Event('input'));
+        });
+        slot.replaceChildren(b);
+      });
+    });
+  })();
+
+  // Termbase panel: fetch once, re-check presence live.
+  var TERMS = [];
+  function refreshTerms() {
+    if (!TERMS.length) return;
+    var all = '';
+    document.querySelectorAll('.verify-field').forEach(function (f) { all += ' ' + payText(f.value).toLowerCase(); });
+    TERMS.forEach(function (t) {
+      if (!t.approved || !t.el) return;
+      var present = all.indexOf(t.approved.toLowerCase()) !== -1;
+      t.el.style.background = present ? '#d1fae5' : '#fee2e2';
+      t.el.style.color = present ? '#065f46' : '#991b1b';
+      t.el.title = present ? 'Approved name is used' : 'Approved name is NOT used in the translation yet';
+    });
+  }
+  fetch('/translations/verify/' + id + '/termbase', { headers: { 'Accept': 'application/json' } })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      TERMS = (d.terms || []).filter(function (t) { return t.approved; });
+      if (!TERMS.length) return;
+      var list = document.getElementById('termList');
+      TERMS.forEach(function (t) {
+        var chip = document.createElement('span');
+        chip.style.cssText = 'display:inline-block; padding:0.2rem 0.6rem; border-radius:999px; font-size:0.78rem;';
+        chip.textContent = t.name + ' \u2192 ' + t.approved;
+        t.el = chip;
+        list.appendChild(chip);
+      });
+      document.getElementById('termPanel').hidden = false;
+      refreshTerms();
+    })
+    .catch(function () { /* panel is progressive enhancement */ });
 
   document.querySelectorAll('.verify-field').forEach(function (field) {
-    field.addEventListener('input', function () { dirty = true; });
+    field.addEventListener('input', function () {
+      dirty = true;
+      refreshField(field);
+      refreshTotal();
+      refreshTerms();
+    });
+    refreshField(field);
   });
+  refreshTotal();
   window.addEventListener('beforeunload', function (e) {
     if (dirty) { e.preventDefault(); e.returnValue = ''; }
   });
@@ -138,10 +323,14 @@
   });
 
   var returnBtn = document.getElementById('returnBtn');
+  var REASONS = ['mistranslation', 'tone', 'terminology', 'markup', 'incomplete', 'other'];
   if (returnBtn) returnBtn.addEventListener('click', function () {
-    var note = prompt('What is wrong with this draft? (goes to the translator / re-translation queue)');
+    var pick = prompt('Reason \u2014 type a number:\n1 mistranslation  2 tone  3 terminology\n4 markup  5 incomplete  6 other');
+    if (pick === null) return;
+    var reason = REASONS[parseInt(pick, 10) - 1] || 'other';
+    var note = prompt('Details for the translator (what is wrong / what to fix)?');
     if (note === null) return;
-    post('/translations/verify/' + id + '/return', { note: note }).then(function (res) {
+    post('/translations/verify/' + id + '/return', { note: note, reason: reason }).then(function (res) {
       if (res.ok) location.href = '/translations/workspace';
       else alert(res.data.error || 'Return failed');
     });

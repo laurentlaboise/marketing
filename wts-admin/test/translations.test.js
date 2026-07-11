@@ -298,7 +298,7 @@ test('approve publishes and credits the vendor ledger per configured rate', asyn
   assert.equal(rate.status, 200);
 
   const approve = await session.fetch(`/translations/${laRow.id}/approve`, {
-    method: 'POST', headers, body: JSON.stringify({}),
+    method: 'POST', headers, body: JSON.stringify({ acknowledge: true }),
   });
   assert.equal(approve.status, 200);
   const body = await approve.json();
@@ -318,7 +318,7 @@ test('approve publishes and credits the vendor ledger per configured rate', asyn
 
   // Publishing twice from a terminal state must fail cleanly.
   const again = await session.fetch(`/translations/${laRow.id}/approve`, {
-    method: 'POST', headers, body: JSON.stringify({}),
+    method: 'POST', headers, body: JSON.stringify({ acknowledge: true }),
   });
   assert.equal(again.status, 409);
 });
@@ -620,7 +620,7 @@ test('verifier flow: AI draft → fix → approve → publish credits verificati
   // Admin publishes from 'verified' → verifier gets verification + edit
   // credits (kip); no translation credit for the AI row.
   const publish = await admin.fetch(`/translations/${rowId}/approve`, {
-    method: 'POST', headers: aHeaders, body: JSON.stringify({}),
+    method: 'POST', headers: aHeaders, body: JSON.stringify({ acknowledge: true }),
   });
   assert.equal(publish.status, 200);
   const publishBody = await publish.json();
@@ -642,7 +642,7 @@ test('verifier flow: AI draft → fix → approve → publish credits verificati
   // Re-publishing after a reopen never double-pays.
   await admin.fetch(`/translations/${rowId}/reopen`, { method: 'POST', headers: aHeaders, body: JSON.stringify({}) });
   await pool.query(`UPDATE translations SET status = 'verified' WHERE id = $1`, [rowId]);
-  await admin.fetch(`/translations/${rowId}/approve`, { method: 'POST', headers: aHeaders, body: JSON.stringify({}) });
+  await admin.fetch(`/translations/${rowId}/approve`, { method: 'POST', headers: aHeaders, body: JSON.stringify({ acknowledge: true }) });
   const creditCount = (await pool.query(
     `SELECT COUNT(*)::int AS c FROM payout_ledger WHERE translation_id = $1`, [rowId]
   )).rows[0].c;
@@ -936,7 +936,7 @@ test('site page entity: sync → vendor translate → publish → public feed wi
   assert.equal(submit.status, 200);
 
   const approve = await admin.fetch(`/translations/${laPage.id}/approve`, {
-    method: 'POST', headers: aHeaders, body: JSON.stringify({}),
+    method: 'POST', headers: aHeaders, body: JSON.stringify({ acknowledge: true }),
   });
   assert.equal(approve.status, 200);
   const approveBody = await approve.json();
@@ -1690,5 +1690,112 @@ test('publishing vendor work without a rate requires explicit acknowledgement', 
     if (parked.rows.length) {
       await pool.query(`UPDATE payout_rates SET is_active = TRUE WHERE id = ANY($1)`, [parked.rows.map((r) => r.id)]);
     }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Editor quality pack: termbase, pre-publish gate, reason codes, dashboard
+// ---------------------------------------------------------------------------
+
+test('termbase and the pre-publish gate enforce approved term names', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+  const cleanup = { translations: [], glossary: [], articles: [] };
+
+  try {
+    // A glossary term with a published Lao name, and an article that
+    // mentions the term in its content.
+    const g = await pool.query(
+      `INSERT INTO glossary (term, definition, letter, slug)
+       VALUES ('TestTerm Crawler', 'A bot that reads pages.', 'T', 'testterm-crawler') RETURNING id`
+    );
+    cleanup.glossary.push(g.rows[0].id);
+    const gName = await pool.query(
+      `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+       VALUES ('glossary', $1, 'la', 'published', '{"term":"ຄຣໍເລີທົດສອບ"}'::jsonb) RETURNING id`,
+      [g.rows[0].id]
+    );
+    cleanup.translations.push(gName.rows[0].id);
+
+    const article = await pool.query(
+      `INSERT INTO articles (title, slug, content, excerpt, status)
+       VALUES ('TestTerm Gate Article', 'testterm-gate-article',
+               '<p>Every TestTerm Crawler visits your site.</p>', 'About the TestTerm Crawler.', 'published')
+       RETURNING id`
+    );
+    cleanup.articles.push(article.rows[0].id);
+
+    // Draft translation: content identical to source (untranslated), excerpt
+    // empty, and the approved Lao term name unused.
+    const draft = await pool.query(
+      `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, ai_model)
+       VALUES ('article', $1, 'la', 'requires_review',
+               '{"title":"ບົດຄວາມ","content":"<p>Every TestTerm Crawler visits your site.</p>","excerpt":""}'::jsonb,
+               'test-model')
+       RETURNING id`,
+      [article.rows[0].id]
+    );
+    cleanup.translations.push(draft.rows[0].id);
+
+    // Termbase endpoint lists the term with its approved name, not yet used.
+    const tb = await session.fetch(`/translations/verify/${draft.rows[0].id}/termbase`, { headers: { accept: 'application/json' } });
+    assert.equal(tb.status, 200);
+    const tbData = await tb.json();
+    const entry = tbData.terms.find((t) => t.name === 'TestTerm Crawler');
+    assert.ok(entry, 'source mentions the term, so the termbase lists it');
+    assert.equal(entry.approved, 'ຄຣໍເລີທົດສອບ');
+    assert.equal(entry.present, false, 'approved name not used yet');
+
+    // The gate refuses with the exact problems…
+    const blocked = await session.fetch(`/translations/${draft.rows[0].id}/approve`, { method: 'POST', headers, body: '{}' });
+    assert.equal(blocked.status, 409);
+    const blockedData = await blocked.json();
+    assert.ok(blockedData.requiresAcknowledgement);
+    const joined = blockedData.warnings.join(' | ');
+    assert.match(joined, /"excerpt" is empty/);
+    assert.match(joined, /identical to the English source/);
+    assert.match(joined, /approved .*name "ຄຣໍເລີທົດສອບ" is not used/);
+
+    // …and publishes once the reviewer explicitly acknowledges.
+    const acked = await session.fetch(`/translations/${draft.rows[0].id}/approve`, {
+      method: 'POST', headers, body: JSON.stringify({ acknowledge: true }),
+    });
+    assert.equal(acked.status, 200);
+    const status = (await pool.query('SELECT status FROM translations WHERE id = $1', [draft.rows[0].id])).rows[0];
+    assert.equal(status.status, 'published');
+  } finally {
+    await pool.query('DELETE FROM translations WHERE id = ANY($1)', [cleanup.translations]);
+    await pool.query('DELETE FROM articles WHERE id = ANY($1)', [cleanup.articles]);
+    await pool.query('DELETE FROM glossary WHERE id = ANY($1)', [cleanup.glossary]);
+  }
+});
+
+test('reject stores the structured reason code and the dashboard strip renders', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  const row = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+     VALUES ('article', gen_random_uuid(), 'th', 'requires_review', '{"title":"x"}'::jsonb) RETURNING id`
+  );
+  try {
+    const res = await session.fetch(`/translations/${row.rows[0].id}/reject`, {
+      method: 'POST', headers, body: JSON.stringify({ note: 'wrong register', reason: 'tone' }),
+    });
+    assert.equal(res.status, 200);
+    const saved = (await pool.query('SELECT review_note FROM translations WHERE id = $1', [row.rows[0].id])).rows[0];
+    assert.equal(saved.review_note, '[tone] wrong register', 'reason code prefixes the note for analytics');
+
+    const page = await session.fetch('/translations');
+    const html = await page.text();
+    assert.ok(html.includes('% <span'), 'per-language progress strip renders');
+    assert.ok(html.includes('live ·'), 'per-language counters render');
+    assert.ok(html.includes('bulkBar'), 'bulk actions bar ships');
+  } finally {
+    await pool.query('DELETE FROM translations WHERE id = $1', [row.rows[0].id]);
   }
 });

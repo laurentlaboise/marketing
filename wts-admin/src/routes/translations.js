@@ -66,6 +66,17 @@ function deniedForRow(req, res, row) {
   return false;
 }
 
+// Structured rejection reasons: a coded prefix in review_note keeps the
+// schema untouched while making quality analytics greppable
+// (SELECT ... WHERE review_note LIKE '[terminology]%').
+const REJECT_REASONS = ['mistranslation', 'tone', 'terminology', 'markup', 'incomplete', 'other'];
+function noteWithReason(body) {
+  const note = typeof body.note === 'string' ? body.note.slice(0, 1900) : '';
+  const reason = REJECT_REASONS.includes(body.reason) ? body.reason : null;
+  const combined = reason ? `[${reason}] ${note}`.trim() : note;
+  return combined || null;
+}
+
 // Human-readable titles for translation rows (one query per entity type):
 // the pipeline and workspace label rows by content title — never by raw id
 // fragments. Returns rows with entity_title attached.
@@ -148,6 +159,15 @@ router.get('/', ensureSuperAdmin, async (req, res, next) => {
     const counts = await db.query(
       `SELECT status, COUNT(*)::int AS count FROM translations GROUP BY status`
     );
+    // Per-language operations view: how far each language actually is.
+    const matrix = await db.query(
+      `SELECT target_language AS lang, status, COUNT(*)::int AS count
+       FROM translations GROUP BY 1, 2`
+    );
+    const langStats = {};
+    for (const r of matrix.rows) {
+      (langStats[r.lang] = langStats[r.lang] || {})[r.status] = r.count;
+    }
     const translators = await db.query(
       `SELECT id, first_name, last_name, email, assigned_languages
        FROM users WHERE role = 'translator' ORDER BY first_name`
@@ -164,6 +184,7 @@ router.get('/', ensureSuperAdmin, async (req, res, next) => {
       languageNames: core.LANGUAGE_NAMES,
       entityTypes: core.ENTITY_TYPES,
       statuses: core.STATUSES,
+      langStats,
       pagination: { page, perPage, totalItems, totalPages, perPageChoices: PER_PAGE_CHOICES,
         from: totalItems === 0 ? 0 : offset + 1, to: Math.min(offset + perPage, totalItems) },
       aiJob: aiTranslator.getJobStatus(),
@@ -472,17 +493,77 @@ async function triggerSiteRegeneration(translation) {
 
 // requires_review → published. Runs the transactional publish + vendor
 // ledger credit hook (translation-core.onTranslationPublished).
+// ── Pre-publish content gate ─────────────────────────────────────
+// Cheap automated checks that catch the classic half-baked publishes:
+// empty or untranslated fields, markup drift, length anomalies, and
+// approved glossary/SEO names that the translation doesn't use.
+// Warnings, never blockers — some fields legitimately stay English and
+// some content legitimately shrinks, so the reviewer can acknowledge.
+const stripForCompare = (v) =>
+  String(v == null ? '' : v).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+const tagNamesOf = (v) =>
+  (String(v == null ? '' : v).match(/<\/?\s*([a-zA-Z][a-zA-Z0-9]*)/g) || [])
+    .map((t) => t.replace(/[<\/\s]/g, '').toLowerCase())
+    .sort()
+    .join(',');
+
+async function collectContentWarnings(row) {
+  const warnings = [];
+  const payload = row.content_payload || {};
+  const source = await core.fetchEntitySource(row.entity_type, row.entity_id).catch(() => null);
+  if (!source || !source.fields) return warnings;
+
+  for (const [field, srcVal] of Object.entries(source.fields)) {
+    const src = stripForCompare(srcVal);
+    if (!src) continue;
+    const tgt = stripForCompare(payload[field]);
+    const label = field.startsWith('s_') ? 'a page segment' : `"${field.replace(/_/g, ' ')}"`;
+    if (!tgt) { warnings.push(`${label} is empty — the source has text.`); continue; }
+    if (row.target_language !== 'en' && src.length > 20 && tgt === src) {
+      warnings.push(`${label} is identical to the English source — likely untranslated.`);
+    }
+    if (tagNamesOf(srcVal) !== tagNamesOf(payload[field])) {
+      warnings.push(`${label}: HTML tags differ from the source — markup may be broken.`);
+    }
+    if (src.length >= 40 && (tgt.length > src.length * 3 || tgt.length < src.length * 0.2)) {
+      warnings.push(`${label} is ${tgt.length > src.length * 3 ? 'over 3× longer than' : 'under 20% of'} the source length.`);
+    }
+  }
+
+  // Termbase check: when the source mentions a glossary/SEO term whose
+  // approved translated name is published, the translation should use it.
+  try {
+    const terms = await interlink.buildTermIndex(row.target_language, {
+      exclude: { entityType: row.entity_type, entityId: row.entity_id },
+    });
+    const srcAll = stripForCompare(Object.values(source.fields).join(' ')).toLowerCase();
+    const tgtAll = stripForCompare(Object.values(payload).join(' ')).toLowerCase();
+    let flagged = 0;
+    for (const t of terms) {
+      if (!['glossary', 'seo'].includes(t.type)) continue; // titles are not terminology
+      if (t.matchName === t.name) continue;                // no translated name to enforce
+      if (!srcAll.includes(t.name.toLowerCase())) continue;
+      if (tgtAll.includes(t.matchName.toLowerCase())) continue;
+      warnings.push(`Term "${t.name}": the approved ${core.LANGUAGE_NAMES[row.target_language] || row.target_language} name "${t.matchName}" is not used.`);
+      if (++flagged >= 5) { warnings.push('…further term mismatches not shown.'); break; }
+    }
+  } catch (e) { /* term data unavailable — the gate stays quiet */ }
+  return warnings;
+}
+
 router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve'), async (req, res) => {
   try {
     if (!core.isUuid(req.params.id)) {
       return asJson(res, 404, { success: false, error: 'Translation not found' });
     }
 
-    // Money guard: publishing vendor work with no applicable rate card
-    // credits NOTHING, silently — a payroll hole, not a warning line. If
-    // any expected credit would be skipped, stop with 409 and the exact
-    // reasons; the reviewer must explicitly acknowledge to publish anyway.
-    if (req.body.acknowledge_no_payout !== true) {
+    // Publish gate, one acknowledgement for everything it finds:
+    //  - money: vendor work with no applicable rate card credits NOTHING,
+    //    silently — a payroll hole, not a warning line;
+    //  - content: the pre-publish checks above.
+    // acknowledge_no_payout is the legacy flag name; acknowledge covers all.
+    const acknowledged = req.body.acknowledge === true || req.body.acknowledge_no_payout === true;
+    if (!acknowledged) {
       const row = (await db.query('SELECT * FROM translations WHERE id = $1', [req.params.id])).rows[0];
       if (row) {
         const warnings = [];
@@ -507,6 +588,7 @@ router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve')
             warnings.push(`No edit rate for ${nameOf(verifierVendor)} (${row.target_language}) — the rework credit will be skipped.`);
           }
         }
+        warnings.push(...await collectContentWarnings(row));
         if (warnings.length) {
           return asJson(res, 409, { success: false, requiresAcknowledgement: true, warnings });
         }
@@ -552,7 +634,7 @@ router.post('/:id/reject', ensureSuperAdmin, logActivity('translation_reject'), 
     if (!core.canTransition(row.status, 'rejected')) {
       return asJson(res, 409, { success: false, error: `Cannot reject from status "${row.status}"` });
     }
-    const note = typeof req.body.note === 'string' ? req.body.note.slice(0, 2000) : null;
+    const note = noteWithReason(req.body);
     await db.query(
       `UPDATE translations
        SET status = 'rejected', review_note = $1, reviewed_by = $2,
@@ -1265,6 +1347,42 @@ router.get('/verify/:id', ensureTranslator, async (req, res, next) => {
 // Claim + save fixes. First write snapshots the draft (ai_draft_payload)
 // so edit compensation is measured against what the verifier started
 // from, and locks the row to this verifier.
+// Termbase for the verify editor: glossary/SEO terms the SOURCE mentions,
+// with the approved translated name for this language (published rows
+// only) and whether the current translation uses it. The editor renders
+// this as a side panel and re-checks presence live as the worker types.
+router.get('/verify/:id/termbase', ensureTranslator, async (req, res) => {
+  try {
+    const row = await loadTranslation(req, res);
+    if (!row) return;
+    const reason = core.verifyAccessError(req.user, row);
+    if (reason) return asJson(res, 403, { success: false, error: reason });
+
+    const source = await core.fetchEntitySource(row.entity_type, row.entity_id);
+    if (!source || !source.fields) return asJson(res, 200, { terms: [] });
+
+    const strip = (v) => String(v == null ? '' : v).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+    const srcAll = strip(Object.values(source.fields).join(' '));
+    const tgtAll = strip(Object.values(row.content_payload || {}).join(' '));
+
+    const terms = (await interlink.buildTermIndex(row.target_language, {
+      exclude: { entityType: row.entity_type, entityId: row.entity_id },
+    }))
+      .filter((t) => ['glossary', 'seo'].includes(t.type) && srcAll.includes(t.name.toLowerCase()))
+      .slice(0, 40)
+      .map((t) => ({
+        name: t.name,
+        approved: t.matchName !== t.name ? t.matchName : null,
+        link: t.href,
+        present: t.matchName !== t.name ? tgtAll.includes(t.matchName.toLowerCase()) : null,
+      }));
+    asJson(res, 200, { terms });
+  } catch (error) {
+    console.error('Termbase failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Termbase lookup failed' });
+  }
+});
+
 router.post('/verify/:id/save', ensureTranslator, async (req, res) => {
   try {
     const row = await loadVerifyRow(req, res);
@@ -1363,7 +1481,7 @@ router.post('/verify/:id/return', ensureTranslator, logActivity('translation_ver
     if (row.status !== 'requires_review') {
       return asJson(res, 409, { success: false, error: `Cannot return from status "${row.status}"` });
     }
-    const note = typeof req.body.note === 'string' ? req.body.note.slice(0, 2000) : null;
+    const note = noteWithReason(req.body);
     const nextStatus = row.translator_id ? 'rejected' : 'pending';
     await db.query(
       `UPDATE translations

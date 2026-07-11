@@ -124,9 +124,9 @@
         // Money guard: a missing rate card would silently skip credits —
         // the server stops and asks for explicit acknowledgement.
         if (res.data.requiresAcknowledgement) {
-          var msg = 'PAYOUT WARNING\n\n' + res.data.warnings.join('\n') +
-            '\n\nSet the missing rate in Localization → Payout Ledger first (recommended), or publish anyway WITHOUT crediting?';
-          if (confirm(msg)) doApprove({ acknowledge_no_payout: true });
+          var msg = 'PRE-PUBLISH WARNINGS\n\n\u2022 ' + res.data.warnings.join('\n\u2022 ') +
+            '\n\nFix these first (recommended), or publish anyway?';
+          if (confirm(msg)) doApprove({ acknowledge: true });
           return;
         }
         alert(res.data.error || 'Approve failed');
@@ -136,10 +136,14 @@
   });
 
   var rejectBtn = document.getElementById('rejectBtn');
+  var REASONS = ['mistranslation', 'tone', 'terminology', 'markup', 'incomplete', 'other'];
   if (rejectBtn) rejectBtn.addEventListener('click', function () {
+    var pick = prompt('Reason \u2014 type a number:\n1 mistranslation  2 tone  3 terminology\n4 markup  5 incomplete  6 other');
+    if (pick === null) return;
+    var reason = REASONS[parseInt(pick, 10) - 1] || 'other';
     var note = prompt('Note for the translator (what needs to change)?');
     if (note === null) return;
-    post('/translations/' + id + '/reject', { note: note }).then(function (res) {
+    post('/translations/' + id + '/reject', { note: note, reason: reason }).then(function (res) {
       if (res.ok) location.href = '/translations'; else alert(res.data.error || 'Reject failed');
     });
   });
