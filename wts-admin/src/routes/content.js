@@ -889,12 +889,14 @@ router.post('/glossary/import', csvUpload.single('file'), async (req, res) => {
       return mapped;
     };
 
-    // Fetch existing terms for duplicate checking
-    const existingResult = await db.query('SELECT term FROM glossary');
-    const existingTerms = new Set(existingResult.rows.map(r => r.term.toLowerCase().trim()));
+    // Upsert by term (re-import updates existing rows)
+    const existingResult = await db.query('SELECT id, term FROM glossary');
+    const existingByTerm = new Map(
+      existingResult.rows.map(r => [r.term.toLowerCase().trim(), r.id])
+    );
 
     let imported = 0;
-    let skippedDuplicates = 0;
+    let updated = 0;
     let skippedInvalid = 0;
 
     for (const rawRow of records) {
@@ -907,7 +909,7 @@ router.post('/glossary/import', csvUpload.single('file'), async (req, res) => {
       const categories = (row.categories || row.all_categories || row.tags || '').trim();
       const relatedTerms = (row.related_terms || row.related || '').trim();
       const example = (row.example || row.examples || '').trim();
-      const videoUrl = (row.video_url || row.video || '').trim();
+      const videoUrl = (row.video_url || row.video || row.video_link || '').trim();
       const featuredImage = (row.featured_image || row.image || row.image_url || '').trim();
       const articleLink = (row.article_link || row.article || row.article_url || '').trim();
       const bulletsRaw = (row.bullets || row.key_concepts || row.key_points || '').trim();
@@ -915,12 +917,6 @@ router.post('/glossary/import', csvUpload.single('file'), async (req, res) => {
       // Validate required fields
       if (!term || !definition) {
         skippedInvalid++;
-        continue;
-      }
-
-      // Check for duplicates
-      if (existingTerms.has(term.toLowerCase())) {
-        skippedDuplicates++;
         continue;
       }
 
@@ -935,22 +931,31 @@ router.post('/glossary/import', csvUpload.single('file'), async (req, res) => {
         bulletsArray = bulletsRaw.split(/[;\n]/).map(b => b.trim()).filter(b => b);
       }
 
-      await db.query(
-        `INSERT INTO glossary (term, definition, category, related_terms, letter, slug, video_url, featured_image, article_link, bullets, example, categories)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-        [term, definition, category || null, relatedArray, letter, slug, videoUrl || null, featuredImage || null, articleLink || null, JSON.stringify(bulletsArray), example || null, categoriesArray]
-      );
-
-      // Track the new term to prevent duplicates within the same import
-      existingTerms.add(term.toLowerCase());
-      imported++;
+      const existingId = existingByTerm.get(term.toLowerCase());
+      if (existingId) {
+        await db.query(
+          `UPDATE glossary SET term = $1, definition = $2, category = $3, related_terms = $4, letter = $5,
+           slug = $6, video_url = $7, featured_image = $8, article_link = $9, bullets = $10, example = $11,
+           categories = $12, updated_at = CURRENT_TIMESTAMP WHERE id = $13`,
+          [term, definition, category || null, relatedArray, letter, slug, videoUrl || null, featuredImage || null, articleLink || null, JSON.stringify(bulletsArray), example || null, categoriesArray, existingId]
+        );
+        updated++;
+      } else {
+        await db.query(
+          `INSERT INTO glossary (term, definition, category, related_terms, letter, slug, video_url, featured_image, article_link, bullets, example, categories)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+          [term, definition, category || null, relatedArray, letter, slug, videoUrl || null, featuredImage || null, articleLink || null, JSON.stringify(bulletsArray), example || null, categoriesArray]
+        );
+        existingByTerm.set(term.toLowerCase(), 'new');
+        imported++;
+      }
     }
 
     // Build result message
-    const parts = [`${imported} term${imported !== 1 ? 's' : ''} imported successfully`];
-    if (skippedDuplicates > 0) {
-      parts.push(`${skippedDuplicates} duplicate${skippedDuplicates !== 1 ? 's' : ''} skipped`);
-    }
+    const parts = [];
+    if (imported > 0) parts.push(`${imported} term${imported !== 1 ? 's' : ''} imported`);
+    if (updated > 0) parts.push(`${updated} term${updated !== 1 ? 's' : ''} updated`);
+    if (parts.length === 0) parts.push('No terms changed');
     if (skippedInvalid > 0) {
       parts.push(`${skippedInvalid} invalid row${skippedInvalid !== 1 ? 's' : ''} skipped`);
     }
