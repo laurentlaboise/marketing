@@ -1512,7 +1512,7 @@
 
                 <div class="compare-section" id="plan-compare-section">
                     <p class="compare-section-title">Compare plans</p>
-                    <p class="compare-section-lead">Decision rows first. Expand for the full feature list.</p>
+                    <p class="compare-section-lead">Key differences first — expand for the rest.</p>
                     <div id="plan-compare" class="compare-wrap" role="region" aria-labelledby="compare-plans-btn">
                         <table class="compare-table" aria-label="Compare monthly plans">
                             <thead>
@@ -1625,13 +1625,13 @@
                             <i class="fas fa-list" style="margin-right:0.5rem;" aria-hidden="true"></i>
                             <span id="compare-plans-btn-label">Show full feature list</span>
                         </button>
-                        <span class="compare-toggle-hint" id="compare-plans-hint">Decision rows are open. Expand for checkmarks and extras.</span>
+                        <span class="compare-toggle-hint" id="compare-plans-hint">Expand for full feature list</span>
                     </div>
-                    <span id="plan-compare-extra" class="visually-hidden" aria-hidden="true">Extra comparison rows</span>
+                    <span id="plan-compare-extra" class="visually-hidden">Additional comparison features</span>
                 </div>
-                <p style="max-width:34rem;margin:2rem auto 0;text-align:center;font-size:0.98rem;line-height:1.65;color:#64748b;">
-                    Monthly caps are intentional—so delivery stays reliable. Need more? Add-on or next tier.
-                    Laos: Facebook-first. Thailand: LINE / TikTok within your platform caps or as add-ons.
+                <p class="compare-footnote">
+                    Monthly caps keep delivery reliable. Need more? Add-on or next tier.
+                    Laos: Facebook-first · Thailand: LINE / TikTok within caps or as add-ons.
                 </p>
             </section>
 
@@ -1871,7 +1871,7 @@
             <section id="individual-services" class="section section-alt">
                 <p class="section-kicker">More services</p>
                 <h2>À la carte categories</h2>
-                <p class="section-lead">Optional add-ons and project lines. Click a category to expand its services, or start a consultation for paid work.</p>
+                <p class="section-lead">Optional add-ons and project lines—names only here. Open the client portal for current pricing.</p>
                 <div id="services-accordion">
                     <p id="services-accordion-empty" style="text-align:center;color:#1e3a4f;max-width:32rem;margin:0 auto;line-height:1.6;">
                         Browse one-time packages above, or <button type="button" class="btn btn-outline" style="margin-top:0.75rem;" onclick="return goToPortal('consultation')">open client portal</button>
@@ -2148,6 +2148,36 @@
                 (/\d+\s*(pcs|pack|cards?|units?)?/i.test(t) || /volume|qty|quantity/i.test(t) || /nfc|utap/.test(t));
         }
 
+        // À la carte section: never show dollar amounts (portal is pricing surface)
+        function stripServicePrices(text) {
+            if (!text) return '';
+            let s = String(text);
+            // " · $33" / " - $1,174.20" / " · $33/mo"
+            s = s.replace(/\s*[·|•\-–—]\s*\$\s*[\d,]+(?:\.\d{1,2})?(?:\s*\/\s*(?:mo|month|yr|year|hr|hour|day))?\s*/gi, ' ');
+            // bare "$33" / "$1,500" / "$33/mo" / "from $95"
+            s = s.replace(/(?:from\s*)?\$\s*[\d,]+(?:\.\d{1,2})?(?:\s*\/\s*(?:mo|month|yr|year|hr|hour|day))?/gi, '');
+            // leftover "USD 33" etc.
+            s = s.replace(/\b(?:USD|usd)\s*[\d,]+(?:\.\d{1,2})?\b/g, '');
+            s = s.replace(/\s{2,}/g, ' ').replace(/\s+([.,;:])/g, '$1').trim();
+            return s.replace(/^[\s·|•\-–—]+|[\s·|•\-–—]+$/g, '').trim();
+        }
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function serviceDisplayTitle(service) {
+            return escapeHtml(stripServicePrices(service.serviceTitle || service.name || 'Service'));
+        }
+
+        function serviceDisplayDesc(service) {
+            return escapeHtml(stripServicePrices(service.description || ''));
+        }
+
         function renderServiceCards(serviceList) {
             const nfc = [];
             const rest = [];
@@ -2158,31 +2188,31 @@
 
             let html = rest.map(service => `
                 <div class="service-item-card">
-                    <div class="title">${service.serviceTitle || service.name || ''}</div>
-                    <div class="description">${service.description || ''}</div>
+                    <div class="title">${serviceDisplayTitle(service)}</div>
+                    <div class="description">${serviceDisplayDesc(service)}</div>
                 </div>
             `).join('');
 
             // Collapse repetitive NFC / Metal UTAP volume SKUs into one expandable line
             if (nfc.length >= 2) {
                 const options = nfc.map(s => {
-                    const title = s.serviceTitle || s.name || 'Option';
-                    const desc = s.description ? ` — ${s.description}` : '';
-                    return `<div class="nfc-option"><strong>${title}</strong>${desc}</div>`;
+                    const title = serviceDisplayTitle(s) || 'Option';
+                    const desc = serviceDisplayDesc(s);
+                    return `<div class="nfc-option"><strong>${title}</strong>${desc ? ' — ' + desc : ''}</div>`;
                 }).join('');
                 html += `
                 <div class="service-item-card">
                     <details class="nfc-group">
                         <summary>NFC / Metal UTAP cards (${nfc.length} volume options)</summary>
-                        <p class="description" style="margin:0.5rem 0 0;">Same product family — pick pack size when you order.</p>
+                        <p class="description" style="margin:0.5rem 0 0;">Same product family — pick pack size in the client portal.</p>
                         ${options}
                     </details>
                 </div>`;
             } else {
                 html += nfc.map(service => `
                     <div class="service-item-card">
-                        <div class="title">${service.serviceTitle || service.name || ''}</div>
-                        <div class="description">${service.description || ''}</div>
+                        <div class="title">${serviceDisplayTitle(service)}</div>
+                        <div class="description">${serviceDisplayDesc(service)}</div>
                     </div>
                 `).join('');
             }
@@ -2558,8 +2588,8 @@
                 }
                 if (compareHint) {
                     compareHint.textContent = open
-                        ? 'Full feature list open. Click to collapse.'
-                        : 'Decision rows are open. Expand for checkmarks and extras.';
+                        ? 'Showing full list · click to collapse'
+                        : 'Expand for full feature list';
                 }
                 if (compareTableEl) {
                     compareTableEl.classList.toggle('highlight-growth', open && (!highlightCol || highlightCol === 'growth'));
