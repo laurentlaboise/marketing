@@ -124,18 +124,60 @@ input, textarea, select {
    Auth Pages Styles
    =================================== */
 
+/* Column stack: legal footer is a body sibling of .auth-container.
+   A row flex placed them side-by-side and broke the centered login card. */
 .auth-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background: var(--primary);
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .auth-container {
   width: 100%;
   max-width: 420px;
+  margin: auto 0; /* vertically center card in remaining space above footer */
+  flex: 0 0 auto;
+}
+
+/* Auth pages: full-width footer under the card, readable on primary bg */
+.auth-page .admin-legal-footer {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-top: 1.5rem;
+  flex: 0 0 auto;
+  background: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 1rem 0.5rem 0.25rem;
+}
+
+.auth-page .wts-legal-bar a {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.auth-page .wts-legal-bar a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.auth-page .wts-legal-sep {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.auth-page .wts-legal-entity,
+.auth-page .admin-legal-note {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.auth-page .admin-legal-note a {
+  color: #fff;
+  font-weight: 600;
 }
 
 .auth-card {
