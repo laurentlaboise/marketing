@@ -578,6 +578,10 @@ router.post('/chat', requireCustomer, chatLimiter, async (req, res) => {
     req.session.chatHistory = req.session.chatHistory
       .concat([{ role: 'user', content: message }, { role: 'assistant', content: reply }])
       .slice(-12);
+    // Commit the history before replying: end-of-response auto-save is
+    // fire-and-forget, and a quick next message must see this turn (the
+    // odysseus backend replays session history after a backend restart).
+    await new Promise((resolve) => req.session.save(resolve));
     res.json({ reply });
   } catch (e) {
     console.error('Portal chat error:', e.status || '', e.message);
