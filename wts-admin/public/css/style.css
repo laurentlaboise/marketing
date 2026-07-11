@@ -1561,19 +1561,60 @@ select.form-input {
   color: var(--white);
 }
 
-/* Error Page */
+/* Error Page — same column stack as .auth-page so legal footer is not a
+   horizontal sibling (that crushed the error card / looked “distorted”). */
 .error-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background: var(--primary);
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .error-container {
   text-align: center;
   color: var(--white);
+  margin: auto 0;
+  flex: 0 0 auto;
+  max-width: 36rem;
+}
+
+.error-page .admin-legal-footer {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-top: 1.5rem;
+  flex: 0 0 auto;
+  background: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 1rem 0.5rem 0.25rem;
+}
+
+.error-page .wts-legal-bar a {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.error-page .wts-legal-bar a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.error-page .wts-legal-sep {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.error-page .wts-legal-entity,
+.error-page .admin-legal-note {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.error-page .admin-legal-note a {
+  color: #fff;
+  font-weight: 600;
 }
 
 .error-code {

@@ -31,9 +31,23 @@ const signupEnabled = () => process.env.ALLOW_SIGNUP === 'true';
 const LOGIN_ERROR_MESSAGES = {
   google_auth_failed: 'Google sign-in failed. Please try again or use email login.',
   facebook_auth_failed: 'Facebook sign-in failed. Please try again or use email login.',
+  google_not_configured: 'Google sign-in is not configured on this server. Use email login.',
+  facebook_not_configured: 'Facebook sign-in is not configured on this server. Use email login.',
   signup_disabled: 'Account registration is disabled. Contact an administrator for access.',
   oauth_not_allowed: 'This account is not authorized to access the admin dashboard.'
 };
+
+/** True when passport has a registered strategy (env credentials present). */
+function hasOAuthStrategy(name) {
+  return Boolean(passport._strategies && passport._strategies[name]);
+}
+
+function oauthFlags() {
+  return {
+    googleEnabled: hasOAuthStrategy('google'),
+    facebookEnabled: hasOAuthStrategy('facebook')
+  };
+}
 
 // Validation middleware
 const validateSignup = [
@@ -56,7 +70,8 @@ router.get('/login', (req, res) => {
   res.render('auth/login', {
     title: 'Login - WTS Admin',
     error: req.query.error ? (LOGIN_ERROR_MESSAGES[req.query.error] || 'Authentication failed. Please try again.') : undefined,
-    signupEnabled: signupEnabled()
+    signupEnabled: signupEnabled(),
+    ...oauthFlags()
   });
 });
 
@@ -67,7 +82,9 @@ router.post('/login', validateLogin, (req, res, next) => {
     return res.render('auth/login', {
       title: 'Login - WTS Admin',
       error: errors.array()[0].msg,
-      email: req.body.email
+      email: req.body.email,
+      signupEnabled: signupEnabled(),
+      ...oauthFlags()
     });
   }
 
@@ -79,7 +96,9 @@ router.post('/login', validateLogin, (req, res, next) => {
       return res.render('auth/login', {
         title: 'Login - WTS Admin',
         error: info?.message || 'Invalid email or password',
-        email: req.body.email
+        email: req.body.email,
+        signupEnabled: signupEnabled(),
+        ...oauthFlags()
       });
     }
     req.logIn(user, (err) => {
@@ -101,7 +120,8 @@ router.get('/signup', (req, res) => {
     return res.redirect('/dashboard');
   }
   res.render('auth/signup', {
-    title: 'Sign Up - WTS Admin'
+    title: 'Sign Up - WTS Admin',
+    ...oauthFlags()
   });
 });
 
@@ -115,7 +135,8 @@ router.post('/signup', validateSignup, async (req, res) => {
     return res.render('auth/signup', {
       title: 'Sign Up - WTS Admin',
       error: errors.array()[0].msg,
-      formData: req.body
+      formData: req.body,
+      ...oauthFlags()
     });
   }
 
@@ -128,7 +149,8 @@ router.post('/signup', validateSignup, async (req, res) => {
       return res.render('auth/signup', {
         title: 'Sign Up - WTS Admin',
         error: 'An account with this email already exists',
-        formData: req.body
+        formData: req.body,
+        ...oauthFlags()
       });
     }
 
@@ -163,6 +185,7 @@ router.post('/signup', validateSignup, async (req, res) => {
     res.render('auth/signup', {
       title: 'Sign Up - WTS Admin',
       error: 'An error occurred. Please try again.',
+      ...oauthFlags(),
       formData: req.body
     });
   }
@@ -334,20 +357,34 @@ router.post('/reset-password/:token', [
   }
 });
 
-// Google OAuth
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
-}));
+// Google OAuth — guard when strategy is not registered (missing env secrets).
+// Unregistered strategies throw and used to render a 500 error-page that
+// shared the same flex-row distortion as the legal footer.
+router.get('/google', (req, res, next) => {
+  if (!hasOAuthStrategy('google')) {
+    return res.redirect('/auth/login?error=google_not_configured');
+  }
+  return passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
 
 router.get('/google/callback', (req, res, next) => {
+  if (!hasOAuthStrategy('google')) {
+    return res.redirect('/auth/login?error=google_not_configured');
+  }
   passport.authenticate('google', (err, user, info) => {
-    if (err) return next(err);
+    if (err) {
+      console.error('Google OAuth error:', err.message || err);
+      return res.redirect('/auth/login?error=google_auth_failed');
+    }
     if (!user) {
       const code = info?.message?.includes('not authorized') ? 'oauth_not_allowed' : 'google_auth_failed';
       return res.redirect(`/auth/login?error=${code}`);
     }
     req.logIn(user, (loginErr) => {
-      if (loginErr) return next(loginErr);
+      if (loginErr) {
+        console.error('Google login session error:', loginErr.message || loginErr);
+        return res.redirect('/auth/login?error=google_auth_failed');
+      }
       req.session.successMessage = 'Welcome!';
       res.redirect('/dashboard');
     });
@@ -355,19 +392,31 @@ router.get('/google/callback', (req, res, next) => {
 });
 
 // Facebook OAuth
-router.get('/facebook', passport.authenticate('facebook', {
-  scope: ['email', 'public_profile']
-}));
+router.get('/facebook', (req, res, next) => {
+  if (!hasOAuthStrategy('facebook')) {
+    return res.redirect('/auth/login?error=facebook_not_configured');
+  }
+  return passport.authenticate('facebook', { scope: ['email', 'public_profile'] })(req, res, next);
+});
 
 router.get('/facebook/callback', (req, res, next) => {
+  if (!hasOAuthStrategy('facebook')) {
+    return res.redirect('/auth/login?error=facebook_not_configured');
+  }
   passport.authenticate('facebook', (err, user, info) => {
-    if (err) return next(err);
+    if (err) {
+      console.error('Facebook OAuth error:', err.message || err);
+      return res.redirect('/auth/login?error=facebook_auth_failed');
+    }
     if (!user) {
       const code = info?.message?.includes('not authorized') ? 'oauth_not_allowed' : 'facebook_auth_failed';
       return res.redirect(`/auth/login?error=${code}`);
     }
     req.logIn(user, (loginErr) => {
-      if (loginErr) return next(loginErr);
+      if (loginErr) {
+        console.error('Facebook login session error:', loginErr.message || loginErr);
+        return res.redirect('/auth/login?error=facebook_auth_failed');
+      }
       req.session.successMessage = 'Welcome!';
       res.redirect('/dashboard');
     });
