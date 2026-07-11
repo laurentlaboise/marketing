@@ -256,6 +256,81 @@
       </div>
     </div>
   </div>
+
+  <!-- Pre-run options for the AI batch: which languages and content types,
+       how many rows of real model work this run, and how Lao sources are
+       chosen. Live counts come from /translations/ai-batch/preview. -->
+  <div id="aiModal" hidden style="position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:1000;">
+    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:1rem;">
+      <div style="background:var(--white,#fff); border-radius:10px; max-width:580px; width:100%; max-height:90vh; overflow:auto; padding:1.25rem 1.5rem; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <h3 style="margin:0 0 0.25rem;"><i class="fas fa-robot"></i> Run AI translation batch</h3>
+        <p style="margin:0 0 1rem; color:var(--gray-500); font-size:0.85rem;">
+          Drafts are unpaid machine translations that land in "requires review" for a human to check.
+          Rows owned by human translators are never touched.
+        </p>
+
+        <div style="margin-bottom:0.9rem;">
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500); margin-bottom:0.35rem;">Languages</div>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <% languages.forEach(function (l) { %>
+              <label style="display:flex; gap:0.4rem; align-items:center; cursor:pointer;">
+                <input type="checkbox" class="ai-lang" value="<%= l %>" checked> <%= languageNames[l] || l %>
+              </label>
+            <% }); %>
+          </div>
+        </div>
+
+        <div id="aiLaoBox" style="margin-bottom:0.9rem; padding:0.6rem 0.75rem; border:1px solid var(--gray-200); border-radius:8px; background:var(--gray-50,#f9fafb); font-size:0.85rem;">
+          <div style="margin-bottom:0.4rem;">
+            <i class="fas fa-route"></i> <strong>Lao source strategy:</strong> English → Lao, with the entity's
+            <em>verified Thai</em> attached as a style reference when one exists.
+            Where Thai and English diverge, the English wins.
+          </div>
+          <label style="display:flex; gap:0.4rem; align-items:center; cursor:pointer;">
+            <input type="checkbox" id="aiLaoStrict"> Only draft Lao rows that already have a verified Thai (skip the rest for now)
+          </label>
+        </div>
+
+        <div style="margin-bottom:0.9rem;">
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500); margin-bottom:0.35rem;">Content types</div>
+          <div style="display:flex; gap:0.5rem 1rem; flex-wrap:wrap;">
+            <% entityTypes.forEach(function (t) { %>
+              <label style="display:flex; gap:0.4rem; align-items:center; cursor:pointer;">
+                <input type="checkbox" class="ai-type" value="<%= t %>" checked> <%= t.replace(/_/g, ' ') %>
+              </label>
+            <% }); %>
+          </div>
+        </div>
+
+        <div style="margin-bottom:0.9rem;">
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--gray-500); margin-bottom:0.35rem;">Batch size — rows of real model work this run</div>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <label style="display:flex; gap:0.4rem; align-items:center; cursor:pointer;"><input type="radio" name="aiLimit" value="25"> 25</label>
+            <label style="display:flex; gap:0.4rem; align-items:center; cursor:pointer;"><input type="radio" name="aiLimit" value="50" checked> 50</label>
+            <label style="display:flex; gap:0.4rem; align-items:center; cursor:pointer;"><input type="radio" name="aiLimit" value="100"> 100</label>
+            <label style="display:flex; gap:0.4rem; align-items:center; cursor:pointer;"><input type="radio" name="aiLimit" value="all"> All remaining (up to 500)</label>
+          </div>
+          <div style="font-size:0.78rem; color:var(--gray-500); margin-top:0.3rem;">
+            Already-drafted rows are skipped without using up the batch — the cap counts only rows actually sent to the model.
+            A capped run reports what's left and can simply be run again.
+          </div>
+        </div>
+
+        <label style="display:flex; gap:0.4rem; align-items:center; cursor:pointer; margin-bottom:0.9rem;">
+          <input type="checkbox" id="aiForce"> Re-draft even where the English source is unchanged (force)
+        </label>
+
+        <div id="aiPreviewLine" style="min-height:2.2em; font-size:0.85rem; color:var(--gray-600); border-top:1px solid var(--gray-200); padding-top:0.75rem;">
+          <i class="fas fa-spinner fa-spin"></i> Counting queued rows…
+        </div>
+
+        <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:0.75rem;">
+          <button type="button" class="btn btn-secondary" id="aiCancelBtn">Cancel</button>
+          <button type="button" class="btn btn-primary" id="aiStartBtn"><i class="fas fa-robot"></i> Start batch</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
 
 <script nonce="<%= cspNonce %>">
@@ -313,14 +388,109 @@
     });
   });
 
+  // AI batch: pre-run options modal. Language and content-type choices
+  // drive a live count from /ai-batch/preview so the operator sees what a
+  // run will actually pick up before committing to it.
+  var LANG_NAMES = <%- JSON.stringify(languageNames).replace(/</g, '\\u003c') %>;
   var aiBtn = document.getElementById('aiBatchBtn');
-  if (aiBtn && !aiBtn.disabled) {
+  var aiModal = document.getElementById('aiModal');
+  if (aiBtn && !aiBtn.disabled && aiModal) {
+    function aiChecked(sel) {
+      return Array.prototype.map.call(document.querySelectorAll(sel + ':checked'), function (c) { return c.value; });
+    }
+    function aiCap() {
+      var v = document.querySelector('input[name="aiLimit"]:checked').value;
+      return v === 'all' ? 500 : parseInt(v, 10);
+    }
+    function refreshLaoBox() {
+      document.getElementById('aiLaoBox').hidden = aiChecked('.ai-lang').indexOf('la') === -1;
+    }
+    function refreshPreview() {
+      var langs = aiChecked('.ai-lang'), types = aiChecked('.ai-type');
+      var el = document.getElementById('aiPreviewLine');
+      if (!langs.length || !types.length) {
+        el.textContent = 'Pick at least one language and one content type.';
+        return;
+      }
+      el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Counting queued rows…';
+      fetch('/translations/ai-batch/preview?languages=' + langs.join(',') + '&entity_types=' + types.join(','),
+        { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.success) { el.textContent = 'Could not count queued rows.'; return; }
+          var total = 0, queued = 0, laoThai = null;
+          var perLang = d.preview.map(function (p) {
+            total += p.candidates; queued += p.queued;
+            if (p.lang === 'la') laoThai = p.with_thai;
+            return (LANG_NAMES[p.lang] || p.lang) + ' ' + p.candidates;
+          });
+          if (total === 0) {
+            el.textContent = 'Nothing queued for this selection — the pipeline is clear.';
+            return;
+          }
+          var work = Math.min(aiCap(), total);
+          var mins = Math.max(1, Math.round(work * 5 / 60));
+          el.textContent = 'Will scan ' + total + ' candidate row(s): ' + perLang.join(' · ') +
+            (laoThai !== null ? ' — ' + laoThai + ' Lao row(s) have a verified Thai reference' : '') + '. ' +
+            (total - queued) + ' already drafted (re-drawn only if the English changed). ' +
+            'Rough estimate: ~' + mins + ' min for up to ' + work + ' drafted row(s); API cost scales with content length.';
+        })
+        .catch(function () { el.textContent = 'Could not count queued rows.'; });
+    }
     aiBtn.addEventListener('click', function () {
-      if (!confirm('Run the AI translation batch for Thai and French now?')) return;
-      post('/translations/ai-batch', {}).then(function (res) {
-        if (res.ok) { jobWasRunning = true; pollCount = 0; pollJob(); } else { alert(res.data.error || 'Could not start batch'); }
+      aiModal.hidden = false;
+      refreshLaoBox();
+      refreshPreview();
+    });
+    document.getElementById('aiCancelBtn').addEventListener('click', function () { aiModal.hidden = true; });
+    aiModal.addEventListener('click', function (e) { if (e.target === aiModal) aiModal.hidden = true; });
+    Array.prototype.forEach.call(document.querySelectorAll('.ai-lang, .ai-type, input[name="aiLimit"]'), function (el) {
+      el.addEventListener('change', function () { refreshLaoBox(); refreshPreview(); });
+    });
+    document.getElementById('aiStartBtn').addEventListener('click', function () {
+      var langs = aiChecked('.ai-lang'), types = aiChecked('.ai-type');
+      if (!langs.length || !types.length) { alert('Pick at least one language and one content type.'); return; }
+      var limitVal = document.querySelector('input[name="aiLimit"]:checked').value;
+      var startBtn = this;
+      startBtn.disabled = true;
+      post('/translations/ai-batch', {
+        languages: langs,
+        entity_types: types,
+        limit: limitVal === 'all' ? 'all' : parseInt(limitVal, 10),
+        force: document.getElementById('aiForce').checked,
+        lao_pivot_strict: document.getElementById('aiLaoStrict').checked
+      }).then(function (res) {
+        startBtn.disabled = false;
+        if (res.ok) {
+          aiModal.hidden = true;
+          jobWasRunning = true; pollCount = 0; pollJob();
+        } else {
+          alert(res.data.error || 'Could not start batch');
+        }
       });
     });
+  }
+
+  // Human-readable completion line: skips are explained, not just counted,
+  // and a capped run says how much is left and how to continue.
+  var SKIP_LABELS = {
+    unchanged: 'already drafted, source unchanged',
+    no_source: 'source content missing',
+    claimed: 'claimed by a human mid-run',
+    awaiting_thai: 'awaiting verified Thai'
+  };
+  function jobSummary(job) {
+    var skipBits = [];
+    var reasons = job.skipReasons || {};
+    Object.keys(reasons).forEach(function (k) {
+      if (reasons[k] > 0) skipBits.push(reasons[k] + ' ' + (SKIP_LABELS[k] || k.replace(/_/g, ' ')));
+    });
+    var text = 'AI batch ' + job.status + ': ' + job.translated + ' translated' +
+      (job.pivoted ? ' (' + job.pivoted + ' via Thai reference)' : '') +
+      ', ' + job.skipped + ' skipped' + (skipBits.length ? ' (' + skipBits.join('; ') + ')' : '') +
+      ', ' + job.failed + ' failed.';
+    if (job.capped) text += ' Batch cap reached — about ' + job.remaining + ' row(s) left; run again to continue.';
+    return text;
   }
 
   // Status polling: 5s at first, backing off to 15s after two minutes,
@@ -340,10 +510,11 @@
       .then(function (d) {
         var el = document.getElementById('aiJobStatus');
         if (d.job && d.job.status === 'running') {
-          el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI batch: ' + d.job.processed + '/' + d.job.total;
+          el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI batch: ' + d.job.processed + '/' + d.job.total +
+            ' scanned · ' + d.job.translated + ' drafted';
           schedulePoll();
         } else if (d.job) {
-          el.textContent = 'AI batch ' + d.job.status + ': ' + d.job.translated + ' translated, ' + d.job.skipped + ' skipped, ' + d.job.failed + ' failed';
+          el.textContent = jobSummary(d.job);
         }
       })
       .catch(function () { schedulePoll(); });

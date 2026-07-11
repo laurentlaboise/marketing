@@ -10,6 +10,11 @@ const PORT = 3208;
 // Any 64 hex chars: enables encrypted banking metadata in the suite.
 const PAYOUT_KEY = 'ab'.repeat(32);
 
+// In-process lib tests (the AI batch engine with its offline transport)
+// must hit the same test database as the spawned server — database/db.js
+// reads this at first require.
+process.env.DATABASE_URL = TEST_DB_URL;
+
 let server;
 let pool;
 let glossaryId;
@@ -86,6 +91,10 @@ before(async () => {
 
 after(async () => {
   if (pool) await pool.end();
+  // The in-process app pool only opens sockets if a lib test ran queries;
+  // ending it is a no-op otherwise but mandatory when it did (its idle
+  // timeout would keep the process alive).
+  try { await require('../database/db').pool.end(); } catch { /* never opened */ }
   if (server) await server.stop();
 });
 
@@ -1797,5 +1806,285 @@ test('reject stores the structured reason code and the dashboard strip renders',
     assert.ok(html.includes('bulkBar'), 'bulk actions bar ships');
   } finally {
     await pool.query('DELETE FROM translations WHERE id = $1', [row.rows[0].id]);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// AI batch engine: filter-before-cap, skip reasons, Lao Thai-pivot drafting
+// with provenance. Runs in-process against the test DB with an offline
+// transport — the spawned server deliberately has no API key.
+// ---------------------------------------------------------------------------
+
+async function waitForAiJob(aiT) {
+  const deadline = Date.now() + 15000;
+  while ((aiT.getJobStatus() || {}).status === 'running') {
+    if (Date.now() > deadline) throw new Error('AI batch did not finish in time');
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  return aiT.getJobStatus();
+}
+
+test('AI batch: cap counts model work only, Lao pivots off verified Thai with provenance, strict mode waits', async () => {
+  const aiT = require('../src/lib/ai-translator');
+  const core = require('../src/lib/translation-core');
+
+  // Anchor term with a PUBLISHED Lao name: drafting prompts must carry the
+  // approved rendering whenever the source text mentions the term.
+  const anchor = await pool.query(
+    `INSERT INTO glossary (term, definition, letter, slug)
+     VALUES ('TestTerm Anchor', 'An approved term used to test prompt terminology.', 'T', 'testterm-anchor') RETURNING id`
+  );
+  const anchorId = anchor.rows[0].id;
+  await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+     VALUES ('glossary', $1, 'la', 'published', '{"term":"ຄຳທົດສອບ","definition":"ນິຍາມ"}'::jsonb)`,
+    [anchorId]
+  );
+
+  // A: verified Thai + queued Lao → pivot draft. B: no Thai → direct
+  // fallback. C: already drafted at the current source hash and the OLDEST
+  // row — the old LIMIT-then-filter selection would burn the cap on it.
+  const trio = await pool.query(
+    `INSERT INTO glossary (term, definition, letter) VALUES
+      ('TestTerm Pivot A', 'Definition A mentions TestTerm Anchor for prompt checks.', 'T'),
+      ('TestTerm Pivot B', 'Definition B has no Thai sibling.', 'T'),
+      ('TestTerm Pivot C', 'Definition C is already drafted.', 'T')
+     RETURNING id, term`
+  );
+  const idA = trio.rows.find((r) => r.term.endsWith('A')).id;
+  const idB = trio.rows.find((r) => r.term.endsWith('B')).id;
+  const idC = trio.rows.find((r) => r.term.endsWith('C')).id;
+  const th = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+     VALUES ('glossary', $1, 'th', 'verified', '{"term":"ทดสอบ เอ","definition":"คำนิยาม เอ"}'::jsonb) RETURNING id`,
+    [idA]
+  );
+  const thId = th.rows[0].id;
+  const srcC = await core.fetchEntitySource('glossary', idC);
+  await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, source_hash, updated_at) VALUES
+      ('glossary', $1, 'la', 'pending', '{}'::jsonb, NULL, NOW() - interval '1 hour'),
+      ('glossary', $2, 'la', 'pending', '{}'::jsonb, NULL, NOW() - interval '30 minutes'),
+      ('glossary', $3, 'la', 'requires_review', '{"term":"ຊີ","definition":"ນິຍາມ ຊີ"}'::jsonb, $4, NOW() - interval '1 day')`,
+    [idA, idB, idC, srcC.hash]
+  );
+
+  // Anything else queued for (la, glossary) is parked on a vendor so the
+  // run is deterministic; restored in finally.
+  const parked = await pool.query(
+    `UPDATE translations SET translator_id = $1
+     WHERE target_language = 'la' AND entity_type = 'glossary' AND translator_id IS NULL
+       AND status IN ('pending', 'translating', 'requires_review')
+       AND entity_id <> ALL($2::uuid[])
+     RETURNING id`,
+    [translatorId, [idA, idB, idC]]
+  );
+
+  const calls = [];
+  aiT._setTransport(async ({ system, text, targetLanguage }) => {
+    calls.push({ system, text, targetLanguage });
+    return 'LA[' + text.replace(/\s+/g, ' ').slice(0, 30) + ']';
+  });
+
+  try {
+    await aiT.startBatch({ languages: ['la'], entityTypes: ['glossary'], limit: 2 });
+    const job = await waitForAiJob(aiT);
+
+    assert.equal(job.status, 'completed');
+    assert.equal(job.total, 3, 'all matching rows are scanned');
+    assert.equal(job.translated, 2, 'skips must not consume the cap');
+    assert.equal(job.skipped, 1);
+    assert.equal(job.skipReasons.unchanged, 1, 'C skipped: already drafted, source unchanged');
+    assert.equal(job.pivoted, 1, 'A drafted with the Thai reference');
+    assert.equal(job.failed, 0);
+    assert.equal(job.capped, false, 'the real work fit inside the cap');
+
+    const rowA = (await pool.query(
+      `SELECT * FROM translations WHERE entity_type = 'glossary' AND entity_id = $1 AND target_language = 'la'`,
+      [idA]
+    )).rows[0];
+    assert.equal(rowA.status, 'requires_review');
+    assert.equal(rowA.ai_source_strategy, 'th_pivot');
+    assert.equal(rowA.ai_model, 'test-stub');
+    assert.equal(rowA.ai_pivot_ref.translation_id, thId);
+    assert.equal(
+      rowA.ai_pivot_ref.content_hash,
+      core.sourceHash({ term: 'ทดสอบ เอ', definition: 'คำนิยาม เอ' }),
+      'provenance pins the Thai TEXT the draft leaned on'
+    );
+    assert.deepEqual(rowA.ai_pivot_ref.fields, { term: 'pivot', definition: 'pivot' });
+    assert.ok(rowA.target_char_count > 0, 'pay meter is set at draft time');
+
+    const rowB = (await pool.query(
+      `SELECT * FROM translations WHERE entity_type = 'glossary' AND entity_id = $1 AND target_language = 'la'`,
+      [idB]
+    )).rows[0];
+    assert.equal(rowB.status, 'requires_review');
+    assert.equal(rowB.ai_source_strategy, 'direct', 'no trusted Thai → direct English draft');
+    assert.equal(rowB.ai_pivot_ref, null);
+
+    const rowC = (await pool.query(
+      `SELECT * FROM translations WHERE entity_type = 'glossary' AND entity_id = $1 AND target_language = 'la'`,
+      [idC]
+    )).rows[0];
+    assert.equal(rowC.content_payload.term, 'ຊີ', 'skipped row is untouched');
+    assert.equal(rowC.ai_source_strategy, null);
+
+    // Prompt surfaces: A's calls carry the English-authoritative pivot
+    // framing, the Thai text itself, and the approved term pair.
+    const aCall = calls.find((c) => c.text.includes('Definition A'));
+    assert.ok(aCall, 'A definition reached the model');
+    assert.match(aCall.system, /follow the English/);
+    assert.match(aCall.system, /"TestTerm Anchor" → "ຄຳທົດສອບ"/);
+    assert.ok(aCall.text.includes('ENGLISH SOURCE'), 'pivot user message is structured');
+    assert.ok(aCall.text.includes('คำนิยาม เอ'), 'the verified Thai rides along as reference');
+    const bCall = calls.find((c) => c.text.includes('Definition B'));
+    assert.ok(bCall, 'B definition reached the model');
+    assert.ok(!/Thai/.test(bCall.system), 'no pivot framing without a trusted Thai');
+    assert.ok(!bCall.text.includes('ENGLISH SOURCE'), 'direct drafts send the bare chunk');
+
+    // Strict mode: only Lao rows with a verified Thai are drafted; the
+    // rest wait, unclaimed. force reopens already-drafted rows.
+    await aiT.startBatch({ languages: ['la'], entityTypes: ['glossary'], limit: 10, force: true, laoPivotStrict: true });
+    const strict = await waitForAiJob(aiT);
+    assert.equal(strict.translated, 1, 'only A has a verified Thai');
+    assert.equal(strict.skipReasons.awaiting_thai, 2, 'B and C wait for Thai');
+    const cAfterStrict = (await pool.query(
+      `SELECT status FROM translations WHERE entity_type = 'glossary' AND entity_id = $1 AND target_language = 'la'`,
+      [idC]
+    )).rows[0];
+    assert.equal(cAfterStrict.status, 'requires_review', 'a strict skip never claims the row');
+
+    // Cap + resume: with force and limit 1, the oldest actionable row is
+    // drafted and the job reports exactly what is left to continue.
+    await aiT.startBatch({ languages: ['la'], entityTypes: ['glossary'], limit: 1, force: true });
+    const capped = await waitForAiJob(aiT);
+    assert.equal(capped.translated, 1);
+    assert.equal(capped.capped, true);
+    assert.equal(capped.remaining, 2, 'resume hint counts unscanned rows');
+  } finally {
+    aiT._setTransport(null);
+    if (parked.rows.length) {
+      await pool.query(
+        `UPDATE translations SET translator_id = NULL WHERE id = ANY($1::uuid[])`,
+        [parked.rows.map((r) => r.id)]
+      );
+    }
+    await pool.query(
+      `DELETE FROM translations WHERE entity_type = 'glossary' AND entity_id = ANY($1::uuid[])`,
+      [[anchorId, idA, idB, idC]]
+    );
+    await pool.query(`DELETE FROM glossary WHERE id = ANY($1::uuid[])`, [[anchorId, idA, idB, idC]]);
+  }
+});
+
+test('retranslate guards, batch preview and Thai reference surfaces', async () => {
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const headers = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+  };
+
+  const g = await pool.query(
+    `INSERT INTO glossary (term, definition, letter)
+     VALUES ('TestTerm PivotHttp', 'A definition for the HTTP layer.', 'T') RETURNING id`
+  );
+  const gid = g.rows[0].id;
+  const th = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+     VALUES ('glossary', $1, 'th', 'verified', '{"term":"ทดสอบ","definition":"คำนิยาม"}'::jsonb) RETURNING id`,
+    [gid]
+  );
+  // A Lao AI draft whose recorded Thai content hash no longer matches the
+  // Thai text → the review page must flag the reference as stale.
+  const la = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, ai_model, ai_source_strategy, ai_pivot_ref)
+     VALUES ('glossary', $1, 'la', 'requires_review', '{"term":"ຄຳ","definition":"ນິຍາມ"}'::jsonb, 'test-model', 'th_pivot',
+             jsonb_build_object('language', 'th', 'translation_id', $2::text, 'content_hash', 'stale-hash', 'fields', '{}'::jsonb))
+     RETURNING id`,
+    [gid, th.rows[0].id]
+  );
+  const laId = la.rows[0].id;
+  let gid2 = null;
+
+  try {
+    // Preview: the modal's live counts, including how many Lao rows have a
+    // trusted Thai sibling to pivot from.
+    const prev = await admin.fetch('/translations/ai-batch/preview?languages=la&entity_types=glossary',
+      { headers: { accept: 'application/json' } });
+    assert.equal(prev.status, 200);
+    const prevData = await prev.json();
+    const laLine = prevData.preview.find((p) => p.lang === 'la');
+    assert.ok(laLine && laLine.candidates >= 1, 'Lao candidates are counted');
+    assert.ok(laLine.with_thai >= 1, 'trusted-Thai availability is counted');
+
+    // Valid row but no API key on the test server → configuration error,
+    // never a silent no-op.
+    const notConfigured = await admin.fetch(`/translations/${laId}/retranslate`,
+      { method: 'POST', headers, body: '{}' });
+    assert.equal(notConfigured.status, 503);
+
+    // Published text never gets stomped — reopen first.
+    const published = await pool.query(
+      `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload)
+       VALUES ('glossary', $1, 'fr', 'published', '{"term":"terme"}'::jsonb) RETURNING id`,
+      [gid]
+    );
+    const pubDenied = await admin.fetch(`/translations/${published.rows[0].id}/retranslate`,
+      { method: 'POST', headers, body: '{}' });
+    assert.equal(pubDenied.status, 409);
+
+    // Human vendors own their rows (own entity: one row per language per
+    // entity, and 'fr' on gid is taken by the published fixture above).
+    const g2 = await pool.query(
+      `INSERT INTO glossary (term, definition, letter)
+       VALUES ('TestTerm PivotHttp Claimed', 'A claimed-row fixture.', 'T') RETURNING id`
+    );
+    gid2 = g2.rows[0].id;
+    const claimed = await pool.query(
+      `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, translator_id)
+       VALUES ('glossary', $1, 'fr', 'requires_review', '{"term":"terme"}'::jsonb, $2) RETURNING id`,
+      [gid2, translatorId]
+    );
+    const humanDenied = await admin.fetch(`/translations/${claimed.rows[0].id}/retranslate`,
+      { method: 'POST', headers, body: '{}' });
+    assert.equal(humanDenied.status, 409);
+    assert.match((await humanDenied.json()).error, /human translator/);
+
+    // RBAC: superadmin surface only.
+    const worker = new Session(server.base);
+    await worker.login('translator@test.local');
+    const denied = await worker.fetch(`/translations/${laId}/retranslate`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json', accept: 'application/json',
+        'x-csrf-token': await worker.getCsrfToken('/translations/workspace'),
+      },
+      body: '{}',
+    });
+    assert.equal(denied.status, 403);
+
+    // Review page: provenance line, stale-reference flag, Thai reference
+    // column and the per-item AI redraft button.
+    const page = await admin.fetch(`/translations/review/${laId}`);
+    assert.equal(page.status, 200);
+    const html = await page.text();
+    assert.ok(html.includes('English source · Thai style reference'), 'provenance renders');
+    assert.ok(html.includes('changed since this draft'), 'stale Thai reference is flagged');
+    assert.ok(html.includes('Show Thai reference'), 'reference toggle ships');
+    assert.ok(html.includes('thai-ref-cell'), 'reference column ships');
+    assert.ok(html.includes('retranslateBtn'), 'per-item AI redraft button ships');
+
+    // Verify editor: the worker-facing side offers the same reference.
+    const verifier = new Session(server.base);
+    await verifier.login('verifier@test.local');
+    const editor = await verifier.fetch(`/translations/verify/${laId}`);
+    assert.equal(editor.status, 200);
+    assert.ok((await editor.text()).includes('vf-thai-toggle'), 'verify editor offers the Thai reference');
+  } finally {
+    const ids = [gid, gid2].filter(Boolean);
+    await pool.query(`DELETE FROM translations WHERE entity_type = 'glossary' AND entity_id = ANY($1::uuid[])`, [ids]);
+    await pool.query(`DELETE FROM glossary WHERE id = ANY($1::uuid[])`, [ids]);
   }
 });

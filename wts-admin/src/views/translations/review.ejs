@@ -15,6 +15,12 @@
           <%= entityConfig.label %> → <%= languageNames[item.target_language] || item.target_language %>
           · status: <strong><%= item.status.replace('_', ' ') %></strong>
           <% if (item.ai_model) { %> · drafted by <i class="fas fa-robot"></i> <%= item.ai_model %><% } %>
+          <% if (item.ai_source_strategy === 'th_pivot') { %>
+            <span title="English was the authoritative source; the entity's verified Thai translation guided style and phrasing.">(English source · Thai style reference)</span>
+          <% } %>
+          <% if (typeof pivotStale !== 'undefined' && pivotStale) { %>
+            · <span style="color:#b45309;"><i class="fas fa-triangle-exclamation"></i> the Thai reference has changed since this draft</span>
+          <% } %>
           <% if (translator) { %> · translator: <%= translator.first_name %> <%= translator.last_name || '' %> (<%= translator.email %>)<% } %>
           <% if (typeof verifier !== 'undefined' && verifier) { %>
             · verified by <%= verifier.first_name %> <%= verifier.last_name || '' %>
@@ -39,9 +45,19 @@
           <button type="button" class="btn btn-secondary" id="interlinkBtn" title="Hyperlink glossary and SEO term mentions in this translation to their term pages (internal-link SEO)">
             <i class="fas fa-link"></i> Link SEO Terms
           </button>
+          <% if (item.status === 'requires_review' && !item.translator_id) { %>
+            <button type="button" class="btn btn-secondary" id="retranslateBtn" title="Overwrite this draft with a fresh AI translation from the English source<%= item.target_language === 'la' ? ' (verified Thai attached as a style reference when available)' : '' %>. Stays an unpaid AI draft in requires review.">
+              <i class="fas fa-robot"></i> Re-translate with AI
+            </button>
+          <% } %>
         <% } else if (item.status === 'published') { %>
           <button type="button" class="btn btn-secondary" id="reopenBtn">
             <i class="fas fa-lock-open"></i> Reopen for Editing
+          </button>
+        <% } %>
+        <% if (typeof thaiRef !== 'undefined' && thaiRef) { %>
+          <button type="button" class="btn btn-secondary" id="thaiRefBtn" title="Show the verified Thai translation of this content beside each field — reference only, English remains the source.">
+            <i class="fas fa-language"></i> Show Thai reference
           </button>
         <% } %>
         <span style="margin-left:auto; color:var(--gray-500);">
@@ -72,16 +88,18 @@
         : entityConfig.fields;
       var segIndex = 0;
     %>
+    <% var hasThaiRef = typeof thaiRef !== 'undefined' && thaiRef; %>
     <% fieldList.forEach(field => {
          var sourceValue = source && source.fields[field];
          var targetValue = item.content_payload ? item.content_payload[field] : null;
+         var thaiValue = hasThaiRef ? thaiRef.content_payload[field] : null;
          if (!sourceValue && !targetValue) return;
          segIndex += 1;
          var fieldLabel = entityConfig.dynamic ? ('Segment ' + segIndex) : field.replace(/_/g, ' '); %>
       <div class="card" style="margin-bottom:1rem;">
         <div class="card-body">
           <h3 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; color:var(--gray-500);"><%= fieldLabel %></h3>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="cmp-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
             <div>
               <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">English source</div>
               <div style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:320px; overflow:auto; white-space:pre-wrap; background:var(--gray-50, #f9fafb);"><%= sourceValue || '—' %></div>
@@ -90,6 +108,12 @@
               <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;"><%= languageNames[item.target_language] || item.target_language %></div>
               <div style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:320px; overflow:auto; white-space:pre-wrap;"><%= targetValue || '—' %></div>
             </div>
+            <% if (hasThaiRef) { %>
+              <div class="thai-ref-cell" hidden>
+                <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">Thai (verified · reference only)</div>
+                <div style="border:1px dashed var(--gray-300, #d1d5db); border-radius:6px; padding:0.75rem; max-height:320px; overflow:auto; white-space:pre-wrap; background:var(--gray-50, #f9fafb);"><%= thaiValue || '—' %></div>
+              </div>
+            <% } %>
           </div>
         </div>
       </div>
@@ -153,6 +177,60 @@
     if (!confirm('Reopen this published translation for editing? Re-publishing will NOT credit the vendor again.')) return;
     post('/translations/' + id + '/reopen').then(function (res) {
       if (res.ok) location.reload(); else alert(res.data.error || 'Reopen failed');
+    });
+  });
+
+  // Reference-only Thai column for Lao rows: the reviewer pool reads Thai
+  // fluently, and Lao AI drafts lean on the verified Thai for style. The
+  // English column stays the authority; this is a comparison aid.
+  var thaiRefBtn = document.getElementById('thaiRefBtn');
+  if (thaiRefBtn) thaiRefBtn.addEventListener('click', function () {
+    var showing = this.dataset.showing === '1';
+    this.dataset.showing = showing ? '0' : '1';
+    this.innerHTML = showing
+      ? '<i class="fas fa-language"></i> Show Thai reference'
+      : '<i class="fas fa-language"></i> Hide Thai reference';
+    document.querySelectorAll('.thai-ref-cell').forEach(function (cell) { cell.hidden = showing; });
+    document.querySelectorAll('.cmp-grid').forEach(function (grid) {
+      grid.style.gridTemplateColumns = showing ? '1fr 1fr' : '1fr 1fr 1fr';
+    });
+  });
+
+  // Per-item AI redraft. Runs through the shared batch engine (one job at
+  // a time), so this polls the same status endpoint until the single-row
+  // job finishes, then reloads to show the new draft.
+  var retranslateBtn = document.getElementById('retranslateBtn');
+  if (retranslateBtn) retranslateBtn.addEventListener('click', function () {
+    var msg = 'Re-draft this translation with AI now?\n\n' +
+      'This OVERWRITES the current draft text in place (including any saved verifier fixes) ' +
+      'and the row returns to "requires review". It stays an unpaid AI draft — no payout is created.';
+    if (!confirm(msg)) return;
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Re-translating…';
+    function watchJob() {
+      fetch('/translations/ai-batch/status', { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.job && d.job.status === 'running') { setTimeout(watchJob, 2000); return; }
+          if (d.job && d.job.failed > 0) {
+            var last = d.job.errors && d.job.errors.length ? d.job.errors[d.job.errors.length - 1].error : 'unknown error';
+            alert('Re-translation failed: ' + last);
+          } else if (d.job && d.job.skipped > 0 && d.job.translated === 0) {
+            alert('Nothing was re-drafted — the row was skipped (' + JSON.stringify(d.job.skipReasons) + ').');
+          }
+          location.reload();
+        })
+        .catch(function () { setTimeout(watchJob, 4000); });
+    }
+    post('/translations/' + id + '/retranslate').then(function (res) {
+      if (!res.ok) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-robot"></i> Re-translate with AI';
+        alert(res.data.error || 'Could not start re-translation');
+        return;
+      }
+      watchJob();
     });
   });
 

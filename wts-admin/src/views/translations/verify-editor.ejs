@@ -61,7 +61,8 @@
            if (!sourceValue && !targetValue) return;
            segIndex += 1;
            var fieldLabel = entityConfig.dynamic ? ('Segment ' + segIndex) : field.replace(/_/g, ' ');
-           var isLong = String(targetValue || sourceValue || '').length > 300; %>
+           var isLong = String(targetValue || sourceValue || '').length > 300;
+           var thaiValue = (typeof thaiRef !== 'undefined' && thaiRef && thaiRef.content_payload[field]) || null; %>
         <div class="card" style="margin-bottom:1rem;">
           <div class="card-body">
             <h3 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; color:var(--gray-500);"><%= fieldLabel %></h3>
@@ -85,10 +86,18 @@
                   <span class="vf-edited" data-for="<%= field %>" hidden style="color:#d97706;">&#9679; reworked — paid on top</span>
                   <button type="button" class="vf-draft-toggle" data-for="<%= field %>" hidden
                     style="background:none; border:none; padding:0; color:#2563eb; cursor:pointer; font-size:0.72rem; text-decoration:underline;">View AI draft (diff)</button>
+                  <% if (thaiValue) { %>
+                    <button type="button" class="vf-thai-toggle" data-for="<%= field %>"
+                      style="background:none; border:none; padding:0; color:#2563eb; cursor:pointer; font-size:0.72rem; text-decoration:underline;">View Thai reference</button>
+                  <% } %>
                   <span class="vf-copy-slot" data-for="<%= field %>"></span>
                 </div>
                 <div class="vf-draft" data-for="<%= field %>" hidden
                   style="border:1px dashed var(--gray-300); border-radius:6px; padding:0.5rem; margin-top:0.25rem; font-size:0.85rem; line-height:1.8; white-space:pre-wrap; background:#fffbeb; max-height:260px; overflow:auto;"></div>
+                <% if (thaiValue) { %>
+                  <div class="vf-thai" data-for="<%= field %>" hidden
+                    style="border:1px dashed var(--gray-300); border-radius:6px; padding:0.5rem; margin-top:0.25rem; font-size:0.85rem; line-height:1.8; white-space:pre-wrap; background:#eff6ff; max-height:260px; overflow:auto;"><div style="font-size:0.7rem; color:var(--gray-500); margin-bottom:0.25rem;">Thai (verified &middot; reference only &mdash; the English source is the authority)</div><%= thaiValue %></div>
+                <% } %>
               </div>
             </div>
           </div>
@@ -189,6 +198,19 @@
       box.hidden = !box.hidden;
       if (!box.hidden) renderDraft(name);
       btn.textContent = box.hidden ? 'View AI draft (diff)' : 'Hide AI draft';
+    });
+  });
+
+  // Verified Thai reference (Lao rows): read-only comparison aid — the
+  // English source stays the authority, but the verifier pool reads Thai
+  // fluently and Lao drafts leaned on this text for style.
+  document.querySelectorAll('.vf-thai-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var name = btn.getAttribute('data-for');
+      var box = fieldEl('vf-thai', name);
+      if (!box) return;
+      box.hidden = !box.hidden;
+      btn.textContent = box.hidden ? 'View Thai reference' : 'Hide Thai reference';
     });
   });
 
