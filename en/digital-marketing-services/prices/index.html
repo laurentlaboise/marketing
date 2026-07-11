@@ -278,51 +278,133 @@
         .subscription-card .pay-as-you-go { font-size: 0.9rem; color: var(--color-slate-700); text-align: center; margin-bottom: 1rem; }
         .subscription-card .btn { width: 100%; }
 
-        /* Inline comparison */
-        .compare-toggle-wrap {
-            text-align: center;
-            margin: 3rem 0 0;
+        /* Progressive comparison table */
+        .compare-section {
+            margin-top: 3.5rem;
             padding-top: 0.5rem;
         }
-        .compare-toggle-wrap .btn { min-width: 14rem; }
-        .compare-toggle-hint {
-            display: block;
-            margin-top: 0.65rem;
-            font-size: 0.9rem;
+        .compare-section-title {
+            text-align: center;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 0.35rem;
+        }
+        .compare-section-lead {
+            text-align: center;
             color: #64748b;
+            font-size: 0.98rem;
+            margin: 0 auto 1.5rem;
+            max-width: 28rem;
+            line-height: 1.55;
         }
         .compare-wrap {
+            position: relative;
             overflow-x: auto;
-            margin: 1.25rem 0 0.5rem;
+            margin: 0 0 1rem;
             border-radius: 16px;
             border: 1px solid #e2e8f0;
             background: #fff;
             box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
-            display: none;
+            max-height: none;
         }
-        .compare-wrap.is-open {
-            display: block;
-            animation: compareOpen 0.35s ease;
+        .compare-table {
+            width: 100%;
+            min-width: 640px;
+            border-collapse: collapse;
+            font-size: 0.95rem;
         }
-        @keyframes compareOpen {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .compare-wrap.is-open { animation: none; }
-        }
-        .compare-table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 0.95rem; }
         .compare-table th, .compare-table td {
-            padding: 0.95rem 1rem; text-align: center;
-            border-bottom: 1px solid #f1f5f9; color: #0f172a;
+            padding: 0.95rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            color: #0f172a;
+            transition: background 0.15s ease;
         }
         .compare-table th:first-child, .compare-table td:first-child { text-align: left; font-weight: 600; }
-        .compare-table thead th { background: #122a3f; color: #fff; font-weight: 700; }
-        .compare-table tbody tr:nth-child(even) { background: #f8fafc; }
+        .compare-table thead th {
+            background: #122a3f;
+            color: #fff;
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .compare-table tbody tr:hover td { background: #f1f5f9; }
+        .compare-table tbody tr:hover td.col-pop { background: rgba(214, 43, 131, 0.12); }
         .compare-table .yes { color: var(--color-accent-magenta); font-weight: 700; }
         .compare-table .no { color: #94a3b8; }
-        .compare-table .col-pop { background: rgba(214, 43, 131, 0.06); }
-        .compare-table thead .col-pop { background: #9d174d; }
+        .compare-table .col-pop { background: rgba(214, 43, 131, 0.08); }
+        .compare-table thead .col-pop {
+            background: #9d174d;
+            box-shadow: inset 0 -3px 0 #fbcfe8;
+        }
+        .compare-table.highlight-growth tbody td.col-pop {
+            background: rgba(214, 43, 131, 0.14);
+            box-shadow: inset 0 0 0 1px rgba(214, 43, 131, 0.12);
+        }
+        /* Extra feature rows: in DOM always; collapsed until expanded */
+        .compare-table tbody tr.compare-row-extra {
+            display: none;
+        }
+        .compare-wrap.is-expanded .compare-table tbody tr.compare-row-extra {
+            display: table-row;
+            animation: compareRowIn 0.28s ease both;
+        }
+        @keyframes compareRowIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .compare-wrap:not(.is-expanded)::after {
+            content: '';
+            pointer-events: none;
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 3.25rem;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 85%);
+            border-radius: 0 0 16px 16px;
+        }
+        .compare-wrap.is-expanded::after { display: none; }
+        .compare-toggle-wrap {
+            text-align: center;
+            margin: 0.25rem 0 0;
+            padding-top: 0.25rem;
+        }
+        .compare-toggle-wrap .btn { min-width: 15rem; }
+        .compare-toggle-hint {
+            display: block;
+            margin-top: 0.55rem;
+            font-size: 0.88rem;
+            color: #64748b;
+        }
+        .card-compare-link {
+            display: inline-block;
+            margin-top: 0.65rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--color-accent-magenta);
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 0;
+        }
+        .card-compare-link:hover { text-decoration: underline; }
+        .visually-hidden {
+            position: absolute !important;
+            width: 1px; height: 1px;
+            padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0,0,0,0);
+            white-space: nowrap; border: 0;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .compare-wrap.is-expanded .compare-table tbody tr.compare-row-extra { animation: none; }
+        }
+        @media (max-width: 640px) {
+            .compare-table { font-size: 0.88rem; min-width: 520px; }
+            .compare-table th, .compare-table td { padding: 0.7rem 0.55rem; }
+        }
 
         .partner-links {
             display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 1rem;
@@ -1198,6 +1280,7 @@
                             </ul>
                         </div>
                         <button type="button" class="btn btn-accent" data-plan="Digital Footprint" onclick="return goToPortal('get_started', 'Digital Footprint')">Get started</button>
+                        <button type="button" class="card-compare-link" data-highlight="footprint" onclick="return openPlanComparison('footprint')">See full comparison ↓</button>
                         <div class="card-trust" aria-label="Purchase reassurance">
                             <span><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</span>
                             <span><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</span>
@@ -1222,6 +1305,7 @@
                             </ul>
                         </div>
                         <button type="button" class="btn btn-accent" data-plan="Growth Engine" onclick="return goToPortal('get_started', 'Growth Engine')">Get started</button>
+                        <button type="button" class="card-compare-link" data-highlight="growth" onclick="return openPlanComparison('growth')">See full comparison ↓</button>
                         <div class="card-trust" aria-label="Purchase reassurance">
                             <span><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</span>
                             <span><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</span>
@@ -1245,6 +1329,7 @@
                             </ul>
                         </div>
                         <button type="button" class="btn btn-accent" data-plan="Automation Pro" onclick="return goToPortal('get_started', 'Automation Pro')">Get started</button>
+                        <button type="button" class="card-compare-link" data-highlight="automation" onclick="return openPlanComparison('automation')">See full comparison ↓</button>
                         <div class="card-trust" aria-label="Purchase reassurance">
                             <span><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</span>
                             <span><i class="fas fa-lock" aria-hidden="true"></i> SSL secure</span>
@@ -1253,74 +1338,124 @@
                 </div>
                 <p style="text-align:center;margin:1.75rem auto 0;max-width:36rem;font-size:0.9rem;color:#64748b;line-height:1.6;">*Money-back on eligible plans. Card payments use SSL.</p>
 
-                <div class="compare-toggle-wrap">
-                    <button type="button" id="compare-plans-btn" class="btn btn-outline" aria-expanded="false" aria-controls="plan-compare">
-                        <i class="fas fa-columns" style="margin-right:0.5rem;" aria-hidden="true"></i>
-                        <span id="compare-plans-btn-label">See full comparison</span>
-                    </button>
-                    <span class="compare-toggle-hint">Opens the side‑by‑side table (Footprint · Growth · Automation)</span>
-                </div>
-                <div id="plan-compare" class="compare-wrap" hidden>
-                    <table class="compare-table" aria-label="Compare monthly plans">
-                        <thead>
-                            <tr>
-                                <th scope="col">What you get</th>
-                                <th scope="col">Footprint</th>
-                                <th scope="col" class="col-pop">Growth</th>
-                                <th scope="col">Automation</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Best for</td>
-                                <td>First professional presence</td>
-                                <td class="col-pop">Leads &amp; visibility</td>
-                                <td>Scale with systems</td>
-                            </tr>
-                            <tr>
-                                <td>List price / month</td>
-                                <td>$329</td>
-                                <td class="col-pop">$649</td>
-                                <td>$1,099</td>
-                            </tr>
-                            <tr>
-                                <td>Social posts / month</td>
-                                <td class="yes">8 posts · 1–2 platforms</td>
-                                <td class="col-pop yes">8+ posts · foundation + growth cadence</td>
-                                <td class="yes">8+ posts · foundation + ops support</td>
-                            </tr>
-                            <tr>
-                                <td>Local SEO cadence</td>
-                                <td class="no">Not included</td>
-                                <td class="col-pop yes">Scoped monthly SEO</td>
-                                <td class="yes">Scoped monthly SEO</td>
-                            </tr>
-                            <tr>
-                                <td>Ad campaign management</td>
-                                <td class="no">Not included</td>
-                                <td class="col-pop yes">Yes · media budget separate</td>
-                                <td class="yes">Yes · media budget separate</td>
-                            </tr>
-                            <tr>
-                                <td>CRM / email automation</td>
-                                <td class="no">Not included</td>
-                                <td class="col-pop no">Not included</td>
-                                <td class="yes">Scoped workflows</td>
-                            </tr>
-                            <tr>
-                                <td>Priority delivery</td>
-                                <td class="no">Standard</td>
-                                <td class="col-pop no">Standard</td>
-                                <td class="yes">Priority</td>
-                            </tr>
-                            <tr>
-                                <td>Monthly report</td>
-                                <td class="yes">Plain language</td>
-                                <td class="col-pop yes">Performance-focused</td>
-                                <td class="yes">Advanced ops report</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="compare-section" id="plan-compare-section">
+                    <p class="compare-section-title">Compare plans</p>
+                    <p class="compare-section-lead">Decision rows first. Expand for the full feature list.</p>
+                    <div id="plan-compare" class="compare-wrap" role="region" aria-labelledby="compare-plans-btn">
+                        <table class="compare-table" aria-label="Compare monthly plans">
+                            <thead>
+                                <tr>
+                                    <th scope="col">What you get</th>
+                                    <th scope="col" data-col="footprint">Footprint</th>
+                                    <th scope="col" class="col-pop" data-col="growth">Growth ★</th>
+                                    <th scope="col" data-col="automation">Automation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Core differentiators: always visible -->
+                                <tr class="compare-row-core">
+                                    <td>Best for</td>
+                                    <td>First professional presence</td>
+                                    <td class="col-pop">Leads &amp; visibility</td>
+                                    <td>Scale with systems</td>
+                                </tr>
+                                <tr class="compare-row-core">
+                                    <td>List price / month</td>
+                                    <td>$329</td>
+                                    <td class="col-pop">$649</td>
+                                    <td>$1,099</td>
+                                </tr>
+                                <tr class="compare-row-core">
+                                    <td>Social posts / month</td>
+                                    <td class="yes">8 posts · 1–2 platforms</td>
+                                    <td class="col-pop yes">8+ posts · growth cadence</td>
+                                    <td class="yes">8+ posts · ops support</td>
+                                </tr>
+                                <tr class="compare-row-core">
+                                    <td>Local SEO cadence</td>
+                                    <td class="no">Not included</td>
+                                    <td class="col-pop yes">Scoped monthly SEO</td>
+                                    <td class="yes">Scoped monthly SEO</td>
+                                </tr>
+                                <tr class="compare-row-core">
+                                    <td>Ad campaign management</td>
+                                    <td class="no">Not included</td>
+                                    <td class="col-pop yes">Yes · media budget separate</td>
+                                    <td class="yes">Yes · media budget separate</td>
+                                </tr>
+                                <tr class="compare-row-core">
+                                    <td>CRM / email automation</td>
+                                    <td class="no">Not included</td>
+                                    <td class="col-pop no">Not included</td>
+                                    <td class="yes">Scoped workflows</td>
+                                </tr>
+                                <tr class="compare-row-core">
+                                    <td>Monthly report</td>
+                                    <td class="yes">Plain language</td>
+                                    <td class="col-pop yes">Performance-focused</td>
+                                    <td class="yes">Advanced ops report</td>
+                                </tr>
+                                <!-- Extra rows: in DOM for SEO/print; collapsed until expanded -->
+                                <tr class="compare-row-extra">
+                                    <td>Priority delivery</td>
+                                    <td class="no">Standard</td>
+                                    <td class="col-pop no">Standard</td>
+                                    <td class="yes">Priority</td>
+                                </tr>
+                                <tr class="compare-row-extra">
+                                    <td>Social media foundation</td>
+                                    <td class="yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                    <td class="col-pop yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                    <td class="yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                </tr>
+                                <tr class="compare-row-extra">
+                                    <td>Professional online presence support</td>
+                                    <td class="yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                    <td class="col-pop yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                    <td class="yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                </tr>
+                                <tr class="compare-row-extra">
+                                    <td>Foundational content production</td>
+                                    <td class="yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                    <td class="col-pop yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                    <td class="yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                </tr>
+                                <tr class="compare-row-extra">
+                                    <td>Lead assets / conversion support</td>
+                                    <td class="no">—</td>
+                                    <td class="col-pop yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                    <td class="yes"><i class="fas fa-check" aria-label="Yes"></i></td>
+                                </tr>
+                                <tr class="compare-row-extra">
+                                    <td>Performance reporting depth</td>
+                                    <td>Basic</td>
+                                    <td class="col-pop">Advanced</td>
+                                    <td>Ops-level</td>
+                                </tr>
+                                <tr class="compare-row-extra">
+                                    <td>LINE / TikTok as platform options</td>
+                                    <td class="no">Add-on</td>
+                                    <td class="col-pop yes">Within caps / add-on</td>
+                                    <td class="yes">Within caps / add-on</td>
+                                </tr>
+                                <tr class="compare-row-extra">
+                                    <td>Custom apps / third-party licenses</td>
+                                    <td class="no">Not included</td>
+                                    <td class="col-pop no">Not included</td>
+                                    <td class="no">Not included</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="compare-toggle-wrap">
+                        <button type="button" id="compare-plans-btn" class="btn btn-outline"
+                            aria-expanded="false" aria-controls="plan-compare-extra">
+                            <i class="fas fa-list" style="margin-right:0.5rem;" aria-hidden="true"></i>
+                            <span id="compare-plans-btn-label">Show full feature list</span>
+                        </button>
+                        <span class="compare-toggle-hint" id="compare-plans-hint">Decision rows are open. Expand for checkmarks and extras.</span>
+                    </div>
+                    <span id="plan-compare-extra" class="visually-hidden" aria-hidden="true">Extra comparison rows</span>
                 </div>
                 <p style="max-width:34rem;margin:2rem auto 0;text-align:center;font-size:0.98rem;line-height:1.65;color:#64748b;">
                     Monthly caps are intentional—so delivery stays reliable. Need more? Add-on or next tier.
@@ -2218,44 +2353,78 @@
                 });
             }
 
-            // Full comparison table: closed by default, open on button click
+            // Progressive comparison: core rows always visible; extra rows expand in place
             const compareBtn = document.getElementById('compare-plans-btn');
             const comparePanel = document.getElementById('plan-compare');
             const compareBtnLabel = document.getElementById('compare-plans-btn-label');
+            const compareHint = document.getElementById('compare-plans-hint');
+            const compareTableEl = document.querySelector('#plan-compare .compare-table');
+
+            function setCompareExpanded(open, highlightCol) {
+                if (!comparePanel || !compareBtn) return;
+                comparePanel.classList.toggle('is-expanded', open);
+                compareBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                if (compareBtnLabel) {
+                    compareBtnLabel.textContent = open ? 'Show less ↑' : 'Show full feature list ↓';
+                }
+                if (compareHint) {
+                    compareHint.textContent = open
+                        ? 'Full feature list open. Click to collapse.'
+                        : 'Decision rows are open. Expand for checkmarks and extras.';
+                }
+                if (compareTableEl) {
+                    compareTableEl.classList.toggle('highlight-growth', open && (!highlightCol || highlightCol === 'growth'));
+                    // Column emphasis when opened from a card
+                    compareTableEl.querySelectorAll('[data-col]').forEach(th => {
+                        th.style.outline = '';
+                    });
+                    if (open && highlightCol) {
+                        const th = compareTableEl.querySelector('[data-col="' + highlightCol + '"]');
+                        if (th) th.style.outline = '2px solid #fbcfe8';
+                    }
+                }
+            }
+
+            window.openPlanComparison = function openPlanComparison(col) {
+                setCompareExpanded(true, col || 'growth');
+                trackEvent('open_comparison', 'Pricing', 'card_' + (col || 'growth'));
+                const section = document.getElementById('plan-compare-section');
+                if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return false;
+            };
+
             if (compareBtn && comparePanel) {
                 compareBtn.addEventListener('click', () => {
-                    const open = !comparePanel.classList.contains('is-open');
-                    comparePanel.classList.toggle('is-open', open);
+                    const open = !comparePanel.classList.contains('is-expanded');
+                    setCompareExpanded(open, open ? 'growth' : null);
+                    trackEvent(open ? 'open_comparison' : 'close_comparison', 'Pricing', 'toggle');
                     if (open) {
-                        comparePanel.removeAttribute('hidden');
-                        compareBtn.setAttribute('aria-expanded', 'true');
-                        if (compareBtnLabel) compareBtnLabel.textContent = 'Hide full comparison';
-                        trackEvent('open_comparison', 'Pricing', 'See full comparison');
                         comparePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    } else {
-                        comparePanel.setAttribute('hidden', '');
-                        compareBtn.setAttribute('aria-expanded', 'false');
-                        if (compareBtnLabel) compareBtnLabel.textContent = 'See full comparison';
                     }
                 });
             }
 
-            // Secondary comparison modal removed — single on-page table is the source of truth.
-            // If admin returns a rich feature matrix, fold it into #plan-compare (below the static rows).
-            if (hasApiPlans && pricingData.featureCategories && pricingData.featureCategories.length && modalTableBody) {
+            // Admin feature matrix → extra rows (collapsed by default, still in DOM)
+            if (hasApiPlans && pricingData.featureCategories && pricingData.featureCategories.length) {
                 const compareTable = document.querySelector('#plan-compare .compare-table tbody');
                 if (compareTable) {
                     const plans = pricingData.subscriptions || [];
                     pricingData.featureCategories.forEach(category => {
                         (category.features || []).forEach(feature => {
+                            const name = (feature.name || '').trim();
+                            if (!name) return;
+                            // Skip if we already have a core row with same label
+                            const exists = Array.from(compareTable.querySelectorAll('td:first-child'))
+                                .some(td => td.textContent.trim().toLowerCase() === name.toLowerCase());
+                            if (exists) return;
                             const tr = document.createElement('tr');
-                            let cells = `<td>${feature.name || ''}</td>`;
-                            plans.forEach((plan, idx) => {
+                            tr.className = 'compare-row-extra';
+                            let cells = `<td>${name}</td>`;
+                            plans.forEach((plan) => {
                                 const has = plan.features && plan.features[feature.key];
                                 const pop = plan.highlight || /growth/i.test(plan.slug || plan.name || '') ? ' class="col-pop"' : '';
-                                cells += `<td${pop}>${has ? '<span class="yes"><i class="fas fa-check"></i></span>' : '<span class="no">—</span>'}</td>`;
+                                cells += `<td${pop}>${has ? '<span class="yes"><i class="fas fa-check" aria-label="Yes"></i></span>' : '<span class="no">—</span>'}</td>`;
                             });
-                            // Pad to 3 plan columns if API returns fewer
                             while ((cells.match(/<td/g) || []).length < 4) {
                                 cells += '<td class="no">—</td>';
                             }
