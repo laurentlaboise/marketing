@@ -8,6 +8,9 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Review Translation</h1>
+        <p class="page-subtitle" style="margin-bottom:0.25rem;">
+          <em>Publishing review — the final gate before the site. Workers fix and sign off drafts in their own Verify screen; this page approves, publishes and credits payouts.</em>
+        </p>
         <p class="page-subtitle">
           <%= entityConfig.label %> → <%= languageNames[item.target_language] || item.target_language %>
           · status: <strong><%= item.status.replace('_', ' ') %></strong>
@@ -110,13 +113,26 @@
   var approveBtn = document.getElementById('approveBtn');
   if (approveBtn) approveBtn.addEventListener('click', function () {
     if (!confirm('Publish this translation? Vendor payout (if configured) is credited immediately.')) return;
-    post('/translations/' + id + '/approve').then(function (res) {
-      if (res.ok) {
-        var p = res.data.payout;
-        alert(p ? ('Published. Credited ' + p.currency + ' ' + p.amount.toFixed(2) + ' to the vendor ledger.') : 'Published.');
-        location.reload();
-      } else { alert(res.data.error || 'Approve failed'); }
-    });
+    function doApprove(body) {
+      post('/translations/' + id + '/approve', body).then(function (res) {
+        if (res.ok) {
+          var p = res.data.payout;
+          alert(p ? ('Published. Credited ' + p.currency + ' ' + p.amount.toFixed(2) + ' to the vendor ledger.') : 'Published.');
+          location.reload();
+          return;
+        }
+        // Money guard: a missing rate card would silently skip credits —
+        // the server stops and asks for explicit acknowledgement.
+        if (res.data.requiresAcknowledgement) {
+          var msg = 'PAYOUT WARNING\n\n' + res.data.warnings.join('\n') +
+            '\n\nSet the missing rate in Localization → Payout Ledger first (recommended), or publish anyway WITHOUT crediting?';
+          if (confirm(msg)) doApprove({ acknowledge_no_payout: true });
+          return;
+        }
+        alert(res.data.error || 'Approve failed');
+      });
+    }
+    doApprove({});
   });
 
   var rejectBtn = document.getElementById('rejectBtn');

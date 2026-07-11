@@ -8,7 +8,52 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Team &amp; Vendors</h1>
-        <p class="page-subtitle">Roles, languages, positions (from the role briefs), team structure and payability. Admin accounts are managed via ADMIN_EMAILS.</p>
+        <p class="page-subtitle">Invite workers, set roles, languages, positions (from the role briefs), team structure and payability.</p>
+      </div>
+    </div>
+
+    <!-- Invite a new worker: the onboarding path — creates a translator
+         account and hands you a set-password link (emailed too when the
+         mailer is configured). -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body">
+        <h3 style="margin:0 0 0.75rem;"><i class="fas fa-user-plus"></i> Invite a Worker</h3>
+        <form id="inviteForm" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Email *</label>
+            <input class="form-input" name="email" type="email" required placeholder="worker@example.com" style="min-width:220px;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">First name</label>
+            <input class="form-input" name="first_name" style="max-width:140px;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Last name</label>
+            <input class="form-input" name="last_name" style="max-width:140px;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Languages</label>
+            <span style="display:inline-flex; gap:0.6rem; padding:0.45rem 0;">
+              <% languages.forEach(l => { %>
+                <label style="font-weight:normal; display:inline-flex; gap:0.25rem; align-items:center;">
+                  <input type="checkbox" name="invite_lang" value="<%= l %>"> <%= languageNames[l] || l %>
+                </label>
+              <% }); %>
+            </span>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Position</label>
+            <select class="form-input" name="position">
+              <option value="">—</option>
+              <% positions.forEach(p => { %><option value="<%= p %>"><%= p.replace(/_/g, ' ') %></option><% }); %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Invite</button>
+        </form>
+        <p style="color:var(--gray-500); font-size:0.8rem; margin:0.5rem 0 0;">
+          The invite creates a worker account and a set-password link (valid 7 days). The link is emailed when
+          email is configured, and always shown to you so you can share it over WhatsApp/LINE.
+        </p>
       </div>
     </div>
 
@@ -121,6 +166,33 @@
 <script nonce="<%= cspNonce %>">
 (function () {
   var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+  var inviteForm = document.getElementById('inviteForm');
+  if (inviteForm) inviteForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var langs = Array.prototype.map.call(inviteForm.querySelectorAll('input[name="invite_lang"]:checked'), function (c) { return c.value; });
+    var body = {
+      email: inviteForm.querySelector('[name="email"]').value.trim(),
+      first_name: inviteForm.querySelector('[name="first_name"]').value.trim(),
+      last_name: inviteForm.querySelector('[name="last_name"]').value.trim(),
+      assigned_languages: langs,
+      position: inviteForm.querySelector('[name="position"]').value
+    };
+    fetch('/translations/vendors/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify(body)
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+      .then(function (res) {
+        if (!res.ok) return alert(res.data.error || 'Invite failed');
+        prompt((res.data.emailed
+          ? 'Invited! An email was sent. You can also share this set-password link directly:'
+          : 'Invited! Email is not configured — share this set-password link with the worker:'), res.data.inviteLink);
+        location.reload();
+      })
+      .catch(function () { alert('Invite failed: network error'); });
+  });
+
 
   function post(url, body) {
     return fetch(url, {

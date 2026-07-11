@@ -23,73 +23,11 @@
 require('dotenv').config();
 const db = require('../database/db');
 
-const PAYOUT_RATE_DEFAULTS = [
-  // work_type, target_language, rate_type, rate_amount, currency
-  ['translation', 'la', 'per_1000_chars', 45000, 'LAK'],
-  ['verification', 'la', 'per_1000_chars', 30000, 'LAK'],
-  ['edit', 'la', 'per_1000_chars', 15000, 'LAK'],
-  ['verification', 'th', 'per_1000_chars', 30000, 'LAK'],
-  ['edit', 'th', 'per_1000_chars', 15000, 'LAK'],
-];
-
-const COMP_RATE_DEFAULTS = [
-  { work_type: 'lead_entry', rate_amount: 1500 },
-  { work_type: 'lead_directory_call', rate_amount: 5000 },
-  {
-    work_type: 'lead_qualified',
-    rate_amount: 20000,
-    tiers: [
-      { min: 1, max: 20, rate: 20000 },
-      { min: 21, max: 50, rate: 28000 },
-      { min: 51, rate: 35000 },
-    ],
-  },
-  { work_type: 'lead_conversion', rate_amount: 0, bonus_percent: 3, bonus_floor: 50000 },
-  { work_type: 'community_response', rate_amount: 3500 },
-  { work_type: 'cascade_share', rate_amount: 5000 },
-];
+const { seedDefaultRates } = require('../src/lib/default-rates');
 
 async function seedRates() {
-  let created = 0;
-
-  for (const [workType, lang, rateType, amount, currency] of PAYOUT_RATE_DEFAULTS) {
-    const exists = await db.query(
-      `SELECT 1 FROM payout_rates
-       WHERE is_active = TRUE AND work_type = $1 AND translator_id IS NULL
-         AND target_language IS NOT DISTINCT FROM $2 LIMIT 1`,
-      [workType, lang]
-    );
-    if (exists.rows.length) continue;
-    await db.query(
-      `INSERT INTO payout_rates (translator_id, target_language, work_type, rate_type, rate_amount, currency)
-       VALUES (NULL, $1, $2, $3, $4, $5)`,
-      [lang, workType, rateType, amount, currency]
-    );
-    created += 1;
-    console.log(`payout_rate: ${workType} ${lang} ${rateType} ${currency} ${amount}`);
-  }
-
-  for (const rate of COMP_RATE_DEFAULTS) {
-    const exists = await db.query(
-      `SELECT 1 FROM comp_rates WHERE is_active = TRUE AND work_type = $1 AND user_id IS NULL LIMIT 1`,
-      [rate.work_type]
-    );
-    if (exists.rows.length) continue;
-    await db.query(
-      `INSERT INTO comp_rates (user_id, work_type, rate_amount, currency, tiers, bonus_percent, bonus_floor)
-       VALUES (NULL, $1, $2, 'LAK', $3, $4, $5)`,
-      [
-        rate.work_type,
-        rate.rate_amount,
-        rate.tiers ? JSON.stringify(rate.tiers) : null,
-        rate.bonus_percent ?? null,
-        rate.bonus_floor ?? null,
-      ]
-    );
-    created += 1;
-    console.log(`comp_rate: ${rate.work_type} LAK ${rate.rate_amount}${rate.tiers ? ' (tiered)' : ''}${rate.bonus_percent ? ` +${rate.bonus_percent}% floor ${rate.bonus_floor}` : ''}`);
-  }
-
+  const { created, log } = await seedDefaultRates();
+  for (const line of log) console.log(line);
   console.log(created ? `\n${created} default rate(s) seeded — adjust in the admin UI.` : '\nAll rates already configured — nothing to do.');
 }
 

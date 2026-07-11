@@ -66,6 +66,24 @@ function deniedForRow(req, res, row) {
   return false;
 }
 
+// Human-readable titles for translation rows (one query per entity type):
+// the pipeline and workspace label rows by content title — never by raw id
+// fragments. Returns rows with entity_title attached.
+async function withEntityTitles(rows) {
+  const titles = {};
+  for (const type of core.ENTITY_TYPES) {
+    const ids = rows.filter((r) => r.entity_type === type).map((r) => r.entity_id);
+    if (ids.length === 0) continue;
+    const config = core.ENTITY_SOURCES[type];
+    const found = await db.query(
+      `SELECT id, ${config.titleField} AS title FROM ${config.table} WHERE id = ANY($1)`,
+      [ids]
+    );
+    for (const row of found.rows) titles[`${type}:${row.id}`] = row.title;
+  }
+  return rows.map((r) => ({ ...r, entity_title: titles[`${r.entity_type}:${r.entity_id}`] || null }));
+}
+
 // ---------------------------------------------------------------------------
 // SuperAdmin: pipeline overview
 // ---------------------------------------------------------------------------
@@ -135,7 +153,7 @@ router.get('/', ensureSuperAdmin, async (req, res, next) => {
     res.render('translations/list', {
       title: 'Translations - WTS Admin',
       currentPage: 'translations',
-      items: rows.rows,
+      items: await withEntityTitles(rows.rows),
       counts: Object.fromEntries(counts.rows.map((r) => [r.status, r.count])),
       translators: translators.rows,
       filters: { status: status || '', lang: lang || '', entity_type: entityType || '' },
@@ -456,6 +474,42 @@ router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve')
     if (!core.isUuid(req.params.id)) {
       return asJson(res, 404, { success: false, error: 'Translation not found' });
     }
+
+    // Money guard: publishing vendor work with no applicable rate card
+    // credits NOTHING, silently — a payroll hole, not a warning line. If
+    // any expected credit would be skipped, stop with 409 and the exact
+    // reasons; the reviewer must explicitly acknowledge to publish anyway.
+    if (req.body.acknowledge_no_payout !== true) {
+      const row = (await db.query('SELECT * FROM translations WHERE id = $1', [req.params.id])).rows[0];
+      if (row) {
+        const warnings = [];
+        const vendorOf = async (userId) => {
+          if (!userId) return null;
+          const u = (await db.query('SELECT id, first_name, last_name, is_vendor FROM users WHERE id = $1', [userId])).rows[0];
+          return u && u.is_vendor ? u : null;
+        };
+        const nameOf = (u) => [u.first_name, u.last_name].filter(Boolean).join(' ') || 'this worker';
+        const translatorVendor = await vendorOf(row.translator_id);
+        if (translatorVendor && !(await core.resolveRate(translatorVendor.id, row.target_language, db, 'translation'))) {
+          warnings.push(`No translation rate for ${nameOf(translatorVendor)} (${row.target_language}) — the writing credit will be skipped.`);
+        }
+        // Credits pay verified_by (who actually did the check), not the
+        // merely-assigned verifier_id — mirror onTranslationPublished.
+        const verifierVendor = await vendorOf(row.verified_by);
+        if (verifierVendor) {
+          if (!(await core.resolveRate(verifierVendor.id, row.target_language, db, 'verification'))) {
+            warnings.push(`No verification rate for ${nameOf(verifierVendor)} (${row.target_language}) — the checking credit will be skipped.`);
+          }
+          if (parseInt(row.edited_chars, 10) > 0 && !(await core.resolveRate(verifierVendor.id, row.target_language, db, 'edit'))) {
+            warnings.push(`No edit rate for ${nameOf(verifierVendor)} (${row.target_language}) — the rework credit will be skipped.`);
+          }
+        }
+        if (warnings.length) {
+          return asJson(res, 409, { success: false, requiresAcknowledgement: true, warnings });
+        }
+      }
+    }
+
     const { translation, payout, payoutSkipReason, credits } = await core.onTranslationPublished(
       req.params.id,
       req.user.id
@@ -576,6 +630,69 @@ router.get('/vendors', ensureSuperAdmin, async (req, res, next) => {
   }
 });
 
+// Invite a new worker from the UI — the onboarding path the payout system
+// needs a payee to exist for. Creates a translator account (never any
+// admin role) with the requested languages/position, and hands back a
+// set-password link built on the existing reset flow. The link is emailed
+// when the mailer is configured, and ALWAYS returned to the admin so it
+// can be shared over WhatsApp/LINE when email isn't set up.
+router.post('/vendors/invite', ensureSuperAdmin, logActivity('translation_vendor_invite'), async (req, res) => {
+  try {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return asJson(res, 400, { success: false, error: 'Enter a valid email address' });
+    }
+    const existing = await db.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existing.rows.length) {
+      return asJson(res, 409, { success: false, error: 'A user with this email already exists — manage them in the list below.' });
+    }
+
+    const firstName = String(req.body.first_name || '').trim().slice(0, 100) || null;
+    const lastName = String(req.body.last_name || '').trim().slice(0, 100) || null;
+    const languages = Array.isArray(req.body.assigned_languages)
+      ? req.body.assigned_languages.filter((l) => core.TARGET_LANGUAGES.includes(l))
+      : [];
+    const { POSITIONS } = require('./workforce');
+    const position = POSITIONS.includes(req.body.position) ? req.body.position : null;
+
+    const { randomUUID } = require('crypto');
+    const inviteToken = randomUUID();
+    const expires = new Date(Date.now() + 7 * 24 * 3600 * 1000); // 7 days to accept
+
+    const created = await db.query(
+      `INSERT INTO users (email, first_name, last_name, role, assigned_languages, is_vendor, position,
+                          reset_token, reset_token_expires, email_verified)
+       VALUES ($1, $2, $3, 'translator', $4, TRUE, $5, $6, $7, TRUE)
+       RETURNING id`,
+      [email, firstName, lastName, languages, position, inviteToken, expires]
+    );
+
+    const base = (process.env.APP_ADMIN_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const inviteLink = `${base}/auth/reset-password/${inviteToken}`;
+
+    let emailed = false;
+    try {
+      const { sendEmail } = require('../utils/mailer');
+      await sendEmail({
+        to: email,
+        subject: 'You\'re invited to the WordsThatSells workspace',
+        html: `<p>Hello${firstName ? ' ' + firstName : ''},</p>
+<p>You've been invited to the WordsThatSells translation workspace${languages.length ? ` (${languages.map((l) => core.LANGUAGE_NAMES[l] || l).join(', ')})` : ''}.</p>
+<p><a href="${inviteLink}">Set your password</a> to get started (link valid for 7 days), then sign in at <a href="${base}/auth/login">${base}/auth/login</a>.</p>`,
+        text: `You've been invited to the WordsThatSells translation workspace. Set your password (valid 7 days): ${inviteLink}`,
+      });
+      emailed = true;
+    } catch (e) {
+      console.warn('Invite email failed (link still returned to admin):', e.message);
+    }
+
+    asJson(res, 201, { success: true, userId: created.rows[0].id, inviteLink, emailed });
+  } catch (error) {
+    console.error('Vendor invite failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Invite failed' });
+  }
+});
+
 // Toggle translator role / vendor flag / language assignments for
 // non-admin accounts. Deliberately cannot touch admin/superadmin accounts
 // or grant admin roles — superadmin promotion stays out of band
@@ -654,9 +771,14 @@ router.get('/payouts', ensureSuperAdmin, async (req, res, next) => {
     ]);
 
     const { WORK_TYPES } = require('../lib/comp-engine');
+    const workers = await db.query(
+      `SELECT id, email, first_name, last_name FROM users
+       WHERE role = 'translator' ORDER BY first_name, email`
+    );
     res.render('translations/payouts', {
       title: 'Payout Ledger - WTS Admin',
       currentPage: 'translation-payouts',
+      workers: workers.rows,
       balances: balances.rows,
       requests: requests.rows,
       rates: rates.rows,
@@ -668,6 +790,20 @@ router.get('/payouts', ensureSuperAdmin, async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+});
+
+// One-click seeding of the brief-default rate cards — the UI path that
+// replaces the old "run node scripts/setup-workforce.js" empty-state
+// instruction. Idempotent: fills gaps only, never overwrites edits.
+router.post('/payouts/seed-defaults', ensureSuperAdmin, logActivity('payout_seed_defaults'), async (req, res) => {
+  try {
+    const { seedDefaultRates } = require('../lib/default-rates');
+    const { created, log } = await seedDefaultRates();
+    asJson(res, 200, { success: true, created, log });
+  } catch (error) {
+    console.error('Seed defaults failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Seeding default rates failed' });
   }
 });
 
@@ -897,60 +1033,74 @@ router.get('/workspace', ensureTranslator, async (req, res, next) => {
       });
     }
 
+    // Gmail-style batching for both queues (they page independently so a
+    // deep verify backlog doesn't bury the translate queue, and vice
+    // versa). Filters and both page positions survive in the query string.
+    const PER_CHOICES = [50, 100, 200];
+    const per = PER_CHOICES.includes(parseInt(req.query.per, 10)) ? parseInt(req.query.per, 10) : 50;
+    const pageOf = (raw, total) => {
+      const totalPages = Math.max(1, Math.ceil(total / per));
+      let p = parseInt(raw, 10) || 1;
+      if (p < 1) p = 1;
+      if (p > totalPages) p = totalPages;
+      return { page: p, totalPages, offset: (p - 1) * per };
+    };
+
     // Translate queue: my claimed rows plus unclaimed rows that need a
     // human translation pass (pending / rejected).
+    const translateWhere = admin
+      ? `status <> 'requires_review'`
+      : `target_language = ANY($1)
+         AND (translator_id = $2 OR (translator_id IS NULL AND status IN ('pending', 'rejected')))
+         AND status IN ('pending', 'translating', 'rejected', 'requires_review', 'verified', 'published')`;
+    const translateParams = admin ? [] : [assigned, req.user.id];
+    const translateTotal = (await db.query(
+      `SELECT COUNT(*)::int AS c FROM translations WHERE ${translateWhere}`, translateParams
+    )).rows[0].c;
+    const tPage = pageOf(req.query.tpage, translateTotal);
     const translateRows = await db.query(
-      admin
-        ? `SELECT * FROM translations WHERE status <> 'requires_review' ORDER BY updated_at DESC LIMIT 150`
-        : `SELECT * FROM translations
-           WHERE target_language = ANY($1)
-             AND (translator_id = $2 OR (translator_id IS NULL AND status IN ('pending', 'rejected')))
-             AND status IN ('pending', 'translating', 'rejected', 'requires_review', 'verified', 'published')
-           ORDER BY (status = 'rejected') DESC, (status = 'pending') DESC, updated_at DESC
-           LIMIT 150`,
-      admin ? [] : [assigned, req.user.id]
+      `SELECT * FROM translations WHERE ${translateWhere}
+       ORDER BY ${admin ? 'updated_at DESC' : `(status = 'rejected') DESC, (status = 'pending') DESC, updated_at DESC`}
+       LIMIT $${translateParams.length + 1} OFFSET $${translateParams.length + 2}`,
+      [...translateParams, per, tPage.offset]
     );
 
     // Verify queue: drafted rows awaiting a native sign-off — someone
     // else's (or AI's) work, unclaimed or claimed by me. "If it's
     // translated by AI, they can check it" — but never their own.
+    const verifyWhere = admin
+      ? `status = 'requires_review'`
+      : `target_language = ANY($1)
+         AND status = 'requires_review'
+         AND (translator_id IS NULL OR translator_id <> $2)
+         AND (verifier_id IS NULL OR verifier_id = $2)
+         AND content_payload::text <> '{}'`;
+    const verifyParams = admin ? [] : [assigned, req.user.id];
+    const verifyTotal = (await db.query(
+      `SELECT COUNT(*)::int AS c FROM translations WHERE ${verifyWhere}`, verifyParams
+    )).rows[0].c;
+    const vPage = pageOf(req.query.vpage, verifyTotal);
     const verifyRows = await db.query(
-      admin
-        ? `SELECT * FROM translations WHERE status = 'requires_review' ORDER BY updated_at ASC LIMIT 150`
-        : `SELECT * FROM translations
-           WHERE target_language = ANY($1)
-             AND status = 'requires_review'
-             AND (translator_id IS NULL OR translator_id <> $2)
-             AND (verifier_id IS NULL OR verifier_id = $2)
-             AND content_payload::text <> '{}'
-           ORDER BY (verifier_id = $2) DESC, updated_at ASC
-           LIMIT 150`,
-      admin ? [] : [assigned, req.user.id]
+      `SELECT * FROM translations WHERE ${verifyWhere}
+       ORDER BY ${admin ? 'updated_at ASC' : `(verifier_id = $2) DESC, updated_at ASC`}
+       LIMIT $${verifyParams.length + 1} OFFSET $${verifyParams.length + 2}`,
+      [...verifyParams, per, vPage.offset]
     );
-
-    // Resolve entity titles for display (per type, one query).
-    const titles = {};
-    const allRows = [...translateRows.rows, ...verifyRows.rows];
-    for (const type of core.ENTITY_TYPES) {
-      const ids = allRows.filter((r) => r.entity_type === type).map((r) => r.entity_id);
-      if (ids.length === 0) continue;
-      const config = core.ENTITY_SOURCES[type];
-      const found = await db.query(
-        `SELECT id, ${config.titleField} AS title FROM ${config.table} WHERE id = ANY($1)`,
-        [ids]
-      );
-      for (const row of found.rows) titles[`${type}:${row.id}`] = row.title;
-    }
-    const withTitle = (r) => ({ ...r, entity_title: titles[`${r.entity_type}:${r.entity_id}`] || r.entity_id });
 
     res.render('translations/workspace-list', {
       title: 'Translation Workspace - WTS Admin',
       currentPage: 'workspace',
-      items: translateRows.rows.map(withTitle),
-      verifyItems: verifyRows.rows.map(withTitle),
+      items: await withEntityTitles(translateRows.rows),
+      verifyItems: await withEntityTitles(verifyRows.rows),
       assigned,
+      isAdminAll: admin,
       languageNames: core.LANGUAGE_NAMES,
       noLanguages: false,
+      queuePaging: {
+        per, perChoices: PER_CHOICES,
+        translate: { ...tPage, total: translateTotal, from: translateTotal ? tPage.offset + 1 : 0, to: Math.min(tPage.offset + per, translateTotal) },
+        verify: { ...vPage, total: verifyTotal, from: verifyTotal ? vPage.offset + 1 : 0, to: Math.min(vPage.offset + per, verifyTotal) },
+      },
     });
   } catch (error) {
     next(error);

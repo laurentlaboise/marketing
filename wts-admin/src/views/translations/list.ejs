@@ -100,8 +100,8 @@
               <tr>
                 <td data-label="Content">
                   <span style="color:var(--gray-500);"><%= item.entity_type %></span>
-                  <% if (item.page_path) { %>
-                    <strong><%= item.page_path %></strong>
+                  <% if (item.entity_title || item.page_path) { %>
+                    <strong><%= item.entity_title || item.page_path %></strong>
                   <% } else { %>
                     <code style="font-size:0.75rem;"><%= item.entity_id.slice(0, 8) %></code>
                   <% } %>
@@ -238,6 +238,7 @@
   }
 
   document.getElementById('syncBtn').addEventListener('click', function () {
+    if (!confirm('Scan articles, glossary, SEO terms, guides and products for new or changed English content and (re)queue translations? Existing work is never overwritten.')) return;
     var btn = this;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing…';
