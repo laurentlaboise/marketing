@@ -588,8 +588,8 @@ flex-wrap: nowrap;
 align-items: flex-start;
 }
 .footer-grid {
-grid-template-columns: repeat(5, minmax(0, 1fr));
-gap: var(--spacing-md) var(--spacing-lg);
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: var(--spacing-lg) var(--spacing-xl);
 }
 }
 .footer .lang-switcher {
