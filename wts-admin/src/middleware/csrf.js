@@ -1,11 +1,27 @@
 const crypto = require('crypto');
 
-// Session-bound synchronizer-token CSRF protection.
+// Session-bound CSRF protection with DERIVED tokens.
 //
-// A random token is stored in the server-side session and exposed to views
-// via res.locals.csrfToken (hidden form inputs + a <meta> tag that client JS
-// reads and sends as the X-CSRF-Token header). Mutating requests must echo
-// the token back; everything else is rejected with 403.
+// The token is HMAC-SHA256(sessionID, SESSION_SECRET) rather than a random
+// value stored in the session. It is exposed to views via
+// res.locals.csrfToken (hidden form inputs + a <meta> tag client JS sends
+// back as X-CSRF-Token); mutating requests must echo it, everything else
+// is rejected with 403.
+//
+// Why derived instead of stored: the stored variant wrote the token into
+// the session on first render, and under parallel load that save could
+// lose the race against an immediately following mutating request from
+// the same client — which then minted a DIFFERENT token and rejected a
+// legitimately fresh one (seen as a rare CI-only 403 in the suite). A
+// derived token is recomputable on every request, so validation never
+// depends on a session write landing. Security is equivalent: the token
+// is bound to the HttpOnly session id, the HMAC is one-way under the
+// server secret, and the login-time session regeneration rotates it.
+//
+// The session must still EXIST by the time a form posts (the sid cookie
+// carries the binding), so anonymous sessions are initialized with a
+// one-time marker exactly where the old code stored its token — cookie
+// behavior is unchanged. Authenticated sessions already persist.
 //
 // Exempt paths are endpoints that do not rely on session cookies for
 // authentication, so cross-site request forgery does not apply to them:
@@ -29,6 +45,11 @@ const wantsJson = (req) => {
     (req.get('content-type') || '').includes('application/json');
 };
 
+const deriveToken = (req) =>
+  crypto.createHmac('sha256', String(process.env.SESSION_SECRET))
+    .update(String(req.sessionID))
+    .digest('hex');
+
 const tokensMatch = (expected, provided) => {
   if (typeof expected !== 'string' || typeof provided !== 'string') return false;
   const a = Buffer.from(expected);
@@ -40,19 +61,22 @@ const tokensMatch = (expected, provided) => {
 const csrfProtection = (req, res, next) => {
   if (!req.session) return next();
 
-  // Skip exempt paths entirely — issuing a token there would persist a
-  // session row for every anonymous public-API/webhook request.
+  // Skip exempt paths entirely — initializing a session there would
+  // persist a row for every anonymous public-API/webhook request.
   const url = req.originalUrl.split('?')[0];
   if (url === '/health' ||
       EXEMPT_PREFIXES.some(prefix => url === prefix || url.startsWith(prefix + '/'))) {
     return next();
   }
 
-  // Lazily issue a per-session token and expose it to views
-  if (!req.session.csrfToken) {
-    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+  // Keep anonymous sessions alive across the render→submit gap: the sid
+  // is the token's binding, and saveUninitialized:false would otherwise
+  // drop it. Authenticated sessions are already persistent, and the
+  // token comparison below never depends on this write landing.
+  if (!req.session.csrfInit) {
+    req.session.csrfInit = true;
   }
-  res.locals.csrfToken = req.session.csrfToken;
+  res.locals.csrfToken = deriveToken(req);
 
   if (SAFE_METHODS.has(req.method)) return next();
 
@@ -63,7 +87,7 @@ const csrfProtection = (req, res, next) => {
     req.get('x-csrf-token') ||
     (req.query && req.query._csrf);
 
-  if (tokensMatch(req.session.csrfToken, provided)) {
+  if (tokensMatch(res.locals.csrfToken, provided)) {
     return next();
   }
 
