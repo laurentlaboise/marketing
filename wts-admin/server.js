@@ -258,6 +258,8 @@ app.use('/business', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, bu
 app.use('/api', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, apiRoutes);
 app.use('/images', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, imagesRoutes);
 app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webdevRoutes);
+// Partner-program approval queue (applications come from the client portal).
+app.use('/partners', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, require('./src/routes/partners'));
 
 // Localization platform. Deliberately NOT behind ensureAdmin: the router
 // carries per-route RBAC (ensureSuperAdmin for the pipeline/ledger,

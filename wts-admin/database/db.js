@@ -933,6 +933,33 @@ const db = {
         )
       `);
 
+      // Partner-program enrollments (affiliate | dropship | white_label):
+      // one per (customer, program). Self-serve applications land as
+      // 'pending' and a human flips them in the admin — capability, not
+      // account creation, is the gated step. Program-specific data
+      // (referral codes, branding, tiers) grows inside meta until a
+      // program earns its own tables.
+      // status: pending → active | rejected (re-applyable) | suspended.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS partner_enrollments (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+          program VARCHAR(30) NOT NULL,
+          status VARCHAR(20) NOT NULL DEFAULT 'pending',
+          note TEXT,
+          admin_note TEXT,
+          meta JSONB DEFAULT '{}'::jsonb,
+          decided_by UUID REFERENCES users(id),
+          decided_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE (customer_id, program)
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_partner_enrollments_status ON partner_enrollments (status, created_at)
+      `);
+
       // Services a signed-in customer saved to their plan ("Add to My
       // Services"). One row per customer/product; billing_period remembers
       // which option they were looking at.

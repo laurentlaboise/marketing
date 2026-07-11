@@ -2,8 +2,11 @@ const express = require('express');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
+const passport = require('passport');
 const db = require('../../database/db');
 const { sendMagicLink } = require('../utils/mailer');
+const { portalOAuthEnabled } = require('../utils/portal-oauth');
+const { isDisposableEmail } = require('../lib/disposable-emails');
 
 const router = express.Router();
 
@@ -105,9 +108,19 @@ const loginLimiter = rateLimit({
 
 // ── Login ───────────────────────────────────────────────────────
 
+// Social buttons render only for providers whose portal strategy is
+// registered (env credentials present) — never dead decoration.
+const socialFlags = () => ({
+  googleEnabled: portalOAuthEnabled('google'),
+  facebookEnabled: portalOAuthEnabled('facebook'),
+});
+
 router.get('/login', (req, res) => {
   if (req.session.customerId) return res.redirect('/portal');
-  res.render('portal/login', { title: req.t('login.title'), sent: false, email: '' });
+  // Bot timing base: humans read the form before submitting; the POST
+  // treats a near-instant magic-link submit as automation.
+  req.session.portalFormAt = Date.now();
+  res.render('portal/login', { title: req.t('login.title'), sent: false, email: '', ...socialFlags() });
 });
 
 router.post('/login', loginLimiter, async (req, res) => {
@@ -132,7 +145,7 @@ router.post('/login', loginLimiter, async (req, res) => {
     }
     return res.status(401).render('portal/login', {
       title: req.t('login.title'), sent: false, email: email || '',
-      error: req.t('login.errorInvalidCreds')
+      error: req.t('login.errorInvalidCreds'), ...socialFlags()
     });
   }
 
@@ -140,6 +153,16 @@ router.post('/login', loginLimiter, async (req, res) => {
   // reveal whether an address exists (no account enumeration).
   if (!email) {
     return res.render('portal/login', { title: req.t('login.title'), sent: true, email: String(req.body.email || '').slice(0, 100) });
+  }
+  // Bot filters get the same neutral page — a filled honeypot, a submit
+  // faster than any human reads a form, or a throwaway inbox creates no
+  // account and sends no email, and the response never says so. This is
+  // the account-creation path, so it carries the friction; password
+  // sign-in above can't create anything.
+  const tooFast = typeof req.session.portalFormAt === 'number' &&
+    Date.now() - req.session.portalFormAt < 1500;
+  if (req.body.website || tooFast || isDisposableEmail(email)) {
+    return res.render('portal/login', { title: req.t('login.title'), sent: true, email });
   }
   try {
     const customer = await upsertCustomer(email, null);
@@ -182,6 +205,52 @@ router.get('/auth', loginLimiter, async (req, res) => {
     console.error('Portal auth error:', e);
     res.status(500).render('portal/login', { title: req.t('login.title'), sent: false, email: '', error: req.t('login.errorGeneric') });
   }
+});
+
+// ── Social sign-in (optional, beside the magic link) ────────────
+//
+// { session:false } throughout: portal identity is req.session.customerId,
+// never a passport user — a client can never surface inside the admin.
+// The provider proves mailbox/account ownership (its own bot defenses
+// included); account rules stay here: disposable domains are refused and
+// deactivated customers stay out.
+
+const PORTAL_OAUTH_PROVIDERS = ['google', 'facebook'];
+const OAUTH_SCOPES = { google: ['profile', 'email'], facebook: ['email', 'public_profile'] };
+
+router.get('/auth/:provider', loginLimiter, (req, res, next) => {
+  const provider = req.params.provider;
+  if (!PORTAL_OAUTH_PROVIDERS.includes(provider) || !portalOAuthEnabled(provider)) {
+    return res.redirect('/portal/login');
+  }
+  passport.authenticate(`portal-${provider}`, { session: false, scope: OAUTH_SCOPES[provider] })(req, res, next);
+});
+
+router.get('/auth/:provider/callback', loginLimiter, (req, res, next) => {
+  const provider = req.params.provider;
+  if (!PORTAL_OAUTH_PROVIDERS.includes(provider) || !portalOAuthEnabled(provider)) {
+    return res.redirect('/portal/login');
+  }
+  passport.authenticate(`portal-${provider}`, { session: false }, async (err, identity) => {
+    const fail = (msg) => res.status(401).render('portal/login', {
+      title: req.t('login.title'), sent: false, email: '', error: msg, ...socialFlags(),
+    });
+    if (err) {
+      console.error(`Portal ${provider} OAuth error:`, err.message || err);
+      return fail(req.t('login.errorSocial'));
+    }
+    if (!identity || !identity.email) return fail(req.t('login.errorSocialEmail'));
+    if (isDisposableEmail(identity.email)) return fail(req.t('login.errorSocial'));
+    try {
+      const customer = await upsertCustomer(identity.email, identity.name);
+      if (customer.status !== 'active') return fail(req.t('login.errorInactive'));
+      await establishCustomerSession(req, customer);
+      return res.redirect('/portal');
+    } catch (e) {
+      console.error(`Portal ${provider} sign-in failed:`, e);
+      return fail(req.t('login.errorGeneric'));
+    }
+  })(req, res, next);
 });
 
 // ── Dashboard ───────────────────────────────────────────────────
@@ -490,6 +559,66 @@ router.post('/chat', requireCustomer, chatLimiter, async (req, res) => {
     console.error('Portal chat error:', e.status || '', e.message);
     res.status(502).json({ error: req.t('chat.upstreamError') });
   }
+});
+
+// ── Partner programs (affiliate / dropship / white label) ───────
+//
+// Enrollment is self-serve but capability is not: applications land in
+// 'pending' and a human approves them in the admin (/partners). Account
+// creation stays cheap; anything that can earn money is gated on a person
+// saying yes — that, not a CAPTCHA, is the real bot barrier.
+
+const PARTNER_PROGRAMS = ['affiliate', 'dropship', 'white_label'];
+
+router.get('/programs', requireCustomer, async (req, res) => {
+  try {
+    const rows = (await db.query(
+      `SELECT program, status, note, admin_note, updated_at
+       FROM partner_enrollments WHERE customer_id = $1`,
+      [req.session.customerId]
+    )).rows;
+    res.render('portal/programs', {
+      title: req.t('programs.title'),
+      programs: PARTNER_PROGRAMS,
+      byProgram: Object.fromEntries(rows.map((r) => [r.program, r])),
+    });
+  } catch (e) {
+    console.error('Portal programs error:', e);
+    res.status(500).render('portal/error', { title: req.t('errors.title'), message: req.t('errors.generic') });
+  }
+});
+
+router.post('/programs/enroll', requireCustomer, async (req, res) => {
+  const program = String(req.body.program || '');
+  if (!PARTNER_PROGRAMS.includes(program)) return res.redirect('/portal/programs');
+  const note = String(req.body.note || '').trim().slice(0, 1000) || null;
+  try {
+    // First application creates 'pending'; re-applying after a rejection
+    // reopens it; active/suspended/pending states never self-serve flip.
+    await db.query(
+      `INSERT INTO partner_enrollments (customer_id, program, note)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (customer_id, program) DO UPDATE
+         SET note = COALESCE(EXCLUDED.note, partner_enrollments.note),
+             status = CASE WHEN partner_enrollments.status = 'rejected' THEN 'pending'
+                           ELSE partner_enrollments.status END,
+             updated_at = CURRENT_TIMESTAMP`,
+      [req.session.customerId, program, note]
+    );
+    try {
+      const core = require('../lib/translation-core');
+      await core.notifySuperAdmins(
+        'Partner application',
+        `${req.session.customerEmail} applied to the ${program.replace('_', ' ')} program.`,
+        '/partners'
+      );
+    } catch (e) {
+      console.warn('Partner application notification failed:', e.message);
+    }
+  } catch (e) {
+    console.error('Partner enrollment failed:', e);
+  }
+  res.redirect('/portal/programs');
 });
 
 router.post('/logout', requireCustomer, (req, res) => {
