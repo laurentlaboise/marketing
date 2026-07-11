@@ -180,6 +180,9 @@
         alert(res.data.count > 0
           ? 'Linked ' + res.data.count + ' term(s): ' + res.data.linked.map(function (l) { return l.term; }).join(', ')
           : 'No new linkable mentions found (already linked mentions are left alone).');
+      }).catch(function (e) {
+        btn.disabled = false;
+        alert('Linking failed: ' + (e && e.message ? e.message : 'network error'));
       });
     });
   });
@@ -198,6 +201,10 @@
         return '  ' + t + ': ' + s2.links + ' link(s) in ' + s2.updated + ' of ' + s2.records;
       });
       alert('Library cross-linked: ' + res.data.totals.links + ' link(s) across ' + res.data.totals.updated + ' record(s).\n\n' + lines.join('\n'));
+    }).catch(function (e) {
+      allBtn.disabled = false;
+      allBtn.innerHTML = '<i class="fas fa-link"></i> Link the Whole Library';
+      alert('Library linking failed: ' + (e && e.message ? e.message : 'network error'));
     });
   });
 })();

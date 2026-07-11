@@ -275,73 +275,105 @@ const LIBRARY_SOURCES = {
   product: { table: 'products', fields: ['description', 'slide_in_content'], where: `status = 'active'` },
 };
 
+// One full sweep at a time: a second concurrent press would double-scan
+// (harmless but wasteful) — it gets a 409 instead. Targeted onlyId runs
+// stay always-available. In-process is the right scope: the admin runs as
+// a single Railway process.
+let sweepInFlight = false;
+
 async function interlinkLibrary({ types = Object.keys(LIBRARY_SOURCES), onlyId = null, client = db } = {}) {
   const core = require('./translation-core');
-  const terms = await buildTermIndex('en', { client });
-  const stats = {};
-
-  for (const type of types) {
-    const src = LIBRARY_SOURCES[type];
-    if (!src) continue;
-    // An explicit single-record target overrides the sweep filter (drafts
-    // can be linked before publishing); sweeps stay published/active-only.
-    const conditions = onlyId ? 'id = $1' : src.where;
-    const rows = (await client.query(
-      `SELECT id, ${src.fields.join(', ')} FROM ${src.table}
-       ${conditions ? 'WHERE ' + conditions : ''}`,
-      onlyId ? [onlyId] : []
-    ).catch(() => ({ rows: [] }))).rows; // tolerate absent optional tables
-
-    let updated = 0;
-    let links = 0;
-    const linkedDetails = [];
-    for (const row of rows) {
-      const own = terms.filter(
-        (t) => !(t.entityType === type && t.entityId === String(row.id))
-      );
-      const changes = {};
-      const linked = [];
-      for (const field of src.fields) {
-        if (!row[field] || typeof row[field] !== 'string') continue;
-        const remaining = DEFAULT_MAX_LINKS - linked.length;
-        if (remaining <= 0) break;
-        const result = injectTermLinks(row[field], own.filter(
-          (t) => !linked.some((l) => l.term.toLowerCase() === t.matchName.toLowerCase())
-        ), { lang: 'en', maxLinks: remaining });
-        if (result.count > 0) {
-          changes[field] = result.html;
-          linked.push(...result.linked);
-        }
-      }
-      if (!linked.length) continue;
-
-      const setSql = Object.keys(changes)
-        .map((field, i) => `${field} = $${i + 1}`) // field names come from LIBRARY_SOURCES, never input
-        .join(', ');
-      await client.query(
-        `UPDATE ${src.table} SET ${setSql}, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $${Object.keys(changes).length + 1}`,
-        [...Object.values(changes), row.id]
-      );
-
-      // Keep published translations closed: refresh their source hash to
-      // the post-linking value so the next sync doesn't re-open paid work.
-      const source = await core.fetchEntitySource(type, String(row.id), client);
-      if (source) {
-        await client.query(
-          `UPDATE translations SET source_hash = $1
-           WHERE entity_type = $2 AND entity_id = $3 AND status = 'published'`,
-          [source.hash, type, String(row.id)]
-        );
-      }
-
-      updated += 1;
-      links += linked.length;
-      linkedDetails.push({ id: row.id, linked });
+  if (!onlyId) {
+    if (sweepInFlight) {
+      throw Object.assign(new Error('A library sweep is already running — try again in a moment.'), { status: 409 });
     }
-    stats[type] = { records: rows.length, updated, links, details: onlyId ? linkedDetails : undefined };
+    sweepInFlight = true;
   }
-  return stats;
+  // Each record's content UPDATE and its published-translation hash
+  // refresh commit together: a crash can never leave a linked source with
+  // a stale hash (which would flag paid translations as "source changed"
+  // until the next idempotent re-run).
+  const tx = await db.getClient();
+  try {
+    const terms = await buildTermIndex('en', { client });
+    const stats = {};
+
+    for (const type of types) {
+      const src = LIBRARY_SOURCES[type];
+      if (!src) continue;
+      // An explicit single-record target overrides the sweep filter (drafts
+      // can be linked before publishing); sweeps stay published/active-only.
+      const conditions = onlyId ? 'id = $1' : src.where;
+      const rows = (await client.query(
+        `SELECT id, ${src.fields.join(', ')} FROM ${src.table}
+         ${conditions ? 'WHERE ' + conditions : ''}`,
+        onlyId ? [onlyId] : []
+      ).catch(() => ({ rows: [] }))).rows; // tolerate absent optional tables
+
+      let updated = 0;
+      let links = 0;
+      let failed = 0;
+      const linkedDetails = [];
+      for (const row of rows) {
+        const own = terms.filter(
+          (t) => !(t.entityType === type && t.entityId === String(row.id))
+        );
+        const changes = {};
+        const linked = [];
+        for (const field of src.fields) {
+          if (!row[field] || typeof row[field] !== 'string') continue;
+          const remaining = DEFAULT_MAX_LINKS - linked.length;
+          if (remaining <= 0) break;
+          const result = injectTermLinks(row[field], own.filter(
+            (t) => !linked.some((l) => l.term.toLowerCase() === t.matchName.toLowerCase())
+          ), { lang: 'en', maxLinks: remaining });
+          if (result.count > 0) {
+            changes[field] = result.html;
+            linked.push(...result.linked);
+          }
+        }
+        if (!linked.length) continue;
+
+        const setSql = Object.keys(changes)
+          .map((field, i) => `${field} = $${i + 1}`) // field names come from LIBRARY_SOURCES, never input
+          .join(', ');
+        try {
+          await tx.query('BEGIN');
+          await tx.query(
+            `UPDATE ${src.table} SET ${setSql}, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $${Object.keys(changes).length + 1}`,
+            [...Object.values(changes), row.id]
+          );
+          // Keep published translations closed: refresh their source hash
+          // to the post-linking value so the next sync doesn't re-open
+          // paid work.
+          const source = await core.fetchEntitySource(type, String(row.id), tx);
+          if (source) {
+            await tx.query(
+              `UPDATE translations SET source_hash = $1
+               WHERE entity_type = $2 AND entity_id = $3 AND status = 'published'`,
+              [source.hash, type, String(row.id)]
+            );
+          }
+          await tx.query('COMMIT');
+        } catch (e) {
+          await tx.query('ROLLBACK').catch(() => {});
+          failed += 1;
+          console.warn(`[interlink] ${type}/${row.id} skipped:`, e.message);
+          continue; // one bad record must not kill the sweep
+        }
+
+        updated += 1;
+        links += linked.length;
+        linkedDetails.push({ id: row.id, linked });
+      }
+      stats[type] = { records: rows.length, updated, links, failed, details: onlyId ? linkedDetails : undefined };
+    }
+    return stats;
+  } finally {
+    tx.release();
+    if (!onlyId) sweepInFlight = false;
+  }
 }
 
 module.exports = { buildTermIndex, injectTermLinks, interlinkLibrary, LIBRARY_SOURCES, localizeLink, DEFAULT_MAX_LINKS };

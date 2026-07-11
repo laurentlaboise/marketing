@@ -290,6 +290,9 @@ router.post('/interlink-library', logActivity('interlink_library'), async (req, 
     );
     res.json({ success: true, totals, byType: stats });
   } catch (error) {
+    if (error.status === 409) {
+      return res.status(409).json({ success: false, error: error.message });
+    }
     console.error('Library interlink error:', error);
     res.status(500).json({ success: false, error: 'Library interlink failed' });
   }
