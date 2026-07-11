@@ -1,7 +1,23 @@
-.footer { 
-    background-color: var(--color-slate-900); 
-    color: var(--color-white); 
-    padding: var(--spacing-3xl) 0; 
+/* Footer is full-bleed; isolate from page-level .container / main width rules
+   (service pages and articles often set .container { max-width: … } which would
+   otherwise squeeze the footer and make it look different page-to-page). */
+.footer {
+    background-color: var(--color-slate-900);
+    color: var(--color-white);
+    padding: var(--spacing-3xl) 0;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+}
+.footer > .container,
+.footer .container {
+    width: min(1200px, 92%);
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--spacing-lg, 1.25rem);
+    padding-right: var(--spacing-lg, 1.25rem);
+    box-sizing: border-box;
 }
 .footer a {
     color: var(--color-white);
@@ -126,19 +142,30 @@
     }
 }
 
-/* Desktop: brand + multi-column link grid */
+/* Desktop: brand left + link columns right (matches affiliate-sales layout) */
 @media (min-width: 768px) {
+    .footer-top {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: var(--spacing-xl);
+    }
     .footer-brand {
-        flex: 1 1 28%;
-        max-width: 280px;
+        flex: 0 0 240px;
+        max-width: 260px;
         text-align: left;
         margin-bottom: 0;
     }
     .footer-grid {
-        flex: 1 1 70%;
-        /* Prefer 3–5 real columns on desktop, not auto-fit stack */
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        flex: 1 1 auto;
+        min-width: 0;
+        /* 4 nav columns (Solutions / Services / Resources / Legal) */
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: var(--spacing-lg) var(--spacing-xl);
+    }
+    /* Homepage with Contact Us = 5 columns → still readable */
+    .footer-grid:has(.footer-contact-item) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .footer-logo, .footer-brand-divider, .footer-brand-text {
         margin-left: 0;
@@ -154,15 +181,16 @@
     }
 }
 
-/* Wide desktop: still max 3 columns, remaining blocks wrap downward */
 @media (min-width: 1100px) {
     .footer-top {
         flex-wrap: nowrap;
         align-items: flex-start;
     }
     .footer-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: var(--spacing-lg) var(--spacing-xl);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .footer-grid:has(.footer-contact-item) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 

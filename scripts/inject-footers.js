@@ -203,6 +203,18 @@ function injectIntoFooter(footerHtml, variant) {
   apply('social-links', renderSocial(variant.social));
   apply('footer-grid', renderGrid(variant));
   apply('footer-bottom', renderBottom(variant));
+  // Normalize logo to first-party path (affiliate-sales style)
+  const beforeLogo = footerHtml;
+  footerHtml = footerHtml
+    .replace(
+      /src="https:\/\/cdn\.jsdelivr\.net\/gh\/laurentlaboise\/marketing@main\/images\/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG\.svg"/g,
+      'src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg"'
+    )
+    .replace(
+      /src="https:\/\/wordsthatsells\.website\/images\/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG\.svg"/g,
+      'src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg"'
+    );
+  if (footerHtml !== beforeLogo) changed = true;
   return changed ? footerHtml : null;
 }
 
@@ -288,9 +300,12 @@ function ensureLangSwitcher(html, file, base = BASE) {
 
 // Static brand block (logo + divider + tagline). The logo/brand are not admin-
 // managed, so they live here as the shared footer header.
+// First-party logo (same as affiliate-sales / company pages) so every footer
+// matches visually and image equity stays on wordsthatsells.website.
 var BRAND_HTML =
-  '<img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" ' +
-  'alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async">' +
+  '<img src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" ' +
+  'alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async" ' +
+  "onerror=\"this.onerror=null;this.src='https://wordsthatsells.website/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg'\">" +
   '<div class="footer-brand-divider"></div>' +
   '<p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p>';
 
