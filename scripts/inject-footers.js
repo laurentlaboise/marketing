@@ -148,23 +148,30 @@ function findOpenDiv(html, className, fromIndex) {
   }
 }
 
-// Replace the inner HTML of the first <div class="<className>"> ... </div> in
-// `html`, matching div nesting so the correct closing tag is found. Returns the
-// new html, or null if the region was not found.
-function replaceDivInner(html, className, newInner) {
+// Inner-HTML range of the first <div class="<className>"> ... </div> in
+// `html`, matching div nesting so the correct closing tag is found. Returns
+// { innerStart, innerEnd } or null if the region was not found.
+function findDivInnerRange(html, className) {
   const found = findOpenDiv(html, className, 0);
   if (!found) return null;
   const innerStart = found.innerStart;
   // Walk forward tracking <div ...> / </div> depth (starting at depth 1).
   const tagRe = /<\/?div\b[^>]*>/gi;
   tagRe.lastIndex = innerStart;
-  let depth = 1, tag, innerEnd = -1;
+  let depth = 1, tag;
   while ((tag = tagRe.exec(html)) !== null) {
-    if (tag[0][1] === '/') { depth--; if (depth === 0) { innerEnd = tag.index; break; } }
+    if (tag[0][1] === '/') { depth--; if (depth === 0) return { innerStart, innerEnd: tag.index }; }
     else { depth++; }
   }
-  if (innerEnd === -1) return null;
-  return html.slice(0, innerStart) + newInner + html.slice(innerEnd);
+  return null;
+}
+
+// Replace the inner HTML of the first <div class="<className>"> ... </div>.
+// Returns the new html, or null if the region was not found.
+function replaceDivInner(html, className, newInner) {
+  const range = findDivInnerRange(html, className);
+  if (!range) return null;
+  return html.slice(0, range.innerStart) + newInner + html.slice(range.innerEnd);
 }
 
 // Locate the site footer block (<footer class="footer"> … </footer>) by index,
@@ -197,6 +204,62 @@ function injectIntoFooter(footerHtml, variant) {
   apply('footer-grid', renderGrid(variant));
   apply('footer-bottom', renderBottom(variant));
   return changed ? footerHtml : null;
+}
+
+// ── Footer language selector (the ONLY switching surface) ──────
+//
+// Hard requirement: the language selector is a standard footer element on
+// every localized page — no floating pills, no sticky overlays. The links
+// are baked per page from the file's own location, so the locale segment
+// is always REPLACED at the root of the path (never appended): the /la
+// link on en/company/about-us.html is /la/company/about-us.html. Labels
+// are native scripts (never uppercased or letter-spaced downstream).
+// js/modules/lang-switcher.js progressively enhances this markup (cookie
+// on click, address-bar sync); it renders and works without JavaScript.
+const SWITCHER_LANGS = [
+  { dir: 'en', hreflang: 'en', label: 'EN', name: 'English' },
+  { dir: 'th', hreflang: 'th', label: 'ไทย', name: 'ไทย (Thai)' },
+  { dir: 'la', hreflang: 'lo', label: 'ລາວ', name: 'ລາວ (Lao)' },
+  { dir: 'fr', hreflang: 'fr', label: 'FR', name: 'Français' },
+];
+
+// Build the selector for a page file, or null when the file is not under a
+// language directory. index.html collapses to its directory URL.
+function langSwitcherFor(file) {
+  const rel = '/' + path.relative(BASE, file).split(path.sep).join('/');
+  const m = /^\/(en|th|la|fr)(\/.*)?$/.exec(rel);
+  if (!m) return null;
+  const lang = m[1];
+  const rest = (m[2] || '/').replace(/(^|\/)index\.html$/, '$1');
+  const links = SWITCHER_LANGS.map((l) =>
+    `<a href="/${l.dir}${rest}" data-lang-dir="${l.dir}" hreflang="${l.hreflang}" lang="${l.hreflang}" title="${esc(l.name)}"${l.dir === lang ? ' aria-current="true"' : ''}>${l.label}</a>`
+  ).join('');
+  return `<nav class="lang-switcher" aria-label="Language" data-current="${lang}">${links}</nav>`;
+}
+
+// One <nav class="lang-switcher">…</nav> block (never nests, so the lazy
+// [\s\S]*? span is safe and bounded).
+const SWITCHER_RE = /[ \t]*<nav class="lang-switcher"[^>]*>[\s\S]*?<\/nav>\r?\n?/g;
+
+// Idempotently (re)bake the selector into the page's footer: drop any
+// previous copies (stale links from earlier runs or from the localized-page
+// generator's link rewriting), then append inside .footer-bottom, falling
+// back to just before </footer>. Pages without a footer are left alone.
+function ensureLangSwitcher(html, file) {
+  const nav = langSwitcherFor(file);
+  if (!nav) return html;
+  const out = html.replace(SWITCHER_RE, '');
+  const fm = findFooterBlock(out);
+  if (!fm) return html;
+  let block = fm.block;
+  const bottom = findDivInnerRange(block, 'footer-bottom');
+  if (bottom) {
+    block = block.slice(0, bottom.innerEnd) + nav + block.slice(bottom.innerEnd);
+  } else {
+    const close = block.lastIndexOf('</footer>');
+    block = block.slice(0, close) + nav + block.slice(close);
+  }
+  return out.slice(0, fm.start) + block + out.slice(fm.end);
 }
 
 // ── Create a footer on pages that have none ────────────────────
@@ -454,6 +517,9 @@ function main() {
         if (keptOut.indexOf('<footer') !== -1) keptOut = ensureFooterCss(keptOut);
         if (keptOut.indexOf('class="social-links"') !== -1) keptOut = ensureFontAwesome(keptOut);
         keptOut = ensureFavicon(keptOut);
+        // "keep" protects the footer's content and links, but the language
+        // selector is site chrome that must exist on every localized page.
+        keptOut = ensureLangSwitcher(keptOut, file);
         if (keptOut !== keptHtml) fs.writeFileSync(file, keptOut);
         stats.kept++;
         continue;
@@ -474,6 +540,9 @@ function main() {
         out = ensureFooterCss(out);
         out = ensureFontAwesome(out); // footer has icon glyphs — guarantee Font Awesome
         out = ensureFavicon(out);
+        // After translateFooterHtml, so the native-script labels are never
+        // run through the chrome-string replacement.
+        out = ensureLangSwitcher(out, file);
         fs.writeFileSync(file, out);
         stats.injected++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
@@ -482,7 +551,7 @@ function main() {
         // (self-styled so it works even on standalone pages) and insert it.
         const created = translateFooterHtml(buildWholeFooter(variant), langOfPath(urlPath));
         const withCss = ensureFavicon(ensureFontAwesome(ensureFooterCss(html)));
-        fs.writeFileSync(file, insertBeforeBodyClose(withCss, created));
+        fs.writeFileSync(file, ensureLangSwitcher(insertBeforeBodyClose(withCss, created), file));
         stats.created++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
       } else {

@@ -139,3 +139,46 @@
         justify-content: flex-start;
     }
 }
+
+/* ── Footer language selector ──────────────────────────────────────────
+   The one and only language-switching surface: a standard footer element,
+   baked into .footer-bottom at build time (scripts/inject-footers.js).
+   Touch-friendly by construction: every option is a ≥44px target. Labels
+   are native scripts (ไทย, ລາວ) — never uppercase them and never add
+   letter-spacing; keep line-height generous for tall Thai/Lao glyphs. */
+.footer .lang-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+.footer .lang-switcher a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.35rem 1.1rem;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    text-decoration: none;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.footer .lang-switcher a:hover {
+    background: rgba(255, 255, 255, 0.16);
+}
+.footer .lang-switcher a[aria-current="true"] {
+    background: #d62b83;
+    border-color: #d62b83;
+    font-weight: 600;
+}
+.footer .lang-switcher a:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}

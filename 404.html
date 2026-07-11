@@ -31,6 +31,25 @@
         //  3. Anything else shows a 404 message in the page's language.
         (function() {
             const path = window.location.pathname;
+
+            // 0. Nested locale prefixes (/en/la/…) — legacy URLs from the
+            //    old switcher bug. The locale lives at the ROOT of the
+            //    path, exactly one segment deep: collapse the stack to the
+            //    LAST locale mentioned (the language most recently asked
+            //    for) and replace, never append: /en/la/pricing → /la/pricing.
+            const segs = path.split('/').filter(Boolean);
+            let depth = 0;
+            while (depth < segs.length && /^(en|th|la|fr)$/.test(segs[depth])) depth++;
+            if (depth > 1) {
+                const rest = segs.slice(depth).join('/');
+                window.location.replace(
+                    '/' + segs[depth - 1] + '/' + rest +
+                    (rest && path.endsWith('/') ? '/' : '') +
+                    window.location.search + window.location.hash
+                );
+                return;
+            }
+
             const langMatch = path.match(/^\/(en|th|la|fr)(\/.*)?$/);
             const lang = langMatch ? langMatch[1] : 'en';
             const rest = langMatch ? (langMatch[2] || '/') : path;
