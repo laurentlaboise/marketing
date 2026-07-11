@@ -58,8 +58,8 @@ li{margin-bottom:8px}
 .related-terms a:hover{background:#e8f4fc;text-decoration:none}
 .cta{margin:48px 0;padding:32px 28px;background:#d62b83;color:#ffffff;border-radius:14px;text-align:center;box-shadow:0 10px 24px rgba(214,43,131,.35);font-weight:600}
 .cta p{color:#ffffff}
-.cta a{color:#ffffff;font-weight:800;text-decoration:underline;text-underline-offset:3px}
-.cta a:hover{color:#ffffff;opacity:.95}
+.cta a,.cta button.cta-team-btn{color:#ffffff;font-weight:800;text-decoration:underline;text-underline-offset:3px;background:none;border:0;font:inherit;cursor:pointer;padding:0;margin:0 4px}
+.cta a:hover,.cta button.cta-team-btn:hover{color:#ffffff;opacity:.95}
 .checklist li{margin-bottom:10px}
 .video-wrap{position:relative;width:100%;padding-bottom:56.25%;height:0;margin:20px 0 12px;border-radius:12px;overflow:hidden;background:#0f172a;box-shadow:0 8px 24px rgba(15,23,42,.2)}
 .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
@@ -83,13 +83,16 @@ li{margin-bottom:8px}
 }
 .share-dock .share-btn span{display:none!important}
 .share-dock .share-btn:hover,.share-dock .share-btn:focus{filter:brightness(1.08);color:#fff!important;outline:2px solid #d62b83;outline-offset:1px}
-.share-dock .share-btn.fb{background:#1877f2}
-.share-dock .share-btn.x{background:#111827}
-.share-dock .share-btn.li{background:#0a66c2}
-.share-dock .share-btn.wa{background:#25d366}
-.share-dock .share-btn.tg{background:#229ed9}
-.share-dock .share-btn.copy{background:#64748b}
+.share-dock .share-btn.fb,
+.share-dock .share-btn.x,
+.share-dock .share-btn.li,
+.share-dock .share-btn.wa,
+.share-dock .share-btn.tg,
+.share-dock .share-btn.copy{background:#1e3a5f}
 .share-dock .share-btn.native{background:#d62b83}
+.share-dock .share-btn i{color:#fff!important;font-size:1em;line-height:1}
+.share-dock .share-btn:hover,.share-dock .share-btn:focus{background:#d62b83;color:#fff!important}
+.share-dock .share-btn.native:hover{background:#1e3a5f}
 /* Mobile: one slim bottom sticky strip */
 @media (max-width:899px){
   .share-dock{
@@ -114,6 +117,26 @@ li{margin-bottom:8px}
   }
   .share-dock .share-btn{width:38px;height:38px;min-width:38px;min-height:38px}
 }
+
+/* Sliding contact form connected to admin form_type=contact */
+.wts-slide-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1200;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.wts-slide-overlay.is-open{opacity:1;visibility:visible}
+.wts-slide-panel{position:fixed;top:0;right:0;height:100%;width:min(420px,100vw);background:#fff;z-index:1201;transform:translateX(100%);transition:transform .35s ease;box-shadow:-12px 0 32px rgba(15,23,42,.2);display:flex;flex-direction:column}
+.wts-slide-panel.is-open{transform:translateX(0)}
+.wts-slide-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:#1e3a5f;color:#fff}
+.wts-slide-head h2{margin:0;font-size:1.15rem;color:#fff;border:0;padding:0}
+.wts-slide-close{background:transparent;border:0;color:#fff;font-size:1.5rem;cursor:pointer;line-height:1;padding:4px 8px}
+.wts-slide-body{padding:20px;overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
+.wts-slide-body .form-group{margin-bottom:14px}
+.wts-slide-body label{display:block;font-weight:600;font-size:.9rem;margin-bottom:6px;color:#1e3a5f}
+.wts-slide-body input,.wts-slide-body select,.wts-slide-body textarea{width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;font:inherit}
+.wts-slide-body textarea{min-height:110px;resize:vertical}
+.wts-slide-body .btn-submit{width:100%;padding:14px;background:#d62b83;color:#fff;border:0;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;margin-top:8px}
+.wts-slide-body .form-status{margin-top:12px;font-size:.95rem}
+.wts-slide-body .form-status.ok{color:#047857}
+.wts-slide-body .form-status.err{color:#b91c1c}
+.cta button.cta-team-btn{background:none;border:0;color:#fff;font:inherit;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0;margin:0 4px}
+
 </style>
     <script type="application/ld+json">
     {"@context": "https://schema.org", "@type": "Article", "headline": "Sitemap.xml: SEO Guide 2026", "description": "An XML file listing all essential URLs on a website, serving as a roadmap to help search engine crawlers discover and index content efficiently.", "author": {"@type": "Person", "name": "Laurent Laboise"}, "publisher": {"@type": "Organization", "name": "WordsThatSells", "url": "https://wordsthatsells.website"}, "mainEntityOfPage": "https://wordsthatsells.website/en/resources/glossary/sitemap-xml-best-practices-2026.html", "dateModified": "2026-07-12", "image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/sitemap-xml.webp", "about": {"@type": "DefinedTerm", "name": "Sitemap.xml", "description": "An XML file listing all essential URLs on a website, serving as a roadmap to help search engine crawlers discover and index content efficiently."}, "video": {"@type": "VideoObject", "name": "Sitemap.xml explainer", "embedUrl": "https://www.youtube.com/embed/gNZH9xdLwUI", "contentUrl": "https://www.youtube.com/watch?v=gNZH9xdLwUI"}}
@@ -207,7 +230,7 @@ li{margin-bottom:8px}
     <div class="cta">
       <p style="margin:0 0 12px;font-size:1.15rem;font-weight:600">Need this implemented for your site in Laos or Southeast Asia?</p>
       <p style="margin:0">WordsThatSells builds crawlable sites, content systems, and SEO that ranks.
-      <a href="https://wordsthatsells.website/en/contact/">Talk to our team</a> ·
+      <button type="button" class="cta-team-btn" id="open-team-form">Talk to our team</button> ·
       <a href="/en/resources/glossary/">Browse the full glossary</a></p>
     </div>
     </article>
@@ -435,6 +458,92 @@ li{margin-bottom:8px}
 
 .footer .container{width:90%;max-width:1280px;margin:0 auto;}</style><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png"><link rel="shortcut icon" href="/favicon/favicon.ico"><link rel="manifest" href="/favicon/site.webmanifest"><footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">Contact Us</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane, 
 <br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">Find us on Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">02055528034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Solutions</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">Web Development</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">Digital Marketing</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">Content Creation</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">Social Media</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">Business Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Services</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">Pricing</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">affiliate-sales</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">Agencies</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Automation</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Resources</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">Articles</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">Glossary</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Ai Tools</a></li><li><a href="https://wordsthatsells.website/en/resources/guides/">E-Guides</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Legal</h3><ul class="footer-list"><li><a href="/en/company/legal/privacy-policy.html">Privacy Policy</a></li><li><a href="/en/company/legal/terms-and-conditions.html">Terms &amp; Conditions</a></li><li><a href="/en/company/legal/cookie-policy.html">Cookie Policy</a></li><li><a href="/en/company/legal/">All legal documents</a></li></ul></div></div></div><div class="footer-bottom"><p>© 2025 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="en"><a href="/en/resources/glossary/sitemap-xml-best-practices-2026.html" data-lang-dir="en" hreflang="en" lang="en" title="English" aria-current="true">EN</a><a href="/th/resources/glossary/sitemap-xml-best-practices-2026.html" data-lang-dir="th" hreflang="th" lang="th" title="ไทย (Thai)">ไทย</a><a href="/la/resources/glossary/sitemap-xml-best-practices-2026.html" data-lang-dir="la" hreflang="lo" lang="lo" title="ລາວ (Lao)">ລາວ</a><a href="/fr/resources/glossary/sitemap-xml-best-practices-2026.html" data-lang-dir="fr" hreflang="fr" lang="fr" title="Français">FR</a></nav></div></div></footer>
+
+  <div class="wts-slide-overlay" id="team-form-overlay" hidden></div>
+  <aside class="wts-slide-panel" id="team-form-panel" aria-hidden="true" role="dialog" aria-labelledby="team-form-title">
+    <div class="wts-slide-head">
+      <h2 id="team-form-title">Talk to our team</h2>
+      <button type="button" class="wts-slide-close" id="team-form-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="wts-slide-body">
+      <p style="margin-top:0;color:#555">Connected to the WordsThatSells admin contact form. We reply within one business day.</p>
+      <form id="team-contact-form">
+        <div class="form-group"><label for="tc-name">Your name</label>
+          <input id="tc-name" name="name" type="text" required placeholder="Full name" autocomplete="name"></div>
+        <div class="form-group"><label for="tc-email">Work email</label>
+          <input id="tc-email" name="email" type="email" required placeholder="you@company.com" autocomplete="email"></div>
+        <div class="form-group"><label for="tc-company">Company</label>
+          <input id="tc-company" name="company" type="text" placeholder="Business name (optional)"></div>
+        <div class="form-group"><label for="tc-phone">Phone / WhatsApp</label>
+          <input id="tc-phone" name="phone" type="tel" placeholder="+856 … (optional)" autocomplete="tel"></div>
+        <div class="form-group"><label for="tc-service">What do you need help with?</label>
+          <select id="tc-service" name="service" required>
+            <option value="SEO &amp; local visibility" selected>SEO &amp; local visibility</option>
+            <option value="Content &amp; brand storytelling">Content &amp; brand storytelling</option>
+            <option value="Social media growth">Social media growth</option>
+            <option value="Website / landing pages">Website / landing pages</option>
+            <option value="Marketing automation &amp; AI tools">Marketing automation &amp; AI tools</option>
+            <option value="Full digital growth program">Full digital growth program</option>
+            <option value="Not sure — advise me">Not sure — advise me</option>
+          </select></div>
+        <div class="form-group"><label for="tc-message">How can we help?</label>
+          <textarea id="tc-message" name="message" required>I read the glossary article on Sitemap.xml and would like help implementing this for my business.</textarea></div>
+        <button type="submit" class="btn-submit">Send message</button>
+        <p class="form-status" id="tc-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </aside>
+  <script>
+  (function(){
+    var overlay=document.getElementById('team-form-overlay');
+    var panel=document.getElementById('team-form-panel');
+    var openBtn=document.getElementById('open-team-form');
+    var closeBtn=document.getElementById('team-form-close');
+    var form=document.getElementById('team-contact-form');
+    var statusEl=document.getElementById('tc-status');
+    function openPanel(){overlay.hidden=false;overlay.classList.add('is-open');panel.classList.add('is-open');panel.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+    function closePanel(){overlay.classList.remove('is-open');panel.classList.remove('is-open');panel.setAttribute('aria-hidden','true');document.body.style.overflow='';setTimeout(function(){overlay.hidden=true;},300);}
+    if(openBtn) openBtn.addEventListener('click', openPanel);
+    if(closeBtn) closeBtn.addEventListener('click', closePanel);
+    if(overlay) overlay.addEventListener('click', closePanel);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') closePanel(); });
+    if(form){
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        statusEl.textContent='Sending…'; statusEl.className='form-status';
+        var fd=new FormData(form);
+        var payload={
+          form_type:'contact',
+          name:fd.get('name'),
+          email:fd.get('email'),
+          company:fd.get('company')||'',
+          phone:fd.get('phone')||'',
+          message:fd.get('message')||'',
+          metadata:{source:'glossary-article',term:"Sitemap.xml",page:"https://wordsthatsells.website/en/resources/glossary/sitemap-xml-best-practices-2026.html",service:fd.get('service')||'',goal:'Higher search rankings'}
+        };
+        fetch('https://admin.wordsthatsells.website/api/public/submissions',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Accept':'application/json'},
+          body:JSON.stringify(payload)
+        }).then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
+          .then(function(res){
+            if(res.ok && res.j && res.j.success!==false){
+              statusEl.textContent=(res.j.message||'Thank you! We received your message and will reply within one business day.');
+              statusEl.className='form-status ok'; form.reset();
+            } else {
+              statusEl.textContent=(res.j&&res.j.error)?res.j.error:'Something went wrong. Please try WhatsApp.';
+              statusEl.className='form-status err';
+            }
+          })
+          .catch(function(){
+            statusEl.textContent='Network error. WhatsApp +856 20 5552 8034';
+            statusEl.className='form-status err';
+          });
+      });
+    }
+  })();
+  </script>
+
 </body>
 </html>
 
