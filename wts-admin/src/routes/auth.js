@@ -105,6 +105,12 @@ router.post('/login', validateLogin, (req, res, next) => {
       if (err) {
         return next(err);
       }
+      // "Remember me": stretch this session to 30 days. Without it the
+      // server default (24h, server.js session config) applies — the
+      // checkbox was previously rendered but never read.
+      if (req.body.remember) {
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+      }
       req.session.successMessage = 'Welcome back!';
       return res.redirect('/dashboard');
     });
