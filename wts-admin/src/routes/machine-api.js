@@ -670,6 +670,140 @@ router.post('/v1/form-templates/upsert', async (req, res) => {
   }
 });
 
+// ── Image Library SEO metadata ──────────────────────────────────────
+
+/**
+ * POST /v1/images/seo-upsert
+ * Body: { filename?|cdn_url?|id?, alt_text?, title?, description?, width?, height? }
+ * Updates Image Library SEO fields so public pages can join them for bots.
+ */
+router.post('/v1/images/seo-upsert', async (req, res) => {
+  try {
+    const {
+      id,
+      filename,
+      cdn_url,
+      alt_text,
+      title,
+      description,
+      width,
+      height,
+    } = req.body || {};
+
+    if (!id && !filename && !cdn_url) {
+      return fail(res, 'id, filename, or cdn_url is required');
+    }
+
+    let row;
+    if (id) {
+      row = await db.query('SELECT id, filename, cdn_url FROM images WHERE id = $1 LIMIT 1', [id]);
+    } else if (filename) {
+      row = await db.query(
+        `SELECT id, filename, cdn_url FROM images
+         WHERE filename = $1 OR original_filename = $1 OR filename ILIKE $1
+         ORDER BY updated_at DESC NULLS LAST LIMIT 1`,
+        [String(filename).trim()]
+      );
+    } else {
+      row = await db.query(
+        `SELECT id, filename, cdn_url FROM images
+         WHERE cdn_url = $1 OR cdn_url LIKE '%' || $1 OR $1 LIKE '%' || filename
+         ORDER BY updated_at DESC NULLS LAST LIMIT 1`,
+        [String(cdn_url).trim()]
+      );
+    }
+
+    if (!row.rows.length) {
+      return fail(res, 'Image not found in Image Library', 404);
+    }
+
+    const imgId = row.rows[0].id;
+    const sets = [];
+    const params = [];
+    const add = (col, val) => {
+      if (val === undefined) return;
+      params.push(val);
+      sets.push(`${col} = $${params.length}`);
+    };
+    add('alt_text', alt_text !== undefined ? String(alt_text) : undefined);
+    add('title', title !== undefined ? String(title) : undefined);
+    add('description', description !== undefined ? String(description) : undefined);
+    if (width !== undefined && width !== null && width !== '') add('width', Number(width) || null);
+    if (height !== undefined && height !== null && height !== '') add('height', Number(height) || null);
+
+    if (!sets.length) return fail(res, 'No SEO fields to update');
+
+    params.push(imgId);
+    await db.query(
+      `UPDATE images SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${params.length}`,
+      params
+    );
+    await audit(req, 'images/seo-upsert', row.rows[0].filename || imgId);
+    return ok(res, {
+      action: 'updated',
+      id: imgId,
+      filename: row.rows[0].filename,
+      cdn_url: row.rows[0].cdn_url,
+    });
+  } catch (e) {
+    console.error('[machine-api] images seo-upsert', e);
+    return fail(res, 'Image SEO upsert failed: ' + e.message, 500);
+  }
+});
+
+/**
+ * POST /v1/images/seo-bulk
+ * Body: { items: [{ filename|cdn_url, alt_text?, title?, description? }] }
+ */
+router.post('/v1/images/seo-bulk', async (req, res) => {
+  try {
+    const items = (req.body && req.body.items) || [];
+    if (!Array.isArray(items) || !items.length) return fail(res, 'items[] required');
+
+    let updated = 0;
+    let skipped = 0;
+    const errors = [];
+    for (const it of items) {
+      try {
+        const filename = it.filename || '';
+        const cdn_url = it.cdn_url || '';
+        if (!filename && !cdn_url) {
+          skipped += 1;
+          continue;
+        }
+        const row = await db.query(
+          `SELECT id FROM images
+           WHERE ($1 <> '' AND (filename = $1 OR original_filename = $1))
+              OR ($2 <> '' AND (cdn_url = $2 OR cdn_url LIKE '%' || $2 OR $2 LIKE '%' || filename))
+           ORDER BY updated_at DESC NULLS LAST LIMIT 1`,
+          [filename, cdn_url]
+        );
+        if (!row.rows.length) {
+          skipped += 1;
+          continue;
+        }
+        await db.query(
+          `UPDATE images SET
+             alt_text = COALESCE(NULLIF($1, ''), alt_text),
+             title = COALESCE(NULLIF($2, ''), title),
+             description = COALESCE(NULLIF($3, ''), description),
+             updated_at = CURRENT_TIMESTAMP
+           WHERE id = $4`,
+          [it.alt_text || '', it.title || '', it.description || '', row.rows[0].id]
+        );
+        updated += 1;
+      } catch (e) {
+        errors.push(String(e.message || e));
+      }
+    }
+    await audit(req, 'images/seo-bulk', `u=${updated} s=${skipped}`);
+    return ok(res, { updated, skipped, errors: errors.slice(0, 20) });
+  } catch (e) {
+    console.error('[machine-api] images seo-bulk', e);
+    return fail(res, 'Image SEO bulk failed: ' + e.message, 500);
+  }
+});
+
 // ── 404 for unknown v1 routes ───────────────────────────────────────
 
 router.use('/v1', (req, res) => {

@@ -20,7 +20,7 @@
     ],
     "example": "Southeast Asian media outlets like Thairath and Kompas leverage AMP versions of articles that load 2–4× faster than standard mobile web, securing placement in Google's Top Stories carousel while cutting bounce rates and lifting engagement metrics. E-commerce platforms like Shopee apply AMP to product listings and detail pages, achieving sub-1-second paint times on 3G connections in emerging markets and driving measurable conversion increases. News publishers in Laos leverage AMP Stories for interactive formats, delivering instant experiences on low-end Android devices despite high-latency networks and strengthening retention in constrained environments.",
     "video_url": "https://www.youtube.com/watch?v=PuECtstALUo",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/accelerated-mobile-pages-amp.webp",
+    "featured_image": "https://wordsthatsells.website/images/accelerated-mobile-pages-amp.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/amp-accelerated-mobile-pages-guide-2026.html"
   },
   {
@@ -44,7 +44,7 @@
     ],
     "example": "A digital marketing agency in Singapore utilizes agile content development by monitoring real-time search trends on platforms like Google Trends and X. When a sudden surge in interest around \"digital banking licenses in Malaysia\" occurs, their content team quickly drafts and publishes a targeted article within hours. They then continuously update this piece with fresh data, expert quotes from local fintech leaders, and new keyword variations based on initial performance metrics. This iterative approach ensures the content remains highly relevant, capturing immediate search traffic and maintaining a competitive edge in the fast-paced Southeast Asian financial sector.",
     "video_url": "https://www.youtube.com/watch?v=Eu1uOULGaM8",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/agile-content-development.webp",
+    "featured_image": "https://wordsthatsells.website/images/agile-content-development.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/agile-content-development-for-seo-2026.html"
   },
   {
@@ -68,7 +68,7 @@
     ],
     "example": "A Laotian eco-tourism company optimizes their website by adding descriptive alt attributes to all their tour images. Instead of leaving image tags blank or using generic terms like \"waterfall,\" they use specific, keyword-rich descriptions such as \"Tourists swimming in the turquoise waters of Kuang Si Falls in Luang Prabang, Laos.\" This practice not only improves web accessibility for visually impaired users relying on screen readers but also helps search engine crawlers accurately index the images. Consequently, these optimized images rank higher in Google Image Search, driving additional organic traffic from travelers searching for visually appealing destinations in Southeast Asia.",
     "video_url": "https://www.youtube.com/watch?v=7bt7obudNzM",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/alt-attributes.webp",
+    "featured_image": "https://wordsthatsells.website/images/alt-attributes.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/alt-attributes-seo-and-accessibility-2026.html"
   },
   {
@@ -93,7 +93,7 @@
     ],
     "example": "A popular Vietnamese food blog strategically uses anchor text to boost the SEO of its recipe pages. When writing an article about traditional street food, instead of using generic phrases like \"click here\" to link to a related post, they use descriptive anchor text such as \"authentic Pho recipe from Hanoi.\" This provides clear context to both readers and search engines about the linked page's content. By consistently using relevant, keyword-optimized anchor text across their site and when guest posting on other Southeast Asian culinary websites, they significantly improve their rankings for specific regional food queries.",
     "video_url": "https://www.youtube.com/watch?v=tVwxzIoCjSM",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/anchor-text.webp",
+    "featured_image": "https://wordsthatsells.website/images/anchor-text.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/anchor-text-optimization-guide-2026.html"
   },
   {
@@ -117,8 +117,10 @@
     ],
     "example": "A fast-growing Malaysian tech startup actively builds its domain authority by acquiring high-quality backlinks from reputable regional publications. When they launch a new AI-driven logistics tool, they pitch the story to major platforms like Tech in Asia and e27. The resulting articles include direct backlinks to the startup's homepage and product pages. Search engines view these incoming links from trusted, authoritative domains as strong endorsements, signaling that the startup's website is a credible source of information. This significantly boosts their organic search rankings across Southeast Asia, making them more visible to potential investors and enterprise clients.",
     "video_url": "https://www.youtube.com/watch?v=-kAmDxp1T9M",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/backlinks.webp",
-    "article_link": "https://wordsthatsells.website/en/resources/glossary/backlinks-building-strategy-2026.html"
+    "featured_image": "https://wordsthatsells.website/images/backlinks.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/backlinks-building-strategy-2026.html",
+    "image_alt": "3D colorful BACKLINKS typography illustration representing SEO link building for Southeast Asia — WordsThatSells",
+    "image_title": "Backlinks SEO illustration — WordsThatSells"
   },
   {
     "term": "Bad Neighborhood",
@@ -141,7 +143,7 @@
     ],
     "example": "An Indonesian e-commerce platform specializing in batik clothing closely monitors its backlink profile to avoid associating with a \"bad neighborhood.\" They discover that several low-quality, spammy gambling and counterfeit goods websites have started linking to their domain. Recognizing that search engines penalize sites connected to these malicious networks, the SEO team immediately uses Google's Disavow Tool to distance themselves from these harmful links. By proactively cleaning up their backlink profile and ensuring they only link out to reputable, high-quality Southeast Asian businesses, they protect their domain trust and maintain their hard-earned search engine rankings.",
     "video_url": "https://www.youtube.com/watch?v=SI_4vqMemVI",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/bad-neighborhood.webp",
+    "featured_image": "https://wordsthatsells.website/images/bad-neighborhood.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/bad-neighborhood-links-risks-2026.html"
   },
   {
@@ -165,7 +167,7 @@
     ],
     "example": "A major Thai online retailer experienced a sudden drop in organic traffic and discovered a technical blocker was the culprit. During a recent website redesign, their development team accidentally implemented heavy JavaScript frameworks that search engine crawlers struggled to render. Additionally, an overly restrictive robots.txt file was inadvertently blocking Googlebot from accessing key product category pages. Once the SEO team identified these blockers, they optimized the JavaScript execution for better crawlability and updated the robots.txt directives. Removing these obstacles allowed search engines to properly index their extensive catalog, quickly restoring their visibility in regional search results.",
     "video_url": "https://www.youtube.com/watch?v=_pPm5EKwFLg",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/blocker.webp",
+    "featured_image": "https://wordsthatsells.website/images/blocker.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/content-blockers-in-seo-2026.html"
   },
   {
@@ -189,7 +191,7 @@
     ],
     "example": "A content manager at a regional travel platform like Agoda creates comprehensive SEO briefings for their freelance writers located across Southeast Asia. Before assigning an article about \"budget travel in Vietnam,\" the brief outlines the primary keyword, secondary LSI keywords, target audience intent, and desired word count. It also specifies the required headings (H2, H3) and internal linking strategies to other relevant destination pages. By providing these detailed guidelines, the manager ensures that every piece of content produced is highly optimized for search engines from the outset, leading to consistent rankings and increased organic traffic across their diverse travel guides.",
     "video_url": "https://www.youtube.com/watch?v=xpDTmEYaZUQ",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/briefing.webp",
+    "featured_image": "https://wordsthatsells.website/images/briefing.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-briefing-template-2026.html"
   },
   {
@@ -213,7 +215,7 @@
     ],
     "example": "A prominent Philippine news portal conducts regular site audits to identify and fix broken links that negatively impact user experience and SEO. Over time, as older articles are archived or deleted, internal links pointing to them result in 404 error pages. When a user clicks a link expecting a story about the \"Manila traffic scheme\" but hits a dead end, they quickly leave the site, increasing the bounce rate. By redirecting these broken links to relevant, live content or updating the URLs, the portal ensures a smooth browsing experience and helps search engine crawlers navigate their massive site efficiently.",
     "video_url": "https://www.youtube.com/watch?v=E6MQfXwDixk",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/broken-link.webp",
+    "featured_image": "https://wordsthatsells.website/images/broken-link.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/broken-link-building-guide-2026.html"
   },
   {
@@ -237,7 +239,7 @@
     ],
     "example": "A boutique coffee roaster in Vientiane, Laos, leverages local business directories to improve its regional SEO and attract both locals and tourists. They ensure their business name, address, and phone number (NAP) are consistently listed across platforms like Google My Business, TripAdvisor, and the Yellow Pages Laos. They also submit their details to niche Southeast Asian cafe directories. These authoritative citations act as strong local ranking signals, helping the roaster appear in the coveted \"local pack\" when users search for \"best coffee in Vientiane,\" significantly driving foot traffic and brand awareness in the community.",
     "video_url": "https://www.youtube.com/watch?v=6WmdW2t3LaA",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/business-directory.webp",
+    "featured_image": "https://wordsthatsells.website/images/business-directory.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/business-directory-submissions-2026.html"
   },
   {
@@ -261,7 +263,7 @@
     ],
     "example": "A deceptive online casino targeting users in Cambodia attempted to manipulate search rankings using cloaking, a severe black-hat SEO technique. They configured their server to show a harmless, keyword-rich blog about \"Southeast Asian travel tips\" to Google's crawlers, while redirecting human visitors to a spammy gambling interface. Google's sophisticated algorithms quickly detected this discrepancy between the content indexed and the content served to users. As a result, the website was heavily penalized and completely de-indexed from search results, demonstrating the severe consequences of violating search engine guidelines to artificially inflate rankings in the region.",
     "video_url": "https://www.youtube.com/watch?v=QHtnfOgp65Q",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/cloaking.webp",
+    "featured_image": "https://wordsthatsells.website/images/cloaking.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/cloaking-seo-penalty-risk-2026.html"
   },
   {
@@ -285,7 +287,7 @@
     ],
     "example": "Two major ride-hailing apps, Grab and Gojek, engage in fierce SEO competition to dominate search results across Southeast Asia. Both companies constantly analyze each other's keyword strategies, targeting high-volume terms like \"ride hailing app Jakarta\" or \"food delivery Manila.\" When Grab notices Gojek ranking highly for a specific service, they perform a competitive analysis to identify content gaps. Grab might then launch a comprehensive, optimized landing page highlighting their superior safety features or loyalty program to outrank Gojek. This ongoing battle for SERP supremacy drives both companies to continuously refine their technical SEO and content marketing efforts.",
     "video_url": "https://www.youtube.com/watch?v=76WZO4lmM-g",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/competition.webp",
+    "featured_image": "https://wordsthatsells.website/images/competition.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-competition-analysis-2026.html"
   },
   {
@@ -309,7 +311,7 @@
     ],
     "example": "A content editor at a prominent digital marketing agency in Bangkok plays a crucial role in maximizing their clients' SEO performance. After a writer submits a draft about \"investing in Thai real estate,\" the editor reviews the piece not just for grammar, but for search optimization. They ensure the primary keyword is naturally integrated into the title, meta description, and headers without keyword stuffing. They also enhance readability by breaking up long paragraphs and adding bullet points, knowing that user engagement metrics like dwell time are vital for ranking high in Google's localized search results.",
     "video_url": "https://www.youtube.com/watch?v=tkEgfr4jZMM",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/content-editor.webp",
+    "featured_image": "https://wordsthatsells.website/images/content-editor.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-content-editor-role-2026.html"
   },
   {
@@ -333,7 +335,7 @@
     ],
     "example": "A leading Singaporean financial comparison site performs a regular content gap analysis to stay ahead of regional competitors like Seedly or MoneySmart. By using advanced SEO tools, they discover that while they rank well for \"credit cards,\" their competitors are capturing significant traffic for \"best expat health insurance in SG.\" Identifying this missing topic, their content team strategically creates a highly detailed, authoritative guide specifically targeting this niche. This proactive approach allows them to capture untapped organic search traffic, expand their audience base, and solidify their position as the go-to financial resource in the region.",
     "video_url": "https://www.youtube.com/watch?v=oW25a73UJpU",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/content-gap-analysis.webp",
+    "featured_image": "https://wordsthatsells.website/images/content-gap-analysis.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/content-gap-analysis-strategy-guide-2026.html"
   },
   {
@@ -357,7 +359,7 @@
     ],
     "example": "Traveloka, a major Southeast Asian online travel agency, executes a highly successful content marketing strategy to drive organic traffic and bookings. Instead of solely relying on paid ads, they publish extensive, high-quality content such as \"The Ultimate Backpacking Guide to Laos\" or \"Top 10 Hidden Beaches in the Philippines.\" This valuable content attracts travelers in the research phase of their journey. By seamlessly integrating booking links within these informative articles, Traveloka effectively converts organic search visitors into paying customers, demonstrating the power of relevant content in building brand authority and driving profitable user actions.",
     "video_url": "https://www.youtube.com/watch?v=b4-_hjLk_ck",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/content-marketing.webp",
+    "featured_image": "https://wordsthatsells.website/images/content-marketing.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/content-marketing-strategy-2026.html"
   },
   {
@@ -381,7 +383,7 @@
     ],
     "example": "A Lao meteorological website focuses heavily on content relevance to ensure it ranks number one for local weather queries. When a user searches for \"Vientiane weather forecast,\" Google prioritizes this site because its content perfectly matches the search intent. The page immediately displays the current temperature, a 7-day forecast, and severe weather warnings, directly answering the user's need. If the page instead featured a lengthy history of meteorology in Laos, it would lose its top ranking due to poor content relevance, as it fails to provide the immediate, actionable information the searcher is seeking.",
     "video_url": "https://www.youtube.com/watch?v=cXaRBMirnXM",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/content-relevance.webp",
+    "featured_image": "https://wordsthatsells.website/images/content-relevance.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/content-relevance-signals-2026.html"
   },
   {
@@ -405,7 +407,7 @@
     ],
     "example": "An Indonesian e-commerce brand specializing in sustainable fashion closely tracks conversions to measure the ROI of their SEO campaigns. While ranking high for \"eco-friendly clothing Jakarta\" brings substantial organic traffic, the ultimate goal is for these visitors to complete a purchase. By optimizing their product pages with clear calls-to-action, fast loading times, and a seamless checkout process, they significantly improve their conversion rate. This successful completion of the desired action proves that their targeted SEO strategy is not just generating vanity traffic, but effectively attracting high-intent buyers who directly contribute to the company's revenue growth.",
     "video_url": "https://www.youtube.com/watch?v=IYMHMrDg-XM",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/conversion.webp",
+    "featured_image": "https://wordsthatsells.website/images/conversion.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-conversion-optimization-2026.html"
   },
   {
@@ -429,7 +431,7 @@
     ],
     "example": "A Malaysian retail giant utilizes cookies to enhance user experience and personalize content, indirectly supporting their SEO efforts. When a user visits their site, a cookie remembers their preferred language—Malay, English, or Mandarin—and their browsing history. On subsequent visits, the site automatically loads in the correct language and displays product recommendations based on past interests. This personalized approach significantly reduces bounce rates and increases dwell time, sending positive user signals to search engines. These improved behavioral metrics help boost the site's overall search rankings across different linguistic demographics in the diverse Southeast Asian market.",
     "video_url": "https://www.youtube.com/watch?v=fsRx9BL86hY",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/cookies.webp",
+    "featured_image": "https://wordsthatsells.website/images/cookies.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/cookies-and-seo-impact-2026.html"
   },
   {
@@ -453,7 +455,7 @@
     ],
     "example": "The Bangkok Post, a major Thai news publisher, relies on search engine crawlers like Googlebot to quickly index their breaking news stories. To facilitate this, their technical SEO team ensures their site architecture is clean and their XML sitemaps are constantly updated. When a critical story about the Thai elections is published, the optimized structure allows crawlers to discover, render, and index the page within minutes. This rapid crawling process is essential for the article to appear in Google's \"Top Stories\" carousel, capturing massive amounts of timely, organic search traffic before competitors can rank.",
     "video_url": "https://www.youtube.com/watch?v=JpweMBnpS4Q",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/crawlers.webp",
+    "featured_image": "https://wordsthatsells.website/images/crawlers.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-crawlers-guide-2026.html"
   },
   {
@@ -477,7 +479,7 @@
     ],
     "example": "The National University of Singapore (NUS) boasts immense domain popularity, making its website a powerhouse in search engine rankings. Over decades, NUS has accumulated hundreds of thousands of high-quality inbound links from global academic institutions, government portals, and major news outlets referencing their research. Search engines interpret this massive volume of authoritative backlinks as a strong signal of trust and credibility. Consequently, when NUS publishes a new article or course page, it almost immediately ranks at the top of the SERPs for relevant queries, outperforming newer or less popular domains in the Southeast Asian education sector.",
     "video_url": "https://www.youtube.com/watch?v=fNE1TJm4fqg",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/domain-popularity.webp",
+    "featured_image": "https://wordsthatsells.website/images/domain-popularity.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/domain-popularity-metrics-2026.html"
   },
   {
@@ -501,7 +503,7 @@
     ],
     "example": "A well-established private hospital in Bangkok has built significant domain trust over years of providing accurate, medically reviewed content. Search engines like Google apply strict \"Your Money or Your Life\" (YMYL) standards to health-related websites. Because the hospital's site features articles authored by credentialed doctors, maintains a secure HTTPS connection, and has earned backlinks from reputable medical journals, Google trusts its authority. When users search for \"dengue fever symptoms Thailand,\" the hospital's pages rank highly because search engines are confident in delivering safe, reliable, and trustworthy medical information to the public.",
     "video_url": "https://www.youtube.com/watch?v=WC6dtzY2eTU",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/domain-trust.webp",
+    "featured_image": "https://wordsthatsells.website/images/domain-trust.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/domain-trust-signals-2026.html"
   },
   {
@@ -525,7 +527,7 @@
     ],
     "example": "A large Vietnamese online marketplace faced a severe drop in rankings due to widespread duplicate content issues. Their platform automatically generated different URLs for the same product based on category filters (e.g., /electronics/phone and /brands/samsung/phone leading to the exact same page). This confused search engine crawlers, forcing them to split ranking power across multiple identical pages, a phenomenon known as keyword cannibalization. To resolve this, the SEO team implemented canonical tags, clearly indicating to Google which version of the URL was the master copy, thereby consolidating their link equity and restoring their search visibility.",
     "video_url": "https://www.youtube.com/watch?v=b11Ra-dAJCg",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/duplicate-content.webp",
+    "featured_image": "https://wordsthatsells.website/images/duplicate-content.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/duplicate-content-issues-and-fixes-2026.html"
   },
   {
@@ -549,7 +551,7 @@
     ],
     "example": "A Filipino culinary blog optimized its content specifically to capture coveted Featured Snippets on Google. Knowing that users often search for quick answers, they formatted their \"Chicken Adobo Recipe\" with a clear, bulleted list of ingredients and concise, numbered step-by-step instructions. They also used appropriate schema markup. As a result, when someone searches \"how to cook chicken adobo,\" Google pulls their structured content and displays it in a prominent box at \"Position Zero,\" above all other organic results. This strategy dramatically increased their click-through rate and established them as a top authority on Philippine cuisine.",
     "video_url": "https://www.youtube.com/watch?v=SKM6r4qHe2M",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/featured-snippets.webp",
+    "featured_image": "https://wordsthatsells.website/images/featured-snippets.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/featured-snippets-optimization-2026.html"
   },
   {
@@ -573,7 +575,7 @@
     ],
     "example": "An older Philippine government portal struggled significantly with organic search visibility because its website was built using outdated HTML frames. This legacy technique divided the webpage into separate, independently scrolling segments. Search engine crawlers had immense difficulty navigating this structure, often indexing the navigation menu and the main content as entirely separate, contextless pages. Furthermore, users couldn't share direct links to specific content within the frames. To modernize and improve their SEO, the IT department completely rebuilt the site using responsive HTML5, eliminating frames to ensure proper crawling, indexing, and link attribution.",
     "video_url": "https://www.youtube.com/watch?v=x5yl7Fk5FQk",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/frame.webp",
+    "featured_image": "https://wordsthatsells.website/images/frame.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/frames-and-seo-problems-2026.html"
   },
   {
@@ -597,7 +599,7 @@
     ],
     "example": "A Vietnamese tech company specializing in AI solutions is actively practicing Generative Engine Optimization (GEO) to ensure their documentation is discoverable by modern AI tools. Recognizing that users increasingly rely on platforms like ChatGPT and Google's AI Overviews, they structure their content with clear, definitive answers, comprehensive technical specifications, and authoritative data points. By organizing their site with semantic HTML and providing high-quality, easily summarizable information, they ensure that generative AI engines confidently reference and cite their products when users ask complex technical questions about Southeast Asian software development.",
     "video_url": "https://www.youtube.com/watch?v=OGfXxYe-FKA",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/generative-engine-optimization-geo.webp",
+    "featured_image": "https://wordsthatsells.website/images/generative-engine-optimization-geo.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/geo-generative-engine-optimization-strategies-2026.html"
   },
   {
@@ -621,7 +623,7 @@
     ],
     "example": "A Laotian tour operator uses Google Ads (AdWords) to immediately boost their visibility during the peak tourist season. While their long-term SEO strategy slowly climbs the organic rankings, they bid on highly competitive keywords like \"Luang Prabang luxury tours\" and \"Mekong river cruises.\" This pay-per-click (PPC) approach guarantees their sponsored listings appear at the very top of the search results for users actively looking to book trips. By carefully managing their ad spend and targeting specific demographics, they effectively complement their organic efforts and capture high-intent traffic that drives immediate bookings.",
     "video_url": "https://www.youtube.com/watch?v=8_C5es7k7DU",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-ads.webp",
+    "featured_image": "https://wordsthatsells.website/images/google-ads.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/google-ads-strategy-2026-guide.html"
   },
   {
@@ -645,7 +647,7 @@
     ],
     "example": "When a user searches for \"Angkor Wat,\" Google utilizes its Knowledge Graph to display a rich, informative panel alongside the standard search results. This panel aggregates verified facts, such as the temple's location in Cambodia, its history, architectural style, and peak visiting hours. The Cambodian Ministry of Tourism ensures their official websites provide structured, accurate data to feed this semantic database. By optimizing for the Knowledge Graph, they help Google present a comprehensive overview, enhancing the user experience and instantly establishing authoritative information about the region's most famous landmark.",
     "video_url": "https://www.youtube.com/watch?v=uKxfXPEV7TU",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-knowledge-graph.webp",
+    "featured_image": "https://wordsthatsells.website/images/google-knowledge-graph.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/google-knowledge-graph-optimization-2026.html"
   },
   {
@@ -669,7 +671,7 @@
     ],
     "example": "A Singaporean web development agency relies heavily on Google Lighthouse to audit and optimize their clients' e-commerce platforms. Before launching a new online store for a local fashion brand, developers run automated Lighthouse tests to measure Core Web Vitals. The tool highlights technical SEO issues, such as slow-loading hero images or render-blocking resources that negatively impact performance on mobile devices. By systematically fixing these Lighthouse-identified bottlenecks, the agency ensures the website delivers a lightning-fast user experience, which is a crucial ranking factor for Google's mobile-first indexing in the competitive Southeast Asian retail market.",
     "video_url": "https://www.youtube.com/watch?v=Q-X_ED4LHrQ",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-lighthouse.webp",
+    "featured_image": "https://wordsthatsells.website/images/google-lighthouse.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/google-lighthouse-audit-guide-2026.html"
   },
   {
@@ -693,7 +695,7 @@
     ],
     "example": "A popular chain of Pho restaurants in Ho Chi Minh City depends on Google Maps to drive daily foot traffic to their various locations. They ensure each branch is accurately pinned on the map with exact coordinates. When tourists or locals search for \"restaurants near me\" or \"best Pho in District 1,\" Google Maps displays their locations, complete with user reviews, photos, and direct routing options. This local SEO visibility is essential; being prominently featured on the map interface directly translates to increased customer visits and higher revenue for the restaurant chain.",
     "video_url": "https://www.youtube.com/watch?v=6mjM3Om4GS4",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-maps.webp",
+    "featured_image": "https://wordsthatsells.website/images/google-maps.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/google-maps-seo-guide-2026.html"
   },
   {
@@ -717,7 +719,7 @@
     ],
     "example": "A boutique massage spa in Chiang Mai, Thailand, actively manages its Google My Business (GMB) profile to dominate local search results. They regularly update their profile with high-quality photos of their facilities, current opening hours, and seasonal promotions. They also actively encourage satisfied customers to leave positive reviews and promptly respond to any feedback. This well-maintained GMB profile serves as a foundational citation, significantly improving their chances of appearing in Google's highly visible \"Local Pack\" when tourists search for relaxing spa treatments in the area, driving consistent bookings.",
     "video_url": "https://www.youtube.com/watch?v=VWm-FilQc8A",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-my-business.webp",
+    "featured_image": "https://wordsthatsells.website/images/google-my-business.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/google-business-profile-optimization-2026.html"
   },
   {
@@ -741,7 +743,7 @@
     ],
     "example": "A major Indonesian news aggregator optimizes its platform specifically for Google News to capture massive spikes in traffic during breaking events. When covering the Jakarta gubernatorial elections, their editorial team ensures articles are published rapidly with clear, descriptive headlines and appropriate structured data for news articles. By adhering strictly to Google's news content policies regarding transparency and authoritativeness, their stories are frequently selected for the \"Top Stories\" carousel. This prominent placement in Google News provides unparalleled visibility, driving millions of readers to their site within hours of a major story breaking.",
     "video_url": "https://www.youtube.com/watch?v=bggMRzlJAXc",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-news.webp",
+    "featured_image": "https://wordsthatsells.website/images/google-news.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/google-news-seo-strategy-2026.html"
   },
   {
@@ -765,7 +767,7 @@
     ],
     "example": "Google's massive index acts as the ultimate library for the internet, and a Malaysian tech blog works diligently to ensure all its articles are included. When they publish a comprehensive guide on \"starting a tech company in Kuala Lumpur,\" it initially exists only on their server. They use Google Search Console to request indexing, prompting crawlers to process the page's content, keywords, and links. Once the data is successfully stored in Google's index, the article becomes eligible to appear in search results, connecting the blog with entrepreneurs searching for regional business advice.",
     "video_url": "https://www.youtube.com/watch?v=M3EZ-FyjXWs",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/index.webp",
+    "featured_image": "https://wordsthatsells.website/images/index.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-index-management-2026.html"
   },
   {
@@ -789,7 +791,7 @@
     ],
     "example": "A comprehensive Philippine travel website uses a strategic internal linking structure to distribute \"link juice\" and keep users engaged. On their main pillar page about \"Palawan Tourism,\" they include descriptive hyperlinks pointing to deeper, specific guides like \"El Nido Island Hopping\" and \"Puerto Princesa Underground River.\" This network of internal links not only helps visitors navigate seamlessly to related content but also allows search engine crawlers to discover and index deeper pages efficiently. By establishing this clear content hierarchy, the site boosts the ranking potential of its individual destination guides.",
     "video_url": "https://www.youtube.com/watch?v=xy6EmefkQXk",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/internal-links.webp",
+    "featured_image": "https://wordsthatsells.website/images/internal-links.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/internal-linking-strategy-2026.html"
   },
   {
@@ -813,7 +815,7 @@
     ],
     "example": "A startup in Bangkok focused on healthy meal deliveries conducts extensive research to identify the most profitable keywords for their SEO campaign. Instead of targeting the overly broad term \"food,\" they focus on specific, high-intent keywords like \"keto meal delivery Bangkok\" or \"organic lunch subscription Sukhumvit.\" By strategically incorporating these targeted phrases into their website copy, meta tags, and blog content, they align their site with the exact terms potential customers are typing into search engines. This precise keyword targeting ensures they attract highly relevant organic traffic that is ready to convert.",
     "video_url": "https://www.youtube.com/watch?v=B8NPobrMiGA",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword.webp",
+    "featured_image": "https://wordsthatsells.website/images/keyword.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/keywords-in-seo-2026-guide.html"
   },
   {
@@ -837,7 +839,7 @@
     ],
     "example": "A prominent Thai lifestyle blog noticed a stagnation in their organic traffic and discovered keyword cannibalization was the issue. Over several years, they had published multiple distinct articles targeting the exact same phrase: \"best street food in Bangkok.\" Because these pages were competing against each other, Google struggled to determine which one was the most authoritative, resulting in all of them ranking poorly. To fix this, the SEO team consolidated the competing articles into one massive, comprehensive \"Ultimate Guide to Bangkok Street Food,\" redirecting the old URLs to the new master page to concentrate their ranking power.",
     "video_url": "https://www.youtube.com/watch?v=n3jrXrau6kE",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword-cannibalization.webp",
+    "featured_image": "https://wordsthatsells.website/images/keyword-cannibalization.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/keyword-cannibalization-detection-and-fix-2026.html"
   },
   {
@@ -861,7 +863,7 @@
     ],
     "example": "In the early days of SEO, a shady digital marketing firm in Jakarta attempted to manipulate rankings by artificially inflating keyword density. They created a landing page for cheap smartphones where the phrase \"buy cheap phones Jakarta\" was repeated unnaturally in almost every sentence, resulting in a poor, unreadable user experience. Today, modern search engines penalize this tactic. Instead, professional SEOs in Southeast Asia focus on natural language and semantic relevance, ensuring the target keyword appears organically within high-quality content rather than obsessing over a specific percentage or exact-match repetition.",
     "video_url": "https://www.youtube.com/watch?v=Rk4qgQdp2UA",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword-density.webp",
+    "featured_image": "https://wordsthatsells.website/images/keyword-density.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/keyword-density-myths-2026.html"
   },
   {
@@ -885,7 +887,7 @@
     ],
     "example": "A luxury resort in Bali optimizes its homepage copy by paying close attention to keyword proximity. They know that search engines analyze the physical distance between related terms to understand context. Instead of having the word \"luxury\" in the header and \"resort\" buried in the footer, they ensure these words appear closely together in phrases like \"experience the ultimate luxury resort in Seminyak, Bali.\" This tight keyword proximity provides a strong semantic signal to Google, clearly defining the page's core topic and improving its relevance for high-value search queries from international travelers.",
     "video_url": "https://www.youtube.com/watch?v=9XOeuUfHtgM",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword-proximity.webp",
+    "featured_image": "https://wordsthatsells.website/images/keyword-proximity.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/keyword-proximity-in-seo-2026.html"
   },
   {
@@ -909,7 +911,7 @@
     ],
     "example": "A penalized black-hat SEO tactic was used by an aggressive real estate broker in Manila, who engaged in severe keyword stuffing. In an attempt to rank for every possible variation, they filled their website's footer with hidden text and repetitive lists: \"condo for sale Makati, cheap condo Makati, buy condo Makati, best condo Makati.\" Google's algorithm quickly identified this unnatural overuse of keywords designed solely to manipulate rankings. The site was subsequently penalized, losing all its organic visibility, serving as a stark warning to other Southeast Asian businesses about the dangers of over-optimization.",
     "video_url": "https://www.youtube.com/watch?v=7ABwxCyg96c",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword-stuffing.webp",
+    "featured_image": "https://wordsthatsells.website/images/keyword-stuffing.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/keyword-stuffing-penalties-2026.html"
   },
   {
@@ -933,7 +935,7 @@
     ],
     "example": "A high-authority Singaporean news outlet published a feature on sustainable businesses and included a hyperlink to a local zero-waste grocery store. This link passed significant \"link juice\" (or link equity) from the powerful news domain to the smaller retail site. Search engines interpret this transfer of equity as a strong vote of confidence. The influx of this valuable link juice dramatically enhanced the grocery store's domain authority, helping their own product pages rank much higher for competitive queries like \"eco-friendly products Singapore\" and driving a noticeable increase in organic traffic.",
     "video_url": "https://www.youtube.com/watch?v=Afko9Iq2nBU",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/link-juice.webp",
+    "featured_image": "https://wordsthatsells.website/images/link-juice.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/link-juice-flow-strategy-2026.html"
   },
   {
@@ -957,7 +959,7 @@
     ],
     "example": "A highly successful Vietnamese travel blog owes its top search rankings largely to its massive link popularity. Over the years, the blogger has produced exceptional, original content that has naturally attracted inbound links from global heavyweights like Lonely Planet, CNN Travel, and numerous regional tourism boards. This high volume of quality backlinks signals to search engines that the blog is a premier authority on Southeast Asian travel. This strong link popularity ensures that whenever they publish a new itinerary, it quickly climbs to the top of the SERPs, outperforming sites with weaker backlink profiles.",
     "video_url": "https://www.youtube.com/watch?v=JeG4FwcUZRQ",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/link-popularity.webp",
+    "featured_image": "https://wordsthatsells.website/images/link-popularity.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/link-popularity-metrics-2026.html"
   },
   {
@@ -981,7 +983,7 @@
     ],
     "example": "A popular Southeast Asian tech forum utilizes descriptive link text (anchor text) to improve user navigation and SEO. When a user posts a tutorial on building a PC, they hyperlink to a specific retailer. Instead of using generic link text like \"click here to buy,\" the forum guidelines encourage specific phrases like \"purchase the AMD Ryzen 7 processor in Malaysia.\" This descriptive link text provides clear context to search engine crawlers about the content of the destination page, helping the retailer's specific product page rank better for those exact technical queries.",
     "video_url": "https://www.youtube.com/watch?v=mdJjFiFGUog",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/link-text.webp",
+    "featured_image": "https://wordsthatsells.website/images/link-text.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/link-text-anchor-best-practices-2026.html"
   },
   {
@@ -1005,7 +1007,7 @@
     ],
     "example": "A Laotian silk weaving cooperative carefully crafts the meta description for their homepage to improve their click-through rate (CTR) from search results. While the meta description isn't a direct ranking factor, it serves as crucial ad copy. They write a compelling summary: \"Discover authentic, handwoven Laotian silk scarves and textiles. Support local artisans in Vientiane with our sustainable, fair-trade creations. Shop online today.\" When this snippet appears under their URL in Google, it clearly communicates their value proposition, enticing users searching for \"traditional Lao silk\" to click their link over competitors.",
     "video_url": "https://www.youtube.com/watch?v=7vC8brTXeq8",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/meta-description.webp",
+    "featured_image": "https://wordsthatsells.website/images/meta-description.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/meta-description-optimization-2026.html"
   },
   {
@@ -1029,7 +1031,7 @@
     ],
     "example": "A multinational e-commerce platform operating across Southeast Asia heavily relies on meta tags to provide structured data to search engines. In the HTML header of their Indonesian site, they use specific language meta tags (hreflang) to tell Google that the content is targeted at Indonesian speakers. They also utilize viewport meta tags to ensure the site renders correctly on mobile devices. These hidden HTML snippets provide essential metadata, ensuring search engines index the pages accurately and serve the correct regional variations to users in different countries, preventing duplicate content issues.",
     "video_url": "https://www.youtube.com/watch?v=XTVRQPUnrIg",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/meta-tag.webp",
+    "featured_image": "https://wordsthatsells.website/images/meta-tag.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/meta-tags-for-seo-2026.html"
   },
   {
@@ -1053,7 +1055,7 @@
     ],
     "example": "A rising Malaysian digital marketing agency executes a comprehensive offpage optimization campaign to build brand authority. They don't just tweak their own website; they actively engage in digital PR, securing guest post placements on high-traffic Southeast Asian business blogs and earning brand mentions in regional tech news. They also manage their reputation on third-party review sites and actively participate in industry forums. These external signals—backlinks, mentions, and social proof—demonstrate to search engines that the agency is a trusted, influential player in the industry, significantly boosting their overall search rankings.",
     "video_url": "https://www.youtube.com/watch?v=V4M5A3UhLls",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/offpage-optimization.webp",
+    "featured_image": "https://wordsthatsells.website/images/offpage-optimization.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/offpage-optimization-strategies-2026.html"
   },
   {
@@ -1077,7 +1079,7 @@
     ],
     "example": "A Thai food blogger meticulously performs onpage optimization for every new recipe published. For their \"Authentic Tom Yum Goong\" post, they ensure the target keyword is placed in the main H1 title, the URL slug, and naturally within the first paragraph. They use H2 tags to structure the ingredients and instructions logically. Furthermore, they optimize image file names and alt attributes, and ensure the page loads quickly on mobile devices. This comprehensive attention to technical HTML elements and content quality signals maximum relevance to search engines, helping the recipe rank highly.",
     "video_url": "https://www.youtube.com/watch?v=2FKZzxtYzM4",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/onpage-optimization.webp",
+    "featured_image": "https://wordsthatsells.website/images/onpage-optimization.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/onpage-optimization-checklist-2026.html"
   },
   {
@@ -1101,7 +1103,7 @@
     ],
     "example": "The official tourism website of Indonesia invests heavily in high-quality page content to captivate potential visitors. Their page detailing the \"Cultural Heritage of Yogyakarta\" goes far beyond a simple text description. It features stunning, optimized high-resolution images, embedded 4K video tours of the Borobudur temple, interactive maps, and well-researched, engaging text. This rich, comprehensive page content not only naturally incorporates relevant keywords but also keeps users on the page longer (high dwell time). Search engines reward this exceptional user experience by ranking the page highly for competitive tourism queries.",
     "video_url": "https://www.youtube.com/watch?v=IkmPjeNKkBQ",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/page-content.webp",
+    "featured_image": "https://wordsthatsells.website/images/page-content.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/page-content-optimization-2026.html"
   },
   {
@@ -1125,7 +1127,7 @@
     ],
     "example": "A Philippine online jobs portal understands that the page title is a critical on-page ranking factor and the first thing users see in the SERPs. Instead of a default, unoptimized title like \"Jobs Page 2,\" they craft highly specific, clickable HTML title tags. For a specific category, they use a title like \"Latest IT & Software Developer Jobs in Manila | Apply Now.\" This optimized title tag includes the primary keywords (\"IT Jobs,\" \"Manila\") and a call to action, directly improving their relevance in search algorithms and maximizing their click-through rate from job seekers.",
     "video_url": "https://www.youtube.com/watch?v=EygZP5SQRKI",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/page-title.webp",
+    "featured_image": "https://wordsthatsells.website/images/page-title.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/page-title-optimization-2026.html"
   },
   {
@@ -1149,7 +1151,7 @@
     ],
     "example": "A major Singaporean insurance provider aggressively utilizes paid listings to dominate the top of the search results for highly lucrative keywords. When a user searches for \"best life insurance Singapore,\" the very first results they see are sponsored ads placed by the company via Google Ads. These paid listings, clearly marked as \"Sponsored,\" allow the provider to bypass the lengthy process of organic SEO and guarantee immediate visibility. This strategy is essential for capturing high-intent leads in a highly competitive financial market, complementing their longer-term organic ranking efforts.",
     "video_url": "https://www.youtube.com/watch?v=1mytDMfYnIM",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/paid-listing.webp",
+    "featured_image": "https://wordsthatsells.website/images/paid-listing.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/paid-listings-vs-organic-2026.html"
   },
   {
@@ -1173,7 +1175,7 @@
     ],
     "example": "A leading Indonesian news portal transitioned its mobile website into a Progressive Web App (PWA) to dramatically improve user experience and indirect SEO metrics. The PWA allows users to install a shortcut on their home screen, providing an app-like experience directly through the browser. It features lightning-fast load times, push notifications, and the ability to read articles offline—crucial for users in areas with unstable internet connections. This superior performance significantly reduces bounce rates and increases session duration, sending strong positive user signals to Google, which indirectly boosts their mobile search rankings.",
     "video_url": "https://www.youtube.com/watch?v=Iq3Zl1jMkhk",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/progressive-web-apps.webp",
+    "featured_image": "https://wordsthatsells.website/images/progressive-web-apps.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/onpage-optimization-checklist-2026.html"
   },
   {
@@ -1197,7 +1199,7 @@
     ],
     "example": "A Vietnamese e-commerce site heavily prioritizes mobile page speed, recognizing it as a critical ranking factor in Google's algorithm. With the vast majority of their customers shopping via smartphones, a slow-loading site would severely penalize their search visibility. Their development team constantly optimizes images, minifies code, and leverages browser caching to ensure lightning-fast load times. By excelling in this specific algorithmic criteria, alongside other factors like secure HTTPS and mobile-friendliness, they maintain a strong competitive advantage and secure top positions in mobile search results across Southeast Asia.",
     "video_url": "https://www.youtube.com/watch?v=9irv8bxHD7I",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/ranking-factor.webp",
+    "featured_image": "https://wordsthatsells.website/images/ranking-factor.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-ranking-factors-2026.html"
   },
   {
@@ -1221,7 +1223,7 @@
     ],
     "example": "A Laotian coffee exporter uses specialized SEO tools to identify lucrative ranking opportunities in the global market. Through SERP analysis, they discover that while competition is fierce for generic terms like \"buy coffee beans,\" there is a significant keyword gap for \"wholesale organic Bolaven Plateau coffee.\" Recognizing that few competitors have created high-quality content for this specific, high-intent query, they develop targeted landing pages and detailed blog posts. Capitalizing on these identified gaps allows them to easily rank on the first page and attract international B2B buyers looking for their specific regional product.",
     "video_url": "https://www.youtube.com/watch?v=wlUT_yRz6y8",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/ranking-opportunities.webp",
+    "featured_image": "https://wordsthatsells.website/images/ranking-opportunities.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/finding-seo-ranking-opportunities-2026.html"
   },
   {
@@ -1245,7 +1247,7 @@
     ],
     "example": "A prominent dental clinic in Bangkok closely monitors its search rankings to gauge the success of its digital marketing efforts. They track their specific positions in the SERPs for high-value keywords like \"Invisalign Bangkok\" and \"teeth whitening Sukhumvit.\" Holding the #1 organic ranking for these terms directly correlates with a steady stream of new patient inquiries. If their rankings drop to the second page, they experience an immediate decline in website traffic and bookings, highlighting how crucial maintaining top SERP positions is for sustaining their business's visibility and revenue.",
     "video_url": "https://www.youtube.com/watch?v=ejLJya0YlG4",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/rankings.webp",
+    "featured_image": "https://wordsthatsells.website/images/rankings.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/tracking-seo-rankings-2026.html"
   },
   {
@@ -1269,7 +1271,7 @@
     ],
     "example": "A popular Malaysian recipe website implements structured data markup to generate eye-catching rich snippets in Google search results. When a user searches for \"Nasi Lemak recipe,\" their listing doesn't just show a blue link; it displays a vibrant thumbnail image, a 4.8-star user rating, the preparation time, and the calorie count directly on the SERP. These enhanced visual elements make their search result stand out dramatically against competitors using standard listings. This increased visibility leads to a significantly higher click-through rate, driving more organic traffic to their culinary platform.",
     "video_url": "https://www.youtube.com/watch?v=_CmIvCL2A8o",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/rich-snippets.webp",
+    "featured_image": "https://wordsthatsells.website/images/rich-snippets.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/rich-snippets-with-structured-data-2026.html"
   },
   {
@@ -1293,7 +1295,7 @@
     ],
     "example": "The IT department of a major Philippine university uses a robots.txt file to carefully control how search engines crawl their massive domain. They place this simple text file in the root directory to provide explicit instructions to bots like Googlebot. While they want their academic programs and news articles indexed, they use \"Disallow\" directives to prevent crawlers from accessing sensitive areas, such as the student portal login pages, internal administrative directories, and staging servers. This ensures search engines focus their crawl budget only on public-facing content, improving overall SEO efficiency and security.",
     "video_url": "https://www.youtube.com/watch?v=3Qcw3xTUdpE",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/robots-txt.webp",
+    "featured_image": "https://wordsthatsells.website/images/robots-txt.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/robots-txt-best-practices-2026.html"
   },
   {
@@ -1317,7 +1319,7 @@
     ],
     "example": "Millions of internet users across Southeast Asia rely on search engines daily to navigate the web. While Google holds a massive monopoly in countries like Singapore, Thailand, and Indonesia, users depend on this complex software system to crawl, index, and rank billions of web pages. When a student in Hanoi types a query, the search engine's algorithm instantly sifts through its colossal database to provide the most relevant, authoritative results. This system acts as the primary gateway to information, making it the central focus for all regional digital marketing and SEO strategies.",
     "video_url": "https://www.youtube.com/watch?v=NYqejcMrerI",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-engine.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/how-search-engines-work-2026.html"
   },
   {
@@ -1341,7 +1343,7 @@
     ],
     "example": "A newly launched real estate development in Manila utilizes Search Engine Advertising (SEA) to generate immediate leads for their luxury condominiums. They launch targeted Pay-Per-Click (PPC) campaigns on Google Ads, bidding aggressively on keywords like \"buy condo in BGC\" and \"luxury apartments Makati.\" This ensures their promotional links appear at the absolute top of the search results, labeled as \"Sponsored,\" capturing the attention of high-net-worth individuals actively looking to invest. This paid strategy provides instant visibility and traffic while their long-term organic SEO efforts are still gaining traction.",
     "video_url": "https://www.youtube.com/watch?v=CEpcMPyjX4s",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-advertising.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-engine-advertising.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-advertising-sea-guide-2026.html"
   },
   {
@@ -1365,7 +1367,7 @@
     ],
     "example": "A reputable SEO agency in Bangkok strictly adheres to Google's Search Engine Guidelines to protect their clients from devastating penalties. They focus on \"white-hat\" techniques, emphasizing high-quality content creation, natural link building, and solid technical site structure. They explicitly avoid manipulative tactics outlined in the guidelines, such as buying links, keyword stuffing, or using hidden text. By ensuring total compliance with these official best practices, the agency guarantees long-term, sustainable organic growth for their Thai corporate clients, avoiding the risk of being de-indexed for violating Google's rules.",
     "video_url": "https://www.youtube.com/watch?v=lKmO2WeHksM",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-guidelines.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-engine-guidelines.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-guidelines-compliance-2026.html"
   },
   {
@@ -1389,7 +1391,7 @@
     ],
     "example": "A rapidly expanding Singaporean fintech startup employs a holistic Search Engine Marketing (SEM) strategy to dominate the digital landscape. They understand that SEM encompasses both paid and organic tactics. They invest heavily in SEO to build long-term authority and rank organically for educational terms like \"how to invest in Singapore.\" Simultaneously, they run targeted Search Engine Advertising (SEA) campaigns to capture immediate conversions for high-intent queries like \"open digital bank account.\" This combined approach maximizes their overall online visibility, ensuring they capture traffic at every stage of the customer journey.",
     "video_url": "https://www.youtube.com/watch?v=1V0wO9nmU80",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-marketing.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-engine-marketing.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-marketing-sem-2026.html"
   },
   {
@@ -1413,7 +1415,7 @@
     ],
     "example": "A boutique hotel in Hanoi invests heavily in Search Engine Optimization (SEO) to reduce their reliance on costly third-party booking platforms like Agoda. They systematically improve their website's technical speed, ensure mobile responsiveness, and create highly relevant content targeting keywords like \"best boutique hotel Hanoi Old Quarter.\" They also actively build link popularity by getting featured in travel blogs. This comprehensive process gradually increases their organic ranking in Google search results, driving direct, commission-free bookings and significantly improving their overall profitability in the competitive Vietnamese hospitality market.",
     "video_url": "https://www.youtube.com/watch?v=_s2h7X-c2jE",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-optimization-seo.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-engine-optimization-seo.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-optimization-seo-2026.html"
   },
   {
@@ -1437,7 +1439,7 @@
     ],
     "example": "A Laotian independent journalist launching a new investigative news blog takes immediate steps for search engine registration. Instead of waiting weeks for Google to organically discover the new domain, they proactively set up an account on Google Search Console. They submit their website's XML sitemap directly to the platform, explicitly telling Google's crawlers where to find all their newly published articles. This direct submission ensures that their time-sensitive reporting is discovered, crawled, and indexed promptly, allowing their content to appear in search results almost immediately after publication.",
     "video_url": "https://www.youtube.com/watch?v=ePrKAHn3t9U",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-registration.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-engine-registration.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-submission-myths-2026.html"
   },
   {
@@ -1461,7 +1463,7 @@
     ],
     "example": "An unscrupulous affiliate marketer in Jakarta attempted to game the system using aggressive search engine spam techniques. They built a network of low-quality, automated websites filled with scraped content and hidden keywords to promote dubious health supplements. They also purchased thousands of cheap, spammy backlinks from irrelevant forums. Google's sophisticated spam-detection algorithms, like SpamBrain, quickly identified these manipulative, black-hat tactics. The entire network of sites was hit with severe manual penalties and completely removed from the search index, destroying the marketer's traffic and revenue overnight.",
     "video_url": "https://www.youtube.com/watch?v=BS75vhGO-kk",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-spam.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-engine-spam.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-spam-penalties-2026.html"
   },
   {
@@ -1485,7 +1487,7 @@
     ],
     "example": "When a tourist in Penang types \"best street food near me\" into their phone, the search engine returns a dynamic search result page (SERP). This list is highly localized and complex, featuring a Google Maps pack highlighting nearby hawker stalls, organic links to popular food blogs reviewing Penang cuisine, and perhaps a featured snippet showing a list of must-try dishes. For local Malaysian businesses, appearing prominently within this specific search result is vital, as it directly dictates which food stalls the tourist will ultimately choose to visit.",
     "video_url": "https://www.youtube.com/watch?v=IkmPjeNKkBQ",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-result.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-result.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/understanding-search-results-2026.html"
   },
   {
@@ -1509,7 +1511,7 @@
     ],
     "example": "An SEO specialist at a Thai travel agency meticulously analyzes the specific search terms users type into Google to optimize their campaign. They notice a shift from broad queries like \"Thailand travel\" to highly specific, long-tail search terms like \"how to get a digital nomad visa for Chiang Mai.\" By understanding the exact phrasing and underlying intent behind this search term, the agency creates a highly targeted, comprehensive guide answering all the logistical questions. This perfectly optimized content captures this niche, high-value traffic directly from the search engine.",
     "video_url": "https://www.youtube.com/watch?v=B8NPobrMiGA",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-term.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-term.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-terms-vs-keywords-2026.html"
   },
   {
@@ -1533,7 +1535,7 @@
     ],
     "example": "A digital marketing team for a regional airline uses keyword research tools to analyze search volume before launching a new promotional campaign. They compare the estimated monthly searches for various routes. Discovering that the search volume for \"cheap flights from Singapore to Bali\" spikes massively during the winter holidays, they prioritize their SEO and paid ad budgets to target this specific keyword during that timeframe. By aligning their efforts with periods of high demand, they maximize their traffic potential and ensure their marketing resources are spent where they will generate the highest return.",
     "video_url": "https://www.youtube.com/watch?v=4PGf_12Txqs",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-volume.webp",
+    "featured_image": "https://wordsthatsells.website/images/search-volume.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-volume-analysis-2026.html"
   },
   {
@@ -1557,7 +1559,7 @@
     ],
     "example": "A major Indonesian news conglomerate uses enterprise SEO platforms to track their overall SEO visibility against competitors like Kompas and Detik. This metric doesn't just look at one keyword; it aggregates their ranking positions across tens of thousands of search terms and factors in the search volume for each. If their SEO visibility score drops, it indicates a systemic issue—perhaps a recent algorithm update penalized their site, or a competitor has published a massive content cluster. Monitoring this overarching metric allows them to quickly pivot their digital strategy to maintain market dominance.",
     "video_url": "https://www.youtube.com/watch?v=w0uqKvAZy-w",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/seo-visibility.webp",
+    "featured_image": "https://wordsthatsells.website/images/seo-visibility.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-visibility-metrics-2026.html"
   },
   {
@@ -1581,7 +1583,7 @@
     ],
     "example": "The web development team for a massive Philippine university relies on a dynamic Sitemap.xml file to ensure search engines can navigate their complex domain. With thousands of pages spanning different faculties, student resources, and news updates, relying on internal linking alone isn't enough. They configure their CMS to automatically update the XML file whenever a new page is published. This file acts as a direct roadmap submitted to Google Search Console, helping crawlers discover and index crucial new content efficiently, ensuring prospective students can always find the latest program information.",
     "video_url": "https://www.youtube.com/watch?v=gNZH9xdLwUI",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/sitemap-xml.webp",
+    "featured_image": "https://wordsthatsells.website/images/sitemap-xml.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/sitemap-xml-best-practices-2026.html"
   },
   {
@@ -1605,7 +1607,7 @@
     ],
     "example": "A fast-growing Thai online banking startup strictly enforces SSL Encryption across its entire platform, recognizing it as both a critical security measure and a confirmed SEO ranking signal. By using the HTTPS protocol, all data transmitted between the user's browser and their servers is encrypted, protecting sensitive financial information from interception. Google openly favors secure websites in its search algorithm. The presence of the padlock icon in the browser not only builds essential trust with Southeast Asian consumers but also provides a necessary algorithmic boost to outrank non-secure competitors.",
     "video_url": "https://www.youtube.com/watch?v=qCfD90gnbAM",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/ssl-encryption.webp",
+    "featured_image": "https://wordsthatsells.website/images/ssl-encryption.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/ssl-encryption-for-seo-2026.html"
   },
   {
@@ -1629,7 +1631,7 @@
     ],
     "example": "A popular Malaysian cinema chain implements schema markup, a form of structured data, directly into their website's HTML. They tag specific information on their movie pages, such as the film's title, genre, user ratings, and most importantly, the local showtimes. This standardized code helps search engines understand the context of the content perfectly. Consequently, when a user searches for \"movies showing in Kuala Lumpur,\" Google can extract this structured data and display the exact showtimes and ticket links directly in a rich snippet on the search results page, driving immediate ticket sales.",
     "video_url": "https://www.youtube.com/watch?v=jqb29bZIxp0",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/structured-data.webp",
+    "featured_image": "https://wordsthatsells.website/images/structured-data.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/rich-snippets-with-structured-data-2026.html"
   },
   {
@@ -1653,7 +1655,7 @@
     ],
     "example": "A Singaporean blog dedicated entirely to sustainable urban farming has established immense topical relevance in the eyes of search engines. Instead of covering broad lifestyle topics, they publish hundreds of deeply researched articles specifically about hydroponics, balcony gardening, and composting in tropical climates. Because their content comprehensively covers this specific subject area, Google's semantic algorithms recognize the domain as a highly authoritative source. This strong topical relevance allows them to easily outrank larger, generic news sites when users search for niche queries like \"best indoor grow lights for Singapore apartments.\"",
     "video_url": "https://www.youtube.com/watch?v=H9NvvSiz0EU",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/topical-relevance.webp",
+    "featured_image": "https://wordsthatsells.website/images/topical-relevance.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/topical-relevance-and-authority-2026.html"
   },
   {
@@ -1677,7 +1679,7 @@
     ],
     "example": "An SEO strategist at a Vietnamese export company uses a Topic Explorer tool to build out a comprehensive content cluster. Starting with the broad seed term \"coffee export,\" the tool analyzes search data to reveal related subtopics and questions users are asking, such as \"Robusta vs Arabica,\" \"export tariffs to the EU,\" and \"sustainable farming certifications.\" By using these insights to create a hub-and-spoke content model—one main pillar page linking to detailed sub-articles—the company builds immense topical authority, ensuring they rank for a wide array of industry-specific search queries.",
     "video_url": "https://www.youtube.com/watch?v=byEFujJZVCk",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/topic-explorer.webp",
+    "featured_image": "https://wordsthatsells.website/images/topic-explorer.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/topic-explorer-tools-for-seo-2026.html"
   },
   {
@@ -1701,7 +1703,7 @@
     ],
     "example": "When a user in Jakarta searches for \"Bali vacation,\" Google employs Universal Search to deliver a blended, highly visual results page. Instead of just a list of ten blue links, the SERP integrates diverse media types. The user sees a map highlighting popular resorts, an image carousel of famous beaches, a \"Top Stories\" box with recent travel news, and video results from YouTube vloggers. For Indonesian travel brands, this means SEO isn't just about optimizing text; they must optimize their images, videos, and local listings to capture visibility across all these blended search features.",
     "video_url": "https://www.youtube.com/watch?v=pwh_rQsvtgQ",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/universal-search.webp",
+    "featured_image": "https://wordsthatsells.website/images/universal-search.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/universal-search-optimization-2026.html"
   },
   {
@@ -1725,7 +1727,7 @@
     ],
     "example": "A newly launched e-commerce site in Singapore ensures every product page has a clean, descriptive URL to improve crawlability and user experience. Instead of using confusing, dynamically generated web addresses like \"www.example.com.sg/item?id=84759,\" they structure their URLs logically: \"www.example.com.sg/electronics/laptops/asus-zenbook.\" This keyword-optimized Uniform Resource Locator provides immediate context to both human users and search engine crawlers about the page's exact content. This clear site structure helps search engines categorize the pages accurately, contributing to better overall rankings in the competitive regional tech market.",
     "video_url": "https://www.youtube.com/watch?v=cvtgL63woXg",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/url.webp",
+    "featured_image": "https://wordsthatsells.website/images/url.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/url-structure-for-seo-2026.html"
   },
   {
@@ -1749,7 +1751,7 @@
     ],
     "example": "A major Thai online fashion retailer recently overhauled its website, placing User Experience (UX) at the forefront of its SEO strategy. They recognized that Google heavily weighs Core Web Vitals and usability metrics. They redesigned the site to ensure lightning-fast mobile load times, intuitive navigation menus, and a seamless, secure checkout process. By keeping shoppers engaged and frustrated-free, they drastically reduced bounce rates and increased session durations. Search engines interpreted these positive behavioral signals as proof of a high-quality site, rewarding the retailer with higher rankings across their product categories.",
     "video_url": "https://www.youtube.com/watch?v=iXqYxSgESzo",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/user-experience.webp",
+    "featured_image": "https://wordsthatsells.website/images/user-experience.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/user-experience-ux-in-seo-2026.html"
   },
   {
@@ -1773,7 +1775,7 @@
     ],
     "example": "A savvy content marketer in Manila strictly aligns their SEO strategy with User/Search Intent. They understand that if someone searches \"buy durian online,\" the intent is purely transactional; the user wants a product page with an \"Add to Cart\" button. Conversely, if the query is \"how to open a durian,\" the intent is informational. The marketer ensures they don't try to rank a sales page for an informational query, as users would immediately bounce. By perfectly matching the webpage content to the underlying goal of the searcher, they maximize engagement and conversion rates.",
     "video_url": "https://www.youtube.com/watch?v=6qjBTOSgbDI",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/user-search-intent.webp",
+    "featured_image": "https://wordsthatsells.website/images/user-search-intent.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/search-intent-optimization-2026.html"
   },
   {
@@ -1797,7 +1799,7 @@
     ],
     "example": "Google closely monitors User Signals to evaluate the quality of a Laotian cultural festival guide ranking on the first page. When users search for \"Pha That Luang Festival dates,\" they click on the guide (high Click-Through Rate), spend several minutes reading the history and schedule (high Dwell Time), and rarely hit the back button immediately (low Bounce Rate). These strong behavioral metrics indicate to the search engine algorithm that the webpage is highly valuable and satisfying to users, reinforcing its position at the top of the search results and preventing competitors from outranking it.",
     "video_url": "https://www.youtube.com/watch?v=FA_B-xC0C_U",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/user-signals.webp",
+    "featured_image": "https://wordsthatsells.website/images/user-signals.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/user-signals-in-ranking-2026.html"
   },
   {
@@ -1821,7 +1823,7 @@
     ],
     "example": "In the past, a Vientiane-based business might have relied heavily on submitting their site to broad Web Catalogues to build links. However, modern SEOs in Southeast Asia recognize that generic, uncurated directories offer little to no SEO value and can even look spammy. Instead, they focus on highly niche-specific or authoritative local catalogues. For example, a specialized directory listing only verified \"Sustainable Eco-Lodges in Southeast Asia\" still provides a valuable, contextually relevant citation and backlink that search engines respect, unlike the massive, disorganized link farms of the early internet.",
     "video_url": "https://www.youtube.com/watch?v=wlUT_yRz6y8",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/web-catalogues.webp",
+    "featured_image": "https://wordsthatsells.website/images/web-catalogues.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/web-catalogues-and-directories-2026.html"
   },
   {
@@ -1845,7 +1847,7 @@
     ],
     "example": "A local restaurant in Chiang Mai utilizes high-quality Web Directories to boost its local SEO presence. They ensure their business is listed accurately on platforms like TripAdvisor, Yelp, and localized Thai dining directories like Wongnai. These directories maintain high editorial standards and are frequently used by tourists and locals alike. Having consistent Name, Address, and Phone number (NAP) information across these authoritative catalogs provides essential local citations. This signals legitimacy to search engines, helping the restaurant rank higher in local map packs when users search for \"places to eat near me.\"",
     "video_url": "https://www.youtube.com/watch?v=T6ePps5F6R0",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/web-directory.webp",
+    "featured_image": "https://wordsthatsells.website/images/web-directory.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/web-directory-submissions-2026.html"
   },
   {
@@ -1869,7 +1871,7 @@
     ],
     "example": "A prominent Philippine web development agency trains all its engineers to strictly follow Google's Webmaster Guidelines when building client sites. They ensure every website has a logical link structure, uses valid HTML, and is optimized for mobile devices. They actively avoid deceptive practices like cloaking or scraping content. By adhering to these official best practices for design, technical setup, and quality, the agency guarantees that their clients' websites are easily crawled and indexed, setting a solid foundation for long-term SEO success and avoiding any risk of algorithmic penalties.",
     "video_url": "https://www.youtube.com/watch?v=t1lS05RVGAk",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/webmaster-guidelines.webp",
+    "featured_image": "https://wordsthatsells.website/images/webmaster-guidelines.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/google-webmaster-guidelines-2026.html"
   },
   {
@@ -1893,7 +1895,7 @@
     ],
     "example": "A Malaysian tech news publication manages thousands of individual Web Pages, understanding that each must be uniquely optimized. They don't just optimize the homepage; every single article, whether it's a review of a new smartphone or an interview with a startup founder, is treated as an independent entry point from search engines. The editorial team ensures each HTML document has a unique, descriptive title tag, a tailored meta description, and high-quality, original content. This granular optimization strategy allows them to capture a vast array of long-tail search traffic across their entire domain.",
     "video_url": "https://www.youtube.com/watch?v=FIXV28Mdm-o",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/web-pages.webp",
+    "featured_image": "https://wordsthatsells.website/images/web-pages.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/optimizing-web-pages-for-seo-2026.html"
   },
   {
@@ -1917,7 +1919,7 @@
     ],
     "example": "The official tourism Website for Indonesia is a massive digital ecosystem comprising thousands of interconnected web pages under the \"indonesia.travel\" domain name. To achieve regional SEO dominance, the administrators must maintain a logical, hierarchical structure, ensuring that pages about Bali are distinctly categorized from pages about Sumatra. They invest in a robust technical foundation with fast servers and secure protocols, while continuously publishing high-quality, inspiring travel content. This holistic approach ensures the entire collection of pages works together to build massive domain authority and capture global search traffic.",
     "video_url": "https://www.youtube.com/watch?v=RR2WCT9ZTDQ",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/website.webp",
+    "featured_image": "https://wordsthatsells.website/images/website.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/website-seo-fundamentals-2026.html"
   },
   {
@@ -1941,7 +1943,7 @@
     ],
     "example": "A leading Singaporean university redesigned its Website Structure to improve both user navigation and SEO crawlability. Previously, their site was a tangled web of deep, hard-to-find pages. They reorganized it into a flat, logical hierarchy: Homepage > Faculties > Departments > Specific Courses. They implemented clear \"breadcrumb\" navigation and robust internal linking. This intuitive framework allows prospective students to find information easily and enables search engine crawlers to systematically discover and understand the relationship between different pages, significantly improving the indexing and ranking potential of their academic programs.",
     "video_url": "https://www.youtube.com/watch?v=n68rh1s-ZdY",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/website-structure.webp",
+    "featured_image": "https://wordsthatsells.website/images/website-structure.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/website-structure-for-seo-2026.html"
   },
   {
@@ -1965,7 +1967,7 @@
     ],
     "example": "A user in Jakarta quickly types \"time in Tokyo\" into their smartphone. Because Google provides the exact time directly at the top of the SERP via a featured snippet, the user gets their answer instantly and closes the browser without ever clicking on a website. This phenomenon, known as Zero Click Searches, is increasingly common for factual queries. Southeast Asian SEO professionals adapt to this by focusing their efforts on more complex, long-tail keywords where users require in-depth content, rather than trying to rank for simple queries that search engines now answer directly.",
     "video_url": "https://www.youtube.com/watch?v=HIUV9JzG85o",
-    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/zero-click-searches.webp",
+    "featured_image": "https://wordsthatsells.website/images/zero-click-searches.webp",
     "article_link": "https://wordsthatsells.website/en/resources/glossary/zero-click-searches-impact-and-strategy-2026.html"
   }
 ]
