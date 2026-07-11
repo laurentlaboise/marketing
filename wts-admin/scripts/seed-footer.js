@@ -31,7 +31,7 @@ const SETTINGS = {
   footer_contact_email: 'info@wordsthatsells.website',
   footer_contact_email_subject: 'Inquiry About Your Services',
   footer_contact_email_body: "Hello,\n\nI saw your website and I'm interested in learning more.\n\nThank you!",
-  footer_copyright: '© 2025 Laboise eworker Laos enterprise. All rights reserved.\nTax ID: 275618471000 | Reg ID: 08/04 – 000001253'
+  footer_copyright: '© 2026 Laboise eworker Laos enterprise. All rights reserved.\nTax ID: 275618471000 | Reg ID: 08/04 – 000001253'
 };
 
 // Footer link columns. `t` marks links that open in a new tab (matching the
@@ -61,6 +61,9 @@ const COLUMNS = [
 const LEGAL = [
   { label: 'About Us', url: '/company/about-us/' },
   { label: 'Contact Us', url: '/company/contact-us/' },
+  { label: 'Terms', url: '/company/legal/terms-and-conditions.html' },
+  { label: 'Privacy', url: '/company/legal/privacy-policy.html' },
+  { label: 'Cookies', url: '/company/legal/cookie-policy.html' },
   { label: 'Legal', url: '/company/legal/' }
 ];
 
@@ -99,7 +102,8 @@ async function seedMenus() {
     `SELECT COUNT(*)::int AS n FROM menu_items WHERE location IN ('footer', 'footer-legal')`
   );
   if (existing.rows[0].n > 0) {
-    console.log(`Footer menus: ${existing.rows[0].n} item(s) already exist — skipping (delete them to re-seed).`);
+    console.log(`Footer menus: ${existing.rows[0].n} item(s) already exist — ensuring legal links only.`);
+    await ensureLegalLinks();
     return;
   }
   let sort = 0;
@@ -115,6 +119,36 @@ async function seedMenus() {
     );
   }
   console.log(`Footer menus: seeded ${COLUMNS.length} columns + ${LEGAL.length} legal links.`);
+}
+
+/** Upsert Terms / Privacy / Cookies / Legal hub without duplicating labels. */
+async function ensureLegalLinks() {
+  let created = 0;
+  let i = 10;
+  for (const item of LEGAL) {
+    const found = await db.query(
+      `SELECT id FROM menu_items
+        WHERE location = 'footer-legal' AND (label = $1 OR url = $2)
+        LIMIT 1`,
+      [item.label, item.url]
+    );
+    if (found.rows.length) {
+      await db.query(
+        `UPDATE menu_items
+            SET label = $1, url = $2, is_visible = TRUE
+          WHERE id = $3`,
+        [item.label, item.url, found.rows[0].id]
+      );
+      continue;
+    }
+    await db.query(
+      `INSERT INTO menu_items (label, url, location, sort_order, is_visible)
+       VALUES ($1, $2, 'footer-legal', $3, TRUE)`,
+      [item.label, item.url, i++]
+    );
+    created++;
+  }
+  console.log(`Footer legal links: ensured ${LEGAL.length} (${created} newly created).`);
 }
 
 async function seedAssignments() {
@@ -140,6 +174,7 @@ async function seedAssignments() {
 async function main() {
   await seedSettings();
   await seedMenus();
+  await ensureLegalLinks();
   await seedAssignments();
   console.log('\nDone.');
   await db.close();

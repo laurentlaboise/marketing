@@ -5,6 +5,7 @@
     "signOut": "Sign out",
     "footerHelp": "Need help with an order? Reply to any of our emails or use the contact form on wordsthatsells.website",
     "footerBrand": "Words That Sells · wordsthatsells.website",
+    "footerLegalAgree": "By using this portal you agree to our <a href=\"https://wordsthatsells.website/en/company/legal/terms-and-conditions.html\" target=\"_blank\" rel=\"noopener noreferrer\">Terms</a>, <a href=\"https://wordsthatsells.website/en/company/legal/privacy-policy.html\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a>, and <a href=\"https://wordsthatsells.website/en/company/legal/cookie-policy.html\" target=\"_blank\" rel=\"noopener noreferrer\">Cookie Policy</a>.",
     "open": "Open",
     "download": "Download"
   },
@@ -32,6 +33,7 @@
     "forgotHint": "Forgot your password? Leave the password empty and we'll email you a secure sign-in link — you can set a new password from your profile.",
     "signIn": "Sign In",
     "autoAccountHint": "No account yet? Just enter your email — your account is created automatically. You stay signed in on this device for 30 days.",
+    "legalAgree": "By signing in you agree to the <a href=\"https://wordsthatsells.website/en/company/legal/terms-and-conditions.html\" target=\"_blank\" rel=\"noopener noreferrer\">Terms</a> and <a href=\"https://wordsthatsells.website/en/company/legal/privacy-policy.html\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a> of Laboise eworker Laos enterprise.",
     "rateLimited": "Too many sign-in attempts, please try again later.",
     "errorInvalidCreds": "Email or password incorrect — or this account has no password yet. Leave the password empty and we’ll email you a sign-in link instead.",
     "errorLinkInvalid": "That sign-in link is not valid. Request a new one below.",

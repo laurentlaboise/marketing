@@ -1,0 +1,27 @@
+<%#
+  Shared legal bar for admin + client portal.
+  Canonical policies live on the public marketing site.
+  Pass { compact: true } for a denser single-line variant (sidebar).
+%>
+<%
+  var LEGAL_BASE = 'https://wordsthatsells.website/en/company/legal';
+  var isCompact = typeof compact !== 'undefined' && compact;
+%>
+<nav class="wts-legal-bar<%= isCompact ? ' wts-legal-bar--compact' : '' %>" aria-label="Legal policies">
+  <a href="<%= LEGAL_BASE %>/terms-and-conditions.html" target="_blank" rel="noopener noreferrer">Terms</a>
+  <span class="wts-legal-sep" aria-hidden="true">·</span>
+  <a href="<%= LEGAL_BASE %>/privacy-policy.html" target="_blank" rel="noopener noreferrer">Privacy</a>
+  <span class="wts-legal-sep" aria-hidden="true">·</span>
+  <a href="<%= LEGAL_BASE %>/cookie-policy.html" target="_blank" rel="noopener noreferrer">Cookies</a>
+  <span class="wts-legal-sep" aria-hidden="true">·</span>
+  <a href="<%= LEGAL_BASE %>/" target="_blank" rel="noopener noreferrer">Legal hub</a>
+</nav>
+<% if (!isCompact) { %>
+<p class="wts-legal-entity">
+  Laboise eworker Laos enterprise
+  <span class="wts-legal-sep" aria-hidden="true">·</span>
+  Tax ID: 275618471000
+  <span class="wts-legal-sep" aria-hidden="true">·</span>
+  Reg ID: 08/04 – 000001253
+</p>
+<% } %>

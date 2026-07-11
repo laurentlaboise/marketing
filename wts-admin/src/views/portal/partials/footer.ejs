@@ -1,5 +1,13 @@
 <%# Portal page footer; closes the document opened by partials/head.
-    Pass { simpleFooter: true } for the brand-only variant (login, error). %>
-  <div class="foot"><%= (typeof simpleFooter !== 'undefined' && simpleFooter) ? t('common.footerBrand') : t('common.footerHelp') %></div>
+    Pass { simpleFooter: true } for the brand-only help line (login, error). %>
+  <footer class="portal-legal-footer" role="contentinfo">
+    <% if (!(typeof simpleFooter !== 'undefined' && simpleFooter)) { %>
+    <div class="foot foot-help"><%= t('common.footerHelp') %></div>
+    <% } else { %>
+    <div class="foot foot-brand"><%= t('common.footerBrand') %></div>
+    <% } %>
+    <%- include('../../partials/legal-bar') %>
+    <p class="foot foot-agree"><%- t('common.footerLegalAgree') %></p>
+  </footer>
 </body>
 </html>

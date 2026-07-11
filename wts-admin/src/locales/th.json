@@ -5,6 +5,7 @@
     "signOut": "ออกจากระบบ",
     "footerHelp": "ต้องการความช่วยเหลือเกี่ยวกับคำสั่งซื้อ? ตอบกลับอีเมลของเราฉบับใดก็ได้ หรือใช้แบบฟอร์มติดต่อบน wordsthatsells.website",
     "footerBrand": "Words That Sells · wordsthatsells.website",
+    "footerLegalAgree": "การใช้พอร์ทัลนี้ถือว่าคุณยอมรับ <a href=\"https://wordsthatsells.website/en/company/legal/terms-and-conditions.html\" target=\"_blank\" rel=\"noopener noreferrer\">ข้อกำหนด</a> <a href=\"https://wordsthatsells.website/en/company/legal/privacy-policy.html\" target=\"_blank\" rel=\"noopener noreferrer\">นโยบายความเป็นส่วนตัว</a> และ <a href=\"https://wordsthatsells.website/en/company/legal/cookie-policy.html\" target=\"_blank\" rel=\"noopener noreferrer\">นโยบายคุกกี้</a>",
     "open": "เปิด",
     "download": "ดาวน์โหลด"
   },
@@ -32,6 +33,7 @@
     "forgotHint": "ลืมรหัสผ่าน? เว้นช่องรหัสผ่านว่างไว้ แล้วเราจะส่งลิงก์เข้าสู่ระบบที่ปลอดภัยให้ทางอีเมล — คุณสามารถตั้งรหัสผ่านใหม่ได้จากโปรไฟล์",
     "signIn": "เข้าสู่ระบบ",
     "autoAccountHint": "ยังไม่มีบัญชี? เพียงกรอกอีเมลของคุณ — บัญชีจะถูกสร้างให้โดยอัตโนมัติ คุณจะอยู่ในระบบบนอุปกรณ์นี้เป็นเวลา 30 วัน",
+    "legalAgree": "การเข้าสู่ระบบถือว่าคุณยอมรับ <a href=\"https://wordsthatsells.website/en/company/legal/terms-and-conditions.html\" target=\"_blank\" rel=\"noopener noreferrer\">ข้อกำหนด</a> และ <a href=\"https://wordsthatsells.website/en/company/legal/privacy-policy.html\" target=\"_blank\" rel=\"noopener noreferrer\">นโยบายความเป็นส่วนตัว</a> ของ Laboise eworker Laos enterprise",
     "rateLimited": "มีการพยายามเข้าสู่ระบบมากเกินไป กรุณาลองใหม่ภายหลัง",
     "errorInvalidCreds": "อีเมลหรือรหัสผ่านไม่ถูกต้อง — หรือบัญชีนี้ยังไม่ได้ตั้งรหัสผ่าน เว้นช่องรหัสผ่านว่างไว้ แล้วเราจะส่งลิงก์เข้าสู่ระบบให้ทางอีเมลแทน",
     "errorLinkInvalid": "ลิงก์เข้าสู่ระบบนี้ไม่ถูกต้อง กรุณาขอลิงก์ใหม่ด้านล่าง",
