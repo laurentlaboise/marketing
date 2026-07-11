@@ -489,6 +489,132 @@ router.patch('/v1/menus/:id', async (req, res) => {
   }
 });
 
+// ── Glossary bulk upsert ────────────────────────────────────────────
+
+/**
+ * POST /v1/glossary/bulk-upsert
+ * Body: { terms: [ { term, definition, category, categories, related_terms,
+ *   bullets, example, video_url, featured_image, article_link, slug? } ] }
+ * Upserts by case-insensitive term match.
+ */
+router.post('/v1/glossary/bulk-upsert', async (req, res) => {
+  try {
+    const terms = Array.isArray(req.body?.terms) ? req.body.terms : null;
+    if (!terms || !terms.length) return fail(res, 'Body must include non-empty terms[]');
+
+    let inserted = 0;
+    let updated = 0;
+    let skipped = 0;
+    const errors = [];
+
+    for (const raw of terms) {
+      try {
+        const term = String(raw.term || '').trim();
+        const definition = String(raw.definition || '').trim();
+        if (!term || !definition) {
+          skipped++;
+          continue;
+        }
+        const letter = term.charAt(0).toUpperCase();
+        const slug =
+          String(raw.slug || term)
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '') || 'term';
+        const category = raw.category || null;
+        const related = Array.isArray(raw.related_terms)
+          ? raw.related_terms
+          : String(raw.related_terms || '')
+              .split(',')
+              .map((t) => t.trim())
+              .filter(Boolean);
+        const categories = Array.isArray(raw.categories)
+          ? raw.categories
+          : String(raw.categories || '')
+              .split(',')
+              .map((c) => c.trim())
+              .filter(Boolean);
+        let bullets = raw.bullets;
+        if (typeof bullets === 'string') {
+          bullets = bullets.split(/[;\n]/).map((b) => b.trim()).filter(Boolean);
+        }
+        if (!Array.isArray(bullets)) bullets = [];
+
+        const existing = await db.query(
+          'SELECT id FROM glossary WHERE LOWER(term) = LOWER($1) LIMIT 1',
+          [term]
+        );
+
+        if (existing.rows.length) {
+          await db.query(
+            `UPDATE glossary SET
+               term = $1, definition = $2, category = $3, related_terms = $4,
+               letter = $5, slug = $6, video_url = $7, featured_image = $8,
+               article_link = $9, bullets = $10, example = $11, categories = $12,
+               updated_at = CURRENT_TIMESTAMP
+             WHERE id = $13`,
+            [
+              term,
+              definition,
+              category,
+              related,
+              letter,
+              slug,
+              raw.video_url || null,
+              raw.featured_image || null,
+              raw.article_link || null,
+              JSON.stringify(bullets),
+              raw.example || null,
+              categories,
+              existing.rows[0].id,
+            ]
+          );
+          updated++;
+        } else {
+          await db.query(
+            `INSERT INTO glossary
+               (term, definition, category, related_terms, letter, slug,
+                video_url, featured_image, article_link, bullets, example, categories)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+            [
+              term,
+              definition,
+              category,
+              related,
+              letter,
+              slug,
+              raw.video_url || null,
+              raw.featured_image || null,
+              raw.article_link || null,
+              JSON.stringify(bullets),
+              raw.example || null,
+              categories,
+            ]
+          );
+          inserted++;
+        }
+      } catch (rowErr) {
+        errors.push({ term: raw?.term, error: rowErr.message });
+      }
+    }
+
+    await audit(req, 'glossary/bulk-upsert', `i=${inserted} u=${updated} s=${skipped} e=${errors.length}`);
+    return ok(res, { inserted, updated, skipped, errors: errors.slice(0, 20), total: terms.length });
+  } catch (e) {
+    console.error('[machine-api] glossary bulk-upsert', e);
+    return fail(res, 'Glossary bulk upsert failed: ' + e.message, 500);
+  }
+});
+
+router.get('/v1/glossary', async (req, res) => {
+  try {
+    const result = await db.query('SELECT id, term, slug, category, featured_image, updated_at FROM glossary ORDER BY term ASC');
+    return ok(res, { count: result.rows.length, terms: result.rows });
+  } catch (e) {
+    return fail(res, 'Failed to list glossary: ' + e.message, 500);
+  }
+});
+
 // ── 404 for unknown v1 routes ───────────────────────────────────────
 
 router.use('/v1', (req, res) => {

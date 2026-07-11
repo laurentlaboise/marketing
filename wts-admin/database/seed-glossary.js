@@ -24,48 +24,57 @@ const pool = new Pool({
 async function seedGlossary() {
     const client = await pool.connect();
     try {
-        console.log(`Seeding ${seedTerms.length} glossary terms...`);
+        console.log(`Upserting ${seedTerms.length} glossary terms...`);
         let inserted = 0;
-        let skipped = 0;
+        let updated = 0;
 
         for (const term of seedTerms) {
             try {
-                // Check if term already exists
                 const existing = await client.query(
                     'SELECT id FROM glossary WHERE LOWER(term) = LOWER($1)',
                     [term.term]
                 );
 
-                if (existing.rows.length > 0) {
-                    skipped++;
-                    continue;
-                }
+                const params = [
+                    term.term,
+                    term.definition,
+                    term.category,
+                    term.related_terms || [],
+                    term.letter || (term.term || 'A').charAt(0).toUpperCase(),
+                    term.slug,
+                    term.video_url || null,
+                    term.featured_image || null,
+                    term.article_link || null,
+                    JSON.stringify(term.bullets || []),
+                    term.example || null,
+                    term.categories || []
+                ];
 
-                await client.query(
-                    `INSERT INTO glossary (term, definition, category, related_terms, letter, slug, video_url, featured_image, article_link, bullets, example, categories)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-                    [
-                        term.term,
-                        term.definition,
-                        term.category,
-                        term.related_terms || [],
-                        term.letter,
-                        term.slug,
-                        term.video_url || null,
-                        term.featured_image || null,
-                        term.article_link || null,
-                        JSON.stringify(term.bullets || []),
-                        term.example || null,
-                        term.categories || []
-                    ]
-                );
-                inserted++;
+                if (existing.rows.length > 0) {
+                    await client.query(
+                        `UPDATE glossary SET
+                           term = $1, definition = $2, category = $3, related_terms = $4,
+                           letter = $5, slug = $6, video_url = $7, featured_image = $8,
+                           article_link = $9, bullets = $10, example = $11, categories = $12,
+                           updated_at = CURRENT_TIMESTAMP
+                         WHERE id = $13`,
+                        [...params, existing.rows[0].id]
+                    );
+                    updated++;
+                } else {
+                    await client.query(
+                        `INSERT INTO glossary (term, definition, category, related_terms, letter, slug, video_url, featured_image, article_link, bullets, example, categories)
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+                        params
+                    );
+                    inserted++;
+                }
             } catch (err) {
-                console.error(`  Error inserting "${term.term}":`, err.message);
+                console.error(`  Error upserting "${term.term}":`, err.message);
             }
         }
 
-        console.log(`Done! Inserted: ${inserted}, Skipped (already exist): ${skipped}`);
+        console.log(`Done! Inserted: ${inserted}, Updated: ${updated}`);
     } finally {
         client.release();
         await pool.end();

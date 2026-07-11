@@ -1,1171 +1,1971 @@
 [
   {
     "term": "Accelerated Mobile Pages (AMP)",
-    "definition": "AMP is an open-source framework designed by Google to help publishers create fast-loading web pages on mobile devices. It achieves this by using a restricted set of HTML, CSS, and JavaScript to prioritize user experience and speed.",
-    "category": "SEO",
+    "definition": "An open-source framework designed to create fast-loading mobile web pages, enhancing mobile SEO performance, user experience, and search engine rankings on mobile devices.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Web Development"
+      "Technical SEO",
+      "Technical"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Progressive Web Apps (PWA)",
+      "Google Lighthouse"
+    ],
     "letter": "A",
     "slug": "accelerated-mobile-pages-amp",
     "bullets": [
-      "Significantly speeds up load times on mobile devices.",
-      "Helps websites rank higher on Google's mobile-first index.",
-      "Uses a simplified version of web code to ensure performance."
+      "Speed",
+      "Mobile-first",
+      "HTML restriction"
     ],
-    "example": "A publisher uses AMP to create a lightweight version of their news articles, which load instantly when a user clicks on them from a Google search on their phone.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "Southeast Asian media outlets like Thairath and Kompas leverage AMP versions of articles that load 2–4× faster than standard mobile web, securing placement in Google's Top Stories carousel while cutting bounce rates and lifting engagement metrics. E-commerce platforms like Shopee apply AMP to product listings and detail pages, achieving sub-1-second paint times on 3G connections in emerging markets and driving measurable conversion increases. News publishers in Laos leverage AMP Stories for interactive formats, delivering instant experiences on low-end Android devices despite high-latency networks and strengthening retention in constrained environments.",
+    "video_url": "https://www.youtube.com/watch?v=PuECtstALUo",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/accelerated-mobile-pages-amp.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/amp-accelerated-mobile-pages-guide-2026.html"
   },
   {
-    "term": "Accessibility",
-    "definition": "Accessibility refers to the design of products, devices, services, or environments so that people with disabilities can use them. In the digital world, this means ensuring websites and apps can be navigated and understood by everyone, regardless of physical or cognitive abilities.",
-    "category": "Web Development",
+    "term": "Agile Content Development",
+    "definition": "A dynamic approach to creating and optimizing content iteratively using real-time search data and SEO analytics to continuously improve organic visibility and engagement.",
+    "category": "content",
     "categories": [
-      "Web Development",
-      "Digital Skills"
+      "Content Strategy",
+      "Strategy"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Content Marketing",
+      "Content Editor"
+    ],
     "letter": "A",
-    "slug": "accessibility",
+    "slug": "agile-content-development",
     "bullets": [
-      "Ensures websites are usable for people with visual, hearing, motor, or cognitive impairments.",
-      "Includes features like proper alt-text for images and keyboard navigation.",
-      "An important ranking factor for modern SEO and a legal requirement in many regions."
+      "Optimization",
+      "Data-driven",
+      "Continuous"
     ],
-    "example": "A web developer adds descriptive alt attributes to all images, so a screen reader can explain the image to a visually impaired user. They also make sure all forms can be completed using a keyboard alone.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Adware",
-    "definition": "Adware is software that automatically displays or downloads advertising material such as pop-ups or banners when a user is online. While some forms are relatively harmless, others can be malicious and contain spyware.",
-    "category": "Privacy & Security",
-    "categories": [
-      "Privacy & Security"
-    ],
-    "related_terms": [],
-    "letter": "A",
-    "slug": "adware",
-    "bullets": [
-      "Software that generates revenue for its developer by automatically displaying online advertisements.",
-      "Can sometimes be malicious, tracking user data or introducing viruses.",
-      "Often installed without the user's knowledge alongside other software."
-    ],
-    "example": "A user downloads a free game, and suddenly their web browser is flooded with pop-up advertisements. The game secretly installed adware to display these ads.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Affiliate Marketing",
-    "definition": "Affiliate marketing is a type of performance-based marketing where a business rewards one or more affiliates for each visitor or customer brought by the affiliate's own marketing efforts. The affiliate earns a commission for every sale or lead generated.",
-    "category": "Digital Marketing",
-    "categories": [
-      "Digital Marketing"
-    ],
-    "related_terms": [],
-    "letter": "A",
-    "slug": "affiliate-marketing",
-    "bullets": [
-      "Performance-based model where affiliates get a commission.",
-      "Involves a merchant, an affiliate, and a customer.",
-      "Commonly used by bloggers and influencers to monetize their content."
-    ],
-    "example": "A travel blogger writes an article about the best luggage. They include an affiliate link to a luggage brand's website. When a reader clicks the link and buys a suitcase, the blogger earns a percentage of the sale.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Algorithm",
-    "definition": "In a digital context, an algorithm is a set of rules or instructions that a computer follows to solve a problem or complete a task. Search engine algorithms, like Google's, use complex sets of rules to rank websites based on a variety of factors to provide the most relevant results for a user's search query.",
-    "category": "AI",
-    "categories": [
-      "AI",
-      "SEO"
-    ],
-    "related_terms": [],
-    "letter": "A",
-    "slug": "algorithm",
-    "bullets": [
-      "A set of computational instructions used to solve a problem.",
-      "Search engines use algorithms to rank web pages.",
-      "Algorithm updates can dramatically change search engine results."
-    ],
-    "example": "Google's algorithm uses signals like a website's loading speed, content quality, and backlinks to decide where it should rank in the search results for a given query.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A digital marketing agency in Singapore utilizes agile content development by monitoring real-time search trends on platforms like Google Trends and X. When a sudden surge in interest around \"digital banking licenses in Malaysia\" occurs, their content team quickly drafts and publishes a targeted article within hours. They then continuously update this piece with fresh data, expert quotes from local fintech leaders, and new keyword variations based on initial performance metrics. This iterative approach ensures the content remains highly relevant, capturing immediate search traffic and maintaining a competitive edge in the fast-paced Southeast Asian financial sector.",
+    "video_url": "https://www.youtube.com/watch?v=Eu1uOULGaM8",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/agile-content-development.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/agile-content-development-for-seo-2026.html"
   },
   {
     "term": "Alt Attributes",
-    "definition": "An alt attribute (also known as alt text) is a short text description of an image on a web page. This text serves two main purposes: it provides a description for screen readers used by visually impaired users, and it is displayed if the image fails to load. It also provides context to search engines.",
-    "category": "SEO",
+    "definition": "HTML tags providing text descriptions for images, crucial for web accessibility and image SEO, helping search engine crawlers understand and index visual content accurately.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Web Development"
+      "Onpage Optimization",
+      "Technical SEO"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Page Content",
+      "Meta Tag"
+    ],
     "letter": "A",
     "slug": "alt-attributes",
     "bullets": [
-      "Provides a text alternative to an image.",
-      "Essential for website accessibility.",
-      "Helps search engines understand the image content."
+      "Accessibility",
+      "Image SEO",
+      "Crawlability"
     ],
-    "example": "A photo of a cat on a blog post about pets should have an alt attribute like: `alt=\"a small orange cat sleeping in a sunbeam on a rug\"`.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A Laotian eco-tourism company optimizes their website by adding descriptive alt attributes to all their tour images. Instead of leaving image tags blank or using generic terms like \"waterfall,\" they use specific, keyword-rich descriptions such as \"Tourists swimming in the turquoise waters of Kuang Si Falls in Luang Prabang, Laos.\" This practice not only improves web accessibility for visually impaired users relying on screen readers but also helps search engine crawlers accurately index the images. Consequently, these optimized images rank higher in Google Image Search, driving additional organic traffic from travelers searching for visually appealing destinations in Southeast Asia.",
+    "video_url": "https://www.youtube.com/watch?v=7bt7obudNzM",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/alt-attributes.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/alt-attributes-seo-and-accessibility-2026.html"
   },
   {
     "term": "Anchor Text",
-    "definition": "Anchor text is the visible, clickable text in a hyperlink. Search engines use anchor text to determine what the linked page is about. High-quality and relevant anchor text is a key signal for search engines.",
-    "category": "SEO",
+    "definition": "The clickable, visible text in a hyperlink, vital for SEO as it provides context and relevance signals to search engines about the linked page's content.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "Onpage Optimization",
+      "Offpage Optimization"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Link Text",
+      "Internal Links",
+      "Backlinks"
+    ],
     "letter": "A",
     "slug": "anchor-text",
     "bullets": [
-      "The clickable text of a link.",
-      "Provides context for both users and search engines.",
-      "Can be used as an SEO signal to indicate the relevance of a linked page."
+      "Relevance",
+      "Link building",
+      "Context"
     ],
-    "example": "In the sentence, 'To learn more, check out our digital marketing guide,' the words 'digital marketing guide' would be the anchor text.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Application (App)",
-    "definition": "An application is a program or software designed to carry out a specific task or operation for a user. Applications run on a device's operating system and can range from word processors to video games and mobile apps.",
-    "category": "Digital Skills",
-    "categories": [
-      "Digital Skills"
-    ],
-    "related_terms": [],
-    "letter": "A",
-    "slug": "application-app",
-    "bullets": [
-      "Software designed for a specific purpose.",
-      "Runs on an operating system (like Windows, macOS, Android, or iOS).",
-      "Includes a wide range of programs, from productivity tools to entertainment."
-    ],
-    "example": "The browser you are using to view this page is an application. Microsoft Word is an application. Instagram on your phone is a mobile application.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Authentication Process",
-    "definition": "The authentication process is a security measure that verifies the identity of an individual or process. It is the process of confirming that a user is who they claim to be, typically by requiring a username and password.",
-    "category": "Privacy & Security",
-    "categories": [
-      "Privacy & Security"
-    ],
-    "related_terms": [],
-    "letter": "A",
-    "slug": "authentication-process",
-    "bullets": [
-      "Verifies a user's identity.",
-      "Commonly relies on a username and password.",
-      "Crucial for protecting sensitive information and user accounts."
-    ],
-    "example": "When you log in to your email account, the system uses your username and password to authenticate you before granting access.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A popular Vietnamese food blog strategically uses anchor text to boost the SEO of its recipe pages. When writing an article about traditional street food, instead of using generic phrases like \"click here\" to link to a related post, they use descriptive anchor text such as \"authentic Pho recipe from Hanoi.\" This provides clear context to both readers and search engines about the linked page's content. By consistently using relevant, keyword-optimized anchor text across their site and when guest posting on other Southeast Asian culinary websites, they significantly improve their rankings for specific regional food queries.",
+    "video_url": "https://www.youtube.com/watch?v=tVwxzIoCjSM",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/anchor-text.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/anchor-text-optimization-guide-2026.html"
   },
   {
     "term": "Backlinks",
-    "definition": "Backlinks are incoming hyperlinks from one web page to another website. When a website links to your page, it's considered a backlink. Search engines like Google see backlinks as 'votes' of confidence. A large number of high-quality backlinks can significantly improve a website's ranking.",
-    "category": "SEO",
+    "definition": "Incoming links from external websites to your site, serving as a major ranking factor in SEO by signaling authority, trust, and domain popularity to search engines.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "Offpage Optimization",
+      "SEO Strategy"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Link Popularity",
+      "Link Juice"
+    ],
     "letter": "B",
     "slug": "backlinks",
     "bullets": [
-      "A link from an external domain pointing to your website.",
-      "Considered a 'vote of confidence' by search engines.",
-      "A primary factor in SEO for increasing domain authority."
+      "Link Building",
+      "Authority",
+      "Off-page SEO"
     ],
-    "example": "A reputable online newspaper writes an article about your business and includes a link to your website. This is a high-quality backlink.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A fast-growing Malaysian tech startup actively builds its domain authority by acquiring high-quality backlinks from reputable regional publications. When they launch a new AI-driven logistics tool, they pitch the story to major platforms like Tech in Asia and e27. The resulting articles include direct backlinks to the startup's homepage and product pages. Search engines view these incoming links from trusted, authoritative domains as strong endorsements, signaling that the startup's website is a credible source of information. This significantly boosts their organic search rankings across Southeast Asia, making them more visible to potential investors and enterprise clients.",
+    "video_url": "https://www.youtube.com/watch?v=-kAmDxp1T9M",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/backlinks.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/backlinks-building-strategy-2026.html"
   },
   {
     "term": "Bad Neighborhood",
-    "definition": "In SEO, a 'bad neighborhood' refers to a collection of websites that have been severely downgraded or penalized by search engines. Linking to or from sites in a bad neighborhood can negatively impact your own website's ranking.",
-    "category": "SEO",
+    "definition": "A group of websites with poor reputation or spammy practices; linking to or from them can severely harm your website's SEO rankings and domain trust.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "SEO Risks",
+      "Offpage Optimization"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Search Engine Spam",
+      "Link Popularity"
+    ],
     "letter": "B",
     "slug": "bad-neighborhood",
     "bullets": [
-      "A group of websites that have been penalized by search engines.",
-      "Includes spam sites, malicious content, or low-quality link farms.",
-      "Linking to these sites can harm your own SEO."
+      "Spam",
+      "Penalties",
+      "Link Quality"
     ],
-    "example": "A website owner buys a large number of backlinks from a network of low-quality, spam-filled sites. As a result, Google's algorithm identifies this as a 'bad neighborhood' and penalizes the website.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Black Hat SEO",
-    "definition": "Black hat SEO refers to a set of practices that violate search engine guidelines to improve a site's ranking in search results. These tactics are often manipulative and can lead to a website being penalized or banned from search engines.",
-    "category": "SEO",
-    "categories": [
-      "SEO"
-    ],
-    "related_terms": [],
-    "letter": "B",
-    "slug": "black-hat-seo",
-    "bullets": [
-      "Tactics that violate search engine guidelines.",
-      "Examples include keyword stuffing, cloaking, and hidden text.",
-      "Risky and often leads to penalties from Google."
-    ],
-    "example": "A webmaster adds an excessive number of keywords to a page in a tiny, white font on a white background, making the text invisible to human users but visible to search engine bots. This is a classic black hat tactic.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "An Indonesian e-commerce platform specializing in batik clothing closely monitors its backlink profile to avoid associating with a \"bad neighborhood.\" They discover that several low-quality, spammy gambling and counterfeit goods websites have started linking to their domain. Recognizing that search engines penalize sites connected to these malicious networks, the SEO team immediately uses Google's Disavow Tool to distance themselves from these harmful links. By proactively cleaning up their backlink profile and ensuring they only link out to reputable, high-quality Southeast Asian businesses, they protect their domain trust and maintain their hard-earned search engine rankings.",
+    "video_url": "https://www.youtube.com/watch?v=SI_4vqMemVI",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/bad-neighborhood.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/bad-neighborhood-links-risks-2026.html"
   },
   {
     "term": "Blocker",
-    "definition": "In an SEO context, a blocker is a technical or content-related impediment that prevents search engines from effectively crawling, indexing, or ranking a website's pages. This can be caused by server issues, misconfigured `robots.txt` files, or incorrect use of meta tags.",
-    "category": "SEO",
+    "definition": "Technical obstacles or scripts, like robots.txt disallows or heavy JavaScript, that prevent search engine crawlers from accessing, indexing, or rendering a webpage correctly.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Web Development"
+      "Technical SEO",
+      "SEO Risks"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Robots.txt",
+      "Crawlers"
+    ],
     "letter": "B",
     "slug": "blocker",
     "bullets": [
-      "An obstacle that prevents search engines from accessing a site.",
-      "Common examples include incorrect server responses or `noindex` directives.",
-      "Can significantly harm a website's visibility and performance."
+      "Crawlability",
+      "Robots.txt",
+      "Indexing"
     ],
-    "example": "A developer accidentally sets a `robots.txt` file to disallow all search engine crawling for the entire site, effectively putting a 'blocker' on all of the website's pages.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A major Thai online retailer experienced a sudden drop in organic traffic and discovered a technical blocker was the culprit. During a recent website redesign, their development team accidentally implemented heavy JavaScript frameworks that search engine crawlers struggled to render. Additionally, an overly restrictive robots.txt file was inadvertently blocking Googlebot from accessing key product category pages. Once the SEO team identified these blockers, they optimized the JavaScript execution for better crawlability and updated the robots.txt directives. Removing these obstacles allowed search engines to properly index their extensive catalog, quickly restoring their visibility in regional search results.",
+    "video_url": "https://www.youtube.com/watch?v=_pPm5EKwFLg",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/blocker.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/content-blockers-in-seo-2026.html"
   },
   {
-    "term": "Blog & Article Writing",
-    "definition": "This service involves the creation of content for a company's blog or as standalone articles. The content is typically educational, informative, or entertaining, and is written to attract a specific target audience, drive organic traffic, and establish the brand as an authority in its industry.",
-    "category": "Content Marketing",
+    "term": "Briefing",
+    "definition": "A detailed document outlining content requirements, target keywords, search intent, and SEO guidelines to ensure writers create optimized, high-ranking content for search engines.",
+    "category": "content",
     "categories": [
-      "Content Marketing"
+      "Content Strategy",
+      "Management"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Content Editor",
+      "Page Content"
+    ],
     "letter": "B",
-    "slug": "blog-article-writing",
+    "slug": "briefing",
     "bullets": [
-      "Creation of high-quality, long-form written content.",
-      "A core component of an effective content marketing strategy.",
-      "Aids in SEO by targeting long-tail keywords and building internal links."
+      "Content Strategy",
+      "Keyword Targeting",
+      "Guidelines"
     ],
-    "example": "A digital marketing agency writes a 1,500-word article titled 'The Ultimate Guide to Local SEO' to attract small business owners who are looking for tips on how to improve their online presence.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Boolean Operators",
-    "definition": "Boolean operators are logical connectors used in search queries to refine and specify results. The most common operators are `AND`, `OR`, and `NOT`, which allow users to combine or exclude keywords to get more precise information from search engines or databases.",
-    "category": "Digital Skills",
-    "categories": [
-      "Digital Skills",
-      "Searching"
-    ],
-    "related_terms": [],
-    "letter": "B",
-    "slug": "boolean-operators",
-    "bullets": [
-      "Keywords like `AND`, `OR`, and `NOT` to refine searches.",
-      "`AND` narrows a search by requiring all terms to be present.",
-      " `OR` broadens a search by including results with either term."
-    ],
-    "example": "Searching for `\"content marketing\" AND \"SEO\"` will only show results that contain both phrases, while `\"content marketing\" OR \"SEO\"` will show results that contain either phrase.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A content manager at a regional travel platform like Agoda creates comprehensive SEO briefings for their freelance writers located across Southeast Asia. Before assigning an article about \"budget travel in Vietnam,\" the brief outlines the primary keyword, secondary LSI keywords, target audience intent, and desired word count. It also specifies the required headings (H2, H3) and internal linking strategies to other relevant destination pages. By providing these detailed guidelines, the manager ensures that every piece of content produced is highly optimized for search engines from the outset, leading to consistent rankings and increased organic traffic across their diverse travel guides.",
+    "video_url": "https://www.youtube.com/watch?v=xpDTmEYaZUQ",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/briefing.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-briefing-template-2026.html"
   },
   {
     "term": "Broken Link",
-    "definition": "A broken link is a hyperlink that no longer leads to an existing page or resource. This can happen when a page is moved or deleted, or when a website changes its domain. Broken links are bad for SEO because they create a poor user experience and can waste a search engine's crawl budget.",
-    "category": "SEO",
+    "definition": "A hyperlink that points to a non-existent or deleted webpage, resulting in a 404 error, which negatively impacts user experience and website crawlability for SEO.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Web Development"
+      "Technical SEO",
+      "SEO Risks"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Internal Links",
+      "User Experience"
+    ],
     "letter": "B",
     "slug": "broken-link",
     "bullets": [
-      "A link that leads to a non-existent page or resource.",
-      "Harms user experience and SEO ranking.",
-      "Also known as a 'defective link'."
+      "User Experience",
+      "Crawl Errors",
+      "404 Error"
     ],
-    "example": "A website links to an article on a different site, but the author of that article later deletes it. The link now leads to a 404 'Page Not Found' error, making it a broken link.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A prominent Philippine news portal conducts regular site audits to identify and fix broken links that negatively impact user experience and SEO. Over time, as older articles are archived or deleted, internal links pointing to them result in 404 error pages. When a user clicks a link expecting a story about the \"Manila traffic scheme\" but hits a dead end, they quickly leave the site, increasing the bounce rate. By redirecting these broken links to relevant, live content or updating the URLs, the portal ensures a smooth browsing experience and helps search engine crawlers navigate their massive site efficiently.",
+    "video_url": "https://www.youtube.com/watch?v=E6MQfXwDixk",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/broken-link.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/broken-link-building-guide-2026.html"
   },
   {
     "term": "Business Directory",
-    "definition": "An online business directory is a website or printed listing of businesses, organized by category or industry. For local SEO, getting a business listed in these directories (also known as citations) is crucial for improving visibility in local search results.",
-    "category": "SEO",
+    "definition": "An online database of businesses categorized by niche or location, useful for local SEO and building authoritative citations and backlinks to improve search visibility.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Digital Marketing"
+      "Local SEO",
+      "Offpage Optimization"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Web Directory",
+      "Web Catalogues"
+    ],
     "letter": "B",
     "slug": "business-directory",
     "bullets": [
-      "An online version of the Yellow Pages or a phonebook.",
-      "Helps with local SEO by building business citations.",
-      "Examples include Yelp, TripAdvisor, or Google Business Profile."
+      "Local SEO",
+      "Citations",
+      "Backlinks"
     ],
-    "example": "A new coffee shop in Vientiane ensures its business name, address, and phone number are accurately listed on Google Maps, Yelp, and other local business directories to improve its ranking in local search results.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Call to Action (CTA)",
-    "definition": "A call to action is a prompt on a website that tells the user what to do next. It is designed to elicit an immediate response from the user and is crucial for guiding them through a marketing or sales funnel.",
-    "category": "Content Marketing",
-    "categories": [
-      "Content Marketing",
-      "Digital Marketing"
-    ],
-    "related_terms": [],
-    "letter": "C",
-    "slug": "call-to-action-cta",
-    "bullets": [
-      "A prompt that encourages a specific action from the user.",
-      "Examples include 'Buy Now,' 'Sign Up,' and 'Learn More.'",
-      "Essential for conversions and measuring campaign success."
-    ],
-    "example": "At the end of a blog post, a button with the text 'Download Our Free E-book' is a call to action designed to capture leads.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Citations",
-    "definition": "A local citation is any online mention of a business's name, address, and phone number (NAP), typically found on business directories, social media profiles, and review sites. Consistent and accurate citations help improve a business's local search ranking.",
-    "category": "SEO",
-    "categories": [
-      "SEO",
-      "Local SEO"
-    ],
-    "related_terms": [],
-    "letter": "C",
-    "slug": "citations",
-    "bullets": [
-      "Online mentions of a business's NAP (Name, Address, Phone Number).",
-      "A key factor in a business's local SEO strategy.",
-      "Helps search engines verify a business's information and location."
-    ],
-    "example": "A local restaurant ensures its name, address, and phone number are consistent across its Facebook page, Yelp profile, and Google Business Profile to improve its local SEO ranking.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A boutique coffee roaster in Vientiane, Laos, leverages local business directories to improve its regional SEO and attract both locals and tourists. They ensure their business name, address, and phone number (NAP) are consistently listed across platforms like Google My Business, TripAdvisor, and the Yellow Pages Laos. They also submit their details to niche Southeast Asian cafe directories. These authoritative citations act as strong local ranking signals, helping the roaster appear in the coveted \"local pack\" when users search for \"best coffee in Vientiane,\" significantly driving foot traffic and brand awareness in the community.",
+    "video_url": "https://www.youtube.com/watch?v=6WmdW2t3LaA",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/business-directory.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/business-directory-submissions-2026.html"
   },
   {
     "term": "Cloaking",
-    "definition": "Cloaking is a black hat SEO technique where a website presents different content or URLs to search engine crawlers than it does to human users. The practice is meant to manipulate a site's ranking by displaying content to search engines that is rich in keywords but may be irrelevant or of low quality for users.",
-    "category": "SEO",
+    "definition": "A deceptive black-hat SEO technique where different content or URLs are presented to search engine spiders than to human users, violating search engine guidelines.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "SEO Risks",
+      "Technical SEO"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Search Engine Spam",
+      "Keyword Stuffing"
+    ],
     "letter": "C",
     "slug": "cloaking",
     "bullets": [
-      "A black hat SEO technique.",
-      "Presents different content to search engines and users.",
-      "Will almost always result in a severe penalty from search engines."
+      "Black Hat SEO",
+      "Penalties",
+      "Deception"
     ],
-    "example": "A website's code shows 'cheap shoes in New York' to a search engine bot, but when a human visits the same URL, they see a page about 'best hotels in Las Vegas'.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A deceptive online casino targeting users in Cambodia attempted to manipulate search rankings using cloaking, a severe black-hat SEO technique. They configured their server to show a harmless, keyword-rich blog about \"Southeast Asian travel tips\" to Google's crawlers, while redirecting human visitors to a spammy gambling interface. Google's sophisticated algorithms quickly detected this discrepancy between the content indexed and the content served to users. As a result, the website was heavily penalized and completely de-indexed from search results, demonstrating the severe consequences of violating search engine guidelines to artificially inflate rankings in the region.",
+    "video_url": "https://www.youtube.com/watch?v=QHtnfOgp65Q",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/cloaking.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/cloaking-seo-penalty-risk-2026.html"
   },
   {
-    "term": "Content Management System (CMS)",
-    "definition": "A content management system is a software application that allows users to create, manage, and modify content on a website without the need for specialized technical knowledge. Popular examples include WordPress, Drupal, and Joomla.",
-    "category": "Web Development",
+    "term": "Competition",
+    "definition": "Rival websites targeting the same keywords and audience in search engine results pages (SERPs), requiring competitive analysis to identify SEO gaps and ranking opportunities.",
+    "category": "seo",
     "categories": [
-      "Web Development"
+      "SEO Strategy",
+      "Strategy"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Ranking Opportunities",
+      "Rankings"
+    ],
     "letter": "C",
-    "slug": "content-management-system-cms",
+    "slug": "competition",
     "bullets": [
-      "Software for creating and managing digital content.",
-      "Allows non-technical users to build and update websites.",
-      "WordPress is the most widely used CMS in the world."
+      "Competitor Analysis",
+      "SERP",
+      "Ranking Gaps"
     ],
-    "example": "A small business owner uses a CMS like WordPress to easily add new blog posts and update service descriptions on their website without needing to write any code.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "Two major ride-hailing apps, Grab and Gojek, engage in fierce SEO competition to dominate search results across Southeast Asia. Both companies constantly analyze each other's keyword strategies, targeting high-volume terms like \"ride hailing app Jakarta\" or \"food delivery Manila.\" When Grab notices Gojek ranking highly for a specific service, they perform a competitive analysis to identify content gaps. Grab might then launch a comprehensive, optimized landing page highlighting their superior safety features or loyalty program to outrank Gojek. This ongoing battle for SERP supremacy drives both companies to continuously refine their technical SEO and content marketing efforts.",
+    "video_url": "https://www.youtube.com/watch?v=76WZO4lmM-g",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/competition.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-competition-analysis-2026.html"
+  },
+  {
+    "term": "Content Editor",
+    "definition": "A tool or professional responsible for optimizing written material, ensuring proper keyword density, readability, and alignment with search intent for maximum SEO performance.",
+    "category": "content",
+    "categories": [
+      "Content Strategy",
+      "Management"
+    ],
+    "related_terms": [
+      "Briefing",
+      "Page Content"
+    ],
+    "letter": "C",
+    "slug": "content-editor",
+    "bullets": [
+      "Optimization",
+      "Readability",
+      "Keyword Density"
+    ],
+    "example": "A content editor at a prominent digital marketing agency in Bangkok plays a crucial role in maximizing their clients' SEO performance. After a writer submits a draft about \"investing in Thai real estate,\" the editor reviews the piece not just for grammar, but for search optimization. They ensure the primary keyword is naturally integrated into the title, meta description, and headers without keyword stuffing. They also enhance readability by breaking up long paragraphs and adding bullet points, knowing that user engagement metrics like dwell time are vital for ranking high in Google's localized search results.",
+    "video_url": "https://www.youtube.com/watch?v=tkEgfr4jZMM",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/content-editor.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-content-editor-role-2026.html"
+  },
+  {
+    "term": "Content Gap Analysis",
+    "definition": "The process of evaluating existing content against competitors to identify missing topics and keywords, creating strategic opportunities to capture additional organic search traffic.",
+    "category": "content",
+    "categories": [
+      "Content Strategy",
+      "SEO Strategy"
+    ],
+    "related_terms": [
+      "Topic Explorer",
+      "Topical Relevance"
+    ],
+    "letter": "C",
+    "slug": "content-gap-analysis",
+    "bullets": [
+      "Content Strategy",
+      "Keyword Research",
+      "Competitor Analysis"
+    ],
+    "example": "A leading Singaporean financial comparison site performs a regular content gap analysis to stay ahead of regional competitors like Seedly or MoneySmart. By using advanced SEO tools, they discover that while they rank well for \"credit cards,\" their competitors are capturing significant traffic for \"best expat health insurance in SG.\" Identifying this missing topic, their content team strategically creates a highly detailed, authoritative guide specifically targeting this niche. This proactive approach allows them to capture untapped organic search traffic, expand their audience base, and solidify their position as the go-to financial resource in the region.",
+    "video_url": "https://www.youtube.com/watch?v=oW25a73UJpU",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/content-gap-analysis.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/content-gap-analysis-strategy-guide-2026.html"
   },
   {
     "term": "Content Marketing",
-    "definition": "Content marketing is a strategic marketing approach focused on creating and distributing valuable, relevant, and consistent content to attract and retain a clearly defined audience. The goal is to drive profitable customer action rather than directly selling a product or service.",
-    "category": "Content Marketing",
+    "definition": "A strategic marketing approach focused on creating and distributing valuable, relevant content to attract a defined audience and drive profitable user actions and organic traffic.",
+    "category": "content",
     "categories": [
-      "Content Marketing",
-      "Digital Marketing"
+      "Content Strategy",
+      "Marketing"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Page Content",
+      "Agile Content Development"
+    ],
     "letter": "C",
     "slug": "content-marketing",
     "bullets": [
-      "Creation and distribution of valuable content.",
-      "A long-term strategy that builds brand authority and trust.",
-      "Includes blog posts, videos, e-books, and social media content."
+      "Organic Traffic",
+      "Audience Engagement",
+      "Content Strategy"
     ],
-    "example": "A company creates an in-depth blog post series on a topic their customers care about. They share this content on social media and through their newsletter, building a loyal audience and generating inbound leads.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "Traveloka, a major Southeast Asian online travel agency, executes a highly successful content marketing strategy to drive organic traffic and bookings. Instead of solely relying on paid ads, they publish extensive, high-quality content such as \"The Ultimate Backpacking Guide to Laos\" or \"Top 10 Hidden Beaches in the Philippines.\" This valuable content attracts travelers in the research phase of their journey. By seamlessly integrating booking links within these informative articles, Traveloka effectively converts organic search visitors into paying customers, demonstrating the power of relevant content in building brand authority and driving profitable user actions.",
+    "video_url": "https://www.youtube.com/watch?v=b4-_hjLk_ck",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/content-marketing.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/content-marketing-strategy-2026.html"
   },
   {
-    "term": "Copywriting",
-    "definition": "Copywriting is the act of writing text for advertising or other forms of marketing. The goal is to persuade the reader, listener, or viewer to take some form of action. This includes writing text for websites, brochures, advertisements, and emails.",
-    "category": "Content Marketing",
+    "term": "Content Relevance",
+    "definition": "The degree to which a webpage's content matches the user's search query and intent, a critical ranking factor for search engines determining SERP positions.",
+    "category": "seo",
     "categories": [
-      "Content Marketing"
+      "Onpage Optimization",
+      "Content Strategy"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Topical Relevance",
+      "User/Search Intent"
+    ],
     "letter": "C",
-    "slug": "copywriting",
+    "slug": "content-relevance",
     "bullets": [
-      "The art of writing persuasive text for marketing.",
-      "Focuses on driving a specific action, like a purchase or sign-up.",
-      "Differs from content writing, which is often more educational."
+      "Search Intent",
+      "Ranking Factor",
+      "SERP"
     ],
-    "example": "A website's landing page has a headline and body text that clearly explain the product's benefits and a button that says 'Start Your Free Trial'. This is the result of effective copywriting.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A Lao meteorological website focuses heavily on content relevance to ensure it ranks number one for local weather queries. When a user searches for \"Vientiane weather forecast,\" Google prioritizes this site because its content perfectly matches the search intent. The page immediately displays the current temperature, a 7-day forecast, and severe weather warnings, directly answering the user's need. If the page instead featured a lengthy history of meteorology in Laos, it would lose its top ranking due to poor content relevance, as it fails to provide the immediate, actionable information the searcher is seeking.",
+    "video_url": "https://www.youtube.com/watch?v=cXaRBMirnXM",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/content-relevance.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/content-relevance-signals-2026.html"
   },
   {
-    "term": "Core Web Vitals",
-    "definition": "Core Web Vitals are a set of three specific metrics that Google considers important for user experience on a web page. They measure page speed, interactivity, and visual stability. These metrics are an official ranking factor for Google Search.",
-    "category": "SEO",
+    "term": "Conversion",
+    "definition": "The successful completion of a desired action by a website visitor, such as a purchase or signup, often the ultimate goal of targeted SEO traffic.",
+    "category": "marketing",
     "categories": [
-      "SEO",
-      "Web Development"
+      "Marketing",
+      "Strategy"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "User Signals",
+      "User Experience"
+    ],
     "letter": "C",
-    "slug": "core-web-vitals",
+    "slug": "conversion",
     "bullets": [
-      "A set of three metrics: Largest Contentful Paint (LCP), First Input Delay (FID), and Cumulative Layout Shift (CLS).",
-      "Measures a website's user experience.",
-      "Crucial for SEO, as they are a direct ranking signal."
+      "User Action",
+      "Traffic Quality",
+      "ROI"
     ],
-    "example": "A website that takes a long time to load (poor LCP), is slow to respond to clicks (poor FID), and has a distracting layout that shifts while loading (poor CLS) will rank lower in search results due to poor Core Web Vitals.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "An Indonesian e-commerce brand specializing in sustainable fashion closely tracks conversions to measure the ROI of their SEO campaigns. While ranking high for \"eco-friendly clothing Jakarta\" brings substantial organic traffic, the ultimate goal is for these visitors to complete a purchase. By optimizing their product pages with clear calls-to-action, fast loading times, and a seamless checkout process, they significantly improve their conversion rate. This successful completion of the desired action proves that their targeted SEO strategy is not just generating vanity traffic, but effectively attracting high-intent buyers who directly contribute to the company's revenue growth.",
+    "video_url": "https://www.youtube.com/watch?v=IYMHMrDg-XM",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/conversion.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-conversion-optimization-2026.html"
   },
   {
-    "term": "Crawlability",
-    "definition": "Crawlability refers to a search engine's ability to access and 'crawl' content on a website. If a site has crawlability issues, search engine bots may not be able to find and index new or updated pages, which can prevent them from ranking.",
-    "category": "SEO",
+    "term": "Cookies",
+    "definition": "Small text files stored on a user's device by a web browser, used to track user behavior, preferences, and sessions, impacting personalized search results.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "Technical SEO",
+      "General"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "User Experience",
+      "User Signals"
+    ],
     "letter": "C",
-    "slug": "crawlability",
+    "slug": "cookies",
     "bullets": [
-      "An obstacle that prevents search engines from accessing a site.",
-      "Common examples include incorrect server responses or `noindex` directives.",
-      "Can significantly harm a website's visibility and performance."
+      "Tracking",
+      "Personalization",
+      "User Behavior"
     ],
-    "example": "A website's internal linking structure is a mess, and many pages can only be reached through a handful of others. This makes it difficult for a Google bot to crawl the entire site, harming its SEO.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A Malaysian retail giant utilizes cookies to enhance user experience and personalize content, indirectly supporting their SEO efforts. When a user visits their site, a cookie remembers their preferred language—Malay, English, or Mandarin—and their browsing history. On subsequent visits, the site automatically loads in the correct language and displays product recommendations based on past interests. This personalized approach significantly reduces bounce rates and increases dwell time, sending positive user signals to search engines. These improved behavioral metrics help boost the site's overall search rankings across different linguistic demographics in the diverse Southeast Asian market.",
+    "video_url": "https://www.youtube.com/watch?v=fsRx9BL86hY",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/cookies.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/cookies-and-seo-impact-2026.html"
   },
   {
-    "term": "Digital Marketing",
-    "definition": "Digital marketing encompasses all marketing efforts that use an electronic device or the internet. It leverages digital channels such as search engines, social media, email, and websites to connect with current and prospective customers. It is a broad field that includes SEO, content marketing, social media marketing, and more.",
-    "category": "Digital Marketing",
+    "term": "Crawlers",
+    "definition": "Automated software programs used by search engines to systematically browse the internet, discovering, rendering, and indexing web pages for their search databases.",
+    "category": "seo",
     "categories": [
-      "Digital Marketing"
+      "Technical SEO",
+      "Technical"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Index",
+      "Robots.txt"
+    ],
+    "letter": "C",
+    "slug": "crawlers",
+    "bullets": [
+      "Indexing",
+      "Bots",
+      "Crawl Budget"
+    ],
+    "example": "The Bangkok Post, a major Thai news publisher, relies on search engine crawlers like Googlebot to quickly index their breaking news stories. To facilitate this, their technical SEO team ensures their site architecture is clean and their XML sitemaps are constantly updated. When a critical story about the Thai elections is published, the optimized structure allows crawlers to discover, render, and index the page within minutes. This rapid crawling process is essential for the article to appear in Google's \"Top Stories\" carousel, capturing massive amounts of timely, organic search traffic before competitors can rank.",
+    "video_url": "https://www.youtube.com/watch?v=JpweMBnpS4Q",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/crawlers.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-crawlers-guide-2026.html"
+  },
+  {
+    "term": "Domain Popularity",
+    "definition": "A metric reflecting the quantity and quality of inbound links pointing to a specific domain, heavily influencing its overall authority and search engine rankings.",
+    "category": "seo",
+    "categories": [
+      "Offpage Optimization",
+      "SEO Strategy"
+    ],
+    "related_terms": [
+      "Domain Trust",
+      "Link Popularity"
+    ],
     "letter": "D",
-    "slug": "digital-marketing",
+    "slug": "domain-popularity",
     "bullets": [
-      "All marketing that happens online or on an electronic device.",
-      "Uses channels like search engines, social media, and email.",
-      "A diverse and measurable field that has replaced many traditional marketing methods."
+      "Authority",
+      "Backlinks",
+      "Trust"
     ],
-    "example": "A company runs a campaign that includes a Facebook ad, a series of blog posts, and an email newsletter. This entire effort is considered digital marketing.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "The National University of Singapore (NUS) boasts immense domain popularity, making its website a powerhouse in search engine rankings. Over decades, NUS has accumulated hundreds of thousands of high-quality inbound links from global academic institutions, government portals, and major news outlets referencing their research. Search engines interpret this massive volume of authoritative backlinks as a strong signal of trust and credibility. Consequently, when NUS publishes a new article or course page, it almost immediately ranks at the top of the SERPs for relevant queries, outperforming newer or less popular domains in the Southeast Asian education sector.",
+    "video_url": "https://www.youtube.com/watch?v=fNE1TJm4fqg",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/domain-popularity.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/domain-popularity-metrics-2026.html"
   },
   {
-    "term": "Domain Authority (DA)",
-    "definition": "Domain Authority is a search engine ranking score developed by Moz that predicts how well a website will rank on search engine result pages (SERPs). It is measured on a scale of 1 to 100, with higher scores indicating a greater likelihood of ranking. It is primarily influenced by the quality and quantity of backlinks pointing to a site.",
-    "category": "SEO",
+    "term": "Domain Trust",
+    "definition": "The level of confidence search engines have in a website's credibility, built over time through high-quality backlinks, secure protocols, and adherence to webmaster guidelines.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "Offpage Optimization",
+      "SEO Strategy"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Domain Popularity",
+      "Backlinks"
+    ],
     "letter": "D",
-    "slug": "domain-authority-da",
+    "slug": "domain-trust",
     "bullets": [
-      "A metric that predicts a website's ability to rank.",
-      "Scores range from 1 to 100, with higher being better.",
-      "The most influential factor is the number and quality of backlinks."
+      "Credibility",
+      "Backlink Quality",
+      "Webmaster Guidelines"
     ],
-    "example": "A new blog starts with a DA of 1, but after consistently publishing high-quality content and earning backlinks from reputable websites, its DA rises to 40, allowing it to rank for more competitive keywords.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A well-established private hospital in Bangkok has built significant domain trust over years of providing accurate, medically reviewed content. Search engines like Google apply strict \"Your Money or Your Life\" (YMYL) standards to health-related websites. Because the hospital's site features articles authored by credentialed doctors, maintains a secure HTTPS connection, and has earned backlinks from reputable medical journals, Google trusts its authority. When users search for \"dengue fever symptoms Thailand,\" the hospital's pages rank highly because search engines are confident in delivering safe, reliable, and trustworthy medical information to the public.",
+    "video_url": "https://www.youtube.com/watch?v=WC6dtzY2eTU",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/domain-trust.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/domain-trust-signals-2026.html"
   },
   {
-    "term": "E-E-A-T",
-    "definition": "E-E-A-T stands for Experience, Expertise, Authoritativeness, and Trustworthiness. It is a set of guidelines from Google's Search Quality Rater Guidelines that raters use to evaluate the quality of a web page. It is a critical concept for ranking high-quality, reliable content, especially in 'Your Money or Your Life' (YMYL) topics.",
-    "category": "SEO",
+    "term": "Duplicate Content",
+    "definition": "Substantial blocks of content within or across domains that completely match or are appreciably similar, which can confuse crawlers and dilute SEO ranking potential.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Content Marketing"
+      "SEO Risks",
+      "Onpage Optimization"
     ],
-    "related_terms": [],
-    "letter": "E",
-    "slug": "e-e-a-t",
+    "related_terms": [
+      "Keyword Cannibalization",
+      "Page Content"
+    ],
+    "letter": "D",
+    "slug": "duplicate-content",
     "bullets": [
-      "Experience, Expertise, Authoritativeness, and Trustworthiness.",
-      "A framework used by Google to evaluate content quality.",
-      "Crucial for ranking in health, finance, and other sensitive topics."
+      "Cannibalization",
+      "Indexing",
+      "Canonicalization"
     ],
-    "example": "An article about medical advice written by a certified doctor (Expertise) who has been practicing for 20 years (Experience) and is published on a reputable hospital website (Authoritativeness and Trustworthiness) will rank higher than a similar article written by an anonymous blogger.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A large Vietnamese online marketplace faced a severe drop in rankings due to widespread duplicate content issues. Their platform automatically generated different URLs for the same product based on category filters (e.g., /electronics/phone and /brands/samsung/phone leading to the exact same page). This confused search engine crawlers, forcing them to split ranking power across multiple identical pages, a phenomenon known as keyword cannibalization. To resolve this, the SEO team implemented canonical tags, clearly indicating to Google which version of the URL was the master copy, thereby consolidating their link equity and restoring their search visibility.",
+    "video_url": "https://www.youtube.com/watch?v=b11Ra-dAJCg",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/duplicate-content.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/duplicate-content-issues-and-fixes-2026.html"
   },
   {
-    "term": "E-commerce SEO",
-    "definition": "E-commerce SEO is the practice of making an online store more visible in search engine results. This involves optimizing product pages, category pages, and blog posts to rank for relevant keywords, as well as managing product feeds and structured data.",
-    "category": "SEO",
+    "term": "Featured Snippets",
+    "definition": "Highlighted search results appearing at the top of Google's SERPs, designed to provide quick, direct answers to user queries, significantly boosting organic visibility.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "E-commerce"
+      "SERP Features",
+      "Onpage Optimization"
     ],
-    "related_terms": [],
-    "letter": "E",
-    "slug": "e-commerce-seo",
-    "bullets": [
-      "The process of optimizing an online store for search engines.",
-      "Focuses on product and category page optimization.",
-      "Crucial for driving organic traffic and sales to an online store."
+    "related_terms": [
+      "Rich Snippets",
+      "Zero Click Searches"
     ],
-    "example": "An online store optimizes its product page for 'men's leather wallet' by including the keyword in the title, description, and image alt text. They also add customer reviews and structured data to improve its chances of ranking.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Fintech Marketing",
-    "definition": "Fintech marketing is a specialized form of digital marketing that focuses on promoting financial technology products and services. Success in this field requires building trust and authority through expert content, secure website practices, and transparent communication, due to the sensitive nature of the industry.",
-    "category": "Digital Marketing",
-    "categories": [
-      "Digital Marketing"
-    ],
-    "related_terms": [],
     "letter": "F",
-    "slug": "fintech-marketing",
+    "slug": "featured-snippets",
     "bullets": [
-      "Specialized marketing for financial technology companies.",
-      "Requires building trust and authority.",
-      "Often uses content marketing to educate customers."
+      "Position Zero",
+      "SERP Features",
+      "Visibility"
     ],
-    "example": "A new online banking app uses a blog to publish articles about personal finance and saving money. This content builds trust with potential customers and positions the app as a reliable authority in the fintech space.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A Filipino culinary blog optimized its content specifically to capture coveted Featured Snippets on Google. Knowing that users often search for quick answers, they formatted their \"Chicken Adobo Recipe\" with a clear, bulleted list of ingredients and concise, numbered step-by-step instructions. They also used appropriate schema markup. As a result, when someone searches \"how to cook chicken adobo,\" Google pulls their structured content and displays it in a prominent box at \"Position Zero,\" above all other organic results. This strategy dramatically increased their click-through rate and established them as a top authority on Philippine cuisine.",
+    "video_url": "https://www.youtube.com/watch?v=SKM6r4qHe2M",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/featured-snippets.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/featured-snippets-optimization-2026.html"
+  },
+  {
+    "term": "Frame",
+    "definition": "An outdated HTML technique dividing a webpage into separate segments, generally detrimental to SEO as it complicates crawling, indexing, and link attribution for search engines.",
+    "category": "seo",
+    "categories": [
+      "SEO Risks",
+      "Technical SEO"
+    ],
+    "related_terms": [
+      "Website Structure",
+      "Web Pages"
+    ],
+    "letter": "F",
+    "slug": "frame",
+    "bullets": [
+      "Outdated HTML",
+      "Crawlability",
+      "Indexing Issues"
+    ],
+    "example": "An older Philippine government portal struggled significantly with organic search visibility because its website was built using outdated HTML frames. This legacy technique divided the webpage into separate, independently scrolling segments. Search engine crawlers had immense difficulty navigating this structure, often indexing the navigation menu and the main content as entirely separate, contextless pages. Furthermore, users couldn't share direct links to specific content within the frames. To modernize and improve their SEO, the IT department completely rebuilt the site using responsive HTML5, eliminating frames to ensure proper crawling, indexing, and link attribution.",
+    "video_url": "https://www.youtube.com/watch?v=x5yl7Fk5FQk",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/frame.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/frames-and-seo-problems-2026.html"
+  },
+  {
+    "term": "Generative Engine Optimization (GEO)",
+    "definition": "The practice of optimizing content specifically to be discovered and referenced by AI-driven generative search engines, focusing on comprehensive, authoritative, and structured information.",
+    "category": "seo",
+    "categories": [
+      "Emerging SEO",
+      "SEO Strategy"
+    ],
+    "related_terms": [
+      "Search Engine Optimization (SEO)",
+      "Search Engine"
+    ],
+    "letter": "G",
+    "slug": "generative-engine-optimization-geo",
+    "bullets": [
+      "AI Search",
+      "Structured Information",
+      "Authority"
+    ],
+    "example": "A Vietnamese tech company specializing in AI solutions is actively practicing Generative Engine Optimization (GEO) to ensure their documentation is discoverable by modern AI tools. Recognizing that users increasingly rely on platforms like ChatGPT and Google's AI Overviews, they structure their content with clear, definitive answers, comprehensive technical specifications, and authoritative data points. By organizing their site with semantic HTML and providing high-quality, easily summarizable information, they ensure that generative AI engines confidently reference and cite their products when users ask complex technical questions about Southeast Asian software development.",
+    "video_url": "https://www.youtube.com/watch?v=OGfXxYe-FKA",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/generative-engine-optimization-geo.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/geo-generative-engine-optimization-strategies-2026.html"
+  },
+  {
+    "term": "Google Ads (AdWords)",
+    "definition": "Google's pay-per-click (PPC) advertising platform, allowing businesses to bid on keywords and display ads in search results, complementing organic search engine optimization strategies.",
+    "category": "seo",
+    "categories": [
+      "SEM",
+      "Marketing"
+    ],
+    "related_terms": [
+      "Search Engine Advertising",
+      "Paid Listing"
+    ],
+    "letter": "G",
+    "slug": "google-ads",
+    "bullets": [
+      "PPC",
+      "Paid Search",
+      "SEM"
+    ],
+    "example": "A Laotian tour operator uses Google Ads (AdWords) to immediately boost their visibility during the peak tourist season. While their long-term SEO strategy slowly climbs the organic rankings, they bid on highly competitive keywords like \"Luang Prabang luxury tours\" and \"Mekong river cruises.\" This pay-per-click (PPC) approach guarantees their sponsored listings appear at the very top of the search results for users actively looking to book trips. By carefully managing their ad spend and targeting specific demographics, they effectively complement their organic efforts and capture high-intent traffic that drives immediate bookings.",
+    "video_url": "https://www.youtube.com/watch?v=8_C5es7k7DU",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-ads.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/google-ads-strategy-2026-guide.html"
+  },
+  {
+    "term": "Google Knowledge Graph",
+    "definition": "Google's vast database of interconnected entities and facts, used to enhance search results with semantic understanding and provide rich, contextual answers to user queries.",
+    "category": "seo",
+    "categories": [
+      "SERP Features",
+      "Emerging SEO"
+    ],
+    "related_terms": [
+      "Universal Search",
+      "Rich Snippets"
+    ],
+    "letter": "G",
+    "slug": "google-knowledge-graph",
+    "bullets": [
+      "Semantic Search",
+      "Entities",
+      "Rich Results"
+    ],
+    "example": "When a user searches for \"Angkor Wat,\" Google utilizes its Knowledge Graph to display a rich, informative panel alongside the standard search results. This panel aggregates verified facts, such as the temple's location in Cambodia, its history, architectural style, and peak visiting hours. The Cambodian Ministry of Tourism ensures their official websites provide structured, accurate data to feed this semantic database. By optimizing for the Knowledge Graph, they help Google present a comprehensive overview, enhancing the user experience and instantly establishing authoritative information about the region's most famous landmark.",
+    "video_url": "https://www.youtube.com/watch?v=uKxfXPEV7TU",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-knowledge-graph.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/google-knowledge-graph-optimization-2026.html"
+  },
+  {
+    "term": "Google Lighthouse",
+    "definition": "An open-source, automated tool by Google for improving web page quality, providing audits for performance, accessibility, and technical SEO metrics crucial for ranking.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Technical"
+    ],
+    "related_terms": [
+      "Accelerated Mobile Pages (AMP)",
+      "User Experience"
+    ],
+    "letter": "G",
+    "slug": "google-lighthouse",
+    "bullets": [
+      "Performance",
+      "Core Web Vitals",
+      "Technical SEO"
+    ],
+    "example": "A Singaporean web development agency relies heavily on Google Lighthouse to audit and optimize their clients' e-commerce platforms. Before launching a new online store for a local fashion brand, developers run automated Lighthouse tests to measure Core Web Vitals. The tool highlights technical SEO issues, such as slow-loading hero images or render-blocking resources that negatively impact performance on mobile devices. By systematically fixing these Lighthouse-identified bottlenecks, the agency ensures the website delivers a lightning-fast user experience, which is a crucial ranking factor for Google's mobile-first indexing in the competitive Southeast Asian retail market.",
+    "video_url": "https://www.youtube.com/watch?v=Q-X_ED4LHrQ",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-lighthouse.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/google-lighthouse-audit-guide-2026.html"
+  },
+  {
+    "term": "Google Maps",
+    "definition": "Google's web mapping service, essential for local SEO as it displays business locations, reviews, and directions, driving foot traffic and local search visibility.",
+    "category": "seo",
+    "categories": [
+      "Local SEO",
+      "SERP Features"
+    ],
+    "related_terms": [
+      "Google My Business",
+      "Business Directory"
+    ],
+    "letter": "G",
+    "slug": "google-maps",
+    "bullets": [
+      "Local SEO",
+      "Visibility",
+      "Foot Traffic"
+    ],
+    "example": "A popular chain of Pho restaurants in Ho Chi Minh City depends on Google Maps to drive daily foot traffic to their various locations. They ensure each branch is accurately pinned on the map with exact coordinates. When tourists or locals search for \"restaurants near me\" or \"best Pho in District 1,\" Google Maps displays their locations, complete with user reviews, photos, and direct routing options. This local SEO visibility is essential; being prominently featured on the map interface directly translates to increased customer visits and higher revenue for the restaurant chain.",
+    "video_url": "https://www.youtube.com/watch?v=6mjM3Om4GS4",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-maps.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/google-maps-seo-guide-2026.html"
   },
   {
     "term": "Google My Business",
-    "definition": "Google My Business (now called Google Business Profile) is a free tool that allows businesses to manage their online presence across Google, including Search and Maps. Optimizing your profile is the single most important part of local SEO.",
-    "category": "Local SEO",
+    "definition": "A free tool for businesses to manage their online presence across Google Search and Maps, a foundational element for successful local SEO and visibility.",
+    "category": "seo",
     "categories": [
-      "Local SEO"
+      "Local SEO",
+      "Marketing"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Google Maps",
+      "Web Directory"
+    ],
     "letter": "G",
     "slug": "google-my-business",
     "bullets": [
-      "A free tool to manage a business's online presence.",
-      "Crucial for ranking in local search results and on Google Maps.",
-      "Allows businesses to list their hours, reviews, photos, and contact info."
+      "Local SEO",
+      "Online Presence",
+      "Citations"
     ],
-    "example": "A bakery owner creates a Google My Business profile to ensure their store appears when a user searches for 'bakery near me'. They add photos of their products and respond to customer reviews.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A boutique massage spa in Chiang Mai, Thailand, actively manages its Google My Business (GMB) profile to dominate local search results. They regularly update their profile with high-quality photos of their facilities, current opening hours, and seasonal promotions. They also actively encourage satisfied customers to leave positive reviews and promptly respond to any feedback. This well-maintained GMB profile serves as a foundational citation, significantly improving their chances of appearing in Google's highly visible \"Local Pack\" when tourists search for relaxing spa treatments in the area, driving consistent bookings.",
+    "video_url": "https://www.youtube.com/watch?v=VWm-FilQc8A",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-my-business.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/google-business-profile-optimization-2026.html"
   },
   {
-    "term": "Hidden Text",
-    "definition": "Hidden text is a black hat SEO technique where text is placed on a page in a way that is invisible to human users but readable by search engine crawlers. This is often done to artificially inflate a page's keyword density or to deceive search engines about the page's content. This practice can lead to severe penalties.",
-    "category": "SEO",
+    "term": "Google News",
+    "definition": "A news aggregator by Google that indexes timely, authoritative articles, offering significant traffic opportunities for publishers who optimize their content for news SEO.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "SERP Features",
+      "Content Strategy"
     ],
-    "related_terms": [],
-    "letter": "H",
-    "slug": "hidden-text",
+    "related_terms": [
+      "Search Result",
+      "Universal Search"
+    ],
+    "letter": "G",
+    "slug": "google-news",
     "bullets": [
-      "Text that is hidden from human users but visible to search engines.",
-      "A manipulative black hat SEO practice.",
-      "Can lead to a website being penalized or banned from search results."
+      "News SEO",
+      "Timeliness",
+      "Authority"
     ],
-    "example": "A webmaster adds a list of keywords to a page in the same color as the background, making it unreadable to visitors but visible to Google's bots. This is a form of hidden text.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A major Indonesian news aggregator optimizes its platform specifically for Google News to capture massive spikes in traffic during breaking events. When covering the Jakarta gubernatorial elections, their editorial team ensures articles are published rapidly with clear, descriptive headlines and appropriate structured data for news articles. By adhering strictly to Google's news content policies regarding transparency and authoritativeness, their stories are frequently selected for the \"Top Stories\" carousel. This prominent placement in Google News provides unparalleled visibility, driving millions of readers to their site within hours of a major story breaking.",
+    "video_url": "https://www.youtube.com/watch?v=bggMRzlJAXc",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/google-news.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/google-news-seo-strategy-2026.html"
   },
   {
-    "term": "HTML",
-    "definition": "HTML, or HyperText Markup Language, is the standard markup language for documents designed to be displayed in a web browser. It describes the structure of a web page semantically and includes the elements that create the page's layout and content.",
-    "category": "Web Development",
+    "term": "Index",
+    "definition": "The massive database where search engines store collected and processed web page data, which is queried to generate relevant search results for users.",
+    "category": "seo",
     "categories": [
-      "Web Development"
+      "Technical SEO",
+      "Technical"
     ],
-    "related_terms": [],
-    "letter": "H",
-    "slug": "html",
-    "bullets": [
-      "The standard language for creating web pages.",
-      "Describes the structure of a web page.",
-      "Works in conjunction with CSS for styling and JavaScript for interactivity."
+    "related_terms": [
+      "Crawlers",
+      "Search Engine"
     ],
-    "example": "A simple HTML document might start with an `<html>` tag, contain a `<head>` for metadata, and a `<body>` for the visible content, including paragraphs and images.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Indexing",
-    "definition": "Indexing is the process by which search engines organize and store information from web pages in a massive database called an index. When a user performs a search, the search engine pulls the most relevant results from this index. If a page is not indexed, it cannot appear in search results.",
-    "category": "SEO",
-    "categories": [
-      "SEO"
-    ],
-    "related_terms": [],
     "letter": "I",
-    "slug": "indexing",
+    "slug": "index",
     "bullets": [
-      "The process of storing web page information in a search engine's database.",
-      "A page must be indexed to appear in search results.",
-      "Indexing can be influenced by crawl budget and page quality."
+      "Database",
+      "Search Results",
+      "Crawling"
     ],
-    "example": "After publishing a new blog post, a webmaster submits the URL to Google Search Console to tell Google to crawl and index the new page so it can start appearing in search results.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "Google's massive index acts as the ultimate library for the internet, and a Malaysian tech blog works diligently to ensure all its articles are included. When they publish a comprehensive guide on \"starting a tech company in Kuala Lumpur,\" it initially exists only on their server. They use Google Search Console to request indexing, prompting crawlers to process the page's content, keywords, and links. Once the data is successfully stored in Google's index, the article becomes eligible to appear in search results, connecting the blog with entrepreneurs searching for regional business advice.",
+    "video_url": "https://www.youtube.com/watch?v=M3EZ-FyjXWs",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/index.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-index-management-2026.html"
   },
   {
-    "term": "Keyword Research",
-    "definition": "Keyword research is the process of finding and analyzing search terms that people use to find information about a specific topic. This process is the foundation of any SEO strategy and helps to identify high-volume, low-competition keywords to target in content.",
-    "category": "SEO",
+    "term": "Internal Links",
+    "definition": "Hyperlinks connecting pages within the same domain, crucial for establishing website structure, distributing link juice, and helping crawlers discover and index new content.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Digital Marketing"
+      "Onpage Optimization",
+      "Technical SEO"
     ],
-    "related_terms": [],
-    "letter": "K",
-    "slug": "keyword-research",
+    "related_terms": [
+      "Website Structure",
+      "Link Juice"
+    ],
+    "letter": "I",
+    "slug": "internal-links",
     "bullets": [
-      "The process of identifying search terms that users are looking for.",
-      "Helps inform a website's content strategy.",
-      "Involves analyzing search volume, competition, and user intent."
+      "Site Structure",
+      "Link Juice",
+      "Crawlability"
     ],
-    "example": "A new pet food company performs keyword research and discovers that a lot of people are searching for 'best grain-free dog food brands.' They decide to write a blog post targeting that keyword to attract potential customers.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A comprehensive Philippine travel website uses a strategic internal linking structure to distribute \"link juice\" and keep users engaged. On their main pillar page about \"Palawan Tourism,\" they include descriptive hyperlinks pointing to deeper, specific guides like \"El Nido Island Hopping\" and \"Puerto Princesa Underground River.\" This network of internal links not only helps visitors navigate seamlessly to related content but also allows search engine crawlers to discover and index deeper pages efficiently. By establishing this clear content hierarchy, the site boosts the ranking potential of its individual destination guides.",
+    "video_url": "https://www.youtube.com/watch?v=xy6EmefkQXk",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/internal-links.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/internal-linking-strategy-2026.html"
+  },
+  {
+    "term": "Keyword",
+    "definition": "A specific word or phrase that users enter into search engines, serving as the foundation for SEO strategies, content creation, and targeted organic traffic.",
+    "category": "seo",
+    "categories": [
+      "Onpage Optimization",
+      "Content Strategy"
+    ],
+    "related_terms": [
+      "Search Term",
+      "Keyword Density"
+    ],
+    "letter": "K",
+    "slug": "keyword",
+    "bullets": [
+      "Search Queries",
+      "Targeting",
+      "Organic Traffic"
+    ],
+    "example": "A startup in Bangkok focused on healthy meal deliveries conducts extensive research to identify the most profitable keywords for their SEO campaign. Instead of targeting the overly broad term \"food,\" they focus on specific, high-intent keywords like \"keto meal delivery Bangkok\" or \"organic lunch subscription Sukhumvit.\" By strategically incorporating these targeted phrases into their website copy, meta tags, and blog content, they align their site with the exact terms potential customers are typing into search engines. This precise keyword targeting ensures they attract highly relevant organic traffic that is ready to convert.",
+    "video_url": "https://www.youtube.com/watch?v=B8NPobrMiGA",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/keywords-in-seo-2026-guide.html"
+  },
+  {
+    "term": "Keyword Cannibalization",
+    "definition": "An SEO issue where multiple pages on the same website compete for the same keyword, diluting ranking power and confusing search engine algorithms.",
+    "category": "seo",
+    "categories": [
+      "SEO Risks",
+      "Onpage Optimization"
+    ],
+    "related_terms": [
+      "Duplicate Content",
+      "Keyword Density"
+    ],
+    "letter": "K",
+    "slug": "keyword-cannibalization",
+    "bullets": [
+      "Ranking Dilution",
+      "Optimization",
+      "Content Strategy"
+    ],
+    "example": "A prominent Thai lifestyle blog noticed a stagnation in their organic traffic and discovered keyword cannibalization was the issue. Over several years, they had published multiple distinct articles targeting the exact same phrase: \"best street food in Bangkok.\" Because these pages were competing against each other, Google struggled to determine which one was the most authoritative, resulting in all of them ranking poorly. To fix this, the SEO team consolidated the competing articles into one massive, comprehensive \"Ultimate Guide to Bangkok Street Food,\" redirecting the old URLs to the new master page to concentrate their ranking power.",
+    "video_url": "https://www.youtube.com/watch?v=n3jrXrau6kE",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword-cannibalization.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/keyword-cannibalization-detection-and-fix-2026.html"
+  },
+  {
+    "term": "Keyword Density",
+    "definition": "The percentage of times a specific keyword appears on a webpage compared to the total word count, once a major ranking factor but now less critical.",
+    "category": "seo",
+    "categories": [
+      "Onpage Optimization",
+      "Content Strategy"
+    ],
+    "related_terms": [
+      "Keyword Stuffing",
+      "Keyword Proximity"
+    ],
+    "letter": "K",
+    "slug": "keyword-density",
+    "bullets": [
+      "On-page SEO",
+      "Optimization",
+      "Readability"
+    ],
+    "example": "In the early days of SEO, a shady digital marketing firm in Jakarta attempted to manipulate rankings by artificially inflating keyword density. They created a landing page for cheap smartphones where the phrase \"buy cheap phones Jakarta\" was repeated unnaturally in almost every sentence, resulting in a poor, unreadable user experience. Today, modern search engines penalize this tactic. Instead, professional SEOs in Southeast Asia focus on natural language and semantic relevance, ensuring the target keyword appears organically within high-quality content rather than obsessing over a specific percentage or exact-match repetition.",
+    "video_url": "https://www.youtube.com/watch?v=Rk4qgQdp2UA",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword-density.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/keyword-density-myths-2026.html"
+  },
+  {
+    "term": "Keyword Proximity",
+    "definition": "The physical distance between related keywords within a text block, which search engines analyze to determine contextual relevance and semantic meaning of the content.",
+    "category": "seo",
+    "categories": [
+      "Onpage Optimization",
+      "Content Strategy"
+    ],
+    "related_terms": [
+      "Keyword Density",
+      "Keyword"
+    ],
+    "letter": "K",
+    "slug": "keyword-proximity",
+    "bullets": [
+      "Semantic Relevance",
+      "Context",
+      "On-page SEO"
+    ],
+    "example": "A luxury resort in Bali optimizes its homepage copy by paying close attention to keyword proximity. They know that search engines analyze the physical distance between related terms to understand context. Instead of having the word \"luxury\" in the header and \"resort\" buried in the footer, they ensure these words appear closely together in phrases like \"experience the ultimate luxury resort in Seminyak, Bali.\" This tight keyword proximity provides a strong semantic signal to Google, clearly defining the page's core topic and improving its relevance for high-value search queries from international travelers.",
+    "video_url": "https://www.youtube.com/watch?v=9XOeuUfHtgM",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword-proximity.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/keyword-proximity-in-seo-2026.html"
   },
   {
     "term": "Keyword Stuffing",
-    "definition": "Keyword stuffing is a black hat SEO technique that involves loading a web page with a large number of keywords in an attempt to manipulate a site's ranking. This often results in text that is unnatural and difficult for users to read, and it is a major violation of search engine guidelines.",
-    "category": "SEO",
+    "definition": "A penalized black-hat SEO tactic involving the unnatural overuse of target keywords in a webpage's content or meta tags to manipulate search engine rankings.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "SEO Risks",
+      "Onpage Optimization"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Keyword Density",
+      "Search Engine Spam"
+    ],
     "letter": "K",
     "slug": "keyword-stuffing",
     "bullets": [
-      "Excessive use of keywords on a web page.",
-      "A black hat tactic that provides a poor user experience.",
-      "Can lead to a severe ranking penalty from search engines."
+      "Black Hat SEO",
+      "Penalties",
+      "Over-optimization"
     ],
-    "example": "A local business page repeats the phrase 'best digital marketing company in Asia' 10 times in a single paragraph, making the content sound robotic and unnatural. This is a form of keyword stuffing.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A penalized black-hat SEO tactic was used by an aggressive real estate broker in Manila, who engaged in severe keyword stuffing. In an attempt to rank for every possible variation, they filled their website's footer with hidden text and repetitive lists: \"condo for sale Makati, cheap condo Makati, buy condo Makati, best condo Makati.\" Google's algorithm quickly identified this unnatural overuse of keywords designed solely to manipulate rankings. The site was subsequently penalized, losing all its organic visibility, serving as a stark warning to other Southeast Asian businesses about the dangers of over-optimization.",
+    "video_url": "https://www.youtube.com/watch?v=7ABwxCyg96c",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/keyword-stuffing.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/keyword-stuffing-penalties-2026.html"
   },
   {
-    "term": "Knowledge Panel",
-    "definition": "A knowledge panel is an information box that appears on Google's search result pages when a user searches for entities like people, places, organizations, or things that are in the Knowledge Graph. It is a form of a zero-click search result that provides a quick overview of the entity.",
-    "category": "SEO",
+    "term": "Link Juice",
+    "definition": "The SEO value or equity passed from one webpage to another through hyperlinks, enhancing the receiving page's authority and potential to rank higher.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Digital Marketing"
+      "Offpage Optimization",
+      "Technical SEO"
     ],
-    "related_terms": [],
-    "letter": "K",
-    "slug": "knowledge-panel",
-    "bullets": [
-      "An information box on Google's search results page.",
-      "Appears for well-known entities like businesses, celebrities, or historical figures.",
-      "A form of a zero-click search result."
+    "related_terms": [
+      "Internal Links",
+      "Backlinks"
     ],
-    "example": "When you search for 'Eiffel Tower' on Google, the knowledge panel on the right side of the screen provides information about its height, location, and history, sourced directly from Google's Knowledge Graph.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "Landing Page",
-    "definition": "A landing page is a standalone web page created specifically for a marketing or advertising campaign. It is where a visitor 'lands' after clicking on a link in an ad, email, or social media post. Unlike other web pages, landing pages are designed with a single goal or call to action.",
-    "category": "Digital Marketing",
-    "categories": [
-      "Digital Marketing",
-      "Content Marketing"
-    ],
-    "related_terms": [],
     "letter": "L",
-    "slug": "landing-page",
+    "slug": "link-juice",
     "bullets": [
-      "A standalone page for a marketing campaign.",
-      "Focuses on a single call to action.",
-      "The destination for traffic from ads, emails, or social media."
+      "Authority",
+      "PageRank",
+      "Link Building"
     ],
-    "example": "A company runs a Facebook ad promoting their new e-book. The ad links to a dedicated landing page that has a form for users to fill out to download the e-book. This page is focused only on lead generation.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A high-authority Singaporean news outlet published a feature on sustainable businesses and included a hyperlink to a local zero-waste grocery store. This link passed significant \"link juice\" (or link equity) from the powerful news domain to the smaller retail site. Search engines interpret this transfer of equity as a strong vote of confidence. The influx of this valuable link juice dramatically enhanced the grocery store's domain authority, helping their own product pages rank much higher for competitive queries like \"eco-friendly products Singapore\" and driving a noticeable increase in organic traffic.",
+    "video_url": "https://www.youtube.com/watch?v=Afko9Iq2nBU",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/link-juice.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/link-juice-flow-strategy-2026.html"
   },
   {
-    "term": "Link Building",
-    "definition": "Link building is the process of acquiring hyperlinks from other websites to your own. These hyperlinks are called backlinks. Link building is a core component of off-page SEO, as search engines view backlinks as 'votes' of authority and trust.",
-    "category": "SEO",
+    "term": "Link Popularity",
+    "definition": "A measure of a webpage's authority based on the number and quality of inbound links it receives, directly impacting its search engine ranking potential.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "Offpage Optimization",
+      "SEO Strategy"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Domain Popularity",
+      "Backlinks"
+    ],
     "letter": "L",
-    "slug": "link-building",
+    "slug": "link-popularity",
     "bullets": [
-      "The process of getting other websites to link to your site.",
-      "A critical off-page SEO strategy.",
-      "Focuses on earning high-quality, relevant backlinks."
+      "Authority",
+      "Inbound Links",
+      "Ranking Potential"
     ],
-    "example": "A marketer emails a popular blogger and pitches a guest post they can write for the blogger's website. If the post is accepted, it will include a link back to the marketer's website, earning them a high-quality backlink.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A highly successful Vietnamese travel blog owes its top search rankings largely to its massive link popularity. Over the years, the blogger has produced exceptional, original content that has naturally attracted inbound links from global heavyweights like Lonely Planet, CNN Travel, and numerous regional tourism boards. This high volume of quality backlinks signals to search engines that the blog is a premier authority on Southeast Asian travel. This strong link popularity ensures that whenever they publish a new itinerary, it quickly climbs to the top of the SERPs, outperforming sites with weaker backlink profiles.",
+    "video_url": "https://www.youtube.com/watch?v=JeG4FwcUZRQ",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/link-popularity.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/link-popularity-metrics-2026.html"
   },
   {
-    "term": "Local SEO",
-    "definition": "Local SEO is the practice of optimizing a website to rank for local-intent search queries. It helps businesses appear in search results for users who are physically close to them. Key components include optimizing Google Business Profile, building local citations, and managing online reviews.",
-    "category": "SEO",
+    "term": "Link Text",
+    "definition": "The clickable text of a hyperlink, also known as anchor text, which provides context to search engines about the linked page's topic and relevance.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Digital Marketing"
+      "Onpage Optimization",
+      "Offpage Optimization"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Anchor Text",
+      "Internal Links"
+    ],
     "letter": "L",
-    "slug": "local-seo",
+    "slug": "link-text",
     "bullets": [
-      "Optimizing a website to appear in local search results.",
-      "Crucial for brick-and-mortar businesses.",
-      "Includes Google Business Profile optimization, local citations, and reviews."
+      "Anchor Text",
+      "Context",
+      "Relevance"
     ],
-    "example": "A user searches for 'best restaurants in Bangkok' on their phone. Local SEO helps a specific restaurant rank high in the search results and on Google Maps, attracting the user to their business.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A popular Southeast Asian tech forum utilizes descriptive link text (anchor text) to improve user navigation and SEO. When a user posts a tutorial on building a PC, they hyperlink to a specific retailer. Instead of using generic link text like \"click here to buy,\" the forum guidelines encourage specific phrases like \"purchase the AMD Ryzen 7 processor in Malaysia.\" This descriptive link text provides clear context to search engine crawlers about the content of the destination page, helping the retailer's specific product page rank better for those exact technical queries.",
+    "video_url": "https://www.youtube.com/watch?v=mdJjFiFGUog",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/link-text.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/link-text-anchor-best-practices-2026.html"
   },
   {
     "term": "Meta Description",
-    "definition": "A meta description is an HTML tag that provides a brief, concise summary of a web page's content. While it is not a direct ranking factor, it appears in search results and can influence a user's decision to click on a link, making it a critical part of a page's click-through rate (CTR).",
-    "category": "SEO",
+    "definition": "An HTML attribute providing a brief summary of a webpage's content, displayed in search results to improve click-through rates and user engagement.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Content Marketing"
+      "Onpage Optimization",
+      "Technical SEO"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Meta Tag",
+      "Page Title"
+    ],
     "letter": "M",
     "slug": "meta-description",
     "bullets": [
-      "A short summary of a page's content.",
-      "Appears under the title in search engine results.",
-      "Affects click-through rate (CTR), but not a direct ranking factor."
+      "CTR",
+      "Snippet",
+      "On-page SEO"
     ],
-    "example": "For a blog post about digital marketing, the meta description might read: 'Learn the fundamentals of digital marketing with our comprehensive guide. Explore SEO, content strategy, social media, and more to grow your business online.'",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A Laotian silk weaving cooperative carefully crafts the meta description for their homepage to improve their click-through rate (CTR) from search results. While the meta description isn't a direct ranking factor, it serves as crucial ad copy. They write a compelling summary: \"Discover authentic, handwoven Laotian silk scarves and textiles. Support local artisans in Vientiane with our sustainable, fair-trade creations. Shop online today.\" When this snippet appears under their URL in Google, it clearly communicates their value proposition, enticing users searching for \"traditional Lao silk\" to click their link over competitors.",
+    "video_url": "https://www.youtube.com/watch?v=7vC8brTXeq8",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/meta-description.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/meta-description-optimization-2026.html"
   },
   {
-    "term": "Meta Keywords",
-    "definition": "Meta keywords are a type of meta tag used in HTML to tell search engines what a web page is about. However, due to past abuse and keyword stuffing, major search engines like Google and Bing no longer use meta keywords as a ranking factor.",
-    "category": "SEO",
+    "term": "Meta Tag",
+    "definition": "HTML snippets placed in a webpage's header to provide structured metadata to search engines, including the title, description, and character set for indexing.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "Onpage Optimization",
+      "Technical SEO"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Meta Description",
+      "Page Title"
+    ],
     "letter": "M",
-    "slug": "meta-keywords",
+    "slug": "meta-tag",
     "bullets": [
-      "A deprecated HTML tag for providing keywords to search engines.",
-      "No longer used as a ranking factor by major search engines.",
-      "Use of this tag is generally discouraged."
+      "Metadata",
+      "HTML",
+      "Indexing"
     ],
-    "example": "A website's code might include `<meta name=\"keywords\" content=\"digital marketing, SEO, content creation\">`. This tag is now ignored by Google.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A multinational e-commerce platform operating across Southeast Asia heavily relies on meta tags to provide structured data to search engines. In the HTML header of their Indonesian site, they use specific language meta tags (hreflang) to tell Google that the content is targeted at Indonesian speakers. They also utilize viewport meta tags to ensure the site renders correctly on mobile devices. These hidden HTML snippets provide essential metadata, ensuring search engines index the pages accurately and serve the correct regional variations to users in different countries, preventing duplicate content issues.",
+    "video_url": "https://www.youtube.com/watch?v=XTVRQPUnrIg",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/meta-tag.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/meta-tags-for-seo-2026.html"
   },
   {
-    "term": "On-Page SEO",
-    "definition": "On-page SEO refers to all the optimization efforts performed directly on a website's pages. This includes optimizing content, headlines, images, and HTML source code to improve a page's ranking and traffic from search engines. It is a foundational component of any SEO strategy.",
-    "category": "SEO",
+    "term": "Offpage Optimization",
+    "definition": "Actions taken outside of your own website to impact your rankings within search engine results pages, primarily focusing on link building and brand mentions.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Content Marketing",
-      "Web Development"
+      "SEO Strategy",
+      "Marketing"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Backlinks",
+      "Link Popularity"
+    ],
     "letter": "O",
-    "slug": "on-page-seo",
+    "slug": "offpage-optimization",
     "bullets": [
-      "Optimization efforts that are performed on your website.",
-      "Includes optimizing titles, headings, content, and images.",
-      "A crucial part of technical SEO and content creation."
+      "Link Building",
+      "Brand Mentions",
+      "Authority"
     ],
-    "example": "A writer ensures a blog post's title includes a target keyword, uses descriptive alt text for images, and formats the content with clear headings. These are all on-page SEO best practices.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A rising Malaysian digital marketing agency executes a comprehensive offpage optimization campaign to build brand authority. They don't just tweak their own website; they actively engage in digital PR, securing guest post placements on high-traffic Southeast Asian business blogs and earning brand mentions in regional tech news. They also manage their reputation on third-party review sites and actively participate in industry forums. These external signals—backlinks, mentions, and social proof—demonstrate to search engines that the agency is a trusted, influential player in the industry, significantly boosting their overall search rankings.",
+    "video_url": "https://www.youtube.com/watch?v=V4M5A3UhLls",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/offpage-optimization.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/offpage-optimization-strategies-2026.html"
   },
   {
-    "term": "Off-Page SEO",
-    "definition": "Off-page SEO refers to all the optimization efforts performed outside of a website to influence its ranking. The most common off-page SEO practice is link building, as backlinks from other reputable websites are a strong signal of trust and authority to search engines.",
-    "category": "SEO",
+    "term": "Onpage Optimization",
+    "definition": "The practice of optimizing individual webpages to rank higher and earn more relevant traffic, encompassing content quality, keyword usage, and technical HTML elements.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "SEO Strategy",
+      "Technical SEO"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Page Content",
+      "Meta Tag"
+    ],
     "letter": "O",
-    "slug": "off-page-seo",
+    "slug": "onpage-optimization",
     "bullets": [
-      "Optimization efforts that happen away from your website.",
-      "Primarily focused on building high-quality backlinks.",
-      "Includes social media promotion and local citations."
+      "Content Quality",
+      "HTML Tags",
+      "Keyword Usage"
     ],
-    "example": "A business partners with a well-known industry blog for a guest post that includes a link to its website. This is an off-page SEO strategy that helps build authority.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A Thai food blogger meticulously performs onpage optimization for every new recipe published. For their \"Authentic Tom Yum Goong\" post, they ensure the target keyword is placed in the main H1 title, the URL slug, and naturally within the first paragraph. They use H2 tags to structure the ingredients and instructions logically. Furthermore, they optimize image file names and alt attributes, and ensure the page loads quickly on mobile devices. This comprehensive attention to technical HTML elements and content quality signals maximum relevance to search engines, helping the recipe rank highly.",
+    "video_url": "https://www.youtube.com/watch?v=2FKZzxtYzM4",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/onpage-optimization.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/onpage-optimization-checklist-2026.html"
   },
   {
-    "term": "PPC (Pay-Per-Click)",
-    "definition": "PPC is a digital marketing model in which advertisers pay a fee each time one of their ads is clicked. It is a way of buying visits to a website, rather than attempting to 'earn' those visits organically. Google Ads and social media advertising are common forms of PPC.",
-    "category": "Digital Marketing",
+    "term": "Page Content",
+    "definition": "The text, images, videos, and interactive elements on a webpage, which must be high-quality, relevant, and optimized for keywords to achieve SEO success.",
+    "category": "seo",
     "categories": [
-      "Digital Marketing"
+      "Onpage Optimization",
+      "Content Strategy"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Content Relevance",
+      "Keyword Density"
+    ],
     "letter": "P",
-    "slug": "ppc-pay-per-click",
+    "slug": "page-content",
     "bullets": [
-      "An advertising model where you pay for each ad click.",
-      "Provides immediate traffic to a website.",
-      "Requires careful keyword and audience targeting to be profitable."
+      "Quality",
+      "Relevance",
+      "Optimization"
     ],
-    "example": "A company bids on the keyword 'digital marketing agency'. When a user searches for that term and clicks on their ad, the company pays a fee to Google. This is a form of PPC.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "The official tourism website of Indonesia invests heavily in high-quality page content to captivate potential visitors. Their page detailing the \"Cultural Heritage of Yogyakarta\" goes far beyond a simple text description. It features stunning, optimized high-resolution images, embedded 4K video tours of the Borobudur temple, interactive maps, and well-researched, engaging text. This rich, comprehensive page content not only naturally incorporates relevant keywords but also keeps users on the page longer (high dwell time). Search engines reward this exceptional user experience by ranking the page highly for competitive tourism queries.",
+    "video_url": "https://www.youtube.com/watch?v=IkmPjeNKkBQ",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/page-content.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/page-content-optimization-2026.html"
+  },
+  {
+    "term": "Page Title",
+    "definition": "The HTML title tag defining a webpage's name, displayed as the clickable headline in search results and a critical on-page SEO ranking factor.",
+    "category": "seo",
+    "categories": [
+      "Onpage Optimization",
+      "Technical SEO"
+    ],
+    "related_terms": [
+      "Meta Tag",
+      "Meta Description"
+    ],
+    "letter": "P",
+    "slug": "page-title",
+    "bullets": [
+      "Title Tag",
+      "CTR",
+      "Ranking Factor"
+    ],
+    "example": "A Philippine online jobs portal understands that the page title is a critical on-page ranking factor and the first thing users see in the SERPs. Instead of a default, unoptimized title like \"Jobs Page 2,\" they craft highly specific, clickable HTML title tags. For a specific category, they use a title like \"Latest IT & Software Developer Jobs in Manila | Apply Now.\" This optimized title tag includes the primary keywords (\"IT Jobs,\" \"Manila\") and a call to action, directly improving their relevance in search algorithms and maximizing their click-through rate from job seekers.",
+    "video_url": "https://www.youtube.com/watch?v=EygZP5SQRKI",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/page-title.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/page-title-optimization-2026.html"
+  },
+  {
+    "term": "Paid Listing",
+    "definition": "Search engine results that appear because an advertiser paid for their placement, typically marked as Ad or Sponsored, distinct from organic search results.",
+    "category": "seo",
+    "categories": [
+      "SEM",
+      "Marketing"
+    ],
+    "related_terms": [
+      "Google Ads (AdWords)",
+      "Search Engine Advertising"
+    ],
+    "letter": "P",
+    "slug": "paid-listing",
+    "bullets": [
+      "PPC",
+      "Sponsored",
+      "Search Ads"
+    ],
+    "example": "A major Singaporean insurance provider aggressively utilizes paid listings to dominate the top of the search results for highly lucrative keywords. When a user searches for \"best life insurance Singapore,\" the very first results they see are sponsored ads placed by the company via Google Ads. These paid listings, clearly marked as \"Sponsored,\" allow the provider to bypass the lengthy process of organic SEO and guarantee immediate visibility. This strategy is essential for capturing high-intent leads in a highly competitive financial market, complementing their longer-term organic ranking efforts.",
+    "video_url": "https://www.youtube.com/watch?v=1mytDMfYnIM",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/paid-listing.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/paid-listings-vs-organic-2026.html"
+  },
+  {
+    "term": "Progressive Web Apps (PWA)",
+    "definition": "Web applications delivering an app-like experience through a browser, offering fast load times, offline capabilities, and improved user engagement, indirectly benefiting mobile SEO.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Emerging SEO"
+    ],
+    "related_terms": [
+      "Accelerated Mobile Pages (AMP)",
+      "User Experience"
+    ],
+    "letter": "P",
+    "slug": "progressive-web-apps",
+    "bullets": [
+      "Mobile SEO",
+      "Performance",
+      "User Experience"
+    ],
+    "example": "A leading Indonesian news portal transitioned its mobile website into a Progressive Web App (PWA) to dramatically improve user experience and indirect SEO metrics. The PWA allows users to install a shortcut on their home screen, providing an app-like experience directly through the browser. It features lightning-fast load times, push notifications, and the ability to read articles offline—crucial for users in areas with unstable internet connections. This superior performance significantly reduces bounce rates and increases session duration, sending strong positive user signals to Google, which indirectly boosts their mobile search rankings.",
+    "video_url": "https://www.youtube.com/watch?v=Iq3Zl1jMkhk",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/progressive-web-apps.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/onpage-optimization-checklist-2026.html"
+  },
+  {
+    "term": "Ranking Factor",
+    "definition": "Any specific criteria applied by search engine algorithms to evaluate and rank webpages, such as page speed, mobile-friendliness, backlinks, and content relevance.",
+    "category": "seo",
+    "categories": [
+      "SEO Strategy",
+      "Technical SEO"
+    ],
+    "related_terms": [
+      "Rankings",
+      "Search Engine Guidelines"
+    ],
+    "letter": "R",
+    "slug": "ranking-factor",
+    "bullets": [
+      "Algorithm",
+      "Evaluation",
+      "SERP Position"
+    ],
+    "example": "A Vietnamese e-commerce site heavily prioritizes mobile page speed, recognizing it as a critical ranking factor in Google's algorithm. With the vast majority of their customers shopping via smartphones, a slow-loading site would severely penalize their search visibility. Their development team constantly optimizes images, minifies code, and leverages browser caching to ensure lightning-fast load times. By excelling in this specific algorithmic criteria, alongside other factors like secure HTTPS and mobile-friendliness, they maintain a strong competitive advantage and secure top positions in mobile search results across Southeast Asia.",
+    "video_url": "https://www.youtube.com/watch?v=9irv8bxHD7I",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/ranking-factor.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-ranking-factors-2026.html"
+  },
+  {
+    "term": "Ranking Opportunities",
+    "definition": "Identified gaps in search engine results where a website has a high potential to rank well by creating targeted, high-quality content for specific keywords.",
+    "category": "seo",
+    "categories": [
+      "SEO Strategy",
+      "Content Strategy"
+    ],
+    "related_terms": [
+      "Competition",
+      "Rankings"
+    ],
+    "letter": "R",
+    "slug": "ranking-opportunities",
+    "bullets": [
+      "Keyword Gaps",
+      "Content Strategy",
+      "SERP Analysis"
+    ],
+    "example": "A Laotian coffee exporter uses specialized SEO tools to identify lucrative ranking opportunities in the global market. Through SERP analysis, they discover that while competition is fierce for generic terms like \"buy coffee beans,\" there is a significant keyword gap for \"wholesale organic Bolaven Plateau coffee.\" Recognizing that few competitors have created high-quality content for this specific, high-intent query, they develop targeted landing pages and detailed blog posts. Capitalizing on these identified gaps allows them to easily rank on the first page and attract international B2B buyers looking for their specific regional product.",
+    "video_url": "https://www.youtube.com/watch?v=wlUT_yRz6y8",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/ranking-opportunities.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/finding-seo-ranking-opportunities-2026.html"
+  },
+  {
+    "term": "Rankings",
+    "definition": "The specific positions a website's pages hold in search engine results pages (SERPs) for particular keywords, directly determining organic visibility and traffic.",
+    "category": "seo",
+    "categories": [
+      "SEO Strategy",
+      "General"
+    ],
+    "related_terms": [
+      "Ranking Factor",
+      "Search Result"
+    ],
+    "letter": "R",
+    "slug": "rankings",
+    "bullets": [
+      "SERP Position",
+      "Visibility",
+      "Organic Traffic"
+    ],
+    "example": "A prominent dental clinic in Bangkok closely monitors its search rankings to gauge the success of its digital marketing efforts. They track their specific positions in the SERPs for high-value keywords like \"Invisalign Bangkok\" and \"teeth whitening Sukhumvit.\" Holding the #1 organic ranking for these terms directly correlates with a steady stream of new patient inquiries. If their rankings drop to the second page, they experience an immediate decline in website traffic and bookings, highlighting how crucial maintaining top SERP positions is for sustaining their business's visibility and revenue.",
+    "video_url": "https://www.youtube.com/watch?v=ejLJya0YlG4",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/rankings.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/tracking-seo-rankings-2026.html"
+  },
+  {
+    "term": "Rich Snippets",
+    "definition": "Enhanced search results displaying additional information like ratings, prices, or images, generated using structured data markup to improve visibility and click-through rates.",
+    "category": "seo",
+    "categories": [
+      "SERP Features",
+      "Technical SEO"
+    ],
+    "related_terms": [
+      "Structured Data",
+      "Featured Snippets"
+    ],
+    "letter": "R",
+    "slug": "rich-snippets",
+    "bullets": [
+      "Structured Data",
+      "SERP Features",
+      "CTR"
+    ],
+    "example": "A popular Malaysian recipe website implements structured data markup to generate eye-catching rich snippets in Google search results. When a user searches for \"Nasi Lemak recipe,\" their listing doesn't just show a blue link; it displays a vibrant thumbnail image, a 4.8-star user rating, the preparation time, and the calorie count directly on the SERP. These enhanced visual elements make their search result stand out dramatically against competitors using standard listings. This increased visibility leads to a significantly higher click-through rate, driving more organic traffic to their culinary platform.",
+    "video_url": "https://www.youtube.com/watch?v=_CmIvCL2A8o",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/rich-snippets.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/rich-snippets-with-structured-data-2026.html"
   },
   {
     "term": "Robots.txt",
-    "definition": "The robots.txt file is a text file that tells search engine crawlers which pages or files on a site they can or cannot crawl. It is a fundamental part of technical SEO and can be used to prevent search engines from accessing sections of a website that are not meant for public viewing.",
-    "category": "SEO",
+    "definition": "A text file placed in a website's root directory instructing search engine crawlers which pages or sections they are allowed or forbidden to crawl.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Web Development"
+      "Technical SEO",
+      "Technical"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Crawlers",
+      "Blocker"
+    ],
     "letter": "R",
     "slug": "robots-txt",
     "bullets": [
-      "A text file that tells search engines which pages to crawl or avoid.",
-      "A crucial part of technical SEO.",
-      "Used to manage a website's crawl budget."
+      "Crawl Directives",
+      "Indexing",
+      "Technical SEO"
     ],
-    "example": "A website owner uses their robots.txt file to tell Google's bot not to crawl their 'thank you' page, as it is only relevant for people who have just submitted a form and should not appear in search results.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "ROI",
-    "definition": "ROI stands for Return on Investment. It is a performance measure used to evaluate the efficiency of an investment or to compare the efficiency of a number of different investments. In digital marketing, ROI is calculated by comparing the profit from a campaign to the cost of the campaign.",
-    "category": "Digital Marketing",
-    "categories": [
-      "Digital Marketing"
-    ],
-    "related_terms": [],
-    "letter": "R",
-    "slug": "roi",
-    "bullets": [
-      "Return on Investment.",
-      "A measure of profitability for a marketing campaign.",
-      "Calculated by comparing profit to cost."
-    ],
-    "example": "A company spends $500 on a PPC ad campaign and generates $1,500 in sales directly from that campaign. The ROI for the campaign is 200%, calculated as ($1,500 - $500) / $500 * 100.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "RSS Feed",
-    "definition": "An RSS (Really Simple Syndication) feed is a web feed that allows users and applications to access updates to online content in a standardized, computer-readable format. It is used to syndicate content across platforms, help search engines discover new content instantly, and power email newsletters.",
-    "category": "Content Marketing",
-    "categories": [
-      "Content Marketing",
-      "SEO"
-    ],
-    "related_terms": [],
-    "letter": "R",
-    "slug": "rss-feed",
-    "bullets": [
-      "A format for syndicating online content updates.",
-      "Helps Google discover new content instantly for faster indexing.",
-      "Used to power email newsletters and other automated updates."
-    ],
-    "example": "A blog uses an RSS feed to allow subscribers to receive automatic updates on their preferred RSS reader whenever a new article is published. This feed also helps search engines find the new content quickly.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
-  },
-  {
-    "term": "SaaS SEO",
-    "definition": "SaaS SEO is a specialized branch of search engine optimization that focuses on driving organic traffic and sign-ups for software-as-a-service (SaaS) businesses. It involves targeting keywords related to the software's functionality, integrations, and pain points the software solves, as well as creating case studies and content that nurtures leads.",
-    "category": "SEO",
-    "categories": [
-      "SEO"
-    ],
-    "related_terms": [],
-    "letter": "S",
-    "slug": "saas-seo",
-    "bullets": [
-      "Specialized SEO for Software-as-a-Service companies.",
-      "Focuses on increasing trial sign-ups and reducing customer acquisition cost.",
-      "Often uses a content marketing funnel to educate and convert users."
-    ],
-    "example": "A project management software company writes blog posts titled 'Top 10 Project Management Software for Teams' and 'How to Manage Your Team Remotely.' These articles attract users who are looking for a solution to their problem, which the software can solve.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "The IT department of a major Philippine university uses a robots.txt file to carefully control how search engines crawl their massive domain. They place this simple text file in the root directory to provide explicit instructions to bots like Googlebot. While they want their academic programs and news articles indexed, they use \"Disallow\" directives to prevent crawlers from accessing sensitive areas, such as the student portal login pages, internal administrative directories, and staging servers. This ensures search engines focus their crawl budget only on public-facing content, improving overall SEO efficiency and security.",
+    "video_url": "https://www.youtube.com/watch?v=3Qcw3xTUdpE",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/robots-txt.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/robots-txt-best-practices-2026.html"
   },
   {
     "term": "Search Engine",
-    "definition": "A search engine is a software system that is designed to carry out web searches. It allows users to search the World Wide Web for specific information using a given keyword or phrase. The most popular search engines are Google, Bing, and DuckDuckGo.",
-    "category": "SEO",
+    "definition": "A software system designed to carry out web searches, crawling, indexing, and ranking internet content to provide the most relevant results to user queries.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Digital Skills"
+      "General",
+      "Technical"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Index",
+      "Crawlers"
+    ],
     "letter": "S",
     "slug": "search-engine",
     "bullets": [
-      "A program that helps users find information on the internet.",
-      "Uses complex algorithms to rank results.",
-      "The primary goal is to provide the most relevant results for a user's query."
+      "Crawling",
+      "Indexing",
+      "Ranking"
     ],
-    "example": "When a user types 'weather forecast' into Google's search bar and presses enter, Google's search engine processes the query and returns a list of relevant web pages and a direct answer to the user.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "Millions of internet users across Southeast Asia rely on search engines daily to navigate the web. While Google holds a massive monopoly in countries like Singapore, Thailand, and Indonesia, users depend on this complex software system to crawl, index, and rank billions of web pages. When a student in Hanoi types a query, the search engine's algorithm instantly sifts through its colossal database to provide the most relevant, authoritative results. This system acts as the primary gateway to information, making it the central focus for all regional digital marketing and SEO strategies.",
+    "video_url": "https://www.youtube.com/watch?v=NYqejcMrerI",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/how-search-engines-work-2026.html"
   },
   {
-    "term": "Search Intent",
-    "definition": "Search intent, or user intent, refers to the primary goal a user has when typing a query into a search engine. Understanding search intent is a critical part of SEO, as a page's content should match the user's intent to rank well. There are four main types of intent: informational, navigational, commercial, and transactional.",
-    "category": "SEO",
+    "term": "Search Engine Advertising",
+    "definition": "The practice of placing paid advertisements on search engine results pages, commonly known as Pay-Per-Click (PPC), to gain immediate visibility and targeted traffic.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "SEM",
+      "Marketing"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Google Ads (AdWords)",
+      "Paid Listing"
+    ],
     "letter": "S",
-    "slug": "search-intent",
+    "slug": "search-engine-advertising",
     "bullets": [
-      "The purpose or goal behind a user's search query.",
-      "Helps to determine the best content to create for a keyword.",
-      "Includes informational, navigational, commercial, and transactional intent."
+      "PPC",
+      "Paid Visibility",
+      "SEM"
     ],
-    "example": "The search query 'what is content marketing' has an informational intent, while 'buy sneakers online' has a transactional intent. A page trying to rank for both would fail.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A newly launched real estate development in Manila utilizes Search Engine Advertising (SEA) to generate immediate leads for their luxury condominiums. They launch targeted Pay-Per-Click (PPC) campaigns on Google Ads, bidding aggressively on keywords like \"buy condo in BGC\" and \"luxury apartments Makati.\" This ensures their promotional links appear at the absolute top of the search results, labeled as \"Sponsored,\" capturing the attention of high-net-worth individuals actively looking to invest. This paid strategy provides instant visibility and traffic while their long-term organic SEO efforts are still gaining traction.",
+    "video_url": "https://www.youtube.com/watch?v=CEpcMPyjX4s",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-advertising.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-advertising-sea-guide-2026.html"
   },
   {
-    "term": "SERP",
-    "definition": "SERP stands for Search Engine Results Page. This is the page displayed by a search engine in response to a user's search query. A SERP includes organic search results, paid advertisements, and a variety of other features like featured snippets, knowledge panels, and local packs.",
-    "category": "SEO",
+    "term": "Search Engine Guidelines",
+    "definition": "Official rules and best practices published by search engines detailing how to optimize websites properly and avoid penalties for manipulative tactics.",
+    "category": "seo",
     "categories": [
+      "General",
+      "SEO Strategy"
+    ],
+    "related_terms": [
+      "Webmaster Guidelines",
+      "Ranking Factor"
+    ],
+    "letter": "S",
+    "slug": "search-engine-guidelines",
+    "bullets": [
+      "Best Practices",
+      "Penalties",
+      "Compliance"
+    ],
+    "example": "A reputable SEO agency in Bangkok strictly adheres to Google's Search Engine Guidelines to protect their clients from devastating penalties. They focus on \"white-hat\" techniques, emphasizing high-quality content creation, natural link building, and solid technical site structure. They explicitly avoid manipulative tactics outlined in the guidelines, such as buying links, keyword stuffing, or using hidden text. By ensuring total compliance with these official best practices, the agency guarantees long-term, sustainable organic growth for their Thai corporate clients, avoiding the risk of being de-indexed for violating Google's rules.",
+    "video_url": "https://www.youtube.com/watch?v=lKmO2WeHksM",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-guidelines.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-guidelines-compliance-2026.html"
+  },
+  {
+    "term": "Search Engine Marketing",
+    "definition": "A broad digital marketing strategy encompassing both organic Search Engine Optimization (SEO) and paid Search Engine Advertising (SEA) to increase online visibility.",
+    "category": "seo",
+    "categories": [
+      "SEM",
+      "Marketing"
+    ],
+    "related_terms": [
+      "Search Engine Advertising",
+      "Search Engine Optimization (SEO)"
+    ],
+    "letter": "S",
+    "slug": "search-engine-marketing",
+    "bullets": [
       "SEO",
+      "SEA",
       "Digital Marketing"
     ],
-    "related_terms": [],
-    "letter": "S",
-    "slug": "serp",
-    "bullets": [
-      "Search Engine Results Page.",
-      "The page a user sees after performing a search.",
-      "Includes both organic results and paid advertisements."
-    ],
-    "example": "When you search for 'weather in London,' the SERP shows the current weather forecast, a map, and links to weather websites.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A rapidly expanding Singaporean fintech startup employs a holistic Search Engine Marketing (SEM) strategy to dominate the digital landscape. They understand that SEM encompasses both paid and organic tactics. They invest heavily in SEO to build long-term authority and rank organically for educational terms like \"how to invest in Singapore.\" Simultaneously, they run targeted Search Engine Advertising (SEA) campaigns to capture immediate conversions for high-intent queries like \"open digital bank account.\" This combined approach maximizes their overall online visibility, ensuring they capture traffic at every stage of the customer journey.",
+    "video_url": "https://www.youtube.com/watch?v=1V0wO9nmU80",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-marketing.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-marketing-sem-2026.html"
   },
   {
-    "term": "Social Media Marketing",
-    "definition": "Social media marketing is the use of social media platforms to connect with a target audience and build a brand's presence. It involves creating and sharing content, engaging with followers, running social media ad campaigns, and managing online reputation.",
-    "category": "Social Media",
+    "term": "Search Engine Optimization (SEO)",
+    "definition": "The systematic process of improving a website's technical configuration, content relevance, and link popularity to increase its visibility and ranking in organic search results.",
+    "category": "seo",
     "categories": [
-      "Social Media",
-      "Digital Marketing"
+      "SEO Strategy",
+      "General"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Search Engine Marketing",
+      "Onpage Optimization"
+    ],
     "letter": "S",
-    "slug": "social-media-marketing",
+    "slug": "search-engine-optimization-seo",
     "bullets": [
-      "Uses platforms like Facebook, Instagram, and LinkedIn.",
-      "Helps build brand awareness and customer relationships.",
-      "Includes content creation, community management, and advertising."
+      "Organic Visibility",
+      "Technical SEO",
+      "Content Relevance"
     ],
-    "example": "A coffee shop uses social media marketing to post daily photos of their new drinks on Instagram and runs a 'buy one, get one free' ad on Facebook to attract new customers.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A boutique hotel in Hanoi invests heavily in Search Engine Optimization (SEO) to reduce their reliance on costly third-party booking platforms like Agoda. They systematically improve their website's technical speed, ensure mobile responsiveness, and create highly relevant content targeting keywords like \"best boutique hotel Hanoi Old Quarter.\" They also actively build link popularity by getting featured in travel blogs. This comprehensive process gradually increases their organic ranking in Google search results, driving direct, commission-free bookings and significantly improving their overall profitability in the competitive Vietnamese hospitality market.",
+    "video_url": "https://www.youtube.com/watch?v=_s2h7X-c2jE",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-optimization-seo.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-optimization-seo-2026.html"
   },
   {
-    "term": "Technical SEO",
-    "definition": "Technical SEO refers to the optimization of a website's technical components to help search engines crawl and index the site more effectively. It addresses factors like website speed, crawlability, mobile-friendliness, and site structure to improve a website's overall performance in search results.",
-    "category": "SEO",
+    "term": "Search Engine Registration",
+    "definition": "The process of submitting a website's URL or sitemap directly to a search engine to ensure it is discovered, crawled, and indexed promptly.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Web Development"
+      "SEO Strategy",
+      "Technical SEO"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Sitemap.xml",
+      "Index"
+    ],
+    "letter": "S",
+    "slug": "search-engine-registration",
+    "bullets": [
+      "Indexing",
+      "Sitemaps",
+      "Crawlability"
+    ],
+    "example": "A Laotian independent journalist launching a new investigative news blog takes immediate steps for search engine registration. Instead of waiting weeks for Google to organically discover the new domain, they proactively set up an account on Google Search Console. They submit their website's XML sitemap directly to the platform, explicitly telling Google's crawlers where to find all their newly published articles. This direct submission ensures that their time-sensitive reporting is discovered, crawled, and indexed promptly, allowing their content to appear in search results almost immediately after publication.",
+    "video_url": "https://www.youtube.com/watch?v=ePrKAHn3t9U",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-registration.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-submission-myths-2026.html"
+  },
+  {
+    "term": "Search Engine Spam",
+    "definition": "Manipulative, black-hat techniques designed to deceive search engines and artificially inflate rankings, often resulting in severe penalties or removal from the search index.",
+    "category": "seo",
+    "categories": [
+      "SEO Risks",
+      "General"
+    ],
+    "related_terms": [
+      "Cloaking",
+      "Keyword Stuffing"
+    ],
+    "letter": "S",
+    "slug": "search-engine-spam",
+    "bullets": [
+      "Black Hat SEO",
+      "Penalties",
+      "Manipulation"
+    ],
+    "example": "An unscrupulous affiliate marketer in Jakarta attempted to game the system using aggressive search engine spam techniques. They built a network of low-quality, automated websites filled with scraped content and hidden keywords to promote dubious health supplements. They also purchased thousands of cheap, spammy backlinks from irrelevant forums. Google's sophisticated spam-detection algorithms, like SpamBrain, quickly identified these manipulative, black-hat tactics. The entire network of sites was hit with severe manual penalties and completely removed from the search index, destroying the marketer's traffic and revenue overnight.",
+    "video_url": "https://www.youtube.com/watch?v=BS75vhGO-kk",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-engine-spam.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-engine-spam-penalties-2026.html"
+  },
+  {
+    "term": "Search Result",
+    "definition": "The list of webpages, images, videos, or other content returned by a search engine in response to a user's specific query or keyword.",
+    "category": "seo",
+    "categories": [
+      "General",
+      "SERP Features"
+    ],
+    "related_terms": [
+      "Rankings",
+      "Universal Search"
+    ],
+    "letter": "S",
+    "slug": "search-result",
+    "bullets": [
+      "SERP",
+      "Queries",
+      "Visibility"
+    ],
+    "example": "When a tourist in Penang types \"best street food near me\" into their phone, the search engine returns a dynamic search result page (SERP). This list is highly localized and complex, featuring a Google Maps pack highlighting nearby hawker stalls, organic links to popular food blogs reviewing Penang cuisine, and perhaps a featured snippet showing a list of must-try dishes. For local Malaysian businesses, appearing prominently within this specific search result is vital, as it directly dictates which food stalls the tourist will ultimately choose to visit.",
+    "video_url": "https://www.youtube.com/watch?v=IkmPjeNKkBQ",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-result.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/understanding-search-results-2026.html"
+  },
+  {
+    "term": "Search Term",
+    "definition": "The exact word or phrase a user types into a search engine, which SEO professionals analyze to understand search intent and optimize webpage content.",
+    "category": "seo",
+    "categories": [
+      "Onpage Optimization",
+      "Content Strategy"
+    ],
+    "related_terms": [
+      "Keyword",
+      "User/Search Intent"
+    ],
+    "letter": "S",
+    "slug": "search-term",
+    "bullets": [
+      "Search Intent",
+      "Queries",
+      "Keyword Research"
+    ],
+    "example": "An SEO specialist at a Thai travel agency meticulously analyzes the specific search terms users type into Google to optimize their campaign. They notice a shift from broad queries like \"Thailand travel\" to highly specific, long-tail search terms like \"how to get a digital nomad visa for Chiang Mai.\" By understanding the exact phrasing and underlying intent behind this search term, the agency creates a highly targeted, comprehensive guide answering all the logistical questions. This perfectly optimized content captures this niche, high-value traffic directly from the search engine.",
+    "video_url": "https://www.youtube.com/watch?v=B8NPobrMiGA",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-term.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-terms-vs-keywords-2026.html"
+  },
+  {
+    "term": "Search Volume",
+    "definition": "The estimated number of times a specific keyword is searched for within a given timeframe, used to gauge potential traffic and prioritize SEO efforts.",
+    "category": "seo",
+    "categories": [
+      "SEO Strategy",
+      "Content Strategy"
+    ],
+    "related_terms": [
+      "Keyword",
+      "Search Term"
+    ],
+    "letter": "S",
+    "slug": "search-volume",
+    "bullets": [
+      "Traffic Potential",
+      "Keyword Research",
+      "Demand"
+    ],
+    "example": "A digital marketing team for a regional airline uses keyword research tools to analyze search volume before launching a new promotional campaign. They compare the estimated monthly searches for various routes. Discovering that the search volume for \"cheap flights from Singapore to Bali\" spikes massively during the winter holidays, they prioritize their SEO and paid ad budgets to target this specific keyword during that timeframe. By aligning their efforts with periods of high demand, they maximize their traffic potential and ensure their marketing resources are spent where they will generate the highest return.",
+    "video_url": "https://www.youtube.com/watch?v=4PGf_12Txqs",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/search-volume.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-volume-analysis-2026.html"
+  },
+  {
+    "term": "SEO Visibility",
+    "definition": "A metric indicating how prominently a website appears in search engine results overall, based on its ranking positions and the search volume of its keywords.",
+    "category": "seo",
+    "categories": [
+      "SEO Strategy",
+      "Marketing"
+    ],
+    "related_terms": [
+      "Rankings",
+      "Domain Popularity"
+    ],
+    "letter": "S",
+    "slug": "seo-visibility",
+    "bullets": [
+      "Ranking Positions",
+      "Search Volume",
+      "Organic Traffic"
+    ],
+    "example": "A major Indonesian news conglomerate uses enterprise SEO platforms to track their overall SEO visibility against competitors like Kompas and Detik. This metric doesn't just look at one keyword; it aggregates their ranking positions across tens of thousands of search terms and factors in the search volume for each. If their SEO visibility score drops, it indicates a systemic issue—perhaps a recent algorithm update penalized their site, or a competitor has published a massive content cluster. Monitoring this overarching metric allows them to quickly pivot their digital strategy to maintain market dominance.",
+    "video_url": "https://www.youtube.com/watch?v=w0uqKvAZy-w",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/seo-visibility.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/seo-visibility-metrics-2026.html"
+  },
+  {
+    "term": "Sitemap.xml",
+    "definition": "An XML file listing all essential URLs on a website, serving as a roadmap to help search engine crawlers discover and index content efficiently.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Technical"
+    ],
+    "related_terms": [
+      "Index",
+      "Website Structure"
+    ],
+    "letter": "S",
+    "slug": "sitemap-xml",
+    "bullets": [
+      "Crawlability",
+      "Indexing",
+      "URL Structure"
+    ],
+    "example": "The web development team for a massive Philippine university relies on a dynamic Sitemap.xml file to ensure search engines can navigate their complex domain. With thousands of pages spanning different faculties, student resources, and news updates, relying on internal linking alone isn't enough. They configure their CMS to automatically update the XML file whenever a new page is published. This file acts as a direct roadmap submitted to Google Search Console, helping crawlers discover and index crucial new content efficiently, ensuring prospective students can always find the latest program information.",
+    "video_url": "https://www.youtube.com/watch?v=gNZH9xdLwUI",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/sitemap-xml.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/sitemap-xml-best-practices-2026.html"
+  },
+  {
+    "term": "SSL Encryption",
+    "definition": "A security protocol (HTTPS) that encrypts data between a user's browser and a website, functioning as a confirmed ranking signal for Google's search algorithm.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Technical"
+    ],
+    "related_terms": [
+      "Website Structure",
+      "Domain Trust"
+    ],
+    "letter": "S",
+    "slug": "ssl-encryption",
+    "bullets": [
+      "HTTPS",
+      "Security",
+      "Ranking Signal"
+    ],
+    "example": "A fast-growing Thai online banking startup strictly enforces SSL Encryption across its entire platform, recognizing it as both a critical security measure and a confirmed SEO ranking signal. By using the HTTPS protocol, all data transmitted between the user's browser and their servers is encrypted, protecting sensitive financial information from interception. Google openly favors secure websites in its search algorithm. The presence of the padlock icon in the browser not only builds essential trust with Southeast Asian consumers but also provides a necessary algorithmic boost to outrank non-secure competitors.",
+    "video_url": "https://www.youtube.com/watch?v=qCfD90gnbAM",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/ssl-encryption.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/ssl-encryption-for-seo-2026.html"
+  },
+  {
+    "term": "Structured Data",
+    "definition": "Standardized code added to HTML to help search engines understand page content contextually, enabling the display of rich snippets in SERPs.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Onpage Optimization"
+    ],
+    "related_terms": [
+      "Rich Snippets",
+      "Featured Snippets"
+    ],
+    "letter": "S",
+    "slug": "structured-data",
+    "bullets": [
+      "Schema Markup",
+      "Rich Snippets",
+      "Semantic SEO"
+    ],
+    "example": "A popular Malaysian cinema chain implements schema markup, a form of structured data, directly into their website's HTML. They tag specific information on their movie pages, such as the film's title, genre, user ratings, and most importantly, the local showtimes. This standardized code helps search engines understand the context of the content perfectly. Consequently, when a user searches for \"movies showing in Kuala Lumpur,\" Google can extract this structured data and display the exact showtimes and ticket links directly in a rich snippet on the search results page, driving immediate ticket sales.",
+    "video_url": "https://www.youtube.com/watch?v=jqb29bZIxp0",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/structured-data.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/rich-snippets-with-structured-data-2026.html"
+  },
+  {
+    "term": "Topical Relevance",
+    "definition": "The depth and comprehensiveness of content covering a specific subject, signaling to search engines that a website is an authority on that particular topic.",
+    "category": "content",
+    "categories": [
+      "Content Strategy",
+      "Onpage Optimization"
+    ],
+    "related_terms": [
+      "Content Relevance",
+      "Topic Explorer"
+    ],
     "letter": "T",
-    "slug": "technical-seo",
+    "slug": "topical-relevance",
     "bullets": [
-      "Optimization of a website's technical components.",
-      "Focuses on speed, crawlability, and mobile-friendliness.",
-      "A foundational component of any SEO strategy."
+      "Authority",
+      "Content Clusters",
+      "Semantic SEO"
     ],
-    "example": "A website's loading speed is slow, so a technical SEO consultant optimizes images and minifies the code to improve performance. This helps the website rank higher and provides a better user experience.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A Singaporean blog dedicated entirely to sustainable urban farming has established immense topical relevance in the eyes of search engines. Instead of covering broad lifestyle topics, they publish hundreds of deeply researched articles specifically about hydroponics, balcony gardening, and composting in tropical climates. Because their content comprehensively covers this specific subject area, Google's semantic algorithms recognize the domain as a highly authoritative source. This strong topical relevance allows them to easily outrank larger, generic news sites when users search for niche queries like \"best indoor grow lights for Singapore apartments.\"",
+    "video_url": "https://www.youtube.com/watch?v=H9NvvSiz0EU",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/topical-relevance.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/topical-relevance-and-authority-2026.html"
+  },
+  {
+    "term": "Topic Explorer",
+    "definition": "An SEO tool or feature used to discover related subtopics, questions, and keywords around a main subject to build comprehensive, topically relevant content clusters.",
+    "category": "content",
+    "categories": [
+      "Content Strategy",
+      "Strategy"
+    ],
+    "related_terms": [
+      "Content Gap Analysis",
+      "Topical Relevance"
+    ],
+    "letter": "T",
+    "slug": "topic-explorer",
+    "bullets": [
+      "Content Clusters",
+      "Keyword Research",
+      "Subtopics"
+    ],
+    "example": "An SEO strategist at a Vietnamese export company uses a Topic Explorer tool to build out a comprehensive content cluster. Starting with the broad seed term \"coffee export,\" the tool analyzes search data to reveal related subtopics and questions users are asking, such as \"Robusta vs Arabica,\" \"export tariffs to the EU,\" and \"sustainable farming certifications.\" By using these insights to create a hub-and-spoke content model—one main pillar page linking to detailed sub-articles—the company builds immense topical authority, ensuring they rank for a wide array of industry-specific search queries.",
+    "video_url": "https://www.youtube.com/watch?v=byEFujJZVCk",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/topic-explorer.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/topic-explorer-tools-for-seo-2026.html"
+  },
+  {
+    "term": "Universal Search",
+    "definition": "The integration of diverse media types—such as images, videos, news, and maps—into standard organic search results to provide a richer user experience.",
+    "category": "seo",
+    "categories": [
+      "SERP Features",
+      "General"
+    ],
+    "related_terms": [
+      "Google Knowledge Graph",
+      "Google News"
+    ],
+    "letter": "U",
+    "slug": "universal-search",
+    "bullets": [
+      "Blended Results",
+      "Rich Media",
+      "SERP Features"
+    ],
+    "example": "When a user in Jakarta searches for \"Bali vacation,\" Google employs Universal Search to deliver a blended, highly visual results page. Instead of just a list of ten blue links, the SERP integrates diverse media types. The user sees a map highlighting popular resorts, an image carousel of famous beaches, a \"Top Stories\" box with recent travel news, and video results from YouTube vloggers. For Indonesian travel brands, this means SEO isn't just about optimizing text; they must optimize their images, videos, and local listings to capture visibility across all these blended search features.",
+    "video_url": "https://www.youtube.com/watch?v=pwh_rQsvtgQ",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/universal-search.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/universal-search-optimization-2026.html"
+  },
+  {
+    "term": "URL",
+    "definition": "The Uniform Resource Locator, the specific web address of a page, which should be clean, descriptive, and keyword-optimized for better search engine crawling.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Onpage Optimization"
+    ],
+    "related_terms": [
+      "Website Structure",
+      "Web Pages"
+    ],
+    "letter": "U",
+    "slug": "url",
+    "bullets": [
+      "Site Structure",
+      "Crawlability",
+      "Optimization"
+    ],
+    "example": "A newly launched e-commerce site in Singapore ensures every product page has a clean, descriptive URL to improve crawlability and user experience. Instead of using confusing, dynamically generated web addresses like \"www.example.com.sg/item?id=84759,\" they structure their URLs logically: \"www.example.com.sg/electronics/laptops/asus-zenbook.\" This keyword-optimized Uniform Resource Locator provides immediate context to both human users and search engine crawlers about the page's exact content. This clear site structure helps search engines categorize the pages accurately, contributing to better overall rankings in the competitive regional tech market.",
+    "video_url": "https://www.youtube.com/watch?v=cvtgL63woXg",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/url.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/url-structure-for-seo-2026.html"
+  },
+  {
+    "term": "User Experience",
+    "definition": "The overall experience a user has while interacting with a website, including site speed, navigation, and mobile-friendliness, increasingly important for SEO rankings.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Strategy"
+    ],
+    "related_terms": [
+      "User Signals",
+      "Page Content"
+    ],
+    "letter": "U",
+    "slug": "user-experience",
+    "bullets": [
+      "Core Web Vitals",
+      "Usability",
+      "Ranking Factor"
+    ],
+    "example": "A major Thai online fashion retailer recently overhauled its website, placing User Experience (UX) at the forefront of its SEO strategy. They recognized that Google heavily weighs Core Web Vitals and usability metrics. They redesigned the site to ensure lightning-fast mobile load times, intuitive navigation menus, and a seamless, secure checkout process. By keeping shoppers engaged and frustrated-free, they drastically reduced bounce rates and increased session durations. Search engines interpreted these positive behavioral signals as proof of a high-quality site, rewarding the retailer with higher rankings across their product categories.",
+    "video_url": "https://www.youtube.com/watch?v=iXqYxSgESzo",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/user-experience.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/user-experience-ux-in-seo-2026.html"
+  },
+  {
+    "term": "User/Search Intent",
+    "definition": "The underlying goal or purpose behind a user's search query—whether informational, navigational, or transactional—crucial for aligning content with what users actually want.",
+    "category": "content",
+    "categories": [
+      "Content Strategy",
+      "SEO Strategy"
+    ],
+    "related_terms": [
+      "Search Term",
+      "Content Relevance"
+    ],
+    "letter": "U",
+    "slug": "user-search-intent",
+    "bullets": [
+      "Query Purpose",
+      "Content Relevance",
+      "Targeting"
+    ],
+    "example": "A savvy content marketer in Manila strictly aligns their SEO strategy with User/Search Intent. They understand that if someone searches \"buy durian online,\" the intent is purely transactional; the user wants a product page with an \"Add to Cart\" button. Conversely, if the query is \"how to open a durian,\" the intent is informational. The marketer ensures they don't try to rank a sales page for an informational query, as users would immediately bounce. By perfectly matching the webpage content to the underlying goal of the searcher, they maximize engagement and conversion rates.",
+    "video_url": "https://www.youtube.com/watch?v=6qjBTOSgbDI",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/user-search-intent.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/search-intent-optimization-2026.html"
   },
   {
     "term": "User Signals",
-    "definition": "User signals are positive (and negative) interactions that a website user sends to search engines. These signals include a user's click-through rate, time spent on a page, and bounce rate. Search engines use these signals to determine if a website provides a good user experience.",
-    "category": "SEO",
+    "definition": "Behavioral metrics like click-through rate, bounce rate, and dwell time that indicate to search engines how users interact with and value a webpage.",
+    "category": "seo",
     "categories": [
-      "SEO"
+      "Technical SEO",
+      "Strategy"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "User Experience",
+      "Conversion"
+    ],
     "letter": "U",
     "slug": "user-signals",
     "bullets": [
-      "Interactions a user has with a website.",
-      "Used by search engines to measure user experience.",
-      "Positive signals can lead to higher rankings."
+      "CTR",
+      "Bounce Rate",
+      "Dwell Time"
     ],
-    "example": "A user clicks on a search result, stays on the page for a long time, and reads the entire article. This positive user signal tells Google that the page is high-quality and relevant to the user's query.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "Google closely monitors User Signals to evaluate the quality of a Laotian cultural festival guide ranking on the first page. When users search for \"Pha That Luang Festival dates,\" they click on the guide (high Click-Through Rate), spend several minutes reading the history and schedule (high Dwell Time), and rarely hit the back button immediately (low Bounce Rate). These strong behavioral metrics indicate to the search engine algorithm that the webpage is highly valuable and satisfying to users, reinforcing its position at the top of the search results and preventing competitors from outranking it.",
+    "video_url": "https://www.youtube.com/watch?v=FA_B-xC0C_U",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/user-signals.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/user-signals-in-ranking-2026.html"
   },
   {
-    "term": "Word Processor",
-    "definition": "A word processor is a software application used for the production (including composition, editing, formatting, and possibly printing) of any sort of readable text or document. It is a fundamental tool for content creators and is essential for writing and managing text-based content.",
-    "category": "Digital Skills",
+    "term": "Web Catalogues",
+    "definition": "Curated online directories listing websites by category, once popular for link building but now generally less effective for SEO unless highly niche-specific.",
+    "category": "seo",
     "categories": [
-      "Digital Skills",
-      "Productivity"
+      "Offpage Optimization",
+      "Local SEO"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Web Directory",
+      "Business Directory"
+    ],
     "letter": "W",
-    "slug": "word-processor",
+    "slug": "web-catalogues",
     "bullets": [
-      "An application for creating and editing documents.",
-      "A foundational digital skill for content creation.",
-      "Examples include Microsoft Word, Google Docs, and Pages."
+      "Directories",
+      "Link Building",
+      "Citations"
     ],
-    "example": "A content writer uses a word processor to draft, edit, and format a new blog post before uploading it to a Content Management System (CMS).",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "In the past, a Vientiane-based business might have relied heavily on submitting their site to broad Web Catalogues to build links. However, modern SEOs in Southeast Asia recognize that generic, uncurated directories offer little to no SEO value and can even look spammy. Instead, they focus on highly niche-specific or authoritative local catalogues. For example, a specialized directory listing only verified \"Sustainable Eco-Lodges in Southeast Asia\" still provides a valuable, contextually relevant citation and backlink that search engines respect, unlike the massive, disorganized link farms of the early internet.",
+    "video_url": "https://www.youtube.com/watch?v=wlUT_yRz6y8",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/web-catalogues.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/web-catalogues-and-directories-2026.html"
   },
   {
-    "term": "Zero-Click Searches",
-    "definition": "Zero-click searches are search engine queries where the user finds the answer directly on the search results page without clicking through to any third-party website. This is often due to featured snippets, knowledge panels, or direct answers provided by Google.",
-    "category": "SEO",
+    "term": "Web Directory",
+    "definition": "An online list or catalog of websites categorized by topic or industry, occasionally useful for local SEO citations if the directory maintains high editorial standards.",
+    "category": "seo",
     "categories": [
-      "SEO",
-      "Digital Marketing"
+      "Offpage Optimization",
+      "Local SEO"
     ],
-    "related_terms": [],
+    "related_terms": [
+      "Web Catalogues",
+      "Business Directory"
+    ],
+    "letter": "W",
+    "slug": "web-directory",
+    "bullets": [
+      "Local SEO",
+      "Citations",
+      "Directories"
+    ],
+    "example": "A local restaurant in Chiang Mai utilizes high-quality Web Directories to boost its local SEO presence. They ensure their business is listed accurately on platforms like TripAdvisor, Yelp, and localized Thai dining directories like Wongnai. These directories maintain high editorial standards and are frequently used by tourists and locals alike. Having consistent Name, Address, and Phone number (NAP) information across these authoritative catalogs provides essential local citations. This signals legitimacy to search engines, helping the restaurant rank higher in local map packs when users search for \"places to eat near me.\"",
+    "video_url": "https://www.youtube.com/watch?v=T6ePps5F6R0",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/web-directory.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/web-directory-submissions-2026.html"
+  },
+  {
+    "term": "Webmaster Guidelines",
+    "definition": "Google's official documentation detailing best practices for website design, technical setup, and content quality to ensure optimal crawling, indexing, and search engine ranking.",
+    "category": "seo",
+    "categories": [
+      "General",
+      "SEO Strategy"
+    ],
+    "related_terms": [
+      "Search Engine Guidelines",
+      "Ranking Factor"
+    ],
+    "letter": "W",
+    "slug": "webmaster-guidelines",
+    "bullets": [
+      "Best Practices",
+      "Compliance",
+      "Optimization"
+    ],
+    "example": "A prominent Philippine web development agency trains all its engineers to strictly follow Google's Webmaster Guidelines when building client sites. They ensure every website has a logical link structure, uses valid HTML, and is optimized for mobile devices. They actively avoid deceptive practices like cloaking or scraping content. By adhering to these official best practices for design, technical setup, and quality, the agency guarantees that their clients' websites are easily crawled and indexed, setting a solid foundation for long-term SEO success and avoiding any risk of algorithmic penalties.",
+    "video_url": "https://www.youtube.com/watch?v=t1lS05RVGAk",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/webmaster-guidelines.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/google-webmaster-guidelines-2026.html"
+  },
+  {
+    "term": "Web Pages",
+    "definition": "Individual HTML documents accessible via the internet, which must be individually optimized with unique content, titles, and meta tags for effective SEO performance.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Onpage Optimization"
+    ],
+    "related_terms": [
+      "Website",
+      "URL"
+    ],
+    "letter": "W",
+    "slug": "web-pages",
+    "bullets": [
+      "HTML",
+      "Optimization",
+      "Indexing"
+    ],
+    "example": "A Malaysian tech news publication manages thousands of individual Web Pages, understanding that each must be uniquely optimized. They don't just optimize the homepage; every single article, whether it's a review of a new smartphone or an interview with a startup founder, is treated as an independent entry point from search engines. The editorial team ensures each HTML document has a unique, descriptive title tag, a tailored meta description, and high-quality, original content. This granular optimization strategy allows them to capture a vast array of long-tail search traffic across their entire domain.",
+    "video_url": "https://www.youtube.com/watch?v=FIXV28Mdm-o",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/web-pages.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/optimizing-web-pages-for-seo-2026.html"
+  },
+  {
+    "term": "Website",
+    "definition": "A collection of interconnected web pages under a single domain name, requiring a logical structure, strong technical foundation, and high-quality content for SEO success.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Strategy"
+    ],
+    "related_terms": [
+      "Website Structure",
+      "Web Pages"
+    ],
+    "letter": "W",
+    "slug": "website",
+    "bullets": [
+      "Domain",
+      "Structure",
+      "Content"
+    ],
+    "example": "The official tourism Website for Indonesia is a massive digital ecosystem comprising thousands of interconnected web pages under the \"indonesia.travel\" domain name. To achieve regional SEO dominance, the administrators must maintain a logical, hierarchical structure, ensuring that pages about Bali are distinctly categorized from pages about Sumatra. They invest in a robust technical foundation with fast servers and secure protocols, while continuously publishing high-quality, inspiring travel content. This holistic approach ensures the entire collection of pages works together to build massive domain authority and capture global search traffic.",
+    "video_url": "https://www.youtube.com/watch?v=RR2WCT9ZTDQ",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/website.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/website-seo-fundamentals-2026.html"
+  },
+  {
+    "term": "Website Structure",
+    "definition": "The hierarchical organization and internal linking framework of a website, critical for user navigation and helping search engines crawl and understand content hierarchy.",
+    "category": "seo",
+    "categories": [
+      "Technical SEO",
+      "Onpage Optimization"
+    ],
+    "related_terms": [
+      "Internal Links",
+      "URL"
+    ],
+    "letter": "W",
+    "slug": "website-structure",
+    "bullets": [
+      "Hierarchy",
+      "Internal Linking",
+      "Crawlability"
+    ],
+    "example": "A leading Singaporean university redesigned its Website Structure to improve both user navigation and SEO crawlability. Previously, their site was a tangled web of deep, hard-to-find pages. They reorganized it into a flat, logical hierarchy: Homepage > Faculties > Departments > Specific Courses. They implemented clear \"breadcrumb\" navigation and robust internal linking. This intuitive framework allows prospective students to find information easily and enables search engine crawlers to systematically discover and understand the relationship between different pages, significantly improving the indexing and ranking potential of their academic programs.",
+    "video_url": "https://www.youtube.com/watch?v=n68rh1s-ZdY",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/website-structure.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/website-structure-for-seo-2026.html"
+  },
+  {
+    "term": "Zero Click Searches",
+    "definition": "Search engine queries where the user finds the answer directly on the SERP without clicking through to any website.",
+    "category": "seo",
+    "categories": [
+      "SERP Features",
+      "Emerging SEO"
+    ],
+    "related_terms": [
+      "Featured Snippets",
+      "Google Knowledge Graph"
+    ],
     "letter": "Z",
     "slug": "zero-click-searches",
     "bullets": [
-      "Search queries that don't result in a click to a website.",
-      "Results are provided directly on the SERP.",
-      "Highlights the importance of optimizing for SERP features."
+      "SERP Features",
+      "Featured Snippets",
+      "Search Intent"
     ],
-    "example": "A user searches for 'how tall is the Eiffel Tower'. Google's featured snippet provides the answer directly, so the user doesn't need to click on a website to find the information.",
-    "video_url": null,
-    "featured_image": null,
-    "article_link": null
+    "example": "A user in Jakarta quickly types \"time in Tokyo\" into their smartphone. Because Google provides the exact time directly at the top of the SERP via a featured snippet, the user gets their answer instantly and closes the browser without ever clicking on a website. This phenomenon, known as Zero Click Searches, is increasingly common for factual queries. Southeast Asian SEO professionals adapt to this by focusing their efforts on more complex, long-tail keywords where users require in-depth content, rather than trying to rank for simple queries that search engines now answer directly.",
+    "video_url": "https://www.youtube.com/watch?v=HIUV9JzG85o",
+    "featured_image": "https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/zero-click-searches.webp",
+    "article_link": "https://wordsthatsells.website/en/resources/glossary/zero-click-searches-impact-and-strategy-2026.html"
   }
 ]
