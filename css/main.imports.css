@@ -6,6 +6,7 @@
 /* --- LAYOUT --- */
 @import 'layout/layout.css';
 @import 'layout/header.css';
+@import 'layout/site-header.css';
 @import 'layout/footer.css';
 @import 'layout/animations.css';
 

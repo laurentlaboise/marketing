@@ -5,9 +5,10 @@
   "scripts": {
     "bundle:css": "node scripts/bundle-css.js",
     "normalize:css": "node scripts/bundle-css.js && node scripts/normalize-site-css.js",
-    "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js",
+    "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js && node scripts/inject-headers.js",
     "build:webpack": "webpack --mode=production",
     "inject-footers": "node scripts/inject-footers.js",
+    "inject-headers": "node scripts/inject-headers.js",
     "localize": "node scripts/generate-localized-pages.js",
     "sitemap": "node scripts/generate-sitemap.js",
     "legacy-redirects": "node scripts/generate-legacy-redirects.js",

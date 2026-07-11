@@ -1,0 +1,64 @@
+{
+  "default": "main",
+  "assignments": [
+    {
+      "match": "/en/*",
+      "variant": "main"
+    },
+    {
+      "match": "/th/*",
+      "variant": "main"
+    },
+    {
+      "match": "/la/*",
+      "variant": "main"
+    },
+    {
+      "match": "/fr/*",
+      "variant": "main"
+    }
+  ],
+  "variants": {
+    "main": {
+      "brand": {
+        "href": "/en/",
+        "logo": "/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg",
+        "alt": "WordsThatSells.website - AI Digital Marketing Agency in Laos",
+        "width": 160,
+        "height": 40
+      },
+      "links": [
+        {
+          "text": "Services",
+          "href": "/en/digital-marketing-services/"
+        },
+        {
+          "text": "Pricing",
+          "href": "/en/digital-marketing-services/prices/"
+        },
+        {
+          "text": "Resources",
+          "href": "/en/resources/glossary/"
+        },
+        {
+          "text": "Partners",
+          "href": "/en/company/affiliate-sales/"
+        },
+        {
+          "text": "Contact",
+          "href": "/en/company/contact-us/"
+        }
+      ],
+      "cta": {
+        "text": "Client portal",
+        "href": "https://admin.wordsthatsells.website/portal/login?from=header&src=nav",
+        "external": true,
+        "track": {
+          "cta_id": "header_portal",
+          "page_type": "header",
+          "destination": "portal"
+        }
+      }
+    }
+  }
+}
