@@ -31,8 +31,33 @@
         This is a sense-check, not a re-translation: confirm the text reads naturally and carries the
         meaning, fix light issues (phrasing, word choice, tone) directly in the right column, and
         <strong>Return</strong> anything that needs a full re-do. Verification pays per 1,000 characters read;
-        segments you rework are compensated on top.
+        segments you rework are compensated on top. Work one section at a time — tick
+        <strong>"Section verified"</strong> as you finish each one (it saves automatically), then press
+        <strong>Mark Verified</strong> when the bar is full.
       </span>
+    </div>
+
+    <%
+      // Same visible-card rule as the loop below — the progress numbers
+      // must agree with what the page actually renders.
+      var secStatus = item.section_status || {};
+      var secKeys = (entityConfig.dynamic
+        ? Object.keys((source && source.fields) || item.content_payload || {})
+        : entityConfig.fields).filter(function (f) {
+          var sv = source && source.fields ? source.fields[f] : null;
+          var tv = item.content_payload && item.content_payload[f];
+          return sv || tv;
+        });
+      var secDone = secKeys.filter(function (f) { return secStatus[f] && secStatus[f].verified; }).length;
+    %>
+    <!-- Sticky progress: the worker's finish line through a long item. -->
+    <div style="position:sticky; top:0.5rem; z-index:40; background:var(--white,#fff); border:1px solid var(--gray-200); border-radius:8px; padding:0.5rem 1rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <i class="fas fa-list-check" style="color:var(--gray-500);"></i>
+      <span style="font-size:0.9rem; white-space:nowrap;"><strong id="secDone"><%= secDone %></strong> of <strong id="secTotal"><%= secKeys.length %></strong> sections verified</span>
+      <div style="flex:1; height:6px; background:var(--gray-200); border-radius:999px; overflow:hidden;">
+        <div id="secBar" style="height:100%; width:<%= secKeys.length ? Math.round(secDone * 100 / secKeys.length) : 0 %>%; background:#059669; transition:width 0.25s;"></div>
+      </div>
+      <span id="saveToast" hidden style="font-size:0.78rem; color:#059669; white-space:nowrap;"><i class="fas fa-check"></i> Saved</span>
     </div>
 
     <!-- Termbase: terms the source mentions, with the approved name for
@@ -62,10 +87,17 @@
            segIndex += 1;
            var fieldLabel = entityConfig.dynamic ? ('Segment ' + segIndex) : field.replace(/_/g, ' ');
            var isLong = String(targetValue || sourceValue || '').length > 300;
-           var thaiValue = (typeof thaiRef !== 'undefined' && thaiRef && thaiRef.content_payload[field]) || null; %>
-        <div class="card" style="margin-bottom:1rem;">
+           var thaiValue = (typeof thaiRef !== 'undefined' && thaiRef && thaiRef.content_payload[field]) || null;
+           var secV = Boolean(secStatus[field] && secStatus[field].verified); %>
+        <div class="card sec-card" data-field="<%= field %>" style="margin-bottom:1rem;<%= secV ? ' border-left:4px solid #059669; opacity:0.88;' : '' %>">
           <div class="card-body">
-            <h3 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; color:var(--gray-500);"><%= fieldLabel %></h3>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:0 0 0.75rem;">
+              <h3 style="margin:0; font-size:0.9rem; text-transform:uppercase; color:var(--gray-500);"><%= fieldLabel %><%= secV ? ' ' : '' %><% if (secV) { %><i class="fas fa-circle-check" style="color:#059669;"></i><% } %></h3>
+              <label class="sec-pill" data-for="<%= field %>" style="display:inline-flex; align-items:center; gap:0.35rem; font-size:0.8rem; padding:0.2rem 0.65rem; border-radius:999px; cursor:pointer; user-select:none; border:1px solid <%= secV ? '#059669' : 'var(--gray-300, #d1d5db)' %>; background:<%= secV ? '#d1fae5' : 'transparent' %>; color:<%= secV ? '#065f46' : 'var(--gray-600, #4b5563)' %>;">
+                <input type="checkbox" class="sec-check" data-for="<%= field %>" <%= secV ? 'checked' : '' %> <%= readOnly ? 'disabled' : '' %> style="accent-color:#059669;">
+                Section verified
+              </label>
+            </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
               <div>
                 <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">English source (reference)</div>
@@ -80,7 +112,7 @@
                   name="<%= field %>"
                   rows="<%= isLong ? 14 : 3 %>"
                   style="width:100%; font-family:inherit; resize:vertical; line-height:1.7;"
-                  <%= readOnly ? 'readonly' : '' %>><%= targetValue %></textarea>
+                  <%= (readOnly || secV) ? 'readonly' : '' %>><%= targetValue %></textarea>
                 <div style="display:flex; gap:0.75rem; align-items:center; font-size:0.72rem; color:var(--gray-500); margin-top:0.25rem;">
                   <span class="vf-count" data-for="<%= field %>"></span>
                   <span class="vf-edited" data-for="<%= field %>" hidden style="color:#d97706;">&#9679; reworked — paid on top</span>
@@ -126,7 +158,10 @@
 (function () {
   var csrf = document.querySelector('meta[name="csrf-token"]').content;
   var id = '<%= item.id %>';
-  var dirty = false;
+  var PAGE_READONLY = <%= readOnly ? 'true' : 'false' %>;
+  // Unsaved changes tracked per field: section auto-saves clear only the
+  // field they persisted, so the leave-warning stays honest.
+  var dirtyFields = new Set();
   var BASE = window.__VERIFY_BASE__ || {};
   var SRC = window.__VERIFY_SRC__ || {};
 
@@ -284,7 +319,7 @@
 
   document.querySelectorAll('.verify-field').forEach(function (field) {
     field.addEventListener('input', function () {
-      dirty = true;
+      dirtyFields.add(field.name);
       refreshField(field);
       refreshTotal();
       refreshTerms();
@@ -293,8 +328,86 @@
   });
   refreshTotal();
   window.addEventListener('beforeunload', function (e) {
-    if (dirty) { e.preventDefault(); e.returnValue = ''; }
+    if (dirtyFields.size > 0) { e.preventDefault(); e.returnValue = ''; }
   });
+
+  // --- Per-section verification: tick to sign off (auto-saves and locks
+  // the card), untick to reopen. Field blur auto-saves edits so partial
+  // progress is never lost.
+  function applySectionState(name, verified) {
+    var card = document.querySelector('.sec-card[data-field="' + CSS.escape(name) + '"]');
+    var pill = fieldEl('sec-pill', name);
+    var check = fieldEl('sec-check', name);
+    var ta = document.querySelector('.verify-field[name="' + CSS.escape(name) + '"]');
+    if (check) check.checked = verified;
+    if (card) {
+      card.style.borderLeft = verified ? '4px solid #059669' : '';
+      card.style.opacity = verified ? '0.88' : '';
+    }
+    if (pill) {
+      pill.style.borderColor = verified ? '#059669' : 'var(--gray-300, #d1d5db)';
+      pill.style.background = verified ? '#d1fae5' : 'transparent';
+      pill.style.color = verified ? '#065f46' : 'var(--gray-600, #4b5563)';
+    }
+    if (ta && !PAGE_READONLY) ta.readOnly = verified;
+  }
+  function updateProgress(done, total) {
+    var doneEl = document.getElementById('secDone');
+    var totalEl = document.getElementById('secTotal');
+    var bar = document.getElementById('secBar');
+    if (doneEl) doneEl.textContent = done;
+    if (totalEl) totalEl.textContent = total;
+    if (bar) bar.style.width = (total ? Math.round(done * 100 / total) : 0) + '%';
+    var approve = document.getElementById('approveBtn');
+    if (approve) approve.title = done < total
+      ? 'Verify all ' + total + ' sections to finish — finishing early asks for confirmation'
+      : 'All sections verified — finish the item';
+  }
+  function savedToast() {
+    var t = document.getElementById('saveToast');
+    if (!t) return;
+    t.hidden = false;
+    clearTimeout(savedToast._t);
+    savedToast._t = setTimeout(function () { t.hidden = true; }, 1600);
+  }
+  function postSection(name, verified, cb) {
+    var ta = document.querySelector('.verify-field[name="' + CSS.escape(name) + '"]');
+    var body = { field: name, value: ta ? ta.value : '' };
+    if (verified === true || verified === false) body.verified = verified;
+    post('/translations/verify/' + id + '/section', body).then(function (res) {
+      if (!res.ok) { cb(false, res.data); return; }
+      dirtyFields.delete(name);
+      savedToast();
+      cb(true, res.data);
+    });
+  }
+  document.querySelectorAll('.sec-check').forEach(function (check) {
+    check.addEventListener('change', function () {
+      var name = check.getAttribute('data-for');
+      var want = check.checked;
+      check.disabled = true;
+      postSection(name, want, function (ok, data) {
+        check.disabled = false;
+        if (!ok) {
+          check.checked = !want;
+          alert((data && data.error) || 'Section save failed');
+          return;
+        }
+        applySectionState(name, want);
+        updateProgress(data.verifiedCount, data.totalSections);
+      });
+    });
+  });
+  document.querySelectorAll('.verify-field').forEach(function (field) {
+    field.addEventListener('blur', function () {
+      if (PAGE_READONLY || !dirtyFields.has(field.name)) return;
+      // Best-effort auto-save; on failure the field simply stays dirty and
+      // Save Fixes / the next blur retries.
+      postSection(field.name, null, function () {});
+    });
+  });
+  updateProgress(parseInt(document.getElementById('secDone') ? document.getElementById('secDone').textContent : '0', 10) || 0,
+    parseInt(document.getElementById('secTotal') ? document.getElementById('secTotal').textContent : '0', 10) || 0);
 
   function collectPayload() {
     var payload = {};
@@ -319,7 +432,7 @@
     post('/translations/verify/' + id + '/save', { content_payload: collectPayload() }).then(function (res) {
       btn.disabled = false;
       if (res.ok) {
-        dirty = false;
+        dirtyFields.clear();
         btn.innerHTML = '<i class="fas fa-check"></i> Saved (' + res.data.editedSegments + ' reworked)';
         setTimeout(function () { btn.innerHTML = '<i class="fas fa-save"></i> Save Fixes'; }, 2000);
       } else {
@@ -332,16 +445,27 @@
   if (approveBtn) approveBtn.addEventListener('click', function () {
     if (!confirm('Approve this content for publication? Your verification (and any reworked segments) are credited when the admin publishes it.')) return;
     var btn = this;
-    btn.disabled = true;
-    post('/translations/verify/' + id + '/approve', { content_payload: collectPayload() }).then(function (res) {
-      if (res.ok) {
-        dirty = false;
-        location.href = '/translations/workspace';
-      } else {
+    function doApprove(body) {
+      btn.disabled = true;
+      post('/translations/verify/' + id + '/approve', body).then(function (res) {
+        if (res.ok) {
+          dirtyFields.clear();
+          location.href = '/translations/workspace';
+          return;
+        }
         btn.disabled = false;
+        // Soft completeness gate: finishing with unticked sections needs an
+        // explicit go-ahead — the nudge is completeness, never a hard block.
+        if (res.data && res.data.requiresAcknowledgement) {
+          var msg = (res.data.error || 'Some sections are not marked verified.') +
+            '\n\nFinish anyway? Unticked sections stay recorded as not individually signed off.';
+          if (confirm(msg)) doApprove({ content_payload: collectPayload(), acknowledge_incomplete: true });
+          return;
+        }
         alert(res.data.error || 'Approve failed');
-      }
-    });
+      });
+    }
+    doApprove({ content_payload: collectPayload() });
   });
 
   var returnBtn = document.getElementById('returnBtn');
