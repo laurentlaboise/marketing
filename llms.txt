@@ -26,7 +26,13 @@ Email: info@wordsthatsells.website
 ## Resources
 
 - [Articles / Blog](https://wordsthatsells.website/en/resources/articles/): Digital marketing and AI insights for Southeast Asia.
-- [SEO Glossary](https://wordsthatsells.website/en/resources/glossary/): Plain-language SEO and marketing terms.
+- [SEO Glossary for Southeast Asia](https://wordsthatsells.website/en/resources/glossary/): Free SEO glossary and digital marketing dictionary for Laos, Thailand, Vietnam, Indonesia, Singapore (82 terms + full guides).
+- [What is SEO](https://wordsthatsells.website/en/resources/glossary/search-engine-optimization-seo-2026.html): Search engine optimization guide 2026.
+- [Content Marketing SEO](https://wordsthatsells.website/en/resources/glossary/content-marketing-strategy-2026.html): Content marketing strategy for organic traffic.
+- [Backlinks](https://wordsthatsells.website/en/resources/glossary/backlinks-building-strategy-2026.html): Link building and off-page SEO.
+- [Keywords](https://wordsthatsells.website/en/resources/glossary/keywords-in-seo-2026-guide.html): Keyword research and targeting.
+- [On-page SEO](https://wordsthatsells.website/en/resources/glossary/onpage-optimization-checklist-2026.html): On-page optimization checklist.
+- [Google Business Profile](https://wordsthatsells.website/en/resources/glossary/google-business-profile-optimization-2026.html): Local SEO for SEA businesses.
 - [AI Tools](https://wordsthatsells.website/en/resources/ai-tools/): Recommended AI agents and tools.
 - [Guides](https://wordsthatsells.website/en/resources/guides/): Practical digital marketing guides.
 
