@@ -10,6 +10,11 @@
         <h1 class="page-title">Payout Ledger</h1>
         <p class="page-subtitle">Vendor balances, disbursement requests and rate cards</p>
       </div>
+      <div class="page-actions">
+        <button type="button" class="btn btn-secondary" id="seedDefaultsBtn" title="Load the position-brief default rates (Lao writing/checking/rework per 1,000 characters, lead bounties and tiers, engagement rates). Fills gaps only — never overwrites your edits.">
+          <i class="fas fa-wand-magic-sparkles"></i> Seed default rates
+        </button>
+      </div>
     </div>
 
     <!-- Vendor balances -->
@@ -115,6 +120,15 @@
 
         <form id="rateForm" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end;">
           <div class="form-group" style="margin:0;">
+            <label class="form-label">Worker</label>
+            <select class="form-input" name="translator_id" style="max-width:200px;">
+              <option value="">Everyone (global default)</option>
+              <% (typeof workers !== 'undefined' ? workers : []).forEach(w => { %>
+                <option value="<%= w.id %>"><%= w.first_name || '' %> <%= w.last_name || '' %> (<%= w.email %>)</option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
             <label class="form-label">Work</label>
             <select class="form-input" name="work_type">
               <option value="translation">translation (write)</option>
@@ -156,7 +170,8 @@
           <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Save Rate</button>
         </form>
         <p style="color:var(--gray-500); font-size:0.8rem; margin-top:0.5rem;">
-          Brief defaults: verification overflow ≈ LAK 30,000 / 1,000 chars. Vendor-specific cards can be added via the API with translator_id.
+          Brief defaults: verification ≈ LAK 30,000 / 1,000 chars. Choose a worker to give them their own card —
+          a worker-specific card always beats the global default for that language.
         </p>
       </div>
     </div>
@@ -184,7 +199,7 @@
               </tr>
               <% }); %>
               <% if (compRates.length === 0) { %>
-              <tr><td colspan="5" style="color:var(--gray-500);">No work-unit rates yet — run <code>node scripts/setup-workforce.js seed-rates</code> for the brief defaults, then adjust here.</td></tr>
+              <tr><td colspan="5" style="color:var(--gray-500);">No work-unit rates yet — press <strong>Seed default rates</strong> above to load the brief defaults, then adjust here.</td></tr>
               <% } %>
             </tbody>
           </table>
@@ -279,10 +294,25 @@
     });
   });
 
+  var seedBtn = document.getElementById('seedDefaultsBtn');
+  if (seedBtn) seedBtn.addEventListener('click', function () {
+    if (!confirm('Load the position-brief default rates? Existing rates are never changed — this only fills gaps.')) return;
+    seedBtn.disabled = true;
+    post('/translations/payouts/seed-defaults').then(function (res) {
+      seedBtn.disabled = false;
+      if (!res.ok) return alert(res.data.error || 'Seeding failed');
+      alert(res.data.created > 0
+        ? ('Seeded ' + res.data.created + ' default rate(s):\n\n' + res.data.log.join('\n'))
+        : 'All default rates are already configured — nothing to add.');
+      if (res.data.created > 0) location.reload();
+    });
+  });
+
   document.getElementById('rateForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var form = e.target;
     post('/translations/payouts/rates', {
+      translator_id: form.translator_id.value || null,
       work_type: form.work_type.value,
       target_language: form.target_language.value || null,
       rate_type: form.rate_type.value,

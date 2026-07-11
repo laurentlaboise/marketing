@@ -1009,7 +1009,7 @@ test('Sync Site Pages imports the website pages into the pipeline', async () => 
 
   // The pipeline list shows pages by their site path, and translators are
   // still locked out of the import.
-  const list = await session.fetch('/translations?entity_type=page');
+  const list = await session.fetch('/translations?entity_type=page&per_page=200');
   assert.match(await list.text(), /\/digital-marketing-services\/prices\//);
   const translator = new Session(server.base);
   await translator.login('translator@test.local');
@@ -1545,5 +1545,150 @@ test('library sweep cross-links every content type and never re-opens paid trans
     await pool.query(`DELETE FROM guides WHERE slug = 'testterm-sweep-guide'`);
     await pool.query(`DELETE FROM products WHERE name = 'TestTerm Product'`);
     await pool.query('DELETE FROM glossary WHERE id = ANY($1)', [[gid, g2.rows[0].id]]);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Assessment-report fixes: titles, paging, seeding, invites, payout guard
+// ---------------------------------------------------------------------------
+
+test('pipeline list shows content titles and the workspace pages both queues', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+
+  const list = await session.fetch('/translations?entity_type=glossary');
+  assert.equal(list.status, 200);
+  const html = await list.text();
+  assert.ok(html.includes('TestTerm SEO'), 'rows are labelled with the content title, not id fragments');
+
+  // Queue paging params are accepted and clamped (a huge page lands on the
+  // last real one instead of an empty screen).
+  const ws = await session.fetch('/translations/workspace?tpage=999&vpage=999&per=50');
+  assert.equal(ws.status, 200);
+  const wsHtml = await ws.text();
+  assert.ok(wsHtml.includes('all languages'), 'admins see "all languages", never "none assigned yet"');
+  assert.ok(!wsHtml.includes('none assigned yet'));
+});
+
+test('seed-defaults endpoint fills rate gaps idempotently', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  const first = await session.fetch('/translations/payouts/seed-defaults', { method: 'POST', headers, body: '{}' });
+  assert.equal(first.status, 200);
+  const firstData = await first.json();
+  assert.ok(firstData.success);
+
+  const verificationLa = await pool.query(
+    `SELECT 1 FROM payout_rates WHERE work_type = 'verification' AND target_language = 'la'
+       AND translator_id IS NULL AND is_active = TRUE`
+  );
+  assert.ok(verificationLa.rows.length >= 1, 'global Lao verification rate exists after seeding');
+  const cascade = await pool.query(
+    `SELECT 1 FROM comp_rates WHERE work_type = 'cascade_share' AND user_id IS NULL AND is_active = TRUE`
+  );
+  assert.ok(cascade.rows.length >= 1, 'work-unit defaults seeded too');
+
+  const second = await session.fetch('/translations/payouts/seed-defaults', { method: 'POST', headers, body: '{}' });
+  const secondData = await second.json();
+  assert.equal(secondData.created, 0, 'second run adds nothing — never overwrites');
+});
+
+test('vendor invite creates a worker with a set-password link; duplicates are refused', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  try {
+    const res = await session.fetch('/translations/vendors/invite', {
+      method: 'POST', headers,
+      body: JSON.stringify({ email: 'invитee@test.local'.replace('ит', 'it'), first_name: 'Noy', assigned_languages: ['la', 'xx'], position: 'content_verifier' }),
+    });
+    assert.equal(res.status, 201);
+    const data = await res.json();
+    assert.ok(data.inviteLink.includes('/auth/reset-password/'), 'invite link rides the existing reset flow');
+
+    const created = (await pool.query(`SELECT role, is_vendor, assigned_languages, position, reset_token FROM users WHERE email = 'invitee@test.local'`)).rows[0];
+    assert.equal(created.role, 'translator', 'invites can never mint admins');
+    assert.equal(created.is_vendor, true);
+    assert.deepEqual(created.assigned_languages, ['la'], 'unknown languages are dropped');
+    assert.equal(created.position, 'content_verifier');
+    assert.ok(created.reset_token, 'set-password token stored');
+
+    const dup = await session.fetch('/translations/vendors/invite', {
+      method: 'POST', headers, body: JSON.stringify({ email: 'invitee@test.local' }),
+    });
+    assert.equal(dup.status, 409);
+
+    const bad = await session.fetch('/translations/vendors/invite', {
+      method: 'POST', headers, body: JSON.stringify({ email: 'not-an-email' }),
+    });
+    assert.equal(bad.status, 400);
+  } finally {
+    await pool.query(`DELETE FROM users WHERE email = 'invitee@test.local'`);
+  }
+});
+
+test('publishing vendor work without a rate requires explicit acknowledgement', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+  const hash = await require('bcryptjs').hash('Password123!', 10);
+
+  // A French vendor with NO rate card of any kind. Upserted (and kept)
+  // like the suite's other seed users: the publish notification below
+  // references the account, so it can't be deleted afterwards.
+  const vendor = await pool.query(
+    `INSERT INTO users (email, password_hash, first_name, role, assigned_languages, is_vendor)
+     VALUES ('norate@test.local', $1, 'Claire', 'translator', '{fr}', TRUE)
+     ON CONFLICT (email) DO UPDATE
+       SET role = 'translator', assigned_languages = '{fr}', is_vendor = TRUE
+     RETURNING id`,
+    [hash]
+  );
+  // No leftover per-vendor rate cards from earlier runs.
+  await pool.query(`DELETE FROM payout_rates WHERE translator_id = $1`, [vendor.rows[0].id]);
+  // Earlier tests may have created blanket (any-language) translation
+  // rates that would legitimately cover Claire — park them so "no
+  // applicable rate" is actually true, and restore them afterwards.
+  const parked = await pool.query(
+    `UPDATE payout_rates SET is_active = FALSE
+     WHERE translator_id IS NULL
+       AND (target_language IS NULL OR target_language = 'fr')
+       AND work_type = 'translation' AND is_active = TRUE
+     RETURNING id`
+  );
+  const row = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, translator_id, content_payload, target_char_count)
+     VALUES ('article', gen_random_uuid(), 'fr', 'requires_review', $1, '{"title":"Essai"}'::jsonb, 5)
+     RETURNING id`,
+    [vendor.rows[0].id]
+  );
+
+  try {
+    const blocked = await session.fetch(`/translations/${row.rows[0].id}/approve`, { method: 'POST', headers, body: '{}' });
+    assert.equal(blocked.status, 409, 'publish stops when a credit would silently skip');
+    const blockedData = await blocked.json();
+    assert.ok(blockedData.requiresAcknowledgement);
+    assert.match(blockedData.warnings[0], /No translation rate for Claire/);
+
+    const stillDraft = (await pool.query('SELECT status FROM translations WHERE id = $1', [row.rows[0].id])).rows[0];
+    assert.equal(stillDraft.status, 'requires_review', 'nothing was published by the refusal');
+
+    const acknowledged = await session.fetch(`/translations/${row.rows[0].id}/approve`, {
+      method: 'POST', headers, body: JSON.stringify({ acknowledge_no_payout: true }),
+    });
+    assert.equal(acknowledged.status, 200);
+    const ackData = await acknowledged.json();
+    assert.equal(ackData.payout, null, 'published with no credit, exactly as acknowledged');
+  } finally {
+    await pool.query('DELETE FROM translations WHERE id = $1', [row.rows[0].id]);
+    if (parked.rows.length) {
+      await pool.query(`UPDATE payout_rates SET is_active = TRUE WHERE id = ANY($1)`, [parked.rows.map((r) => r.id)]);
+    }
   }
 });
