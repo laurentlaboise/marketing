@@ -71,6 +71,9 @@ function deniedForRow(req, res, row) {
 // fragments. Returns rows with entity_title attached.
 async function withEntityTitles(rows) {
   const titles = {};
+  // config.table / config.titleField are interpolated: they come from the
+  // hard-coded core.ENTITY_SOURCES map and must NEVER become configurable
+  // from user input. Row ids stay parameterized via ANY($1).
   for (const type of core.ENTITY_TYPES) {
     const ids = rows.filter((r) => r.entity_type === type).map((r) => r.entity_id);
     if (ids.length === 0) continue;
@@ -738,7 +741,7 @@ router.post('/vendors/:id', ensureSuperAdmin, logActivity('translation_vendor_up
 
 router.get('/payouts', ensureSuperAdmin, async (req, res, next) => {
   try {
-    const [balances, requests, rates, compRates, recentLedger] = await Promise.all([
+    const [balances, requests, rates, compRates, recentLedger, workers] = await Promise.all([
       db.query(
         `SELECT u.id, u.email, u.first_name, u.last_name, l.currency,
                 COALESCE(SUM(l.amount) FILTER (WHERE l.status = 'available'), 0) AS available,
@@ -771,13 +774,13 @@ router.get('/payouts', ensureSuperAdmin, async (req, res, next) => {
          FROM payout_ledger l JOIN users u ON u.id = l.translator_id
          ORDER BY l.created_at DESC LIMIT 50`
       ),
+      db.query(
+        `SELECT id, email, first_name, last_name FROM users
+         WHERE role = 'translator' ORDER BY first_name, email`
+      ),
     ]);
 
     const { WORK_TYPES } = require('../lib/comp-engine');
-    const workers = await db.query(
-      `SELECT id, email, first_name, last_name FROM users
-       WHERE role = 'translator' ORDER BY first_name, email`
-    );
     res.render('translations/payouts', {
       title: 'Payout Ledger - WTS Admin',
       currentPage: 'translation-payouts',

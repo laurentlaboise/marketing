@@ -1657,7 +1657,8 @@ test('publishing vendor work without a rate requires explicit acknowledgement', 
   // applicable rate" is actually true, and restore them afterwards.
   const parked = await pool.query(
     `UPDATE payout_rates SET is_active = FALSE
-     WHERE translator_id IS NULL AND target_language IS NULL
+     WHERE translator_id IS NULL
+       AND (target_language IS NULL OR target_language = 'fr')
        AND work_type = 'translation' AND is_active = TRUE
      RETURNING id`
   );

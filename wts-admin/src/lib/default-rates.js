@@ -46,9 +46,18 @@ const COMP_RATE_DEFAULTS = [
 // Seeds any missing global default rates. Returns { created, log } — log
 // lines describe exactly what was inserted (shown in the CLI and in the
 // admin UI's result message).
-async function seedDefaultRates(client = db) {
+async function seedDefaultRates() {
   let created = 0;
   const log = [];
+
+  // Concurrent seeders (the CLI and the admin button, or a double-click)
+  // would both pass the not-exists checks and insert duplicate global
+  // rows — a transaction alone doesn't prevent that under read committed,
+  // so runs serialize on an advisory lock held for the transaction.
+  const client = await db.getClient();
+  await client.query('BEGIN');
+  await client.query('SELECT pg_advisory_xact_lock(727150002)');
+  try {
 
   for (const [workType, lang, rateType, amount, currency] of PAYOUT_RATE_DEFAULTS) {
     const exists = await client.query(
@@ -88,6 +97,13 @@ async function seedDefaultRates(client = db) {
     log.push(`work-unit rate: ${rate.work_type} LAK ${rate.rate_amount.toLocaleString()}${rate.tiers ? ' (tiered)' : ''}${rate.bonus_percent ? ` + ${rate.bonus_percent}% floor ${rate.bonus_floor.toLocaleString()}` : ''}`);
   }
 
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+  }
   return { created, log };
 }
 

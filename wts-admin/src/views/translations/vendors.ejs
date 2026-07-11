@@ -170,6 +170,8 @@
   var inviteForm = document.getElementById('inviteForm');
   if (inviteForm) inviteForm.addEventListener('submit', function (e) {
     e.preventDefault();
+    var submitBtn = inviteForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
     var langs = Array.prototype.map.call(inviteForm.querySelectorAll('input[name="invite_lang"]:checked'), function (c) { return c.value; });
     var body = {
       email: inviteForm.querySelector('[name="email"]').value.trim(),
@@ -184,13 +186,13 @@
       body: JSON.stringify(body)
     }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
       .then(function (res) {
-        if (!res.ok) return alert(res.data.error || 'Invite failed');
+        if (!res.ok) { submitBtn.disabled = false; return alert(res.data.error || 'Invite failed'); }
         prompt((res.data.emailed
           ? 'Invited! An email was sent. You can also share this set-password link directly:'
           : 'Invited! Email is not configured — share this set-password link with the worker:'), res.data.inviteLink);
         location.reload();
       })
-      .catch(function () { alert('Invite failed: network error'); });
+      .catch(function () { submitBtn.disabled = false; alert('Invite failed: network error'); });
   });
 
 
