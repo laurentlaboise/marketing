@@ -209,9 +209,11 @@ input, textarea, select {
 }
 
 .auth-logo-svg {
-  max-width: 220px;
+  max-width: 120px;
+  width: 120px;
   height: auto;
-  margin-bottom: 15px;
+  margin: 0 auto 15px;
+  display: block;
 }
 
 .auth-logo h1 {
