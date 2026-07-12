@@ -4,7 +4,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
   <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->
-  <!-- URL count: 106 | generated 2026-07-11 by scripts/generate-sitemap.js -->
+  <!-- URL count: 306 | generated 2026-07-12 by scripts/generate-sitemap.js -->
 
   <url>
     <loc>https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html</loc>
@@ -21,7 +21,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html" />
@@ -34,7 +34,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/about-us/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/about-us/" />
@@ -47,7 +47,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/affiliate-sales/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/affiliate-sales/" />
@@ -60,7 +60,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/contact-us/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/contact-us/" />
@@ -73,20 +73,18 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/digital-agencies/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/digital-agencies/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/digital-agencies/" />
     <image:image>
       <image:loc>https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/AIDigitalMarketingthailandlaossoutheastasia.webp</image:loc>
-      <image:title>WordsThatSells AI digital marketing team</image:title>
-      <image:caption>WordsThatSells team collaborating on AI digital marketing strategy in Vientiane, Laos</image:caption>
     </image:image>
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/" />
@@ -99,7 +97,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html" />
@@ -107,7 +105,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/cookie-policy.html</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/cookie-policy.html" />
@@ -115,7 +113,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/" />
@@ -123,7 +121,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/privacy-policy.html</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" />
@@ -131,7 +129,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/terms-and-conditions.html</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html" />
@@ -139,7 +137,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html" />
@@ -147,7 +145,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/business-tools/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
@@ -160,7 +158,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/content-creation/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
@@ -173,7 +171,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/" />
@@ -186,20 +184,18 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/prices/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
     <image:image>
-      <image:loc>https://wordsthatsells.website/images/wts-pricing-banner-1200.webp</image:loc>
-      <image:title>Marketing Banners with AI</image:title>
-      <image:caption>Marketing Banners with AI</image:caption>
+      <image:loc>https://wordsthatsells.website/images/AIDigitalMarketingthailandlaossoutheastasia-1920.webp</image:loc>
     </image:image>
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/social-media-management/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
@@ -212,7 +208,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/web-development/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
@@ -225,7 +221,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/" />
@@ -237,12 +233,1612 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/10web/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/10web/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/10web/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/activecampaign/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/activecampaign/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/activecampaign/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/activepieces/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/activepieces/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/activepieces/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/ada/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/ada/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/ada/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/adobe-firefly/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/adobe-firefly/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/adobe-firefly/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/adobe-podcast/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/adobe-podcast/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/adobe-podcast/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/ahrefs/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/ahrefs/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/ahrefs/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/aider-cli/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/aider-cli/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/aider-cli/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/aider/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/aider/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/aider/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/alli-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/alli-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/alli-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/amazon-q/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/amazon-q/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/amazon-q/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/amplitude-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/amplitude-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/amplitude-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/anthropic-api/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/anthropic-api/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/anthropic-api/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/anyscale/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/anyscale/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/anyscale/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/anyword-max/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/anyword-max/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/anyword-max/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/apollo-io/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/apollo-io/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/apollo-io/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/artbreeder/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/artbreeder/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/artbreeder/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/attio-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/attio-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/attio-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/audo/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/audo/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/audo/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/b12/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/b12/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/b12/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/bardeen-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/bardeen-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/bardeen-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/bardeen/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/bardeen/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/bardeen/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/beautiful-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/beautiful-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/beautiful-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/beehiiv/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/beehiiv/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/beehiiv/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/blackbox-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/blackbox-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/blackbox-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/bolt-new/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/bolt-new/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/bolt-new/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/brevo/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/brevo/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/brevo/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/bubble/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/bubble/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/bubble/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/canva-magic-studio/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/canva-magic-studio/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/canva-magic-studio/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/capcut/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/capcut/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/capcut/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/character-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/character-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/character-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/chatgpt/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/chatgpt/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/chatgpt/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/chroma/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/chroma/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/chroma/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/civitai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/civitai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/civitai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/claude/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/claude/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/claude/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/clay/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/clay/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/clay/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/clearscope/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/clearscope/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/clearscope/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/close-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/close-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/close-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/codeium/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/codeium/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/codeium/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/codewp/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/codewp/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/codewp/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/cody-by-sourcegraph/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/cody-by-sourcegraph/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/cody-by-sourcegraph/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/colossyan/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/colossyan/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/colossyan/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/common-room/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/common-room/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/common-room/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/connected-papers/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/connected-papers/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/connected-papers/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/consensus/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/consensus/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/consensus/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/continue-dev/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/continue-dev/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/continue-dev/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/convertkit/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/convertkit/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/convertkit/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/copy-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/copy-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/copy-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/cursor/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/cursor/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/cursor/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/customer-io/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/customer-io/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/customer-io/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/dall-e/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/dall-e/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/dall-e/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/decagon/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/decagon/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/decagon/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/decktopus/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/decktopus/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/decktopus/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/deepseek-chat/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/deepseek-chat/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/deepseek-chat/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/descript-overdub/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/descript-overdub/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/descript-overdub/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/descript/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/descript/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/descript/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/dora-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/dora-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/dora-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/drift/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/drift/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/drift/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/duckduckgo-ai-chat/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/duckduckgo-ai-chat/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/duckduckgo-ai-chat/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/durable/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/durable/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/durable/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/elai-io/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/elai-io/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/elai-io/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/elevenlabs/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/elevenlabs/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/elevenlabs/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/elicit/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/elicit/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/elicit/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/fal-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/fal-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/fal-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/figma-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/figma-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/figma-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/firebase/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/firebase/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/firebase/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/fireflies-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/fireflies-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/fireflies-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/fireworks-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/fireworks-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/fireworks-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/fliki/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/fliki/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/fliki/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/flux/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/flux/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/flux/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/folk-crm/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/folk-crm/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/folk-crm/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/forethought/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/forethought/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/forethought/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/framer-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/framer-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/framer-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/frase-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/frase-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/frase-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/frase/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/frase/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/frase/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/fyxer/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/fyxer/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/fyxer/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/gamma/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/gamma/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/gamma/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/gemini/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/gemini/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/gemini/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/github-copilot/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/github-copilot/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/github-copilot/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/glide/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/glide/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/glide/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/google-analytics/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/google-analytics/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/google-analytics/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/grammarly/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/grammarly/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/grammarly/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/grok/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/grok/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/grok/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/groq/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/groq/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/groq/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/gumloop/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/gumloop/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/gumloop/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/haiper/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/haiper/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/haiper/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/haystack/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/haystack/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/haystack/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/heygen/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/heygen/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/heygen/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/hostinger-ai-builder/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/hostinger-ai-builder/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/hostinger-ai-builder/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/hotjar/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/hotjar/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/hotjar/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/hubspot-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/hubspot-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/hubspot-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/hugging-face/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/hugging-face/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/hugging-face/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/huggingchat/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/huggingchat/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/huggingchat/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/hyperwrite/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/hyperwrite/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/hyperwrite/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/ideogram/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/ideogram/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/ideogram/" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/en/resources/ai-tools/</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/instantly/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/instantly/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/instantly/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/intercom-fin/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/intercom-fin/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/intercom-fin/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/jasper/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/jasper/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/jasper/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/kaiber/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/kaiber/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/kaiber/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/klaviyo/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/klaviyo/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/klaviyo/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/kling-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/kling-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/kling-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/langchain/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/langchain/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/langchain/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/lemlist/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/lemlist/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/lemlist/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/leonardo-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/leonardo-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/leonardo-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/lex/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/lex/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/lex/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/lindy/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/lindy/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/lindy/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/litmaps/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/litmaps/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/litmaps/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/liveperson/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/liveperson/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/liveperson/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/llamaindex/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/llamaindex/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/llamaindex/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/logrocket/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/logrocket/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/logrocket/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/longshot-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/longshot-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/longshot-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/lovable/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/lovable/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/lovable/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/lucky-orange/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/lucky-orange/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/lucky-orange/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/luma-dream-machine/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/luma-dream-machine/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/luma-dream-machine/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/luma-ray2/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/luma-ray2/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/luma-ray2/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/magician-for-figma/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/magician-for-figma/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/magician-for-figma/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/mailchimp/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/mailchimp/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/mailchimp/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/make/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/make/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/make/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/marketmuse/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/marketmuse/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/marketmuse/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/mem-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/mem-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/mem-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/meta-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/meta-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/meta-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/microsoft-copilot/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/microsoft-copilot/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/microsoft-copilot/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/midjourney/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/midjourney/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/midjourney/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/mistral-le-chat/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/mistral-le-chat/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/mistral-le-chat/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/mixpanel-spark/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/mixpanel-spark/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/mixpanel-spark/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/mixpanel/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/mixpanel/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/mixpanel/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/motiff/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/motiff/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/motiff/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/murf/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/murf/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/murf/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/n8n/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/n8n/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/n8n/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/nightcafe/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/nightcafe/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/nightcafe/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/notebooklm/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/notebooklm/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/notebooklm/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/notion-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/notion-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/notion-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/openai-platform/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/openai-platform/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/openai-platform/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/openrouter/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/openrouter/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/openrouter/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/opus-clip/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/opus-clip/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/opus-clip/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/otter-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/otter-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/otter-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/page-optimizer-pro/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/page-optimizer-pro/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/page-optimizer-pro/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/pendo/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/pendo/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/pendo/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/peppertype/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/peppertype/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/peppertype/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/perplexity/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/perplexity/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/perplexity/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/phind-chat/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/phind-chat/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/phind-chat/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/pi/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/pi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/pi/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/pika/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/pika/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/pika/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/pinecone/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/pinecone/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/pinecone/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/pipedream/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/pipedream/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/pipedream/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/pitch/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/pitch/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/pitch/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/play-ht/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/play-ht/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/play-ht/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/playground-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/playground-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/playground-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/plus-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/plus-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/plus-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/poe/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/poe/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/poe/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/recraft/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/recraft/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/recraft/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/reflect-notes/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/reflect-notes/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/reflect-notes/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/relay-app/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/relay-app/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/relay-app/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/relume/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/relume/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/relume/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/remove-bg/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/remove-bg/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/remove-bg/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/replicate/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/replicate/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/replicate/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/replit-agent/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/replit-agent/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/replit-agent/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/reply-io/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/reply-io/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/reply-io/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/researchrabbit/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/researchrabbit/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/researchrabbit/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/runway/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/runway/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/runway/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/saner-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/saner-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/saner-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/scholarcy/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/scholarcy/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/scholarcy/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/scite/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/scite/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/scite/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/seaart/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/seaart/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/seaart/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/semantic-scholar/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/semantic-scholar/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/semantic-scholar/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/semrush/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/semrush/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/semrush/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/seo-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/seo-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/seo-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/shortwave-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/shortwave-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/shortwave-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/sierra/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/sierra/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/sierra/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/similarweb/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/similarweb/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/similarweb/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/slidesgo-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/slidesgo-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/slidesgo-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/smartlead/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/smartlead/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/smartlead/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/speechify/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/speechify/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/speechify/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/stable-diffusion/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/stable-diffusion/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/stable-diffusion/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/steve-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/steve-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/steve-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/supabase/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/supabase/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/supabase/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/surfer-content-editor/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/surfer-content-editor/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/surfer-content-editor/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/surfer-seo/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/surfer-seo/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/surfer-seo/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/synthesia/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/synthesia/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/synthesia/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/tabby/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/tabby/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/tabby/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/tabnine/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/tabnine/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/tabnine/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/taskade-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/taskade-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/taskade-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/together-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/together-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/together-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/tome/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/tome/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/tome/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/type/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/type/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/type/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/uizard-autodesigner/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/uizard-autodesigner/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/uizard-autodesigner/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/ultimate-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/ultimate-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/ultimate-ai/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/v0-by-vercel/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/v0-by-vercel/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/v0-by-vercel/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/v0/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/v0/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/v0/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/viggle/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/viggle/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/viggle/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/visily/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/visily/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/visily/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/weaviate/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/weaviate/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/weaviate/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/webflow/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/webflow/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/webflow/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/wellsaid-labs/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/wellsaid-labs/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/wellsaid-labs/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/windsurf/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/windsurf/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/windsurf/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/writesonic-seo/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/writesonic-seo/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/writesonic-seo/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/writesonic/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/writesonic/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/writesonic/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/you-com/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/you-com/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/you-com/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/zapier/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/zapier/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/zapier/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/en/resources/ai-tools/zendesk-ai/</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/zendesk-ai/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/zendesk-ai/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/articles/</loc>

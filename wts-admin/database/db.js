@@ -460,7 +460,14 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ai_tools' AND column_name='source') THEN
             ALTER TABLE ai_tools ADD COLUMN source VARCHAR(120);
           END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ai_tools' AND column_name='slug') THEN
+            ALTER TABLE ai_tools ADD COLUMN slug VARCHAR(255);
+          END IF;
         END $$;
+      `);
+      await client.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_tools_slug_unique
+        ON ai_tools (slug) WHERE slug IS NOT NULL AND slug <> '';
       `);
 
       // Glossary table

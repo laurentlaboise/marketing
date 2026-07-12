@@ -364,6 +364,40 @@ router.get('/images/seo', async (req, res) => {
 
 // ==================== AI TOOLS ====================
 
+function slugifyToolName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'tool';
+}
+
+function transformAiTool(tool) {
+  const slug = tool.slug || slugifyToolName(tool.name);
+  return {
+    id: tool.id,
+    name: tool.name,
+    slug,
+    detail_url: `/en/resources/ai-tools/${slug}/`,
+    category: tool.category,
+    description: tool.description,
+    pricing: tool.pricing_model || 'Unknown',
+    logo: tool.logo_url,
+    website_link: tool.website_url,
+    website_url: tool.website_url,
+    app_store_link: tool.app_store_url || null,
+    play_store_link: tool.play_store_url || null,
+    app_store_url: tool.app_store_url || null,
+    play_store_url: tool.play_store_url || null,
+    key_features: Array.isArray(tool.features) ? tool.features : [],
+    features: Array.isArray(tool.features) ? tool.features : [],
+    pros: Array.isArray(tool.pros) ? tool.pros : [],
+    cons: Array.isArray(tool.cons) ? tool.cons : [],
+    rating: tool.rating
+  };
+}
+
 // Get all active AI tools
 router.get('/ai-tools', async (req, res) => {
   try {
@@ -381,32 +415,35 @@ router.get('/ai-tools', async (req, res) => {
     query += ' ORDER BY rating DESC NULLS LAST, name ASC';
 
     const result = await db.query(query, params);
-
-    // Transform for frontend compatibility (slide-in panel expects these keys)
-    const tools = result.rows.map(tool => ({
-      id: tool.id,
-      name: tool.name,
-      category: tool.category,
-      description: tool.description,
-      pricing: tool.pricing_model || 'Unknown',
-      logo: tool.logo_url,
-      website_link: tool.website_url,
-      website_url: tool.website_url,
-      app_store_link: tool.app_store_url || null,
-      play_store_link: tool.play_store_url || null,
-      app_store_url: tool.app_store_url || null,
-      play_store_url: tool.play_store_url || null,
-      key_features: Array.isArray(tool.features) ? tool.features : [],
-      features: Array.isArray(tool.features) ? tool.features : [],
-      pros: Array.isArray(tool.pros) ? tool.pros : [],
-      cons: Array.isArray(tool.cons) ? tool.cons : [],
-      rating: tool.rating
-    }));
-
-    respond(res, tools);
+    respond(res, result.rows.map(transformAiTool));
   } catch (error) {
     console.error('Public API - AI Tools error:', error);
     respond(res, { error: 'Failed to load AI tools' }, 500);
+  }
+});
+
+// Single tool by SEO slug (for detail pages / hydration)
+router.get('/ai-tools/by-slug/:slug', async (req, res) => {
+  try {
+    const slug = String(req.params.slug || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (!slug) return respond(res, { error: 'Invalid slug' }, 400);
+
+    let result = await db.query(
+      `SELECT * FROM ai_tools WHERE status = 'active' AND slug = $1 LIMIT 1`,
+      [slug]
+    );
+
+    // Fallback: match generated slug from name if column empty/legacy
+    if (!result.rows.length) {
+      result = await db.query(`SELECT * FROM ai_tools WHERE status = 'active'`);
+      result.rows = result.rows.filter((row) => slugifyToolName(row.name) === slug).slice(0, 1);
+    }
+
+    if (!result.rows.length) return respond(res, { error: 'Tool not found' }, 404);
+    respond(res, transformAiTool(result.rows[0]));
+  } catch (error) {
+    console.error('Public API - AI Tool by slug error:', error);
+    respond(res, { error: 'Failed to load AI tool' }, 500);
   }
 });
 

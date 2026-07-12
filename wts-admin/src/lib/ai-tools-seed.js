@@ -7,11 +7,33 @@ const path = require('path');
 
 const SEED_PATH = path.join(__dirname, '../../database/seed/top-100-ai-tools.json');
 
+function slugify(name) {
+  return String(name || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'tool';
+}
+
 function loadSeed() {
   const raw = JSON.parse(fs.readFileSync(SEED_PATH, 'utf8'));
   const tools = Array.isArray(raw) ? raw : raw.tools || [];
   if (!tools.length) throw new Error('AI tools seed file is empty');
-  return tools;
+  // Ensure every tool has a stable SEO slug
+  const used = new Set();
+  return tools.map((tool) => {
+    let base = tool.slug ? slugify(tool.slug) : slugify(tool.name);
+    let slug = base;
+    let i = 2;
+    while (used.has(slug)) {
+      slug = `${base}-${i++}`;
+    }
+    used.add(slug);
+    return Object.assign({}, tool, { slug });
+  });
 }
 
 /**
@@ -46,6 +68,12 @@ async function seedAiTools(db, opts = {}) {
       ) THEN
         ALTER TABLE ai_tools ADD COLUMN play_store_url TEXT;
       END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'ai_tools' AND column_name = 'slug'
+      ) THEN
+        ALTER TABLE ai_tools ADD COLUMN slug VARCHAR(255);
+      END IF;
     END $$;
   `);
 
@@ -74,6 +102,7 @@ async function seedAiTools(db, opts = {}) {
 
     const appStore = t.app_store_url || t.app_store_link || null;
     const playStore = t.play_store_url || t.play_store_link || null;
+    const slug = t.slug || slugify(name);
 
     if (existing.rows.length) {
       await db.query(
@@ -91,8 +120,9 @@ async function seedAiTools(db, opts = {}) {
           source = $11,
           app_store_url = $12,
           play_store_url = $13,
+          slug = $14,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $14`,
+        WHERE id = $15`,
         [
           t.description || null,
           t.category || null,
@@ -107,6 +137,7 @@ async function seedAiTools(db, opts = {}) {
           source,
           appStore,
           playStore,
+          slug,
           existing.rows[0].id
         ]
       );
@@ -114,8 +145,8 @@ async function seedAiTools(db, opts = {}) {
     } else {
       await db.query(
         `INSERT INTO ai_tools
-          (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status, source, app_store_url, play_store_url)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+          (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status, source, app_store_url, play_store_url, slug)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
         [
           name,
           t.description || null,
@@ -130,7 +161,8 @@ async function seedAiTools(db, opts = {}) {
           t.status || 'active',
           source,
           appStore,
-          playStore
+          playStore,
+          slug
         ]
       );
       inserted += 1;
@@ -147,4 +179,4 @@ async function seedAiTools(db, opts = {}) {
   };
 }
 
-module.exports = { seedAiTools, loadSeed, SEED_PATH };
+module.exports = { seedAiTools, loadSeed, slugify, SEED_PATH };

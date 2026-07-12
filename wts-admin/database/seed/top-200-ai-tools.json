@@ -30,7 +30,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/chatgpt/id6448311069",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.openai.chatgpt"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.openai.chatgpt",
+      "slug": "chatgpt"
     },
     {
       "name": "Claude",
@@ -60,7 +61,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/claude-by-anthropic/id6473753684",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.anthropic.claude"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.anthropic.claude",
+      "slug": "claude"
     },
     {
       "name": "Gemini",
@@ -90,7 +92,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/google-gemini/id6476773066",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.google.android.apps.bard"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.google.android.apps.bard",
+      "slug": "gemini"
     },
     {
       "name": "Microsoft Copilot",
@@ -120,7 +123,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/microsoft-copilot/id6472538445",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.microsoft.copilot"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.microsoft.copilot",
+      "slug": "microsoft-copilot"
     },
     {
       "name": "Perplexity",
@@ -150,7 +154,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/perplexity-ask-anything/id1668000334",
-      "play_store_url": "https://play.google.com/store/apps/details?id=ai.perplexity.app.android"
+      "play_store_url": "https://play.google.com/store/apps/details?id=ai.perplexity.app.android",
+      "slug": "perplexity"
     },
     {
       "name": "Grok",
@@ -180,7 +185,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/x/id333903271",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.twitter.android"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.twitter.android",
+      "slug": "grok"
     },
     {
       "name": "Meta AI",
@@ -210,7 +216,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/meta-ai/id6478882787",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.facebook.stella"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.facebook.stella",
+      "slug": "meta-ai"
     },
     {
       "name": "Poe",
@@ -240,7 +247,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/poe-fast-ai-chat/id1640745955",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.quora.poe"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.quora.poe",
+      "slug": "poe"
     },
     {
       "name": "Pi",
@@ -270,7 +278,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/pi-personal-ai/id6445814569",
-      "play_store_url": "https://play.google.com/store/apps/details?id=ai.inflection.pi"
+      "play_store_url": "https://play.google.com/store/apps/details?id=ai.inflection.pi",
+      "slug": "pi"
     },
     {
       "name": "You.com",
@@ -300,7 +309,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/you-com-ai-search-chat/id6470347666",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.you.search"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.you.search",
+      "slug": "you-com"
     },
     {
       "name": "Midjourney",
@@ -330,7 +340,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "midjourney"
     },
     {
       "name": "DALL\u00b7E",
@@ -360,7 +371,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/chatgpt/id6448311069",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.openai.chatgpt"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.openai.chatgpt",
+      "slug": "dall-e"
     },
     {
       "name": "Stable Diffusion",
@@ -390,7 +402,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "stable-diffusion"
     },
     {
       "name": "Adobe Firefly",
@@ -420,7 +433,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/adobe-express-ai-photo-video/id1450307969",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.adobe.spark.post"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.adobe.spark.post",
+      "slug": "adobe-firefly"
     },
     {
       "name": "Leonardo AI",
@@ -450,7 +464,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/leonardo-ai-image-generator/id6474508105",
-      "play_store_url": "https://play.google.com/store/apps/details?id=ai.leonardo.android"
+      "play_store_url": "https://play.google.com/store/apps/details?id=ai.leonardo.android",
+      "slug": "leonardo-ai"
     },
     {
       "name": "Ideogram",
@@ -480,7 +495,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "ideogram"
     },
     {
       "name": "Flux",
@@ -510,7 +526,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "flux"
     },
     {
       "name": "Canva Magic Studio",
@@ -540,7 +557,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/canva-design-photo-video/id897446215",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.canva.editor"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.canva.editor",
+      "slug": "canva-magic-studio"
     },
     {
       "name": "Figma AI",
@@ -570,7 +588,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "figma-ai"
     },
     {
       "name": "Remove.bg",
@@ -600,7 +619,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/remove-bg-background-eraser/id1498166399",
-      "play_store_url": "https://play.google.com/store/apps/details?id=bg.remove.android"
+      "play_store_url": "https://play.google.com/store/apps/details?id=bg.remove.android",
+      "slug": "remove-bg"
     },
     {
       "name": "Runway",
@@ -630,7 +650,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "runway"
     },
     {
       "name": "Pika",
@@ -660,7 +681,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "pika"
     },
     {
       "name": "Kling AI",
@@ -690,7 +712,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "kling-ai"
     },
     {
       "name": "Luma Dream Machine",
@@ -720,7 +743,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "luma-dream-machine"
     },
     {
       "name": "HeyGen",
@@ -750,7 +774,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "heygen"
     },
     {
       "name": "Synthesia",
@@ -780,7 +805,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "synthesia"
     },
     {
       "name": "Descript",
@@ -810,7 +836,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "descript"
     },
     {
       "name": "CapCut",
@@ -840,7 +867,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/capcut-video-editor/id1500855883",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.lemon.lvoverseas"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.lemon.lvoverseas",
+      "slug": "capcut"
     },
     {
       "name": "Opus Clip",
@@ -870,7 +898,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "opus-clip"
     },
     {
       "name": "ElevenLabs",
@@ -900,7 +929,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "elevenlabs"
     },
     {
       "name": "Murf",
@@ -930,7 +960,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "murf"
     },
     {
       "name": "Speechify",
@@ -960,7 +991,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/speechify-text-to-speech-audio/id1209815023",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.cliffweitzman.speechify2"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.cliffweitzman.speechify2",
+      "slug": "speechify"
     },
     {
       "name": "Otter.ai",
@@ -990,7 +1022,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/otter-transcribe-voice-notes/id1276437113",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.aisense.otter"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.aisense.otter",
+      "slug": "otter-ai"
     },
     {
       "name": "Fireflies.ai",
@@ -1020,7 +1053,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/fireflies-ai-notetaker/id1541873068",
-      "play_store_url": "https://play.google.com/store/apps/details?id=ai.fireflies.app"
+      "play_store_url": "https://play.google.com/store/apps/details?id=ai.fireflies.app",
+      "slug": "fireflies-ai"
     },
     {
       "name": "Notion AI",
@@ -1050,7 +1084,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/notion-notes-tasks-ai/id1232780281",
-      "play_store_url": "https://play.google.com/store/apps/details?id=notion.id"
+      "play_store_url": "https://play.google.com/store/apps/details?id=notion.id",
+      "slug": "notion-ai"
     },
     {
       "name": "Grammarly",
@@ -1080,7 +1115,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/grammarly-ai-writing-keyboard/id1158877342",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.grammarly.android.keyboard"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.grammarly.android.keyboard",
+      "slug": "grammarly"
     },
     {
       "name": "Jasper",
@@ -1110,7 +1146,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "jasper"
     },
     {
       "name": "Copy.ai",
@@ -1140,7 +1177,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "copy-ai"
     },
     {
       "name": "Writesonic",
@@ -1170,7 +1208,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "writesonic"
     },
     {
       "name": "Surfer SEO",
@@ -1200,7 +1239,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "surfer-seo"
     },
     {
       "name": "Frase",
@@ -1230,7 +1270,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "frase"
     },
     {
       "name": "Clearscope",
@@ -1260,7 +1301,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "clearscope"
     },
     {
       "name": "MarketMuse",
@@ -1290,7 +1332,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "marketmuse"
     },
     {
       "name": "Semrush",
@@ -1320,7 +1363,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/semrush-seo-marketing-tools/id1485439018",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.semrush.app"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.semrush.app",
+      "slug": "semrush"
     },
     {
       "name": "Ahrefs",
@@ -1350,7 +1394,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "ahrefs"
     },
     {
       "name": "Similarweb",
@@ -1380,7 +1425,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "similarweb"
     },
     {
       "name": "Hotjar",
@@ -1410,7 +1456,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "hotjar"
     },
     {
       "name": "Mixpanel",
@@ -1440,7 +1487,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "mixpanel"
     },
     {
       "name": "Google Analytics",
@@ -1470,7 +1518,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/google-analytics/id881599038",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.google.android.apps.giant"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.google.android.apps.giant",
+      "slug": "google-analytics"
     },
     {
       "name": "HubSpot AI",
@@ -1500,7 +1549,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/hubspot/id1070071560",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.hubspot.android"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.hubspot.android",
+      "slug": "hubspot-ai"
     },
     {
       "name": "Mailchimp",
@@ -1530,7 +1580,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/mailchimp-marketing-crm/id493338597",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.mailchimp.mailchimp"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.mailchimp.mailchimp",
+      "slug": "mailchimp"
     },
     {
       "name": "Klaviyo",
@@ -1560,7 +1611,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "klaviyo"
     },
     {
       "name": "ActiveCampaign",
@@ -1590,7 +1642,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "activecampaign"
     },
     {
       "name": "Zapier",
@@ -1620,7 +1673,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/zapier/id1532626862",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.zapier.android"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.zapier.android",
+      "slug": "zapier"
     },
     {
       "name": "Make",
@@ -1650,7 +1704,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "make"
     },
     {
       "name": "n8n",
@@ -1680,7 +1735,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "n8n"
     },
     {
       "name": "Bardeen",
@@ -1710,7 +1766,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "bardeen"
     },
     {
       "name": "Cursor",
@@ -1740,7 +1797,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "cursor"
     },
     {
       "name": "GitHub Copilot",
@@ -1770,7 +1828,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "github-copilot"
     },
     {
       "name": "Replit Agent",
@@ -1800,7 +1859,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/replit-code-create-learn/id1544487411",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.replit.app"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.replit.app",
+      "slug": "replit-agent"
     },
     {
       "name": "v0 by Vercel",
@@ -1830,7 +1890,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "v0-by-vercel"
     },
     {
       "name": "Bolt.new",
@@ -1860,7 +1921,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "bolt-new"
     },
     {
       "name": "Lovable",
@@ -1890,7 +1952,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "lovable"
     },
     {
       "name": "Tabnine",
@@ -1920,7 +1983,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "tabnine"
     },
     {
       "name": "Codeium",
@@ -1950,7 +2014,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "codeium"
     },
     {
       "name": "Windsurf",
@@ -1980,7 +2045,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "windsurf"
     },
     {
       "name": "Aider",
@@ -2010,7 +2076,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "aider"
     },
     {
       "name": "LangChain",
@@ -2040,7 +2107,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "langchain"
     },
     {
       "name": "LlamaIndex",
@@ -2070,7 +2138,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "llamaindex"
     },
     {
       "name": "Haystack",
@@ -2100,7 +2169,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "haystack"
     },
     {
       "name": "Hugging Face",
@@ -2130,7 +2200,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "hugging-face"
     },
     {
       "name": "OpenAI Platform",
@@ -2160,7 +2231,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "openai-platform"
     },
     {
       "name": "Anthropic API",
@@ -2190,7 +2262,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "anthropic-api"
     },
     {
       "name": "Groq",
@@ -2220,7 +2293,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "groq"
     },
     {
       "name": "Together AI",
@@ -2250,7 +2324,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "together-ai"
     },
     {
       "name": "Replicate",
@@ -2280,7 +2355,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "replicate"
     },
     {
       "name": "Fal.ai",
@@ -2310,7 +2386,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "fal-ai"
     },
     {
       "name": "Pinecone",
@@ -2340,7 +2417,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "pinecone"
     },
     {
       "name": "Weaviate",
@@ -2370,7 +2448,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "weaviate"
     },
     {
       "name": "Chroma",
@@ -2400,7 +2479,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "chroma"
     },
     {
       "name": "Supabase",
@@ -2430,7 +2510,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "supabase"
     },
     {
       "name": "Firebase",
@@ -2460,7 +2541,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "firebase"
     },
     {
       "name": "Bubble",
@@ -2490,7 +2572,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "bubble"
     },
     {
       "name": "Glide",
@@ -2520,7 +2603,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "glide"
     },
     {
       "name": "Webflow",
@@ -2550,7 +2634,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "webflow"
     },
     {
       "name": "Framer AI",
@@ -2580,7 +2665,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "framer-ai"
     },
     {
       "name": "Gamma",
@@ -2610,7 +2696,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "gamma"
     },
     {
       "name": "Tome",
@@ -2640,7 +2727,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "tome"
     },
     {
       "name": "Beautiful.ai",
@@ -2670,7 +2758,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "beautiful-ai"
     },
     {
       "name": "NotebookLM",
@@ -2700,7 +2789,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/notebooklm/id6737924556",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.google.android.apps.labs.language.tailwind"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.google.android.apps.labs.language.tailwind",
+      "slug": "notebooklm"
     },
     {
       "name": "Consensus",
@@ -2730,7 +2820,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "consensus"
     },
     {
       "name": "Elicit",
@@ -2760,7 +2851,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "elicit"
     },
     {
       "name": "Scholarcy",
@@ -2790,7 +2882,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "scholarcy"
     },
     {
       "name": "Character.AI",
@@ -2820,7 +2913,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/character-ai-chat-talk-text/id1661472493",
-      "play_store_url": "https://play.google.com/store/apps/details?id=ai.character.app"
+      "play_store_url": "https://play.google.com/store/apps/details?id=ai.character.app",
+      "slug": "character-ai"
     },
     {
       "name": "Intercom Fin",
@@ -2850,7 +2944,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/intercom/id1478550187",
-      "play_store_url": "https://play.google.com/store/apps/details?id=io.intercom.android"
+      "play_store_url": "https://play.google.com/store/apps/details?id=io.intercom.android",
+      "slug": "intercom-fin"
     },
     {
       "name": "Zendesk AI",
@@ -2880,7 +2975,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/zendesk/id1423795580",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.zendesk.support"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.zendesk.support",
+      "slug": "zendesk-ai"
     },
     {
       "name": "Ada",
@@ -2910,7 +3006,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "ada"
     },
     {
       "name": "Drift",
@@ -2940,7 +3037,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "drift"
     },
     {
       "name": "Apollo.io",
@@ -2970,7 +3068,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": "https://apps.apple.com/app/apollo-io/id1598455778",
-      "play_store_url": "https://play.google.com/store/apps/details?id=io.apollo.android"
+      "play_store_url": "https://play.google.com/store/apps/details?id=io.apollo.android",
+      "slug": "apollo-io"
     },
     {
       "name": "Clay",
@@ -3000,7 +3099,8 @@
       "status": "active",
       "source": "wts-top100-curated-ai-directories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "clay"
     },
     {
       "name": "DeepSeek Chat",
@@ -3030,7 +3130,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "deepseek-chat"
     },
     {
       "name": "Mistral Le Chat",
@@ -3060,7 +3161,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "mistral-le-chat"
     },
     {
       "name": "DuckDuckGo AI Chat",
@@ -3090,7 +3192,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "duckduckgo-ai-chat"
     },
     {
       "name": "HuggingChat",
@@ -3120,7 +3223,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "huggingchat"
     },
     {
       "name": "Phind Chat",
@@ -3150,7 +3254,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "phind-chat"
     },
     {
       "name": "Scite",
@@ -3180,7 +3285,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "scite"
     },
     {
       "name": "ResearchRabbit",
@@ -3210,7 +3316,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "researchrabbit"
     },
     {
       "name": "Connected Papers",
@@ -3240,7 +3347,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "connected-papers"
     },
     {
       "name": "Semantic Scholar",
@@ -3270,7 +3378,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "semantic-scholar"
     },
     {
       "name": "Litmaps",
@@ -3300,7 +3409,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "litmaps"
     },
     {
       "name": "Playground AI",
@@ -3330,7 +3440,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "playground-ai"
     },
     {
       "name": "Recraft",
@@ -3360,7 +3471,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "recraft"
     },
     {
       "name": "SeaArt",
@@ -3390,7 +3502,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "seaart"
     },
     {
       "name": "Civitai",
@@ -3420,7 +3533,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "civitai"
     },
     {
       "name": "NightCafe",
@@ -3450,7 +3564,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "nightcafe"
     },
     {
       "name": "Artbreeder",
@@ -3480,7 +3595,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "artbreeder"
     },
     {
       "name": "Uizard Autodesigner",
@@ -3510,7 +3626,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "uizard-autodesigner"
     },
     {
       "name": "Visily",
@@ -3540,7 +3657,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "visily"
     },
     {
       "name": "Motiff",
@@ -3570,7 +3688,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "motiff"
     },
     {
       "name": "Magician for Figma",
@@ -3600,7 +3719,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "magician-for-figma"
     },
     {
       "name": "Relume",
@@ -3630,7 +3750,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "relume"
     },
     {
       "name": "Haiper",
@@ -3660,7 +3781,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "haiper"
     },
     {
       "name": "Luma Ray2",
@@ -3690,7 +3812,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "luma-ray2"
     },
     {
       "name": "Viggle",
@@ -3720,7 +3843,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": "https://apps.apple.com/app/viggle-ai/id6476141748",
-      "play_store_url": "https://play.google.com/store/apps/details?id=ai.viggle.app"
+      "play_store_url": "https://play.google.com/store/apps/details?id=ai.viggle.app",
+      "slug": "viggle"
     },
     {
       "name": "Kaiber",
@@ -3750,7 +3874,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "kaiber"
     },
     {
       "name": "Steve AI",
@@ -3780,7 +3905,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "steve-ai"
     },
     {
       "name": "Colossyan",
@@ -3810,7 +3936,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "colossyan"
     },
     {
       "name": "Elai.io",
@@ -3840,7 +3967,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "elai-io"
     },
     {
       "name": "Fliki",
@@ -3870,7 +3998,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "fliki"
     },
     {
       "name": "Play.ht",
@@ -3900,7 +4029,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "play-ht"
     },
     {
       "name": "WellSaid Labs",
@@ -3930,7 +4060,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "wellsaid-labs"
     },
     {
       "name": "Descript Overdub",
@@ -3960,7 +4091,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "descript-overdub"
     },
     {
       "name": "Audo",
@@ -3990,7 +4122,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "audo"
     },
     {
       "name": "Adobe Podcast",
@@ -4020,7 +4153,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "adobe-podcast"
     },
     {
       "name": "Anyword Max",
@@ -4050,7 +4184,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "anyword-max"
     },
     {
       "name": "Peppertype",
@@ -4080,7 +4215,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "peppertype"
     },
     {
       "name": "LongShot AI",
@@ -4110,7 +4246,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "longshot-ai"
     },
     {
       "name": "HyperWrite",
@@ -4140,7 +4277,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "hyperwrite"
     },
     {
       "name": "Lex",
@@ -4170,7 +4308,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "lex"
     },
     {
       "name": "Type",
@@ -4200,7 +4339,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "type"
     },
     {
       "name": "Surfer Content Editor",
@@ -4230,7 +4370,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "surfer-content-editor"
     },
     {
       "name": "Frase AI",
@@ -4260,7 +4401,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "frase-ai"
     },
     {
       "name": "Page Optimizer Pro",
@@ -4290,7 +4432,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "page-optimizer-pro"
     },
     {
       "name": "Writesonic SEO",
@@ -4320,7 +4463,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "writesonic-seo"
     },
     {
       "name": "Alli AI",
@@ -4350,7 +4494,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "alli-ai"
     },
     {
       "name": "SEO.ai",
@@ -4380,7 +4525,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "seo-ai"
     },
     {
       "name": "Customer.io",
@@ -4410,7 +4556,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "customer-io"
     },
     {
       "name": "Brevo",
@@ -4440,7 +4587,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": "https://apps.apple.com/app/brevo-email-sms-marketing/id1483305782",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.sendinblue"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.sendinblue",
+      "slug": "brevo"
     },
     {
       "name": "ConvertKit",
@@ -4470,7 +4618,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "convertkit"
     },
     {
       "name": "Beehiiv",
@@ -4500,7 +4649,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "beehiiv"
     },
     {
       "name": "Lemlist",
@@ -4530,7 +4680,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "lemlist"
     },
     {
       "name": "Instantly",
@@ -4560,7 +4711,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "instantly"
     },
     {
       "name": "Smartlead",
@@ -4590,7 +4742,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "smartlead"
     },
     {
       "name": "Reply.io",
@@ -4620,7 +4773,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "reply-io"
     },
     {
       "name": "Attio AI",
@@ -4650,7 +4804,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "attio-ai"
     },
     {
       "name": "Close AI",
@@ -4680,7 +4835,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "close-ai"
     },
     {
       "name": "Folk CRM",
@@ -4710,7 +4866,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "folk-crm"
     },
     {
       "name": "Common Room",
@@ -4740,7 +4897,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "common-room"
     },
     {
       "name": "Forethought",
@@ -4770,7 +4928,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "forethought"
     },
     {
       "name": "Sierra",
@@ -4800,7 +4959,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "sierra"
     },
     {
       "name": "Decagon",
@@ -4830,7 +4990,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "decagon"
     },
     {
       "name": "Ultimate.ai",
@@ -4860,7 +5021,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "ultimate-ai"
     },
     {
       "name": "LivePerson",
@@ -4890,7 +5052,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "liveperson"
     },
     {
       "name": "Cody by Sourcegraph",
@@ -4920,7 +5083,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "cody-by-sourcegraph"
     },
     {
       "name": "Amazon Q",
@@ -4950,7 +5114,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "amazon-q"
     },
     {
       "name": "Tabby",
@@ -4980,7 +5145,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "tabby"
     },
     {
       "name": "Continue.dev",
@@ -5010,7 +5176,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "continue-dev"
     },
     {
       "name": "Aider CLI",
@@ -5040,7 +5207,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "aider-cli"
     },
     {
       "name": "Blackbox AI",
@@ -5070,7 +5238,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "blackbox-ai"
     },
     {
       "name": "CodeWP",
@@ -5100,7 +5269,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "codewp"
     },
     {
       "name": "v0",
@@ -5130,7 +5300,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "v0"
     },
     {
       "name": "Bardeen AI",
@@ -5160,7 +5331,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "bardeen-ai"
     },
     {
       "name": "Relay.app",
@@ -5190,7 +5362,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "relay-app"
     },
     {
       "name": "Lindy",
@@ -5220,7 +5393,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "lindy"
     },
     {
       "name": "Gumloop",
@@ -5250,7 +5424,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "gumloop"
     },
     {
       "name": "Activepieces",
@@ -5280,7 +5455,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "activepieces"
     },
     {
       "name": "Pipedream",
@@ -5310,7 +5486,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "pipedream"
     },
     {
       "name": "Mem AI",
@@ -5340,7 +5517,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": "https://apps.apple.com/app/mem-ai-notes/id1600537089",
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "mem-ai"
     },
     {
       "name": "Reflect Notes",
@@ -5370,7 +5548,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "reflect-notes"
     },
     {
       "name": "Taskade AI",
@@ -5400,7 +5579,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": "https://apps.apple.com/app/taskade/id1354860109",
-      "play_store_url": "https://play.google.com/store/apps/details?id=com.taskade"
+      "play_store_url": "https://play.google.com/store/apps/details?id=com.taskade",
+      "slug": "taskade-ai"
     },
     {
       "name": "Saner.AI",
@@ -5430,7 +5610,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "saner-ai"
     },
     {
       "name": "Shortwave AI",
@@ -5460,7 +5641,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "shortwave-ai"
     },
     {
       "name": "Fyxer",
@@ -5490,7 +5672,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "fyxer"
     },
     {
       "name": "Mixpanel Spark",
@@ -5520,7 +5703,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "mixpanel-spark"
     },
     {
       "name": "Amplitude AI",
@@ -5550,7 +5734,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "amplitude-ai"
     },
     {
       "name": "Pendo",
@@ -5580,7 +5765,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "pendo"
     },
     {
       "name": "LogRocket",
@@ -5610,7 +5796,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "logrocket"
     },
     {
       "name": "Lucky Orange",
@@ -5640,7 +5827,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "lucky-orange"
     },
     {
       "name": "Plus AI",
@@ -5670,7 +5858,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "plus-ai"
     },
     {
       "name": "Slidesgo AI",
@@ -5700,7 +5889,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "slidesgo-ai"
     },
     {
       "name": "Decktopus",
@@ -5730,7 +5920,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "decktopus"
     },
     {
       "name": "Pitch",
@@ -5760,7 +5951,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "pitch"
     },
     {
       "name": "Dora AI",
@@ -5790,7 +5982,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "dora-ai"
     },
     {
       "name": "Durable",
@@ -5820,7 +6013,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "durable"
     },
     {
       "name": "10Web",
@@ -5850,7 +6044,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "10web"
     },
     {
       "name": "Hostinger AI Builder",
@@ -5880,7 +6075,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "hostinger-ai-builder"
     },
     {
       "name": "B12",
@@ -5910,7 +6106,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "b12"
     },
     {
       "name": "OpenRouter",
@@ -5940,7 +6137,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "openrouter"
     },
     {
       "name": "Fireworks AI",
@@ -5970,7 +6168,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "fireworks-ai"
     },
     {
       "name": "Anyscale",
@@ -6000,7 +6199,8 @@
       "status": "active",
       "source": "wts-top100-batch2-categories-2026",
       "app_store_url": null,
-      "play_store_url": null
+      "play_store_url": null,
+      "slug": "anyscale"
     }
   ],
   "batches": [

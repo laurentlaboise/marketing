@@ -8,6 +8,7 @@
     "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js",
     "build:webpack": "webpack --mode=production",
     "inject-footers": "node scripts/inject-footers.js",
+    "generate:ai-tools": "node scripts/generate-ai-tool-pages.js && node scripts/inject-footers.js --source",
     "localize": "node scripts/generate-localized-pages.js",
     "sitemap": "node scripts/generate-sitemap.js",
     "legacy-redirects": "node scripts/generate-legacy-redirects.js",
