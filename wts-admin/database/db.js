@@ -1884,6 +1884,27 @@ const db = {
         CREATE INDEX IF NOT EXISTS idx_image_folders_parent_id ON image_folders (parent_id);
       `);
 
+      // WhatsApp Cloud API inbox/outbox for terminal agent bridge
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS whatsapp_messages (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          direction VARCHAR(8) NOT NULL CHECK (direction IN ('in', 'out')),
+          wa_message_id VARCHAR(128),
+          from_phone VARCHAR(32),
+          to_phone VARCHAR(32),
+          contact_name VARCHAR(255),
+          message_type VARCHAR(32) DEFAULT 'text',
+          body TEXT,
+          raw JSONB,
+          status VARCHAR(32) DEFAULT 'received',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_whatsapp_messages_created ON whatsapp_messages (created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_whatsapp_messages_direction ON whatsapp_messages (direction, created_at DESC);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_whatsapp_messages_wa_id
+          ON whatsapp_messages (wa_message_id);
+      `);
+
       await client.query('COMMIT');
       console.log('Database tables initialized successfully');
 

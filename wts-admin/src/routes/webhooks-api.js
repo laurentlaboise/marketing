@@ -103,4 +103,110 @@ router.post('/telemetry', express.raw({ type: '*/*', limit: '1mb' }), verifyTele
   }
 });
 
+// ==================== WhatsApp Business Cloud API ====================
+// Meta webhook: GET verify + POST messages
+// https://developers.facebook.com/docs/whatsapp/cloud-api/guides/set-up-webhooks
+// Endpoint (public): https://admin.wordsthatsells.website/api/webhooks/whatsapp
+
+router.get('/whatsapp', (req, res) => {
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+  const expected = process.env.WHATSAPP_VERIFY_TOKEN || '';
+
+  if (!expected) {
+    console.warn('WHATSAPP_VERIFY_TOKEN not set — webhook verify will fail');
+    return res.status(503).send('WhatsApp webhook not configured');
+  }
+  if (mode === 'subscribe' && token && token === expected) {
+    return res.status(200).send(challenge);
+  }
+  return res.sendStatus(403);
+});
+
+router.post('/whatsapp', async (req, res) => {
+  // Always 200 quickly so Meta does not retry aggressively
+  res.sendStatus(200);
+
+  try {
+    const body = req.body || {};
+    if (body.object !== 'whatsapp_business_account') return;
+
+    const entries = Array.isArray(body.entry) ? body.entry : [];
+    for (const entry of entries) {
+      const changes = Array.isArray(entry.changes) ? entry.changes : [];
+      for (const change of changes) {
+        const value = change.value || {};
+        const contacts = Array.isArray(value.contacts) ? value.contacts : [];
+        const contactName = contacts[0]?.profile?.name || null;
+        const messages = Array.isArray(value.messages) ? value.messages : [];
+        const metadataPhone = value.metadata?.display_phone_number || null;
+
+        for (const msg of messages) {
+          const waId = msg.id || null;
+          const from = msg.from || null;
+          const type = msg.type || 'text';
+          let text = null;
+          if (type === 'text') text = msg.text?.body || null;
+          else if (type === 'button') text = msg.button?.text || null;
+          else if (type === 'interactive') {
+            text =
+              msg.interactive?.button_reply?.title ||
+              msg.interactive?.list_reply?.title ||
+              null;
+          } else {
+            text = `[${type} message]`;
+          }
+
+          try {
+            await db.query(
+              `INSERT INTO whatsapp_messages
+                (direction, wa_message_id, from_phone, to_phone, contact_name, message_type, body, raw, status)
+               VALUES ('in', $1, $2, $3, $4, $5, $6, $7, 'received')
+               ON CONFLICT (wa_message_id) DO NOTHING`,
+              [
+                waId,
+                from,
+                metadataPhone,
+                contactName,
+                type,
+                text,
+                JSON.stringify(msg),
+              ]
+            );
+          } catch (e) {
+            // Unique index may not apply if wa_message_id null — try plain insert once
+            if (e.code === '42P10' || e.code === '42703') {
+              await db.query(
+                `INSERT INTO whatsapp_messages
+                  (direction, wa_message_id, from_phone, to_phone, contact_name, message_type, body, raw, status)
+                 VALUES ('in', $1, $2, $3, $4, $5, $6, $7, 'received')`,
+                [waId, from, metadataPhone, contactName, type, text, JSON.stringify(msg)]
+              );
+            } else {
+              console.error('WhatsApp inbox insert failed:', e.message);
+            }
+          }
+        }
+
+        // Status updates (delivered/read) — optional log
+        const statuses = Array.isArray(value.statuses) ? value.statuses : [];
+        for (const st of statuses) {
+          if (!st.id) continue;
+          try {
+            await db.query(
+              `UPDATE whatsapp_messages SET status = $1 WHERE wa_message_id = $2`,
+              [st.status || 'unknown', st.id]
+            );
+          } catch (_) {
+            /* non-fatal */
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('WhatsApp webhook handler error:', e.message);
+  }
+});
+
 module.exports = router;

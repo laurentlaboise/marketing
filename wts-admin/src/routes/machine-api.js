@@ -857,6 +857,106 @@ router.post('/v1/images/seo-bulk', async (req, res) => {
   }
 });
 
+// ── WhatsApp Cloud API (terminal bridge) ────────────────────────────
+
+router.get('/v1/whatsapp/status', async (req, res) => {
+  const token = !!process.env.WHATSAPP_TOKEN;
+  const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
+  const verify = !!process.env.WHATSAPP_VERIFY_TOKEN;
+  let tableOk = false;
+  let inboxCount = 0;
+  try {
+    const r = await db.query(
+      `SELECT COUNT(*)::int AS n FROM whatsapp_messages WHERE direction = 'in'`
+    );
+    tableOk = true;
+    inboxCount = r.rows[0].n;
+  } catch (e) {
+    tableOk = false;
+  }
+  return ok(res, {
+    configured: token && !!phoneId && verify,
+    tokenPresent: token,
+    phoneNumberIdPresent: !!phoneId,
+    verifyTokenPresent: verify,
+    tableOk,
+    inboxCount,
+    webhookUrl: 'https://admin.wordsthatsells.website/api/webhooks/whatsapp',
+  });
+});
+
+router.get('/v1/whatsapp/inbox', async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit || '30', 10) || 30, 1), 100);
+    const since = req.query.since || null;
+    const params = [];
+    let sql = `SELECT id, direction, wa_message_id, from_phone, to_phone, contact_name,
+                      message_type, body, status, created_at
+               FROM whatsapp_messages WHERE direction = 'in'`;
+    if (since) {
+      params.push(since);
+      sql += ` AND created_at > $${params.length}`;
+    }
+    sql += ` ORDER BY created_at DESC LIMIT $${params.length + 1}`;
+    params.push(limit);
+    const r = await db.query(sql, params);
+    return ok(res, { messages: r.rows });
+  } catch (e) {
+    console.error('[machine-api] whatsapp inbox', e);
+    return fail(res, 'Inbox failed: ' + e.message, 500);
+  }
+});
+
+router.post('/v1/whatsapp/send', async (req, res) => {
+  try {
+    const token = process.env.WHATSAPP_TOKEN;
+    const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    if (!token || !phoneId) {
+      return fail(res, 'WHATSAPP_TOKEN / WHATSAPP_PHONE_NUMBER_ID not configured on Railway', 503);
+    }
+    const toRaw = String(req.body?.to || '').replace(/[^\d+]/g, '');
+    let to = toRaw.replace(/^\+/, '');
+    if (!to) return fail(res, 'Body field "to" (phone) required');
+    const text = String(req.body?.text || '').trim();
+    if (!text) return fail(res, 'Body field "text" required');
+
+    const ver = process.env.WHATSAPP_API_VERSION || 'v21.0';
+    const url = `https://graph.facebook.com/${ver}/${phoneId}/messages`;
+    const payload = {
+      messaging_product: 'whatsapp',
+      to,
+      type: 'text',
+      text: { preview_url: false, body: text.slice(0, 4096) },
+    };
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      return fail(res, data?.error?.message || `WhatsApp API HTTP ${resp.status}`, 502);
+    }
+
+    const waId = data?.messages?.[0]?.id || null;
+    await db.query(
+      `INSERT INTO whatsapp_messages
+        (direction, wa_message_id, from_phone, to_phone, message_type, body, raw, status)
+       VALUES ('out', $1, $2, $3, 'text', $4, $5, 'sent')`,
+      [waId, phoneId, to, text, JSON.stringify(data)]
+    );
+    await audit(req, 'whatsapp/send', `to=${to}`);
+    return ok(res, { to, wa_message_id: waId, api: data });
+  } catch (e) {
+    console.error('[machine-api] whatsapp send', e);
+    return fail(res, 'Send failed: ' + e.message, 500);
+  }
+});
+
 // ── 404 for unknown v1 routes ───────────────────────────────────────
 
 router.use('/v1', (req, res) => {
