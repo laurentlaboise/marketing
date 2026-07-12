@@ -1,0 +1,2406 @@
+{
+  "version": 1,
+  "count": 100,
+  "tools": [
+    {
+      "name": "ChatGPT",
+      "category": "Conversational AI",
+      "description": "OpenAI's flagship conversational AI for writing, coding, research, and agents.",
+      "website_url": "https://chatgpt.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for conversational ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.9,
+      "logo_url": "https://www.google.com/s2/favicons?domain=chatgpt.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Claude",
+      "category": "Conversational AI",
+      "description": "Anthropic's assistant strong at long-context analysis, coding, and safe enterprise use.",
+      "website_url": "https://claude.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for conversational ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.8,
+      "logo_url": "https://www.google.com/s2/favicons?domain=claude.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Gemini",
+      "category": "Conversational AI",
+      "description": "Google's multimodal AI assistant integrated with Search, Workspace, and Android.",
+      "website_url": "https://gemini.google.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for conversational ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=gemini.google.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Microsoft Copilot",
+      "category": "Conversational AI",
+      "description": "Microsoft's AI assistant across Bing, Windows, and Microsoft 365.",
+      "website_url": "https://copilot.microsoft.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for conversational ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=copilot.microsoft.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Perplexity",
+      "category": "Research AI",
+      "description": "AI search engine with cited answers for research and competitive intelligence.",
+      "website_url": "https://www.perplexity.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for research ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.8,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.perplexity.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Grok",
+      "category": "Conversational AI",
+      "description": "xAI assistant with real-time knowledge and a distinctive conversational style.",
+      "website_url": "https://x.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for conversational ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=x.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Meta AI",
+      "category": "Conversational AI",
+      "description": "Meta's free AI assistant available in WhatsApp, Instagram, Messenger, and web.",
+      "website_url": "https://www.meta.ai",
+      "pricing_model": "Free",
+      "features": [
+        "Core capabilities for conversational ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.meta.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Poe",
+      "category": "Conversational AI",
+      "description": "Multi-model chat hub to access GPT, Claude, Gemini, and custom bots in one place.",
+      "website_url": "https://poe.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for conversational ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=poe.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Pi",
+      "category": "Conversational AI",
+      "description": "Inflection's personal AI focused on supportive, natural conversation.",
+      "website_url": "https://pi.ai",
+      "pricing_model": "Free",
+      "features": [
+        "Core capabilities for conversational ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.3,
+      "logo_url": "https://www.google.com/s2/favicons?domain=pi.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "You.com",
+      "category": "Research AI",
+      "description": "AI search and chat with modes for research, writing, and coding.",
+      "website_url": "https://you.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for research ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=you.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Midjourney",
+      "category": "Image Generation",
+      "description": "Premium text-to-image generator known for cinematic, high-quality visuals.",
+      "website_url": "https://www.midjourney.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for image generation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.9,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.midjourney.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "DALL\u00b7E",
+      "category": "Image Generation",
+      "description": "OpenAI image generation for marketing creatives, concepts, and product shots.",
+      "website_url": "https://openai.com/dall-e",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for image generation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=openai.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Stable Diffusion",
+      "category": "Image Generation",
+      "description": "Open image models for local or API generation with full creative control.",
+      "website_url": "https://stability.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for image generation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=stability.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Adobe Firefly",
+      "category": "Image Generation",
+      "description": "Commercially safe generative image tools inside Adobe Creative Cloud.",
+      "website_url": "https://www.adobe.com/products/firefly.html",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for image generation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.adobe.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Leonardo AI",
+      "category": "Image Generation",
+      "description": "Game- and marketing-ready image generation with fine-tuned model styles.",
+      "website_url": "https://leonardo.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for image generation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=leonardo.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Ideogram",
+      "category": "Image Generation",
+      "description": "Text-to-image with unusually strong typography and logo-style lettering.",
+      "website_url": "https://ideogram.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for image generation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=ideogram.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Flux",
+      "category": "Image Generation",
+      "description": "Next-gen open image models prized for realism and prompt fidelity.",
+      "website_url": "https://blackforestlabs.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for image generation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=blackforestlabs.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Canva Magic Studio",
+      "category": "Design AI",
+      "description": "AI design suite for social, ads, and presentations with Magic Write and Magic Edit.",
+      "website_url": "https://www.canva.com/magic/",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for design ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.canva.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Figma AI",
+      "category": "Design AI",
+      "description": "AI-assisted UI design, rewrite, and asset generation inside Figma.",
+      "website_url": "https://www.figma.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for design ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.figma.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Remove.bg",
+      "category": "Image Tools",
+      "description": "One-click background removal for product and portrait images.",
+      "website_url": "https://www.remove.bg",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for image tools",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.remove.bg&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Runway",
+      "category": "Video AI",
+      "description": "Generative video, editing, and motion tools for creators and marketers.",
+      "website_url": "https://runwayml.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for video ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=runwayml.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Pika",
+      "category": "Video AI",
+      "description": "Text-to-video and image-to-video generation for short-form content.",
+      "website_url": "https://pika.art",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for video ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=pika.art&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Kling AI",
+      "category": "Video AI",
+      "description": "High-quality AI video generation for cinematic clips and campaigns.",
+      "website_url": "https://klingai.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for video ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=klingai.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Luma Dream Machine",
+      "category": "Video AI",
+      "description": "Fast realistic text-to-video generation from Luma AI.",
+      "website_url": "https://lumalabs.ai/dream-machine",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for video ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=lumalabs.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "HeyGen",
+      "category": "Video AI",
+      "description": "AI avatar video for explainers, training, and multilingual marketing.",
+      "website_url": "https://www.heygen.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for video ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.heygen.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Synthesia",
+      "category": "Video AI",
+      "description": "Enterprise AI avatar videos for L&D, product explainers, and localization.",
+      "website_url": "https://www.synthesia.io",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for video ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.synthesia.io&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Descript",
+      "category": "Video AI",
+      "description": "Edit video and podcasts like a doc; Overdub and filler-word removal.",
+      "website_url": "https://www.descript.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for video ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.descript.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "CapCut",
+      "category": "Video AI",
+      "description": "Mobile/desktop editor with AI captions, effects, and templates for social.",
+      "website_url": "https://www.capcut.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for video ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.capcut.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Opus Clip",
+      "category": "Video AI",
+      "description": "Turns long videos into viral short clips with AI ranking and captions.",
+      "website_url": "https://www.opus.pro",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for video ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.opus.pro&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "ElevenLabs",
+      "category": "Voice AI",
+      "description": "Best-in-class AI voice generation, cloning, and dubbing for content.",
+      "website_url": "https://elevenlabs.io",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for voice ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.8,
+      "logo_url": "https://www.google.com/s2/favicons?domain=elevenlabs.io&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Murf",
+      "category": "Voice AI",
+      "description": "Studio-quality AI voiceovers for ads, e-learning, and explainers.",
+      "website_url": "https://murf.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for voice ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=murf.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Speechify",
+      "category": "Voice AI",
+      "description": "Text-to-speech reader for articles, PDFs, and accessibility.",
+      "website_url": "https://speechify.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for voice ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=speechify.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Otter.ai",
+      "category": "Transcription",
+      "description": "Meeting transcription, summaries, and action items for teams.",
+      "website_url": "https://otter.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for transcription",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=otter.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Fireflies.ai",
+      "category": "Transcription",
+      "description": "AI meeting notes, CRM sync, and conversation intelligence.",
+      "website_url": "https://fireflies.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for transcription",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=fireflies.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Notion AI",
+      "category": "Productivity",
+      "description": "Writing, summarize, and Q&A inside Notion workspaces.",
+      "website_url": "https://www.notion.so/product/ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for productivity",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.notion.so&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Grammarly",
+      "category": "Writing AI",
+      "description": "Writing assistant for grammar, tone, and clarity across the web.",
+      "website_url": "https://www.grammarly.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for writing ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.grammarly.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Jasper",
+      "category": "Writing AI",
+      "description": "Marketing copy platform for brand voice, campaigns, and SEO drafts.",
+      "website_url": "https://www.jasper.ai",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for writing ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.jasper.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Copy.ai",
+      "category": "Writing AI",
+      "description": "GTM and sales copy workflows with AI agents and templates.",
+      "website_url": "https://www.copy.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for writing ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.copy.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Writesonic",
+      "category": "Writing AI",
+      "description": "AI writing and SEO content with Chatsonic research modes.",
+      "website_url": "https://writesonic.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for writing ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=writesonic.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Surfer SEO",
+      "category": "SEO AI",
+      "description": "Content editor and SERP analysis to score and optimize pages.",
+      "website_url": "https://surferseo.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for seo ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=surferseo.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Frase",
+      "category": "SEO AI",
+      "description": "AI briefs, outlines, and content optimization from SERP research.",
+      "website_url": "https://www.frase.io",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for seo ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.frase.io&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Clearscope",
+      "category": "SEO AI",
+      "description": "Content grading and keyword recommendations for SEO teams.",
+      "website_url": "https://www.clearscope.io",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for seo ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.clearscope.io&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "MarketMuse",
+      "category": "SEO AI",
+      "description": "Content strategy and topical authority planning with AI.",
+      "website_url": "https://www.marketmuse.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for seo ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.marketmuse.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Semrush",
+      "category": "SEO AI",
+      "description": "Full SEO and marketing suite with AI writing and topic tools.",
+      "website_url": "https://www.semrush.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for seo ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.semrush.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Ahrefs",
+      "category": "SEO AI",
+      "description": "Backlink and keyword research platform with AI content helpers.",
+      "website_url": "https://ahrefs.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for seo ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=ahrefs.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Similarweb",
+      "category": "Analytics AI",
+      "description": "Competitive traffic intelligence and market insights.",
+      "website_url": "https://www.similarweb.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for analytics ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.similarweb.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Hotjar",
+      "category": "Analytics AI",
+      "description": "Heatmaps, recordings, and surveys with AI insights.",
+      "website_url": "https://www.hotjar.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for analytics ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.hotjar.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Mixpanel",
+      "category": "Analytics AI",
+      "description": "Product analytics with AI-assisted analysis and reports.",
+      "website_url": "https://mixpanel.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for analytics ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=mixpanel.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Google Analytics",
+      "category": "Analytics AI",
+      "description": "Industry-standard web analytics with AI insights in GA4.",
+      "website_url": "https://analytics.google.com",
+      "pricing_model": "Free",
+      "features": [
+        "Core capabilities for analytics ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=analytics.google.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "HubSpot AI",
+      "category": "Marketing Automation",
+      "description": "CRM, email, and content tools with Breeze AI agents.",
+      "website_url": "https://www.hubspot.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for marketing automation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.hubspot.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Mailchimp",
+      "category": "Email Marketing",
+      "description": "Email and automation platform with generative content helpers.",
+      "website_url": "https://mailchimp.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for email marketing",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=mailchimp.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Klaviyo",
+      "category": "Email Marketing",
+      "description": "Ecommerce email/SMS automation with AI recommendations.",
+      "website_url": "https://www.klaviyo.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for email marketing",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.klaviyo.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "ActiveCampaign",
+      "category": "Marketing Automation",
+      "description": "CRM + automation with predictive sending and AI content.",
+      "website_url": "https://www.activecampaign.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for marketing automation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.activecampaign.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Zapier",
+      "category": "Automation",
+      "description": "No-code automation across 6,000+ apps with AI Zap building.",
+      "website_url": "https://zapier.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for automation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=zapier.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Make",
+      "category": "Automation",
+      "description": "Visual automation scenarios for complex multi-step workflows.",
+      "website_url": "https://www.make.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for automation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.make.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "n8n",
+      "category": "Automation",
+      "description": "Open-source workflow automation with AI nodes and self-hosting.",
+      "website_url": "https://n8n.io",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for automation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=n8n.io&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Bardeen",
+      "category": "Automation",
+      "description": "Browser automation and AI playbooks for sales and ops.",
+      "website_url": "https://www.bardeen.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for automation",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.bardeen.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Cursor",
+      "category": "Coding AI",
+      "description": "AI-first code editor built for pair-programming with LLMs.",
+      "website_url": "https://cursor.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.8,
+      "logo_url": "https://www.google.com/s2/favicons?domain=cursor.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "GitHub Copilot",
+      "category": "Coding AI",
+      "description": "AI pair programmer in IDE for code completion and chat.",
+      "website_url": "https://github.com/features/copilot",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=github.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Replit Agent",
+      "category": "Coding AI",
+      "description": "Cloud IDE with AI agent that builds and deploys apps.",
+      "website_url": "https://replit.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=replit.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "v0 by Vercel",
+      "category": "Coding AI",
+      "description": "Generates UI components and full pages from natural language.",
+      "website_url": "https://v0.dev",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=v0.dev&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Bolt.new",
+      "category": "Coding AI",
+      "description": "Prompt-to-full-stack app builder in the browser.",
+      "website_url": "https://bolt.new",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=bolt.new&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Lovable",
+      "category": "Coding AI",
+      "description": "AI app builder from idea to working product UI and backend.",
+      "website_url": "https://lovable.dev",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=lovable.dev&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Tabnine",
+      "category": "Coding AI",
+      "description": "Privacy-focused AI code completion for teams.",
+      "website_url": "https://www.tabnine.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.3,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.tabnine.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Codeium",
+      "category": "Coding AI",
+      "description": "Free-tier AI coding autocomplete and chat for many IDEs.",
+      "website_url": "https://codeium.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=codeium.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Windsurf",
+      "category": "Coding AI",
+      "description": "Agentic IDE experience for multi-file AI coding.",
+      "website_url": "https://codeium.com/windsurf",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=codeium.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Aider",
+      "category": "Coding AI",
+      "description": "Terminal pair-programming agent that edits your git repo.",
+      "website_url": "https://aider.chat",
+      "pricing_model": "Free",
+      "features": [
+        "Core capabilities for coding ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=aider.chat&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "LangChain",
+      "category": "AI Frameworks",
+      "description": "Framework for LLM apps, agents, and retrieval pipelines.",
+      "website_url": "https://www.langchain.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for ai frameworks",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.langchain.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "LlamaIndex",
+      "category": "AI Frameworks",
+      "description": "Data framework for RAG and knowledge agents over your docs.",
+      "website_url": "https://www.llamaindex.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for ai frameworks",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.llamaindex.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Haystack",
+      "category": "AI Frameworks",
+      "description": "Open-source NLP framework for production RAG pipelines.",
+      "website_url": "https://haystack.deepset.ai",
+      "pricing_model": "Free",
+      "features": [
+        "Core capabilities for ai frameworks",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.3,
+      "logo_url": "https://www.google.com/s2/favicons?domain=haystack.deepset.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Hugging Face",
+      "category": "AI Platform",
+      "description": "Models, datasets, and Spaces hub for open-source AI.",
+      "website_url": "https://huggingface.co",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for ai platform",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=huggingface.co&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "OpenAI Platform",
+      "category": "AI Platform",
+      "description": "API access to GPT, image, audio, and Assistants APIs.",
+      "website_url": "https://platform.openai.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for ai platform",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.8,
+      "logo_url": "https://www.google.com/s2/favicons?domain=platform.openai.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Anthropic API",
+      "category": "AI Platform",
+      "description": "Claude API for developers and enterprise integrations.",
+      "website_url": "https://www.anthropic.com/api",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for ai platform",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.7,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.anthropic.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Groq",
+      "category": "AI Platform",
+      "description": "Ultra-fast LLM inference API for low-latency apps.",
+      "website_url": "https://groq.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for ai platform",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=groq.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Together AI",
+      "category": "AI Platform",
+      "description": "Open-model inference and fine-tuning cloud.",
+      "website_url": "https://www.together.ai",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for ai platform",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.together.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Replicate",
+      "category": "AI Platform",
+      "description": "Run open models via simple API for image, video, and LLMs.",
+      "website_url": "https://replicate.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for ai platform",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=replicate.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Fal.ai",
+      "category": "AI Platform",
+      "description": "Fast generative media APIs for product features.",
+      "website_url": "https://fal.ai",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for ai platform",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=fal.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Pinecone",
+      "category": "Vector DB",
+      "description": "Managed vector database for semantic search and RAG.",
+      "website_url": "https://www.pinecone.io",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for vector db",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.pinecone.io&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Weaviate",
+      "category": "Vector DB",
+      "description": "Open-source vector database with hybrid search.",
+      "website_url": "https://weaviate.io",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for vector db",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=weaviate.io&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Chroma",
+      "category": "Vector DB",
+      "description": "Developer-friendly open-source embedding database.",
+      "website_url": "https://www.trychroma.com",
+      "pricing_model": "Free",
+      "features": [
+        "Core capabilities for vector db",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.3,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.trychroma.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Supabase",
+      "category": "Backend",
+      "description": "Postgres backend with vectors, auth, and AI examples.",
+      "website_url": "https://supabase.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for backend",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=supabase.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Firebase",
+      "category": "Backend",
+      "description": "Google app platform often paired with Gemini for AI apps.",
+      "website_url": "https://firebase.google.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for backend",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=firebase.google.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Bubble",
+      "category": "No-Code",
+      "description": "No-code web apps with AI plugins and workflows.",
+      "website_url": "https://bubble.io",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for no-code",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=bubble.io&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Glide",
+      "category": "No-Code",
+      "description": "Turn spreadsheets into AI-powered mobile apps.",
+      "website_url": "https://www.glideapps.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for no-code",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.3,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.glideapps.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Webflow",
+      "category": "No-Code",
+      "description": "Visual web design with AI site generation helpers.",
+      "website_url": "https://webflow.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for no-code",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=webflow.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Framer AI",
+      "category": "No-Code",
+      "description": "AI website builder for marketing sites and landers.",
+      "website_url": "https://www.framer.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for no-code",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.framer.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Gamma",
+      "category": "Presentations",
+      "description": "AI presentations and docs from a single prompt.",
+      "website_url": "https://gamma.app",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for presentations",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=gamma.app&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Tome",
+      "category": "Presentations",
+      "description": "Narrative AI presentations for pitch and product stories.",
+      "website_url": "https://tome.app",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for presentations",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.3,
+      "logo_url": "https://www.google.com/s2/favicons?domain=tome.app&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Beautiful.ai",
+      "category": "Presentations",
+      "description": "Smart slide design that auto-layouts professional decks.",
+      "website_url": "https://www.beautiful.ai",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for presentations",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.beautiful.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "NotebookLM",
+      "category": "Research AI",
+      "description": "Google's grounded research notebook over your uploaded sources.",
+      "website_url": "https://notebooklm.google",
+      "pricing_model": "Free",
+      "features": [
+        "Core capabilities for research ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=notebooklm.google&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Consensus",
+      "category": "Research AI",
+      "description": "AI search over scientific papers with cited findings.",
+      "website_url": "https://consensus.app",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for research ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=consensus.app&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Elicit",
+      "category": "Research AI",
+      "description": "Literature review assistant for academics and analysts.",
+      "website_url": "https://elicit.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for research ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=elicit.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Scholarcy",
+      "category": "Research AI",
+      "description": "Summarizes research papers into structured flashcards.",
+      "website_url": "https://www.scholarcy.com",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for research ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.2,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.scholarcy.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Character.AI",
+      "category": "Conversational AI",
+      "description": "Chat with custom AI characters for entertainment and brainstorming.",
+      "website_url": "https://character.ai",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for conversational ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.3,
+      "logo_url": "https://www.google.com/s2/favicons?domain=character.ai&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Intercom Fin",
+      "category": "Customer Service",
+      "description": "AI customer support agent trained on your help center.",
+      "website_url": "https://www.intercom.com/fin",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for customer service",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.intercom.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Zendesk AI",
+      "category": "Customer Service",
+      "description": "AI agents and copilots inside Zendesk support.",
+      "website_url": "https://www.zendesk.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for customer service",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.4,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.zendesk.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Ada",
+      "category": "Customer Service",
+      "description": "Automated customer service AI for high-volume brands.",
+      "website_url": "https://www.ada.cx",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for customer service",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.3,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.ada.cx&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Drift",
+      "category": "Sales AI",
+      "description": "Conversational sales AI for website chat and routing.",
+      "website_url": "https://www.salesloft.com/platform/drift",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for sales ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.3,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.salesloft.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Apollo.io",
+      "category": "Sales AI",
+      "description": "Sales intelligence and outbound with AI sequencing.",
+      "website_url": "https://www.apollo.io",
+      "pricing_model": "Freemium",
+      "features": [
+        "Core capabilities for sales ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.5,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.apollo.io&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    },
+    {
+      "name": "Clay",
+      "category": "Sales AI",
+      "description": "Data enrichment and AI outbound personalization at scale.",
+      "website_url": "https://www.clay.com",
+      "pricing_model": "Paid",
+      "features": [
+        "Core capabilities for sales ai",
+        "Web app access for teams and individuals",
+        "Suitable for marketing and growth workflows"
+      ],
+      "pros": [
+        "Widely adopted in the AI ecosystem",
+        "Strong product momentum and updates"
+      ],
+      "cons": [
+        "Pricing can scale with usage",
+        "May require onboarding for advanced features"
+      ],
+      "rating": 4.6,
+      "logo_url": "https://www.google.com/s2/favicons?domain=www.clay.com&sz=128",
+      "status": "active",
+      "source": "wts-top100-curated-ai-directories-2026"
+    }
+  ]
+}

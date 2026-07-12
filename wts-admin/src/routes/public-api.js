@@ -377,12 +377,14 @@ router.get('/ai-tools', async (req, res) => {
       params.push(category);
     }
 
-    query += ' ORDER BY name ASC';
+    // Highest rated first (top tools), then name
+    query += ' ORDER BY rating DESC NULLS LAST, name ASC';
 
     const result = await db.query(query, params);
 
     // Transform for frontend compatibility
     const tools = result.rows.map(tool => ({
+      id: tool.id,
       name: tool.name,
       category: tool.category,
       description: tool.description,
@@ -391,9 +393,9 @@ router.get('/ai-tools', async (req, res) => {
       website_link: tool.website_url,
       app_store_link: null,
       play_store_link: null,
-      key_features: tool.features || [],
-      pros: tool.pros || [],
-      cons: tool.cons || [],
+      key_features: Array.isArray(tool.features) ? tool.features : [],
+      pros: Array.isArray(tool.pros) ? tool.pros : [],
+      cons: Array.isArray(tool.cons) ? tool.cons : [],
       rating: tool.rating
     }));
 

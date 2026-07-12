@@ -33,6 +33,7 @@ WTS Admin Machine API helper
 Commands:
   health                         GET  /v1/health
   seed-pricing                   POST /v1/seed/pricing
+  seed-ai-tools                  POST /v1/seed/ai-tools
   pricing                        GET  /v1/pricing
   products [service_page]        GET  /v1/products
   affiliates                     GET  /v1/affiliate-solutions
@@ -120,6 +121,9 @@ case "$cmd" in
     ;;
   seed-pricing|seed)
     api POST /v1/seed/pricing
+    ;;
+  seed-ai-tools)
+    api POST /v1/seed/ai-tools '{}'
     ;;
   pricing)
     api GET /v1/pricing

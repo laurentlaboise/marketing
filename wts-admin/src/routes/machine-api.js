@@ -10,6 +10,7 @@ const rateLimit = require('express-rate-limit');
 const db = require('../../database/db');
 const { requireMachineToken } = require('../middleware/machine-auth');
 const { seedPricingDefaults } = require('../lib/pricing-seed-data');
+const { seedAiTools } = require('../lib/ai-tools-seed');
 
 const router = express.Router();
 
@@ -100,6 +101,19 @@ router.post('/v1/seed/pricing', async (req, res) => {
   } catch (e) {
     console.error('[machine-api] seed pricing', e);
     return fail(res, 'Seed failed: ' + e.message, 500);
+  }
+});
+
+/** Upsert curated top AI tools (database/seed/top-100-ai-tools.json) into ai_tools. */
+router.post('/v1/seed/ai-tools', async (req, res) => {
+  try {
+    const replace = !!(req.body && req.body.replace);
+    const result = await seedAiTools(db, { replace });
+    await audit(req, 'seed/ai-tools', JSON.stringify(result));
+    return ok(res, { seeded: result });
+  } catch (e) {
+    console.error('[machine-api] seed ai-tools', e);
+    return fail(res, 'Seed AI tools failed: ' + e.message, 500);
   }
 });
 
