@@ -1,88 +1,655 @@
-<%- include('../partials/head', { title, bodyClass: 'auth-page' }) %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <% if (typeof csrfToken !== 'undefined' && csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><% } %>
+  <title><%= typeof title !== 'undefined' ? title : 'Sign in · WTS Admin' %></title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="shortcut icon" href="/favicon/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --wts-blue: #2085c8;
+      --wts-blue-dark: #1a6fa8;
+      --wts-pink: #d62b83;
+      --wts-pink-soft: #e85aaa;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --surface: #ffffff;
+      --bg-deep: #0b1a28;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body.auth-login-v2 {
+      font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      color: var(--ink);
+      background: var(--bg-deep);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font-family: inherit; }
 
-<div class="auth-container">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <img src="/images/logo-wts.svg" alt="Words That Sells" class="auth-logo-svg" width="220" height="220">
-      <p>Admin Dashboard</p>
-    </div>
+    .al-shell {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+    @media (min-width: 960px) {
+      .al-shell { grid-template-columns: minmax(0, 1.12fr) minmax(400px, 0.88fr); }
+    }
 
-    <% if (typeof error !== 'undefined' && error) { %>
-    <div class="alert alert-error">
-      <i class="fas fa-exclamation-circle"></i>
-      <span><%= error %></span>
-    </div>
-    <% } %>
+    /* ── Showcase ── */
+    .al-showcase {
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      padding: 1.5rem 1.35rem 1.75rem;
+      background:
+        radial-gradient(ellipse 85% 55% at 12% 8%, rgba(214, 43, 131, 0.42), transparent 55%),
+        radial-gradient(ellipse 70% 50% at 92% 88%, rgba(32, 133, 200, 0.32), transparent 52%),
+        linear-gradient(155deg, #0f2740 0%, #122a3f 42%, #1a1030 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.35rem;
+    }
+    @media (min-width: 960px) {
+      .al-showcase { padding: 3.25rem 3rem 3rem 3.5rem; min-height: 100%; }
+    }
+    .al-showcase::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 20%, transparent 75%);
+      pointer-events: none;
+    }
+    .al-showcase > * { position: relative; z-index: 1; }
 
-    <form class="auth-form" action="/auth/login" method="POST">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="form-group">
-        <label class="form-label" for="email">Email Address</label>
-        <div class="form-input-icon">
-          <i class="fas fa-envelope"></i>
-          <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" value="<%= typeof email !== 'undefined' ? email : '' %>" required>
-        </div>
-      </div>
+    .al-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.02rem;
+      width: fit-content;
+    }
+    .al-brand img {
+      height: 48px;
+      width: auto;
+      display: block;
+      border-radius: 12px;
+      background: #fff;
+      padding: 4px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .al-brand span { letter-spacing: -0.01em; }
 
-      <div class="form-group">
-        <label class="form-label" for="password">Password</label>
-        <div class="form-input-icon">
-          <i class="fas fa-lock"></i>
-          <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
-        </div>
-      </div>
+    .al-kicker {
+      margin: 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fbcfe8;
+    }
+    .al-title {
+      margin: 0.4rem 0 0.65rem;
+      font-size: clamp(1.65rem, 3.4vw, 2.45rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.025em;
+      max-width: 14ch;
+    }
+    .al-title em {
+      font-style: normal;
+      background: linear-gradient(90deg, #f9a8d4, #7dd3fc);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .al-lead {
+      margin: 0;
+      max-width: 38ch;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: #cbd5e1;
+      font-weight: 400;
+    }
 
-      <div class="form-row">
-        <div class="form-checkbox">
-          <input type="checkbox" id="remember" name="remember">
-          <label for="remember">Remember me</label>
-        </div>
-        <a href="/auth/forgot-password" class="form-link">Forgot password?</a>
-      </div>
+    .al-features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.35rem;
+    }
+    @media (max-width: 420px) {
+      .al-features { grid-template-columns: 1fr; }
+    }
+    .al-feat {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 0.9rem 0.95rem;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .al-feat:hover {
+      border-color: rgba(249, 168, 212, 0.35);
+      transform: translateY(-1px);
+    }
+    .al-feat__icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      font-size: 0.85rem;
+      margin-bottom: 0.55rem;
+      background: linear-gradient(135deg, rgba(214,43,131,0.35), rgba(32,133,200,0.35));
+      color: #fff;
+    }
+    .al-feat h3 {
+      margin: 0 0 0.25rem;
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .al-feat p {
+      margin: 0;
+      font-size: 0.72rem;
+      line-height: 1.4;
+      color: #94a3b8;
+    }
 
-      <button type="submit" class="btn btn-primary">
-        <i class="fas fa-sign-in-alt"></i>
-        Sign In
-      </button>
-    </form>
+    .al-trust {
+      margin: 0.25rem 0 0;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+    }
+    .al-trust span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .al-trust i { color: #f9a8d4; font-size: 0.65rem; }
 
-    <% var showGoogle = typeof googleEnabled === 'undefined' || googleEnabled; %>
-    <% var showFacebook = typeof facebookEnabled === 'undefined' || facebookEnabled; %>
-    <% if (showGoogle || showFacebook) { %>
-    <div class="auth-divider">
-      <span>or continue with</span>
-    </div>
+    /* ── Form panel ── */
+    .al-form-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 1.5rem 1.25rem 1.75rem;
+      background:
+        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(32,133,200,0.08), transparent 55%),
+        #f8fafc;
+    }
+    @media (min-width: 960px) {
+      .al-form-panel { padding: 2.5rem 3rem; }
+    }
 
-    <div class="social-login">
-      <% if (showGoogle) { %>
-      <a href="/auth/google" class="social-btn google">
-        <i class="fab fa-google"></i>
-        Google
+    .al-card {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      background: var(--surface);
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 18px 40px -12px rgba(15, 23, 42, 0.12);
+      padding: 1.75rem 1.6rem 1.5rem;
+    }
+    @media (min-width: 480px) {
+      .al-card { padding: 2rem 1.85rem 1.65rem; }
+    }
+
+    .al-card__top {
+      text-align: center;
+      margin-bottom: 1.35rem;
+    }
+    .al-card__logo {
+      height: 88px;
+      width: auto;
+      display: block;
+      margin: 0 auto 0.85rem;
+    }
+    .al-card__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.28rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--wts-blue-dark);
+      background: rgba(32, 133, 200, 0.1);
+      border: 1px solid rgba(32, 133, 200, 0.18);
+      margin-bottom: 0.75rem;
+    }
+    .al-card h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .al-card__sub {
+      margin: 0;
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .al-alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      font-size: 0.84rem;
+      line-height: 1.4;
+      margin-bottom: 1rem;
+    }
+    .al-alert i { margin-top: 0.1rem; }
+
+    .al-field { margin-bottom: 1rem; }
+    .al-field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 0.4rem;
+    }
+    .al-input-wrap {
+      position: relative;
+    }
+    .al-input-wrap > i:first-child {
+      position: absolute;
+      left: 0.95rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+    .al-input-wrap input {
+      width: 100%;
+      padding: 0.8rem 2.75rem 0.8rem 2.65rem;
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      font-size: 0.92rem;
+      color: var(--ink);
+      background: #fff;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .al-input-wrap input:focus {
+      outline: none;
+      border-color: var(--wts-blue);
+      box-shadow: 0 0 0 4px rgba(32, 133, 200, 0.14);
+    }
+    .al-input-wrap input::placeholder { color: #94a3b8; }
+    .al-pw-toggle {
+      position: absolute;
+      right: 0.45rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.4rem 0.55rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .al-pw-toggle:hover { color: var(--wts-blue); background: rgba(32,133,200,0.08); }
+
+    .al-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1.15rem;
+      flex-wrap: wrap;
+    }
+    .al-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.82rem;
+      color: #475569;
+      cursor: pointer;
+      user-select: none;
+    }
+    .al-check input {
+      width: 1rem;
+      height: 1rem;
+      accent-color: var(--wts-blue);
+    }
+    .al-link {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--wts-blue);
+    }
+    .al-link:hover { color: var(--wts-pink); text-decoration: underline; }
+
+    .al-submit {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.9rem 1.25rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--wts-blue) 0%, #1a6fa8 55%, #155a8a 100%);
+      box-shadow: 0 8px 20px -6px rgba(32, 133, 200, 0.55);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+    .al-submit:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+      box-shadow: 0 12px 28px -8px rgba(32, 133, 200, 0.6);
+    }
+    .al-submit:active { transform: translateY(0); }
+    .al-submit:focus-visible {
+      outline: 2px solid var(--wts-pink);
+      outline-offset: 2px;
+    }
+
+    .al-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1.25rem 0 1rem;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .al-divider::before,
+    .al-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .al-social {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+    .al-social:has(> :only-child) { grid-template-columns: 1fr; }
+    .al-social a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.72rem 0.75rem;
+      border-radius: 12px;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #334155;
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    }
+    .al-social a:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+      transform: translateY(-1px);
+    }
+    .al-social a.google i { color: #ea4335; }
+    .al-social a.facebook i { color: #1877f2; }
+
+    .al-signup {
+      text-align: center;
+      margin-top: 1.15rem;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .al-signup a {
+      font-weight: 700;
+      color: var(--wts-blue);
+    }
+    .al-signup a:hover { color: var(--wts-pink); }
+
+    .al-legal {
+      margin: 1.15rem 0 0;
+      text-align: center;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+    .al-legal a {
+      color: #64748b;
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .al-legal a:hover { color: var(--wts-pink); }
+
+    /* Footer from partial */
+    body.auth-login-v2 .admin-legal-footer {
+      width: 100%;
+      flex: 0 0 auto;
+      background: transparent;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 0.85rem 1rem 1rem;
+      text-align: center;
+    }
+    body.auth-login-v2 .wts-legal-bar a { color: #cbd5e1; }
+    body.auth-login-v2 .wts-legal-bar a:hover { color: #f9a8d4; }
+    body.auth-login-v2 .wts-legal-sep { color: rgba(255,255,255,0.25); }
+    body.auth-login-v2 .wts-legal-entity,
+    body.auth-login-v2 .admin-legal-note { color: #94a3b8; font-size: 0.72rem; }
+    body.auth-login-v2 .admin-legal-note a { color: #e2e8f0; font-weight: 600; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .al-feat, .al-submit, .al-social a { transition: none; }
+      .al-feat:hover, .al-submit:hover, .al-social a:hover { transform: none; }
+    }
+  </style>
+</head>
+<body class="auth-page auth-login-v2">
+
+  <div class="al-shell">
+    <aside class="al-showcase" aria-label="WordsThatSells Admin">
+      <a class="al-brand" href="https://wordsthatsells.website" target="_blank" rel="noopener noreferrer">
+        <img src="/images/logo-wts.svg" alt="" width="48" height="48">
+        <span>WordsThatSells</span>
       </a>
-      <% } %>
-      <% if (showFacebook) { %>
-      <a href="/auth/facebook" class="social-btn facebook">
-        <i class="fab fa-facebook-f"></i>
-        Facebook
-      </a>
-      <% } %>
-    </div>
-    <% } %>
 
-    <% if (typeof signupEnabled !== 'undefined' && signupEnabled) { %>
-    <div class="auth-footer">
-      Don't have an account? <a href="/auth/signup">Sign up</a>
-    </div>
-    <% } %>
+      <div>
+        <p class="al-kicker">Staff command center</p>
+        <h2 class="al-title">Run the agency from <em>one desk</em></h2>
+        <p class="al-lead">
+          Content, clients, pricing, and AI tools — secured for Laboise eworker staff and contractors.
+        </p>
+      </div>
 
-    <p class="auth-legal-note">
-      By signing in you agree to the
-      <a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html" target="_blank" rel="noopener noreferrer">Terms</a>
-      and
-      <a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
-      of Laboise eworker Laos enterprise (operator of WordsThatSells.Website).
-    </p>
+      <div class="al-features" aria-hidden="true">
+        <div class="al-feat">
+          <div class="al-feat__icon"><i class="fas fa-pen-nib"></i></div>
+          <h3>Content CMS</h3>
+          <p>Articles, AI tools, menus, and site copy from admin SoT.</p>
+        </div>
+        <div class="al-feat">
+          <div class="al-feat__icon"><i class="fas fa-users"></i></div>
+          <h3>Clients &amp; portal</h3>
+          <p>Orders, boards, and workspace for delivery.</p>
+        </div>
+        <div class="al-feat">
+          <div class="al-feat__icon"><i class="fas fa-tags"></i></div>
+          <h3>Pricing &amp; forms</h3>
+          <p>Packages and lead forms wired to the live site.</p>
+        </div>
+        <div class="al-feat">
+          <div class="al-feat__icon"><i class="fas fa-robot"></i></div>
+          <h3>AI ops</h3>
+          <p>Assistants and automation under your control.</p>
+        </div>
+      </div>
+
+      <p class="al-trust">
+        <span><i class="fas fa-shield-halved"></i> Staff access only</span>
+        <span><i class="fas fa-lock"></i> Session secured</span>
+        <span><i class="fas fa-globe-asia"></i> Laos · regional ops</span>
+      </p>
+    </aside>
+
+    <div class="al-form-panel">
+      <div class="al-card">
+        <div class="al-card__top">
+          <img class="al-card__logo" src="/images/logo-wts.svg" alt="Words That Sells" width="180" height="180">
+          <div class="al-card__badge"><i class="fas fa-key"></i> Admin sign-in</div>
+          <h1>Welcome back</h1>
+          <p class="al-card__sub">Sign in to the WordsThatSells admin dashboard.</p>
+        </div>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="al-alert" role="alert">
+          <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+          <span><%= error %></span>
+        </div>
+        <% } %>
+
+        <form class="al-form" action="/auth/login" method="POST" id="admin-login-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+          <div class="al-field">
+            <label for="email">Email address</label>
+            <div class="al-input-wrap">
+              <i class="fas fa-envelope" aria-hidden="true"></i>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="you@wordsthatsells.website"
+                value="<%= typeof email !== 'undefined' ? email : '' %>"
+                autocomplete="email"
+                inputmode="email"
+                required
+                autofocus>
+            </div>
+          </div>
+
+          <div class="al-field">
+            <label for="password">Password</label>
+            <div class="al-input-wrap">
+              <i class="fas fa-lock" aria-hidden="true"></i>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required>
+              <button type="button" class="al-pw-toggle" id="pw-toggle" aria-label="Show password">Show</button>
+            </div>
+          </div>
+
+          <div class="al-row">
+            <label class="al-check" for="remember">
+              <input type="checkbox" id="remember" name="remember">
+              Remember me
+            </label>
+            <a class="al-link" href="/auth/forgot-password">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="al-submit" id="btn-submit">
+            <i class="fas fa-arrow-right-to-bracket" aria-hidden="true"></i>
+            Sign in
+          </button>
+        </form>
+
+        <% var showGoogle = typeof googleEnabled === 'undefined' || googleEnabled; %>
+        <% var showFacebook = typeof facebookEnabled === 'undefined' || facebookEnabled; %>
+        <% if (showGoogle || showFacebook) { %>
+        <div class="al-divider"><span>or continue with</span></div>
+        <div class="al-social">
+          <% if (showGoogle) { %>
+          <a href="/auth/google" class="google">
+            <i class="fab fa-google" aria-hidden="true"></i> Google
+          </a>
+          <% } %>
+          <% if (showFacebook) { %>
+          <a href="/auth/facebook" class="facebook">
+            <i class="fab fa-facebook-f" aria-hidden="true"></i> Facebook
+          </a>
+          <% } %>
+        </div>
+        <% } %>
+
+        <% if (typeof signupEnabled !== 'undefined' && signupEnabled) { %>
+        <p class="al-signup">
+          Don't have an account? <a href="/auth/signup">Sign up</a>
+        </p>
+        <% } %>
+
+        <p class="al-legal">
+          By signing in you agree to the
+          <a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html" target="_blank" rel="noopener noreferrer">Terms</a>
+          and
+          <a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+          of Laboise eworker Laos enterprise (operator of WordsThatSells.Website).
+        </p>
+      </div>
+    </div>
   </div>
-</div>
 
-<%- include('../partials/footer') %>
+  <%- include('../partials/footer') %>
+
+  <script>
+    (function () {
+      var pw = document.getElementById('password');
+      var btn = document.getElementById('pw-toggle');
+      if (pw && btn) {
+        btn.addEventListener('click', function () {
+          var show = pw.type === 'password';
+          pw.type = show ? 'text' : 'password';
+          btn.textContent = show ? 'Hide' : 'Show';
+          btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        });
+      }
+      var form = document.getElementById('admin-login-form');
+      var submit = document.getElementById('btn-submit');
+      if (form && submit) {
+        form.addEventListener('submit', function () {
+          submit.disabled = true;
+          submit.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Signing in…';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
