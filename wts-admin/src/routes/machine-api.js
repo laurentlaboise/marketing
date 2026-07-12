@@ -520,7 +520,19 @@ router.post('/v1/products/sync-stripe', async (req, res) => {
  */
 router.post('/v1/products/price-options', async (req, res) => {
   try {
-    const { id, slug, price_options, stripe_product_id, price } = req.body || {};
+    const {
+      id,
+      slug,
+      price_options,
+      stripe_product_id,
+      price,
+      image_url,
+      slide_in_title,
+      slide_in_subtitle,
+      slide_in_image,
+      slide_in_content,
+      description,
+    } = req.body || {};
     if (!id && !slug) return fail(res, 'id or slug required');
     if (!Array.isArray(price_options) || !price_options.length) {
       return fail(res, 'price_options array required');
@@ -540,16 +552,28 @@ router.post('/v1/products/price-options', async (req, res) => {
          price_options = $1::jsonb,
          price = COALESCE($2, price),
          stripe_product_id = COALESCE($3, stripe_product_id),
+         image_url = COALESCE($6, image_url),
+         slide_in_title = COALESCE($7, slide_in_title),
+         slide_in_subtitle = COALESCE($8, slide_in_subtitle),
+         slide_in_image = COALESCE($9, slide_in_image),
+         slide_in_content = COALESCE($10, slide_in_content),
+         description = COALESCE($11, description),
          updated_at = NOW()
        WHERE ($4::uuid IS NOT NULL AND id = $4)
           OR ($5::text IS NOT NULL AND slug = $5)
-       RETURNING id, name, slug, pricing_type, price, stripe_product_id, price_options`,
+       RETURNING id, name, slug, pricing_type, price, stripe_product_id, price_options, image_url, slide_in_image`,
       [
         JSON.stringify(options),
         Number.isFinite(fromPrice) ? fromPrice : null,
         stripe_product_id || null,
         id || null,
         slug || null,
+        image_url || null,
+        slide_in_title || null,
+        slide_in_subtitle || null,
+        slide_in_image || null,
+        slide_in_content || null,
+        description || null,
       ]
     );
     if (!result.rows.length) return fail(res, 'product not found', 404);

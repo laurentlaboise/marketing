@@ -320,6 +320,7 @@
 
       detailMap[slug] = {
         id: product.id,
+        slug: slug,
         name: product.name,
         title: si.title || product.name,
         subtitle: si.subtitle || '',
@@ -435,6 +436,9 @@
 
     // Bind named price options (one product, multiple SKUs/prices)
     bindPriceOptions(data);
+
+    // Share service (everyone, signed-in or not)
+    bindShareButtons();
   }
 
   function bindPriceOptions(data) {
@@ -444,29 +448,86 @@
     var block = elContent.querySelector('.product-pricing-block');
     if (!block) return;
     var radios = block.querySelectorAll('.price-option-radio');
-    var labelEl = block.querySelector('.opt-selected-label');
-    var totalEl = block.querySelector('.opt-total');
+    var dynTitle = block.querySelector('.opt-dyn-title');
+    var dynDesc = block.querySelector('.opt-dyn-desc');
+    var dynPrice = block.querySelector('.opt-dyn-price');
     var byKey = {};
     pr.options.forEach(function (o) { byKey[o.key] = o; });
 
-    function apply(key) {
+    function apply(key, radioEl) {
       var opt = byKey[key] || pr.options[0];
       if (!opt) return;
-      if (labelEl) labelEl.textContent = opt.label;
-      if (totalEl) totalEl.textContent = fmtMoney(opt.price, pr.currency);
+      if (dynTitle) dynTitle.textContent = opt.label;
+      if (dynDesc) {
+        dynDesc.textContent = opt.description || (opt.strategy ? opt.strategy.replace(/_/g, ' ') : '');
+      }
+      if (dynPrice) dynPrice.innerHTML = fmtMoney(opt.price, pr.currency);
       var ctas = block.querySelectorAll('.product-cta');
       for (var i = 0; i < ctas.length; i++) {
         ctas[i].setAttribute('data-option-key', opt.key);
+      }
+      // Highlight selected card
+      var labels = block.querySelectorAll('.price-option-label');
+      for (var L = 0; L < labels.length; L++) {
+        var inp = labels[L].querySelector('.price-option-radio');
+        var on = inp && inp.checked;
+        labels[L].style.borderColor = on ? '#e11d74' : '#e2e8f0';
+        labels[L].style.boxShadow = on ? '0 0 0 3px rgba(225,29,116,0.12)' : 'none';
       }
     }
 
     for (var r = 0; r < radios.length; r++) {
       radios[r].addEventListener('change', function () {
-        if (this.checked) apply(this.value);
+        if (this.checked) apply(this.value, this);
       });
     }
     var initial = block.querySelector('.price-option-radio:checked');
-    apply(initial ? initial.value : pr.options[0].key);
+    apply(initial ? initial.value : pr.options[0].key, initial);
+  }
+
+  /** Share the service (not the price) — works signed-in or out */
+  function buildShareHTML(data) {
+    var pageUrl = (typeof window !== 'undefined' && window.location && window.location.href)
+      ? window.location.href.split('#')[0].split('?')[0]
+      : 'https://wordsthatsells.website/en/digital-marketing-services/content-creation/';
+    var shareUrl = pageUrl + (pageUrl.indexOf('?') >= 0 ? '&' : '?') + 'service=' + encodeURIComponent(data.slug || data.id || '');
+    var shareText = (data.name || data.title || 'Words That Sells service') +
+      ' — digital services for SEA businesses. ' + shareUrl;
+    var encUrl = encodeURIComponent(shareUrl);
+    var encText = encodeURIComponent(shareText);
+    var btn =
+      'display:inline-flex;align-items:center;justify-content:center;width:2.35rem;height:2.35rem;' +
+      'border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#475569;text-decoration:none;font-size:0.95rem;';
+    return '<div class="service-share" style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #e2e8f0;text-align:center;">' +
+      '<p style="margin:0 0 0.55rem;font-size:0.8rem;font-weight:600;color:#64748b;letter-spacing:0.04em;text-transform:uppercase;">Share this service</p>' +
+      '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">' +
+        '<a href="https://www.facebook.com/sharer/sharer.php?u=' + encUrl + '" target="_blank" rel="noopener noreferrer" title="Share on Facebook" style="' + btn + '"><i class="fab fa-facebook-f"></i></a>' +
+        '<a href="https://twitter.com/intent/tweet?url=' + encUrl + '&text=' + encodeURIComponent(data.name || 'Words That Sells') + '" target="_blank" rel="noopener noreferrer" title="Share on X" style="' + btn + '"><i class="fab fa-x-twitter"></i></a>' +
+        '<a href="https://www.linkedin.com/sharing/share-offsite/?url=' + encUrl + '" target="_blank" rel="noopener noreferrer" title="Share on LinkedIn" style="' + btn + '"><i class="fab fa-linkedin-in"></i></a>' +
+        '<a href="https://wa.me/?text=' + encText + '" target="_blank" rel="noopener noreferrer" title="Share on WhatsApp" style="' + btn + '"><i class="fab fa-whatsapp"></i></a>' +
+        '<button type="button" class="btn-copy-service-link" data-share-url="' + esc(shareUrl) + '" title="Copy link" style="' + btn + 'cursor:pointer;"><i class="fas fa-link"></i></button>' +
+      '</div>' +
+      '<p class="share-copy-status" style="margin:0.45rem 0 0;font-size:0.75rem;color:#16a34a;min-height:1em;"></p>' +
+    '</div>';
+  }
+
+  function bindShareButtons() {
+    if (!elContent) return;
+    var btns = elContent.querySelectorAll('.btn-copy-service-link');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('click', function () {
+        var url = this.getAttribute('data-share-url') || window.location.href;
+        var status = elContent.querySelector('.share-copy-status');
+        function done(ok) {
+          if (status) status.textContent = ok ? 'Link copied — share the service, not the price.' : 'Could not copy — long-press the address bar.';
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () { done(true); }).catch(function () { done(false); });
+        } else {
+          done(false);
+        }
+      });
+    }
   }
 
   // Live total + active-tier highlight for volume pricing. Also syncs the chosen
@@ -1379,39 +1440,39 @@
       return html;
     }
 
-    // Named options (one product, multiple price points)
+    // Named options (one product, multiple price points) — clean cards, dynamic summary on top
     if (pr.type === 'options' && pr.options && pr.options.length) {
-      html += '<p style="font-size:0.9rem;color:var(--color-slate-600,#475569);margin:0 0 0.75rem;">Choose an option</p>';
-      html += '<div class="price-options" role="radiogroup" aria-label="Price options" style="display:flex;flex-direction:column;gap:0.55rem;margin-bottom:1rem;">';
+      var first = pr.options[0];
+      html += '<div class="opt-dynamic-summary" style="text-align:left;background:linear-gradient(135deg,#fdf2f8 0%,#f8fafc 100%);border:1px solid #fbcfe8;border-radius:12px;padding:0.9rem 1rem;margin:0 0 1rem;">' +
+        '<div style="font-size:0.72rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#e11d74;margin-bottom:0.25rem;">Selected path</div>' +
+        '<div class="opt-dyn-title" style="font-size:1.05rem;font-weight:700;color:#0f172a;">' + esc(first.label) + '</div>' +
+        '<p class="opt-dyn-desc" style="margin:0.35rem 0 0;font-size:0.9rem;line-height:1.5;color:#475569;">' +
+          esc(first.description || first.strategy && first.strategy.replace(/_/g, ' ') || '') +
+        '</p>' +
+        '<div class="opt-dyn-price" style="margin-top:0.55rem;font-size:1.25rem;font-weight:800;color:#e11d74;">' +
+          fmtMoney(first.price, pr.currency) +
+        '</div>' +
+      '</div>';
+      html += '<p style="font-size:0.85rem;color:var(--color-slate-600,#475569);margin:0 0 0.6rem;text-align:left;">Choose how you want it done</p>';
+      html += '<div class="price-options" role="radiogroup" aria-label="Service options" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;">';
       pr.options.forEach(function (opt, idx) {
         var id = 'opt-' + String(data.id).slice(0, 8) + '-' + esc(opt.key);
         var checked = idx === 0 ? ' checked' : '';
-        html += '<label for="' + id + '" style="display:flex;gap:0.65rem;align-items:flex-start;border:1.5px solid #e2e8f0;border-radius:10px;padding:0.7rem 0.85rem;cursor:pointer;background:#fff;">' +
+        html += '<label for="' + id + '" class="price-option-label" style="display:flex;gap:0.7rem;align-items:center;border:1.5px solid #e2e8f0;border-radius:12px;padding:0.75rem 0.9rem;cursor:pointer;background:#fff;transition:border-color .15s,box-shadow .15s;">' +
           '<input type="radio" id="' + id + '" name="price-option-' + esc(String(data.id)) + '" value="' + esc(opt.key) + '" class="price-option-radio"' + checked +
-          ' style="margin-top:0.25rem;" data-price="' + esc(String(opt.price)) + '">' +
-          '<span style="flex:1;min-width:0;">' +
-            '<span style="display:flex;justify-content:space-between;gap:0.5rem;align-items:baseline;">' +
-              '<strong style="color:#0f172a;">' + esc(opt.label) + '</strong>' +
-              '<strong style="color:#e11d74;white-space:nowrap;">' + fmtMoney(opt.price, pr.currency) + '</strong>' +
-            '</span>' +
-            (opt.strategy ? '<span style="display:block;font-size:0.75rem;color:#64748b;margin-top:0.15rem;">' + esc(opt.strategy.replace(/_/g, ' ')) + '</span>' : '') +
-            (opt.features && opt.features.length
-              ? '<ul style="margin:0.35rem 0 0;padding-left:1.1rem;font-size:0.8rem;color:#475569;">' +
-                opt.features.slice(0, 4).map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') +
-                '</ul>'
-              : '') +
-          '</span></label>';
+          ' style="width:1.05rem;height:1.05rem;accent-color:#e11d74;flex:none;"' +
+          ' data-price="' + esc(String(opt.price)) + '"' +
+          ' data-label="' + esc(opt.label) + '"' +
+          ' data-description="' + esc(opt.description || '') + '">' +
+          '<span style="flex:1;min-width:0;text-align:left;">' +
+            '<strong style="display:block;color:#0f172a;font-size:0.98rem;">' + esc(opt.label) + '</strong>' +
+          '</span>' +
+          '<strong style="color:#e11d74;white-space:nowrap;font-size:1rem;">' + fmtMoney(opt.price, pr.currency) + '</strong>' +
+        '</label>';
       });
       html += '</div>';
-      html += '<div class="price-breakdown" style="' + BREAKDOWN_BOX_STYLE + '">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;">' +
-          '<span style="color:var(--color-slate-700,#334155);">Selected option</span>' +
-          '<strong class="opt-selected-label" style="white-space:nowrap;">' + esc(pr.options[0].label) + '</strong>' +
-        '</div>' +
-        BREAKDOWN_DIVIDER +
-        breakdownTotalRow('Due today', 'opt-total', fmtMoney(pr.options[0].price, pr.currency)) +
-      '</div>';
       html += buildCtaHTML(data, null);
+      html += buildShareHTML(data);
       html += '</div>';
       return html;
     }
@@ -1439,6 +1500,7 @@
       }
     }
     html += buildCtaHTML(data, null);
+    html += buildShareHTML(data);
     html += '</div>';
     return html;
   }
@@ -1484,7 +1546,7 @@
 
       var buy = '<button class="btn btn-accent-magenta product-cta btn-buy-now"' + idAttr + nameAttr + formAttr + billingAttr +
         (data.stripe_payment_link ? ' data-stripe-link="' + esc(data.stripe_payment_link) + '"' : '') +
-        ctaStyle + '><i class="fas fa-bolt"></i> Buy Now</button>';
+        ctaStyle + '><i class="fas fa-bolt"></i> Activate service</button>';
       // BCEL OnePay (Laos): a second payment path that opens the merchant QR.
       if (data.bcel) {
         buy += '<div style="margin-top:0.6rem;"><button class="btn-bcel-pay product-cta"' + idAttr + nameAttr + billingAttr +
