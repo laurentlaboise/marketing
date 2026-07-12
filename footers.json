@@ -1,5 +1,5 @@
 {
-  "default": "nocontact",
+  "default": "main",
   "assignments": [
     {
       "match": "/en",
@@ -11,7 +11,7 @@
     },
     {
       "match": "/en/*",
-      "variant": "nocontact"
+      "variant": "main"
     },
     {
       "match": "/th",
@@ -19,7 +19,7 @@
     },
     {
       "match": "/th/*",
-      "variant": "nocontact"
+      "variant": "main"
     },
     {
       "match": "/la",
@@ -27,7 +27,7 @@
     },
     {
       "match": "/la/*",
-      "variant": "nocontact"
+      "variant": "main"
     },
     {
       "match": "/fr",
@@ -35,7 +35,7 @@
     },
     {
       "match": "/fr/*",
-      "variant": "nocontact"
+      "variant": "main"
     }
   ],
   "variants": {
@@ -192,7 +192,7 @@
           "href": "https://wordsthatsells.website/en/company/legal/cookie-policy.html"
         }
       ],
-      "copyright": "\u00a9 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 \u2013 000001253"
+      "copyright": "© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253"
     },
     "articles": {
       "social": [
@@ -222,8 +222,31 @@
           "label": "YouTube"
         }
       ],
-      "contactHeading": "",
-      "contact": [],
+      "contactHeading": "Contact Us",
+      "contact": [
+        {
+          "icon": "fas fa-map-marker-alt",
+          "text": "20 Rue Samsenthai, Vientiane,\nVientiane Province"
+        },
+        {
+          "icon": "fab fa-google",
+          "href": "https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6",
+          "external": true,
+          "text": "Find us on Google"
+        },
+        {
+          "icon": "fab fa-whatsapp",
+          "href": "https://wa.me/8562055528034",
+          "external": true,
+          "text": "02055528034"
+        },
+        {
+          "icon": "fas fa-envelope",
+          "href": "mailto:info@wordsthatsells.website",
+          "external": true,
+          "text": "info@wordsthatsells.website"
+        }
+      ],
       "columns": [
         {
           "heading": "Solutions",
@@ -324,7 +347,7 @@
           "href": "https://wordsthatsells.website/en/company/legal/cookie-policy.html"
         }
       ],
-      "copyright": "\u00a9 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 \u2013 000001253"
+      "copyright": "© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253"
     },
     "nocontact": {
       "social": [
@@ -354,8 +377,31 @@
           "label": "YouTube"
         }
       ],
-      "contactHeading": "",
-      "contact": [],
+      "contactHeading": "Contact Us",
+      "contact": [
+        {
+          "icon": "fas fa-map-marker-alt",
+          "text": "20 Rue Samsenthai, Vientiane,\nVientiane Province"
+        },
+        {
+          "icon": "fab fa-google",
+          "href": "https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6",
+          "external": true,
+          "text": "Find us on Google"
+        },
+        {
+          "icon": "fab fa-whatsapp",
+          "href": "https://wa.me/8562055528034",
+          "external": true,
+          "text": "02055528034"
+        },
+        {
+          "icon": "fas fa-envelope",
+          "href": "mailto:info@wordsthatsells.website",
+          "external": true,
+          "text": "info@wordsthatsells.website"
+        }
+      ],
       "columns": [
         {
           "heading": "Solutions",
@@ -456,7 +502,7 @@
           "href": "https://wordsthatsells.website/en/company/legal/cookie-policy.html"
         }
       ],
-      "copyright": "\u00a9 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 \u2013 000001253"
+      "copyright": "© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253"
     }
   }
 }
