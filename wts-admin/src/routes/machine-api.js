@@ -307,6 +307,212 @@ router.get('/v1/products', async (req, res) => {
   }
 });
 
+/**
+ * Create Stripe Product + Price objects for active catalog products and
+ * write stripe_* IDs back to Postgres. Does not charge customers.
+ *
+ * POST /v1/products/sync-stripe
+ * body/query: { dry_run?: bool, limit?: number, only?: uuid|sku|slug }
+ */
+router.post('/v1/products/sync-stripe', async (req, res) => {
+  try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return fail(res, 'STRIPE_SECRET_KEY not configured on server', 503);
+    }
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const dryRun = String(req.body?.dry_run ?? req.query.dry_run ?? '') === '1'
+      || req.body?.dry_run === true;
+    const limit = Math.min(Math.max(parseInt(req.body?.limit || req.query.limit || '0', 10) || 0, 0), 500);
+    const only = String(req.body?.only || req.query.only || '').trim();
+
+    const num = (v) => {
+      if (v === null || v === undefined || v === '') return null;
+      const n = parseFloat(v);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    };
+    const cents = (a) => Math.round(a * 100);
+
+    let { rows: products } = await db.query(
+      `SELECT id, name, description, sku, slug, currency, status, pricing_type, product_type,
+              price, monthly_price, yearly_price, setup_fee, image_url,
+              stripe_product_id, stripe_price_id, stripe_price_id_monthly,
+              stripe_price_id_yearly, stripe_price_id_setup
+       FROM products
+       WHERE COALESCE(status, 'active') = 'active'
+       ORDER BY sort_order NULLS LAST, name`
+    );
+    if (only) {
+      products = products.filter(
+        (p) => p.id === only || p.sku === only || p.slug === only
+      );
+    }
+    if (limit > 0) products = products.slice(0, limit);
+
+    const summary = {
+      dry_run: dryRun,
+      livemode: process.env.STRIPE_SECRET_KEY.startsWith('sk_live_'),
+      considered: products.length,
+      created: 0,
+      skipped: 0,
+      errors: [],
+      items: [],
+    };
+
+    for (const p of products) {
+      const currency = (p.currency || 'USD').toLowerCase();
+      const isSub =
+        p.pricing_type === 'subscription' || p.product_type === 'subscription';
+      const oneTime = num(p.price);
+      const monthly = num(p.monthly_price);
+      const yearly = num(p.yearly_price);
+      const setup = num(p.setup_fee);
+      const hasOneTime = !isSub && oneTime;
+      const hasSub = isSub && (monthly || yearly);
+
+      if (!hasOneTime && !hasSub) {
+        summary.skipped += 1;
+        summary.items.push({ id: p.id, name: p.name, action: 'skip_no_price' });
+        continue;
+      }
+      if (!isSub && p.stripe_product_id && p.stripe_price_id) {
+        summary.skipped += 1;
+        summary.items.push({ id: p.id, name: p.name, action: 'skip_already_linked' });
+        continue;
+      }
+      if (
+        isSub &&
+        p.stripe_product_id &&
+        (p.stripe_price_id_monthly || p.stripe_price_id_yearly)
+      ) {
+        summary.skipped += 1;
+        summary.items.push({ id: p.id, name: p.name, action: 'skip_already_linked' });
+        continue;
+      }
+
+      try {
+        let productId = p.stripe_product_id;
+        if (!productId) {
+          if (dryRun) {
+            productId = 'prod_dry_run';
+          } else {
+            const created = await stripe.products.create({
+              name: p.name,
+              description: (p.description || '').slice(0, 500) || undefined,
+              images: p.image_url ? [p.image_url] : undefined,
+              metadata: {
+                wts_product_id: p.id,
+                wts_sku: p.sku || '',
+                wts_slug: p.slug || '',
+                source: 'machine-api-sync-stripe',
+              },
+            });
+            productId = created.id;
+          }
+        }
+
+        let stripe_price_id = p.stripe_price_id;
+        let stripe_price_id_monthly = p.stripe_price_id_monthly;
+        let stripe_price_id_yearly = p.stripe_price_id_yearly;
+        let stripe_price_id_setup = p.stripe_price_id_setup;
+
+        if (hasOneTime && !stripe_price_id) {
+          if (dryRun) {
+            stripe_price_id = 'price_dry_run';
+          } else {
+            const price = await stripe.prices.create({
+              product: productId,
+              currency,
+              unit_amount: cents(oneTime),
+              metadata: { wts_product_id: p.id, kind: 'one_time' },
+            });
+            stripe_price_id = price.id;
+          }
+        }
+        if (hasSub && monthly && !stripe_price_id_monthly) {
+          if (dryRun) {
+            stripe_price_id_monthly = 'price_dry_monthly';
+          } else {
+            const price = await stripe.prices.create({
+              product: productId,
+              currency,
+              unit_amount: cents(monthly),
+              recurring: { interval: 'month' },
+              metadata: { wts_product_id: p.id, kind: 'monthly' },
+            });
+            stripe_price_id_monthly = price.id;
+          }
+        }
+        if (hasSub && yearly && !stripe_price_id_yearly) {
+          if (dryRun) {
+            stripe_price_id_yearly = 'price_dry_yearly';
+          } else {
+            const price = await stripe.prices.create({
+              product: productId,
+              currency,
+              unit_amount: cents(yearly),
+              recurring: { interval: 'year' },
+              metadata: { wts_product_id: p.id, kind: 'yearly' },
+            });
+            stripe_price_id_yearly = price.id;
+          }
+        }
+        if (setup && !stripe_price_id_setup) {
+          if (dryRun) {
+            stripe_price_id_setup = 'price_dry_setup';
+          } else {
+            const price = await stripe.prices.create({
+              product: productId,
+              currency,
+              unit_amount: cents(setup),
+              metadata: { wts_product_id: p.id, kind: 'setup' },
+            });
+            stripe_price_id_setup = price.id;
+          }
+        }
+
+        if (!dryRun) {
+          await db.query(
+            `UPDATE products SET
+               stripe_product_id = COALESCE($2, stripe_product_id),
+               stripe_price_id = COALESCE($3, stripe_price_id),
+               stripe_price_id_monthly = COALESCE($4, stripe_price_id_monthly),
+               stripe_price_id_yearly = COALESCE($5, stripe_price_id_yearly),
+               stripe_price_id_setup = COALESCE($6, stripe_price_id_setup),
+               updated_at = NOW()
+             WHERE id = $1`,
+            [
+              p.id,
+              productId,
+              stripe_price_id || null,
+              stripe_price_id_monthly || null,
+              stripe_price_id_yearly || null,
+              stripe_price_id_setup || null,
+            ]
+          );
+        }
+
+        summary.created += 1;
+        summary.items.push({
+          id: p.id,
+          name: p.name,
+          action: dryRun ? 'would_create' : 'created',
+          stripe_product_id: productId,
+          stripe_price_id,
+          stripe_price_id_monthly,
+          stripe_price_id_yearly,
+        });
+      } catch (e) {
+        summary.errors.push({ id: p.id, name: p.name, error: e.message });
+      }
+    }
+
+    return ok(res, summary);
+  } catch (e) {
+    console.error('[machine-api] POST products/sync-stripe', e);
+    return fail(res, 'Stripe product sync failed: ' + e.message, 500);
+  }
+});
+
 // ── Affiliate solutions ─────────────────────────────────────────────
 
 router.get('/v1/affiliate-solutions', async (req, res) => {
