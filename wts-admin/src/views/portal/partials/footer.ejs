@@ -7,8 +7,11 @@
     <% } else { %>
     <div class="foot foot-brand"><%= t('common.footerBrand') %></div>
     <% } %>
-    <%- include('../../partials/legal-bar') %>
+    <%# compact: links only — entity/tax line is for login; app pages hide it via CSS too %>
+    <%- include('../../partials/legal-bar', { compact: true }) %>
+    <% if (typeof simpleFooter !== 'undefined' && simpleFooter) { %>
     <p class="foot foot-agree"><%- t('common.footerLegalAgree') %></p>
+    <% } %>
   </footer>
 </body>
 </html>

@@ -110,7 +110,8 @@
       box-shadow: var(--wts-shadow);
       display: flex;
       flex-direction: column;
-      min-height: 100%;
+      /* Avoid min-height:100% stretching cards into a giant empty white block */
+      min-height: 0;
       overflow: hidden;
     }
     .dash-card-header {
@@ -125,7 +126,7 @@
     .dash-card-header a {
       font-size: 0.8rem; font-weight: 700; color: var(--wts-magenta); text-decoration: none; white-space: nowrap;
     }
-    .dash-card-body { padding: 0.35rem 0; flex: 1; }
+    .dash-card-body { padding: 0.35rem 0; flex: 0 1 auto; }
     .dash-card-body.pad { padding: 1rem 1.1rem; }
 
     /* Payment / order table rows (method + status clear) */
