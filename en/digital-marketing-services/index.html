@@ -610,6 +610,225 @@
       @media (max-width: 520px) {
         .svc-trust { grid-template-columns: 1fr; }
       }
+
+      /* ── Restored programs sticky + horizontal scroll menu ── */
+      .sticky-tab-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(10px);
+        padding: 0.85rem 1.25rem;
+        box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+        display: none;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .sticky-tab-header .tab-header-text h2 {
+        margin: 0;
+        font-size: 1.05rem;
+        color: #122a3f;
+        font-weight: 800;
+      }
+      .sticky-tab-header .tab-header-text p {
+        margin: 0.1rem 0 0;
+        color: #64748b;
+        font-size: 0.88rem;
+        font-weight: 600;
+      }
+      .tab-section {
+        padding: 2.5rem 0 1rem;
+        background: #fff;
+      }
+      .tab-nav {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 1.25rem;
+        gap: 1.75rem;
+        flex-wrap: wrap;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .tab-btn {
+        background: none;
+        border: none;
+        font-family: inherit;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #64748b;
+        padding: 0.85rem 0;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.2s;
+      }
+      .tab-btn:hover { color: #122a3f; }
+      .tab-btn.active { color: #d62b83; }
+      .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: #d62b83;
+        border-radius: 3px 3px 0 0;
+      }
+      .tab-content-container {
+        overflow-x: auto;
+        padding-bottom: 0.75rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+      }
+      .tab-content {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        min-width: min-content;
+      }
+      .tab-content .service-card {
+        flex: 0 0 min(320px, 82vw);
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 1.25rem 1.3rem;
+        box-shadow: 0 10px 28px rgba(15,23,42,0.06);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 200px;
+        transition: border-color 0.15s, transform 0.15s;
+      }
+      .tab-content .service-card:hover {
+        border-color: #f9a8d4;
+        transform: translateY(-2px);
+      }
+      .tab-content .service-card h2 {
+        margin: 0 0 0.45rem;
+        font-size: 1.15rem;
+        color: #122a3f;
+        font-weight: 800;
+      }
+      .tab-content .service-card h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #64748b;
+        line-height: 1.55;
+      }
+      .tab-content .card-footer,
+      .case-study-content .card-footer {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        margin-top: 1.1rem;
+      }
+      .card-button {
+        width: 2.4rem;
+        height: 2.4rem;
+        border-radius: 999px;
+        border: none;
+        background: #d62b83;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.15s, transform 0.15s;
+      }
+      .card-button:hover { background: #b91c6f; transform: scale(1.05); color: #fff; }
+      .card-enable-text {
+        font-weight: 700;
+        color: #122a3f;
+        font-size: 0.9rem;
+      }
+
+      .case-study-section {
+        padding: 1rem 0 3rem;
+        background: #f8fafc;
+      }
+      .case-study-two-column-layout {
+        display: grid;
+        grid-template-columns: minmax(240px, 0.9fr) 1.2fr;
+        gap: 1.5rem;
+        align-items: start;
+      }
+      .left-column-container {
+        position: sticky;
+        top: 5.5rem;
+      }
+      .left-column-content h2 {
+        margin: 0 0 0.65rem;
+        font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+        color: #122a3f;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .left-column-content p {
+        color: #64748b;
+        margin: 0 0 1.1rem;
+      }
+      .left-column-content .hero-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+      }
+      .right-column-scrollable {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-height: 70vh;
+        overflow-y: auto;
+        padding-right: 0.35rem;
+        scroll-behavior: smooth;
+      }
+      .case-study-card-minimal {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1rem 1.15rem;
+        cursor: pointer;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      .case-study-card-minimal:hover,
+      .case-study-card-minimal.active {
+        border-color: #f9a8d4;
+        box-shadow: 0 10px 24px rgba(15,23,42,0.07);
+      }
+      .case-study-card-minimal h4 {
+        margin: 0;
+        color: #122a3f;
+        font-size: 1.02rem;
+        font-weight: 800;
+      }
+      .case-study-content {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.25s ease;
+        margin-top: 0;
+      }
+      .case-study-card-minimal.active .case-study-content {
+        max-height: 320px;
+        opacity: 1;
+        margin-top: 0.75rem;
+      }
+      .case-study-content p {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+      @media (max-width: 900px) {
+        .case-study-two-column-layout { grid-template-columns: 1fr; }
+        .left-column-container { position: static; }
+        .right-column-scrollable { max-height: none; }
+        .sticky-tab-header { top: auto; }
+      }
+
     </style>
 <link id="wts-footer-fa" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous"></head>
 <body>
@@ -665,6 +884,179 @@
       </aside>
     </div>
   </header>
+
+
+  <!-- Sticky programs bar (appears while scrolling menu in view) -->
+  <div id="sticky-tab-header" class="sticky-tab-header">
+    <div class="svc-wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%;gap:1rem;">
+      <div class="tab-header-text">
+        <h2>Digital Marketing Programs</h2>
+        <p>For Agencies, Affiliates &amp; Clients</p>
+      </div>
+      <a href="https://admin.wordsthatsells.website/portal/login?from=services&amp;src=sticky_programs" class="btn btn-magenta" style="padding:0.5rem 1rem;font-size:0.88rem;">
+        <i class="fa-solid fa-user-plus"></i> Get portal access
+      </a>
+    </div>
+  </div>
+
+  <!-- Horizontal scrolling menu (ePartners / eServices / eTalents) -->
+  <section class="tab-section" id="programs" aria-labelledby="programs-heading">
+    <div class="svc-wrap">
+      <div class="svc-section-head" style="text-align:left;margin:0 0 1.25rem;max-width:none;">
+        <h2 id="programs-heading" style="margin:0 0 0.35rem;">Digital Marketing Programs</h2>
+        <p style="margin:0;">Scroll the menu — pick your path, then Enable to open the portal or partner flow.</p>
+      </div>
+      <div class="tab-nav" role="tablist" aria-label="Program types">
+        <button type="button" class="tab-btn active" data-tab="eparters" role="tab" aria-selected="true">ePartners</button>
+        <button type="button" class="tab-btn" data-tab="eservices" role="tab" aria-selected="false">eServices</button>
+        <button type="button" class="tab-btn" data-tab="etalents" role="tab" aria-selected="false">eTalents</button>
+      </div>
+      <div class="tab-content-container">
+        <div class="tab-content" id="tab-content" role="tabpanel"><!-- filled by JS --></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scrolling use-case menu -->
+  <section class="case-study-section" id="in-action" aria-labelledby="in-action-title">
+    <div class="svc-wrap case-study-two-column-layout">
+      <div class="left-column-container">
+        <div class="left-column-content">
+          <h2 id="in-action-title">See our services in action</h2>
+          <p>Scroll the menu on the right. Tap a use-case to expand, then Enable to start in the portal.</p>
+          <div class="hero-buttons">
+            <a href="https://admin.wordsthatsells.website/portal/login?from=services&amp;src=in_action_signup" class="btn btn-magenta">
+              <i class="fa-solid fa-user-plus"></i> Portal signup
+            </a>
+            <a href="/en/digital-marketing-services/prices/" class="btn btn-outline">See pricing</a>
+          </div>
+        </div>
+      </div>
+<div class="right-column-scrollable" id="case-study-list">
+                      <div class="case-study-card-minimal" data-case-study="authority-building">
+                          <h4>Authority Building</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>Financial Consultancy Business:</strong> We craft and publish in-depth articles that position you as a thought leader. By breaking down complex financial topics, we helped a local consultancy attract high-value corporate clients who were searching for expert guidance.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="case-study-card-minimal" data-case-study="brand-identity">
+                          <h4>Brand Identity</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>Tech Start-up:</strong> We translate your vision into a compelling brand. For a new SaaS startup, we developed a complete visual identity—from the logo and color palette to marketing collateral—ensuring a professional and memorable first impression for investors and early adopters.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="case-study-card-minimal" data-case-study="membership-sales">
+                          <h4>Membership Sales</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>Fitness Studio:</strong> We drive local foot traffic with targeted social media ads. By showcasing a local gym's unique classes and a limited-time offer, we ran a geo-targeted ad campaign that reached thousands of potential members within a 5-mile radius, filling their new year's classes.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="case-study-card-minimal" data-case-study="lead-funnel">
+                          <h4>Lead Funnel</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>Business Coach Consultant:</strong> We turn passive interest into active leads. We built a complete sales funnel for a business coach, starting with a social media ad that led to a landing page for a free webinar. This automated system captures, qualifies, and nurtures leads seamlessly.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="case-study-card-minimal" data-case-study="lead-management">
+                          <h4>Lead Management</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>Real Estate Agency:</strong> We ensure no lead gets left behind. For a busy real estate firm, we implemented a lead management system that automatically sorts inquiries from different platforms (Zillow, website, social media) and sets reminders for agents to follow up, dramatically improving their response time.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="case-study-card-minimal" data-case-study="product-launch">
+                          <h4>Product Launch</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>Online Course Creator:</strong> We combine compelling design and targeted ads for a powerful launch. We created all the graphic assets and ran a multi-platform social media ad campaign for an expert's new course, resulting in a sold-out first cohort.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="case-study-card-minimal" data-case-study="content-socials">
+                          <h4>Content & Socials</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>Artisan Bakery:</strong> We make your products irresistible online. By creating high-quality articles about baking and pairing them with stunning graphic design for social media posts, we helped a local bakery grow a loyal online following and drive pre-orders for specialty items.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="case-study-card-minimal" data-case-study="quote-request-funnel" id="last-card">
+                          <h4>Quote-Request Funnel</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>Home Contractor:</strong> We streamline how you find and manage new projects. We built a sales funnel that starts with an ad showcasing beautiful renovation projects and directs users to a simple form to request a quote. This feeds directly into a lead management system, organizing jobs by priority.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="case-study-card-minimal" data-case-study="linkedin-nurturing">
+                          <h4>LinkedIn Lead Nurturing</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>B2B Service Business:</strong> We turn connections into clients. For a B2B IT service provider, we ran targeted LinkedIn ads to promote an expert article (an downloadable whitepaper). This initiated a sales funnel that used lead management to nurture prospects with follow-up content, positioning our client as the go-to expert.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="case-study-card-minimal" data-case-study="event-promotion">
+                          <h4>Event Promotion</h4>
+                          <div class="case-study-content">
+                              <p>For a <strong>Community Non-Profit:</strong> We fill seats and boost awareness for your cause. We used a mix of engaging graphic design for posters/flyers and hyper-targeted social media ads to promote a non-profit's annual fundraising event. The campaign significantly increased ticket sales and local press coverage.</p>
+                              <div class="card-footer">
+                                  <button class="card-button" aria-label="Enable service">
+                                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                  </button>
+                                  <span class="card-enable-text">Enable</span>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              
+    </div>
+  </section>
 
   <main>
     <!-- Services -->
@@ -882,5 +1274,106 @@
       <div class="footer-bottom"><div class="footer-legal"><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Privacy</a><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Terms</a><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Cookies</a></div><p>© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="en"><a href="/en/digital-marketing-services/" data-lang-dir="en" hreflang="en" lang="en" title="English" aria-current="true">EN</a><span class="lang-soon" lang="th" title="ไทย (Thai) translation coming soon" aria-disabled="true">ไทย</span><span class="lang-soon" lang="lo" title="ລາວ (Lao) translation coming soon" aria-disabled="true">ລາວ</span><span class="lang-soon" lang="fr" title="Français translation coming soon" aria-disabled="true">FR</span></nav></div>
     </div>
   </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const PORTAL = 'https://admin.wordsthatsells.website/portal/login';
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      const tabContentContainer = document.getElementById('tab-content');
+
+      function enableFooter(href, label) {
+        return (
+          '<div class="card-footer">' +
+            '<a class="card-button" href="' + href + '" aria-label="' + label + '">' +
+              '<i class="fa-solid fa-arrow-up-right-from-square"></i>' +
+            '</a>' +
+            '<span class="card-enable-text">Enable</span>' +
+          '</div>'
+        );
+      }
+
+      const contentData = {
+        eparters:
+          '<div class="service-card"><div><h2>Marketing Agencies</h2><h3>Resell our expert services to your own clients under your own brand — white-label delivery without building a full production bench.</h3></div>' +
+            enableFooter('/en/company/digital-agencies/', 'Enable agency partnership') + '</div>' +
+          '<div class="service-card"><div><h2>Affiliate Agents</h2><h3>Introduce clients and earn commission on market-ready packages. We deliver; you grow relationships.</h3></div>' +
+            enableFooter('/en/company/affiliate-sales/', 'Enable affiliate program') + '</div>' +
+          '<div class="service-card"><div><h2>SME Clients</h2><h3>Boost sales with scoped digital marketing packages — SEO, content, social, web — managed in the client portal.</h3></div>' +
+            enableFooter(PORTAL + '?from=services&src=eparters_sme', 'Enable SME portal') + '</div>',
+
+        eservices:
+          '<div class="service-card"><div><h2>Digital Marketing Strategy</h2><h3>A winning digital presence starts with a rock-solid plan tailored to SEA markets and your growth goals.</h3></div>' +
+            enableFooter(PORTAL + '?from=services&src=eservices_strategy', 'Enable strategy') + '</div>' +
+          '<div class="service-card"><div><h2>SEO Content Creation</h2><h3>High-quality content that ranks — service pages, articles, and guides built for Google and conversion.</h3></div>' +
+            enableFooter('/en/digital-marketing-services/content-creation/', 'Enable content') + '</div>' +
+          '<div class="service-card"><div><h2>Social Media Management</h2><h3>Build a consistent brand presence with planning, creative, and scheduling across key channels.</h3></div>' +
+            enableFooter('/en/digital-marketing-services/social-media-management/', 'Enable social') + '</div>' +
+          '<div class="service-card"><div><h2>AI Business Tools</h2><h3>Streamline operations with AI-assisted workflows for research, content, and automation.</h3></div>' +
+            enableFooter('/en/digital-marketing-services/business-tools/', 'Enable AI tools') + '</div>',
+
+        etalents:
+          '<div class="service-card"><div><h2>Web Development</h2><h3>Responsive, SEO-ready websites and landers that capture leads — for SMEs, affiliates, or white-label agencies.</h3></div>' +
+            enableFooter('/en/digital-marketing-services/web-development/', 'Enable web') + '</div>' +
+          '<div class="service-card"><div><h2>Graphic Design</h2><h3>Brand-ready visuals for campaigns, social, and launches — consistent with your identity.</h3></div>' +
+            enableFooter(PORTAL + '?from=services&src=etalents_design', 'Enable design') + '</div>' +
+          '<div class="service-card"><div><h2>App Development</h2><h3>Reach customers on the go with intuitive mobile experiences when your product needs an app layer.</h3></div>' +
+            enableFooter(PORTAL + '?from=services&src=etalents_app', 'Enable app dev') + '</div>'
+      };
+
+      function displayContent(tabId) {
+        if (!tabContentContainer) return;
+        tabContentContainer.innerHTML = contentData[tabId] || '';
+      }
+
+      tabButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          tabButtons.forEach(function (btn) {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-selected', 'false');
+          });
+          button.classList.add('active');
+          button.setAttribute('aria-selected', 'true');
+          displayContent(button.getAttribute('data-tab'));
+        });
+      });
+      displayContent('eparters');
+
+      // Case study expand/collapse
+      document.querySelectorAll('.case-study-card-minimal').forEach(function (card) {
+        card.addEventListener('click', function (e) {
+          if (e.target.closest('a.card-button')) return;
+          var isActive = card.classList.contains('active');
+          document.querySelectorAll('.case-study-card-minimal').forEach(function (c) {
+            c.classList.remove('active');
+          });
+          if (!isActive) card.classList.add('active');
+        });
+        // Wire Enable on case studies → portal
+        var footer = card.querySelector('.card-footer');
+        if (footer) {
+          var key = card.getAttribute('data-case-study') || 'use_case';
+          footer.innerHTML =
+            '<a class="card-button" href="' + PORTAL + '?from=services&src=usecase_' + encodeURIComponent(key) + '" aria-label="Enable this use case">' +
+              '<i class="fa-solid fa-arrow-up-right-from-square"></i></a>' +
+            '<span class="card-enable-text">Enable</span>';
+        }
+      });
+
+      // Sticky programs header while tab section leaves viewport top
+      var tabSection = document.querySelector('.tab-section');
+      var stickyHeader = document.getElementById('sticky-tab-header');
+      if (tabSection && stickyHeader) {
+        var stickyHeaderObserver = new IntersectionObserver(
+          function (entries) {
+            var e = entries[0];
+            stickyHeader.style.display = e.intersectionRatio < 1 ? 'flex' : 'none';
+          },
+          { threshold: [1], rootMargin: '-1px 0px 0px 0px' }
+        );
+        stickyHeaderObserver.observe(tabSection);
+      }
+    });
+  </script>
+
 </body>
 </html>
