@@ -24,174 +24,203 @@ Write 1200–1500 word article targeting “structured data”, secondaries “s
     color: #ffffff;
     text-decoration: none;
 }
-.footer a:hover, .footer-contact-item:hover span, .footer-contact-item:hover i { 
-    color: #d62b83; 
-}
-.footer-top { 
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 2rem; 
-    margin-bottom: 3rem; 
-}
-.footer-brand { 
-    flex: 1 1 100%;
-    text-align: center; 
-    margin-bottom: 2rem; 
-}
-.footer-logo { 
-    max-width: 200px; 
-    height: auto; 
-    margin: 0 auto 1rem; 
-    display: block; 
-}
-.footer-brand-divider { 
-    width: 60px; 
-    height: 2px; 
-    background-color: #d62b83; 
-    margin: 0 auto 0.5rem; 
-}
-.footer-brand-text { 
-    font-size: 0.875rem; 
-    line-height: 1.4; 
-    max-width: 300px; 
-    margin: 0 auto;
-    color: #ffffff; 
-}
-.footer-grid { 
-    display: grid; 
-    /* Mobile: single column stack (readable on phone) */
-    grid-template-columns: 1fr; 
-    gap: 2rem; 
-    width: 100%; 
-}
-.footer-column { 
-    text-align: center;
-}
-.footer-heading { 
-    font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif; 
-    font-size: 1.125rem; 
-    font-weight: 600; 
-    margin-bottom: 1rem; 
-    color: #ffffff; 
-}
-.footer-heading::after { 
-    content: ''; 
-    display: block; 
-    width: 30px; 
-    height: 3px; 
-    background-color: #d62b83; 
-    margin: 0.5rem auto 0; 
-}
-.footer-list { 
-    list-style: none; 
-    padding: 0; 
-    margin-top: 0; 
-    font-size: 0.875rem; 
-}
-.footer-list li { 
-    margin-bottom: 0.5rem; 
-}
-.footer-contact-item { 
-    display: flex; 
-    align-items: center; 
-    gap: 0.5rem; 
-    margin-bottom: 0.5rem; 
-    justify-content: center; 
-    cursor: pointer; 
-}
-.footer-contact-item i { 
-    color: #ffffff; 
-    font-size: 1.125rem; 
-    width: 20px; 
-    text-align: center; 
-    transition: all 0.3s ease-in-out; 
-}
-.social-links { 
-    display: flex; 
-    gap: 1rem; 
-    justify-content: center; 
-    margin-top: 1rem; 
-}
-.social-links a { 
-    font-size: 1.5rem; 
-}
-.social-links a:hover { 
-    transform: scale(1.1); 
-}
-.footer-bottom { 
-    border-top: 1px solid #185a8d; 
-    padding-top: 2rem; 
-    text-align: center; 
-    font-size: 0.875rem; 
-}
-.footer-bottom p { 
-    color: #a3cce8; 
-    margin: 0; 
-}
-.footer-legal { 
-    display: flex; 
-    justify-content: center; 
-    gap: 1rem; 
-    margin-bottom: 0.5rem; 
+.footer a:hover,
+.footer-contact-item:hover span,
+.footer-contact-item:hover i {
+    color: #d62b83;
 }
 
-/* Tablet: 2 clean columns (not a tall single stack) */
+/* Brand (logo) is NOT a grid column — sits beside the 3-col link grid */
+.footer-top {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+.footer-brand {
+    flex: 0 0 auto;
+    text-align: center;
+}
+.footer-logo {
+    max-width: 200px;
+    height: auto;
+    margin: 0 auto 1rem;
+    display: block;
+}
+.footer-brand-divider {
+    width: 60px;
+    height: 2px;
+    background-color: #d62b83;
+    margin: 0 auto 0.5rem;
+}
+.footer-brand-text {
+    font-size: 0.875rem;
+    line-height: 1.4;
+    max-width: 280px;
+    margin: 0 auto;
+    color: #ffffff;
+}
+
+/*
+ * Link block: always 3 equal columns × N auto rows (logo excluded).
+ * Extra .footer-column cells wrap to the next row with the same style.
+ * Mobile: 1 col stack. Tablet: 2 col. Desktop: 3 col.
+ */
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem 1.5rem;
+    width: 100%;
+    min-width: 0;
+    align-items: start;
+}
+
+/* Every column identical: same type scale, alignment, heading rule */
+.footer-column {
+    text-align: center;
+    min-width: 0;
+}
+.footer-heading {
+    font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: #ffffff;
+    line-height: 1.3;
+}
+.footer-heading::after {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 3px;
+    background-color: #d62b83;
+    margin: 0.5rem auto 0;
+}
+.footer-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+.footer-list > li {
+    margin-bottom: 0.5rem;
+}
+.footer-list > li:last-child {
+    margin-bottom: 0;
+}
+
+/* Contact rows share link-column rhythm; multi-line address stays readable */
+.footer-contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    justify-content: center;
+    cursor: default;
+    text-align: left;
+}
+.footer-contact-item a {
+    cursor: pointer;
+}
+.footer-contact-item i {
+    color: #ffffff;
+    font-size: 1.125rem;
+    width: 20px;
+    flex: 0 0 20px;
+    text-align: center;
+    margin-top: 0.15em;
+    transition: all 0.3s ease-in-out;
+}
+.footer-contact-item span,
+.footer-contact-item a {
+    flex: 1 1 auto;
+    min-width: 0;
+    word-break: break-word;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+.social-links a {
+    font-size: 1.5rem;
+}
+.social-links a:hover {
+    transform: scale(1.1);
+}
+
+.footer-bottom {
+    border-top: 1px solid #185a8d;
+    padding-top: 2rem;
+    text-align: center;
+    font-size: 0.875rem;
+}
+.footer-bottom p {
+    color: #a3cce8;
+    margin: 0;
+}
+.footer-legal {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Tablet: 2 equal columns, rows auto */
 @media (min-width: 600px) {
     .footer-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1.5rem 2rem;
+        gap: 2rem 3rem;
     }
 }
 
-/* Desktop: brand left + link columns right (matches affiliate-sales layout) */
+/* Desktop: logo left + 3 equal columns × auto rows on the right */
 @media (min-width: 768px) {
     .footer-top {
-        display: flex;
+        flex-direction: row;
         flex-wrap: nowrap;
         align-items: flex-start;
-        gap: 2rem;
+        gap: clamp(1.5rem, 4vw, 3rem);
     }
     .footer-brand {
-        flex: 0 0 240px;
-        max-width: 260px;
+        flex: 0 0 220px;
+        max-width: 240px;
         text-align: left;
-        margin-bottom: 0;
     }
+    .footer-logo,
+    .footer-brand-divider,
+    .footer-brand-text {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .footer-brand-text {
+        max-width: none;
+    }
+    .social-links {
+        justify-content: flex-start;
+    }
+
+    /* THE layout rule: 3 columns × N rows — not 4, not 5 squeezed */
     .footer-grid {
         flex: 1 1 auto;
         min-width: 0;
-        /* 4 nav columns (Solutions / Services / Resources / Legal) */
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 1.5rem 2rem;
-    }
-    /* Homepage with Contact Us = 5 columns → still readable */
-    .footer-grid:has(.footer-contact-item) {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .footer-logo, .footer-brand-divider, .footer-brand-text {
-        margin-left: 0;
+        gap: 2rem clamp(1rem, 3vw, 2.5rem);
+        row-gap: 3rem;
     }
     .footer-column {
         text-align: left;
     }
     .footer-heading::after {
         margin-left: 0;
+        margin-right: 0;
     }
-    .footer-contact-item, .social-links {
+    .footer-contact-item {
         justify-content: flex-start;
-    }
-}
-
-@media (min-width: 1100px) {
-    .footer-top {
-        flex-wrap: nowrap;
-        align-items: flex-start;
-    }
-    .footer-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-    .footer-grid:has(.footer-contact-item) {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
