@@ -1005,9 +1005,30 @@
             initFloatingButtons();
         });
 
+        // Known admin slug aliases → canonical public static slug
+        const SLUG_ALIASES = {
+            'south-korea-ai-law-compliance-guide': 'south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026',
+            'south-korea-ai-law-compliance': 'south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026'
+        };
+
+        function canonicalSlug(slug, title) {
+            let s = String(slug || '').trim().toLowerCase();
+            if (SLUG_ALIASES[s]) return SLUG_ALIASES[s];
+            // Title-based fallback for Korea / SEA pieces with drifted slugs
+            const t = String(title || '').toLowerCase();
+            if (/south korea/.test(t) && /ai/.test(t) && /law|compliance|act/.test(t)) {
+                return 'south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026';
+            }
+            if (/southeast asia/.test(t) && /ai/.test(t) && /opportunit|transform|2026/.test(t)) {
+                return 'ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026';
+            }
+            return s;
+        }
+
         function normalizeArticleUrl(url, slug) {
+            const canon = canonicalSlug(slug, '');
             if (!url || typeof url !== 'string') {
-                return `${SITE_BASE_URL}/en/articles/${slug}.html`;
+                return `${SITE_BASE_URL}/en/articles/${canon || slug}.html`;
             }
             // Fix known wrong admin URL (Korea article pointed at SEA path without .html)
             if (/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026\/?$/.test(url)
@@ -1021,29 +1042,59 @@
         }
 
         function mergeStaticArticles(apiPosts) {
+            // One entry per canonical slug (prevents duplicate Korea cards when API
+            // uses a short slug like south-korea-ai-law-compliance-guide).
             const bySlug = new Map();
-            (apiPosts || []).forEach(p => {
-                if (!p || !p.slug) return;
-                p.published_url = normalizeArticleUrl(p.published_url, p.slug);
-                bySlug.set(p.slug, p);
-            });
-            STATIC_ARTICLES.forEach(s => {
-                if (!bySlug.has(s.slug)) bySlug.set(s.slug, s);
-                else {
-                    // Prefer correct static URL when API URL is wrong
-                    const existing = bySlug.get(s.slug);
-                    existing.published_url = normalizeArticleUrl(existing.published_url || s.published_url, s.slug);
-                    if (!existing.image || existing.image.indexOf('placehold') !== -1) existing.image = s.image;
-                    if (!existing.short_description) existing.short_description = s.short_description;
+
+            function upsert(post, preferStaticMeta) {
+                if (!post) return;
+                const key = canonicalSlug(post.slug, post.title);
+                if (!key) return;
+                const incoming = Object.assign({}, post, {
+                    slug: key,
+                    published_url: normalizeArticleUrl(post.published_url, key)
+                });
+                const existing = bySlug.get(key);
+                if (!existing) {
+                    bySlug.set(key, incoming);
+                    return;
                 }
-            });
-            // Also match Korea API slug variant
-            const koreaApi = [...bySlug.values()].find(p => /south-korea-ai-law/i.test(p.slug || '') || /korea ai law/i.test(p.title || ''));
-            if (koreaApi) {
-                koreaApi.published_url = STATIC_ARTICLES[0].published_url;
-                koreaApi.slug = STATIC_ARTICLES[0].slug;
-                bySlug.set(STATIC_ARTICLES[0].slug, koreaApi);
+                // Merge: keep best fields; prefer API content when present, static URL/image fallbacks
+                const merged = Object.assign({}, existing, incoming);
+                if (preferStaticMeta) {
+                    if (post.published_url) merged.published_url = normalizeArticleUrl(post.published_url, key);
+                    if (post.image && (!existing.image || String(existing.image).indexOf('placehold') !== -1)) {
+                        merged.image = post.image;
+                    }
+                    if (post.short_description && !existing.short_description) {
+                        merged.short_description = post.short_description;
+                    }
+                    if (post.featured) merged.featured = true;
+                    if (post.title && post.title.length > String(existing.title || '').length) {
+                        merged.title = post.title;
+                    }
+                } else {
+                    // API over static content, but keep good static image/url if API is weak
+                    if (!merged.image || String(merged.image).indexOf('placehold') !== -1) {
+                        merged.image = existing.image;
+                    }
+                    if (!merged.short_description) merged.short_description = existing.short_description;
+                    if (!merged.published_url || /ai-in-southeast-asia/.test(merged.published_url) && /korea/i.test(merged.title || '')) {
+                        merged.published_url = existing.published_url || normalizeArticleUrl('', key);
+                    }
+                    // Prefer longer, more descriptive title from static when API title is short
+                    if (existing.title && String(existing.title).length > String(merged.title || '').length + 10) {
+                        merged.title = existing.title;
+                    }
+                    if (existing.featured) merged.featured = true;
+                }
+                bySlug.set(key, merged);
             }
+
+            (apiPosts || []).forEach(p => upsert(p, false));
+            STATIC_ARTICLES.forEach(s => upsert(s, true));
+
+            // Final safety: unique by canonical slug only (Map already unique)
             return [...bySlug.values()].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
         }
 
@@ -1090,7 +1141,7 @@
         // Transform API article to internal format
         function transformArticle(article) {
             const sm = article.social_meta || {};
-            const slug = article.slug || '';
+            const slug = canonicalSlug(article.slug || '', article.title || '');
             return {
                 id: article.id,
                 title: article.title,
