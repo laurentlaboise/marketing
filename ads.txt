@@ -1,0 +1,4 @@
+# Google AdSense authorized seller — WordsThatSells
+# Publisher: pub-8300153677207733
+# Live URL must be: https://wordsthatsells.website/ads.txt
+google.com, pub-8300153677207733, DIRECT, f08c47fec0942fa0
