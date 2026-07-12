@@ -31,42 +31,51 @@
       font-family: 'Poppins', system-ui, -apple-system, sans-serif;
       min-height: 100vh;
       min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
       color: var(--ink);
-      background: var(--bg-deep);
+      background: #f8fafc;
       -webkit-font-smoothing: antialiased;
     }
     a { color: inherit; text-decoration: none; }
     button, input { font-family: inherit; }
 
     .al-shell {
-      flex: 1;
       display: grid;
       grid-template-columns: 1fr;
-      min-height: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
     }
     @media (min-width: 960px) {
       .al-shell { grid-template-columns: minmax(0, 1.12fr) minmax(400px, 0.88fr); }
     }
 
-    /* ── Showcase ── */
+    /* ── Showcase (left) ── */
     .al-showcase {
       position: relative;
       overflow: hidden;
       color: #fff;
-      padding: 1.5rem 1.35rem 1.75rem;
+      padding: 1.5rem 1.35rem 1.1rem;
       background:
         radial-gradient(ellipse 85% 55% at 12% 8%, rgba(214, 43, 131, 0.42), transparent 55%),
         radial-gradient(ellipse 70% 50% at 92% 88%, rgba(32, 133, 200, 0.32), transparent 52%),
         linear-gradient(155deg, #0f2740 0%, #122a3f 42%, #1a1030 100%);
       display: flex;
       flex-direction: column;
-      justify-content: center;
       gap: 1.35rem;
     }
     @media (min-width: 960px) {
-      .al-showcase { padding: 3.25rem 3rem 3rem 3.5rem; min-height: 100%; }
+      .al-showcase {
+        padding: 3rem 3rem 1.25rem 3.5rem;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+    }
+    .al-showcase__main {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.35rem;
+      min-height: 0;
     }
     .al-showcase::after {
       content: '';
@@ -193,18 +202,21 @@
     }
     .al-trust i { color: #f9a8d4; font-size: 0.65rem; }
 
-    /* ── Form panel ── */
+    /* ── Form panel (right) — single flat colour ── */
     .al-form-panel {
       display: flex;
       flex-direction: column;
       justify-content: center;
       padding: 1.5rem 1.25rem 1.75rem;
-      background:
-        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(32,133,200,0.08), transparent 55%),
-        #f8fafc;
+      background: #f8fafc;
     }
     @media (min-width: 960px) {
-      .al-form-panel { padding: 2.5rem 3rem; }
+      .al-form-panel {
+        padding: 2.5rem 3rem;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background: #f8fafc;
+      }
     }
 
     .al-card {
@@ -458,21 +470,38 @@
     }
     .al-legal a:hover { color: var(--wts-pink); }
 
-    /* Footer from partial */
-    body.auth-login-v2 .admin-legal-footer {
-      width: 100%;
+    /* Footer stays in left column only */
+    .al-showcase .admin-legal-footer {
+      position: relative;
+      z-index: 1;
       flex: 0 0 auto;
+      margin-top: auto;
+      width: 100%;
+      max-width: 42rem;
       background: transparent;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding: 0.85rem 1rem 1rem;
-      text-align: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 1rem 0 0.15rem;
+      text-align: left;
     }
-    body.auth-login-v2 .wts-legal-bar a { color: #cbd5e1; }
-    body.auth-login-v2 .wts-legal-bar a:hover { color: #f9a8d4; }
-    body.auth-login-v2 .wts-legal-sep { color: rgba(255,255,255,0.25); }
-    body.auth-login-v2 .wts-legal-entity,
-    body.auth-login-v2 .admin-legal-note { color: #94a3b8; font-size: 0.72rem; }
-    body.auth-login-v2 .admin-legal-note a { color: #e2e8f0; font-weight: 600; }
+    .al-showcase .wts-legal-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.15rem 0.2rem;
+      align-items: center;
+      font-size: 0.72rem;
+    }
+    .al-showcase .wts-legal-bar a { color: #cbd5e1; }
+    .al-showcase .wts-legal-bar a:hover { color: #f9a8d4; text-decoration: underline; }
+    .al-showcase .wts-legal-sep { color: rgba(255, 255, 255, 0.28); margin: 0 0.15rem; }
+    .al-showcase .wts-legal-entity,
+    .al-showcase .admin-legal-note {
+      color: #94a3b8;
+      font-size: 0.68rem;
+      line-height: 1.45;
+      margin: 0.4rem 0 0;
+    }
+    .al-showcase .admin-legal-note a { color: #e2e8f0; font-weight: 600; }
+    .al-showcase .admin-legal-note a:hover { color: #f9a8d4; }
 
     @media (prefers-reduced-motion: reduce) {
       .al-feat, .al-submit, .al-social a { transition: none; }
@@ -484,47 +513,58 @@
 
   <div class="al-shell">
     <aside class="al-showcase" aria-label="WordsThatSells Admin">
-      <a class="al-brand" href="https://wordsthatsells.website" target="_blank" rel="noopener noreferrer">
-        <img src="/images/logo-wts.svg" alt="" width="48" height="48">
-        <span>WordsThatSells</span>
-      </a>
+      <div class="al-showcase__main">
+        <a class="al-brand" href="https://wordsthatsells.website" target="_blank" rel="noopener noreferrer">
+          <img src="/images/logo-wts.svg" alt="" width="48" height="48">
+          <span>WordsThatSells</span>
+        </a>
 
-      <div>
-        <p class="al-kicker">Staff command center</p>
-        <h2 class="al-title">Run the agency from <em>one desk</em></h2>
-        <p class="al-lead">
-          Content, clients, pricing, and AI tools — secured for Laboise eworker staff and contractors.
+        <div>
+          <p class="al-kicker">Staff command center</p>
+          <h2 class="al-title">Run the agency from <em>one desk</em></h2>
+          <p class="al-lead">
+            Content, clients, pricing, and AI tools — secured for Laboise eworker staff and contractors.
+          </p>
+        </div>
+
+        <div class="al-features" aria-hidden="true">
+          <div class="al-feat">
+            <div class="al-feat__icon"><i class="fas fa-pen-nib"></i></div>
+            <h3>Content CMS</h3>
+            <p>Articles, AI tools, menus, and site copy from admin SoT.</p>
+          </div>
+          <div class="al-feat">
+            <div class="al-feat__icon"><i class="fas fa-users"></i></div>
+            <h3>Clients &amp; portal</h3>
+            <p>Orders, boards, and workspace for delivery.</p>
+          </div>
+          <div class="al-feat">
+            <div class="al-feat__icon"><i class="fas fa-tags"></i></div>
+            <h3>Pricing &amp; forms</h3>
+            <p>Packages and lead forms wired to the live site.</p>
+          </div>
+          <div class="al-feat">
+            <div class="al-feat__icon"><i class="fas fa-robot"></i></div>
+            <h3>AI ops</h3>
+            <p>Assistants and automation under your control.</p>
+          </div>
+        </div>
+
+        <p class="al-trust">
+          <span><i class="fas fa-shield-halved"></i> Staff access only</span>
+          <span><i class="fas fa-lock"></i> Session secured</span>
+          <span><i class="fas fa-globe-asia"></i> Laos · regional ops</span>
         </p>
       </div>
 
-      <div class="al-features" aria-hidden="true">
-        <div class="al-feat">
-          <div class="al-feat__icon"><i class="fas fa-pen-nib"></i></div>
-          <h3>Content CMS</h3>
-          <p>Articles, AI tools, menus, and site copy from admin SoT.</p>
-        </div>
-        <div class="al-feat">
-          <div class="al-feat__icon"><i class="fas fa-users"></i></div>
-          <h3>Clients &amp; portal</h3>
-          <p>Orders, boards, and workspace for delivery.</p>
-        </div>
-        <div class="al-feat">
-          <div class="al-feat__icon"><i class="fas fa-tags"></i></div>
-          <h3>Pricing &amp; forms</h3>
-          <p>Packages and lead forms wired to the live site.</p>
-        </div>
-        <div class="al-feat">
-          <div class="al-feat__icon"><i class="fas fa-robot"></i></div>
-          <h3>AI ops</h3>
-          <p>Assistants and automation under your control.</p>
-        </div>
-      </div>
-
-      <p class="al-trust">
-        <span><i class="fas fa-shield-halved"></i> Staff access only</span>
-        <span><i class="fas fa-lock"></i> Session secured</span>
-        <span><i class="fas fa-globe-asia"></i> Laos · regional ops</span>
-      </p>
+      <footer class="admin-legal-footer" role="contentinfo">
+        <%- include('../partials/legal-bar') %>
+        <p class="admin-legal-note">
+          Admin portal for WordsThatSells.Website. Policies apply to platform use by staff and contractors.
+          Questions: <a href="mailto:legal@wordsthatsells.website">legal@wordsthatsells.website</a>
+          · <a href="mailto:privacy@wordsthatsells.website">privacy@wordsthatsells.website</a>
+        </p>
+      </footer>
     </aside>
 
     <div class="al-form-panel">
@@ -627,8 +667,7 @@
     </div>
   </div>
 
-  <%- include('../partials/footer') %>
-
+  <script src="/js/main.js"></script>
   <script>
     (function () {
       var pw = document.getElementById('password');
