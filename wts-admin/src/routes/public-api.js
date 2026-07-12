@@ -382,7 +382,7 @@ router.get('/ai-tools', async (req, res) => {
 
     const result = await db.query(query, params);
 
-    // Transform for frontend compatibility
+    // Transform for frontend compatibility (slide-in panel expects these keys)
     const tools = result.rows.map(tool => ({
       id: tool.id,
       name: tool.name,
@@ -391,9 +391,13 @@ router.get('/ai-tools', async (req, res) => {
       pricing: tool.pricing_model || 'Unknown',
       logo: tool.logo_url,
       website_link: tool.website_url,
-      app_store_link: null,
-      play_store_link: null,
+      website_url: tool.website_url,
+      app_store_link: tool.app_store_url || null,
+      play_store_link: tool.play_store_url || null,
+      app_store_url: tool.app_store_url || null,
+      play_store_url: tool.play_store_url || null,
       key_features: Array.isArray(tool.features) ? tool.features : [],
+      features: Array.isArray(tool.features) ? tool.features : [],
       pros: Array.isArray(tool.pros) ? tool.pros : [],
       cons: Array.isArray(tool.cons) ? tool.cons : [],
       rating: tool.rating

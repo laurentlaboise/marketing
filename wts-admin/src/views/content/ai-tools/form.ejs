@@ -57,7 +57,21 @@
                   <option value="freemium" <%= tool && tool.pricing_model === 'freemium' ? 'selected' : '' %>>Freemium</option>
                   <option value="subscription" <%= tool && tool.pricing_model === 'subscription' ? 'selected' : '' %>>Subscription</option>
                   <option value="one-time" <%= tool && tool.pricing_model === 'one-time' ? 'selected' : '' %>>One-time</option>
+                  <option value="Free" <%= tool && tool.pricing_model === 'Free' ? 'selected' : '' %>>Free (label)</option>
+                  <option value="Freemium" <%= tool && tool.pricing_model === 'Freemium' ? 'selected' : '' %>>Freemium (label)</option>
+                  <option value="Paid" <%= tool && tool.pricing_model === 'Paid' ? 'selected' : '' %>>Paid</option>
                 </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="app_store_url">Apple App Store URL</label>
+                <input type="url" id="app_store_url" name="app_store_url" class="form-input" placeholder="https://apps.apple.com/app/..." value="<%= tool && tool.app_store_url ? tool.app_store_url : '' %>">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="play_store_url">Google Play Store URL</label>
+                <input type="url" id="play_store_url" name="play_store_url" class="form-input" placeholder="https://play.google.com/store/apps/details?id=..." value="<%= tool && tool.play_store_url ? tool.play_store_url : '' %>">
               </div>
             </div>
           </div>

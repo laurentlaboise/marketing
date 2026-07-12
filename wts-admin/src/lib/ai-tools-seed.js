@@ -24,7 +24,7 @@ async function seedAiTools(db, opts = {}) {
   let updated = 0;
   let skipped = 0;
 
-  // Ensure optional source column for provenance
+  // Ensure optional columns for provenance + mobile stores
   await db.query(`
     DO $$
     BEGIN
@@ -33,6 +33,18 @@ async function seedAiTools(db, opts = {}) {
         WHERE table_name = 'ai_tools' AND column_name = 'source'
       ) THEN
         ALTER TABLE ai_tools ADD COLUMN source VARCHAR(120);
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'ai_tools' AND column_name = 'app_store_url'
+      ) THEN
+        ALTER TABLE ai_tools ADD COLUMN app_store_url TEXT;
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'ai_tools' AND column_name = 'play_store_url'
+      ) THEN
+        ALTER TABLE ai_tools ADD COLUMN play_store_url TEXT;
       END IF;
     END $$;
   `);
@@ -60,6 +72,9 @@ async function seedAiTools(db, opts = {}) {
       [name]
     );
 
+    const appStore = t.app_store_url || t.app_store_link || null;
+    const playStore = t.play_store_url || t.play_store_link || null;
+
     if (existing.rows.length) {
       await db.query(
         `UPDATE ai_tools SET
@@ -74,8 +89,10 @@ async function seedAiTools(db, opts = {}) {
           logo_url = $9,
           status = $10,
           source = $11,
+          app_store_url = $12,
+          play_store_url = $13,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $12`,
+        WHERE id = $14`,
         [
           t.description || null,
           t.category || null,
@@ -88,6 +105,8 @@ async function seedAiTools(db, opts = {}) {
           t.logo_url || null,
           t.status || 'active',
           source,
+          appStore,
+          playStore,
           existing.rows[0].id
         ]
       );
@@ -95,8 +114,8 @@ async function seedAiTools(db, opts = {}) {
     } else {
       await db.query(
         `INSERT INTO ai_tools
-          (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status, source)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+          (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status, source, app_store_url, play_store_url)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
         [
           name,
           t.description || null,
@@ -109,7 +128,9 @@ async function seedAiTools(db, opts = {}) {
           t.rating != null ? t.rating : null,
           t.logo_url || null,
           t.status || 'active',
-          source
+          source,
+          appStore,
+          playStore
         ]
       );
       inserted += 1;

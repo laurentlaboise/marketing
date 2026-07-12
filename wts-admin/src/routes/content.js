@@ -728,14 +728,22 @@ router.get('/ai-tools/new', (req, res) => {
 
 router.post('/ai-tools', async (req, res) => {
   try {
-    const { name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status } = req.body;
+    const {
+      name, description, category, website_url, pricing_model, features, pros, cons,
+      rating, logo_url, status, app_store_url, play_store_url
+    } = req.body;
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
     const prosArray = pros ? pros.split('\n').map(p => p.trim()).filter(p => p) : [];
     const consArray = cons ? cons.split('\n').map(c => c.trim()).filter(c => c) : [];
 
     await db.query(
-      'INSERT INTO ai_tools (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
-      [name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray, rating || null, logo_url, status || 'active']
+      `INSERT INTO ai_tools
+        (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status, app_store_url, play_store_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+      [
+        name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray,
+        rating || null, logo_url, status || 'active', app_store_url || null, play_store_url || null
+      ]
     );
     req.session.successMessage = 'AI tool created successfully';
     res.redirect('/content/ai-tools');
@@ -768,14 +776,24 @@ router.get('/ai-tools/:id/edit', async (req, res) => {
 
 router.post('/ai-tools/:id', async (req, res) => {
   try {
-    const { name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status } = req.body;
+    const {
+      name, description, category, website_url, pricing_model, features, pros, cons,
+      rating, logo_url, status, app_store_url, play_store_url
+    } = req.body;
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
     const prosArray = pros ? pros.split('\n').map(p => p.trim()).filter(p => p) : [];
     const consArray = cons ? cons.split('\n').map(c => c.trim()).filter(c => c) : [];
 
     await db.query(
-      'UPDATE ai_tools SET name = $1, description = $2, category = $3, website_url = $4, pricing_model = $5, features = $6, pros = $7, cons = $8, rating = $9, logo_url = $10, status = $11, updated_at = CURRENT_TIMESTAMP WHERE id = $12',
-      [name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray, rating || null, logo_url, status, req.params.id]
+      `UPDATE ai_tools SET
+        name = $1, description = $2, category = $3, website_url = $4, pricing_model = $5,
+        features = $6, pros = $7, cons = $8, rating = $9, logo_url = $10, status = $11,
+        app_store_url = $12, play_store_url = $13, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $14`,
+      [
+        name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray,
+        rating || null, logo_url, status, app_store_url || null, play_store_url || null, req.params.id
+      ]
     );
     req.session.successMessage = 'AI tool updated successfully';
     res.redirect('/content/ai-tools');

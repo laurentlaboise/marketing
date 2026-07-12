@@ -1288,6 +1288,36 @@
             color: #991b1b;
         }
 
+        #slide-in-content .tool-overview {
+            margin: 0 0 1.15rem;
+            color: var(--color-slate-700);
+            font-size: 0.98rem;
+            line-height: 1.65;
+            white-space: pre-line;
+        }
+        #slide-in-content .tool-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin: 0 0 1.15rem;
+        }
+        #slide-in-content .tool-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            border-radius: 999px;
+            padding: 0.3rem 0.75rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+        #slide-in-content .tool-meta span.pricing {
+            background: #fdf2f8;
+            border-color: #fbcfe8;
+            color: #9d174d;
+        }
         #slide-in-content .tool-info-section {
             margin-top: var(--spacing-xl);
         }
@@ -1325,21 +1355,52 @@
         }
         .tool-action-buttons {
             display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            margin-top: 1.5rem;
+        }
+        .tool-action-buttons .btn-row {
+            display: flex;
             flex-wrap: wrap;
-            gap: var(--spacing-md);
-            margin-top: var(--spacing-xl);
-            justify-content: center;
+            gap: 0.65rem;
         }
         .tool-action-buttons .btn {
-            min-width: 150px;
+            flex: 1 1 auto;
+            min-width: 8.5rem;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+        }
+        .tool-action-buttons .btn-store {
+            background: #0f172a;
+            color: #fff;
+            border: 1px solid #0f172a;
+            border-radius: 12px;
+            padding: 0.7rem 1rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .tool-action-buttons .btn-store:hover {
+            background: #1e293b;
+            transform: translateY(-1px);
+        }
+        .tool-action-buttons .btn-store.apple { background: #111827; }
+        .tool-action-buttons .btn-store.google { background: #0b57d0; border-color: #0b57d0; }
+        .tool-action-buttons .btn-store.google:hover { background: #0842a0; }
+        .tool-action-buttons .store-note {
+            font-size: 0.8rem;
+            color: var(--color-slate-500);
+            line-height: 1.45;
+            margin: 0;
         }
         .tool-action-buttons .btn.disabled {
-            background-color: var(--color-light-gray);
-            border-color: var(--color-dark-gray);
-            color: var(--color-dark-gray);
+            opacity: 0.45;
+            pointer-events: none;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
         .tool-action-buttons .btn.disabled:hover {
             transform: none;
@@ -1478,6 +1539,8 @@
 
         function normalizeTool(tool) {
             if (!tool || typeof tool !== 'object') return null;
+            const app = tool.app_store_link || tool.app_store_url || null;
+            const play = tool.play_store_link || tool.play_store_url || null;
             return {
                 id: tool.id || tool.name,
                 name: tool.name,
@@ -1485,14 +1548,28 @@
                 description: tool.description || '',
                 pricing: tool.pricing || tool.pricing_model || 'Unknown',
                 logo: tool.logo || tool.logo_url || '',
-                website_link: tool.website_link || tool.website_url || '#',
-                app_store_link: tool.app_store_link || null,
-                play_store_link: tool.play_store_link || null,
+                website_link: tool.website_link || tool.website_url || '',
+                app_store_link: app && String(app).trim() ? String(app).trim() : null,
+                play_store_link: play && String(play).trim() ? String(play).trim() : null,
                 key_features: tool.key_features || tool.features || [],
                 pros: tool.pros || [],
                 cons: tool.cons || [],
                 rating: tool.rating
             };
+        }
+
+        function escapeHtml(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function listItems(items) {
+            const arr = Array.isArray(items) ? items.filter(Boolean) : [];
+            if (!arr.length) return '<li>Details coming soon.</li>';
+            return arr.map(item => `<li>${escapeHtml(item)}</li>`).join('');
         }
 
         function showErrorState(message) {
@@ -1534,8 +1611,8 @@
                 toolCard.innerHTML = `
                     <img src="${tool.logo}" alt="${tool.name} logo" class="card-logo">
                     <h3>${tool.name}</h3>
-                    <p>${tool.description}</p>
-                    <span class="pricing-pill ${tool.pricing.toLowerCase().replace(' ', '-')}">${tool.pricing}</span>
+                    <p>${(tool.description || '').length > 140 ? (tool.description.slice(0, 140).trim() + '…') : (tool.description || '')}</p>
+                    <span class="pricing-pill ${(tool.pricing || 'unknown').toLowerCase().replace(/\s+/g, '-')}">${tool.pricing || 'Unknown'}</span>
                 `;
                 toolCard.addEventListener('click', () => openPanel(tool));
                 container.appendChild(toolCard);
@@ -1605,42 +1682,54 @@
 
         function openPanel(toolData) {
             slideInTitle.textContent = toolData.name;
-            slideInImage.src = toolData.logo;
+            slideInImage.src = toolData.logo || 'https://placehold.co/200x200/122a3f/ffffff?text=AI';
             slideInImage.alt = `${toolData.name} logo`;
-            
-            let contentHTML = `
-                <p>${toolData.description}</p>
+
+            const rating = toolData.rating != null && toolData.rating !== ''
+                ? `<span><i class="fas fa-star" style="color:#f59e0b;"></i> ${escapeHtml(toolData.rating)} / 5</span>`
+                : '';
+            const website = toolData.website_link
+                ? `<a href="${escapeHtml(toolData.website_link)}" class="btn btn-premium" target="_blank" rel="noopener noreferrer"><i class="fas fa-globe"></i> Visit website</a>`
+                : '';
+            const appStore = toolData.app_store_link
+                ? `<a href="${escapeHtml(toolData.app_store_link)}" class="btn-store apple" target="_blank" rel="noopener noreferrer"><i class="fab fa-apple"></i> App Store</a>`
+                : '';
+            const playStore = toolData.play_store_link
+                ? `<a href="${escapeHtml(toolData.play_store_link)}" class="btn-store google" target="_blank" rel="noopener noreferrer"><i class="fab fa-google-play"></i> Google Play</a>`
+                : '';
+            const storeNote = (!appStore && !playStore)
+                ? '<p class="store-note">No dedicated mobile app listed yet — use the website / web app.</p>'
+                : '<p class="store-note">Store links open the official app listing in a new tab.</p>';
+
+            const contentHTML = `
+                <div class="tool-meta">
+                    <span><i class="fas fa-folder-open"></i> ${escapeHtml(toolData.category || 'AI')}</span>
+                    <span class="pricing"><i class="fas fa-tag"></i> ${escapeHtml(toolData.pricing || 'Unknown')}</span>
+                    ${rating}
+                </div>
+                <div class="tool-info-section">
+                    <h3>Overview</h3>
+                    <p class="tool-overview">${escapeHtml(toolData.description || 'No description available yet.')}</p>
+                </div>
                 <div class="tool-info-section">
                     <h3>Key Features</h3>
-                    <ul class="key-features-list">
-                        ${toolData.key_features.map(feature => `<li>${feature}</li>`).join('')}
-                    </ul>
+                    <ul class="key-features-list">${listItems(toolData.key_features)}</ul>
                 </div>
                 <div class="tool-info-section">
                     <h3>Pros</h3>
-                    <ul class="pros-list">
-                        ${toolData.pros.map(pro => `<li>${pro}</li>`).join('')}
-                    </ul>
+                    <ul class="pros-list">${listItems(toolData.pros)}</ul>
                 </div>
                 <div class="tool-info-section">
                     <h3>Cons</h3>
-                    <ul class="cons-list">
-                        ${toolData.cons.map(con => `<li>${con}</li>`).join('')}
-                    </ul>
+                    <ul class="cons-list">${listItems(toolData.cons)}</ul>
                 </div>
                 <div class="tool-action-buttons">
-                    <a href="${toolData.website_link}" class="btn btn-premium" target="_blank" rel="noopener noreferrer" ${!toolData.website_link ? 'disabled' : ''}>
-                        <i class="fas fa-globe"></i> Website
-                    </a>
-                    <a href="${toolData.app_store_link}" class="btn btn-premium ${!toolData.app_store_link ? 'disabled' : ''}" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-apple"></i> App Store
-                    </a>
-                    <a href="${toolData.play_store_link}" class="btn btn-premium ${!toolData.play_store_link ? 'disabled' : ''}" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-google-play"></i> Play Store
-                    </a>
+                    <div class="btn-row">${website}</div>
+                    <div class="btn-row">${appStore}${playStore}</div>
+                    ${storeNote}
                 </div>
             `;
-            
+
             slideInContent.innerHTML = contentHTML;
             document.body.classList.add('no-scroll');
             overlay.classList.add('is-open');

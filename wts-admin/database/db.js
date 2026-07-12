@@ -447,6 +447,21 @@ const db = {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
+      // Mobile store deep links for public directory panel
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ai_tools' AND column_name='app_store_url') THEN
+            ALTER TABLE ai_tools ADD COLUMN app_store_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ai_tools' AND column_name='play_store_url') THEN
+            ALTER TABLE ai_tools ADD COLUMN play_store_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ai_tools' AND column_name='source') THEN
+            ALTER TABLE ai_tools ADD COLUMN source VARCHAR(120);
+          END IF;
+        END $$;
+      `);
 
       // Glossary table
       await client.query(`
