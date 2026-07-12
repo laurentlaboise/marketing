@@ -514,6 +514,53 @@ router.post('/v1/products/sync-stripe', async (req, res) => {
 });
 
 /**
+ * Patch price_options (and optional stripe_product_id) on a product by id or slug.
+ * POST /v1/products/price-options
+ * body: { id|slug, price_options, stripe_product_id?, price? }
+ */
+router.post('/v1/products/price-options', async (req, res) => {
+  try {
+    const { id, slug, price_options, stripe_product_id, price } = req.body || {};
+    if (!id && !slug) return fail(res, 'id or slug required');
+    if (!Array.isArray(price_options) || !price_options.length) {
+      return fail(res, 'price_options array required');
+    }
+    const { normalizePriceOptions } = require('../utils/pricing');
+    const options = normalizePriceOptions(price_options);
+    if (!options.length) return fail(res, 'no valid price_options');
+
+    const fromPrice =
+      price != null
+        ? parseFloat(price)
+        : Math.min.apply(null, options.map((o) => o.price));
+
+    const result = await db.query(
+      `UPDATE products SET
+         pricing_type = 'options',
+         price_options = $1::jsonb,
+         price = COALESCE($2, price),
+         stripe_product_id = COALESCE($3, stripe_product_id),
+         updated_at = NOW()
+       WHERE ($4::uuid IS NOT NULL AND id = $4)
+          OR ($5::text IS NOT NULL AND slug = $5)
+       RETURNING id, name, slug, pricing_type, price, stripe_product_id, price_options`,
+      [
+        JSON.stringify(options),
+        Number.isFinite(fromPrice) ? fromPrice : null,
+        stripe_product_id || null,
+        id || null,
+        slug || null,
+      ]
+    );
+    if (!result.rows.length) return fail(res, 'product not found', 404);
+    return ok(res, { product: result.rows[0] });
+  } catch (e) {
+    console.error('[machine-api] price-options', e);
+    return fail(res, e.message, 500);
+  }
+});
+
+/**
  * Bootstrap Logo Design as one product with two price options (AI + Designer).
  * Archives the legacy separate logo products. Creates Stripe Product + Prices.
  *
