@@ -38,4 +38,70 @@ function unitPriceForQuantity(tiers, qty) {
   return price;
 }
 
-module.exports = { normalizeTiers, unitPriceForQuantity };
+/**
+ * Named price options for pricing_type='options' (one product, multiple SKUs/prices).
+ * Each option: { key, label, sku, price, strategy?, stripe_price_id?, features?, description? }
+ */
+function normalizePriceOptions(raw) {
+  let arr = raw;
+  if (typeof raw === 'string') {
+    try { arr = JSON.parse(raw); } catch (e) { arr = []; }
+  }
+  if (!Array.isArray(arr)) return [];
+
+  const cleaned = [];
+  const seenKeys = new Set();
+  arr.forEach((o, idx) => {
+    if (!o || typeof o !== 'object') return;
+    const key = String(o.key || o.id || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40);
+    if (!key || seenKeys.has(key)) return;
+    const price = o.price === '' || o.price == null ? null : parseFloat(o.price);
+    if (price == null || !Number.isFinite(price) || price < 0) return;
+    const label = String(o.label || o.name || key).trim().slice(0, 120);
+    if (!label) return;
+    seenKeys.add(key);
+    let features = o.features;
+    if (typeof features === 'string') {
+      features = features.split('\n').map((f) => f.trim()).filter(Boolean);
+    }
+    if (!Array.isArray(features)) features = [];
+    cleaned.push({
+      key,
+      label,
+      sku: o.sku != null && String(o.sku).trim() ? String(o.sku).trim().slice(0, 100) : null,
+      price,
+      strategy: o.strategy != null && String(o.strategy).trim()
+        ? String(o.strategy).trim().slice(0, 60)
+        : null,
+      stripe_price_id: o.stripe_price_id != null && String(o.stripe_price_id).trim()
+        ? String(o.stripe_price_id).trim().slice(0, 255)
+        : null,
+      features: features.map((f) => String(f).trim()).filter(Boolean).slice(0, 20),
+      description: o.description != null && String(o.description).trim()
+        ? String(o.description).trim().slice(0, 500)
+        : null,
+      sort: Number.isFinite(parseInt(o.sort, 10)) ? parseInt(o.sort, 10) : idx,
+    });
+  });
+  return cleaned.sort((a, b) => a.sort - b.sort).map(({ sort, ...rest }) => rest);
+}
+
+function findPriceOption(options, optionKey) {
+  const list = normalizePriceOptions(options);
+  if (!list.length) return null;
+  const key = String(optionKey || '').trim().toLowerCase();
+  if (!key) return list[0];
+  return list.find((o) => o.key === key) || null;
+}
+
+module.exports = {
+  normalizeTiers,
+  unitPriceForQuantity,
+  normalizePriceOptions,
+  findPriceOption,
+};

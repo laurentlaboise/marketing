@@ -432,6 +432,41 @@
 
     // Bind the quantity selector + live total (tiered pricing only)
     bindQuantitySelector(data);
+
+    // Bind named price options (one product, multiple SKUs/prices)
+    bindPriceOptions(data);
+  }
+
+  function bindPriceOptions(data) {
+    if (!elContent) return;
+    var pr = data.pricing || getPricing(data);
+    if (pr.type !== 'options' || !pr.options || !pr.options.length) return;
+    var block = elContent.querySelector('.product-pricing-block');
+    if (!block) return;
+    var radios = block.querySelectorAll('.price-option-radio');
+    var labelEl = block.querySelector('.opt-selected-label');
+    var totalEl = block.querySelector('.opt-total');
+    var byKey = {};
+    pr.options.forEach(function (o) { byKey[o.key] = o; });
+
+    function apply(key) {
+      var opt = byKey[key] || pr.options[0];
+      if (!opt) return;
+      if (labelEl) labelEl.textContent = opt.label;
+      if (totalEl) totalEl.textContent = fmtMoney(opt.price, pr.currency);
+      var ctas = block.querySelectorAll('.product-cta');
+      for (var i = 0; i < ctas.length; i++) {
+        ctas[i].setAttribute('data-option-key', opt.key);
+      }
+    }
+
+    for (var r = 0; r < radios.length; r++) {
+      radios[r].addEventListener('change', function () {
+        if (this.checked) apply(this.value);
+      });
+    }
+    var initial = block.querySelector('.price-option-radio:checked');
+    apply(initial ? initial.value : pr.options[0].key);
   }
 
   // Live total + active-tier highlight for volume pricing. Also syncs the chosen
@@ -1018,6 +1053,15 @@
     if (billing) body.billing_period = billing;
     var qty = btn.getAttribute('data-quantity');
     if (qty) body.quantity = parseInt(qty, 10);
+    var optionKey = btn.getAttribute('data-option-key');
+    if (!optionKey) {
+      var pricingBlockOpt = btn.closest ? btn.closest('.product-pricing-block') : null;
+      var selectedOpt = pricingBlockOpt
+        ? pricingBlockOpt.querySelector('input[name="price-option-' + productId + '"]:checked')
+        : null;
+      if (selectedOpt) optionKey = selectedOpt.value;
+    }
+    if (optionKey) body.option_key = optionKey;
 
     // Pass the setup-fee opt-out along when the pricing block offers one.
     var pricingBlock = btn.closest ? btn.closest('.product-pricing-block') : null;
@@ -1330,6 +1374,43 @@
         breakdownTotalRow(totalLabel(data), 'qty-total') +
       '</div>';
 
+      html += buildCtaHTML(data, null);
+      html += '</div>';
+      return html;
+    }
+
+    // Named options (one product, multiple price points)
+    if (pr.type === 'options' && pr.options && pr.options.length) {
+      html += '<p style="font-size:0.9rem;color:var(--color-slate-600,#475569);margin:0 0 0.75rem;">Choose an option</p>';
+      html += '<div class="price-options" role="radiogroup" aria-label="Price options" style="display:flex;flex-direction:column;gap:0.55rem;margin-bottom:1rem;">';
+      pr.options.forEach(function (opt, idx) {
+        var id = 'opt-' + String(data.id).slice(0, 8) + '-' + esc(opt.key);
+        var checked = idx === 0 ? ' checked' : '';
+        html += '<label for="' + id + '" style="display:flex;gap:0.65rem;align-items:flex-start;border:1.5px solid #e2e8f0;border-radius:10px;padding:0.7rem 0.85rem;cursor:pointer;background:#fff;">' +
+          '<input type="radio" id="' + id + '" name="price-option-' + esc(String(data.id)) + '" value="' + esc(opt.key) + '" class="price-option-radio"' + checked +
+          ' style="margin-top:0.25rem;" data-price="' + esc(String(opt.price)) + '">' +
+          '<span style="flex:1;min-width:0;">' +
+            '<span style="display:flex;justify-content:space-between;gap:0.5rem;align-items:baseline;">' +
+              '<strong style="color:#0f172a;">' + esc(opt.label) + '</strong>' +
+              '<strong style="color:#e11d74;white-space:nowrap;">' + fmtMoney(opt.price, pr.currency) + '</strong>' +
+            '</span>' +
+            (opt.strategy ? '<span style="display:block;font-size:0.75rem;color:#64748b;margin-top:0.15rem;">' + esc(opt.strategy.replace(/_/g, ' ')) + '</span>' : '') +
+            (opt.features && opt.features.length
+              ? '<ul style="margin:0.35rem 0 0;padding-left:1.1rem;font-size:0.8rem;color:#475569;">' +
+                opt.features.slice(0, 4).map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') +
+                '</ul>'
+              : '') +
+          '</span></label>';
+      });
+      html += '</div>';
+      html += '<div class="price-breakdown" style="' + BREAKDOWN_BOX_STYLE + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;">' +
+          '<span style="color:var(--color-slate-700,#334155);">Selected option</span>' +
+          '<strong class="opt-selected-label" style="white-space:nowrap;">' + esc(pr.options[0].label) + '</strong>' +
+        '</div>' +
+        BREAKDOWN_DIVIDER +
+        breakdownTotalRow('Due today', 'opt-total', fmtMoney(pr.options[0].price, pr.currency)) +
+      '</div>';
       html += buildCtaHTML(data, null);
       html += '</div>';
       return html;

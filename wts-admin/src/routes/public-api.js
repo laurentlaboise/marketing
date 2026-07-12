@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
 const { isOriginAllowed } = require('../utils/origins');
-const { normalizeTiers } = require('../utils/pricing');
+const { normalizeTiers, normalizePriceOptions } = require('../utils/pricing');
 const { translate } = require('../lib/i18n');
 
 // The portal i18n middleware is not mounted on /api/public, so the portal
@@ -617,6 +617,38 @@ function buildProductPricing(p) {
     };
   }
 
+  // Named options (one product, multiple price points)
+  if (p.pricing_type === 'options') {
+    const options = normalizePriceOptions(p.price_options);
+    const fromPrice = options.length
+      ? Math.min.apply(null, options.map((o) => o.price))
+      : num(p.price);
+    return {
+      type: 'options',
+      currency,
+      options: options.map((o) => ({
+        key: o.key,
+        label: o.label,
+        sku: o.sku,
+        price: o.price,
+        strategy: o.strategy,
+        features: o.features,
+        description: o.description,
+        has_stripe: !!o.stripe_price_id,
+      })),
+      from_price: fromPrice,
+      one_time_price: fromPrice,
+      monthly_price: null,
+      yearly_price: null,
+      default_billing: 'monthly',
+      allow_billing_toggle: false,
+      annual_savings: null,
+      annual_discount_pct: null,
+      setup_fee: null,
+      setup_fee_label: null
+    };
+  }
+
   if (type !== 'subscription') {
     return {
       type: 'one_time',
@@ -741,6 +773,7 @@ router.get('/products', async (req, res) => {
       stripe_payment_link: p.stripe_payment_link || null,
       bcel: buildBcel(p),
       has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
+        (p.pricing_type === 'options' && normalizePriceOptions(p.price_options).some((o) => o.stripe_price_id)) ||
         p.stripe_payment_link ||
         (p.price && parseFloat(p.price) > 0) ||
         (p.monthly_price && parseFloat(p.monthly_price) > 0) ||
@@ -799,6 +832,7 @@ router.get('/products/:slug', async (req, res) => {
       stripe_payment_link: p.stripe_payment_link || null,
       bcel: buildBcel(p),
       has_stripe: !!(p.stripe_price_id || p.stripe_price_id_monthly || p.stripe_price_id_yearly ||
+        (p.pricing_type === 'options' && normalizePriceOptions(p.price_options).some((o) => o.stripe_price_id)) ||
         p.stripe_payment_link ||
         (p.price && parseFloat(p.price) > 0) ||
         (p.monthly_price && parseFloat(p.monthly_price) > 0) ||

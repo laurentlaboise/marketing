@@ -712,6 +712,11 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='bcel_options') THEN
             ALTER TABLE products ADD COLUMN bcel_options JSONB DEFAULT '[]'::jsonb;
           END IF;
+          -- price_options: named variants for pricing_type='options'
+          -- JSONB array of { key, label, sku, price, strategy, stripe_price_id, features, description }
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='price_options') THEN
+            ALTER TABLE products ADD COLUMN price_options JSONB DEFAULT '[]'::jsonb;
+          END IF;
         END $$;
       `);
 

@@ -167,8 +167,9 @@
                 <option value="one_time" <%= !product || (product.pricing_type || 'one_time') === 'one_time' ? 'selected' : '' %>>One-Time Payment</option>
                 <option value="subscription" <%= product && product.pricing_type === 'subscription' ? 'selected' : '' %>>Subscription</option>
                 <option value="tiered" <%= product && product.pricing_type === 'tiered' ? 'selected' : '' %>>Quantity / Volume Pricing</option>
+                <option value="options" <%= product && product.pricing_type === 'options' ? 'selected' : '' %>>Named Options (one product, multiple prices)</option>
               </select>
-              <small style="color:#666;">Choose how this product is billed.</small>
+              <small style="color:#666;">Choose how this product is billed. “Options” = one service, several SKU/price paths (e.g. AI vs Designer).</small>
             </div>
             <div class="form-group">
               <label class="form-label" for="currency">Currency</label>
@@ -308,6 +309,57 @@
             </div>
             <button type="button" id="tier-add" class="btn btn-secondary btn-sm" style="margin-top:0.25rem;"><i class="fas fa-plus"></i> Add tier</button>
             <div id="tier-preview" style="display:none;background:#f5f3ff;border:1px solid #ddd6fe;color:#5b21b6;padding:0.6rem 0.9rem;border-radius:8px;font-size:0.85rem;margin-top:0.6rem;"></div>
+          </div>
+
+          <!-- Named options: one product, multiple price points / SKUs -->
+          <div id="options-pricing" class="pricing-block" style="border-left:3px solid #e11d74;padding-left:1rem;margin-top:0.5rem;">
+            <p style="font-size:0.85rem;color:#666;margin:0 0 0.6rem;">
+              One service, several <strong>options</strong> (e.g. AI vs Designer). Each option has its own SKU, price, strategy, and Stripe Price ID.
+            </p>
+            <%
+              var curOpts = [];
+              if (product && product.price_options) {
+                try { curOpts = typeof product.price_options === 'string' ? JSON.parse(product.price_options) : product.price_options; } catch (e) { curOpts = []; }
+              }
+              if (!Array.isArray(curOpts) || curOpts.length === 0) {
+                curOpts = [
+                  { key: 'ai', label: 'AI-Powered Creation', sku: '', price: '', strategy: 'entry_speed', stripe_price_id: '' },
+                  { key: 'designer', label: 'Graphic Designer Support', sku: '', price: '', strategy: 'premium_craft', stripe_price_id: '' }
+                ];
+              }
+            %>
+            <div id="option-rows">
+              <% curOpts.forEach(function(o){ %>
+              <div class="option-row" style="display:grid;grid-template-columns:0.8fr 1.2fr 0.8fr 0.7fr 0.9fr 1fr auto;gap:0.4rem;align-items:end;margin-bottom:0.5rem;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-size:0.72rem;">Key</label>
+                  <input type="text" name="opt_key" class="form-input" value="<%= o.key || '' %>" placeholder="ai">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-size:0.72rem;">Label</label>
+                  <input type="text" name="opt_label" class="form-input" value="<%= o.label || '' %>" placeholder="AI-Powered">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-size:0.72rem;">SKU</label>
+                  <input type="text" name="opt_sku" class="form-input" value="<%= o.sku || '' %>" placeholder="19106773">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-size:0.72rem;">Price</label>
+                  <input type="number" name="opt_price" class="form-input" min="0" step="0.01" value="<%= o.price != null ? o.price : '' %>" placeholder="49">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-size:0.72rem;">Strategy</label>
+                  <input type="text" name="opt_strategy" class="form-input" value="<%= o.strategy || '' %>" placeholder="entry_speed">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-size:0.72rem;">Stripe Price</label>
+                  <input type="text" name="opt_stripe_price_id" class="form-input" value="<%= o.stripe_price_id || '' %>" placeholder="price_…">
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm option-remove" title="Remove" style="padding:0.4rem 0.6rem;">&times;</button>
+              </div>
+              <% }); %>
+            </div>
+            <button type="button" id="option-add" class="btn btn-secondary btn-sm" style="margin-top:0.25rem;"><i class="fas fa-plus"></i> Add option</button>
           </div>
 
           <div class="form-group">
@@ -548,14 +600,17 @@ document.getElementById('slug').dataset.manual = 'true';
   var previewText   = document.getElementById('savings-preview-text');
 
   var tieredBlock = document.getElementById('tiered-pricing');
+  var optionsBlock = document.getElementById('options-pricing');
 
   function syncBlocks() {
     var v = pricingType.value;
     var isSub = v === 'subscription';
     var isTiered = v === 'tiered';
-    oneTimeBlock.style.display = (isSub || isTiered) ? 'none' : '';
+    var isOptions = v === 'options';
+    oneTimeBlock.style.display = (isSub || isTiered || isOptions) ? 'none' : '';
     subBlock.style.display = isSub ? '' : 'none';
     if (tieredBlock) tieredBlock.style.display = isTiered ? '' : 'none';
+    if (optionsBlock) optionsBlock.style.display = isOptions ? '' : 'none';
     if (isSub) updateSavings();
     if (isTiered) updateTierPreview();
   }
@@ -602,6 +657,30 @@ document.getElementById('slug').dataset.manual = 'true';
     var parts = tiers.map(function(t){ return t.min + '+: ' + t.price.toFixed(2) + ' ' + cur + '/unit'; });
     tierPreview.innerHTML = '<i class="fas fa-layer-group"></i> ' + parts.join(' &nbsp;·&nbsp; ');
     tierPreview.style.display = '';
+  }
+
+  // ── Named options builder ──
+  var optionRows = document.getElementById('option-rows');
+  var optionAdd = document.getElementById('option-add');
+  function wireOptionRow(row) {
+    var rm = row.querySelector('.option-remove');
+    if (rm) rm.addEventListener('click', function() {
+      if (optionRows.querySelectorAll('.option-row').length > 1) row.remove();
+      else { row.querySelectorAll('input').forEach(function(i){ i.value = ''; }); }
+    });
+  }
+  if (optionRows) {
+    optionRows.querySelectorAll('.option-row').forEach(wireOptionRow);
+  }
+  if (optionAdd && optionRows) {
+    optionAdd.addEventListener('click', function() {
+      var first = optionRows.querySelector('.option-row');
+      if (!first) return;
+      var clone = first.cloneNode(true);
+      clone.querySelectorAll('input').forEach(function(i){ i.value = ''; });
+      optionRows.appendChild(clone);
+      wireOptionRow(clone);
+    });
   }
 
   function wireTierRow(row) {

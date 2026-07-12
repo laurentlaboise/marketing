@@ -513,6 +513,195 @@ router.post('/v1/products/sync-stripe', async (req, res) => {
   }
 });
 
+/**
+ * Bootstrap Logo Design as one product with two price options (AI + Designer).
+ * Archives the legacy separate logo products. Creates Stripe Product + Prices.
+ *
+ * POST /v1/products/bootstrap-logo-options
+ */
+router.post('/v1/products/bootstrap-logo-options', async (req, res) => {
+  try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return fail(res, 'STRIPE_SECRET_KEY not configured', 503);
+    }
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const dryRun = req.body?.dry_run === true || String(req.query.dry_run || '') === '1';
+
+    // Ensure column exists (db init may not have run yet on old containers)
+    await db.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='products' AND column_name='price_options'
+        ) THEN
+          ALTER TABLE products ADD COLUMN price_options JSONB DEFAULT '[]'::jsonb;
+        END IF;
+      END $$;
+    `);
+
+    const legacySlugs = [
+      'logo-design-ai-powered-creation',
+      'logo-design-graphic-designer-support',
+    ];
+    const legacy = await db.query(
+      `SELECT * FROM products WHERE slug = ANY($1::text[]) OR name ILIKE 'Logo Design%'`,
+      [legacySlugs]
+    );
+
+    const options = [
+      {
+        key: 'ai',
+        label: 'AI-Powered Creation',
+        sku: '19106773',
+        price: 49,
+        strategy: 'entry_speed',
+        features: [
+          'AI-assisted logo creation',
+          'Fast brand concept development',
+          'Clean visual direction',
+          'Suitable for startup use',
+          'Affordable entry-level branding',
+        ],
+        description: 'Fast AI-assisted logo concept for startups and SMEs.',
+      },
+      {
+        key: 'designer',
+        label: 'Graphic Designer Support',
+        sku: '19106774',
+        price: 149,
+        strategy: 'premium_craft',
+        features: [
+          'Graphic designer support',
+          'Logo refinement',
+          'Brand identity guidance',
+          'Human creative craft',
+          'Suitable for custom brand needs',
+        ],
+        description: 'Human designer support for refined custom logo work.',
+      },
+    ];
+
+    // Reuse stripe price IDs from legacy products when present
+    for (const row of legacy.rows) {
+      if (row.slug === 'logo-design-ai-powered-creation' && row.stripe_price_id) {
+        options[0].stripe_price_id = row.stripe_price_id;
+      }
+      if (row.slug === 'logo-design-graphic-designer-support' && row.stripe_price_id) {
+        options[1].stripe_price_id = row.stripe_price_id;
+      }
+    }
+
+    if (dryRun) {
+      return ok(res, {
+        dry_run: true,
+        would_create: 'Logo Design',
+        options,
+        archive: legacy.rows.map((r) => ({ id: r.id, name: r.name, slug: r.slug })),
+      });
+    }
+
+    // Stripe: one product, two prices
+    let stripeProductId = null;
+    const existingParent = await db.query(
+      `SELECT * FROM products WHERE slug = 'logo-design' LIMIT 1`
+    );
+    if (existingParent.rows[0]?.stripe_product_id) {
+      stripeProductId = existingParent.rows[0].stripe_product_id;
+    } else {
+      const sp = await stripe.products.create({
+        name: 'Logo Design',
+        description:
+          'Professional logo design for SEA businesses — choose AI-powered speed or human designer craft.',
+        metadata: { wts_slug: 'logo-design', source: 'bootstrap-logo-options' },
+      });
+      stripeProductId = sp.id;
+    }
+
+    for (const opt of options) {
+      if (opt.stripe_price_id) continue;
+      const price = await stripe.prices.create({
+        product: stripeProductId,
+        currency: 'usd',
+        unit_amount: Math.round(opt.price * 100),
+        metadata: {
+          wts_option_key: opt.key,
+          wts_sku: opt.sku || '',
+          source: 'bootstrap-logo-options',
+        },
+      });
+      opt.stripe_price_id = price.id;
+    }
+
+    const features = [
+      'Two paths: AI-powered or human designer',
+      'Clear SKU and price per option',
+      'Fast delivery for SEA startups and SMEs',
+    ];
+    const description =
+      'Logo Design for Words That Sells clients. Choose AI-Powered Creation for speed and value, or Graphic Designer Support for hands-on human craft and refinement.';
+
+    let parentId;
+    if (existingParent.rows[0]) {
+      parentId = existingParent.rows[0].id;
+      await db.query(
+        `UPDATE products SET
+           name = $2, description = $3, price = $4, currency = 'USD',
+           features = $5, status = 'active', service_page = 'content-creation',
+           subcategory = 'logo-design', purchase_mode = 'buy', pricing_type = 'options',
+           product_type = 'service', sku = 'LOGO',
+           stripe_product_id = $6, price_options = $7::jsonb,
+           is_featured = TRUE, updated_at = NOW()
+         WHERE id = $1`,
+        [
+          parentId,
+          'Logo Design',
+          description,
+          49,
+          features,
+          stripeProductId,
+          JSON.stringify(options),
+        ]
+      );
+    } else {
+      const ins = await db.query(
+        `INSERT INTO products (
+           name, slug, description, price, currency, features, status,
+           service_page, subcategory, purchase_mode, pricing_type, product_type,
+           sku, stripe_product_id, price_options, is_featured, icon_class
+         ) VALUES (
+           $1, 'logo-design', $2, $3, 'USD', $4, 'active',
+           'content-creation', 'logo-design', 'buy', 'options', 'service',
+           'LOGO', $5, $6::jsonb, TRUE, 'fas fa-pen-nib'
+         ) RETURNING id`,
+        ['Logo Design', description, 49, features, stripeProductId, JSON.stringify(options)]
+      );
+      parentId = ins.rows[0].id;
+    }
+
+    // Archive legacy separate products
+    const archived = [];
+    for (const row of legacy.rows) {
+      if (row.id === parentId || row.slug === 'logo-design') continue;
+      await db.query(
+        `UPDATE products SET status = 'archived', updated_at = NOW() WHERE id = $1`,
+        [row.id]
+      );
+      archived.push({ id: row.id, name: row.name, slug: row.slug });
+    }
+
+    return ok(res, {
+      product_id: parentId,
+      slug: 'logo-design',
+      stripe_product_id: stripeProductId,
+      options,
+      archived,
+    });
+  } catch (e) {
+    console.error('[machine-api] bootstrap-logo-options', e);
+    return fail(res, 'bootstrap-logo-options failed: ' + e.message, 500);
+  }
+});
+
 // ── Affiliate solutions ─────────────────────────────────────────────
 
 router.get('/v1/affiliate-solutions', async (req, res) => {

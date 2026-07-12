@@ -6,7 +6,7 @@ const taxonomy = require('../config/product-taxonomy');
 const slugify = require('../utils/slugify');
 const { parseProductListings, parseSeedProducts } = require('../utils/product-import-parser');
 const { insertSeedProduct } = require('../utils/product-seeder');
-const { normalizeTiers } = require('../utils/pricing');
+const { normalizeTiers, normalizePriceOptions } = require('../utils/pricing');
 const { upsertCustomer, linkOrdersByEmail, issueLoginLink } = require('./portal');
 const { sendEmail } = require('../utils/mailer');
 const { translate } = require('../lib/i18n');
@@ -228,6 +228,7 @@ function normalizePricing(body) {
   let pricingType = 'one_time';
   if (body.pricing_type === 'subscription') pricingType = 'subscription';
   else if (body.pricing_type === 'tiered') pricingType = 'tiered';
+  else if (body.pricing_type === 'options') pricingType = 'options';
   const monthly = toNum(body.monthly_price);
   const yearly = toNum(body.yearly_price);
 
@@ -240,6 +241,34 @@ function normalizePricing(body) {
     const prices = Array.isArray(body.tier_unit_price) ? body.tier_unit_price : (body.tier_unit_price != null ? [body.tier_unit_price] : []);
     quantityTiers = normalizeTiers(mins.map((m, i) => ({ min_qty: m, unit_price: prices[i] })));
     if (quantityTiers.length === 0) pricingType = 'one_time';
+  }
+
+  // Named options (one product, multiple price points / SKUs)
+  let priceOptions = [];
+  if (pricingType === 'options') {
+    if (body.price_options_json && String(body.price_options_json).trim()) {
+      priceOptions = normalizePriceOptions(body.price_options_json);
+    } else {
+      const keys = Array.isArray(body.opt_key) ? body.opt_key : (body.opt_key != null ? [body.opt_key] : []);
+      const labels = Array.isArray(body.opt_label) ? body.opt_label : (body.opt_label != null ? [body.opt_label] : []);
+      const prices = Array.isArray(body.opt_price) ? body.opt_price : (body.opt_price != null ? [body.opt_price] : []);
+      const skus = Array.isArray(body.opt_sku) ? body.opt_sku : (body.opt_sku != null ? [body.opt_sku] : []);
+      const strategies = Array.isArray(body.opt_strategy) ? body.opt_strategy : (body.opt_strategy != null ? [body.opt_strategy] : []);
+      const stripePrices = Array.isArray(body.opt_stripe_price_id)
+        ? body.opt_stripe_price_id
+        : (body.opt_stripe_price_id != null ? [body.opt_stripe_price_id] : []);
+      priceOptions = normalizePriceOptions(
+        keys.map((k, i) => ({
+          key: k,
+          label: labels[i],
+          price: prices[i],
+          sku: skus[i],
+          strategy: strategies[i],
+          stripe_price_id: stripePrices[i],
+        }))
+      );
+    }
+    if (priceOptions.length === 0) pricingType = 'one_time';
   }
 
   // A subscription with no monthly or yearly price isn't sellable — treat as one-time.
@@ -306,6 +335,11 @@ function normalizePricing(body) {
     default_billing: defaultBilling,
     allow_billing_toggle: allowToggle,
     quantity_tiers: quantityTiers,
+    price_options: priceOptions,
+    // Display price for options products = lowest option (from / starting at)
+    options_from_price: priceOptions.length
+      ? Math.min.apply(null, priceOptions.map((o) => o.price))
+      : null,
     setup_fee: setupFee,
     setup_fee_label: setupFeeLabel,
     // BCEL OnePay (Laos): manual QR price points from parallel form arrays
@@ -353,13 +387,19 @@ function validateProduct(body) {
   if (mode === 'buy') {
     const isSub = body.pricing_type === 'subscription';
     const isTiered = body.pricing_type === 'tiered';
+    const isOptions = body.pricing_type === 'options';
     const hasOneTime = parseFloat(body.price) > 0;
     const hasSub = parseFloat(body.monthly_price) > 0 || parseFloat(body.yearly_price) > 0;
     const tierPrices = Array.isArray(body.tier_unit_price) ? body.tier_unit_price : (body.tier_unit_price != null ? [body.tier_unit_price] : []);
     const hasTier = tierPrices.some((v) => parseFloat(v) > 0);
-    const ok = isSub ? hasSub : (isTiered ? hasTier : hasOneTime);
+    const optPrices = Array.isArray(body.opt_price) ? body.opt_price : (body.opt_price != null ? [body.opt_price] : []);
+    const hasOptions = isOptions && (
+      optPrices.some((v) => parseFloat(v) > 0)
+      || (body.price_options_json && String(body.price_options_json).includes('"price"'))
+    );
+    const ok = isSub ? hasSub : (isTiered ? hasTier : (isOptions ? hasOptions : hasOneTime));
     if (!ok) {
-      errors.push('Buy-now products need a price (a one-time price, monthly/yearly for subscriptions, or at least one quantity tier).');
+      errors.push('Buy-now products need a price (one-time, subscription periods, quantity tiers, or at least two named options).');
     }
   }
   return errors;
@@ -546,10 +586,16 @@ router.post('/products', async (req, res) => {
         allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
         subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
         cta_form_type, quantity_tiers, setup_fee, setup_fee_label, stripe_price_id_setup,
-        bcel_qr_url, price_lak, bcel_options
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45)`,
+        bcel_qr_url, price_lak, bcel_options, price_options
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45,$46)`,
       [
-        name, productSlug, description, price || null, currency || 'USD', category, featuresArray, image_url, status || 'active',
+        name, productSlug,
+        description,
+        // Options products: store "from" price for listings
+        (pricing.pricing_type === 'options' && pricing.options_from_price != null)
+          ? pricing.options_from_price
+          : (price || null),
+        currency || 'USD', category, featuresArray, image_url, status || 'active',
         service_page || null, icon_class || 'fas fa-box', animation_class || 'kinetic-pulse-float',
         parseInt(sort_order) || 0, product_type || 'service', download_url || null,
         slide_in_title || null, slide_in_subtitle || null, slide_in_content || null,
@@ -562,7 +608,8 @@ router.post('/products', async (req, res) => {
         (cta_form_type && cta_form_type.trim()) ? cta_form_type.trim() : null,
         JSON.stringify(pricing.quantity_tiers || []),
         pricing.setup_fee, pricing.setup_fee_label, stripe_price_id_setup || null,
-        pricing.bcel_qr_url, pricing.price_lak, JSON.stringify(pricing.bcel_options || [])
+        pricing.bcel_qr_url, pricing.price_lak, JSON.stringify(pricing.bcel_options || []),
+        JSON.stringify(pricing.price_options || [])
       ]
     );
     req.session.successMessage = 'Product created successfully';
@@ -646,10 +693,15 @@ router.post('/products/:id', async (req, res) => {
         subcategory=$32, purchase_mode=$33, price_unit=$34, industries=$35, sku=$36,
         stripe_payment_link=$37, cta_form_type=$38, quantity_tiers=$39,
         setup_fee=$40, setup_fee_label=$41, stripe_price_id_setup=$42,
-        bcel_qr_url=$43, price_lak=$44, bcel_options=$45, updated_at=CURRENT_TIMESTAMP
-      WHERE id=$46`,
+        bcel_qr_url=$43, price_lak=$44, bcel_options=$45, price_options=$46,
+        updated_at=CURRENT_TIMESTAMP
+      WHERE id=$47`,
       [
-        name, productSlug, description, price || null, currency, category, featuresArray,
+        name, productSlug, description,
+        (pricing.pricing_type === 'options' && pricing.options_from_price != null)
+          ? pricing.options_from_price
+          : (price || null),
+        currency, category, featuresArray,
         image_url, status, service_page || null, icon_class || 'fas fa-box',
         animation_class || 'kinetic-pulse-float', parseInt(sort_order) || 0,
         product_type || 'service', download_url || null,
@@ -665,6 +717,7 @@ router.post('/products/:id', async (req, res) => {
         JSON.stringify(pricing.quantity_tiers || []),
         pricing.setup_fee, pricing.setup_fee_label, stripe_price_id_setup || null,
         pricing.bcel_qr_url, pricing.price_lak, JSON.stringify(pricing.bcel_options || []),
+        JSON.stringify(pricing.price_options || []),
         req.params.id
       ]
     );

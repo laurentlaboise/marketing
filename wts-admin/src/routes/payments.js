@@ -1,6 +1,11 @@
 const express = require('express');
 const db = require('../../database/db');
-const { normalizeTiers, unitPriceForQuantity } = require('../utils/pricing');
+const {
+  normalizeTiers,
+  unitPriceForQuantity,
+  normalizePriceOptions,
+  findPriceOption,
+} = require('../utils/pricing');
 const { sendEmail } = require('../utils/mailer');
 const { translate } = require('../lib/i18n');
 const { upsertCustomer, linkOrdersByEmail } = require('./portal');
@@ -30,7 +35,7 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
       return res.status(503).json({ error: 'Payment processing is not configured' });
     }
 
-    const { product_id, billing_period, quantity, include_setup_fee } = req.body;
+    const { product_id, billing_period, quantity, include_setup_fee, option_key } = req.body;
     if (!product_id) {
       return res.status(400).json({ error: 'product_id is required' });
     }
@@ -50,12 +55,34 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
 
     // A product is a subscription if its pricing_type says so, or (legacy) its product_type does.
     const isSubscription = product.pricing_type === 'subscription' || product.product_type === 'subscription';
+    const isOptions = product.pricing_type === 'options';
     const currency = (product.currency || 'USD').toLowerCase();
     const baseUrl = process.env.APP_URL || 'https://wordsthatsells.website';
 
+    // Named options (e.g. Logo Design → AI vs Designer)
+    let selectedOption = null;
+    if (isOptions) {
+      selectedOption = findPriceOption(product.price_options, option_key);
+      if (!selectedOption) {
+        return res.status(400).json({
+          error: 'option_key is required and must match a product price option',
+          options: normalizePriceOptions(product.price_options).map((o) => ({
+            key: o.key,
+            label: o.label,
+            price: o.price,
+            sku: o.sku,
+          })),
+        });
+      }
+    }
+
+    const displayName = selectedOption
+      ? `${product.name} — ${selectedOption.label}`
+      : product.name;
+
     const productData = {
-      name: product.name,
-      description: product.description || undefined,
+      name: displayName,
+      description: (selectedOption && selectedOption.description) || product.description || undefined,
       images: product.image_url ? [product.image_url] : undefined
     };
 
@@ -67,7 +94,14 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
       metadata: {
         product_id: product.id,
         product_name: product.name,
-        product_type: product.product_type
+        product_type: product.product_type,
+        ...(selectedOption
+          ? {
+              option_key: selectedOption.key,
+              option_label: selectedOption.label,
+              option_strategy: selectedOption.strategy || '',
+            }
+          : {}),
       }
     };
 
@@ -163,6 +197,27 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
         },
         quantity: qty
       }];
+    } else if (isOptions && selectedOption) {
+      // Named options: one product, multiple price points / SKUs
+      const amount = num(selectedOption.price);
+      orderUnitPrice = amount;
+      orderQuantity = 1;
+      if (selectedOption.stripe_price_id) {
+        sessionConfig.line_items = [{ price: selectedOption.stripe_price_id, quantity: 1 }];
+      } else {
+        if (!(amount > 0)) {
+          return res.status(400).json({ error: 'Selected option has no valid price' });
+        }
+        orderAmount = amount;
+        sessionConfig.line_items = [{
+          price_data: {
+            currency,
+            product_data: productData,
+            unit_amount: Math.round(amount * 100)
+          },
+          quantity: 1
+        }];
+      }
     } else {
       // One-time purchase
       const amount = num(product.price);
@@ -187,7 +242,7 @@ router.post('/create-checkout-session', express.json(), async (req, res) => {
 
     // Stamp SKU + quantity + unit price onto the session metadata (shows on the
     // Stripe dashboard / receipts) and the order row.
-    sessionConfig.metadata.sku = product.sku || '';
+    sessionConfig.metadata.sku = (selectedOption && selectedOption.sku) || product.sku || '';
     sessionConfig.metadata.quantity = String(orderQuantity);
     if (orderUnitPrice != null) sessionConfig.metadata.unit_price = String(orderUnitPrice);
 
