@@ -171,11 +171,15 @@ case "$cmd" in
   create-article)
     body="${1:-}"
     [[ -n "$body" ]] || { echo "Usage: $0 create-article '<json>' | @payload.json" >&2; exit 1; }
+    # @file payloads belong to the caller; inline JSON goes to a temp file
+    # this command owns and must clean up on every exit path.
+    src_is_tmp=0
     if [[ "$body" == @* ]]; then
       src="${body:1}"
       [[ -f "$src" ]] || { echo "Error: payload file not found: $src" >&2; exit 1; }
     else
       src="$(mktemp)"
+      src_is_tmp=1
       printf '%s' "$body" > "$src"
     fi
     # 1) create the minimal row (title/slug/status), 2) push the full payload
@@ -194,11 +198,15 @@ PY
       echo "Create failed:" >&2
       cat "$tmp_created" >&2; echo >&2
       rm -f "$tmp_min" "$tmp_created"
+      [[ "$src_is_tmp" == 1 ]] && rm -f "$src"
       exit 1
     fi
     echo "Created article ${new_id} — pushing full payload..."
     rm -f "$tmp_min" "$tmp_created"
-    exec "$0" put-article "$new_id" "@${src}" force
+    rc=0
+    "$0" put-article "$new_id" "@${src}" force || rc=$?
+    [[ "$src_is_tmp" == 1 ]] && rm -f "$src"
+    exit $rc
     ;;
   put-article)
     key="${1:-}"; body="${2:-}"; force="${3:-}"

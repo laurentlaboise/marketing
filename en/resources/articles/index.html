@@ -961,9 +961,11 @@
         // STATIC FALLBACK ENTRIES — these two articles exist only as static
         // HTML pages (en/articles/*.html), not in the CMS, so they're listed
         // here to keep the blog populated if the API lags. Editing them in
-        // the admin does nothing until they're imported. To import:
-        //   ./wts-admin/scripts/machine-api.sh create-article @scripts/payloads/korea-ai-law-article.json
-        //   ./wts-admin/scripts/machine-api.sh create-article @scripts/payloads/sea-ai-2026-article.json
+        // the admin does nothing until they're imported. To import (from the
+        // wts-admin/ directory, as documented in MACHINE_API.md):
+        //   cd wts-admin
+        //   ./scripts/machine-api.sh create-article @scripts/payloads/korea-ai-law-article.json
+        //   ./scripts/machine-api.sh create-article @scripts/payloads/sea-ai-2026-article.json
         // After import, mergeStaticArticles() below automatically prefers the
         // CMS version (deduped by slug) — these entries then act purely as
         // offline fallbacks and can eventually be deleted.

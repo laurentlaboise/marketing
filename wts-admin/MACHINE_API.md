@@ -144,8 +144,9 @@ Or let the helper script do the read-merge-put dance:
 ### Create an article
 
 `POST /v1/articles` creates the row (title required; slug optional and
-deduplicated; status defaults to `draft`), returning `{ id, slug }` — push the
-full payload with PUT afterwards. The helper chains both:
+deduplicated; status defaults to `draft`), returning **201** with
+`{ "success": true, "article": { "id", "slug", "status" } }` — push the full
+payload with PUT afterwards. The helper chains both:
 
 ```bash
 ./scripts/machine-api.sh create-article @scripts/payloads/korea-ai-law-article.json

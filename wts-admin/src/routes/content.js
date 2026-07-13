@@ -247,7 +247,10 @@ router.post('/articles', [
       article: req.body,
       articleId: null,
       currentPage: 'articles',
-      error: 'Failed to create article'
+      // 23505 = a concurrent save took the deduplicated slug first
+      error: error.code === '23505'
+        ? 'That URL slug was taken a moment ago — save again to get a fresh one'
+        : 'Failed to create article'
     });
   }
 });
@@ -845,6 +848,15 @@ router.get('/seo-terms/api/list', async (req, res) => {
 
 // ==================== AI TOOLS ====================
 
+// The form caps ratings at 0–5 client-side, but the column accepts up to
+// 9.99 — clamp server-side so a hand-crafted request can't skew the public
+// directory's rating sort. Preserves an explicit 0; anything else invalid → null.
+const clampToolRating = (raw) => {
+  if (raw == null || String(raw).trim() === '') return null;
+  const n = Number.parseFloat(raw);
+  return Number.isFinite(n) && n >= 0 && n <= 5 ? n : null;
+};
+
 router.get('/ai-tools', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM ai_tools ORDER BY name ASC');
@@ -877,28 +889,46 @@ router.post('/ai-tools', async (req, res) => {
       name, description, category, website_url, pricing_model, features, pros, cons,
       rating, logo_url, status, app_store_url, play_store_url
     } = req.body;
+    if (!name || !String(name).trim()) {
+      return res.render('content/ai-tools/form', {
+        title: 'New AI Tool - WTS Admin',
+        tool: req.body,
+        currentPage: 'ai-tools',
+        error: 'Name is required'
+      });
+    }
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
     const prosArray = pros ? pros.split('\n').map(p => p.trim()).filter(p => p) : [];
     const consArray = cons ? cons.split('\n').map(c => c.trim()).filter(c => c) : [];
+    const ratingValue = clampToolRating(rating);
 
     // Freeze the public detail URL at creation: the slug is stored once and
     // never re-derived, so renaming a tool later can't move its URL (the
     // public API and directory prefer the stored slug over the name).
+    // Retry on unique-violation: a concurrent create with the same name can
+    // land between the dedup check and the insert.
     const slugBase = String(name).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).join('-').slice(0, 80) || 'tool';
-    let slug = slugBase;
-    for (let n = 2; (await db.query('SELECT 1 FROM ai_tools WHERE slug = $1 LIMIT 1', [slug])).rows.length; n++) {
-      slug = `${slugBase}-${n}`;
+    for (let attempt = 1; ; attempt++) {
+      let slug = slugBase;
+      for (let n = 2; (await db.query('SELECT 1 FROM ai_tools WHERE slug = $1 LIMIT 1', [slug])).rows.length; n++) {
+        slug = `${slugBase}-${n}`;
+      }
+      try {
+        await db.query(
+          `INSERT INTO ai_tools
+            (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status, app_store_url, play_store_url, slug)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+          [
+            name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray,
+            ratingValue, logo_url, status || 'active', app_store_url || null, play_store_url || null, slug
+          ]
+        );
+        break;
+      } catch (e) {
+        if (e.code === '23505' && attempt < 3) continue;
+        throw e;
+      }
     }
-
-    await db.query(
-      `INSERT INTO ai_tools
-        (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status, app_store_url, play_store_url, slug)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-      [
-        name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray,
-        rating || null, logo_url, status || 'active', app_store_url || null, play_store_url || null, slug
-      ]
-    );
     req.session.successMessage = 'AI tool created successfully';
     res.redirect('/content/ai-tools');
   } catch (error) {
@@ -946,7 +976,7 @@ router.post('/ai-tools/:id', async (req, res) => {
        WHERE id = $14`,
       [
         name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray,
-        rating || null, logo_url, status, app_store_url || null, play_store_url || null, req.params.id
+        clampToolRating(rating), logo_url, status, app_store_url || null, play_store_url || null, req.params.id
       ]
     );
     req.session.successMessage = 'AI tool updated successfully';

@@ -18,14 +18,16 @@ concurrency:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Probe /health (3 attempts, 30s apart)
         id: probe
         run: |
           URL="https://admin.wordsthatsells.website/health"
           for attempt in 1 2 3; do
-            body="$(curl -sS --max-time 20 "$URL" || true)"
-            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$URL" || echo 000)"
+            # one request: body and status must come from the same response
+            code="$(curl -sS -o /tmp/probe_body -w '%{http_code}' --max-time 20 "$URL" || echo 000)"
+            body="$(tr -d '\r' < /tmp/probe_body 2>/dev/null | head -c 500 || true)"
             echo "attempt $attempt: HTTP $code $body"
             if [ "$code" = "200" ] && echo "$body" | grep -q '"db":"ok"'; then
               echo "status=up" >> "$GITHUB_OUTPUT"
@@ -34,7 +36,11 @@ jobs:
             [ "$attempt" -lt 3 ] && sleep 30
           done
           echo "status=down" >> "$GITHUB_OUTPUT"
-          echo "detail=HTTP $code — $body" >> "$GITHUB_OUTPUT"
+          {
+            echo "detail<<PROBE_DETAIL_EOF"
+            echo "HTTP $code — $body"
+            echo "PROBE_DETAIL_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Open or update outage issue / close on recovery
         uses: actions/github-script@v7

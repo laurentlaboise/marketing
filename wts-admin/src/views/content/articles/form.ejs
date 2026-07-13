@@ -2613,6 +2613,16 @@ function getArticleSlug(title) {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
+// The article's effective URL slug: the explicit slug field wins (renames),
+// the title is only the fallback. Every generated self-reference — canonical,
+// og:url, JSON-LD @id, breadcrumb, publish path — must use this, or a rename
+// publishes a page whose own metadata points at the old URL.
+function getCurrentArticleSlug() {
+  var slugEl = document.getElementById('slug');
+  var explicit = slugEl && slugEl.value ? getArticleSlug(slugEl.value) : '';
+  return explicit || getArticleSlug(document.getElementById('title').value || '');
+}
+
 function getArticleImageObjects() {
   var imageObjects = [];
   try {
@@ -2668,7 +2678,7 @@ function generateSchemaMarkup() {
   var tags = document.getElementById('tags').value || '';
   var publishedUrl = document.getElementById('published_url').value || document.getElementById('canonical_url').value || '';
   var timeToRead = document.getElementById('time_to_read').value || '';
-  var slug = getArticleSlug(title);
+  var slug = getCurrentArticleSlug();
   var articleUrl = publishedUrl || ('https://wordsthatsells.website/en/articles/' + slug + '.html');
   var imageObjects = getArticleImageObjects();
   var wordCount = getWordCount();
@@ -2819,7 +2829,7 @@ function generateOgMetaPreview() {
   var resolvedTwImage = twImage || ogImage || featuredImage;
   var resolvedCanonical = canonical || publishedUrl;
 
-  var slug = getArticleSlug(title);
+  var slug = getCurrentArticleSlug();
   var articleUrl = resolvedCanonical || ('https://wordsthatsells.website/en/articles/' + slug + '/');
 
   var lines = [];
@@ -3756,8 +3766,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Canonical URL auto-populate
   bind('autoCanonicalBtn', function() {
-    var title = document.getElementById('title').value || '';
-    var slug = getArticleSlug(title);
+    var slug = getCurrentArticleSlug();
     if (slug) {
       document.getElementById('canonical_url').value = 'https://wordsthatsells.website/en/articles/' + slug + '.html';
       checkCanonicalMismatch();
@@ -3768,13 +3777,15 @@ document.addEventListener('DOMContentLoaded', function() {
   var canonicalEl = document.getElementById('canonical_url');
   if (canonicalEl) canonicalEl.addEventListener('input', function() { checkCanonicalMismatch(); });
   if (titleEl) titleEl.addEventListener('input', function() { checkCanonicalMismatch(); updateLiveWordCount(); });
+  var slugForCanonical = document.getElementById('slug');
+  if (slugForCanonical) slugForCanonical.addEventListener('input', function() { checkCanonicalMismatch(); });
 
   function checkCanonicalMismatch() {
     var title = document.getElementById('title').value || '';
     var canonical = document.getElementById('canonical_url').value || '';
     var warning = document.getElementById('canonicalMismatchWarning');
     if (!canonical || !title) { warning.style.display = 'none'; return; }
-    var expectedSlug = getArticleSlug(title);
+    var expectedSlug = getCurrentArticleSlug();
     var canonicalHasSlug = canonical.indexOf(expectedSlug) !== -1;
     warning.style.display = canonicalHasSlug ? 'none' : 'block';
   }
@@ -3866,7 +3877,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var excerpt = document.getElementById('excerpt').value || '';
     var textContent = (document.getElementById('text_article').value || document.getElementById('content').value || '');
     var wordCount = textContent.replace(/<[^>]*>/g, '').split(/\s+/).filter(function(w) { return w.length > 0; }).length;
-    var slug = getArticleSlug(title);
+    var slug = getCurrentArticleSlug();
 
     // Checks
     checks.push({ label: 'Title present', pass: title.length > 0 });
@@ -4213,7 +4224,7 @@ function updateGhFilePath() {
 
 function generateFullArticleHTML() {
   var title = document.getElementById('title').value || 'Untitled Article';
-  var slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  var slug = getCurrentArticleSlug() || 'untitled-article';
   var seoTitle = document.getElementById('seo_title').value || title;
   var seoDesc = document.getElementById('seo_description').value || document.getElementById('excerpt').value || title;
   var featuredImage = document.getElementById('featured_image').value || '';
@@ -4513,9 +4524,14 @@ function publishToGitHub() {
 
   // The server holds the GitHub credential and constrains the path to
   // en/articles/*.html; the global fetch wrapper attaches the CSRF token.
+  var csrfMeta = document.querySelector('meta[name="csrf-token"]');
   fetch('/content/articles/publish-github', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-Token': csrfMeta ? csrfMeta.content : ''
+    },
     body: JSON.stringify({ path: filePath, html: articleHTML, title: title })
   })
     .then(function(r) {
