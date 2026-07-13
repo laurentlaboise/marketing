@@ -478,6 +478,28 @@ function generateSidebarHTML(article, headings) {
 /**
  * Generate complete HTML for an article
  */
+// FAQPage JSON-LD from the article's FAQ section: h3 questions and the
+// prose that follows each, until the next heading. No FAQ section (or no
+// clean Q&A pairs) → no schema block at all.
+function generateFaqSchema(bodyHtml) {
+  // Section ends at the next h2 or at a CTA box — the CTA's own heading is
+  // a pitch, not a question, and must never enter the FAQ schema.
+  const secMatch = String(bodyHtml || '').match(/<h2[^>]*>[^<]*(?:FAQ|Frequently Asked)[^<]*<\/h2>([\s\S]*?)(?=<h2[\s>]|<div class="cta-box"|$)/i);
+  if (!secMatch) return null;
+  const qa = [];
+  const qRe = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3[\s>]|$)/gi;
+  let m;
+  while ((m = qRe.exec(secMatch[1])) !== null) {
+    const q = striptags(m[1]).replace(/\s+/g, ' ').trim();
+    const a = striptags(m[2]).replace(/\s+/g, ' ').trim();
+    if (q && a) {
+      qa.push({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a.slice(0, 1200) } });
+    }
+  }
+  if (!qa.length) return null;
+  return { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: qa };
+}
+
 function generateArticleHTML(article) {
   const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
   const social = resolveSocialMeta(article);
@@ -498,6 +520,7 @@ function generateArticleHTML(article) {
     )
   );
   const sidebarHTML = generateSidebarHTML(article, bodyWithAnchors.headings);
+  const faqSchema = generateFaqSchema(bodyWithAnchors.html);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -510,6 +533,17 @@ function generateArticleHTML(article) {
     <meta name="description" content="${escapeHtml(social.ogDescription)}">
     <meta name="robots" content="${social.robotsMeta}">
     <link rel="canonical" href="${canonicalUrl}">
+    <link rel="alternate" hreflang="en" href="${canonicalUrl}">
+    <link rel="alternate" hreflang="x-default" href="${canonicalUrl}">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMRKC1VBBB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-LMRKC1VBBB');
+    </script>
 
     <!-- Open Graph / Facebook / LinkedIn / WhatsApp / Pinterest / Slack / Discord -->
     <meta property="og:site_name" content="WordsThatSells.Website">
@@ -538,6 +572,9 @@ function generateArticleHTML(article) {
     <script type="application/ld+json">
 ${JSON.stringify(schemaMarkup, null, 2)}
     </script>
+    ${faqSchema ? `<script type="application/ld+json">
+${JSON.stringify(faqSchema, null, 2)}
+    </script>` : ''}
 
     <!-- Fonts and Icons -->
     <script src="https://kit.fontawesome.com/a521ce00f6.js" crossorigin="anonymous"></script>
@@ -1138,6 +1175,28 @@ ${JSON.stringify(schemaMarkup, null, 2)}
         document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeTooltip(); });
 
         document.addEventListener('DOMContentLoaded', initBackToTop);
+
+        // GA4 journey events — which chapters readers jump to, which CTAs
+        // and term tooltips they open, where they leave. One delegated
+        // listener; a no-op when gtag is blocked or absent.
+        document.addEventListener('click', function(e) {
+            if (typeof gtag !== 'function' || !e.target || !e.target.closest) return;
+            var el;
+            if ((el = e.target.closest('.sidebar-cta-btn'))) {
+                gtag('event', 'article_cta_click', { link_url: el.getAttribute('href') || '' });
+            } else if ((el = e.target.closest('.sidebar-chapter-link'))) {
+                gtag('event', 'chapter_click', { chapter: (el.textContent || '').trim().slice(0, 100) });
+            } else if ((el = e.target.closest('.seo-term-link'))) {
+                gtag('event', 'seo_term_open', { term: el.getAttribute('data-term') || '' });
+            } else if ((el = e.target.closest('a.auto-linked'))) {
+                gtag('event', 'internal_link_click', { link_url: el.getAttribute('href') || '', link_type: el.getAttribute('data-type') || '' });
+            } else if ((el = e.target.closest('a[href]'))) {
+                var href = el.getAttribute('href') || '';
+                if (/^https?:\\/\\//i.test(href) && href.indexOf('wordsthatsells.website') === -1) {
+                    gtag('event', 'outbound_click', { link_url: href });
+                }
+            }
+        }, true);
     </script>
 </body>
 </html>`;
