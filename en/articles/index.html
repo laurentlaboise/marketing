@@ -1392,50 +1392,58 @@
         });
 
         // ==================== SIDEBAR CARD RENDERING ====================
+        // Teaser card: short description + chapter bullets + a few facts/sources.
+        // Goal: pull the reader into the full article — not replace it.
         function renderSidebarCard(article) {
             const sidebar = document.getElementById('article-sidebar');
             const cl = article.content_labels || {};
 
-            // Check if there's any content_labels data worth showing
             const hasDescription = cl.description && cl.description.trim();
-            const hasWhoShouldRead = cl.who_should_read && cl.who_should_read.length > 0;
-            const hasKeyPoints = cl.key_points && cl.key_points.length > 0;
-            const hasSources = cl.sources && cl.sources.length > 0;
+            // chapters preferred; fall back to key_points titles (TOC style)
+            const chapters = Array.isArray(cl.chapters) && cl.chapters.length
+                ? cl.chapters
+                : (Array.isArray(cl.key_points) ? cl.key_points.map(function(kp) {
+                    return typeof kp === 'string' ? kp : (kp && kp.title ? kp.title : '');
+                }).filter(Boolean) : []);
+            const facts = Array.isArray(cl.facts) ? cl.facts.filter(Boolean).slice(0, 4) : [];
+            // Prefer short "sources" teaser list; cap badges so the panel stays scannable
+            const sources = Array.isArray(cl.sources) ? cl.sources.slice(0, 4) : [];
+            const hasChapters = chapters.length > 0;
+            const hasFacts = facts.length > 0;
+            const hasSources = sources.length > 0;
 
-            if (!hasDescription && !hasWhoShouldRead && !hasKeyPoints && !hasSources) {
+            if (!hasDescription && !hasChapters && !hasFacts && !hasSources) {
                 sidebar.style.display = 'none';
                 return;
             }
 
-            const readingTime = article.time_to_read || calculateReadingTime(article.full_article_content || article.content || '');
-            const content = article.full_article_content || article.content || '';
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = content;
-            const textContent = (tempDiv.textContent || tempDiv.innerText || '').trim();
-            const wordCount = textContent.split(/\s+/).filter(w => w.length > 0).length;
+            const readingTime = article.time_to_read || calculateReadingTime(article.full_article_content || article.content || article.text_article || '');
+            const wordCount = article.word_count || (function() {
+                const content = article.text_article || article.full_article_content || article.content || '';
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+                const textContent = (tempDiv.textContent || tempDiv.innerText || '').trim();
+                return textContent.split(/\s+/).filter(function(w) { return w.length > 0; }).length;
+            })();
             const publishedDate = formatDate(article.published_at || article.created_at);
-            const sourcesCount = (cl.sources || []).length + (article.citations || []).length;
+            const sourcesCount = (cl.sources || []).length || (article.citations || []).length;
             const faqsCount = cl.faqs_count || 0;
-            const ctaText = cl.cta_text || 'Read Full Article';
+            const ctaText = cl.cta_text || 'Read full article';
 
             let html = '<div class="sidebar-card">';
 
-            // Featured image
             if (article.featured_image_url) {
                 html += '<img src="' + article.featured_image_url + '" alt="' + (article.title || '').replace(/"/g, '&quot;') + '" class="sidebar-card-image" onerror="this.style.display=\'none\'">';
             }
 
             html += '<div class="sidebar-card-body">';
 
-            // Category pill
             if (article.categories && article.categories.length > 0) {
                 html += '<span class="sidebar-card-category">' + article.categories[0] + '</span>';
             }
 
-            // Title
             html += '<h3 class="sidebar-card-title">' + (article.title || '') + '</h3>';
 
-            // Meta info
             html += '<div class="sidebar-card-meta">';
             html += '<span><i class="fas fa-calendar"></i> ' + publishedDate + '</span>';
             html += '<span><i class="fas fa-clock"></i> ' + readingTime + ' min read</span>';
@@ -1444,46 +1452,47 @@
             }
             html += '</div>';
 
-            // Description
+            // Short hook only
             if (hasDescription) {
                 html += '<p class="sidebar-card-desc">' + cl.description + '</p>';
             }
 
-            // Who Should Read This
-            if (hasWhoShouldRead) {
+            // Chapters as compact bullet list (point form)
+            if (hasChapters) {
                 html += '<div class="sidebar-section">';
-                html += '<h4 class="sidebar-section-title"><i class="fas fa-users" style="color: var(--color-primary-base); margin-right: 4px;"></i> Who Should Read This</h4>';
+                html += '<h4 class="sidebar-section-title"><i class="fas fa-list-ul" style="color: var(--color-primary-base); margin-right: 4px;"></i> In this guide</h4>';
                 html += '<ul>';
-                cl.who_should_read.forEach(function(item) {
-                    html += '<li>' + item + '</li>';
+                chapters.forEach(function(ch) {
+                    html += '<li>' + ch + '</li>';
                 });
                 html += '</ul>';
                 html += '</div>';
             }
 
-            // Key Points
-            if (hasKeyPoints) {
+            // A few punchy facts only
+            if (hasFacts) {
                 html += '<div class="sidebar-section">';
-                html += '<h4 class="sidebar-section-title"><i class="fas fa-lightbulb" style="color: var(--color-primary-base); margin-right: 4px;"></i> What You\'ll Learn</h4>';
-                cl.key_points.forEach(function(kp) {
-                    html += '<div class="sidebar-key-point">';
-                    if (kp.title) html += '<div class="sidebar-key-point-title">' + kp.title + '</div>';
-                    if (kp.description) html += '<div class="sidebar-key-point-desc">' + kp.description + '</div>';
-                    html += '</div>';
+                html += '<h4 class="sidebar-section-title"><i class="fas fa-bolt" style="color: var(--color-primary-base); margin-right: 4px;"></i> Quick facts</h4>';
+                html += '<ul>';
+                facts.forEach(function(f) {
+                    html += '<li>' + f + '</li>';
                 });
+                html += '</ul>';
                 html += '</div>';
             }
 
-            // Sources Referenced
+            // Sources as compact badges (capped)
             if (hasSources) {
                 html += '<div class="sidebar-section">';
-                html += '<h4 class="sidebar-section-title"><i class="fas fa-book-open" style="color: var(--color-primary-base); margin-right: 4px;"></i> Sources Referenced</h4>';
+                html += '<h4 class="sidebar-section-title"><i class="fas fa-book-open" style="color: var(--color-primary-base); margin-right: 4px;"></i> Sources</h4>';
                 html += '<div class="sidebar-sources-badges">';
-                cl.sources.forEach(function(src) {
-                    if (src.url) {
-                        html += '<a href="' + src.url + '" target="_blank" rel="noopener noreferrer" class="sidebar-source-badge">' + (src.name || 'Source') + '</a>';
+                sources.forEach(function(src) {
+                    const name = (typeof src === 'string') ? src : (src.name || 'Source');
+                    const url = (typeof src === 'object' && src.url) ? src.url : '';
+                    if (url) {
+                        html += '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="sidebar-source-badge">' + name + '</a>';
                     } else {
-                        html += '<span class="sidebar-source-badge">' + (src.name || 'Source') + '</span>';
+                        html += '<span class="sidebar-source-badge">' + name + '</span>';
                     }
                 });
                 html += '</div>';
@@ -1492,10 +1501,9 @@
 
             html += '</div>'; // end sidebar-card-body
 
-            // Read stats bar
             html += '<div class="sidebar-read-bar">';
             html += '<div class="sidebar-read-stats">';
-            html += '<span><i class="fas fa-file-alt"></i> ' + wordCount.toLocaleString() + ' words</span>';
+            html += '<span><i class="fas fa-file-alt"></i> ' + Number(wordCount).toLocaleString() + ' words</span>';
             if (faqsCount > 0) {
                 html += '<span><i class="fas fa-question-circle"></i> ' + faqsCount + ' FAQs</span>';
             }
