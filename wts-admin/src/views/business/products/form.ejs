@@ -479,6 +479,31 @@
               <input type="url" id="slide_in_video" name="slide_in_video" class="form-input" value="<%= product ? (product.slide_in_video || '') : '' %>" placeholder="https://www.youtube.com/embed/...">
             </div>
           </div>
+
+          <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #e2e8f0;">
+            <h4 style="margin:0 0 0.75rem;font-size:0.95rem;color:#0f172a;">
+              <i class="fas fa-book-open" style="color:#3b82f6;"></i>
+              Related knowledge article
+            </h4>
+            <p style="margin:0 0 0.75rem;font-size:0.85rem;color:#64748b;line-height:1.45;">
+              Shows a book icon next to the product title in the Learn More side panel. Builds SEO internal links and buyer confidence.
+              Publish the article under <a href="/content/articles" target="_blank" rel="noopener">Content → Articles</a>.
+            </p>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="article_url">Article URL</label>
+                <input type="url" id="article_url" name="article_url" class="form-input"
+                  value="<%= product ? (product.article_url || '') : '' %>"
+                  placeholder="https://wordsthatsells.website/en/articles/logo-design.html">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="article_title">Link label / tooltip</label>
+                <input type="text" id="article_title" name="article_title" class="form-input"
+                  value="<%= product ? (product.article_title || '') : '' %>"
+                  placeholder="Read: Logo Design guide" maxlength="255">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

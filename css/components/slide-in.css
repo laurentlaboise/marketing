@@ -46,6 +46,52 @@
 #slide-in-title {
     font-size: var(--font-size-2xl);
     margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+#slide-in-title .slide-in-title-text {
+    min-width: 0;
+}
+
+/* Knowledge article link — book icon left of product title (SEO + confidence) */
+.slide-in-article-link {
+    display: inline-flex;
+    flex: none;
+    text-decoration: none;
+    border-radius: 0.65rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.slide-in-article-link:hover,
+.slide-in-article-link:focus-visible {
+    transform: translateY(-1px);
+    outline: none;
+}
+
+.slide-in-article-link:focus-visible .slide-in-article-icon {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+}
+
+.slide-in-article-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.15rem;
+    height: 2.15rem;
+    border-radius: 0.65rem;
+    background: #3b82f6;
+    color: #fff;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.28);
+}
+
+.slide-in-article-link:hover .slide-in-article-icon {
+    background: #2563eb;
 }
 
 #slide-in-close {

@@ -329,6 +329,8 @@
         content: si.content || '',
         image: si.image || product.image_url || '',
         video: si.video || '',
+        article_url: product.article_url || si.article_url || '',
+        article_title: product.article_title || si.article_title || '',
         features: product.features || [],
         price: product.price ? parseFloat(product.price) : null,
         currency: product.currency || 'USD',
@@ -340,6 +342,27 @@
         bcel: (product.bcel && product.bcel.qr_url) ? product.bcel : null
       };
     });
+  }
+
+  /**
+   * Side-panel title + optional related-article book icon (left of title).
+   * Icon matches glossary knowledge UI: blue rounded tile + book.
+   */
+  function setSlideInTitle(data) {
+    if (!elTitle) return;
+    var title = data.title || data.name || 'Service Details';
+    var articleUrl = sanitizeUrl(data.article_url || '');
+    if (!articleUrl) {
+      elTitle.textContent = title;
+      return;
+    }
+    var label = data.article_title || ('Read article about ' + title);
+    elTitle.innerHTML =
+      '<a class="slide-in-article-link" href="' + esc(articleUrl) + '" target="_blank" rel="noopener noreferrer" ' +
+        'title="' + esc(label) + '" aria-label="' + esc(label) + '">' +
+        '<span class="slide-in-article-icon" aria-hidden="true"><i class="fas fa-book-open"></i></span>' +
+      '</a>' +
+      '<span class="slide-in-title-text">' + esc(title) + '</span>';
   }
 
   // ── Bind "Learn More" buttons ────────────────────────────────
@@ -401,8 +424,8 @@
     // Price + billing selector + Add to My Services
     html += buildPricingBlock(data);
 
-    // Set panel content
-    if (elTitle) elTitle.textContent = data.title;
+    // Set panel title — optional knowledge-article icon (book) next to title
+    if (elTitle) setSlideInTitle(data);
     if (elImage) {
       if (data.image) {
         var safeUrl = sanitizeUrl(data.image);

@@ -551,6 +551,8 @@ router.post('/v1/products/bulk-update-copy', async (req, res) => {
       if (u.slide_in_content != null) add('slide_in_content', String(u.slide_in_content).trim().slice(0, 10000) || null);
       if (u.slide_in_image != null) add('slide_in_image', String(u.slide_in_image).trim() || null);
       if (u.image_url != null) add('image_url', String(u.image_url).trim() || null);
+      if (u.article_url != null) add('article_url', String(u.article_url).trim() || null);
+      if (u.article_title != null) add('article_title', String(u.article_title).trim().slice(0, 255) || null);
       if (!fields.length) {
         results.push({ ok: false, error: 'no fields', slug, id });
         continue;

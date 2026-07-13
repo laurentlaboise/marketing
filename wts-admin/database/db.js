@@ -606,6 +606,13 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='slide_in_video') THEN
             ALTER TABLE products ADD COLUMN slide_in_video TEXT;
           END IF;
+          -- Related knowledge article (SEO / confidence): linked from product side panel title
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='article_url') THEN
+            ALTER TABLE products ADD COLUMN article_url TEXT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='article_title') THEN
+            ALTER TABLE products ADD COLUMN article_title VARCHAR(255);
+          END IF;
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='is_featured') THEN
             ALTER TABLE products ADD COLUMN is_featured BOOLEAN DEFAULT FALSE;
           END IF;

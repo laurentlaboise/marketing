@@ -778,12 +778,16 @@ router.get('/products', async (req, res) => {
         (p.price && parseFloat(p.price) > 0) ||
         (p.monthly_price && parseFloat(p.monthly_price) > 0) ||
         (p.yearly_price && parseFloat(p.yearly_price) > 0)),
+      article_url: p.article_url || null,
+      article_title: p.article_title || null,
       slide_in: {
         title: p.slide_in_title || p.name,
         subtitle: p.slide_in_subtitle || '',
         content: p.slide_in_content || '',
         image: p.slide_in_image || p.image_url || '',
-        video: p.slide_in_video || ''
+        video: p.slide_in_video || '',
+        article_url: p.article_url || '',
+        article_title: p.article_title || ''
       }
     }));
 
@@ -837,12 +841,16 @@ router.get('/products/:slug', async (req, res) => {
         (p.price && parseFloat(p.price) > 0) ||
         (p.monthly_price && parseFloat(p.monthly_price) > 0) ||
         (p.yearly_price && parseFloat(p.yearly_price) > 0)),
+      article_url: p.article_url || null,
+      article_title: p.article_title || null,
       slide_in: {
         title: p.slide_in_title || p.name,
         subtitle: p.slide_in_subtitle || '',
         content: p.slide_in_content || '',
         image: p.slide_in_image || p.image_url || '',
-        video: p.slide_in_video || ''
+        video: p.slide_in_video || '',
+        article_url: p.article_url || '',
+        article_title: p.article_title || ''
       }
     });
   } catch (error) {
