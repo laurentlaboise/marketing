@@ -1153,6 +1153,9 @@
                 updated_at: article.updated_at,
                 featured: article.featured || false,
                 sidebar_content: article.sidebar_content || article.description || '<p>Preview not available.</p>',
+                // teaser_content = the short preview card; full_article_content
+                // now carries the real article body (used for reading time)
+                teaser_content: article.teaser_content || '',
                 full_article_content: article.full_article_content || '',
                 published_url: normalizeArticleUrl(article.published_url || '', slug),
                 // Social metadata from admin backend
@@ -1476,7 +1479,7 @@
                     <span><i class="fas fa-book-open"></i> ${readingTime} min read</span>
                 </div>
                 <div class="blog-info-section">
-                    ${postData.full_article_content || postData.sidebar_content}
+                    ${postData.teaser_content || postData.full_article_content || postData.sidebar_content}
                 </div>
                 <div style="margin-top: var(--spacing-lg); text-align: center;">
                     <a href="${readMoreUrl}" target="_blank" rel="noopener noreferrer" class="read-button">Read Full Article <i class="fas fa-arrow-right"></i></a>

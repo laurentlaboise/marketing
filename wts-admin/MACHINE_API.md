@@ -19,6 +19,8 @@ chmod +x scripts/machine-api.sh   # once
 ./scripts/machine-api.sh affiliates
 ./scripts/machine-api.sh footer
 ./scripts/machine-api.sh menus footer
+./scripts/machine-api.sh article logo-design-in-laos-the-data-backed-guide-for-2026
+./scripts/machine-api.sh put-article logo-design-in-laos-the-data-backed-guide-for-2026 @scripts/payloads/logo-design-article.json
 ./scripts/machine-api.sh put-package growth-engine '{"name":"Growth Engine","base_price":649,"highlight":true}'
 ./scripts/machine-api.sh patch-footer '{"footer_social_youtube":"https://www.youtube.com/@wordsthatsells928"}'
 ./scripts/machine-api.sh help
@@ -84,6 +86,69 @@ https://admin.wordsthatsells.website/api/machine/v1
 | PATCH | `/footer-settings` | Patch `footer_*` / `social_*` keys |
 | GET | `/menus` | List menu items (`?location=footer`) |
 | PATCH | `/menus/:id` | Update menu item URL/label/etc. |
+| GET | `/articles/:idOrSlug` | Fetch one article by UUID or slug, any status (old slugs keep resolving after a rename) |
+| PUT | `/articles/:idOrSlug` | Update article fields; `?force=true` skips the stale-write guard |
+
+## Articles
+
+The article CMS has **two writers** — the admin UI and this API — and a few
+rules keep them from stepping on each other:
+
+- **`content` is generated, not authored.** It's the listing teaser card,
+  rebuilt server-side from `content_labels` (chapters / facts / sources) +
+  title/category/image on **every save from either writer**. Sending
+  `content` in a PUT only matters when `content_labels` is empty.
+  The article body readers see is **`text_article`**.
+- **Stale-write guard.** Send `base_updated_at` = the `updated_at` you last
+  read (GET the article first). If someone saved a newer version since
+  (usually the admin UI), the PUT returns **409** with
+  `current_updated_at` instead of overwriting it. Re-fetch, merge, retry —
+  or repeat with `?force=true` to overwrite deliberately.
+  `scripts/machine-api.sh put-article` injects `base_updated_at`
+  automatically. PUTs without `base_updated_at` behave as before (no guard).
+- **Slug renames.** `body.slug` renames the public URL. The old slug is kept
+  in `previous_slugs`, so the public site and this API keep answering on the
+  old URL (the article page rewrites the address bar to the new slug).
+
+### Fetch an article
+
+```bash
+curl -sS https://admin.wordsthatsells.website/api/machine/v1/articles/logo-design-in-laos-the-data-backed-guide-for-2026 \
+  -H "Authorization: Bearer $ADMIN_API_TOKEN"
+```
+
+### Safe update (recommended)
+
+```bash
+# 1. read the row, note .article.updated_at
+# 2. include it as base_updated_at
+curl -sS -X PUT https://admin.wordsthatsells.website/api/machine/v1/articles/logo-design-in-laos-the-data-backed-guide-for-2026 \
+  -H "Authorization: Bearer $ADMIN_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "base_updated_at": "2026-07-13T05:18:42.000Z",
+    "seo_title": "New SEO title",
+    "content_labels": { "chapters": ["First section", "Second section"] }
+  }'
+# → 409 if the article changed since base_updated_at
+```
+
+Or let the helper script do the read-merge-put dance:
+
+```bash
+./scripts/machine-api.sh put-article <id-or-slug> @scripts/payloads/logo-design-article.json         # guarded
+./scripts/machine-api.sh put-article <id-or-slug> @scripts/payloads/logo-design-article.json force   # overwrite
+```
+
+### Rename a slug
+
+```bash
+curl -sS -X PUT https://admin.wordsthatsells.website/api/machine/v1/articles/<current-slug-or-uuid> \
+  -H "Authorization: Bearer $ADMIN_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"slug": "new-seo-slug"}'
+# old slug 301-behaves via previous_slugs: API lookups + article page keep working
+```
 
 ## Examples
 

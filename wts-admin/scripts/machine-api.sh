@@ -39,17 +39,26 @@ Commands:
   affiliates                     GET  /v1/affiliate-solutions
   footer                         GET  /v1/footer-settings
   menus [location]               GET  /v1/menus
+  article <id-or-slug>           GET  /v1/articles/:idOrSlug
+  put-article <id-or-slug> <json|@file> [force]
+                                 PUT  /v1/articles/:idOrSlug
+                                 Auto-injects base_updated_at from the current
+                                 row so a stale payload gets a 409 instead of
+                                 clobbering newer admin-UI edits. Add "force"
+                                 to overwrite anyway.
   put-package <slug> <json>      PUT  /v1/pricing/packages/:slug
   put-feature <key> <json>       PUT  /v1/pricing/features/:key
   put-affiliate <name> <json>    PUT  /v1/affiliate-solutions/:name
   patch-footer <json>            PATCH /v1/footer-settings
   patch-menu <id> <json>         PATCH /v1/menus/:id
-  raw <METHOD> <path> [json]     Arbitrary call (path starts with /v1/...)
+  raw <METHOD> <path> [json|@file]  Arbitrary call (path starts with /v1/...)
 
 Examples:
   ./scripts/machine-api.sh health
   ./scripts/machine-api.sh seed-pricing
   ./scripts/machine-api.sh products web-development
+  ./scripts/machine-api.sh article logo-design-in-laos-the-data-backed-guide-for-2026
+  ./scripts/machine-api.sh put-article logo-design-in-laos-the-data-backed-guide-for-2026 @scripts/payloads/logo-design-article.json
   ./scripts/machine-api.sh put-package growth-engine '{"name":"Growth Engine","base_price":649,"highlight":true}'
   ./scripts/machine-api.sh patch-footer '{"footer_social_youtube":"https://www.youtube.com/@wordsthatsells928"}'
 EOF
@@ -95,7 +104,9 @@ api() {
     -H "Accept: application/json")
 
   if [[ -n "$body" ]]; then
-    args+=(-H "Content-Type: application/json" -d "$body")
+    # @file bodies stream from disk (large article payloads exceed the
+    # kernel's single-argument limit); --data-binary keeps JSON intact.
+    args+=(-H "Content-Type: application/json" --data-binary "$body")
   fi
 
   local tmp http
@@ -147,6 +158,53 @@ case "$cmd" in
     else
       api GET /v1/menus
     fi
+    ;;
+  article)
+    key="${1:-}"
+    [[ -n "$key" ]] || { echo "Usage: $0 article <id-or-slug>" >&2; exit 1; }
+    enc="$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$key")"
+    api GET "/v1/articles/${enc}"
+    ;;
+  put-article)
+    key="${1:-}"; body="${2:-}"; force="${3:-}"
+    [[ -n "$key" && -n "$body" ]] || { echo "Usage: $0 put-article <id-or-slug> '<json>' | @payload.json [force]" >&2; exit 1; }
+    enc="$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$key")"
+
+    # Resolve @file payloads to a real path; inline JSON goes to a temp file
+    if [[ "$body" == @* ]]; then
+      src="${body:1}"
+      [[ -f "$src" ]] || { echo "Error: payload file not found: $src" >&2; exit 1; }
+    else
+      src="$(mktemp)"
+      printf '%s' "$body" > "$src"
+    fi
+
+    # Optimistic concurrency: stamp the payload with the row's current
+    # updated_at (base_updated_at) so a stale push 409s instead of silently
+    # clobbering a newer admin-UI edit. Payloads that already carry
+    # base_updated_at or force are passed through untouched.
+    tmp_cur="$(mktemp)"; tmp_out="$(mktemp)"
+    curl -sS "${BASE}/v1/articles/${enc}" \
+      -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/json" \
+      -o "$tmp_cur" || true
+    python3 - "$src" "$tmp_cur" "$tmp_out" <<'PY'
+import json, sys
+src, cur_path, out = sys.argv[1], sys.argv[2], sys.argv[3]
+body = json.load(open(src))
+ua = None
+try:
+    cur = json.load(open(cur_path))
+    ua = (cur.get('article') or {}).get('updated_at')
+except Exception:
+    pass
+if ua and 'base_updated_at' not in body and not body.get('force'):
+    body['base_updated_at'] = ua
+json.dump(body, open(out, 'w'), ensure_ascii=False)
+PY
+    qs=""
+    [[ "$force" == "force" ]] && qs="?force=true"
+    api PUT "/v1/articles/${enc}${qs}" "@${tmp_out}"
+    rm -f "$tmp_cur" "$tmp_out"
     ;;
   put-package)
     slug="${1:-}"; body="${2:-}"

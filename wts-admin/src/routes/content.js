@@ -28,75 +28,26 @@ const createSlug = (title) => {
     .replace(/^-+|-+$/g, '');
 };
 
-/**
- * Build listing/sidemenu teaser HTML from Content Labels (single source of truth).
- * Regenerated on every article save so the listing modal never drifts from
- * Advanced → Chapters / Quick Facts / Sources.
- */
-function escapeHtmlLite(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+// Listing/sidemenu teaser HTML from Content Labels (single source of truth).
+// Regenerated on every article save — admin form and machine API alike — so
+// the listing modal never drifts from Advanced → Chapters / Quick Facts / Sources.
+const { buildArticleListingTeaserHtml } = require('../lib/article-teaser');
 
-function buildArticleListingTeaserHtml({
-  title,
-  featured_image,
-  author_name,
-  time_to_read,
-  published_url,
-  slug,
-  category,
-  content_labels,
-}) {
-  const cl = content_labels && typeof content_labels === 'object' ? content_labels : {};
-  const chapters = Array.isArray(cl.chapters) && cl.chapters.length
-    ? cl.chapters.map(String).filter(Boolean)
-    : (Array.isArray(cl.key_points)
-      ? cl.key_points.map((kp) => (typeof kp === 'string' ? kp : (kp && kp.title) || '')).filter(Boolean)
-      : []);
-  const facts = Array.isArray(cl.facts) ? cl.facts.map(String).filter(Boolean).slice(0, 6) : [];
-  const sources = Array.isArray(cl.sources) ? cl.sources.slice(0, 4) : [];
-  const desc = (cl.description || '').trim();
-  const cta = (cl.cta_text || 'Read full article').trim();
-  const faqs = cl.faqs_count || 0;
-  const url = published_url
-    || (slug ? `https://wordsthatsells.website/en/articles/${slug}.html` : '#');
-  const read = time_to_read ? `${time_to_read} min read` : '';
-  const author = author_name || 'Words That Sells';
-  const cat = category || '';
-  const metaBits = [author, read, faqs ? `${faqs} FAQs` : ''].filter(Boolean).join(' · ');
-
-  const chapterLis = chapters.map((c) => `<li>${escapeHtmlLite(c)}</li>`).join('');
-  const factLis = facts.map((f) => `<li>${escapeHtmlLite(f)}</li>`).join('');
-  const sourceBadges = sources.map((src) => {
-    const name = typeof src === 'string' ? src : (src && src.name) || 'Source';
-    const href = typeof src === 'object' && src && src.url ? src.url : '';
-    if (href) {
-      return `<a href="${escapeHtmlLite(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#eef2ff;color:#1e3a8a;padding:4px 10px;border-radius:999px;font-size:12px;text-decoration:none;margin:0 6px 6px 0;">${escapeHtmlLite(name)}</a>`;
-    }
-    return `<span style="display:inline-block;background:#eef2ff;color:#1e3a8a;padding:4px 10px;border-radius:999px;font-size:12px;margin:0 6px 6px 0;">${escapeHtmlLite(name)}</span>`;
-  }).join('');
-
-  // If labels are empty, return null so callers keep existing content
-  if (!desc && !chapters.length && !facts.length) return null;
-
-  return `<article class="preview-card" data-teaser-source="content_labels" style="font-family:Poppins,system-ui,sans-serif;max-width:520px;margin:0 auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;">
-  ${featured_image ? `<img src="${escapeHtmlLite(featured_image)}" alt="${escapeHtmlLite(title || '')}" style="width:100%;height:auto;display:block;" onerror="this.style.display='none'">` : ''}
-  <div style="padding:1.25rem 1.4rem 1.5rem;">
-    ${cat ? `<span style="display:inline-block;background:#1f85c9;color:#fff;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;margin-bottom:10px;">${escapeHtmlLite(cat)}</span>` : ''}
-    <h2 style="margin:0 0 8px;font-size:1.25rem;line-height:1.3;color:#122a3f;">${escapeHtmlLite(title || '')}</h2>
-    ${metaBits ? `<p style="margin:0 0 14px;color:#64748b;font-size:14px;">${escapeHtmlLite(metaBits)}</p>` : ''}
-    ${desc ? `<p style="margin:0 0 14px;color:#334155;font-size:15px;line-height:1.55;">${escapeHtmlLite(desc)}</p>` : ''}
-    ${chapterLis ? `<h3 style="margin:0 0 8px;font-size:14px;color:#122a3f;">In this guide</h3><ul style="margin:0 0 14px;padding-left:1.1rem;color:#334155;font-size:14px;line-height:1.5;">${chapterLis}</ul>` : ''}
-    ${factLis ? `<h3 style="margin:0 0 8px;font-size:14px;color:#122a3f;">Quick facts</h3><ul style="margin:0 0 14px;padding-left:1.1rem;color:#334155;font-size:14px;line-height:1.5;">${factLis}</ul>` : ''}
-    ${sourceBadges ? `<h3 style="margin:0 0 8px;font-size:14px;color:#122a3f;">Sources</h3><div style="margin:0 0 16px;">${sourceBadges}</div>` : ''}
-    <a href="${escapeHtmlLite(url)}" style="display:inline-block;background:#1f85c9;color:#fff;padding:10px 18px;border-radius:8px;font-weight:700;text-decoration:none;font-size:14px;">${escapeHtmlLite(cta)} →</a>
-  </div>
-</article>`;
-}
+// The teaser is derived data; an article is savable as long as there is a
+// real body (Full Article) or Content Labels to regenerate the teaser from.
+const hasArticleContent = (body) => {
+  const { content, text_article, content_labels } = body || {};
+  if (text_article && String(text_article).trim()) return true;
+  if (content && String(content).trim()) return true;
+  if (content_labels) {
+    try {
+      const cl = typeof content_labels === 'string' ? JSON.parse(content_labels) : content_labels;
+      if (cl && typeof cl === 'object' && Object.keys(cl).length) return true;
+    } catch (e) { /* invalid JSON → treated as absent */ }
+  }
+  return false;
+};
+const ARTICLE_CONTENT_REQUIRED_MSG = 'Add the Full Article text or Content Labels — the listing teaser is generated automatically';
 
 // Multer config for CSV/XLSX file uploads (shared temp dir from storage module)
 const { UPLOAD_TEMP_DIR, ensureDirs } = require('../utils/storage');
@@ -192,7 +143,10 @@ router.get('/articles/new', (req, res) => {
 // Create article
 router.post('/articles', [
   body('title').trim().notEmpty().withMessage('Title is required'),
-  body('content').trim().notEmpty().withMessage('Content is required')
+  body().custom((_, { req }) => {
+    if (!hasArticleContent(req.body)) throw new Error(ARTICLE_CONTENT_REQUIRED_MSG);
+    return true;
+  })
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -207,7 +161,14 @@ router.post('/articles', [
 
   try {
     const { title, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, article_code, featured, published_at, updated_at, time_to_read, article_images, og_title, og_description, og_image, og_type, twitter_card, twitter_title, twitter_description, twitter_image, twitter_site, twitter_creator, canonical_url, robots_meta, schema_markup, citations, content_labels, text_article, audio_files, author_type, author_name, author_job_title, author_url } = req.body;
-    const slug = createSlug(title);
+    // Explicit slug from the form wins; otherwise derive from the title.
+    // Suffix on collision — slug is UNIQUE and a raw insert failure would
+    // surface as an unhelpful "Failed to create article".
+    let slug = (req.body.slug && String(req.body.slug).trim()) ? createSlug(String(req.body.slug)) : createSlug(title);
+    const slugBase = slug;
+    for (let n = 2; (await db.query('SELECT 1 FROM articles WHERE slug = $1 LIMIT 1', [slug])).rows.length; n++) {
+      slug = `${slugBase}-${n}`;
+    }
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [];
     const keywordsArray = seo_keywords ? seo_keywords.split(',').map(k => k.trim()).filter(k => k) : [];
     const isFeatured = featured === 'true' || featured === true;
@@ -439,17 +400,49 @@ router.post('/articles/:id', async (req, res) => {
       req.session.errorMessage = 'Title is required';
       return res.redirect(`/content/articles/${req.params.id}/edit`);
     }
-    if (!content || !content.trim()) {
-      req.session.errorMessage = 'Content is required';
+    if (!hasArticleContent(req.body)) {
+      req.session.errorMessage = ARTICLE_CONTENT_REQUIRED_MSG;
       return res.redirect(`/content/articles/${req.params.id}/edit`);
     }
 
-    const slug = createSlug(title);
+    // Load the current slug — renames must record the old slug so the public
+    // API keeps answering on the old URL (previous_slugs fallback lookup).
+    const currentResult = await db.query('SELECT slug, previous_slugs, updated_at FROM articles WHERE id = $1', [req.params.id]);
+    if (currentResult.rows.length === 0) {
+      req.session.errorMessage = 'Article not found';
+      return res.redirect('/content/articles');
+    }
+    const currentSlug = currentResult.rows[0].slug;
+    const priorSlugs = Array.isArray(currentResult.rows[0].previous_slugs) ? currentResult.rows[0].previous_slugs : [];
+
+    // Explicit slug field wins; blank keeps the current slug (title edits
+    // never silently move the article URL).
+    const requestedSlug = (req.body.slug && String(req.body.slug).trim()) ? createSlug(String(req.body.slug)) : '';
+    const slug = requestedSlug || currentSlug;
+    let nextPreviousSlugs = priorSlugs;
+    if (slug !== currentSlug) {
+      const clash = await db.query('SELECT 1 FROM articles WHERE slug = $1 AND id <> $2 LIMIT 1', [slug, req.params.id]);
+      if (clash.rows.length) {
+        req.session.errorMessage = `Slug already in use: ${slug}`;
+        return res.redirect(`/content/articles/${req.params.id}/edit`);
+      }
+      nextPreviousSlugs = [...new Set([...priorSlugs, currentSlug])].filter((s) => s && s !== slug);
+    }
     const tagsArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [];
     const keywordsArray = seo_keywords ? seo_keywords.split(',').map(k => k.trim()).filter(k => k) : [];
     const isFeatured = featured === 'true' || featured === true;
     const timeToRead = time_to_read ? parseInt(time_to_read, 10) : null;
-    const updatedAtValue = updated_at ? new Date(updated_at) : new Date();
+    // The edit form echoes the row's updated_at back on every save, so only a
+    // deliberately changed value is honored — otherwise stamp the save time.
+    // A real timestamp keeps the live "Updated" date honest and lets the
+    // machine API's base_updated_at guard see admin edits.
+    let updatedAtValue = new Date();
+    if (updated_at) {
+      const posted = new Date(updated_at);
+      const current = currentResult.rows[0].updated_at ? new Date(currentResult.rows[0].updated_at) : null;
+      const echoedBack = current && Math.abs(posted.getTime() - current.getTime()) < 60 * 1000;
+      if (!Number.isNaN(posted.getTime()) && !echoedBack) updatedAtValue = posted;
+    }
     const publishedAtValue = published_at ? new Date(published_at) : null;
     // Safe JSON parses — broken hidden fields must not block admin save/publish
     const safeJsonParse = (raw, fallback) => {
@@ -518,12 +511,13 @@ router.post('/articles/:id', async (req, res) => {
            og_title = $19, og_description = $20, og_image = $21, og_type = $22,
            twitter_card = $23, twitter_title = $24, twitter_description = $25,
            twitter_image = $26, twitter_site = $27, twitter_creator = $28,
-           canonical_url = $29, robots_meta = $30, schema_markup = $31,
+           canonical_url = $29, robots_meta = $30, schema_markup = $31::jsonb,
            citations = $32::jsonb, content_labels = $33::jsonb, text_article = $34,
            audio_files = $35::jsonb, word_count = $36,
-           author_type = $37, author_name = $38, author_job_title = $39, author_url = $40
+           author_type = $37, author_name = $38, author_job_title = $39, author_url = $40,
+           slug = $41, previous_slugs = $42
        WHERE id = $18 RETURNING id`,
-      [title, contentToSave, excerpt, category, normalizedTags, seo_title, seo_description, keywordsArray, status, featured_image, published_url, isFeatured, updatedAtValue, publishedAtValue, timeToRead, article_code, JSON.stringify(articleImagesArray), req.params.id, og_title, og_description, og_image, og_type || 'article', twitter_card || 'summary_large_image', twitter_title, twitter_description, twitter_image, normalizedTwitterSite, normalizedTwitterCreator, resolvedCanonical, robots_meta || 'index, follow', schemaMarkupJson ? JSON.stringify(schemaMarkupJson) : null, JSON.stringify(citationsArray), JSON.stringify(contentLabelsJson), text_article || null, JSON.stringify(audioFilesJson), wordCount, author_type || 'organization', author_name || null, author_job_title || null, author_url || null]
+      [title, contentToSave, excerpt, category, normalizedTags, seo_title, seo_description, keywordsArray, status, featured_image, published_url, isFeatured, updatedAtValue, publishedAtValue, timeToRead, article_code, JSON.stringify(articleImagesArray), req.params.id, og_title, og_description, og_image, og_type || 'article', twitter_card || 'summary_large_image', twitter_title, twitter_description, twitter_image, normalizedTwitterSite, normalizedTwitterCreator, resolvedCanonical, robots_meta || 'index, follow', schemaMarkupJson ? JSON.stringify(schemaMarkupJson) : null, JSON.stringify(citationsArray), JSON.stringify(contentLabelsJson), text_article || null, JSON.stringify(audioFilesJson), wordCount, author_type || 'organization', author_name || null, author_job_title || null, author_url || null, slug, nextPreviousSlugs]
     );
 
     if (result.rowCount === 0) {

@@ -268,7 +268,9 @@ function injectTermLinks(html, terms, { lang = 'en', maxLinks = DEFAULT_MAX_LINK
 //     interlink button — anchors are never machine-copied across
 //     languages.)
 const LIBRARY_SOURCES = {
-  article: { table: 'articles', fields: ['content', 'excerpt'], where: `status = 'published'` },
+  // text_article is the real article body; content is the auto-regenerated
+  // listing teaser — links injected there get wiped on the next save.
+  article: { table: 'articles', fields: ['text_article', 'excerpt'], where: `status = 'published'` },
   glossary: { table: 'glossary', fields: ['definition', 'example'], where: '' },
   seo_term: { table: 'seo_terms', fields: ['definition', 'short_definition', 'examples'], where: '' },
   guide: { table: 'guides', fields: ['short_description', 'long_content'], where: `status = 'published'` },

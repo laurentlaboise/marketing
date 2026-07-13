@@ -549,6 +549,31 @@
             background: var(--color-primary-base);
         }
 
+        /* Clickable "In this guide" chapter jump-links */
+        .sidebar-chapter-link {
+            color: var(--color-slate-800);
+            text-decoration: none;
+            display: inline-block;
+            transition: color 0.15s ease;
+            cursor: pointer;
+        }
+
+        .sidebar-chapter-link:hover {
+            color: var(--color-primary-base);
+            text-decoration: underline;
+        }
+
+        .sidebar-section ul li.chapter-active .sidebar-chapter-link {
+            color: var(--color-primary-base);
+            font-weight: 600;
+        }
+
+        /* Jumped-to headings land clear of the sticky chrome */
+        .article-content h2,
+        .article-content h3 {
+            scroll-margin-top: 96px;
+        }
+
         .sidebar-key-point {
             margin-bottom: 8px;
         }
@@ -1115,6 +1140,16 @@
 
                 const article = await response.json();
 
+                // Renamed article reached via an old slug (previous_slugs
+                // fallback in the API): rewrite the address bar to the
+                // canonical URL so shares and bookmarks pick up the new slug.
+                if (article.slug && slug !== article.slug) {
+                    try {
+                        const canonicalPath = window.location.pathname.replace(/\/[^/]*\/?$/, '/' + article.slug + '.html');
+                        history.replaceState(null, '', canonicalPath + window.location.search + window.location.hash);
+                    } catch (e) { /* non-fatal */ }
+                }
+
                 // Localized shells (/th /la /fr — this file is mirrored there
                 // by scripts/generate-localized-pages.js): overlay the
                 // published translation onto the English payload before
@@ -1213,8 +1248,14 @@
                     </article>
                 `;
 
-                // Render the sidebar card
-                renderSidebarCard(article);
+                // Bare URLs become links; section headings get anchor ids so
+                // the sidebar chapters can jump to them
+                const articleBodyEl = container.querySelector('.article-content');
+                linkifyTextNodes(articleBodyEl);
+                const headings = buildHeadingAnchors(articleBodyEl);
+
+                // Render the sidebar card (chapters link to matching headings)
+                renderSidebarCard(article, headings);
 
                 // Add event listeners to share buttons (use social_meta for per-platform text)
                 setTimeout(() => {
@@ -1489,10 +1530,143 @@
             if (e.key === 'Escape') closeTooltip();
         });
 
+        // ==================== BODY LINKS & HEADING ANCHORS ====================
+
+        // Turn bare URLs in the article text into real links (skips text that
+        // is already inside a link, code, or script).
+        function linkifyTextNodes(rootEl) {
+            if (!rootEl) return;
+            const urlRegex = /(https?:\/\/[^\s<>"')\]]+[^\s<>"')\].,;:!?])/g;
+            const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, {
+                acceptNode: function(node) {
+                    const parent = node.parentElement;
+                    if (!parent) return NodeFilter.FILTER_REJECT;
+                    if (parent.closest('a, script, style, code, pre')) return NodeFilter.FILTER_REJECT;
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            });
+            const textNodes = [];
+            let n;
+            while (n = walker.nextNode()) textNodes.push(n);
+            textNodes.forEach(function(textNode) {
+                const text = textNode.textContent;
+                urlRegex.lastIndex = 0;
+                if (!urlRegex.test(text)) return;
+                urlRegex.lastIndex = 0;
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0;
+                let match;
+                while ((match = urlRegex.exec(text)) !== null) {
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                    }
+                    const a = document.createElement('a');
+                    a.href = match[0];
+                    a.textContent = match[0];
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    fragment.appendChild(a);
+                    lastIndex = match.index + match[0].length;
+                }
+                if (lastIndex < text.length) {
+                    fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+                }
+                textNode.parentNode.replaceChild(fragment, textNode);
+            });
+        }
+
+        // Give every section heading a stable id so chapter links can jump to it.
+        // Returns [{ id, text, el, level }] in document order.
+        function buildHeadingAnchors(rootEl) {
+            if (!rootEl) return [];
+            const seen = {};
+            const headings = [];
+            rootEl.querySelectorAll('h2, h3').forEach(function(el) {
+                const text = (el.textContent || '').trim();
+                if (!text) return;
+                let id = el.id;
+                if (!id) {
+                    id = text.toLowerCase()
+                        .replace(/^\d+(\.\d+)*\.?\s*/, '')   // drop "1." / "2.1" numbering
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '')
+                        .slice(0, 80) || 'section';
+                    if (seen[id]) id = id + '-' + (++seen[id]);
+                    else seen[id] = 1;
+                    el.id = id;
+                }
+                headings.push({ id: id, text: text, el: el, level: el.tagName === 'H2' ? 2 : 3 });
+            });
+            return headings;
+        }
+
+        // Chapter labels are hand-written summaries of the real headings
+        // ("Logo shape psychology" vs "2. The Psychology of Logo Shapes —
+        // What Neuroscience Actually Shows"), so match on token overlap.
+        const CHAPTER_STOPWORDS = { the: 1, a: 1, an: 1, and: 1, or: 1, of: 1, in: 1, on: 1, for: 1, to: 1, at: 1, is: 1, are: 1, what: 1, why: 1, how: 1, it: 1, its: 1, your: 1, with: 1, more: 1, now: 1, right: 1, actually: 1 };
+        function chapterTokens(s) {
+            return String(s).toLowerCase()
+                .replace(/^\d+(\.\d+)*\.?\s*/, '')
+                .replace(/[^a-z0-9\s]+/g, ' ')
+                .split(/\s+/)
+                .filter(function(w) { return w.length > 2 && !CHAPTER_STOPWORDS[w]; })
+                .map(function(w) { return w.replace(/s$/, ''); });
+        }
+        function matchChapterToHeading(chapter, headings, usedIds) {
+            const cTokens = chapterTokens(chapter);
+            if (!cTokens.length) return null;
+            let best = null;
+            let bestScore = 0;
+            headings.forEach(function(h) {
+                if (h.level !== 2 || usedIds[h.id]) return;
+                const hTokens = chapterTokens(h.text);
+                if (!hTokens.length) return;
+                const hits = cTokens.filter(function(t) { return hTokens.indexOf(t) !== -1; }).length;
+                const score = hits / cTokens.length;
+                if (score > bestScore) { bestScore = score; best = h; }
+            });
+            if (best && bestScore >= 0.5) {
+                usedIds[best.id] = true;
+                return best;
+            }
+            return null;
+        }
+
+        // Smooth-scroll chapter links + highlight the section being read.
+        function initChapterNav(sidebar, chapterLinks) {
+            if (!chapterLinks.length) return;
+            chapterLinks.forEach(function(link) {
+                link.a.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    link.heading.el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (history.replaceState) history.replaceState(null, '', '#' + link.heading.id);
+                });
+            });
+            let ticking = false;
+            function onScroll() {
+                if (ticking) return;
+                ticking = true;
+                requestAnimationFrame(function() {
+                    ticking = false;
+                    const fromTop = window.scrollY + 140;
+                    let current = null;
+                    chapterLinks.forEach(function(link) {
+                        const top = link.heading.el.getBoundingClientRect().top + window.scrollY;
+                        if (top <= fromTop) current = link;
+                    });
+                    chapterLinks.forEach(function(link) {
+                        link.a.parentElement.classList.toggle('chapter-active', link === current);
+                    });
+                });
+            }
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        }
+
         // ==================== SIDEBAR CARD RENDERING ====================
         // Teaser card: short description + chapter bullets + a few facts/sources.
         // Goal: pull the reader into the full article — not replace it.
-        function renderSidebarCard(article) {
+        function renderSidebarCard(article, headings) {
             const sidebar = document.getElementById('article-sidebar');
             const cl = article.content_labels || {};
 
@@ -1555,13 +1729,22 @@
                 html += '<p class="sidebar-card-desc">' + cl.description + '</p>';
             }
 
-            // Chapters as compact bullet list (point form)
+            // Chapters as compact bullet list (point form) — each entry jumps
+            // to its section in the article when a matching heading exists
+            const usedHeadingIds = {};
+            const chapterTargets = [];
             if (hasChapters) {
                 html += '<div class="sidebar-section">';
                 html += '<h4 class="sidebar-section-title"><i class="fas fa-list-ul" style="color: var(--color-primary-base); margin-right: 4px;"></i> In this guide</h4>';
                 html += '<ul>';
-                chapters.forEach(function(ch) {
-                    html += '<li>' + ch + '</li>';
+                chapters.forEach(function(ch, i) {
+                    const heading = matchChapterToHeading(ch, headings || [], usedHeadingIds);
+                    if (heading) {
+                        chapterTargets.push({ index: i, heading: heading });
+                        html += '<li><a class="sidebar-chapter-link" data-chapter-index="' + i + '" href="#' + heading.id + '">' + ch + '</a></li>';
+                    } else {
+                        html += '<li>' + ch + '</li>';
+                    }
                 });
                 html += '</ul>';
                 html += '</div>';
@@ -1613,6 +1796,15 @@
 
             sidebar.innerHTML = html;
             sidebar.style.display = '';
+
+            // Wire up chapter jump-links + reading-position highlight
+            const chapterLinks = chapterTargets.map(function(t) {
+                return {
+                    a: sidebar.querySelector('.sidebar-chapter-link[data-chapter-index="' + t.index + '"]'),
+                    heading: t.heading
+                };
+            }).filter(function(l) { return l.a; });
+            initChapterNav(sidebar, chapterLinks);
         }
 
         // Load article and initialize features on page load

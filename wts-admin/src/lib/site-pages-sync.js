@@ -49,6 +49,13 @@ const siteBaseUrl = () => (process.env.SITE_BASE_URL || l10n.SITE_ORIGIN).replac
 // never appears in sitemap-driven live sync — filesystem sync includes it.
 function isPageSitePath(sitePath) {
   if (sitePath.startsWith('/articles/')) return sitePath === '/articles/index.html';
+  // Glossary term and AI-tool exports are per-entity pages — their canonical
+  // text lives in the glossary / ai_tools DB rows and is translated through
+  // those pipelines. Importing the rendered exports as well would duplicate
+  // every entity into paid page-translation work (80+ glossary terms, 200+
+  // AI tools). Only each section's index page is a real page.
+  if (sitePath.startsWith('/resources/glossary/')) return sitePath === '/resources/glossary/';
+  if (sitePath.startsWith('/resources/ai-tools/')) return sitePath === '/resources/ai-tools/';
   if (sitePath.startsWith('/checkout/')) return true; // Tier 3, still translatable
   return true;
 }

@@ -1033,12 +1033,20 @@ test('Sync Site Pages imports the website pages into the pipeline', async () => 
   assert.equal(res.status, 200);
   const body = await res.json();
   assert.equal(body.summary.mode, 'filesystem');
-  // ~26 real pages today; the ~80 glossary term files are content-prompt
-  // stubs with no extractable text (their real content is the glossary DB
-  // entity) and must be skipped, not imported.
+  // ~26 real pages today. The per-entity exports (80+ glossary terms, 200+
+  // AI tools) carry rendered content, but their canonical text is the DB
+  // entity — they are excluded from page sync entirely, or every entity
+  // would duplicate into paid page-translation work.
   assert.ok(body.summary.upserted >= 20, `imports the real pages (got ${body.summary.upserted})`);
-  assert.ok(body.summary.empty >= 50, `skips the stub pages (got ${body.summary.empty} empty)`);
+  assert.ok(body.summary.upserted <= 60, `entity exports stay out of the page pipeline (got ${body.summary.upserted})`);
   assert.equal(body.summary.failed, 0);
+  const entityExports = await pool.query(
+    `SELECT path FROM site_pages
+     WHERE status = 'active'
+       AND (path LIKE '/resources/glossary/%' OR path LIKE '/resources/ai-tools/%')
+       AND path NOT IN ('/resources/glossary/', '/resources/ai-tools/')`
+  );
+  assert.equal(entityExports.rows.length, 0, 'entity exports never import as site pages');
 
   // Key surfaces are registered with their segments…
   const pages = await pool.query(
@@ -1486,9 +1494,12 @@ test('article interlink links glossary terms and other articles, never itself', 
              '<p>Standalone piece.</p>', 'How Lao SMEs win locally.', 'published')
      RETURNING id`
   );
+  // The article body lives in text_article; content is the auto-generated
+  // listing teaser, which interlink must leave untouched.
   const mine = await pool.query(
-    `INSERT INTO articles (title, slug, content, excerpt, status)
+    `INSERT INTO articles (title, slug, content, text_article, excerpt, status)
      VALUES ('TestTerm Interlinking Guide', 'testterm-interlinking-guide',
+             '<article class="preview-card">teaser</article>',
              '<p>Good TestTerm Anchor Text improves clarity. Read the TestTerm Local SEO Playbook next. This TestTerm Interlinking Guide repeats its own name.</p>',
              null, 'published')
      RETURNING id`
@@ -1503,9 +1514,10 @@ test('article interlink links glossary terms and other articles, never itself', 
     assert.ok(linkedTerms.includes('TestTerm Local SEO Playbook'), 'other article linked via cleaned title (brand suffix stripped)');
     assert.ok(!linkedTerms.includes('TestTerm Interlinking Guide'), 'an article never links to itself');
 
-    const saved = (await pool.query('SELECT content FROM articles WHERE id = $1', [mine.rows[0].id])).rows[0];
-    assert.ok(saved.content.includes('href="/en/resources/glossary/testterm-anchor-text.html"'));
-    assert.ok(saved.content.includes('href="/en/articles/testterm-local-seo-playbook"'));
+    const saved = (await pool.query('SELECT content, text_article FROM articles WHERE id = $1', [mine.rows[0].id])).rows[0];
+    assert.ok(saved.text_article.includes('href="/en/resources/glossary/testterm-anchor-text.html"'));
+    assert.ok(saved.text_article.includes('href="/en/articles/testterm-local-seo-playbook"'));
+    assert.ok(!saved.content.includes('auto-linked'), 'the generated teaser stays link-free');
 
     // Sitewide pass right after: everything already linked → no new links
     // on this article (idempotent), and the endpoint reports its coverage.
@@ -1513,9 +1525,9 @@ test('article interlink links glossary terms and other articles, never itself', 
     assert.equal(bulk.status, 200);
     const bulkData = await bulk.json();
     assert.ok(bulkData.articles >= 2, 'bulk pass sweeps the published set');
-    const after = (await pool.query('SELECT content FROM articles WHERE id = $1', [mine.rows[0].id])).rows[0];
-    const anchors = (after.content.match(/auto-linked/g) || []).length;
-    assert.equal(anchors, saved.content.match(/auto-linked/g).length, 'bulk re-run adds nothing to an already-linked article');
+    const after = (await pool.query('SELECT text_article FROM articles WHERE id = $1', [mine.rows[0].id])).rows[0];
+    const anchors = (after.text_article.match(/auto-linked/g) || []).length;
+    assert.equal(anchors, saved.text_article.match(/auto-linked/g).length, 'bulk re-run adds nothing to an already-linked article');
   } finally {
     await pool.query(`DELETE FROM articles WHERE slug LIKE 'testterm-%'`);
     await pool.query('DELETE FROM glossary WHERE id = $1', [g.rows[0].id]);

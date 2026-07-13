@@ -76,7 +76,10 @@ router.get('/articles', async (req, res) => {
       is_published: true,
       featured: article.featured || false,
       sidebar_content: article.excerpt || article.content?.substring(0, 500) || '',
-      full_article_content: article.content,
+      // Full body as named: text_article is the canonical article body since
+      // the admin split; content holds the short listing teaser card.
+      full_article_content: article.text_article || article.content,
+      teaser_content: article.content,
       text_article: article.text_article || '',
       published_url: article.published_url || '',
       article_images: article.article_images || [],
@@ -123,8 +126,13 @@ router.get('/articles/:slug', async (req, res) => {
   try {
     // Accept both /articles/my-slug and /articles/my-slug.html (SPA path leftovers)
     const slug = String(req.params.slug || '').trim().replace(/\.html?$/i, '');
+    // Renamed articles keep answering on their old URL: previous_slugs holds
+    // every former slug, and the response's canonical slug lets the SPA
+    // rewrite the address bar. Exact slug match wins over history.
     const result = await db.query(
-      `SELECT * FROM articles WHERE slug = $1 AND status = 'published'`,
+      `SELECT * FROM articles
+       WHERE (slug = $1 OR $1 = ANY(COALESCE(previous_slugs, '{}'))) AND status = 'published'
+       ORDER BY (slug = $1) DESC LIMIT 1`,
       [slug]
     );
 
@@ -145,7 +153,10 @@ router.get('/articles/:slug', async (req, res) => {
       is_published: true,
       featured: article.featured || false,
       published_url: article.published_url || '',
-      full_article_content: article.content,
+      // Full body as named: text_article is the canonical article body since
+      // the admin split; content holds the short listing teaser card.
+      full_article_content: article.text_article || article.content,
+      teaser_content: article.content,
       text_article: article.text_article || '',
       time_to_read: article.time_to_read || null,
       article_images: article.article_images || [],
