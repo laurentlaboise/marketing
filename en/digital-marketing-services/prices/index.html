@@ -1784,9 +1784,9 @@
                                 </tr>
                                 <tr class="compare-row-core">
                                     <td>List price / month</td>
-                                    <td>$329</td>
-                                    <td class="col-pop">$649</td>
-                                    <td>$1,099</td>
+                                    <td data-plan-list-price="digital-footprint">$329</td>
+                                    <td class="col-pop" data-plan-list-price="growth-engine">$649</td>
+                                    <td data-plan-list-price="automation-pro">$1,099</td>
                                 </tr>
                                 <tr class="compare-row-core">
                                     <td>Social posts / month</td>
@@ -1910,171 +1910,18 @@
                 </div>
             </section>
 
-            <!-- One-time projects: flip cards, no public prices (portal for pricing) -->
-            <section id="product-menu-packages" class="section section-alt" aria-labelledby="projects-heading">
-                <p class="section-kicker">One-time projects</p>
+            <!-- One-time projects: flip cards rendered from the admin API (featured
+                 products only). Hidden until at least one live product renders, so
+                 archived products can never linger here. -->
+            <section id="product-menu-packages" class="section section-alt" aria-labelledby="projects-heading" hidden>
+                <p class="section-kicker">Featured projects</p>
                 <h2 id="projects-heading">Web, forms &amp; content packages</h2>
                 <p class="section-lead">
                     Fixed-scope projects without a monthly retainer. Flip a card for a short video overview.
                     <strong>Pricing is in the client portal</strong>—not listed here.
                 </p>
                 <div class="project-flip-grid" id="project-flip-grid">
-                    <!-- Landing Page Sprint -->
-                    <div class="project-flip" data-project="Landing Page Sprint" data-video="">
-                        <div class="project-flip__inner">
-                            <div class="project-flip__face project-flip__front">
-                                <h3>Landing Page Sprint</h3>
-                                <p class="value">One-time project</p>
-                                <ul>
-                                    <li><i class="fas fa-check"></i> CTA + lead form</li>
-                                    <li><i class="fas fa-check"></i> Tracking + mobile layout</li>
-                                    <li><i class="fas fa-check"></i> 1 revision</li>
-                                </ul>
-                                <div class="project-flip__actions">
-                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
-                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Landing%20Page%20Sprint">See price in portal</a>
-                                </div>
-                            </div>
-                            <div class="project-flip__face project-flip__back">
-                                <button type="button" class="project-play-btn" data-play aria-label="Play Landing Page Sprint overview">
-                                    <i class="fas fa-play" aria-hidden="true"></i>
-                                </button>
-                                <p class="project-play-label">Landing Page Sprint</p>
-                                <p class="project-play-sub">30-second overview — play to open</p>
-                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Professional Page -->
-                    <div class="project-flip" data-project="Professional Page" data-video="">
-                        <div class="project-flip__inner">
-                            <div class="project-flip__face project-flip__front">
-                                <h3>Professional Page</h3>
-                                <p class="value">One-time project</p>
-                                <ul>
-                                    <li><i class="fas fa-check"></i> Multi-section page</li>
-                                    <li><i class="fas fa-check"></i> Form ≤5 fields + SEO basics</li>
-                                    <li><i class="fas fa-check"></i> 2 design touch-ups</li>
-                                </ul>
-                                <div class="project-flip__actions">
-                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
-                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Professional%20Page">See price in portal</a>
-                                </div>
-                            </div>
-                            <div class="project-flip__face project-flip__back">
-                                <button type="button" class="project-play-btn" data-play aria-label="Play Professional Page overview">
-                                    <i class="fas fa-play" aria-hidden="true"></i>
-                                </button>
-                                <p class="project-play-label">Professional Page</p>
-                                <p class="project-play-sub">30-second overview — play to open</p>
-                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Multi-Page Site Starter -->
-                    <div class="project-flip is-highlight" data-project="Multi-Page Site Starter" data-video="">
-                        <div class="project-flip__inner">
-                            <div class="project-flip__face project-flip__front">
-                                <h3>Multi-Page Site Starter</h3>
-                                <p class="value">One-time · best for new brands</p>
-                                <ul>
-                                    <li><i class="fas fa-check"></i> Home + 2 pages + contact</li>
-                                    <li><i class="fas fa-check"></i> Form wired to your lead inbox</li>
-                                    <li><i class="fas fa-check"></i> SEO + analytics setup</li>
-                                </ul>
-                                <div class="project-flip__actions">
-                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
-                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Multi-Page%20Site%20Starter">See price in portal</a>
-                                </div>
-                            </div>
-                            <div class="project-flip__face project-flip__back">
-                                <button type="button" class="project-play-btn" data-play aria-label="Play Multi-Page Site Starter overview">
-                                    <i class="fas fa-play" aria-hidden="true"></i>
-                                </button>
-                                <p class="project-play-label">Multi-Page Site Starter</p>
-                                <p class="project-play-sub">30-second overview — play to open</p>
-                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Lead Form + Pipeline -->
-                    <div class="project-flip" data-project="Lead Form + Pipeline" data-video="">
-                        <div class="project-flip__inner">
-                            <div class="project-flip__face project-flip__front">
-                                <h3>Lead Form + Pipeline</h3>
-                                <p class="value">One-time project</p>
-                                <ul>
-                                    <li><i class="fas fa-check"></i> Form Builder setup</li>
-                                    <li><i class="fas fa-check"></i> Lead stages + alerts</li>
-                                    <li><i class="fas fa-check"></i> WhatsApp CTA ready</li>
-                                </ul>
-                                <div class="project-flip__actions">
-                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
-                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Lead%20Form%20%2B%20Pipeline">See price in portal</a>
-                                </div>
-                            </div>
-                            <div class="project-flip__face project-flip__back">
-                                <button type="button" class="project-play-btn" data-play aria-label="Play Lead Form overview">
-                                    <i class="fas fa-play" aria-hidden="true"></i>
-                                </button>
-                                <p class="project-play-label">Lead Form + Pipeline</p>
-                                <p class="project-play-sub">30-second overview — play to open</p>
-                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- SEO Content Pack -->
-                    <div class="project-flip" data-project="SEO Content Pack (5)" data-video="">
-                        <div class="project-flip__inner">
-                            <div class="project-flip__face project-flip__front">
-                                <h3>SEO Content Pack (5)</h3>
-                                <p class="value">One-time project</p>
-                                <ul>
-                                    <li><i class="fas fa-check"></i> 5 SEO pages / guides</li>
-                                    <li><i class="fas fa-check"></i> Keyword brief + image SEO</li>
-                                    <li><i class="fas fa-check"></i> Publish on your site</li>
-                                </ul>
-                                <div class="project-flip__actions">
-                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
-                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=SEO%20Content%20Pack%20(5)">See price in portal</a>
-                                </div>
-                            </div>
-                            <div class="project-flip__face project-flip__back">
-                                <button type="button" class="project-play-btn" data-play aria-label="Play SEO Content Pack overview">
-                                    <i class="fas fa-play" aria-hidden="true"></i>
-                                </button>
-                                <p class="project-play-label">SEO Content Pack (5)</p>
-                                <p class="project-play-sub">30-second overview — play to open</p>
-                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Lead Magnet Kit -->
-                    <div class="project-flip" data-project="Lead Magnet Kit" data-video="">
-                        <div class="project-flip__inner">
-                            <div class="project-flip__face project-flip__front">
-                                <h3>Lead Magnet Kit</h3>
-                                <p class="value">One-time project</p>
-                                <ul>
-                                    <li><i class="fas fa-check"></i> E-guide / resource concept</li>
-                                    <li><i class="fas fa-check"></i> Capture form + delivery</li>
-                                    <li><i class="fas fa-check"></i> Basic design + 1 revision</li>
-                                </ul>
-                                <div class="project-flip__actions">
-                                    <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
-                                    <a class="btn btn-accent" href="https://admin.wordsthatsells.website/portal/login?from=prices&amp;src=project&amp;plan=Lead%20Magnet%20Kit">See price in portal</a>
-                                </div>
-                            </div>
-                            <div class="project-flip__face project-flip__back">
-                                <button type="button" class="project-play-btn" data-play aria-label="Play Lead Magnet Kit overview">
-                                    <i class="fas fa-play" aria-hidden="true"></i>
-                                </button>
-                                <p class="project-play-label">Lead Magnet Kit</p>
-                                <p class="project-play-sub">30-second overview — play to open</p>
-                                <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Cards render here from /api/public/products (is_featured) -->
                 </div>
             </section>
 
@@ -2645,6 +2492,59 @@
             });
         }
 
+        // One-time / featured projects: flip cards come from the admin products
+        // API (is_featured = true). The section stays hidden unless at least one
+        // live product renders, so archived products can never linger here.
+        function renderFeaturedProjects(products) {
+            const section = document.getElementById('product-menu-packages');
+            const grid = document.getElementById('project-flip-grid');
+            if (!section || !grid) return;
+            const featured = (products || []).filter(p => p && p.is_featured);
+            if (!featured.length) return;
+            const portalBase = 'https://admin.wordsthatsells.website/portal/login?from=prices&src=project&plan=';
+            grid.innerHTML = featured.map(p => {
+                const name = escapeHtml(p.name || 'Project');
+                const video = escapeHtml((p.slide_in && p.slide_in.video) || '');
+                const kind = p.product_type === 'subscription' ? 'Monthly service' : 'One-time project';
+                const feats = (Array.isArray(p.features) ? p.features : []).slice(0, 3)
+                    .map(f => `<li><i class="fas fa-check"></i> ${escapeHtml(f)}</li>`).join('');
+                const portalUrl = portalBase + encodeURIComponent(p.name || '');
+                return `
+                <div class="project-flip" data-project="${name}" data-video="${video}">
+                    <div class="project-flip__inner">
+                        <div class="project-flip__face project-flip__front">
+                            <h3>${name}</h3>
+                            <p class="value">${kind}</p>
+                            <ul>${feats}</ul>
+                            <div class="project-flip__actions">
+                                <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
+                                <a class="btn btn-accent" href="${portalUrl}">See price in portal</a>
+                            </div>
+                        </div>
+                        <div class="project-flip__face project-flip__back">
+                            <button type="button" class="project-play-btn" data-play aria-label="Play ${name} overview">
+                                <i class="fas fa-play" aria-hidden="true"></i>
+                            </button>
+                            <p class="project-play-label">${name}</p>
+                            <p class="project-play-sub">30-second overview — play to open</p>
+                            <button type="button" class="btn-ghost-light" data-flip>← Back to details</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            section.removeAttribute('hidden');
+        }
+
+        async function loadFeaturedProjects() {
+            try {
+                const res = await fetch(`${API_BASE}/products`);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                renderFeaturedProjects(await res.json());
+            } catch (err) {
+                console.warn('[Pricing] Featured projects unavailable:', err.message);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             const billingToggle = document.getElementById('billing-cycle-toggle');
             const subsGrid = document.getElementById('subscriptions-grid');
@@ -2908,6 +2808,19 @@
                 renderIndividualServices(pricingData.individualServices);
             }
 
+            // Keep the static comparison table's list-price row in sync with admin plans
+            if (hasApiPlans) {
+                pricingData.subscriptions.forEach(plan => {
+                    const cell = document.querySelector(`[data-plan-list-price="${plan.slug}"]`);
+                    if (cell && plan.price != null) {
+                        cell.textContent = '$' + Number(plan.price).toLocaleString('en-US');
+                    }
+                });
+            }
+
+            // Featured one-time projects from the products table
+            loadFeaturedProjects();
+
             if (billingToggle) {
                 applyBillingCycle(billingToggle.checked);
                 billingToggle.addEventListener('change', () => {
@@ -3103,21 +3016,19 @@
                 }
             }
 
-            grid.querySelectorAll('.project-flip').forEach(function (card) {
-                card.querySelectorAll('[data-flip]').forEach(function (btn) {
-                    btn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        card.classList.toggle('is-flipped');
-                    });
-                });
-                card.querySelectorAll('[data-play]').forEach(function (btn) {
-                    btn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        openVideo(card);
-                    });
-                });
+            // Delegated so cards rendered later from the admin API work too
+            grid.addEventListener('click', function (e) {
+                const card = e.target.closest('.project-flip');
+                if (!card || !grid.contains(card)) return;
+                if (e.target.closest('[data-flip]')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    card.classList.toggle('is-flipped');
+                } else if (e.target.closest('[data-play]')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openVideo(card);
+                }
             });
 
             if (closeBtn) closeBtn.addEventListener('click', closeVideo);
@@ -3133,7 +3044,9 @@
             });
 
             // Public helper: set video URL later (e.g. after Manus upload)
-            // WTSProjectVideo.set('Landing Page Sprint', 'https://…/clip.mp4')
+            // WTSProjectVideo.set('Logo Design', 'https://…/clip.mp4')
+            // Persistent videos belong on the product's slide-in video field
+            // in the admin — cards read it via data-video on render.
             window.WTSProjectVideo = {
                 set: function (projectName, url) {
                     const card = grid.querySelector('.project-flip[data-project="' + projectName.replace(/"/g, '') + '"]');

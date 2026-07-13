@@ -396,7 +396,7 @@
                 <p class="agency-portal-note">
                     Partner rates and SLAs live in the
                     <a href="https://admin.wordsthatsells.website/portal/login?from=agencies&amp;src=packages" style="color:#d62b83;font-weight:700;">client portal</a>
-                    after you qualify—not on this page. Suggested retail bands match our public SME ladder (roughly $299–$1,199/mo by plan).
+                    after you qualify—not on this page. Suggested retail bands match our public SME ladder (<span id="agency-retail-band">roughly $329–$1,099/mo by plan</span>).
                     Show clients structure here:
                     <a href="/en/digital-marketing-services/prices/" style="color:#d62b83;font-weight:700;">pricing page →</a>
                 </p>
@@ -618,6 +618,28 @@
         } else {
           bind();
         }
+      })();
+    </script>
+    <script>
+      // Retail band mirrors the live public SME ladder (static text is a fallback)
+      (function () {
+        var PRIMARY = ['digital-footprint', 'growth-engine', 'automation-pro'];
+        fetch('https://admin.wordsthatsells.website/api/public/pricing')
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (!d || !Array.isArray(d.subscriptions)) return;
+            var prices = d.subscriptions
+              .filter(function (p) { return PRIMARY.indexOf(p.slug) !== -1 && p.price != null; })
+              .map(function (p) { return Number(p.price); });
+            if (prices.length < 2) return;
+            var el = document.getElementById('agency-retail-band');
+            var fmt = function (n) { return '$' + n.toLocaleString('en-US'); };
+            if (el) {
+              el.textContent = 'roughly ' + fmt(Math.min.apply(null, prices)) +
+                '–' + fmt(Math.max.apply(null, prices)) + '/mo by plan';
+            }
+          })
+          .catch(function () { /* static fallback stays */ });
       })();
     </script>
 
