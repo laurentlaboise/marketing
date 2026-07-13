@@ -21,12 +21,35 @@
 //     Thai/Lao (no word breaks);
 //   - anchor format mirrors the article editor's client-side linker
 //     (class="auto-linked auto-linked-<type>") so styling applies evenly.
+const fs = require('fs');
+const path = require('path');
 const db = require('../../database/db');
 
 const NO_WORD_BREAK_LANGS = new Set(['th', 'la', 'lo']);
 const DEFAULT_MAX_LINKS = 12;
 
 const glossaryUrl = (lang, slug) => `/${lang}/resources/glossary/${slug}.html`;
+
+// AI-tool detail pages are static (en/resources/ai-tools/<slug>/index.html
+// in the same checkout the admin runs from). Only tools whose page really
+// exists are linkable — a DB row without a generated page must not mint a
+// dead link, and vendor sites are never linked from prose (that's how
+// "Claude" in "Claude Hopkins" ended up pointing at claude.ai).
+// One directory scan per call — build the set once per request/sweep
+// instead of stat'ing the disk once per tool row.
+const AI_TOOLS_PAGES_DIR = path.resolve(__dirname, '../../..', 'en/resources/ai-tools');
+function aiToolPageSet() {
+  try {
+    return new Set(
+      fs.readdirSync(AI_TOOLS_PAGES_DIR, { withFileTypes: true })
+        .filter((d) => d.isDirectory() && fs.existsSync(path.join(AI_TOOLS_PAGES_DIR, d.name, 'index.html')))
+        .map((d) => d.name)
+    );
+  } catch (e) {
+    return new Set();
+  }
+}
+const aiToolPageUrl = (slug) => `/en/resources/ai-tools/${slug}/`;
 
 // Rewrite an English site path to its localized mirror; external URLs and
 // non-/en/ paths pass through untouched.
@@ -55,7 +78,7 @@ function titlePhrase(title) {
 // terms, SEO terms, published article titles, and imported site pages —
 // so one pass cross-links a document into the whole library.
 async function buildTermIndex(lang, { exclude = null, client = db } = {}) {
-  const [glossary, seoTerms, articles, sitePages] = await Promise.all([
+  const [glossary, seoTerms, articles, sitePages, aiTools] = await Promise.all([
     client.query(
       `SELECT id, term, definition, slug FROM glossary
        WHERE slug IS NOT NULL AND slug <> ''`
@@ -76,6 +99,10 @@ async function buildTermIndex(lang, { exclude = null, client = db } = {}) {
       `SELECT id, path, title FROM site_pages
        WHERE COALESCE(title, '') <> '' AND path <> '/' AND segments::text <> '{}'`
     ).catch(() => ({ rows: [] })), // table absent on minimal installs
+    client.query(
+      `SELECT id, name, description, slug FROM ai_tools
+       WHERE status = 'active' AND slug IS NOT NULL AND slug <> ''`
+    ).catch(() => ({ rows: [] })),
   ]);
 
   const base = [
@@ -100,6 +127,24 @@ async function buildTermIndex(lang, { exclude = null, client = db } = {}) {
       name: titlePhrase(p.title), definition: '',
       link: p.path, localizedLink: localizeLink(p.path, lang),
     })),
+    // Tool names are proper nouns and often plain English words (Type,
+    // Consensus, Durable…) — matched case-sensitively, and never when the
+    // next word is also capitalized ("Claude Hopkins" is a person, not the
+    // assistant). Only tools with a real static page get in at all.
+    ...(() => {
+      const pages = aiToolPageSet();
+      return aiTools.rows
+        .filter((t) => pages.has(t.slug))
+        .map((t) => {
+          const link = aiToolPageUrl(t.slug);
+          return {
+            entityType: 'ai_tool', entityId: String(t.id), type: 'ai-tool',
+            name: t.name, definition: (t.description || '').slice(0, 200),
+            link, localizedLink: localizeLink(link, lang),
+            caseSensitive: true, properNoun: true,
+          };
+        });
+    })(),
   ].filter((t) => t.name && t.link);
 
   let entries;
@@ -215,10 +260,13 @@ function injectTermLinks(html, terms, { lang = 'en', maxLinks = DEFAULT_MAX_LINK
         if (start !== -1) matchText = term.matchName;
       } else {
         // Word-boundary match without \b (Unicode-safe): no letter/number
-        // may directly precede or follow the term.
+        // may directly precede or follow the term. Proper-noun terms (AI
+        // tools) additionally refuse a capitalized next word — "Claude
+        // Hopkins" or "Type Foundry" is a longer name, not the tool.
+        const guard = term.properNoun ? '(?!\\s+\\p{Lu}\\p{Ll})' : '';
         const re = new RegExp(
-          `(^|[^\\p{L}\\p{N}])(${escapeRegex(term.matchName)})(?![\\p{L}\\p{N}])`,
-          'iu'
+          `(^|[^\\p{L}\\p{N}])(${escapeRegex(term.matchName)})(?![\\p{L}\\p{N}])${guard}`,
+          term.caseSensitive ? 'u' : 'iu'
         );
         const m = seg.text.match(re);
         if (m) {
@@ -378,4 +426,4 @@ async function interlinkLibrary({ types = Object.keys(LIBRARY_SOURCES), onlyId =
   }
 }
 
-module.exports = { buildTermIndex, injectTermLinks, interlinkLibrary, LIBRARY_SOURCES, localizeLink, DEFAULT_MAX_LINKS };
+module.exports = { buildTermIndex, injectTermLinks, interlinkLibrary, LIBRARY_SOURCES, localizeLink, aiToolPageSet, aiToolPageUrl, DEFAULT_MAX_LINKS };

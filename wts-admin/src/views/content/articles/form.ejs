@@ -26,6 +26,8 @@
       <div class="card-body" style="padding: 0;">
         <form id="articleForm" action="<%= article ? '/content/articles/' + article.id : '/content/articles' %>" method="POST">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <!-- Shared article-sidebar module: pre-renders the publish/preview sidebar -->
+          <script defer src="/vendor/article-sidebar.js"></script>
 
           <!-- ===== STICKY ACTION BAR ===== -->
           <div class="sticky-action-bar" id="stickyActionBar">
@@ -3949,43 +3951,87 @@ function escapeRegex(str) {
 }
 
 function hyperlinkContent(htmlContent, terms) {
-  if (!terms || !htmlContent) return { html: htmlContent, count: 0, details: { glossary: 0, seo: 0, ai_tool: 0 } };
+  var details = { glossary: 0, seo: 0, 'ai-tool': 0 };
+  if (!terms || !htmlContent) return { html: htmlContent, count: 0, details: details };
 
-  // Combine all terms and sort by length (longest first for greedy matching)
+  // Longest term first so "technical SEO" beats "SEO"; unlinkable entries
+  // (no target page) are dropped up front.
   var allTerms = [].concat(
     terms.glossary || [],
     terms.seo_terms || [],
     terms.ai_tools || []
-  ).sort(function(a, b) { return b.term.length - a.term.length; });
+  ).filter(function(t) { return t.term && t.term.length >= 3 && t.link; })
+   .sort(function(a, b) { return b.term.length - a.term.length; });
 
-  var linked = {};
-  var result = htmlContent;
+  // Split into text/tag segments and mark where links must never go —
+  // inside existing anchors, headings, script/style. Same walk as the
+  // server engine (src/lib/interlink.js); the old single-regex version
+  // matched text inside existing links, which is how pressing the button
+  // twice used to double-wrap every term.
+  var segs = [];
+  var tagRe = /<[^>]*>/g;
+  var last = 0, anchorDepth = 0, blockedDepth = 0, m;
+  while ((m = tagRe.exec(htmlContent)) !== null) {
+    if (m.index > last) segs.push({ text: htmlContent.slice(last, m.index), ok: anchorDepth === 0 && blockedDepth === 0 });
+    var tag = m[0];
+    var nameM = tag.match(/^<\/?\s*([a-zA-Z][a-zA-Z0-9]*)/);
+    var lower = nameM ? nameM[1].toLowerCase() : '';
+    var closing = /^<\s*\//.test(tag);
+    var selfClosing = /\/>$/.test(tag);
+    if (lower === 'a' && !selfClosing) anchorDepth = Math.max(0, anchorDepth + (closing ? -1 : 1));
+    if ((/^h[1-6]$/.test(lower) || lower === 'script' || lower === 'style') && !selfClosing) {
+      blockedDepth = Math.max(0, blockedDepth + (closing ? -1 : 1));
+    }
+    segs.push({ tag: tag });
+    last = tagRe.lastIndex;
+  }
+  if (last < htmlContent.length) segs.push({ text: htmlContent.slice(last), ok: anchorDepth === 0 && blockedDepth === 0 });
+
+  // Idempotence: a target that is already auto-linked anywhere in the
+  // document never gets a second link — re-pressing the button is a no-op.
+  var alreadyLinked = {};
+  htmlContent.replace(/<a\b[^>]*href="([^"]*)"[^>]*class="[^"]*auto-linked[^"]*"/g, function(whole, href) {
+    alreadyLinked[href] = true;
+    return whole;
+  });
+
+  var esc = function(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  };
   var count = 0;
-  var details = { glossary: 0, seo: 0, ai_tool: 0 };
+  var linkedNames = {};
 
   for (var i = 0; i < allTerms.length; i++) {
-    var termData = allTerms[i];
-    var termKey = termData.term.toLowerCase();
-    if (linked[termKey]) continue;
-    if (!termData.link) continue;
+    var t = allTerms[i];
+    var key = t.term.toLowerCase();
+    if (linkedNames[key] || alreadyLinked[t.link]) continue;
 
-    var escaped = escapeRegex(termData.term);
-    // Match term not already inside an HTML tag or existing link
-    var regex = new RegExp('(?<![<\\/\\w])\\b(' + escaped + ')\\b(?![^<]*>)', 'i');
-
-    var match = result.match(regex);
-    if (match) {
-      var linkClass = 'auto-linked auto-linked-' + termData.type;
-      var title = (termData.definition || '').replace(/"/g, '&quot;');
-      var replacement = '<a href="' + termData.link + '" class="' + linkClass + '" title="' + title + '" data-type="' + termData.type + '">' + match[1] + '</a>';
-      result = result.replace(regex, replacement);
-      linked[termKey] = true;
+    for (var s = 0; s < segs.length; s++) {
+      var seg = segs[s];
+      if (seg.tag !== undefined || !seg.ok || !seg.text) continue;
+      // Word-boundary match; proper-noun terms (AI tools) are matched
+      // case-sensitively and refuse a capitalized next word, so "Claude
+      // Hopkins" or "Type Foundry" never links to a tool page.
+      var guard = t.properNoun ? '(?!\\s+[A-Z][a-z])' : '';
+      var re = new RegExp('(^|[^A-Za-z0-9_])(' + escapeRegex(t.term) + ')(?![A-Za-z0-9_])' + guard, t.caseSensitive ? '' : 'i');
+      var mm = seg.text.match(re);
+      if (!mm) continue;
+      var start = mm.index + mm[1].length;
+      var matched = mm[2];
+      var anchor = '<a href="' + esc(t.link) + '" class="auto-linked auto-linked-' + t.type + '" title="' + esc((t.definition || '').slice(0, 200)) + '" data-type="' + t.type + '">' + matched + '</a>';
+      segs.splice(s, 1,
+        { text: seg.text.slice(0, start), ok: true },
+        { tag: anchor },
+        { text: seg.text.slice(start + matched.length), ok: true });
+      linkedNames[key] = true;
       count++;
-      if (details[termData.type] !== undefined) details[termData.type]++;
+      if (details[t.type] !== undefined) details[t.type]++;
+      break;
     }
   }
 
-  return { html: result, count: count, details: details };
+  var html = segs.map(function(sg) { return sg.tag !== undefined ? sg.tag : sg.text; }).join('');
+  return { html: html, count: count, details: details };
 }
 
 function autoHyperlinkField(fieldId, statusId) {
@@ -4004,7 +4050,7 @@ function autoHyperlinkField(fieldId, statusId) {
     field.value = result.html;
 
     var totalTerms = (terms.glossary || []).length + (terms.seo_terms || []).length + (terms.ai_tools || []).length;
-    statusEl.innerHTML = '<div style="padding: 10px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius, 6px); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Linked <strong>' + result.count + '</strong> terms (Glossary: ' + result.details.glossary + ', SEO: ' + result.details.seo + ', AI Tools: ' + result.details.ai_tool + ') from ' + totalTerms + ' available terms.</div>';
+    statusEl.innerHTML = '<div style="padding: 10px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius, 6px); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Linked <strong>' + result.count + '</strong> terms (Glossary: ' + result.details.glossary + ', SEO: ' + result.details.seo + ', AI Tools: ' + result.details['ai-tool'] + ') from ' + totalTerms + ' available terms.</div>';
 
     formDirty = true;
     document.getElementById('unsavedBadge').style.display = 'inline-flex';
@@ -4037,7 +4083,7 @@ function autoHyperlinkAll() {
       '<div class="hyperlink-stat-item"><i class="fas fa-link"></i> Total Linked: <span class="stat-count">' + totalLinked + '</span></div>' +
       '<div class="hyperlink-stat-item"><i class="fas fa-book"></i> Glossary: <span class="stat-count">' + textResult.details.glossary + '</span></div>' +
       '<div class="hyperlink-stat-item"><i class="fas fa-search"></i> SEO Terms: <span class="stat-count">' + textResult.details.seo + '</span></div>' +
-      '<div class="hyperlink-stat-item"><i class="fas fa-robot"></i> AI Tools: <span class="stat-count">' + textResult.details.ai_tool + '</span></div>' +
+      '<div class="hyperlink-stat-item"><i class="fas fa-robot"></i> AI Tools: <span class="stat-count">' + textResult.details['ai-tool'] + '</span></div>' +
       '<div class="hyperlink-stat-item"><i class="fas fa-database"></i> Available: <span class="stat-count">' + totalTerms + '</span></div>';
 
     // Show undo button
@@ -4163,7 +4209,7 @@ function generateArticlePreview() {
     + '.article-content a{color:var(--color-primary-base);text-decoration:none;border-bottom:1px dashed var(--color-primary-base);}'
     + '.article-content a:hover{color:var(--color-accent-magenta);border-color:var(--color-accent-magenta);}'
     + '</style></head><body><div class="container">'
-    + '<article><header class="article-header">'
+    + '<article id="article-container"><header class="article-header">'
     + '<h1>' + title + '</h1>'
     + '<div class="article-meta">'
     + '<span><i class="fas fa-calendar"></i> ' + formattedDate + '</span>'
@@ -4175,6 +4221,12 @@ function generateArticlePreview() {
     + (featuredImage ? '<img src="' + featuredImage + '" alt="' + title + '" class="featured-image" onerror="this.style.display=\'none\'">' : '')
     + '<div class="article-content">' + articleContent + '</div>'
     + '</article></div></body></html>';
+
+  // Pre-render the sidebar into the preview markup: the preview iframe is
+  // sandboxed without allow-scripts, so nothing script-based can render there
+  // (anchor jumps still work natively).
+  var prerendered = prerenderSidebarIntoPage(previewHTML);
+  if (prerendered) previewHTML = prerendered;
 
   var container = document.getElementById('articlePreviewContainer');
   var frame = document.getElementById('articlePreviewFrame');
@@ -4220,6 +4272,64 @@ function updateGhFilePath() {
   }
   var pathEl = document.getElementById('gh_path');
   if (pathEl) pathEl.value = slug ? 'en/articles/' + slug + '.html' : '';
+}
+
+
+// Sidebar data for the generated pages — the shared module
+// (js/services/article-sidebar.js) renders the same sticky card the
+// article shell and static pages use.
+function collectSidebarData() {
+  var cl = {};
+  try { cl = JSON.parse(document.getElementById('content_labels').value || '{}'); } catch (e) { cl = {}; }
+  var textVal = document.getElementById('text_article').value || '';
+  var words = textVal.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(function(w) { return w.length > 0; }).length || null;
+  var manualTimeToRead = parseInt(document.getElementById('time_to_read').value, 10) || null;
+  return {
+    title: document.getElementById('title').value || '',
+    categories: document.getElementById('category').value ? [document.getElementById('category').value] : [],
+    featured_image_url: document.getElementById('featured_image').value || '',
+    published_at: document.getElementById('published_at').value || null,
+    // The blob carries no article text, so compute the reading time here —
+    // the module's own fallback would see an empty body and say "1 min read"
+    time_to_read: manualTimeToRead || (words ? Math.max(1, Math.ceil(words / 200)) : null),
+    word_count: words,
+    content_labels: cl
+  };
+}
+
+function buildSidebarDataBlock(moduleSrc) {
+  return '<script type="application/json" id="article-sidebar-data">'
+    + JSON.stringify(collectSidebarData()).replace(/</g, '\\u003c')
+    + '<\/script>\n    <script defer src="' + moduleSrc + '"><\/script>\n';
+}
+
+// Pre-render the sidebar straight into a generated page's HTML string —
+// heading anchors, the card, the two-column layout and the card CSS — using
+// the shared module loaded on this admin page. Pre-rendering is what makes
+// the card show inside the sandboxed preview iframe (no allow-scripts, so a
+// script-based render can never run there) and gives published pages working
+// jump-links before any JavaScript loads.
+function prerenderSidebarIntoPage(pageHtml) {
+  if (typeof WTSArticleSidebar === 'undefined') return null;
+  var anchored = WTSArticleSidebar.injectHeadingIds(pageHtml);
+  var html = anchored.html;
+  var data = collectSidebarData();
+  var entries = WTSArticleSidebar.resolveChapters(
+    WTSArticleSidebar.chaptersFromLabels(data.content_labels), anchored.headings);
+  var card = WTSArticleSidebar.buildCardHTML(data, entries, { ctaHref: '#article-container' });
+  if (!card) return html;
+
+  html = html.replace('<article id="article-container">',
+    '<div class="wts-article-layout"><article id="article-container">');
+  // last </article>: article bodies can legally contain nested <article> markup
+  var closeAt = html.lastIndexOf('</article>');
+  if (closeAt !== -1) {
+    html = html.slice(0, closeAt + '</article>'.length)
+      + '<aside class="article-sidebar">' + card + '</aside></div>'
+      + html.slice(closeAt + '</article>'.length);
+  }
+  html = html.replace('</style>', WTSArticleSidebar.CARD_CSS + '</style>');
+  return html;
 }
 
 function generateFullArticleHTML() {
@@ -4406,7 +4516,7 @@ function generateFullArticleHTML() {
     + '        <a href="../resources/articles/" class="back-link">\n'
     + '            <i class="fas fa-arrow-left"></i> Back to All Articles\n'
     + '        </a>\n\n'
-    + '        <article>\n'
+    + '        <article id="article-container">\n'
     + '            <header class="article-header">\n'
     + '                <h1>' + title + '</h1>\n\n'
     + '                <div class="article-meta">\n'
@@ -4458,6 +4568,19 @@ function generateFullArticleHTML() {
     + '    <\/script>\n'
     + '    <script src="/js/services/page-sidebar.js"><\/script>\n'
     + '</body>\n</html>';
+
+  // Sticky "In this guide" sidebar — same shared module as every article
+  // page. Preferred: pre-rendered card + heading anchors baked into the
+  // HTML (jump-links work before any JS), with the module included only to
+  // wire smooth-scroll and the reading highlight. Fallback when the module
+  // isn't loaded on this admin page: data blob + client-side render.
+  var prerendered = prerenderSidebarIntoPage(html);
+  if (prerendered) {
+    html = prerendered.replace('</body>',
+      '    <script defer src="/js/services/article-sidebar.js"><\/script>\n</body>');
+  } else {
+    html = html.replace('</body>', buildSidebarDataBlock('/js/services/article-sidebar.js') + '</body>');
+  }
 
   return html;
 }

@@ -4,11 +4,11 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
   <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->
-  <!-- URL count: 306 | generated 2026-07-12 by scripts/generate-sitemap.js -->
+  <!-- URL count: 307 | generated 2026-07-13 by scripts/generate-sitemap.js -->
 
   <url>
     <loc>https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html" />
@@ -20,8 +20,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/en/articles/logo-design-in-laos-the-data-backed-guide-for-2026.html</loc>
+    <lastmod>2026-07-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/articles/logo-design-in-laos-the-data-backed-guide-for-2026.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/articles/logo-design-in-laos-the-data-backed-guide-for-2026.html" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html" />
@@ -145,7 +153,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/business-tools/</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
@@ -158,7 +166,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/content-creation/</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
@@ -178,8 +186,8 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/" />
     <image:image>
       <image:loc>https://cdn.jsdelivr.net/gh/laurentlaboise/marketing@main/images/AIDigitalMarketingthailandlaossoutheastasia.webp</image:loc>
-      <image:title>WordsThatSells.website - AI Digital Marketing Agency in Laos</image:title>
-      <image:caption>WordsThatSells.website - AI Digital Marketing Agency in Laos</image:caption>
+      <image:title>WordsThatSells.website</image:title>
+      <image:caption>WordsThatSells.website</image:caption>
     </image:image>
   </url>
   <url>
@@ -195,7 +203,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/social-media-management/</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
@@ -208,7 +216,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/web-development/</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
@@ -1842,7 +1850,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/articles/</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/articles/" />

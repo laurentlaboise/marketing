@@ -17,6 +17,8 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const striptags = require('striptags');
+const sidebarLib = require('./js/services/article-sidebar');
+const linkHygiene = require('./wts-admin/src/lib/link-hygiene');
 const API_BASE_URL = 'https://admin.wordsthatsells.website/api/public';
 const SITE_BASE_URL = 'https://wordsthatsells.website';
 const OUTPUT_DIR = path.join(__dirname, 'en', 'articles');
@@ -257,6 +259,14 @@ async function fetchSeoTerms() {
  * Wraps first occurrence of each term with <span class="seo-term-link"> and data attributes.
  * Skips terms inside existing links, code blocks, and headings.
  */
+// Term links come from the CMS database; only http(s) URLs and site-relative
+// paths (not scheme-relative //host) may ever reach an href — a poisoned row
+// must not mint javascript: links.
+function safeTermLink(url) {
+  const u = String(url || '').trim();
+  return /^(https?:\/\/|\/(?!\/))/i.test(u) ? u : '';
+}
+
 function highlightTermsInHTML(htmlContent, terms) {
   if (!terms || terms.length === 0 || !htmlContent) return htmlContent;
 
@@ -277,8 +287,20 @@ function highlightTermsInHTML(htmlContent, terms) {
     const match = result.match(regex);
     if (match) {
       const shortDef = escapeHtml(termData.short_definition || termData.definition || '').substring(0, 200);
-      const replacement = `<span class="seo-term-link" data-term-id="${termData.id}" data-term="${escapeHtml(termData.term.toLowerCase())}" data-def="${shortDef}" data-category="${escapeHtml(termData.category || '')}" data-article-link="${termData.article_link || ''}" data-glossary-link="${termData.glossary_link || ''}" role="button" tabindex="0">${match[1]}</span>`;
-      result = result.replace(regex, replacement);
+      // Tooltip links are rendered here as real (hidden) anchors — validated
+      // and escaped at build time — and the page script only CLONES these
+      // nodes into the tooltip. URLs never round-trip through DOM text, so
+      // there is no attribute→href flow to poison.
+      const artHref = safeTermLink(termData.article_link);
+      const glHref = safeTermLink(termData.glossary_link);
+      const linkParts = [];
+      if (artHref) linkParts.push(`<a href="${escapeHtml(artHref)}" class="tt-read-more" target="_blank" rel="noopener">Read Article</a>`);
+      if (glHref) linkParts.push(`<a href="${escapeHtml(glHref)}" class="tt-glossary" target="_blank" rel="noopener">Glossary</a>`);
+      const urlsBlock = linkParts.length ? `<span class="seo-term-links-tpl" hidden aria-hidden="true">${linkParts.join('')}</span>` : '';
+      const replacement = `<span class="seo-term-link" data-term-id="${termData.id}" data-term="${escapeHtml(termData.term.toLowerCase())}" data-def="${shortDef}" data-category="${escapeHtml(termData.category || '')}" role="button" tabindex="0">${match[1]}${urlsBlock}</span>`;
+      // Function replacement: a URL or definition containing "$&"-style
+      // sequences must never expand into the matched text.
+      result = result.replace(regex, () => replacement);
       linked.add(termKey);
     }
   }
@@ -439,109 +461,45 @@ function generateSchemaMarkup(article) {
 }
 
 /**
- * Generate sidebar card HTML from content_labels
+ * Sidebar card — rendered at build time by the SAME module the article
+ * shell and static pages use (js/services/article-sidebar.js), so the
+ * format can never drift between surfaces. Chapters resolve against the
+ * heading anchors injected into the body, giving working jump-links in
+ * the static HTML before any JavaScript runs.
  */
-function generateSidebarHTML(article) {
-  const cl = article.content_labels || {};
-  const hasDescription = cl.description && cl.description.trim();
-  const hasWhoShouldRead = cl.who_should_read && cl.who_should_read.length > 0;
-  const hasKeyPoints = cl.key_points && cl.key_points.length > 0;
-  const hasSources = cl.sources && cl.sources.length > 0;
-
-  if (!hasDescription && !hasWhoShouldRead && !hasKeyPoints && !hasSources) {
-    return '';
-  }
-
-  const readingTime = article.time_to_read || calculateReadingTime(article.full_article_content || article.content || '');
-  const content = article.full_article_content || article.content || '';
-  const textContent = striptags(content);
-  const wordCount = textContent.split(/\s+/).filter(w => w.length > 0).length;
-  const publishedDate = formatDate(article.published_at || article.created_at);
-  const sourcesCount = (cl.sources || []).length + (article.citations || []).length;
-  const faqsCount = cl.faqs_count || 0;
-  const ctaText = cl.cta_text || 'Read Full Article';
-
-  let html = '<aside class="article-sidebar"><div class="sidebar-card">';
-
-  if (article.featured_image_url) {
-    html += `<img src="${article.featured_image_url}" alt="${escapeHtml(article.title)}" class="sidebar-card-image" onerror="this.style.display='none'">`;
-  }
-
-  html += '<div class="sidebar-card-body">';
-
-  if (article.categories && article.categories.length > 0) {
-    html += `<span class="sidebar-card-category">${escapeHtml(article.categories[0])}</span>`;
-  }
-
-  html += `<h3 class="sidebar-card-title">${escapeHtml(article.title)}</h3>`;
-
-  html += '<div class="sidebar-card-meta">';
-  html += `<span><i class="fas fa-calendar"></i> ${publishedDate}</span>`;
-  html += `<span><i class="fas fa-clock"></i> ${readingTime} min read</span>`;
-  if (sourcesCount > 0) {
-    html += `<span><i class="fas fa-book"></i> ${sourcesCount} sources</span>`;
-  }
-  html += '</div>';
-
-  if (hasDescription) {
-    html += `<p class="sidebar-card-desc">${escapeHtml(cl.description)}</p>`;
-  }
-
-  if (hasWhoShouldRead) {
-    html += '<div class="sidebar-section">';
-    html += '<h4 class="sidebar-section-title"><i class="fas fa-users" style="color: var(--color-primary-base); margin-right: 4px;"></i> Who Should Read This</h4>';
-    html += '<ul>';
-    cl.who_should_read.forEach(item => { html += `<li>${escapeHtml(item)}</li>`; });
-    html += '</ul></div>';
-  }
-
-  if (hasKeyPoints) {
-    html += '<div class="sidebar-section">';
-    html += '<h4 class="sidebar-section-title"><i class="fas fa-lightbulb" style="color: var(--color-primary-base); margin-right: 4px;"></i> What You\'ll Learn</h4>';
-    cl.key_points.forEach(kp => {
-      html += '<div class="sidebar-key-point">';
-      if (kp.title) html += `<div class="sidebar-key-point-title">${escapeHtml(kp.title)}</div>`;
-      if (kp.description) html += `<div class="sidebar-key-point-desc">${escapeHtml(kp.description)}</div>`;
-      html += '</div>';
-    });
-    html += '</div>';
-  }
-
-  if (hasSources) {
-    html += '<div class="sidebar-section">';
-    html += '<h4 class="sidebar-section-title"><i class="fas fa-book-open" style="color: var(--color-primary-base); margin-right: 4px;"></i> Sources Referenced</h4>';
-    html += '<div class="sidebar-sources-badges">';
-    cl.sources.forEach(src => {
-      if (src.url) {
-        html += `<a href="${src.url}" target="_blank" rel="noopener" class="sidebar-source-badge">${escapeHtml(src.name || 'Source')}</a>`;
-      } else {
-        html += `<span class="sidebar-source-badge">${escapeHtml(src.name || 'Source')}</span>`;
-      }
-    });
-    html += '</div></div>';
-  }
-
-  html += '</div>'; // end sidebar-card-body
-
-  // Read stats bar
-  html += '<div class="sidebar-read-bar">';
-  html += '<div class="sidebar-read-stats">';
-  html += `<span><i class="fas fa-file-alt"></i> ${wordCount.toLocaleString()} words</span>`;
-  if (faqsCount > 0) {
-    html += `<span><i class="fas fa-question-circle"></i> ${faqsCount} FAQs</span>`;
-  }
-  html += '</div>';
-  html += `<a href="#" class="sidebar-cta-btn" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">${escapeHtml(ctaText)} <i class="fas fa-arrow-right"></i></a>`;
-  html += '</div>';
-
-  html += '</div></aside>'; // end sidebar-card and aside
-
-  return html;
+function generateSidebarHTML(article, headings) {
+  const entries = sidebarLib.resolveChapters(
+    sidebarLib.chaptersFromLabels(article.content_labels), headings || []);
+  const card = sidebarLib.buildCardHTML(article, entries, { ctaHref: '#article-container' });
+  if (!card) return '';
+  return '<aside class="article-sidebar">' + card + '</aside>';
 }
 
 /**
  * Generate complete HTML for an article
  */
+// FAQPage JSON-LD from the article's FAQ section: h3 questions and the
+// prose that follows each, until the next heading. No FAQ section (or no
+// clean Q&A pairs) → no schema block at all.
+function generateFaqSchema(bodyHtml) {
+  // Section ends at the next h2 or at a CTA box — the CTA's own heading is
+  // a pitch, not a question, and must never enter the FAQ schema.
+  const secMatch = String(bodyHtml || '').match(/<h2[^>]*>[^<]*(?:FAQ|Frequently Asked)[^<]*<\/h2>([\s\S]*?)(?=<h2[\s>]|<div class="cta-box"|$)/i);
+  if (!secMatch) return null;
+  const qa = [];
+  const qRe = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3[\s>]|$)/gi;
+  let m;
+  while ((m = qRe.exec(secMatch[1])) !== null) {
+    const q = striptags(m[1]).replace(/\s+/g, ' ').trim();
+    const a = striptags(m[2]).replace(/\s+/g, ' ').trim();
+    if (q && a) {
+      qa.push({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a.slice(0, 1200) } });
+    }
+  }
+  if (!qa.length) return null;
+  return { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: qa };
+}
+
 function generateArticleHTML(article) {
   const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
   const social = resolveSocialMeta(article);
@@ -551,7 +509,18 @@ function generateArticleHTML(article) {
   const canonicalUrl = social.canonicalUrl || articleUrl;
   const schemaMarkup = generateSchemaMarkup(article);
 
-  const sidebarHTML = generateSidebarHTML(article);
+  // Anchor ids baked into the static HTML so chapter links work without JS.
+  // sanitizeAutoLinks first: bodies edited before the link-hygiene fixes can
+  // still carry nested auto-links or pre-reconciliation glossary hrefs, and
+  // a crawlable page must never ship invalid anchors or 404 links.
+  const bodyWithAnchors = sidebarLib.injectHeadingIds(
+    highlightTermsInHTML(
+      linkHygiene.sanitizeAutoLinks(article.full_article_content || article.content || '<p>Content not available.</p>'),
+      seoTermsCache
+    )
+  );
+  const sidebarHTML = generateSidebarHTML(article, bodyWithAnchors.headings);
+  const faqSchema = generateFaqSchema(bodyWithAnchors.html);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -564,6 +533,17 @@ function generateArticleHTML(article) {
     <meta name="description" content="${escapeHtml(social.ogDescription)}">
     <meta name="robots" content="${social.robotsMeta}">
     <link rel="canonical" href="${canonicalUrl}">
+    <link rel="alternate" hreflang="en" href="${canonicalUrl}">
+    <link rel="alternate" hreflang="x-default" href="${canonicalUrl}">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMRKC1VBBB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-LMRKC1VBBB');
+    </script>
 
     <!-- Open Graph / Facebook / LinkedIn / WhatsApp / Pinterest / Slack / Discord -->
     <meta property="og:site_name" content="WordsThatSells.Website">
@@ -592,6 +572,9 @@ function generateArticleHTML(article) {
     <script type="application/ld+json">
 ${JSON.stringify(schemaMarkup, null, 2)}
     </script>
+    ${faqSchema ? `<script type="application/ld+json">
+${JSON.stringify(faqSchema, null, 2)}
+    </script>` : ''}
 
     <!-- Fonts and Icons -->
     <script src="https://kit.fontawesome.com/a521ce00f6.js" crossorigin="anonymous"></script>
@@ -969,7 +952,7 @@ ${JSON.stringify(schemaMarkup, null, 2)}
         </a>
 
         <div class="article-layout">
-        <article>
+        <article id="article-container">
             <header class="article-header">
                 <h1>${escapeHtml(article.title)}</h1>
 
@@ -993,7 +976,7 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             ` : ''}
 
             <div class="article-content">
-                ${highlightTermsInHTML(article.full_article_content || article.content || '<p>Content not available.</p>', seoTermsCache)}
+                ${bodyWithAnchors.html}
             </div>
 
             <div class="share-buttons">
@@ -1023,6 +1006,7 @@ ${JSON.stringify(schemaMarkup, null, 2)}
         <i class="fas fa-chevron-up"></i>
     </a>
 
+    <script defer src="/js/services/article-sidebar.js"></script>
     <script>
         // Article data for sharing (uses social preview metadata from CMS)
         const ARTICLE_URL = '${canonicalUrl}';
@@ -1145,7 +1129,9 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             hdr.className = 'seo-term-tooltip-header';
             var title = document.createElement('span');
             title.className = 'seo-term-tooltip-title';
-            title.textContent = el.textContent;
+            // First text node only — the hidden link template inside the
+            // span must not leak into the tooltip title.
+            title.textContent = (el.childNodes[0] && el.childNodes[0].nodeType === 3) ? el.childNodes[0].nodeValue : (el.getAttribute('data-term') || '');
             hdr.appendChild(title);
             var cat = el.getAttribute('data-category');
             if (cat) { var catEl = document.createElement('span'); catEl.className = 'seo-term-tooltip-category'; catEl.textContent = cat; hdr.appendChild(catEl); }
@@ -1156,10 +1142,14 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             t.appendChild(def);
             var links = document.createElement('div');
             links.className = 'seo-term-tooltip-links';
-            var artLink = el.getAttribute('data-article-link');
-            if (artLink) { var a = document.createElement('a'); a.href = artLink; a.className = 'tt-read-more'; a.target = '_blank'; a.textContent = 'Read Article'; links.appendChild(a); }
-            var glLink = el.getAttribute('data-glossary-link');
-            if (glLink) { var g = document.createElement('a'); g.href = glLink; g.className = 'tt-glossary'; g.target = '_blank'; g.textContent = 'Glossary'; links.appendChild(g); }
+            // Link anchors were rendered (hidden) into the term span at
+            // build time, already validated and escaped; the tooltip just
+            // clones those nodes. No URL is ever read back from DOM text.
+            var tpl = el.querySelector('.seo-term-links-tpl');
+            if (tpl) {
+                var tplLinks = tpl.querySelectorAll('a');
+                for (var li = 0; li < tplLinks.length; li++) links.appendChild(tplLinks[li].cloneNode(true));
+            }
             if (links.children.length > 0) t.appendChild(links);
             document.body.appendChild(t);
             activeTooltip = t;
@@ -1185,6 +1175,28 @@ ${JSON.stringify(schemaMarkup, null, 2)}
         document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeTooltip(); });
 
         document.addEventListener('DOMContentLoaded', initBackToTop);
+
+        // GA4 journey events — which chapters readers jump to, which CTAs
+        // and term tooltips they open, where they leave. One delegated
+        // listener; a no-op when gtag is blocked or absent.
+        document.addEventListener('click', function(e) {
+            if (typeof gtag !== 'function' || !e.target || !e.target.closest) return;
+            var el;
+            if ((el = e.target.closest('.sidebar-cta-btn'))) {
+                gtag('event', 'article_cta_click', { link_url: el.getAttribute('href') || '' });
+            } else if ((el = e.target.closest('.sidebar-chapter-link'))) {
+                gtag('event', 'chapter_click', { chapter: (el.textContent || '').trim().slice(0, 100) });
+            } else if ((el = e.target.closest('.seo-term-link'))) {
+                gtag('event', 'seo_term_open', { term: el.getAttribute('data-term') || '' });
+            } else if ((el = e.target.closest('a.auto-linked'))) {
+                gtag('event', 'internal_link_click', { link_url: el.getAttribute('href') || '', link_type: el.getAttribute('data-type') || '' });
+            } else if ((el = e.target.closest('a[href]'))) {
+                var href = el.getAttribute('href') || '';
+                if (/^https?:\\/\\//i.test(href) && href.indexOf('wordsthatsells.website') === -1) {
+                    gtag('event', 'outbound_click', { link_url: href });
+                }
+            }
+        }, true);
     </script>
 </body>
 </html>`;
