@@ -133,7 +133,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 // (js/services/article-sidebar.js at the repo root, present in the Railway
 // checkout). The article form pre-renders the publish/preview sidebar with
 // it, and CSP script-src is 'self' + nonce — so serve it same-origin.
-app.get('/vendor/article-sidebar.js', (req, res) => {
+// Filesystem-touching route → its own rate budget (outside the /api limiter).
+const vendorLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.get('/vendor/article-sidebar.js', vendorLimiter, (req, res) => {
   const modulePath = path.resolve(__dirname, '..', 'js/services/article-sidebar.js');
   res.sendFile(modulePath, (err) => {
     if (err && !res.headersSent) res.status(404).end();
