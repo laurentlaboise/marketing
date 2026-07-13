@@ -24,6 +24,15 @@
   // Signed-in customers' saved services live on the server; this mirrors
   // them (product_id → true) for instant isSaved() checks.
   var serverSaved = {};
+  // Last product list + grid so we can re-render cards after sign-in
+  // (prices unlock for portal customers only).
+  var lastProducts = null;
+  var lastGrid = null;
+
+  /** Public site: prices only after portal sign-in. Guests see teaser cards. */
+  function canShowPrices() {
+    return !!customerState.signedIn;
+  }
 
   function checkCustomerSession() {
     return fetch(API_BASE + '/portal-me', { credentials: 'include' })
@@ -39,6 +48,11 @@
           // Unlock the buy buttons in an already-open panel (e.g. the
           // customer signed in from the emailed link and switched back).
           refreshOpenPanel();
+          // Re-render service cards so prices appear after sign-in.
+          if (lastProducts && lastGrid) {
+            renderCards(lastProducts, lastGrid);
+            bindLearnMoreButtons();
+          }
         }
         renderAccountPill();
       })
@@ -155,6 +169,8 @@
           return;
         }
 
+        lastProducts = products;
+        lastGrid = grid;
         renderCards(products, grid);
         storeDetailData(products);
         bindLearnMoreButtons();
@@ -170,6 +186,18 @@
   function fmtMoney(amount, currency) {
     if (amount === null || amount === undefined || isNaN(amount)) return '';
     return Number(amount).toFixed(2) + ' ' + esc(currency || 'USD');
+  }
+
+  /** Short card blurb — full detail lives in the Learn More side panel. */
+  function truncateText(str, maxLen) {
+    var s = String(str || '').replace(/\s+/g, ' ').trim();
+    if (!s) return '';
+    maxLen = maxLen || 110;
+    if (s.length <= maxLen) return s;
+    var cut = s.slice(0, maxLen - 1);
+    var lastSpace = cut.lastIndexOf(' ');
+    if (lastSpace > Math.floor(maxLen * 0.55)) cut = cut.slice(0, lastSpace);
+    return cut.replace(/[\s.,;:!?…]+$/g, '') + '…';
   }
 
   // Normalize a product into a pricing object. Falls back to the legacy
@@ -195,8 +223,9 @@
     };
   }
 
-  // Compact price line shown on the service card.
+  // Compact price line shown on the service card — portal sign-in only.
   function cardPriceHTML(product) {
+    if (!canShowPrices()) return '';
     var pr = getPricing(product);
     var style = 'display:block;margin:0.5rem 0;font-weight:600;color:var(--accent-color,#d62b83);';
 
@@ -251,25 +280,10 @@
     return '';
   }
 
-  // Compact checkmark list of the product's features for the service card.
-  // The admin enters these in the "Appearance (Service Card)" section; show
-  // up to four with a "+N more" hint pointing at the Learn More panel.
-  function cardFeaturesHTML(product) {
-    var feats = (Array.isArray(product.features) ? product.features : [])
-      .filter(function (f) { return f && String(f).trim(); });
-    if (!feats.length) return '';
-
-    var html = '<ul class="product-features" style="list-style:none;padding:0;margin:0.25rem auto 0.5rem;max-width:280px;text-align:left;font-size:0.88rem;color:var(--color-slate-700,#334155);">';
-    feats.slice(0, 4).forEach(function (f) {
-      html += '<li style="display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.35rem;">' +
-        '<i class="fas fa-check" style="color:#16a34a;margin-top:0.25em;flex:none;font-size:0.8em;"></i>' +
-        '<span>' + esc(f) + '</span></li>';
-    });
-    if (feats.length > 4) {
-      html += '<li style="color:var(--color-slate-500,#64748b);font-size:0.82rem;padding-left:1.35rem;">+ ' +
-        (feats.length - 4) + ' more</li>';
-    }
-    return html + '</ul>';
+  // Features stay in the Learn More side panel — cards stay short so
+  // visitors click through. (Features list was previously on the card.)
+  function cardFeaturesHTML() {
+    return '';
   }
 
   // ── Render product cards ─────────────────────────────────────
@@ -284,7 +298,11 @@
       var slug = product.slug || product.id;
 
       var priceHTML = cardPriceHTML(product);
-      var featuresHTML = cardFeaturesHTML(product);
+      // Description only (truncated) → drives Learn More; full copy in panel.
+      var desc = truncateText(product.description || '', 110);
+      var descHTML = desc
+        ? '<p class="service-description">' + esc(desc) + '</p>'
+        : '';
 
       var card = document.createElement('div');
       card.className = 'service-card reveal' + delay;
@@ -295,8 +313,7 @@
       card.innerHTML =
         '<div class="icon ' + anim + '"><i class="' + icon + '"></i></div>' +
         '<h3 class="service-title">' + esc(product.name) + '</h3>' +
-        '<p class="service-description">' + esc(product.description || '') + '</p>' +
-        featuresHTML +
+        descHTML +
         priceHTML +
         '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;margin-top:auto;">' +
           '<button class="btn btn-premium btn-learn-more" data-service="' + esc(slug) + '">Learn More</button>' +
@@ -489,7 +506,11 @@
       if (dynDesc) {
         dynDesc.textContent = opt.description || (opt.strategy ? opt.strategy.replace(/_/g, ' ') : '');
       }
-      if (dynPrice) dynPrice.innerHTML = fmtMoney(opt.price, pr.currency);
+      if (dynPrice) {
+        dynPrice.innerHTML = canShowPrices()
+          ? fmtMoney(opt.price, pr.currency)
+          : '<span style="font-size:0.88rem;font-weight:600;color:#64748b;">Sign in to see pricing</span>';
+      }
       var ctas = block.querySelectorAll('.product-cta');
       for (var i = 0; i < ctas.length; i++) {
         ctas[i].setAttribute('data-option-key', opt.key);
@@ -1570,6 +1591,25 @@
     var pr = data.pricing || getPricing(data);
     var html = '<div class="product-pricing-block" style="text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--color-border,#e2e8f0);">';
 
+    // Guests: show product detail + quote CTA, not dollar amounts (portal for prices).
+    // Options type still shows path labels (AI vs Designer) with prices masked.
+    if (!canShowPrices() && pr.type === 'subscription') {
+      html += '<p style="font-size:0.95rem;color:var(--color-slate-500,#64748b);margin-bottom:1rem;">' +
+        '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>Sign in to see pricing</p>';
+      html += buildCtaHTML(data, pr.default_billing === 'yearly' ? 'yearly' : 'monthly');
+      html += buildShareHTML(data);
+      html += '</div>';
+      return html;
+    }
+    if (!canShowPrices() && pr.type === 'tiered') {
+      html += '<p style="font-size:0.95rem;color:var(--color-slate-500,#64748b);margin-bottom:1rem;">' +
+        '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>Sign in to see pricing</p>';
+      html += buildCtaHTML(data, null);
+      html += buildShareHTML(data);
+      html += '</div>';
+      return html;
+    }
+
     if (pr.type === 'subscription') {
       var hasMonthly = pr.monthly_price != null;
       var hasYearly = pr.yearly_price != null;
@@ -1655,6 +1695,7 @@
     // Named options (one product, multiple price points) — clean cards, dynamic summary on top
     if (pr.type === 'options' && pr.options && pr.options.length) {
       var first = pr.options[0];
+      var show$ = canShowPrices();
       html += '<div class="opt-dynamic-summary" style="text-align:left;background:linear-gradient(135deg,#fdf2f8 0%,#f8fafc 100%);border:1px solid #fbcfe8;border-radius:12px;padding:0.9rem 1rem;margin:0 0 1rem;">' +
         '<div style="font-size:0.72rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#e11d74;margin-bottom:0.25rem;">Selected path</div>' +
         '<div class="opt-dyn-title" style="font-size:1.05rem;font-weight:700;color:#0f172a;">' + esc(first.label) + '</div>' +
@@ -1662,7 +1703,9 @@
           esc(first.description || first.strategy && first.strategy.replace(/_/g, ' ') || '') +
         '</p>' +
         '<div class="opt-dyn-price" style="margin-top:0.55rem;font-size:1.25rem;font-weight:800;color:#e11d74;">' +
-          fmtMoney(first.price, pr.currency) +
+          (show$
+            ? fmtMoney(first.price, pr.currency)
+            : '<span style="font-size:0.88rem;font-weight:600;color:#64748b;">Sign in to see pricing</span>') +
         '</div>' +
       '</div>';
       html += '<p style="font-size:0.85rem;color:var(--color-slate-600,#475569);margin:0 0 0.6rem;text-align:left;">Choose how you want it done</p>';
@@ -1679,7 +1722,9 @@
           '<span style="flex:1;min-width:0;text-align:left;">' +
             '<strong style="display:block;color:#0f172a;font-size:0.98rem;">' + esc(opt.label) + '</strong>' +
           '</span>' +
-          '<strong style="color:#e11d74;white-space:nowrap;font-size:1rem;">' + fmtMoney(opt.price, pr.currency) + '</strong>' +
+          (show$
+            ? '<strong style="color:#e11d74;white-space:nowrap;font-size:1rem;">' + fmtMoney(opt.price, pr.currency) + '</strong>'
+            : '') +
         '</label>';
       });
       html += '</div>';
@@ -1691,7 +1736,10 @@
 
     // One-time
     if (pr.one_time_price != null) {
-      if (data.purchase_mode === 'buy' && (!pr.unit || pr.unit === 'fixed')) {
+      if (!canShowPrices()) {
+        html += '<p style="font-size:0.95rem;color:var(--color-slate-500,#64748b);margin-bottom:1rem;">' +
+          '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>Sign in to see pricing</p>';
+      } else if (data.purchase_mode === 'buy' && (!pr.unit || pr.unit === 'fixed')) {
         // Same order-summary treatment as subscriptions, so the checkout
         // amount is stated explicitly.
         html += '<div class="price-breakdown" style="' + BREAKDOWN_BOX_STYLE + '">' +
