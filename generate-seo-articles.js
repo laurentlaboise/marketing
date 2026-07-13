@@ -260,10 +260,11 @@ async function fetchSeoTerms() {
  * Skips terms inside existing links, code blocks, and headings.
  */
 // Term links come from the CMS database; only http(s) URLs and site-relative
-// paths may ever reach an href (a poisoned row must not mint javascript: links).
+// paths (not scheme-relative //host) may ever reach an href — a poisoned row
+// must not mint javascript: links.
 function safeTermLink(url) {
   const u = String(url || '').trim();
-  return /^(https?:\/\/|\/)/i.test(u) ? u : '';
+  return /^(https?:\/\/|\/(?!\/))/i.test(u) ? u : '';
 }
 
 function highlightTermsInHTML(htmlContent, terms) {
@@ -1091,12 +1092,12 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             var links = document.createElement('div');
             links.className = 'seo-term-tooltip-links';
             // Attribute values are validated at build time too, but hrefs are
-            // re-gated here so only http(s)/site-relative URLs are clickable.
-            function safeHref(u) { return /^(https?:\\/\\/|\\/)/i.test(u || '') ? u : ''; }
-            var artLink = safeHref(el.getAttribute('data-article-link'));
-            if (artLink) { var a = document.createElement('a'); a.href = artLink; a.className = 'tt-read-more'; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Read Article'; links.appendChild(a); }
-            var glLink = safeHref(el.getAttribute('data-glossary-link'));
-            if (glLink) { var g = document.createElement('a'); g.href = glLink; g.className = 'tt-glossary'; g.target = '_blank'; g.rel = 'noopener'; g.textContent = 'Glossary'; links.appendChild(g); }
+            // re-gated right at the sink: only http(s) or same-site paths
+            // (never scheme-relative //host) become clickable.
+            var artLink = el.getAttribute('data-article-link');
+            if (artLink && /^(https?:\\/\\/|\\/(?!\\/))/i.test(artLink)) { var a = document.createElement('a'); a.href = artLink; a.className = 'tt-read-more'; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Read Article'; links.appendChild(a); }
+            var glLink = el.getAttribute('data-glossary-link');
+            if (glLink && /^(https?:\\/\\/|\\/(?!\\/))/i.test(glLink)) { var g = document.createElement('a'); g.href = glLink; g.className = 'tt-glossary'; g.target = '_blank'; g.rel = 'noopener'; g.textContent = 'Glossary'; links.appendChild(g); }
             if (links.children.length > 0) t.appendChild(links);
             document.body.appendChild(t);
             activeTooltip = t;
