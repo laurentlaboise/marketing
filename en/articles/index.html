@@ -1063,22 +1063,27 @@
 
         // Admin form fields:
         //   text_article  = full article body (canonical)
-        //   content       = sidemenu / listing teaser (often short)
-        // Prefer long HTML content; otherwise render text_article.
+        //   content       = listing / sidemenu teaser snapshot (NOT the full article)
+        //   content_labels = sticky sidebar teaser (chapters / facts / sources)
+        // Never treat preview-card HTML as the full article body.
         function resolveArticleBodyHtml(article) {
             const content = (article.full_article_content || article.content || '').trim();
             const text = (article.text_article || '').trim();
-            const contentLooksFull = content.length > 1500 && /<h[1-3][\s>]/i.test(content);
-            if (contentLooksFull) return content;
+            const isTeaserCard = /preview-card|data-teaser-source/i.test(content)
+                || (content.length < 4000 && /In this guide|Quick facts/i.test(content) && content.length < text.length);
+
+            // Canonical full body from admin "Full Article (Text)"
             if (text.length > 200) {
                 if (/<[a-z][\s\S]*>/i.test(text)) return text;
                 return formatPlainArticle(text);
             }
-            if (content) {
-                // Short teaser-only content — still show something, but prefer text if any
-                if (text.length > 0) return formatPlainArticle(text);
+
+            // Legacy: long HTML body stored in content (not a teaser card)
+            if (content && !isTeaserCard && content.length > 1500 && /<h[1-3][\s>]/i.test(content)) {
                 return content;
             }
+
+            if (content && !isTeaserCard) return content;
             return '<p>Content not available.</p>';
         }
 

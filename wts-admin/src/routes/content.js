@@ -28,6 +28,76 @@ const createSlug = (title) => {
     .replace(/^-+|-+$/g, '');
 };
 
+/**
+ * Build listing/sidemenu teaser HTML from Content Labels (single source of truth).
+ * Regenerated on every article save so the listing modal never drifts from
+ * Advanced → Chapters / Quick Facts / Sources.
+ */
+function escapeHtmlLite(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function buildArticleListingTeaserHtml({
+  title,
+  featured_image,
+  author_name,
+  time_to_read,
+  published_url,
+  slug,
+  category,
+  content_labels,
+}) {
+  const cl = content_labels && typeof content_labels === 'object' ? content_labels : {};
+  const chapters = Array.isArray(cl.chapters) && cl.chapters.length
+    ? cl.chapters.map(String).filter(Boolean)
+    : (Array.isArray(cl.key_points)
+      ? cl.key_points.map((kp) => (typeof kp === 'string' ? kp : (kp && kp.title) || '')).filter(Boolean)
+      : []);
+  const facts = Array.isArray(cl.facts) ? cl.facts.map(String).filter(Boolean).slice(0, 6) : [];
+  const sources = Array.isArray(cl.sources) ? cl.sources.slice(0, 4) : [];
+  const desc = (cl.description || '').trim();
+  const cta = (cl.cta_text || 'Read full article').trim();
+  const faqs = cl.faqs_count || 0;
+  const url = published_url
+    || (slug ? `https://wordsthatsells.website/en/articles/${slug}.html` : '#');
+  const read = time_to_read ? `${time_to_read} min read` : '';
+  const author = author_name || 'Words That Sells';
+  const cat = category || '';
+  const metaBits = [author, read, faqs ? `${faqs} FAQs` : ''].filter(Boolean).join(' · ');
+
+  const chapterLis = chapters.map((c) => `<li>${escapeHtmlLite(c)}</li>`).join('');
+  const factLis = facts.map((f) => `<li>${escapeHtmlLite(f)}</li>`).join('');
+  const sourceBadges = sources.map((src) => {
+    const name = typeof src === 'string' ? src : (src && src.name) || 'Source';
+    const href = typeof src === 'object' && src && src.url ? src.url : '';
+    if (href) {
+      return `<a href="${escapeHtmlLite(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#eef2ff;color:#1e3a8a;padding:4px 10px;border-radius:999px;font-size:12px;text-decoration:none;margin:0 6px 6px 0;">${escapeHtmlLite(name)}</a>`;
+    }
+    return `<span style="display:inline-block;background:#eef2ff;color:#1e3a8a;padding:4px 10px;border-radius:999px;font-size:12px;margin:0 6px 6px 0;">${escapeHtmlLite(name)}</span>`;
+  }).join('');
+
+  // If labels are empty, return null so callers keep existing content
+  if (!desc && !chapters.length && !facts.length) return null;
+
+  return `<article class="preview-card" data-teaser-source="content_labels" style="font-family:Poppins,system-ui,sans-serif;max-width:520px;margin:0 auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;">
+  ${featured_image ? `<img src="${escapeHtmlLite(featured_image)}" alt="${escapeHtmlLite(title || '')}" style="width:100%;height:auto;display:block;" onerror="this.style.display='none'">` : ''}
+  <div style="padding:1.25rem 1.4rem 1.5rem;">
+    ${cat ? `<span style="display:inline-block;background:#1f85c9;color:#fff;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;margin-bottom:10px;">${escapeHtmlLite(cat)}</span>` : ''}
+    <h2 style="margin:0 0 8px;font-size:1.25rem;line-height:1.3;color:#122a3f;">${escapeHtmlLite(title || '')}</h2>
+    ${metaBits ? `<p style="margin:0 0 14px;color:#64748b;font-size:14px;">${escapeHtmlLite(metaBits)}</p>` : ''}
+    ${desc ? `<p style="margin:0 0 14px;color:#334155;font-size:15px;line-height:1.55;">${escapeHtmlLite(desc)}</p>` : ''}
+    ${chapterLis ? `<h3 style="margin:0 0 8px;font-size:14px;color:#122a3f;">In this guide</h3><ul style="margin:0 0 14px;padding-left:1.1rem;color:#334155;font-size:14px;line-height:1.5;">${chapterLis}</ul>` : ''}
+    ${factLis ? `<h3 style="margin:0 0 8px;font-size:14px;color:#122a3f;">Quick facts</h3><ul style="margin:0 0 14px;padding-left:1.1rem;color:#334155;font-size:14px;line-height:1.5;">${factLis}</ul>` : ''}
+    ${sourceBadges ? `<h3 style="margin:0 0 8px;font-size:14px;color:#122a3f;">Sources</h3><div style="margin:0 0 16px;">${sourceBadges}</div>` : ''}
+    <a href="${escapeHtmlLite(url)}" style="display:inline-block;background:#1f85c9;color:#fff;padding:10px 18px;border-radius:8px;font-weight:700;text-decoration:none;font-size:14px;">${escapeHtmlLite(cta)} →</a>
+  </div>
+</article>`;
+}
+
 // Multer config for CSV/XLSX file uploads (shared temp dir from storage module)
 const { UPLOAD_TEMP_DIR, ensureDirs } = require('../utils/storage');
 ensureDirs();
@@ -177,8 +247,21 @@ router.post('/articles', [
     // Auto-populate canonical URL from slug if empty
     const resolvedCanonical = canonical_url || `https://wordsthatsells.website/en/articles/${slug}.html`;
 
-    // Compute word count from text_article or content
-    const rawText = (text_article || content || '').replace(/<[^>]*>/g, '');
+    // Keep listing teaser in sync with Content Labels (chapters/facts/sources)
+    const regeneratedTeaser = buildArticleListingTeaserHtml({
+      title,
+      featured_image,
+      author_name,
+      time_to_read: timeToRead,
+      published_url: published_url || resolvedCanonical,
+      slug,
+      category,
+      content_labels: contentLabelsJson,
+    });
+    const contentToSave = regeneratedTeaser || content;
+
+    // Compute word count from full article text (not the teaser)
+    const rawText = (text_article || contentToSave || '').replace(/<[^>]*>/g, '');
     const wordCount = rawText.split(/\s+/).filter(w => w.length > 0).length || null;
 
     // Normalize tags to human-readable names
@@ -187,7 +270,7 @@ router.post('/articles', [
     await db.query(
       `INSERT INTO articles (title, slug, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, article_code, featured, author_id, published_at, updated_at, time_to_read, article_images, og_title, og_description, og_image, og_type, twitter_card, twitter_title, twitter_description, twitter_image, twitter_site, twitter_creator, canonical_url, robots_meta, schema_markup, citations, content_labels, text_article, audio_files, word_count, author_type, author_name, author_job_title, author_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)`,
-      [title, slug, content, excerpt, category, normalizedTags, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, published_url, article_code, isFeatured, req.user.id, publishedAtValue, updatedAtValue, timeToRead, JSON.stringify(articleImagesArray), og_title, og_description, og_image, og_type || 'article', twitter_card || 'summary_large_image', twitter_title, twitter_description, twitter_image, normalizedTwitterSite, normalizedTwitterCreator, resolvedCanonical, robots_meta || 'index, follow', schemaMarkupJson ? JSON.stringify(schemaMarkupJson) : null, JSON.stringify(citationsArray), JSON.stringify(contentLabelsJson), text_article || null, JSON.stringify(audioFilesJson), wordCount, author_type || 'organization', author_name || null, author_job_title || null, author_url || null]
+      [title, slug, contentToSave, excerpt, category, normalizedTags, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, published_url, article_code, isFeatured, req.user.id, publishedAtValue, updatedAtValue, timeToRead, JSON.stringify(articleImagesArray), og_title, og_description, og_image, og_type || 'article', twitter_card || 'summary_large_image', twitter_title, twitter_description, twitter_image, normalizedTwitterSite, normalizedTwitterCreator, resolvedCanonical, robots_meta || 'index, follow', schemaMarkupJson ? JSON.stringify(schemaMarkupJson) : null, JSON.stringify(citationsArray), JSON.stringify(contentLabelsJson), text_article || null, JSON.stringify(audioFilesJson), wordCount, author_type || 'organization', author_name || null, author_job_title || null, author_url || null]
     );
 
     req.session.successMessage = 'Article created successfully';
@@ -401,8 +484,21 @@ router.post('/articles/:id', async (req, res) => {
     // Auto-populate canonical URL from slug if empty
     const resolvedCanonical = canonical_url || `https://wordsthatsells.website/en/articles/${slug}.html`;
 
-    // Compute word count from text_article or content
-    const rawTextSource = text_article || content || '';
+    // Keep listing teaser in sync with Content Labels on every Update Article
+    const regeneratedTeaser = buildArticleListingTeaserHtml({
+      title,
+      featured_image,
+      author_name,
+      time_to_read: timeToRead,
+      published_url: published_url || resolvedCanonical,
+      slug,
+      category,
+      content_labels: contentLabelsJson,
+    });
+    const contentToSave = regeneratedTeaser || content;
+
+    // Compute word count from full article text (not the teaser)
+    const rawTextSource = text_article || contentToSave || '';
     const rawText = striptags(rawTextSource);
     const wordCount = rawText.split(/\s+/).filter(w => w.length > 0).length || null;
 
@@ -427,7 +523,7 @@ router.post('/articles/:id', async (req, res) => {
            audio_files = $35::jsonb, word_count = $36,
            author_type = $37, author_name = $38, author_job_title = $39, author_url = $40
        WHERE id = $18 RETURNING id`,
-      [title, content, excerpt, category, normalizedTags, seo_title, seo_description, keywordsArray, status, featured_image, published_url, isFeatured, updatedAtValue, publishedAtValue, timeToRead, article_code, JSON.stringify(articleImagesArray), req.params.id, og_title, og_description, og_image, og_type || 'article', twitter_card || 'summary_large_image', twitter_title, twitter_description, twitter_image, normalizedTwitterSite, normalizedTwitterCreator, resolvedCanonical, robots_meta || 'index, follow', schemaMarkupJson ? JSON.stringify(schemaMarkupJson) : null, JSON.stringify(citationsArray), JSON.stringify(contentLabelsJson), text_article || null, JSON.stringify(audioFilesJson), wordCount, author_type || 'organization', author_name || null, author_job_title || null, author_url || null]
+      [title, contentToSave, excerpt, category, normalizedTags, seo_title, seo_description, keywordsArray, status, featured_image, published_url, isFeatured, updatedAtValue, publishedAtValue, timeToRead, article_code, JSON.stringify(articleImagesArray), req.params.id, og_title, og_description, og_image, og_type || 'article', twitter_card || 'summary_large_image', twitter_title, twitter_description, twitter_image, normalizedTwitterSite, normalizedTwitterCreator, resolvedCanonical, robots_meta || 'index, follow', schemaMarkupJson ? JSON.stringify(schemaMarkupJson) : null, JSON.stringify(citationsArray), JSON.stringify(contentLabelsJson), text_article || null, JSON.stringify(audioFilesJson), wordCount, author_type || 'organization', author_name || null, author_job_title || null, author_url || null]
     );
 
     if (result.rowCount === 0) {

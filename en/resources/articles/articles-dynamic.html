@@ -712,6 +712,56 @@
       renderArticles(filtered);
     }
 
+    // Build listing modal teaser from content_labels when present (same source as article sidebar)
+    function buildTeaserFromLabels(article) {
+      const cl = article.content_labels || {};
+      const chapters = Array.isArray(cl.chapters) && cl.chapters.length
+        ? cl.chapters
+        : (Array.isArray(cl.key_points) ? cl.key_points.map(function(kp) {
+            return typeof kp === 'string' ? kp : (kp && kp.title ? kp.title : '');
+          }).filter(Boolean) : []);
+      const facts = Array.isArray(cl.facts) ? cl.facts.filter(Boolean) : [];
+      const sources = Array.isArray(cl.sources) ? cl.sources.slice(0, 4) : [];
+      const desc = (cl.description || article.description || '').trim();
+      if (!desc && !chapters.length && !facts.length) return null;
+
+      const sm = article.social_meta || {};
+      const articleUrl = article.published_url || sm.canonical_url || (window.location.origin + '/en/articles/' + article.slug + '.html');
+      const cta = cl.cta_text || 'Read full article';
+      const img = article.featured_image_url || sm.og_image || '';
+      const cat = (article.categories && article.categories[0]) || '';
+      const read = article.time_to_read ? (article.time_to_read + ' min read') : '';
+      const faqs = cl.faqs_count ? (cl.faqs_count + ' FAQs') : '';
+      const meta = [read, faqs].filter(Boolean).join(' · ');
+
+      let html = '<article class="preview-card" style="font-family:Poppins,system-ui,sans-serif;">';
+      if (img) html += '<img src="' + img + '" alt="" style="width:100%;height:auto;display:block;border-radius:8px;margin-bottom:1rem;" onerror="this.style.display=\'none\'">';
+      if (cat) html += '<span class="tag" style="margin-bottom:8px;display:inline-block;">' + cat + '</span>';
+      if (meta) html += '<p style="color:#64748b;font-size:14px;margin:0 0 10px;">' + meta + '</p>';
+      if (desc) html += '<p style="margin:0 0 12px;line-height:1.55;">' + desc + '</p>';
+      if (chapters.length) {
+        html += '<h3 style="font-size:1rem;margin:0 0 6px;">In this guide</h3><ul style="margin:0 0 12px;padding-left:1.2rem;">';
+        chapters.forEach(function(c) { html += '<li>' + c + '</li>'; });
+        html += '</ul>';
+      }
+      if (facts.length) {
+        html += '<h3 style="font-size:1rem;margin:0 0 6px;">Quick facts</h3><ul style="margin:0 0 12px;padding-left:1.2rem;">';
+        facts.forEach(function(f) { html += '<li>' + f + '</li>'; });
+        html += '</ul>';
+      }
+      if (sources.length) {
+        html += '<h3 style="font-size:1rem;margin:0 0 6px;">Sources</h3><p style="margin:0 0 12px;">';
+        sources.forEach(function(s) {
+          const name = typeof s === 'string' ? s : (s.name || 'Source');
+          html += '<span class="tag" style="margin:0 6px 6px 0;display:inline-block;">' + name + '</span>';
+        });
+        html += '</p>';
+      }
+      html += '<a class="btn" href="' + articleUrl + '" style="display:inline-block;margin-top:4px;">' + cta + ' →</a>';
+      html += '</article>';
+      return html;
+    }
+
     // Open article modal
     function openArticleModal(articleId) {
       const article = allArticles.find((a) => a.id === articleId);
@@ -723,6 +773,7 @@
       // Build the article URL — prefer published_url, fall back to canonical or slug-based
       const sm = article.social_meta || {};
       const articleUrl = article.published_url || sm.canonical_url || (window.location.origin + '/en/articles/' + article.slug + '.html');
+      const modalBody = buildTeaserFromLabels(article) || article.content || '';
 
       modalContent.innerHTML = `
         <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -732,7 +783,7 @@
           ${article.categories.map((cat) => `<span class="tag">${cat}</span>`).join('')}
         </div>
         <div class="modal-body">
-          ${article.content}
+          ${modalBody}
         </div>
         <div class="share-buttons">
           <a href="#" class="share-btn share-x" data-platform="x" title="Share on X (Twitter)">
