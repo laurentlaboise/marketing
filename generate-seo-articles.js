@@ -287,8 +287,20 @@ function highlightTermsInHTML(htmlContent, terms) {
     const match = result.match(regex);
     if (match) {
       const shortDef = escapeHtml(termData.short_definition || termData.definition || '').substring(0, 200);
-      const replacement = `<span class="seo-term-link" data-term-id="${termData.id}" data-term="${escapeHtml(termData.term.toLowerCase())}" data-def="${shortDef}" data-category="${escapeHtml(termData.category || '')}" data-article-link="${escapeHtml(safeTermLink(termData.article_link))}" data-glossary-link="${escapeHtml(safeTermLink(termData.glossary_link))}" role="button" tabindex="0">${match[1]}</span>`;
-      result = result.replace(regex, replacement);
+      // Tooltip links are rendered here as real (hidden) anchors — validated
+      // and escaped at build time — and the page script only CLONES these
+      // nodes into the tooltip. URLs never round-trip through DOM text, so
+      // there is no attribute→href flow to poison.
+      const artHref = safeTermLink(termData.article_link);
+      const glHref = safeTermLink(termData.glossary_link);
+      const linkParts = [];
+      if (artHref) linkParts.push(`<a href="${escapeHtml(artHref)}" class="tt-read-more" target="_blank" rel="noopener">Read Article</a>`);
+      if (glHref) linkParts.push(`<a href="${escapeHtml(glHref)}" class="tt-glossary" target="_blank" rel="noopener">Glossary</a>`);
+      const urlsBlock = linkParts.length ? `<span class="seo-term-links-tpl" hidden aria-hidden="true">${linkParts.join('')}</span>` : '';
+      const replacement = `<span class="seo-term-link" data-term-id="${termData.id}" data-term="${escapeHtml(termData.term.toLowerCase())}" data-def="${shortDef}" data-category="${escapeHtml(termData.category || '')}" role="button" tabindex="0">${match[1]}${urlsBlock}</span>`;
+      // Function replacement: a URL or definition containing "$&"-style
+      // sequences must never expand into the matched text.
+      result = result.replace(regex, () => replacement);
       linked.add(termKey);
     }
   }
@@ -1080,7 +1092,9 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             hdr.className = 'seo-term-tooltip-header';
             var title = document.createElement('span');
             title.className = 'seo-term-tooltip-title';
-            title.textContent = el.textContent;
+            // First text node only — the hidden link template inside the
+            // span must not leak into the tooltip title.
+            title.textContent = (el.childNodes[0] && el.childNodes[0].nodeType === 3) ? el.childNodes[0].nodeValue : (el.getAttribute('data-term') || '');
             hdr.appendChild(title);
             var cat = el.getAttribute('data-category');
             if (cat) { var catEl = document.createElement('span'); catEl.className = 'seo-term-tooltip-category'; catEl.textContent = cat; hdr.appendChild(catEl); }
@@ -1091,13 +1105,14 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             t.appendChild(def);
             var links = document.createElement('div');
             links.className = 'seo-term-tooltip-links';
-            // Attribute values are validated at build time too, but hrefs are
-            // re-gated right at the sink: only http(s) or same-site paths
-            // (never scheme-relative //host) become clickable.
-            var artLink = el.getAttribute('data-article-link');
-            if (artLink && /^(https?:\\/\\/|\\/(?!\\/))/i.test(artLink)) { var a = document.createElement('a'); a.href = artLink; a.className = 'tt-read-more'; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Read Article'; links.appendChild(a); }
-            var glLink = el.getAttribute('data-glossary-link');
-            if (glLink && /^(https?:\\/\\/|\\/(?!\\/))/i.test(glLink)) { var g = document.createElement('a'); g.href = glLink; g.className = 'tt-glossary'; g.target = '_blank'; g.rel = 'noopener'; g.textContent = 'Glossary'; links.appendChild(g); }
+            // Link anchors were rendered (hidden) into the term span at
+            // build time, already validated and escaped; the tooltip just
+            // clones those nodes. No URL is ever read back from DOM text.
+            var tpl = el.querySelector('.seo-term-links-tpl');
+            if (tpl) {
+                var tplLinks = tpl.querySelectorAll('a');
+                for (var li = 0; li < tplLinks.length; li++) links.appendChild(tplLinks[li].cloneNode(true));
+            }
             if (links.children.length > 0) t.appendChild(links);
             document.body.appendChild(t);
             activeTooltip = t;
