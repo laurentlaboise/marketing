@@ -757,6 +757,12 @@ router.get('/products', async (req, res) => {
       params.push(category);
     }
 
+    // Featured subset for marketing surfaces (prices/affiliate pages) —
+    // avoids shipping the full catalog when only featured cards render.
+    if (String(req.query.featured || '') === '1') {
+      query += ' AND is_featured = TRUE';
+    }
+
     query += ' ORDER BY sort_order ASC, name ASC';
 
     const result = await db.query(query, params);
