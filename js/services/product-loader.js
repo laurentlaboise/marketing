@@ -158,6 +158,7 @@
         renderCards(products, grid);
         storeDetailData(products);
         bindLearnMoreButtons();
+        openFromQuery();
       })
       .catch(function (err) {
         console.warn('[ProductLoader] API error — keeping static cards:', err.message);
@@ -322,6 +323,7 @@
         id: product.id,
         slug: slug,
         name: product.name,
+        description: product.description || '',
         title: si.title || product.name,
         subtitle: si.subtitle || '',
         content: si.content || '',
@@ -439,6 +441,9 @@
 
     // Share service (everyone, signed-in or not)
     bindShareButtons();
+
+    // Social Graph + canonical deep-link URL for this service
+    applySocialGraph(data);
   }
 
   function bindPriceOptions(data) {
@@ -485,27 +490,199 @@
     apply(initial ? initial.value : pr.options[0].key, initial);
   }
 
+  // ── Social share: OG head layer + UTM attribution ────────────
+  // Note: FB/LinkedIn/X *crawlers* read static HTML (no JS). Dynamic meta
+  // still helps in-app browsers, deep-link landings, and analytics. Share
+  // buttons always append platform UTMs so GA4 can attribute referral traffic.
+
+  var DEFAULT_OG_IMAGE = 'https://wordsthatsells.website/images/AIDigitalMarketingthailandlaossoutheastasia.webp';
+  var X_ICON_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true" focusable="false">' +
+      '<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/>' +
+    '</svg>';
+
+  var socialMetaSnapshot = null;
+  var urlSnapshot = null;
+
+  function canonicalPageUrl() {
+    var origin = (typeof window !== 'undefined' && window.location && window.location.origin)
+      ? window.location.origin
+      : 'https://wordsthatsells.website';
+    var path = (typeof window !== 'undefined' && window.location && window.location.pathname)
+      ? window.location.pathname
+      : '/en/digital-marketing-services/content-creation/';
+    if (path.length > 1 && path.charAt(path.length - 1) !== '/') path += '/';
+    return origin + path;
+  }
+
+  function absAssetUrl(url) {
+    if (!url) return '';
+    var s = String(url).trim();
+    if (!s) return '';
+    if (/^https?:\/\//i.test(s)) return s;
+    if (s.indexOf('//') === 0) return 'https:' + s;
+    var origin = (typeof window !== 'undefined' && window.location && window.location.origin)
+      ? window.location.origin
+      : 'https://wordsthatsells.website';
+    if (s.charAt(0) === '/') return origin + s;
+    return origin + '/' + s;
+  }
+
+  /** GA4-friendly share URL: canonical + service deep-link + platform UTMs */
+  function buildServiceShareUrl(slug, platform) {
+    var base = canonicalPageUrl();
+    var src = platform || 'share';
+    // Standard: utm_source = platform, utm_medium = social, campaign binds the play
+    return base +
+      '?service=' + encodeURIComponent(slug || '') +
+      '&utm_source=' + encodeURIComponent(src) +
+      '&utm_medium=social' +
+      '&utm_campaign=service_share' +
+      '&utm_content=' + encodeURIComponent(slug || '');
+  }
+
+  function plainTextSnippet(data, maxLen) {
+    var raw = (data && (data.description || data.subtitle)) || '';
+    raw = String(raw).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!raw) {
+      raw = (data && (data.name || data.title) || 'Words That Sells service') +
+        ' — digital services for Southeast Asia businesses.';
+    }
+    maxLen = maxLen || 160;
+    if (raw.length > maxLen) raw = raw.slice(0, maxLen - 1).replace(/\s+\S*$/, '') + '…';
+    return raw;
+  }
+
+  function upsertMeta(attr, key, content) {
+    if (content == null || content === '') return;
+    var sel = attr === 'property'
+      ? 'meta[property="' + key + '"]'
+      : 'meta[name="' + key + '"]';
+    var el = document.head.querySelector(sel);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute(attr, key);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  }
+
+  function snapshotSocialMeta() {
+    if (socialMetaSnapshot) return;
+    var keys = [
+      ['property', 'og:title'],
+      ['property', 'og:description'],
+      ['property', 'og:image'],
+      ['property', 'og:url'],
+      ['property', 'og:type'],
+      ['name', 'twitter:card'],
+      ['name', 'twitter:title'],
+      ['name', 'twitter:description'],
+      ['name', 'twitter:image'],
+      ['name', 'twitter:url']
+    ];
+    socialMetaSnapshot = {
+      title: document.title,
+      tags: keys.map(function (pair) {
+        var sel = pair[0] === 'property'
+          ? 'meta[property="' + pair[1] + '"]'
+          : 'meta[name="' + pair[1] + '"]';
+        var el = document.head.querySelector(sel);
+        return { attr: pair[0], key: pair[1], content: el ? el.getAttribute('content') : null, existed: !!el };
+      })
+    };
+    urlSnapshot = window.location.href;
+  }
+
+  function restoreSocialMeta() {
+    if (!socialMetaSnapshot) return;
+    document.title = socialMetaSnapshot.title;
+    socialMetaSnapshot.tags.forEach(function (t) {
+      var sel = t.attr === 'property'
+        ? 'meta[property="' + t.key + '"]'
+        : 'meta[name="' + t.key + '"]';
+      var el = document.head.querySelector(sel);
+      if (t.content == null) {
+        if (el && !t.existed) el.parentNode.removeChild(el);
+        return;
+      }
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(t.attr, t.key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', t.content);
+    });
+    socialMetaSnapshot = null;
+    if (urlSnapshot != null && window.history && history.replaceState) {
+      try { history.replaceState(null, '', urlSnapshot); } catch (e) { /* ignore */ }
+    }
+    urlSnapshot = null;
+  }
+
+  /**
+   * Social Graph Presentation Layer — set product-aware OG/Twitter tags
+   * so share surfaces use headline, snippet, absolute image, and canonical URL.
+   */
+  function applySocialGraph(data) {
+    if (!data || !document.head) return;
+    snapshotSocialMeta();
+
+    var slug = data.slug || data.id || '';
+    var title = (data.name || data.title || 'Words That Sells') + ' | Words That Sells';
+    var desc = plainTextSnippet(data, 200);
+    var image = absAssetUrl(data.image) || DEFAULT_OG_IMAGE;
+    // Canonical share object URL (no UTM — engagement aggregates on one entity)
+    var ogUrl = canonicalPageUrl() + '?service=' + encodeURIComponent(slug);
+
+    document.title = title;
+    upsertMeta('property', 'og:type', 'website');
+    upsertMeta('property', 'og:title', title);
+    upsertMeta('property', 'og:description', desc);
+    upsertMeta('property', 'og:image', image);
+    upsertMeta('property', 'og:url', ogUrl);
+    upsertMeta('name', 'twitter:card', 'summary_large_image');
+    upsertMeta('name', 'twitter:title', title);
+    upsertMeta('name', 'twitter:description', desc);
+    upsertMeta('name', 'twitter:image', image);
+    upsertMeta('name', 'twitter:url', ogUrl);
+
+    if (window.history && history.replaceState) {
+      try { history.replaceState({ wtsService: slug }, '', ogUrl); } catch (e) { /* ignore */ }
+    }
+  }
+
   /** Share the service (not the price) — works signed-in or out */
   function buildShareHTML(data) {
-    var pageUrl = (typeof window !== 'undefined' && window.location && window.location.href)
-      ? window.location.href.split('#')[0].split('?')[0]
-      : 'https://wordsthatsells.website/en/digital-marketing-services/content-creation/';
-    var shareUrl = pageUrl + (pageUrl.indexOf('?') >= 0 ? '&' : '?') + 'service=' + encodeURIComponent(data.slug || data.id || '');
-    var shareText = (data.name || data.title || 'Words That Sells service') +
-      ' — digital services for SEA businesses. ' + shareUrl;
-    var encUrl = encodeURIComponent(shareUrl);
-    var encText = encodeURIComponent(shareText);
+    var slug = data.slug || data.id || '';
+    var name = data.name || data.title || 'Words That Sells';
+    var snippet = plainTextSnippet(data, 120);
+    var tweetText = name + ' — ' + snippet;
+
+    var urlFb = buildServiceShareUrl(slug, 'facebook');
+    var urlX = buildServiceShareUrl(slug, 'x');
+    var urlLi = buildServiceShareUrl(slug, 'linkedin');
+    var urlWa = buildServiceShareUrl(slug, 'whatsapp');
+    var urlCopy = buildServiceShareUrl(slug, 'copy_link');
+
+    var encFb = encodeURIComponent(urlFb);
+    var encX = encodeURIComponent(urlX);
+    var encLi = encodeURIComponent(urlLi);
+    var encWaText = encodeURIComponent(name + ' — ' + snippet + ' ' + urlWa);
+    var encTweet = encodeURIComponent(tweetText);
+
     var btn =
       'display:inline-flex;align-items:center;justify-content:center;width:2.35rem;height:2.35rem;' +
       'border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#475569;text-decoration:none;font-size:0.95rem;';
     return '<div class="service-share" style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #e2e8f0;text-align:center;">' +
       '<p style="margin:0 0 0.55rem;font-size:0.8rem;font-weight:600;color:#64748b;letter-spacing:0.04em;text-transform:uppercase;">Share this service</p>' +
       '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">' +
-        '<a href="https://www.facebook.com/sharer/sharer.php?u=' + encUrl + '" target="_blank" rel="noopener noreferrer" title="Share on Facebook" style="' + btn + '"><i class="fab fa-facebook-f"></i></a>' +
-        '<a href="https://twitter.com/intent/tweet?url=' + encUrl + '&text=' + encodeURIComponent(data.name || 'Words That Sells') + '" target="_blank" rel="noopener noreferrer" title="Share on X" style="' + btn + '"><i class="fab fa-x-twitter"></i></a>' +
-        '<a href="https://www.linkedin.com/sharing/share-offsite/?url=' + encUrl + '" target="_blank" rel="noopener noreferrer" title="Share on LinkedIn" style="' + btn + '"><i class="fab fa-linkedin-in"></i></a>' +
-        '<a href="https://wa.me/?text=' + encText + '" target="_blank" rel="noopener noreferrer" title="Share on WhatsApp" style="' + btn + '"><i class="fab fa-whatsapp"></i></a>' +
-        '<button type="button" class="btn-copy-service-link" data-share-url="' + esc(shareUrl) + '" title="Copy link" style="' + btn + 'cursor:pointer;"><i class="fas fa-link"></i></button>' +
+        '<a href="https://www.facebook.com/sharer/sharer.php?u=' + encFb + '" target="_blank" rel="noopener noreferrer" title="Share on Facebook" aria-label="Share on Facebook" style="' + btn + '"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>' +
+        // Inline SVG: Font Awesome 6.0 beta has no fa-x-twitter (blank icon)
+        '<a href="https://twitter.com/intent/tweet?url=' + encX + '&text=' + encTweet + '" target="_blank" rel="noopener noreferrer" title="Share on X" aria-label="Share on X" style="' + btn + '">' + X_ICON_SVG + '</a>' +
+        '<a href="https://www.linkedin.com/sharing/share-offsite/?url=' + encLi + '" target="_blank" rel="noopener noreferrer" title="Share on LinkedIn" aria-label="Share on LinkedIn" style="' + btn + '"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>' +
+        '<a href="https://wa.me/?text=' + encWaText + '" target="_blank" rel="noopener noreferrer" title="Share on WhatsApp" aria-label="Share on WhatsApp" style="' + btn + '"><i class="fab fa-whatsapp" aria-hidden="true"></i></a>' +
+        '<button type="button" class="btn-copy-service-link" data-share-url="' + esc(urlCopy) + '" title="Copy link" aria-label="Copy link" style="' + btn + 'cursor:pointer;"><i class="fas fa-link" aria-hidden="true"></i></button>' +
       '</div>' +
       '<p class="share-copy-status" style="margin:0.45rem 0 0;font-size:0.75rem;color:#16a34a;min-height:1em;"></p>' +
     '</div>';
@@ -528,6 +705,18 @@
         }
       });
     }
+  }
+
+  /** Open Learn More panel from ?service=slug (deep link / shared URL) */
+  function openFromQuery() {
+    try {
+      var params = new URLSearchParams(window.location.search || '');
+      var service = params.get('service');
+      if (service && detailMap[service]) {
+        renderDetail(service);
+        flashProductCard(service);
+      }
+    } catch (e) { /* ignore */ }
   }
 
   // Live total + active-tier highlight for volume pricing. Also syncs the chosen
@@ -1670,6 +1859,8 @@
     document.body.classList.remove('no-scroll');
     elPanel.classList.remove('is-open');
     if (elOverlay) elOverlay.classList.remove('is-open');
+    currentDetailKey = null;
+    restoreSocialMeta();
   }
 
   function bindCloseHandlers() {
