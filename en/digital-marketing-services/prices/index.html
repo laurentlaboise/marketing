@@ -843,9 +843,6 @@
         .project-flip__front {
             border-top: 4px solid var(--color-primary-base);
         }
-        .project-flip.is-highlight .project-flip__front {
-            border-top-color: var(--color-accent-magenta);
-        }
         .project-flip__back {
             transform: rotateY(180deg);
             background: linear-gradient(160deg, #122a3f 0%, #1a3a55 50%, #9d174d 130%);
@@ -1894,7 +1891,8 @@
                         <h2>From Facebook shops to real growth systems</h2>
                         <p>Most local businesses start on social. We meet you there—then build the website, forms, SEO, and follow-up that turn chats into customers.</p>
                         <p>Plans stay scoped on purpose: clear posts, platforms, and deliverables each month so price matches capacity.</p>
-                        <a class="btn btn-accent" href="#product-menu-packages" style="margin-top:0.5rem;">See one-time projects</a>
+                        <!-- Unhidden together with #product-menu-packages once featured products render -->
+                        <a class="btn btn-accent" id="see-projects-btn" href="#product-menu-packages" style="margin-top:0.5rem;" hidden>See one-time projects</a>
                     </div>
                     <div class="image-column">
                         <img
@@ -2463,49 +2461,28 @@
             });
         }
 
-        function renderBundles(bundles) {
-            const bundlesSection = document.getElementById('bundles-grid');
-            if (!bundlesSection || !bundles || !bundles.length) return;
-            bundlesSection.innerHTML = '';
-
-            bundles.forEach((bundle, i) => {
-                const card = document.createElement('div');
-                card.className = `card bundle-card${i === bundles.length - 1 ? ' highlight' : ''}`;
-
-                const featuresHtml = (bundle.features || []).map(f =>
-                    `<li><i class="fas fa-check-circle"></i> ${f}</li>`
-                ).join('');
-
-                const valueHtml = bundle.value ? `<div class="value">Value: $${bundle.value.toLocaleString()}</div>` : '';
-                const saveHtml = bundle.value && bundle.price ? `<div class="save">You save $${(bundle.value - bundle.price).toLocaleString()}</div>` : '';
-
-                card.innerHTML = `
-                    <h3>${bundle.name || ''}</h3>
-                    <p style="color:var(--color-slate-500);margin:0.5rem 0;">${bundle.description || ''}</p>
-                    ${valueHtml}
-                    <div class="price">$${(bundle.price || 0).toLocaleString()}</div>
-                    ${saveHtml}
-                    <ul>${featuresHtml}</ul>
-                    <a href="${bundle.cta_url || '#'}" class="btn" style="margin-top:auto;">${bundle.cta_text || 'Get Started'}</a>
-                `;
-                bundlesSection.appendChild(card);
-            });
-        }
-
         // One-time / featured projects: flip cards come from the admin products
         // API (is_featured = true). The section stays hidden unless at least one
         // live product renders, so archived products can never linger here.
+        // The section copy promises "fixed-scope projects without a monthly
+        // retainer", so featured subscriptions are excluded (they stay on
+        // their own service pages).
+        function isFeaturedProject(p) {
+            return p && p.is_featured &&
+                p.product_type !== 'subscription' &&
+                !(p.pricing && p.pricing.type === 'subscription');
+        }
+
         function renderFeaturedProjects(products) {
             const section = document.getElementById('product-menu-packages');
             const grid = document.getElementById('project-flip-grid');
             if (!section || !grid) return;
-            const featured = (products || []).filter(p => p && p.is_featured);
+            const featured = (products || []).filter(isFeaturedProject);
             if (!featured.length) return;
             const portalBase = 'https://admin.wordsthatsells.website/portal/login?from=prices&src=project&plan=';
             grid.innerHTML = featured.map(p => {
                 const name = escapeHtml(p.name || 'Project');
                 const video = escapeHtml((p.slide_in && p.slide_in.video) || '');
-                const kind = p.product_type === 'subscription' ? 'Monthly service' : 'One-time project';
                 const feats = (Array.isArray(p.features) ? p.features : []).slice(0, 3)
                     .map(f => `<li><i class="fas fa-check"></i> ${escapeHtml(f)}</li>`).join('');
                 const portalUrl = portalBase + encodeURIComponent(p.name || '');
@@ -2514,7 +2491,7 @@
                     <div class="project-flip__inner">
                         <div class="project-flip__face project-flip__front">
                             <h3>${name}</h3>
-                            <p class="value">${kind}</p>
+                            <p class="value">One-time project</p>
                             <ul>${feats}</ul>
                             <div class="project-flip__actions">
                                 <button type="button" class="project-flip__flip-btn" data-flip>Flip for video →</button>
@@ -2533,11 +2510,20 @@
                 </div>`;
             }).join('');
             section.removeAttribute('hidden');
+            const jumpBtn = document.getElementById('see-projects-btn');
+            if (jumpBtn) jumpBtn.removeAttribute('hidden');
+            // Cross-page links to #product-menu-packages resolve before the
+            // section exists in layout — re-scroll now that it is visible.
+            if (window.location.hash === '#product-menu-packages') {
+                section.scrollIntoView();
+            }
         }
 
         async function loadFeaturedProjects() {
             try {
-                const res = await fetch(`${API_BASE}/products`);
+                // featured=1 is filtered server-side; older backends ignore the
+                // param, so isFeaturedProject() re-filters client-side either way.
+                const res = await fetch(`${API_BASE}/products?featured=1`);
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 renderFeaturedProjects(await res.json());
             } catch (err) {
@@ -2554,14 +2540,21 @@
             const infoModalTitle = document.getElementById('info-modal-title');
             const infoModalDescription = document.getElementById('info-modal-description');
 
+            // Featured one-time projects (independent request — start it before
+            // awaiting /pricing so the two fetches run in parallel).
+            loadFeaturedProjects();
+
             // Load pricing from Admin API (source of truth). Keep static HTML fallback
             // when API is down or packages have not been seeded yet.
             const pricingData = await loadPricingData();
-            // Primary SME plans on this page (affiliate-only tiers stay in admin API)
+            // Primary SME plans on this page (affiliate-only tiers stay in admin API).
+            // Plans without a real price are dropped too: the API returns 0 (not
+            // null) when base_price is unset, and a "$0/mo" card must never render.
             const PRIMARY_SLUGS = new Set(['digital-footprint', 'growth-engine', 'automation-pro']);
             if (pricingData && Array.isArray(pricingData.subscriptions)) {
-                const primary = pricingData.subscriptions.filter(p => PRIMARY_SLUGS.has(p.slug));
-                if (primary.length) pricingData.subscriptions = primary;
+                const primary = pricingData.subscriptions.filter(
+                    p => PRIMARY_SLUGS.has(p.slug) && Number(p.price) > 0);
+                pricingData.subscriptions = primary;
             }
             const hasApiPlans = !!(pricingData && pricingData.subscriptions && pricingData.subscriptions.length);
 
@@ -2604,29 +2597,34 @@
                     const planFeatures = plan.features || {};
                     const allFeatures = featureCategories.flatMap(cat => cat.features || []);
                     const includedFeatures = allFeatures.filter(f => planFeatures[f.key] === true);
+                    // All admin-editable fields are escaped before innerHTML —
+                    // the API returns them verbatim as stored.
                     const featuresHtml = '<ul>' + includedFeatures.map(f => {
-                        return `<li title="${f.description || ''}"><i class="fas fa-check"></i> ${f.name}</li>`;
+                        return `<li title="${escapeHtml(f.description || '')}"><i class="fas fa-check"></i> ${escapeHtml(f.name)}</li>`;
                     }).join('') + '</ul>';
 
                     const badgeHtml = plan.badge_text
-                        ? `<div class="popular-pill-badge">${plan.badge_text}</div>` : '';
+                        ? `<div class="popular-pill-badge">${escapeHtml(plan.badge_text)}</div>` : '';
 
                     const upsellHtml = plan.upsell_text
-                        ? `<div class="upsell-tooltip"><i class="fas fa-arrow-up"></i> ${plan.upsell_text}</div>` : '';
+                        ? `<div class="upsell-tooltip"><i class="fas fa-arrow-up"></i> ${escapeHtml(plan.upsell_text)}</div>` : '';
 
                     const upsellTarget = plan.upsell_target_id ? planLookup[plan.upsell_target_id] : null;
                     const upsellBannerHtml = upsellTarget
-                        ? `<div class="upsell-banner" data-upsell-target="${plan.upsell_target_id}"><i class="fas fa-rocket"></i> See ${upsellTarget.name} &rarr;</div>` : '';
+                        ? `<div class="upsell-banner" data-upsell-target="${escapeHtml(plan.upsell_target_id)}"><i class="fas fa-rocket"></i> See ${escapeHtml(upsellTarget.name)} &rarr;</div>` : '';
 
                     const ctaText = 'Get started';
                     const ctaUrl = plan.cta_url || '';
                     const paygoText = plan.pay_as_you_go_text || '';
-                    const discount = plan.annual_discount_pct != null ? plan.annual_discount_pct : 20;
-                    const planName = (plan.name || '').replace(/"/g, '&quot;');
-                    // Prefer consultation modal with plan prefill over bare # links
+                    const discount = Number(plan.annual_discount_pct != null ? plan.annual_discount_pct : 20) || 0;
+                    const planName = escapeHtml(plan.name);
+                    const planPrice = Number(plan.price) || 0;
+                    // Prefer consultation modal with plan prefill over bare # links.
+                    // The button's portal redirect is bound post-render from
+                    // data-plan (no inline onclick — plan names are admin input).
                     const ctaHtml = (ctaUrl && ctaUrl !== '#' && !/^#$/.test(ctaUrl))
-                        ? `<a href="${ctaUrl}" class="btn btn-accent" data-plan="${planName}" data-price="${plan.price}" style="margin-top:auto;">${ctaText}</a>`
-                        : `<button type="button" class="btn btn-accent" data-plan="${planName}" data-price="${plan.price}" style="margin-top:auto;" onclick="return goToPortal('get_started', '${planName.replace(/'/g, "\'")}')">${ctaText}</button>`;
+                        ? `<a href="${escapeHtml(ctaUrl)}" class="btn btn-accent" data-plan="${planName}" data-price="${planPrice}" style="margin-top:auto;">${ctaText}</a>`
+                        : `<button type="button" class="btn btn-accent" data-plan="${planName}" data-price="${planPrice}" style="margin-top:auto;">${ctaText}</button>`;
 
                     // Never surface admin “retail range” jargon on customer cards
                     let tagline = (plan.description || '').trim();
@@ -2635,10 +2633,10 @@
                         ${upsellHtml}
                         ${badgeHtml}
                         <div class="card-sticky-header">
-                            <h3 class="plan-name">${plan.name}</h3>
-                            <p class="plan-tagline">${tagline}</p>
+                            <h3 class="plan-name">${planName}</h3>
+                            <p class="plan-tagline">${escapeHtml(tagline)}</p>
                             <div class="plan-price-wrapper">
-                                <span class="plan-price" data-price="${plan.price}" data-discount="${discount}">$${plan.price}</span>
+                                <span class="plan-price" data-price="${planPrice}" data-discount="${discount}">$${planPrice}</span>
                                 <span class="plan-period">/mo</span>
                             </div>
                             <p class="plan-billing-note" data-monthly-note="Billed monthly">Billed monthly</p>
@@ -2646,7 +2644,7 @@
                         </div>
                         <div class="feature-section">${featuresHtml}</div>
                         <div class="card-footer">
-                            ${paygoText ? '<div class="pay-as-you-go">' + paygoText + '</div>' : ''}
+                            ${paygoText ? '<div class="pay-as-you-go">' + escapeHtml(paygoText) + '</div>' : ''}
                             ${ctaHtml}
                             <div class="card-trust" aria-label="Purchase reassurance">
                                 <span><i class="fas fa-shield-alt" aria-hidden="true"></i> 30-day money-back*</span>
@@ -2658,10 +2656,15 @@
                 });
                 if (billingToggle) applyBillingCycle(billingToggle.checked);
 
-                // --- GA: Track CTA button clicks ---
+                // --- GA: Track CTA button clicks; buttons also redirect to the
+                // portal (bound here instead of inline onclick so admin-entered
+                // plan names can't break out of the handler) ---
                 document.querySelectorAll('.subscription-card .btn[data-plan]').forEach(btn => {
                     btn.addEventListener('click', () => {
                         trackEvent('select_plan', 'Pricing', btn.dataset.plan, parseFloat(btn.dataset.price));
+                        if (btn.tagName === 'BUTTON') {
+                            goToPortal('get_started', btn.dataset.plan);
+                        }
                     });
                 });
 
@@ -2693,7 +2696,7 @@
                 let modalBodyHTML = '';
 
                 pricingData.subscriptions.forEach(plan => {
-                    modalHeadHTML += `<th>${plan.name}</th>`;
+                    modalHeadHTML += `<th>${escapeHtml(plan.name)}</th>`;
                 });
                 modalHeadHTML += '</tr>';
                 modalTableHead.innerHTML = modalHeadHTML;
@@ -2703,8 +2706,8 @@
                         <tr class="modal-divider-row">
                             <td colspan="${pricingData.subscriptions.length + 1}">
                                 <div class="modal-divider">
-                                    <i class="fas ${category.icon} modal-divider-icon"></i>
-                                    ${category.name}
+                                    <i class="fas ${escapeHtml(category.icon)} modal-divider-icon"></i>
+                                    ${escapeHtml(category.name)}
                                 </div>
                             </td>
                         </tr>
@@ -2714,8 +2717,8 @@
                         modalBodyHTML += `
                             <td>
                                 <div class="info-cell">
-                                    <strong>${feature.name}</strong>
-                                    <span class="info-icon" data-title="${feature.name}" data-description="${feature.description || ''}">
+                                    <strong>${escapeHtml(feature.name)}</strong>
+                                    <span class="info-icon" data-title="${escapeHtml(feature.name)}" data-description="${escapeHtml(feature.description || '')}">
                                         <i class="fas fa-info-circle"></i>
                                     </span>
                                 </div>
@@ -2798,28 +2801,31 @@
                 renderModal();
             }
 
-            // Render bundles if API provides them
-            if (pricingData && pricingData.bundles) {
-                renderBundles(pricingData.bundles);
-            }
 
             // À la carte service categories from admin products
             if (pricingData && pricingData.individualServices && pricingData.individualServices.length) {
                 renderIndividualServices(pricingData.individualServices);
             }
 
-            // Keep the static comparison table's list-price row in sync with admin plans
+            // Keep the static comparison table's list-price row in sync with
+            // admin plans. All-or-nothing: if any column's plan is missing from
+            // the API (renamed slug, archived) or has no real price (the API
+            // returns 0, not null, for unset prices), leave the whole static
+            // row alone rather than mixing live and stale numbers.
             if (hasApiPlans) {
-                pricingData.subscriptions.forEach(plan => {
-                    const cell = document.querySelector(`[data-plan-list-price="${plan.slug}"]`);
-                    if (cell && plan.price != null) {
-                        cell.textContent = '$' + Number(plan.price).toLocaleString('en-US');
-                    }
+                const bySlug = {};
+                pricingData.subscriptions.forEach(plan => { bySlug[plan.slug] = plan; });
+                const priceCells = Array.from(document.querySelectorAll('[data-plan-list-price]'));
+                const allLive = priceCells.length && priceCells.every(cell => {
+                    const plan = bySlug[cell.getAttribute('data-plan-list-price')];
+                    return plan && Number(plan.price) > 0;
                 });
+                if (allLive) {
+                    priceCells.forEach(cell => {
+                        cell.textContent = formatMoney(Number(bySlug[cell.getAttribute('data-plan-list-price')].price));
+                    });
+                }
             }
-
-            // Featured one-time projects from the products table
-            loadFeaturedProjects();
 
             if (billingToggle) {
                 applyBillingCycle(billingToggle.checked);
@@ -3019,7 +3025,7 @@
             // Delegated so cards rendered later from the admin API work too
             grid.addEventListener('click', function (e) {
                 const card = e.target.closest('.project-flip');
-                if (!card || !grid.contains(card)) return;
+                if (!card) return;
                 if (e.target.closest('[data-flip]')) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -3043,16 +3049,6 @@
                 }
             });
 
-            // Public helper: set video URL later (e.g. after Manus upload)
-            // WTSProjectVideo.set('Logo Design', 'https://…/clip.mp4')
-            // Persistent videos belong on the product's slide-in video field
-            // in the admin — cards read it via data-video on render.
-            window.WTSProjectVideo = {
-                set: function (projectName, url) {
-                    const card = grid.querySelector('.project-flip[data-project="' + projectName.replace(/"/g, '') + '"]');
-                    if (card) card.setAttribute('data-video', url || '');
-                }
-            };
         })();
 
         function openFormModal(type, sourceEl) {

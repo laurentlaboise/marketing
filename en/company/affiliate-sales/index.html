@@ -372,36 +372,58 @@
                 minimumFractionDigits: decimals, maximumFractionDigits: decimals
             });
         }
+        function billingSuffix(cycle) {
+            return cycle === 'yearly' || cycle === 'annual' ? ' / yr' : ' / mo';
+        }
         function syncPlans(plans) {
-            if (!Array.isArray(plans) || !plans.length) return;
+            if (!Array.isArray(plans)) return;
+            // The /pricing API returns 0 (not null) when a plan's price is
+            // unset — never show a $0 plan or compute earnings from it.
+            var priced = plans.filter(function (p) { return p && Number(p.price) > 0; });
+            if (!priced.length) return;
             var tbody = document.getElementById('commission-plan-rows');
             if (tbody) {
-                tbody.innerHTML = plans.map(function (p) {
-                    var rate = RATE_BY_SLUG[p.slug] || { pct: 20, label: '20% (Bronze)' };
-                    var price = Number(p.price) || 0;
+                tbody.innerHTML = priced.map(function (p) {
+                    var rate = RATE_BY_SLUG[p.slug] || null;
+                    var price = Number(p.price);
+                    // Unknown plan (added later in admin): show the tier range
+                    // rather than inventing a specific rate and earnings figure.
+                    var rateLabel = rate ? rate.label : 'Your tier rate (20–25%)';
+                    var earn = rate ? '<strong>' + money(price * rate.pct / 100, 2) + '</strong>' : '—';
                     return '<tr style="border-bottom:1px solid #e5e7eb;">' +
                         '<td style="padding:0.75rem;">' + esc(p.name) + '</td>' +
-                        '<td style="padding:0.75rem;">' + money(price, 0) + ' / mo</td>' +
-                        '<td style="padding:0.75rem;">' + rate.label + '</td>' +
-                        '<td style="padding:0.75rem;"><strong>' + money(price * rate.pct / 100, 2) + '</strong></td></tr>';
+                        '<td style="padding:0.75rem;">' + money(price, 0) + billingSuffix(p.billing_cycle) + '</td>' +
+                        '<td style="padding:0.75rem;">' + rateLabel + '</td>' +
+                        '<td style="padding:0.75rem;">' + earn + '</td></tr>';
                 }).join('');
             }
-            plans.forEach(function (p) {
-                var h = document.querySelector('[data-ladder-plan="' + p.slug + '"]');
-                if (h && p.price != null) {
-                    h.textContent = p.name + ' — ' + money(Number(p.price), 0) + '/mo';
+            // Iterate the tagged headings (not plan slugs) so admin-entered
+            // slugs never reach querySelector.
+            var bySlug = {};
+            priced.forEach(function (p) { bySlug[p.slug] = p; });
+            Array.prototype.forEach.call(document.querySelectorAll('[data-ladder-plan]'), function (h) {
+                var p = bySlug[h.getAttribute('data-ladder-plan')];
+                if (p) {
+                    h.textContent = p.name + ' — ' + money(Number(p.price), 0) + billingSuffix(p.billing_cycle).replace(/\s/g, '');
                 }
             });
         }
         function syncOneTime(products) {
             var el = document.getElementById('affiliate-onetime-copy');
             if (!el || !Array.isArray(products)) return;
-            var featured = products.filter(function (p) { return p && p.is_featured; });
+            // One-time commission framing — featured subscriptions stay out,
+            // matching the featured-projects rule on the prices page.
+            var featured = products.filter(function (p) {
+                return p && p.is_featured &&
+                    p.product_type !== 'subscription' &&
+                    !(p.pricing && p.pricing.type === 'subscription');
+            });
             if (!featured.length) return;
             var list = featured.map(function (p) {
                 var from = p.pricing && p.pricing.from_price != null ? p.pricing.from_price : p.price;
                 var isOptions = p.pricing && p.pricing.type === 'options';
-                return esc(p.name) + (from != null ? ' — ' + (isOptions ? 'from ' : '') + money(Number(from), 0) : '');
+                var priceTxt = Number(from) > 0 ? ' — ' + (isOptions ? 'from ' : '') + money(Number(from), 0) : '';
+                return esc(p.name) + priceTxt;
             }).join(' · ');
             el.innerHTML = list + '. Commission at your tier rate when the sale closes. Full menu on the <a href="/en/digital-marketing-services/prices/">pricing page</a>.';
         }
@@ -409,7 +431,9 @@
             fetch(API_BASE + '/pricing').then(function (r) { return r.ok ? r.json() : null; })
                 .then(function (d) { if (d) syncPlans(d.subscriptions); })
                 .catch(function () { /* static fallback stays */ });
-            fetch(API_BASE + '/products').then(function (r) { return r.ok ? r.json() : null; })
+            // featured=1 filters server-side; older backends ignore it and the
+            // client-side filter above applies either way.
+            fetch(API_BASE + '/products?featured=1').then(function (r) { return r.ok ? r.json() : null; })
                 .then(function (d) { if (d) syncOneTime(d); })
                 .catch(function () { /* static fallback stays */ });
         });

@@ -37,6 +37,23 @@ test('GET /api/public/glossary and /pricing respond without auth', async () => {
   assert.ok(Array.isArray(body.subscriptions));
 });
 
+test('GET /api/public/products?featured=1 returns only featured products', async () => {
+  const all = await fetch(`${server.base}/api/public/products`);
+  assert.equal(all.status, 200);
+  const allBody = await all.json();
+  assert.ok(Array.isArray(allBody));
+
+  const featured = await fetch(`${server.base}/api/public/products?featured=1`);
+  assert.equal(featured.status, 200);
+  const featuredBody = await featured.json();
+  assert.ok(Array.isArray(featuredBody));
+  for (const p of featuredBody) {
+    assert.equal(p.is_featured, true, `${p.slug} returned by featured=1 but not featured`);
+  }
+  const expected = allBody.filter((p) => p.is_featured).map((p) => p.slug).sort();
+  assert.deepEqual(featuredBody.map((p) => p.slug).sort(), expected);
+});
+
 test('POST /api/public/submissions accepts same-site and non-browser posts', async () => {
   const res = await fetch(`${server.base}/api/public/submissions`, {
     method: 'POST',

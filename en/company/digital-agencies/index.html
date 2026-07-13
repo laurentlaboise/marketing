@@ -628,10 +628,13 @@
           .then(function (r) { return r.ok ? r.json() : null; })
           .then(function (d) {
             if (!d || !Array.isArray(d.subscriptions)) return;
+            // The API returns 0 (not null) for unset prices; require a real
+            // price on ALL primary plans, else keep the static band — a
+            // partial ladder would render a wrong range, not a stale one.
             var prices = d.subscriptions
-              .filter(function (p) { return PRIMARY.indexOf(p.slug) !== -1 && p.price != null; })
+              .filter(function (p) { return PRIMARY.indexOf(p.slug) !== -1 && Number(p.price) > 0; })
               .map(function (p) { return Number(p.price); });
-            if (prices.length < 2) return;
+            if (prices.length !== PRIMARY.length) return;
             var el = document.getElementById('agency-retail-band');
             var fmt = function (n) { return '$' + n.toLocaleString('en-US'); };
             if (el) {
