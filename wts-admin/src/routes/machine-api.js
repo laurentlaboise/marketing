@@ -1492,6 +1492,188 @@ router.post('/v1/whatsapp/send', async (req, res) => {
   }
 });
 
+// ── Articles (CMS publish for automation) ───────────────────────────
+
+/**
+ * GET /v1/articles/:idOrSlug
+ * Fetch one article by UUID or slug (any status).
+ */
+router.get('/v1/articles/:idOrSlug', async (req, res) => {
+  try {
+    const key = String(req.params.idOrSlug || '').trim();
+    if (!key) return fail(res, 'id or slug required');
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key);
+    const result = await db.query(
+      isUuid
+        ? 'SELECT * FROM articles WHERE id = $1 LIMIT 1'
+        : 'SELECT * FROM articles WHERE slug = $1 LIMIT 1',
+      [key]
+    );
+    if (!result.rows.length) return fail(res, 'Article not found', 404);
+    return ok(res, { article: result.rows[0] });
+  } catch (e) {
+    console.error('[machine-api] GET articles', e);
+    return fail(res, 'Failed to load article: ' + e.message, 500);
+  }
+});
+
+/**
+ * PUT /v1/articles/:idOrSlug
+ * Upsert article fields used by the public article SPA + admin form.
+ * Body: partial or full article payload. Does NOT rewrite slug on update
+ * (keeps stable public URLs like /en/articles/logo-design.html).
+ */
+router.put('/v1/articles/:idOrSlug', async (req, res) => {
+  try {
+    const key = String(req.params.idOrSlug || '').trim();
+    if (!key) return fail(res, 'id or slug required');
+    const body = req.body || {};
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key);
+
+    const existing = await db.query(
+      isUuid
+        ? 'SELECT id, slug FROM articles WHERE id = $1 LIMIT 1'
+        : 'SELECT id, slug FROM articles WHERE slug = $1 LIMIT 1',
+      [key]
+    );
+    if (!existing.rows.length) return fail(res, 'Article not found', 404);
+    const id = existing.rows[0].id;
+    const slug = existing.rows[0].slug;
+
+    const str = (v, max) => {
+      if (v == null) return undefined;
+      const s = String(v);
+      return max ? s.slice(0, max) : s;
+    };
+    const asArray = (v) => {
+      if (v == null) return undefined;
+      if (Array.isArray(v)) return v.map((x) => String(x).trim()).filter(Boolean);
+      return String(v).split(',').map((x) => x.trim()).filter(Boolean);
+    };
+    const asJson = (v, fallback) => {
+      if (v === undefined) return undefined;
+      if (v === null) return fallback;
+      if (typeof v === 'string') {
+        try { return JSON.parse(v); } catch (_) { return fallback; }
+      }
+      return v;
+    };
+
+    const fields = [];
+    const params = [];
+    const add = (col, val, cast) => {
+      if (val === undefined) return;
+      params.push(val);
+      fields.push(`${col} = $${params.length}${cast || ''}`);
+    };
+
+    if (body.title != null) add('title', str(body.title, 500));
+    if (body.content != null) add('content', str(body.content));
+    if (body.excerpt != null) add('excerpt', str(body.excerpt, 5000));
+    if (body.category != null) add('category', str(body.category, 100) || null);
+    if (body.tags != null) {
+      const tags = asArray(body.tags) || [];
+      const normalized = tags.map((t) => t.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()));
+      add('tags', normalized);
+    }
+    if (body.seo_title != null) add('seo_title', str(body.seo_title, 500) || null);
+    if (body.seo_description != null) add('seo_description', str(body.seo_description, 2000) || null);
+    if (body.seo_keywords != null) add('seo_keywords', asArray(body.seo_keywords) || []);
+    if (body.status != null) {
+      const st = String(body.status).toLowerCase();
+      if (!['draft', 'published', 'archived'].includes(st)) return fail(res, 'status must be draft|published|archived');
+      add('status', st);
+    }
+    if (body.featured_image != null) add('featured_image', str(body.featured_image, 2000) || null);
+    if (body.published_url != null) add('published_url', str(body.published_url, 2000) || null);
+    if (body.article_code != null) add('article_code', str(body.article_code));
+    if (body.featured != null) add('featured', body.featured === true || body.featured === 'true');
+    if (body.time_to_read != null) {
+      const n = parseInt(body.time_to_read, 10);
+      add('time_to_read', Number.isFinite(n) ? n : null);
+    }
+    if (body.text_article != null) add('text_article', str(body.text_article));
+    if (body.author_type != null) add('author_type', str(body.author_type, 50) || 'organization');
+    if (body.author_name != null) add('author_name', str(body.author_name, 255) || null);
+    if (body.author_job_title != null) add('author_job_title', str(body.author_job_title, 255) || null);
+    if (body.author_url != null) add('author_url', str(body.author_url, 2000) || null);
+
+    if (body.og_title != null) add('og_title', str(body.og_title, 500) || null);
+    if (body.og_description != null) add('og_description', str(body.og_description, 2000) || null);
+    if (body.og_image != null) add('og_image', str(body.og_image, 2000) || null);
+    if (body.og_type != null) add('og_type', str(body.og_type, 50) || 'article');
+    if (body.twitter_card != null) add('twitter_card', str(body.twitter_card, 50) || 'summary_large_image');
+    if (body.twitter_title != null) add('twitter_title', str(body.twitter_title, 500) || null);
+    if (body.twitter_description != null) add('twitter_description', str(body.twitter_description, 2000) || null);
+    if (body.twitter_image != null) add('twitter_image', str(body.twitter_image, 2000) || null);
+    if (body.twitter_site != null) {
+      let s = str(body.twitter_site, 100) || '';
+      if (s && !s.startsWith('@')) s = '@' + s;
+      add('twitter_site', s || null);
+    }
+    if (body.twitter_creator != null) {
+      let s = str(body.twitter_creator, 100) || '';
+      if (s && !s.startsWith('@')) s = '@' + s;
+      add('twitter_creator', s || null);
+    }
+    if (body.canonical_url != null) {
+      add('canonical_url', str(body.canonical_url, 2000) || `https://wordsthatsells.website/en/articles/${slug}.html`);
+    }
+    if (body.robots_meta != null) add('robots_meta', str(body.robots_meta, 100) || 'index, follow');
+
+    if (body.article_images !== undefined) {
+      add('article_images', JSON.stringify(asJson(body.article_images, [])), '::jsonb');
+    }
+    if (body.citations !== undefined) {
+      add('citations', JSON.stringify(asJson(body.citations, [])), '::jsonb');
+    }
+    if (body.content_labels !== undefined) {
+      add('content_labels', JSON.stringify(asJson(body.content_labels, {})), '::jsonb');
+    }
+    if (body.schema_markup !== undefined) {
+      const sm = asJson(body.schema_markup, null);
+      add('schema_markup', sm == null ? null : JSON.stringify(sm), sm == null ? '' : '::jsonb');
+    }
+    if (body.audio_files !== undefined) {
+      add('audio_files', JSON.stringify(asJson(body.audio_files, {})), '::jsonb');
+    }
+    if (body.published_at != null) {
+      const d = new Date(body.published_at);
+      if (!Number.isNaN(d.getTime())) add('published_at', d.toISOString());
+    }
+    if (body.updated_at != null) {
+      const d = new Date(body.updated_at);
+      if (!Number.isNaN(d.getTime())) add('updated_at', d.toISOString());
+    } else {
+      add('updated_at', new Date().toISOString());
+    }
+
+    // Word count from text_article or content when either is set
+    const textSrc = body.text_article != null ? body.text_article : body.content;
+    if (textSrc != null) {
+      const raw = String(textSrc).replace(/<[^>]*>/g, ' ');
+      const wc = raw.split(/\s+/).filter((w) => w.length > 0).length || null;
+      add('word_count', wc);
+    }
+
+    // Auto-set published_at when publishing first time
+    if (body.status === 'published' && body.published_at == null) {
+      fields.push(`published_at = COALESCE(published_at, CURRENT_TIMESTAMP)`);
+    }
+
+    if (!fields.length) return fail(res, 'No fields to update');
+
+    params.push(id);
+    const sql = `UPDATE articles SET ${fields.join(', ')} WHERE id = $${params.length} RETURNING id, slug, title, status, updated_at, published_at, author_type, author_name, word_count, time_to_read`;
+    const result = await db.query(sql, params);
+    await audit(req, 'articles/update', `${slug} status=${result.rows[0]?.status}`);
+    return ok(res, { article: result.rows[0] });
+  } catch (e) {
+    console.error('[machine-api] PUT articles', e);
+    return fail(res, 'Failed to update article: ' + e.message, 500);
+  }
+});
+
 // ── 404 for unknown v1 routes ───────────────────────────────────────
 
 router.use('/v1', (req, res) => {
