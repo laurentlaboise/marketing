@@ -410,7 +410,18 @@
 
           <div class="form-group">
             <label class="form-label" for="image_url">Card Image URL</label>
-            <input type="url" id="image_url" name="image_url" class="form-input" value="<%= product ? (product.image_url || '') : '' %>">
+            <div style="display:flex;gap:0.75rem;align-items:flex-start;flex-wrap:wrap;">
+              <input type="url" id="image_url" name="image_url" class="form-input" style="flex:1;min-width:220px;" value="<%= product ? (product.image_url || '') : '' %>" placeholder="https://wordsthatsells.website/images/products/…">
+              <div id="image_url_preview_wrap" style="flex:none;width:96px;height:96px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                <% if (product && product.image_url) { %>
+                <img id="image_url_preview" src="<%= product.image_url %>" alt="Card image preview" style="width:100%;height:100%;object-fit:cover;">
+                <% } else { %>
+                <img id="image_url_preview" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                <span id="image_url_preview_empty" style="font-size:0.7rem;color:#94a3b8;text-align:center;padding:0.4rem;">No image</span>
+                <% } %>
+              </div>
+            </div>
+            <small style="color:#666;display:block;margin-top:0.35rem;">From <a href="/images" target="_blank" rel="noopener">Image Library</a> — use first-party <code>wordsthatsells.website/images/…</code> URLs.</small>
           </div>
 
           <div class="form-group">
@@ -451,7 +462,17 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="slide_in_image">Detail Image URL</label>
-              <input type="url" id="slide_in_image" name="slide_in_image" class="form-input" value="<%= product ? (product.slide_in_image || '') : '' %>">
+              <div style="display:flex;gap:0.75rem;align-items:flex-start;flex-wrap:wrap;">
+                <input type="url" id="slide_in_image" name="slide_in_image" class="form-input" style="flex:1;min-width:220px;" value="<%= product ? (product.slide_in_image || '') : '' %>" placeholder="https://wordsthatsells.website/images/products/…">
+                <div id="slide_in_image_preview_wrap" style="flex:none;width:96px;height:96px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                  <% if (product && product.slide_in_image) { %>
+                  <img id="slide_in_image_preview" src="<%= product.slide_in_image %>" alt="Detail image preview" style="width:100%;height:100%;object-fit:cover;">
+                  <% } else { %>
+                  <img id="slide_in_image_preview" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                  <span id="slide_in_image_preview_empty" style="font-size:0.7rem;color:#94a3b8;text-align:center;padding:0.4rem;">No image</span>
+                  <% } %>
+                </div>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label" for="slide_in_video">Detail Video URL (YouTube embed)</label>
@@ -727,6 +748,42 @@ document.getElementById('slug').dataset.manual = 'true';
     i.className = input.value.trim() || 'fas fa-box';
     box.appendChild(i);
   });
+})();
+
+// ── Live image URL previews (card + detail) ─────────────────
+(function() {
+  function wirePreview(inputId, imgId, emptyId) {
+    var input = document.getElementById(inputId);
+    var img = document.getElementById(imgId);
+    var empty = document.getElementById(emptyId);
+    if (!input || !img) return;
+    function sync() {
+      var url = (input.value || '').trim();
+      if (!url) {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+        if (empty) empty.style.display = '';
+        return;
+      }
+      img.onload = function() {
+        img.style.display = 'block';
+        if (empty) empty.style.display = 'none';
+      };
+      img.onerror = function() {
+        img.style.display = 'none';
+        if (empty) {
+          empty.style.display = '';
+          empty.textContent = 'Broken URL';
+        }
+      };
+      img.src = url;
+    }
+    input.addEventListener('input', sync);
+    input.addEventListener('change', sync);
+    if (input.value) sync();
+  }
+  wirePreview('image_url', 'image_url_preview', 'image_url_preview_empty');
+  wirePreview('slide_in_image', 'slide_in_image_preview', 'slide_in_image_preview_empty');
 })();
 
 // ── BCEL OnePay price-point rows (add/remove + QR previews) ──

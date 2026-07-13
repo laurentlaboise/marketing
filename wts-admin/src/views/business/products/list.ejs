@@ -64,9 +64,28 @@
               <tr>
                 <td data-label="#" style="color: #999;"><%= product.sort_order || index %></td>
                 <td data-label="Product">
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="<%= product.icon_class || 'fas fa-box' %>" style="color: var(--primary-color, #667eea); font-size: 1.1rem;"></i>
-                    <div>
+                  <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <% var thumbUrl = product.image_url || product.slide_in_image || ''; %>
+                    <% if (thumbUrl) { %>
+                    <img
+                      src="<%= thumbUrl %>"
+                      alt=""
+                      width="48"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                      style="width:48px;height:48px;object-fit:cover;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;flex:none;"
+                      onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='inline-flex');"
+                    >
+                    <span style="display:none;width:48px;height:48px;align-items:center;justify-content:center;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;flex:none;">
+                      <i class="<%= product.icon_class || 'fas fa-box' %>" style="color: var(--primary-color, #667eea); font-size: 1.1rem;"></i>
+                    </span>
+                    <% } else { %>
+                    <span style="display:inline-flex;width:48px;height:48px;align-items:center;justify-content:center;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;flex:none;">
+                      <i class="<%= product.icon_class || 'fas fa-box' %>" style="color: var(--primary-color, #667eea); font-size: 1.1rem;"></i>
+                    </span>
+                    <% } %>
+                    <div style="min-width:0;">
                       <strong><%= product.name %></strong>
                       <% if (product.category) { %>
                       <br><small style="color: #888;"><%= product.category %></small>
