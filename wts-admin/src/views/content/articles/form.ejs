@@ -4174,7 +4174,9 @@ function generateArticlePreview() {
     + '</header>'
     + (featuredImage ? '<img src="' + featuredImage + '" alt="' + title + '" class="featured-image" onerror="this.style.display=\'none\'">' : '')
     + '<div class="article-content">' + articleContent + '</div>'
-    + '</article></div></body></html>';
+    + '</article></div>'
+    + buildSidebarDataBlock('https://wordsthatsells.website/js/services/article-sidebar.js')
+    + '</body></html>';
 
   var container = document.getElementById('articlePreviewContainer');
   var frame = document.getElementById('articlePreviewFrame');
@@ -4220,6 +4222,29 @@ function updateGhFilePath() {
   }
   var pathEl = document.getElementById('gh_path');
   if (pathEl) pathEl.value = slug ? 'en/articles/' + slug + '.html' : '';
+}
+
+
+// Sidebar data blob for the generated pages — the shared module
+// (/js/services/article-sidebar.js) renders the same sticky card the
+// article shell and static pages use.
+function buildSidebarDataBlock(moduleSrc) {
+  var cl = {};
+  try { cl = JSON.parse(document.getElementById('content_labels').value || '{}'); } catch (e) { cl = {}; }
+  var textVal = document.getElementById('text_article').value || '';
+  var words = textVal.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(function(w) { return w.length > 0; }).length || null;
+  var data = {
+    title: document.getElementById('title').value || '',
+    categories: document.getElementById('category').value ? [document.getElementById('category').value] : [],
+    featured_image_url: document.getElementById('featured_image').value || '',
+    published_at: document.getElementById('published_at').value || null,
+    time_to_read: parseInt(document.getElementById('time_to_read').value, 10) || null,
+    word_count: words,
+    content_labels: cl
+  };
+  return '<script type="application/json" id="article-sidebar-data">'
+    + JSON.stringify(data).replace(/</g, '\\u003c')
+    + '<\/script>\n    <script defer src="' + moduleSrc + '"><\/script>\n';
 }
 
 function generateFullArticleHTML() {
@@ -4458,6 +4483,9 @@ function generateFullArticleHTML() {
     + '    <\/script>\n'
     + '    <script src="/js/services/page-sidebar.js"><\/script>\n'
     + '</body>\n</html>';
+
+  // Sticky "In this guide" sidebar — same shared module as every article page
+  html = html.replace('</body>', buildSidebarDataBlock('/js/services/article-sidebar.js') + '</body>');
 
   return html;
 }

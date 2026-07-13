@@ -17,6 +17,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const striptags = require('striptags');
+const sidebarLib = require('./js/services/article-sidebar');
 const API_BASE_URL = 'https://admin.wordsthatsells.website/api/public';
 const SITE_BASE_URL = 'https://wordsthatsells.website';
 const OUTPUT_DIR = path.join(__dirname, 'en', 'articles');
@@ -439,104 +440,21 @@ function generateSchemaMarkup(article) {
 }
 
 /**
- * Generate sidebar card HTML from content_labels
+ * Sidebar card — rendered at build time by the SAME module the article
+ * shell and static pages use (js/services/article-sidebar.js), so the
+ * format can never drift between surfaces. Chapters resolve against the
+ * heading anchors injected into the body, giving working jump-links in
+ * the static HTML before any JavaScript runs.
  */
-function generateSidebarHTML(article) {
+function generateSidebarHTML(article, headings) {
   const cl = article.content_labels || {};
-  const hasDescription = cl.description && cl.description.trim();
-  const hasWhoShouldRead = cl.who_should_read && cl.who_should_read.length > 0;
-  const hasKeyPoints = cl.key_points && cl.key_points.length > 0;
-  const hasSources = cl.sources && cl.sources.length > 0;
-
-  if (!hasDescription && !hasWhoShouldRead && !hasKeyPoints && !hasSources) {
-    return '';
-  }
-
-  const readingTime = article.time_to_read || calculateReadingTime(article.full_article_content || article.content || '');
-  const content = article.full_article_content || article.content || '';
-  const textContent = striptags(content);
-  const wordCount = textContent.split(/\s+/).filter(w => w.length > 0).length;
-  const publishedDate = formatDate(article.published_at || article.created_at);
-  const sourcesCount = (cl.sources || []).length + (article.citations || []).length;
-  const faqsCount = cl.faqs_count || 0;
-  const ctaText = cl.cta_text || 'Read Full Article';
-
-  let html = '<aside class="article-sidebar"><div class="sidebar-card">';
-
-  if (article.featured_image_url) {
-    html += `<img src="${article.featured_image_url}" alt="${escapeHtml(article.title)}" class="sidebar-card-image" onerror="this.style.display='none'">`;
-  }
-
-  html += '<div class="sidebar-card-body">';
-
-  if (article.categories && article.categories.length > 0) {
-    html += `<span class="sidebar-card-category">${escapeHtml(article.categories[0])}</span>`;
-  }
-
-  html += `<h3 class="sidebar-card-title">${escapeHtml(article.title)}</h3>`;
-
-  html += '<div class="sidebar-card-meta">';
-  html += `<span><i class="fas fa-calendar"></i> ${publishedDate}</span>`;
-  html += `<span><i class="fas fa-clock"></i> ${readingTime} min read</span>`;
-  if (sourcesCount > 0) {
-    html += `<span><i class="fas fa-book"></i> ${sourcesCount} sources</span>`;
-  }
-  html += '</div>';
-
-  if (hasDescription) {
-    html += `<p class="sidebar-card-desc">${escapeHtml(cl.description)}</p>`;
-  }
-
-  if (hasWhoShouldRead) {
-    html += '<div class="sidebar-section">';
-    html += '<h4 class="sidebar-section-title"><i class="fas fa-users" style="color: var(--color-primary-base); margin-right: 4px;"></i> Who Should Read This</h4>';
-    html += '<ul>';
-    cl.who_should_read.forEach(item => { html += `<li>${escapeHtml(item)}</li>`; });
-    html += '</ul></div>';
-  }
-
-  if (hasKeyPoints) {
-    html += '<div class="sidebar-section">';
-    html += '<h4 class="sidebar-section-title"><i class="fas fa-lightbulb" style="color: var(--color-primary-base); margin-right: 4px;"></i> What You\'ll Learn</h4>';
-    cl.key_points.forEach(kp => {
-      html += '<div class="sidebar-key-point">';
-      if (kp.title) html += `<div class="sidebar-key-point-title">${escapeHtml(kp.title)}</div>`;
-      if (kp.description) html += `<div class="sidebar-key-point-desc">${escapeHtml(kp.description)}</div>`;
-      html += '</div>';
-    });
-    html += '</div>';
-  }
-
-  if (hasSources) {
-    html += '<div class="sidebar-section">';
-    html += '<h4 class="sidebar-section-title"><i class="fas fa-book-open" style="color: var(--color-primary-base); margin-right: 4px;"></i> Sources Referenced</h4>';
-    html += '<div class="sidebar-sources-badges">';
-    cl.sources.forEach(src => {
-      if (src.url) {
-        html += `<a href="${src.url}" target="_blank" rel="noopener" class="sidebar-source-badge">${escapeHtml(src.name || 'Source')}</a>`;
-      } else {
-        html += `<span class="sidebar-source-badge">${escapeHtml(src.name || 'Source')}</span>`;
-      }
-    });
-    html += '</div></div>';
-  }
-
-  html += '</div>'; // end sidebar-card-body
-
-  // Read stats bar
-  html += '<div class="sidebar-read-bar">';
-  html += '<div class="sidebar-read-stats">';
-  html += `<span><i class="fas fa-file-alt"></i> ${wordCount.toLocaleString()} words</span>`;
-  if (faqsCount > 0) {
-    html += `<span><i class="fas fa-question-circle"></i> ${faqsCount} FAQs</span>`;
-  }
-  html += '</div>';
-  html += `<a href="#" class="sidebar-cta-btn" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">${escapeHtml(ctaText)} <i class="fas fa-arrow-right"></i></a>`;
-  html += '</div>';
-
-  html += '</div></aside>'; // end sidebar-card and aside
-
-  return html;
+  const chapters = Array.isArray(cl.chapters) && cl.chapters.length
+    ? cl.chapters
+    : (Array.isArray(cl.key_points) ? cl.key_points.map(kp => (typeof kp === 'string' ? kp : (kp && kp.title) || '')).filter(Boolean) : []);
+  const entries = sidebarLib.resolveChapters(chapters, headings || []);
+  const card = sidebarLib.buildCardHTML(article, entries, { ctaHref: '#article-container' });
+  if (!card) return '';
+  return '<aside class="article-sidebar">' + card + '</aside>';
 }
 
 /**
@@ -551,7 +469,11 @@ function generateArticleHTML(article) {
   const canonicalUrl = social.canonicalUrl || articleUrl;
   const schemaMarkup = generateSchemaMarkup(article);
 
-  const sidebarHTML = generateSidebarHTML(article);
+  // Anchor ids baked into the static HTML so chapter links work without JS
+  const bodyWithAnchors = sidebarLib.injectHeadingIds(
+    highlightTermsInHTML(article.full_article_content || article.content || '<p>Content not available.</p>', seoTermsCache)
+  );
+  const sidebarHTML = generateSidebarHTML(article, bodyWithAnchors.headings);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -969,7 +891,7 @@ ${JSON.stringify(schemaMarkup, null, 2)}
         </a>
 
         <div class="article-layout">
-        <article>
+        <article id="article-container">
             <header class="article-header">
                 <h1>${escapeHtml(article.title)}</h1>
 
@@ -993,7 +915,7 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             ` : ''}
 
             <div class="article-content">
-                ${highlightTermsInHTML(article.full_article_content || article.content || '<p>Content not available.</p>', seoTermsCache)}
+                ${bodyWithAnchors.html}
             </div>
 
             <div class="share-buttons">
@@ -1023,6 +945,7 @@ ${JSON.stringify(schemaMarkup, null, 2)}
         <i class="fas fa-chevron-up"></i>
     </a>
 
+    <script defer src="/js/services/article-sidebar.js"></script>
     <script>
         // Article data for sharing (uses social preview metadata from CMS)
         const ARTICLE_URL = '${canonicalUrl}';
