@@ -20,12 +20,16 @@ const contentLimiter = rateLimit({
 
 router.use(contentLimiter);
 
-// Helper to create slug
+// Helper to create slug. Edge dashes are trimmed with a linear scan —
+// an anchored `-+` regex backtracks polynomially on dash-heavy input,
+// and this now runs on the user-supplied slug field (CodeQL js/polynomial-redos).
 const createSlug = (title) => {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  const s = String(title).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  let start = 0;
+  let end = s.length;
+  while (start < end && s[start] === '-') start++;
+  while (end > start && s[end - 1] === '-') end--;
+  return s.slice(start, end);
 };
 
 // Listing/sidemenu teaser HTML from Content Labels (single source of truth).
