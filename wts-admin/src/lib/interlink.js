@@ -35,17 +35,21 @@ const glossaryUrl = (lang, slug) => `/${lang}/resources/glossary/${slug}.html`;
 // exists are linkable — a DB row without a generated page must not mint a
 // dead link, and vendor sites are never linked from prose (that's how
 // "Claude" in "Claude Hopkins" ended up pointing at claude.ai).
+// One directory scan per call — build the set once per request/sweep
+// instead of stat'ing the disk once per tool row.
 const AI_TOOLS_PAGES_DIR = path.resolve(__dirname, '../../..', 'en/resources/ai-tools');
-function aiToolPageLink(slug) {
-  if (!slug) return '';
+function aiToolPageSet() {
   try {
-    return fs.existsSync(path.join(AI_TOOLS_PAGES_DIR, slug, 'index.html'))
-      ? `/en/resources/ai-tools/${slug}/`
-      : '';
+    return new Set(
+      fs.readdirSync(AI_TOOLS_PAGES_DIR, { withFileTypes: true })
+        .filter((d) => d.isDirectory() && fs.existsSync(path.join(AI_TOOLS_PAGES_DIR, d.name, 'index.html')))
+        .map((d) => d.name)
+    );
   } catch (e) {
-    return '';
+    return new Set();
   }
 }
+const aiToolPageUrl = (slug) => `/en/resources/ai-tools/${slug}/`;
 
 // Rewrite an English site path to its localized mirror; external URLs and
 // non-/en/ paths pass through untouched.
@@ -127,15 +131,20 @@ async function buildTermIndex(lang, { exclude = null, client = db } = {}) {
     // Consensus, Durable…) — matched case-sensitively, and never when the
     // next word is also capitalized ("Claude Hopkins" is a person, not the
     // assistant). Only tools with a real static page get in at all.
-    ...aiTools.rows.map((t) => {
-      const link = aiToolPageLink(t.slug);
-      return link ? {
-        entityType: 'ai_tool', entityId: String(t.id), type: 'ai-tool',
-        name: t.name, definition: (t.description || '').slice(0, 200),
-        link, localizedLink: localizeLink(link, lang),
-        caseSensitive: true, properNoun: true,
-      } : null;
-    }).filter(Boolean),
+    ...(() => {
+      const pages = aiToolPageSet();
+      return aiTools.rows
+        .filter((t) => pages.has(t.slug))
+        .map((t) => {
+          const link = aiToolPageUrl(t.slug);
+          return {
+            entityType: 'ai_tool', entityId: String(t.id), type: 'ai-tool',
+            name: t.name, definition: (t.description || '').slice(0, 200),
+            link, localizedLink: localizeLink(link, lang),
+            caseSensitive: true, properNoun: true,
+          };
+        });
+    })(),
   ].filter((t) => t.name && t.link);
 
   let entries;
@@ -417,4 +426,4 @@ async function interlinkLibrary({ types = Object.keys(LIBRARY_SOURCES), onlyId =
   }
 }
 
-module.exports = { buildTermIndex, injectTermLinks, interlinkLibrary, LIBRARY_SOURCES, localizeLink, aiToolPageLink, DEFAULT_MAX_LINKS };
+module.exports = { buildTermIndex, injectTermLinks, interlinkLibrary, LIBRARY_SOURCES, localizeLink, aiToolPageSet, aiToolPageUrl, DEFAULT_MAX_LINKS };

@@ -31,6 +31,11 @@ async function run(client) {
 
   await client.query('BEGIN');
   try {
+    // Runs after the boot transaction (and its lock) committed — take the
+    // same advisory lock so parallel boots (test servers, rolling deploys)
+    // can't sweep concurrently. Transaction-scoped: released at COMMIT.
+    await client.query('SELECT pg_advisory_xact_lock(727150001)');
+
     for (const [oldSlug, newSlug] of Object.entries(GLOSSARY_SLUG_MAP)) {
       const res = await client.query(
         `UPDATE glossary SET slug = $2, updated_at = CURRENT_TIMESTAMP
@@ -42,12 +47,15 @@ async function run(client) {
     }
 
     for (const [type, src] of Object.entries(SWEEP_SOURCES)) {
+      // Only rows that can contain injected links — everything else is
+      // skipped without even running the transforms. All SWEEP_SOURCES
+      // tables are created unconditionally by the boot DDL, so a query
+      // error here is a real bug and must propagate (the db.js call site
+      // logs it without blocking startup).
       const rows = (await client.query(
-        // Only rows that can contain injected links — everything else is
-        // skipped without even running the transforms.
         `SELECT id, ${src.fields.join(', ')} FROM ${src.table}
          WHERE ${src.fields.map((f) => `${f} LIKE '%auto-linked%'`).join(' OR ')}`
-      ).catch(() => ({ rows: [] }))).rows; // optional tables may be absent
+      )).rows;
 
       for (const row of rows) {
         const changes = {};

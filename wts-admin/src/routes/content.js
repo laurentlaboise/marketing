@@ -306,16 +306,19 @@ router.get('/articles/api/link-terms', async (req, res) => {
       // client-side linker skips entries with an empty link. Tool names are
       // proper nouns that collide with plain English (Type, Durable…), so
       // the client matches them case-sensitively via these flags.
-      ai_tools: aiTools.rows.map(t => ({
-        id: t.id,
-        term: t.name,
-        definition: (t.description || '').substring(0, 200),
-        category: t.category,
-        link: interlinkLib.aiToolPageLink(t.slug),
-        type: 'ai-tool',
-        caseSensitive: true,
-        properNoun: true
-      }))
+      ai_tools: (() => {
+        const toolPages = interlinkLib.aiToolPageSet();
+        return aiTools.rows.map(t => ({
+          id: t.id,
+          term: t.name,
+          definition: (t.description || '').substring(0, 200),
+          category: t.category,
+          link: toolPages.has(t.slug) ? interlinkLib.aiToolPageUrl(t.slug) : '',
+          type: 'ai-tool',
+          caseSensitive: true,
+          properNoun: true
+        }));
+      })()
     });
   } catch (error) {
     console.error('Link terms fetch error:', error);
