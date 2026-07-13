@@ -1,0 +1,762 @@
+{
+  "source": "Canva design DAFkRXnhylM — catalogue wts (eng)",
+  "notes": "Copy cleaned for grammar; prices not overwritten from 2023 catalogue where live prices differ. Virtual card text in catalogue misused website-copywriting on one page — corrected here.",
+  "updates": [
+    {
+      "slug": "website-copywriting-1000-characters",
+      "description": "Create informative, SEO-friendly website content tailored to engage visitors. We select topics carefully, optimise for search with thoughtful internal linking, and pair text with images that guide attention — so your pages drive organic traffic and keep people reading.",
+      "features": [
+        "SEO-friendly website copy",
+        "Topic selection for your audience",
+        "Thoughtful internal linking",
+        "Text and image guidance for attention",
+        "Built to support organic traffic"
+      ],
+      "slide_in_title": "Website Copywriting",
+      "slide_in_subtitle": "SEO-optimised content services",
+      "slide_in_content": "<p>Create informative content for your website that is SEO-friendly and tailored to engage visitors. Custom topic selection, link building, and visuals that drive attention — valuable, optimised content for organic growth.</p>"
+    },
+    {
+      "slug": "website-copywriting-2500-characters",
+      "description": "Longer-form SEO website copy for deeper pages and service descriptions. Same quality standards as our core copywriting service — clear structure, keyword-aware writing, and calls to action that invite exploration.",
+      "features": [
+        "Longer-form SEO website copy",
+        "Clear structure and hierarchy",
+        "Keyword-aware writing",
+        "Calls to action that convert",
+        "Ready for service and about pages"
+      ],
+      "slide_in_title": "Website Copywriting — 2,500 Characters",
+      "slide_in_subtitle": "Deeper pages, clearer conversion",
+      "slide_in_content": "<p>Extended website copy for pages that need more depth while staying SEO-friendly and easy to scan.</p>"
+    },
+    {
+      "slug": "website-copywriting-5000-characters",
+      "description": "In-depth website copywriting for cornerstone pages. Structured for search and for humans — authentic brand voice, industry language where needed, and CTAs that move visitors toward enquiry or purchase.",
+      "features": [
+        "Cornerstone-page depth",
+        "Brand-aligned authentic voice",
+        "SEO structure and outbound links where useful",
+        "Strong calls to action",
+        "Built for engagement and conversion"
+      ],
+      "slide_in_title": "Website Copywriting — 5,000 Characters",
+      "slide_in_subtitle": "Cornerstone content that ranks and converts",
+      "slide_in_content": "<p>In-depth copy for high-value pages — mission-aligned, keyword-aware, and structured for maximum engagement.</p>"
+    },
+    {
+      "slug": "website-copywriting-10000-characters",
+      "description": "Flagship long-form website copy for complex offerings. Data-informed messaging, careful SEO, and composition that strengthens visibility while staying readable and persuasive.",
+      "features": [
+        "Flagship long-form website content",
+        "SEO-focused composition",
+        "Targeted keywords and interlinks",
+        "Audience-aligned messaging",
+        "Supports organic visibility and trust"
+      ],
+      "slide_in_title": "Website Copywriting — 10,000 Characters",
+      "slide_in_subtitle": "Long-form SEO content for complex offers",
+      "slide_in_content": "<p>High-quality long-form website content designed for search visibility and lasting reader engagement.</p>"
+    },
+    {
+      "slug": "blog-copywriting",
+      "description": "High-quality blog posts with search visibility in mind — targeted keywords, interlinks, and clear structure so readers find what they need fast. Built to strengthen site authority and connect with your intended audience.",
+      "features": [
+        "SEO-focused blog composition",
+        "Targeted keywords and interlinks",
+        "Clear structure for easy reading",
+        "Strong calls to action",
+        "Designed for engagement and return visits"
+      ],
+      "slide_in_title": "Blog Article Copywriting",
+      "slide_in_subtitle": "Optimised content for users and search",
+      "slide_in_content": "<p>Relevant, authentic posts with a clear message. Well-structured content and CTAs that keep people on page longer and exploring what you offer.</p>"
+    },
+    {
+      "slug": "3-seo-article-copywriting-package",
+      "description": "Fresh, high-quality article content to improve traffic, rankings, and engagement. AI-assisted research and drafting with human review for authenticity, grammar, and topic fit — powerful content search engines and readers notice.",
+      "features": [
+        "SEO article package (series of 3)",
+        "AI-assisted research and drafting",
+        "Human review for authenticity",
+        "Keyword and topic research",
+        "Grammar and quality control"
+      ],
+      "slide_in_title": "SEO Article Package — 3 Articles",
+      "slide_in_subtitle": "AI-powered scripts + human polish",
+      "slide_in_content": "<p>Produce relevant, high-quality articles designed to increase traffic, rankings, and user engagement — with AI efficiency and a careful human pass.</p>"
+    },
+    {
+      "slug": "6-seo-article-copywriting-package",
+      "description": "Six-article SEO package for sustained content cadence. Quality research, structured writing, and optimisation to support rankings, link-building potential, and ongoing audience engagement.",
+      "features": [
+        "SEO article package (series of 6)",
+        "Consistent publishing cadence",
+        "Research-backed topics",
+        "Search and reader optimisation",
+        "Human quality oversight"
+      ],
+      "slide_in_title": "SEO Article Package — 6 Articles",
+      "slide_in_subtitle": "Sustained content for growth",
+      "slide_in_content": "<p>A half-dozen SEO articles to keep your content engine moving with quality and consistency.</p>"
+    },
+    {
+      "slug": "12-seo-article-copywriting-package",
+      "description": "Twelve-article SEO package for long-term authority building. Year-round content thinking in a single package — structured, keyword-aware, and written to convert readers into leads over time.",
+      "features": [
+        "SEO article package (series of 12)",
+        "Long-term content strategy alignment",
+        "Search-optimised long-form pieces",
+        "Authority and topical depth",
+        "Human quality oversight"
+      ],
+      "slide_in_title": "SEO Article Package — 12 Articles",
+      "slide_in_subtitle": "Year-round content momentum",
+      "slide_in_content": "<p>A full series of SEO articles to support long-term traffic, rankings, and lead generation.</p>"
+    },
+    {
+      "slug": "logo-design",
+      "description": "Creating a memorable logo is essential in today’s market — creative and eye-catching while still conveying your company message. We develop concepts you can choose from, with guidance on craft and usability so the mark works in print, web, and app contexts.",
+      "features": [
+        "Multiple logo concepts to choose from",
+        "Brand-appropriate creative direction",
+        "Usability across print and digital",
+        "AI speed path or human designer path",
+        "Clear pricing by option"
+      ],
+      "slide_in_title": "Logo Design",
+      "slide_in_subtitle": "One service. Two paths — AI speed or human craft.",
+      "slide_in_content": "<p>A memorable logo needs to be creative and eye-catching while still conveying your brand. Choose AI-Powered Creation for speed and value, or Graphic Designer Support for hands-on craft and refinement — so the mark works whether it is printed, on a website, or in an app.</p>"
+    },
+    {
+      "slug": "10-stock-photos",
+      "description": "Quality stock images carefully curated and edited for professional use. Sourced from stock photography libraries so they are free from copyright issues and ready for web, social, and marketing materials.",
+      "features": [
+        "Professionally curated stock photos",
+        "Copyright-safe source imagery",
+        "Web and marketing ready",
+        "Pack of 10 images",
+        "Clean visual quality"
+      ],
+      "slide_in_title": "Stock Photos",
+      "slide_in_subtitle": "Quality images, carefully curated",
+      "slide_in_content": "<p>High-quality stock photos for marketing and web — professional look without copyright headaches.</p>"
+    },
+    {
+      "slug": "10-seo-branded-stock-photos",
+      "description": "Stock photography selected and prepared for SEO and brand use — appealing visuals that support content, landing pages, and campaigns with a consistent professional standard.",
+      "features": [
+        "SEO-aware image selection",
+        "Brand-friendly visual style",
+        "Ready for web content",
+        "Pack of 10 images",
+        "Professional curation"
+      ],
+      "slide_in_title": "SEO-Branded Stock Photos",
+      "slide_in_subtitle": "Visuals that support search content",
+      "slide_in_content": "<p>Curated stock imagery aligned with content and brand presentation for better page quality.</p>"
+    },
+    {
+      "slug": "digital-banner-design",
+      "description": "Communicate quickly with banners using images, text, and motion where needed. Target demographics, locations, or interests more precisely than traditional outdoor ads — and track clicks and conversions so you can improve the campaign.",
+      "features": [
+        "Fast message delivery with visual design",
+        "Targeted creative for digital placements",
+        "Cost-effective vs traditional media",
+        "Measurable clicks and conversions",
+        "Easy to iterate and improve"
+      ],
+      "slide_in_title": "Digital Banner Design",
+      "slide_in_subtitle": "Clear messages that get attention",
+      "slide_in_content": "<p>Digital banners that communicate fast, target the right audience, and can be measured and refined.</p>"
+    },
+    {
+      "slug": "on-site-photo-shoot-service",
+      "description": "On-site photography for businesses that need authentic visuals of locations, teams, products, or venues — practical assets for web, social, maps listings, and campaigns.",
+      "features": [
+        "On-location photography",
+        "Assets for web and social",
+        "Authentic brand visuals",
+        "Practical commercial framing",
+        "Ready for marketing use"
+      ],
+      "slide_in_title": "On-Site Photo Shoot",
+      "slide_in_subtitle": "Real places, real brand visuals",
+      "slide_in_content": "<p>Professional on-site photography so your digital footprint shows the real business — not only stock imagery.</p>"
+    },
+    {
+      "slug": "ai-document-translation",
+      "description": "Fast translation for documents using professional-grade AI tooling — efficient for multi-language content with a light human review path available when you need higher precision.",
+      "features": [
+        "AI-assisted translation speed",
+        "Multi-language support",
+        "Cost-efficient for bulk text",
+        "Suitable for drafts and internal use",
+        "Upgrade path to human translation"
+      ],
+      "slide_in_title": "AI Document Translation",
+      "slide_in_subtitle": "Speed first, clarity preserved",
+      "slide_in_content": "<p>Quick multi-language document translation powered by AI — ideal when turnaround matters.</p>"
+    },
+    {
+      "slug": "human-document-translation",
+      "description": "Human translation for documents that need nuance, brand voice, or professional accuracy. Ideal when the topic, market, or legal/commercial context requires careful language judgment.",
+      "features": [
+        "Human translator quality",
+        "Brand and context awareness",
+        "Higher precision for critical copy",
+        "Ideal for public-facing content",
+        "Works alongside AI where useful"
+      ],
+      "slide_in_title": "Human Document Translation",
+      "slide_in_subtitle": "Precision when language matters most",
+      "slide_in_content": "<p>Human-led translation for content that must be accurate, natural, and market-ready.</p>"
+    },
+    {
+      "slug": "seo-friendly-website-translation",
+      "description": "Website translation that preserves SEO structure — not only words, but usable multilingual pages that help regional audiences find and trust you.",
+      "features": [
+        "SEO-aware website translation",
+        "Multilingual page readiness",
+        "Preserves structure and intent",
+        "Supports regional discovery",
+        "Clear calls to action retained"
+      ],
+      "slide_in_title": "SEO-Friendly Website Translation",
+      "slide_in_subtitle": "Languages that still rank and convert",
+      "slide_in_content": "<p>Translate website content with search and user experience in mind — so new markets can find you.</p>"
+    },
+    {
+      "slug": "website-seo-translation-package",
+      "description": "Package approach to multilingual SEO website translation — coordinated pages, consistent terminology, and structure that supports cross-border discovery in SEA markets.",
+      "features": [
+        "Multi-page translation package",
+        "Consistent terminology",
+        "SEO structure retained",
+        "SEA market language support",
+        "Coordinated delivery"
+      ],
+      "slide_in_title": "Website SEO Translation Package",
+      "slide_in_subtitle": "Multilingual sites that stay coherent",
+      "slide_in_content": "<p>A package for translating website content with SEO and brand consistency across languages.</p>"
+    },
+    {
+      "slug": "rss-feed-setup",
+      "description": "RSS feed setup so updates from your sites and blogs can be consumed in one place — simpler publishing workflows and easier content distribution to readers and tools.",
+      "features": [
+        "RSS feed configuration",
+        "Easier multi-site updates",
+        "Supports content distribution",
+        "Feed-reader friendly",
+        "Clean technical setup"
+      ],
+      "slide_in_title": "RSS Feed Setup",
+      "slide_in_subtitle": "Stay updated without manual chasing",
+      "slide_in_content": "<p>RSS feeds make it easier to stay current with website and blog updates — and to distribute content cleanly.</p>"
+    },
+    {
+      "slug": "restaurant-bar-menu-digital-software",
+      "description": "Digital menu and simple POS-oriented setup for restaurants and bars — appetising presentation, brand-aligned design, and a smoother ordering experience that can support sales and clearer inventory thinking.",
+      "features": [
+        "Digital menu presentation",
+        "Brand-aligned food visuals",
+        "Easier customer ordering experience",
+        "Supports sales-focused menu design",
+        "Practical for F&B venues"
+      ],
+      "slide_in_title": "Restaurant & Bar Menu Digital Software",
+      "slide_in_subtitle": "Menus that look good and sell better",
+      "slide_in_content": "<p>Digital menus with professional design and practical sales structure for restaurants and bars.</p>"
+    },
+    {
+      "slug": "car-listing-generator",
+      "description": "Generate comprehensive used-car listing specifications from brand, year, and model — technical detail that helps dealers and sellers list vehicles accurately across online marketplaces.",
+      "features": [
+        "Spec generation from make/year/model",
+        "Marketplace-ready listing detail",
+        "Saves research time for dealers",
+        "Consistent technical fields",
+        "Built for used-vehicle sales"
+      ],
+      "slide_in_title": "Used Car Listing Generator",
+      "slide_in_subtitle": "Accurate listings from brand, year, and model",
+      "slide_in_content": "<p>Technical specifications for used-vehicle listings — faster, more consistent marketplace posts.</p>"
+    },
+    {
+      "slug": "social-media-page-setup",
+      "description": "Set up business pages on major social networks with profiles optimised for your audience and aligned to each platform’s best practices — so you look professional from day one.",
+      "features": [
+        "Setup on major social networks",
+        "Audience-aligned profiles",
+        "Platform best-practice structure",
+        "Credibility and trust signals",
+        "Foundation for ongoing content"
+      ],
+      "slide_in_title": "Social Media Page Setup",
+      "slide_in_subtitle": "Start right on every network",
+      "slide_in_content": "<p>Professional social page setup that builds trust, improves user experience, and prepares your brand for engagement and sales.</p>"
+    },
+    {
+      "slug": "social-media-post-generator-starter",
+      "description": "A practical social content bundle to stay active and consistent — posts structured for clarity, engagement, and brand presence across the platforms that matter to your audience.",
+      "features": [
+        "Ready social post packs",
+        "Clear structure and messaging",
+        "Engagement-minded CTAs",
+        "Multi-platform ready",
+        "Consistency without chaos"
+      ],
+      "slide_in_title": "Social Media Post Generator — Starter",
+      "slide_in_subtitle": "Engage your audience with structured posts",
+      "slide_in_content": "<p>Starter social content designed for consistency, clarity, and better engagement across platforms.</p>"
+    },
+    {
+      "slug": "social-media-post-generator-growth",
+      "description": "Higher-volume social content support for brands ready to grow presence, traffic, and lead flow — with analytics-minded planning and content that can scale across major networks.",
+      "features": [
+        "Growth-volume content packs",
+        "Brand awareness focus",
+        "Supports traffic and SEO adjacent goals",
+        "Multi-network presence",
+        "Insight-friendly structure"
+      ],
+      "slide_in_title": "Social Media Post Generator — Growth",
+      "slide_in_subtitle": "Scale presence without losing quality",
+      "slide_in_content": "<p>Growth-oriented social content for brands expanding reach, traffic, and conversions.</p>"
+    },
+    {
+      "slug": "social-media-post-generator-premium",
+      "description": "Premium social content production for brands that need higher cadence, stronger creative quality, and a more complete presence across Facebook, Instagram, and related channels.",
+      "features": [
+        "Premium content cadence",
+        "Higher creative standard",
+        "Cross-platform brand presence",
+        "Engagement and conversion focus",
+        "Audience insight orientation"
+      ],
+      "slide_in_title": "Social Media Post Generator — Premium",
+      "slide_in_subtitle": "Full-strength social content engine",
+      "slide_in_content": "<p>Premium social media content production for serious multi-platform growth.</p>"
+    },
+    {
+      "slug": "cross-platform-publishing",
+      "description": "Share and engage at scale — publish across platforms with better timing, less manual work, and visibility into how content performs where your audience actually is.",
+      "features": [
+        "Cross-platform distribution",
+        "Timely publishing workflows",
+        "Reduced manual posting load",
+        "Performance tracking friendly",
+        "Consistent brand presence"
+      ],
+      "slide_in_title": "Cross Platform Publishing",
+      "slide_in_subtitle": "One message, many channels",
+      "slide_in_content": "<p>Publish and engage across social platforms with automation-minded workflows and clearer analytics.</p>"
+    },
+    {
+      "slug": "sponsored-social-ads",
+      "description": "Precise sponsored social campaigns tailored to demographics, locations, interests, and behaviours — so ad spend reaches people more likely to become leads and customers.",
+      "features": [
+        "Targeted social advertising",
+        "Demographic and interest targeting",
+        "Location-aware campaigns",
+        "Lead and conversion focus",
+        "Performance-minded setup"
+      ],
+      "slide_in_title": "Sponsored Social Ads",
+      "slide_in_subtitle": "Reach the right people on purpose",
+      "slide_in_content": "<p>Targeted sponsored social ads designed for better reach quality, leads, and conversions.</p>"
+    },
+    {
+      "slug": "landing-page-wordpress",
+      "description": "High-converting WordPress landing pages from strong templates, stock or brand media, and clear CTAs — mobile-friendly, relevant, and ready to capture leads or sales with analytics in mind.",
+      "features": [
+        "Conversion-focused landing pages",
+        "Mobile-friendly design",
+        "Clear calls to action",
+        "Lead or sales capture ready",
+        "Analytics-friendly structure"
+      ],
+      "slide_in_title": "Landing Page — WordPress",
+      "slide_in_subtitle": "Pages built to convert",
+      "slide_in_content": "<p>Landing pages that load well, look professional, and guide visitors toward enquiry or purchase.</p>"
+    },
+    {
+      "slug": "wordpress-divi-website-setup-and-design",
+      "description": "WordPress and Divi website setup that is clean, organised, and easy to navigate — consistent design, fast loading, SSL-ready security posture, and mobile-responsive modules so every device feels right.",
+      "features": [
+        "WordPress + Divi professional setup",
+        "Clean navigation and structure",
+        "Mobile-responsive design",
+        "Fast-loading template foundations",
+        "SSL-ready security baseline"
+      ],
+      "slide_in_title": "WordPress & Divi Website Setup and Design",
+      "slide_in_subtitle": "A full site foundation that works",
+      "slide_in_content": "<p>Website development with WordPress and Divi — professional, responsive, and built for a productive visitor journey.</p>"
+    },
+    {
+      "slug": "wordpress-divi-home-page-with-3-modules",
+      "description": "A polished WordPress/Divi home page with three modules — a focused front page that looks professional, loads well, and gives visitors a clear path into your offer.",
+      "features": [
+        "Home page with 3 modules",
+        "Clean Divi layout",
+        "Mobile responsive",
+        "Clear visitor journey",
+        "Professional first impression"
+      ],
+      "slide_in_title": "WordPress & Divi Home Page (3 Modules)",
+      "slide_in_subtitle": "Front page that sets the tone",
+      "slide_in_content": "<p>Main webpage development that is clean, organised, easy to navigate, and mobile responsive.</p>"
+    },
+    {
+      "slug": "wordpress-divi-additional-module-or-section",
+      "description": "Add beautiful, clear Divi module layouts to your site from a large design library — drag-and-drop friendly sections that improve browsing experience without rebuilding the whole site.",
+      "features": [
+        "Additional Divi modules/sections",
+        "Large design library options",
+        "User-experience focused layouts",
+        "Fast site expansion",
+        "Consistent visual system"
+      ],
+      "slide_in_title": "Additional Website Module or Section",
+      "slide_in_subtitle": "Extend your site without starting over",
+      "slide_in_content": "<p>Extra module layouts that keep your WordPress/Divi site looking professional as you grow.</p>"
+    },
+    {
+      "slug": "bubble-web-app-development",
+      "description": "Build engaging web applications with Bubble — modern no-code development with data analytics potential, better UX focus, and a path to monetisation by serving the right audience accurately.",
+      "features": [
+        "Bubble web app development",
+        "Modern no-code stack",
+        "UX-focused builds",
+        "Data and analytics potential",
+        "Quoted by complexity"
+      ],
+      "slide_in_title": "Bubble Web App Development",
+      "slide_in_subtitle": "Apps built for real users",
+      "slide_in_content": "<p>Impressive web applications built with Bubble — optimised for experience, insights, and growth opportunities.</p>"
+    },
+    {
+      "slug": "standard-website-form",
+      "description": "Clean website forms that capture the right information with a professional experience — suitable for contact, enquiry, and lead intake on marketing sites.",
+      "features": [
+        "Professional form setup",
+        "Lead and enquiry capture",
+        "Clear field structure",
+        "Website-ready integration",
+        "Conversion-minded UX"
+      ],
+      "slide_in_title": "Standard Website Form",
+      "slide_in_subtitle": "Simple forms that collect what you need",
+      "slide_in_content": "<p>Standard website forms for contact and lead capture with a clean user experience.</p>"
+    },
+    {
+      "slug": "interactive-website-form",
+      "description": "Interactive website forms that feel more conversational and engaging — higher completion rates through better UX than static field dumps.",
+      "features": [
+        "Interactive form experience",
+        "Higher engagement potential",
+        "Modern lead capture",
+        "Clear completion flow",
+        "Website integration ready"
+      ],
+      "slide_in_title": "Interactive Website Form",
+      "slide_in_subtitle": "Forms people actually finish",
+      "slide_in_content": "<p>Interactive forms that improve engagement and completion rates versus basic static forms.</p>"
+    },
+    {
+      "slug": "additional-website-form",
+      "description": "Add another website form for a new journey — quote, booking, support, or campaign-specific capture — without rebuilding your whole site.",
+      "features": [
+        "Extra form for a new use case",
+        "Campaign or service specific",
+        "Consistent brand UX",
+        "Fast add-on delivery",
+        "Lead routing friendly"
+      ],
+      "slide_in_title": "Additional Website Form",
+      "slide_in_subtitle": "Another capture path, same site",
+      "slide_in_content": "<p>Add an extra form where a new campaign or service needs its own intake path.</p>"
+    },
+    {
+      "slug": "video-form",
+      "description": "Truly interactive forms where people can answer with speech or simple on-screen actions — conversational lead capture that can raise engagement and completion rates.",
+      "features": [
+        "Interactive video-style form UX",
+        "Spoken or tap responses",
+        "Higher engagement potential",
+        "Modern conversion experience",
+        "Memorable brand interaction"
+      ],
+      "slide_in_title": "Video Form",
+      "slide_in_subtitle": "Conversational forms that convert",
+      "slide_in_content": "<p>Interactive forms that feel like a conversation — better engagement and completion than traditional long forms.</p>"
+    },
+    {
+      "slug": "video-form-business-generator",
+      "description": "Business-oriented video form generation for brands that want interactive intake at scale — structured experiences that feel modern and easy to complete.",
+      "features": [
+        "Business video form generation",
+        "Scalable interactive intake",
+        "Modern brand experience",
+        "Lead capture focused",
+        "Ready for campaign use"
+      ],
+      "slide_in_title": "Video Form Business Generator",
+      "slide_in_subtitle": "Interactive intake for serious funnels",
+      "slide_in_content": "<p>Generate business-ready interactive video form experiences for higher-quality lead capture.</p>"
+    },
+    {
+      "slug": "video-form-business-account",
+      "description": "Business account setup around video form workflows — so teams can operate interactive forms with the access and structure they need.",
+      "features": [
+        "Business account configuration",
+        "Team-ready access structure",
+        "Video form workflow support",
+        "Operational setup",
+        "Scalable for organisations"
+      ],
+      "slide_in_title": "Video Form Business Account",
+      "slide_in_subtitle": "Account structure for interactive forms",
+      "slide_in_content": "<p>Set up the business account layer needed to run video form workflows professionally.</p>"
+    },
+    {
+      "slug": "database-and-crm-setup",
+      "description": "CRM and sales database setup using proven third-party tools — lead automation rules, sales flow customisation, and a single source of truth so teams decide from trusted data.",
+      "features": [
+        "CRM setup (e.g. Pipedrive-class tools)",
+        "Lead automation rules",
+        "Custom sales flows",
+        "Unified team data access",
+        "Scalable for growing teams"
+      ],
+      "slide_in_title": "Database and CRM Setup",
+      "slide_in_subtitle": "One source of truth for sales",
+      "slide_in_content": "<p>Set up CRM automation, rules, and sales flows so everyone works from accurate, real-time data.</p>"
+    },
+    {
+      "slug": "gamified-lead-generation-form",
+      "description": "Interactive gamified experiences branded for your business — engage users, reward completion, and drive loyalty, retention, and conversions with campaigns that stay top of mind.",
+      "features": [
+        "Brand-specific game experiences",
+        "Rewards and incentives support",
+        "Engagement and retention focus",
+        "Conversion-minded campaigns",
+        "Memorable lead generation"
+      ],
+      "slide_in_title": "Gamified Lead Generation",
+      "slide_in_subtitle": "Playful paths that still convert",
+      "slide_in_content": "<p>Gamified lead experiences that engage users and encourage completion with brand-aligned incentives.</p>"
+    },
+    {
+      "slug": "business-card-qr-code-design",
+      "description": "QR-enabled business card design that connects print to your digital profile — a simple, professional way to share contact details and keep networking modern.",
+      "features": [
+        "QR business card design",
+        "Print-to-digital connection",
+        "Professional brand presence",
+        "Easy contact sharing",
+        "Campaign-ready artwork"
+      ],
+      "slide_in_title": "Business Card QR Code Design",
+      "slide_in_subtitle": "Cards that open a digital door",
+      "slide_in_content": "<p>QR business card design for modern networking — print meets digital profile in one tap or scan.</p>"
+    },
+    {
+      "slug": "virtual-card-biz-plus",
+      "description": "Virtual card networking solution with stronger security and flexible sharing — save contacts quickly and streamline your digital footprint for sales and relationship conversion.",
+      "features": [
+        "Virtual digital business card",
+        "Quick contact save and share",
+        "Security-minded design",
+        "Flexible networking options",
+        "Supports conversion workflows"
+      ],
+      "slide_in_title": "Virtual Card Biz+",
+      "slide_in_subtitle": "Digital networking that converts",
+      "slide_in_content": "<p>A powerful virtual card for secure, convenient contact sharing and a cleaner digital networking experience.</p>"
+    },
+    {
+      "slug": "virtual-card-pro",
+      "description": "Pro virtual card experience for professionals who need a polished digital networking asset — shareable, convenient, and built for modern contact exchange.",
+      "features": [
+        "Pro virtual card presentation",
+        "Fast shareability",
+        "Modern digital networking",
+        "Contact exchange simplified",
+        "Brand-ready profile layer"
+      ],
+      "slide_in_title": "Virtual Card Pro+",
+      "slide_in_subtitle": "Professional digital first impression",
+      "slide_in_content": "<p>Pro-level virtual business card for professionals who want a stronger digital networking presence.</p>"
+    },
+    {
+      "slug": "google-business-profile-setup",
+      "description": "Google Business Profile setup to maximise local visibility — accurate business information, photos, and descriptions so customers can find and trust you in local search and maps.",
+      "features": [
+        "Google Business Profile setup",
+        "Local visibility focus",
+        "Photos and profile completeness",
+        "Accurate business information",
+        "Foundation for map-pack presence"
+      ],
+      "slide_in_title": "Google Business Profile Setup",
+      "slide_in_subtitle": "Be found where local customers look",
+      "slide_in_content": "<p>Comprehensive Google Business Profile setup so your services are easy to find and accurately presented online.</p>"
+    },
+    {
+      "slug": "google-adsense-consulting",
+      "description": "Practical AdSense and digital advertising consulting to optimise efforts, understand user behaviour, and focus spend where it supports growth — without wasting time on guesswork.",
+      "features": [
+        "AdSense / ads consulting",
+        "Optimisation guidance",
+        "User-behaviour insights",
+        "Efficiency for any business size",
+        "Growth-focused recommendations"
+      ],
+      "slide_in_title": "Google AdSense Consulting",
+      "slide_in_subtitle": "Smarter advertising decisions",
+      "slide_in_content": "<p>Consulting to help you optimise advertising efforts and focus on what actually grows the business.</p>"
+    },
+    {
+      "slug": "canva-pro-access-monthly",
+      "description": "Monthly Canva Pro access arrangement for teams that need professional design tools without managing every seat manually — practical creative capacity for ongoing marketing work.",
+      "features": [
+        "Canva Pro monthly access",
+        "Professional design tooling",
+        "Supports ongoing content work",
+        "Team creative capacity",
+        "Simple monthly arrangement"
+      ],
+      "slide_in_title": "Canva Pro Access — Monthly",
+      "slide_in_subtitle": "Design tools on a monthly rhythm",
+      "slide_in_content": "<p>Monthly Canva Pro access for brands producing regular marketing creatives.</p>"
+    },
+    {
+      "slug": "canva-pro-access-yearly",
+      "description": "Yearly Canva Pro access arrangement for teams committed to continuous creative production — better for planning long-term content systems.",
+      "features": [
+        "Canva Pro yearly access",
+        "Better for annual planning",
+        "Professional design tooling",
+        "Supports content systems",
+        "Stable creative capacity"
+      ],
+      "slide_in_title": "Canva Pro Access — Yearly",
+      "slide_in_subtitle": "Design tools for the full year",
+      "slide_in_content": "<p>Yearly Canva Pro access for teams running continuous creative production.</p>"
+    },
+    {
+      "slug": "25-metal-utap-nfc-cards",
+      "description": "UTAP NFC metal business cards — durable, high-quality metal cards that share contact details with a tap to a phone. A modern networking tool that expands professional reach without paper friction.",
+      "features": [
+        "NFC metal business cards",
+        "Tap-to-share digital profile",
+        "Durable premium metal",
+        "Modern networking experience",
+        "Pack of 25 cards"
+      ],
+      "slide_in_title": "Metal UTAP NFC Cards — 25",
+      "slide_in_subtitle": "Tap once. Share everything that matters.",
+      "slide_in_content": "<p>UTAP NFC metal cards for professionals who want durable cards and instant digital contact sharing.</p>"
+    },
+    {
+      "slug": "50-metal-utap-nfc-cards",
+      "description": "UTAP NFC metal business cards in a 50-card pack — premium tap-to-share networking for teams and active sellers who meet clients often.",
+      "features": [
+        "NFC metal business cards",
+        "Tap-to-share contact data",
+        "Premium durable build",
+        "Ideal for active networkers",
+        "Pack of 50 cards"
+      ],
+      "slide_in_title": "Metal UTAP NFC Cards — 50",
+      "slide_in_subtitle": "More cards for more conversations",
+      "slide_in_content": "<p>A larger pack of UTAP NFC metal cards for teams and frequent networkers.</p>"
+    },
+    {
+      "slug": "100-metal-utap-nfc-cards",
+      "description": "UTAP NFC metal cards at team scale — 100 premium tap-to-share cards for organisations standardising modern networking tools.",
+      "features": [
+        "NFC metal cards at scale",
+        "Instant digital profile share",
+        "Premium metal quality",
+        "Team and event ready",
+        "Pack of 100 cards"
+      ],
+      "slide_in_title": "Metal UTAP NFC Cards — 100",
+      "slide_in_subtitle": "Team-scale modern networking",
+      "slide_in_content": "<p>100 UTAP NFC metal cards for teams rolling out a consistent professional networking standard.</p>"
+    },
+    {
+      "slug": "250-metal-utap-nfc-cards",
+      "description": "Large-run UTAP NFC metal cards for events, multi-location teams, or high-volume outreach — durable cards with tap-to-share digital profiles.",
+      "features": [
+        "Large-run NFC metal cards",
+        "Tap-to-phone digital sharing",
+        "Durable premium finish",
+        "Event and multi-team use",
+        "Pack of 250 cards"
+      ],
+      "slide_in_title": "Metal UTAP NFC Cards — 250",
+      "slide_in_subtitle": "High-volume premium cards",
+      "slide_in_content": "<p>250 UTAP NFC metal cards for high-volume networking and multi-team distribution.</p>"
+    },
+    {
+      "slug": "500-metal-utap-nfc-cards",
+      "description": "Bulk UTAP NFC metal cards for organisations that need maximum inventory of premium tap-to-share networking cards.",
+      "features": [
+        "Bulk NFC metal card inventory",
+        "Tap-to-share digital contact",
+        "Premium durable cards",
+        "Organisation-scale rollout",
+        "Pack of 500 cards"
+      ],
+      "slide_in_title": "Metal UTAP NFC Cards — 500",
+      "slide_in_subtitle": "Maximum inventory, same premium feel",
+      "slide_in_content": "<p>500 UTAP NFC metal cards for large-scale professional networking programs.</p>"
+    },
+    {
+      "slug": "sme-all-in-one-digital-package-basic-monthly",
+      "description": "SME all-in-one digital package on a monthly rhythm — core digital footprint building blocks for small businesses that want consistent presence without assembling every vendor themselves.",
+      "features": [
+        "All-in-one SME digital package",
+        "Monthly operating rhythm",
+        "Core digital footprint support",
+        "Practical for small teams",
+        "Grow without vendor chaos"
+      ],
+      "slide_in_title": "SME All-in-One — Basic Monthly",
+      "slide_in_subtitle": "Digital foundations on a monthly plan",
+      "slide_in_content": "<p>A basic all-in-one digital package for SMEs that need a reliable monthly operating rhythm.</p>"
+    },
+    {
+      "slug": "sme-all-in-one-digital-package-basic-yearly",
+      "description": "SME all-in-one digital package billed yearly — better planning horizon for businesses ready to commit to a full-year digital footprint program.",
+      "features": [
+        "All-in-one SME package",
+        "Yearly planning horizon",
+        "Digital footprint continuity",
+        "Better annual budgeting",
+        "Stable delivery cadence"
+      ],
+      "slide_in_title": "SME All-in-One — Basic Yearly",
+      "slide_in_subtitle": "A full year of digital foundations",
+      "slide_in_content": "<p>Yearly basic all-in-one digital package for SMEs building a durable online presence.</p>"
+    },
+    {
+      "slug": "sme-all-in-one-digital-package-pro",
+      "description": "Pro SME all-in-one digital package for businesses that need a fuller stack of presence, content, and conversion infrastructure in one coordinated offer.",
+      "features": [
+        "Pro all-in-one digital package",
+        "Broader service coverage",
+        "Coordinated delivery",
+        "Built for growing SMEs",
+        "Conversion-minded stack"
+      ],
+      "slide_in_title": "SME All-in-One — Pro",
+      "slide_in_subtitle": "Fuller stack for serious growth",
+      "slide_in_content": "<p>Pro all-in-one digital package for SMEs ready for a more complete digital operating system.</p>"
+    }
+  ]
+}

@@ -514,6 +514,73 @@ router.post('/v1/products/sync-stripe', async (req, res) => {
 });
 
 /**
+ * Bulk-update product marketing copy (description, features, slide-in).
+ * POST /v1/products/bulk-update-copy
+ * body: { updates: [{ slug|id, description?, features?, slide_in_title?, slide_in_subtitle?, slide_in_content?, slide_in_image?, name? }] }
+ */
+router.post('/v1/products/bulk-update-copy', async (req, res) => {
+  try {
+    const updates = Array.isArray(req.body?.updates) ? req.body.updates : [];
+    if (!updates.length) return fail(res, 'updates array required');
+
+    const results = [];
+    for (const u of updates.slice(0, 200)) {
+      const id = u.id || null;
+      const slug = u.slug || null;
+      if (!id && !slug) {
+        results.push({ ok: false, error: 'id or slug required', input: u });
+        continue;
+      }
+      const fields = [];
+      const params = [];
+      const add = (col, val) => {
+        if (val === undefined) return;
+        params.push(val);
+        fields.push(`${col} = $${params.length}`);
+      };
+      if (u.name != null) add('name', String(u.name).trim().slice(0, 255));
+      if (u.description != null) add('description', String(u.description).trim().slice(0, 2000));
+      if (u.features != null) {
+        const feats = Array.isArray(u.features)
+          ? u.features.map((f) => String(f).trim()).filter(Boolean)
+          : String(u.features).split('\n').map((f) => f.trim()).filter(Boolean);
+        add('features', feats);
+      }
+      if (u.slide_in_title != null) add('slide_in_title', String(u.slide_in_title).trim().slice(0, 500) || null);
+      if (u.slide_in_subtitle != null) add('slide_in_subtitle', String(u.slide_in_subtitle).trim().slice(0, 2000) || null);
+      if (u.slide_in_content != null) add('slide_in_content', String(u.slide_in_content).trim().slice(0, 10000) || null);
+      if (u.slide_in_image != null) add('slide_in_image', String(u.slide_in_image).trim() || null);
+      if (u.image_url != null) add('image_url', String(u.image_url).trim() || null);
+      if (!fields.length) {
+        results.push({ ok: false, error: 'no fields', slug, id });
+        continue;
+      }
+      params.push(id);
+      params.push(slug);
+      const sql = `UPDATE products SET ${fields.join(', ')}, updated_at = NOW()
+        WHERE ($` + (params.length - 1) + `::uuid IS NOT NULL AND id = $` + (params.length - 1) + `)
+           OR ($` + params.length + `::text IS NOT NULL AND slug = $` + params.length + `)
+        RETURNING id, name, slug`;
+      try {
+        const r = await db.query(sql, params);
+        if (!r.rows.length) results.push({ ok: false, error: 'not found', slug, id });
+        else results.push({ ok: true, product: r.rows[0] });
+      } catch (e) {
+        results.push({ ok: false, error: e.message, slug, id });
+      }
+    }
+    return ok(res, {
+      updated: results.filter((r) => r.ok).length,
+      failed: results.filter((r) => !r.ok).length,
+      results,
+    });
+  } catch (e) {
+    console.error('[machine-api] bulk-update-copy', e);
+    return fail(res, e.message, 500);
+  }
+});
+
+/**
  * Patch price_options (and optional stripe_product_id) on a product by id or slug.
  * POST /v1/products/price-options
  * body: { id|slug, price_options, stripe_product_id?, price? }
