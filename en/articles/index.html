@@ -993,6 +993,90 @@
             document.body.removeChild(tempInput);
         }
 
+        // Convert plain-text article body (CMS text_article) into readable HTML.
+        // Supports simple # / ## headings, bullet lines, and blank-line paragraphs.
+        function formatPlainArticle(text) {
+            if (!text) return '';
+            const escape = (s) => String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            const lines = String(text).replace(/\r\n/g, '\n').split('\n');
+            const out = [];
+            let para = [];
+            let list = [];
+            const flushPara = () => {
+                if (!para.length) return;
+                out.push('<p>' + para.join(' ').trim() + '</p>');
+                para = [];
+            };
+            const flushList = () => {
+                if (!list.length) return;
+                out.push('<ul>' + list.map((li) => '<li>' + li + '</li>').join('') + '</ul>');
+                list = [];
+            };
+            lines.forEach((raw) => {
+                const line = raw.trim();
+                if (!line) {
+                    flushList();
+                    flushPara();
+                    return;
+                }
+                if (/^###\s+/.test(line) || /^#{3}\s*/.test(line) === false && /^\d+\.\d+\s+/.test(line)) {
+                    // fall through to heading heuristics below
+                }
+                if (/^##\s+/.test(line) || /^#\s+/.test(line)) {
+                    flushList();
+                    flushPara();
+                    const level = line.startsWith('##') ? 2 : 1;
+                    const t = escape(line.replace(/^#+\s*/, ''));
+                    out.push(level === 1 ? '<h2>' + t + '</h2>' : '<h3>' + t + '</h3>');
+                    return;
+                }
+                // Numbered section headings like "1. Title" or "2.1 Subtitle" on their own line
+                if (/^\d+(\.\d+)*\.?\s+\S/.test(line) && line.length < 120 && !/[.!?]$/.test(line)) {
+                    flushList();
+                    flushPara();
+                    const isSub = /^\d+\.\d+/.test(line);
+                    out.push(isSub ? '<h3>' + escape(line) + '</h3>' : '<h2>' + escape(line) + '</h2>');
+                    return;
+                }
+                if (/^([-*•]|\d+\.)\s+/.test(line)) {
+                    flushPara();
+                    list.push(escape(line.replace(/^([-*•]|\d+\.)\s+/, '')));
+                    return;
+                }
+                flushList();
+                // Light inline emphasis for **bold**
+                let safe = escape(line).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                para.push(safe);
+            });
+            flushList();
+            flushPara();
+            return out.join('\n') || ('<p>' + escape(text) + '</p>');
+        }
+
+        // Admin form fields:
+        //   text_article  = full article body (canonical)
+        //   content       = sidemenu / listing teaser (often short)
+        // Prefer long HTML content; otherwise render text_article.
+        function resolveArticleBodyHtml(article) {
+            const content = (article.full_article_content || article.content || '').trim();
+            const text = (article.text_article || '').trim();
+            const contentLooksFull = content.length > 1500 && /<h[1-3][\s>]/i.test(content);
+            if (contentLooksFull) return content;
+            if (text.length > 200) {
+                if (/<[a-z][\s\S]*>/i.test(text)) return text;
+                return formatPlainArticle(text);
+            }
+            if (content) {
+                // Short teaser-only content — still show something, but prefer text if any
+                if (text.length > 0) return formatPlainArticle(text);
+                return content;
+            }
+            return '<p>Content not available.</p>';
+        }
+
         // Load article
         async function loadArticle() {
             const slug = getSlugFromURL();
@@ -1048,11 +1132,15 @@
                 const schema = generateSchema(article);
                 addSchemaScript(schema);
 
-                // Calculate reading time or use stored value
-                const readingTime = article.time_to_read || calculateReadingTime(article.full_article_content || article.content || '');
+                // Body resolution (admin-aligned):
+                // - text_article = full article (canonical in CMS form)
+                // - content = sidemenu/listing teaser (short)
+                // Prefer long HTML content when present; otherwise format text_article.
+                const bodyHtml = resolveArticleBodyHtml(article);
+                const readingTime = article.time_to_read || calculateReadingTime(article.text_article || bodyHtml || article.content || '');
 
                 // Format dates
-                const publishedDate = formatDate(article.created_at);
+                const publishedDate = formatDate(article.published_at || article.created_at);
                 const updatedDate = article.updated_at ? formatDate(article.updated_at) : null;
 
                 // Current page URL for sharing
@@ -1092,7 +1180,7 @@
                         ` : ''}
 
                         <div class="article-content">
-                            ${article.full_article_content || article.content || '<p>Content not available.</p>'}
+                            ${bodyHtml}
                         </div>
 
                         <div class="share-buttons">

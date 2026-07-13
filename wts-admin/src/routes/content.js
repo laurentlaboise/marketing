@@ -144,23 +144,23 @@ router.post('/articles', [
     const timeToRead = time_to_read ? parseInt(time_to_read, 10) : null;
     const publishedAtValue = published_at ? new Date(published_at) : (status === 'published' ? new Date() : null);
     const updatedAtValue = updated_at ? new Date(updated_at) : new Date();
-    const articleImagesArray = article_images ? JSON.parse(article_images) : [];
+    // Safe JSON parses — broken hidden fields must not block admin create
+    const safeJsonParse = (raw, fallback) => {
+      if (raw == null || raw === '') return fallback;
+      if (typeof raw === 'object') return raw;
+      try { return JSON.parse(raw); } catch (e) {
+        console.warn('Article create: invalid JSON field, using fallback:', e.message);
+        return fallback;
+      }
+    };
+    const articleImagesArray = safeJsonParse(article_images, []);
     let schemaMarkupJson = null;
-    if (schema_markup && schema_markup.trim()) {
-      try { schemaMarkupJson = JSON.parse(schema_markup); } catch(e) { schemaMarkupJson = null; }
+    if (schema_markup && String(schema_markup).trim()) {
+      schemaMarkupJson = safeJsonParse(schema_markup, null);
     }
-    let citationsArray = [];
-    if (citations && citations.trim()) {
-      try { citationsArray = JSON.parse(citations); } catch(e) { citationsArray = []; }
-    }
-    let contentLabelsJson = {};
-    if (content_labels && content_labels.trim()) {
-      try { contentLabelsJson = JSON.parse(content_labels); } catch(e) { contentLabelsJson = {}; }
-    }
-    let audioFilesJson = {};
-    if (audio_files && audio_files.trim()) {
-      try { audioFilesJson = JSON.parse(audio_files); } catch(e) { audioFilesJson = {}; }
-    }
+    const citationsArray = safeJsonParse(citations, []);
+    const contentLabelsJson = safeJsonParse(content_labels, {});
+    const audioFilesJson = safeJsonParse(audio_files, {});
 
     // Normalize twitter:creator format (must start with @)
     let normalizedTwitterCreator = twitter_creator ? twitter_creator.trim() : '';
@@ -368,23 +368,23 @@ router.post('/articles/:id', async (req, res) => {
     const timeToRead = time_to_read ? parseInt(time_to_read, 10) : null;
     const updatedAtValue = updated_at ? new Date(updated_at) : new Date();
     const publishedAtValue = published_at ? new Date(published_at) : null;
-    const articleImagesArray = article_images ? JSON.parse(article_images) : [];
+    // Safe JSON parses — broken hidden fields must not block admin save/publish
+    const safeJsonParse = (raw, fallback) => {
+      if (raw == null || raw === '') return fallback;
+      if (typeof raw === 'object') return raw;
+      try { return JSON.parse(raw); } catch (e) {
+        console.warn('Article update: invalid JSON field, using fallback:', e.message);
+        return fallback;
+      }
+    };
+    const articleImagesArray = safeJsonParse(article_images, []);
     let schemaMarkupJson = null;
-    if (schema_markup && schema_markup.trim()) {
-      try { schemaMarkupJson = JSON.parse(schema_markup); } catch(e) { schemaMarkupJson = null; }
+    if (schema_markup && String(schema_markup).trim()) {
+      schemaMarkupJson = safeJsonParse(schema_markup, null);
     }
-    let citationsArray = [];
-    if (citations && citations.trim()) {
-      try { citationsArray = JSON.parse(citations); } catch(e) { citationsArray = []; }
-    }
-    let contentLabelsJson = {};
-    if (content_labels && content_labels.trim()) {
-      try { contentLabelsJson = JSON.parse(content_labels); } catch(e) { contentLabelsJson = {}; }
-    }
-    let audioFilesJson = {};
-    if (audio_files && audio_files.trim()) {
-      try { audioFilesJson = JSON.parse(audio_files); } catch(e) { audioFilesJson = {}; }
-    }
+    const citationsArray = safeJsonParse(citations, []);
+    const contentLabelsJson = safeJsonParse(content_labels, {});
+    const audioFilesJson = safeJsonParse(audio_files, {});
 
     // Normalize twitter:creator format (must start with @)
     let normalizedTwitterCreator = twitter_creator ? twitter_creator.trim() : '';

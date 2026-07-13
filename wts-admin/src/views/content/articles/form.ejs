@@ -157,18 +157,18 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="text_article"><i class="fas fa-file-alt"></i> Text Article</label>
-              <textarea id="text_article" name="text_article" class="form-input" rows="15" placeholder="Enter the main article text content here"><%= article ? article.text_article : '' %></textarea>
+              <label class="form-label" for="text_article"><i class="fas fa-file-alt"></i> Full Article (Text) *</label>
+              <textarea id="text_article" name="text_article" class="form-input" rows="15" placeholder="Paste the full article body here (plain text or HTML). This is what readers see on the article page."><%= article ? article.text_article : '' %></textarea>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                <p class="form-help" style="margin: 0;">The main text content of your article.</p>
+                <p class="form-help" style="margin: 0;"><strong>Canonical full article.</strong> Keep the complete guide here — not a teaser.</p>
                 <span id="liveWordCount" class="char-counter" style="font-size: 13px;">0 words</span>
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="content"><i class="fas fa-file-code"></i> Sidemenu Content *</label>
-              <textarea id="content" name="content" class="form-input" rows="15" required placeholder="Enter full HTML for the sidebar panel. Use standard HTML: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;a&gt; tags. This appears in the slide-in panel when readers click 'Read More' on the article card."><%= article ? article.content : '' %></textarea>
-              <p class="form-help">Full HTML content for the slide-in sidebar panel. This is the rich preview shown when a reader clicks on the article card from the listing page. Use standard HTML markup — headings, paragraphs, lists, links. You can use the <strong>Auto-Hyperlink</strong> button below to add internal links automatically.</p>
+              <label class="form-label" for="content"><i class="fas fa-file-code"></i> Listing / Sidemenu Teaser *</label>
+              <textarea id="content" name="content" class="form-input" rows="10" required placeholder="Short HTML teaser for the articles listing modal / slide-in. NOT the full article."><%= article ? article.content : '' %></textarea>
+              <p class="form-help"><strong>Short teaser only</strong> (description, chapter bullets, a few facts, CTA link). Used on the articles listing when someone opens the preview card. The full article lives in <em>Full Article (Text)</em> above and in Content Labels for the sticky side card.</p>
             </div>
 
             <!-- Auto-Hyperlink Button -->
@@ -676,19 +676,31 @@
 
             <div class="form-group">
               <label class="form-label" for="cl_description"><i class="fas fa-align-left"></i> Card Description</label>
-              <textarea id="cl_description" name="cl_description" class="form-input" rows="3" placeholder="A short description that appears on the sidebar card..."></textarea>
-              <p class="form-help">Shown at the top of the sidebar card below the title.</p>
+              <textarea id="cl_description" name="cl_description" class="form-input" rows="3" placeholder="A short hook (1–2 sentences). Keep it scannable — the goal is to pull the click into the full article."></textarea>
+              <p class="form-help">Short teaser only. Do not paste the full article here.</p>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="cl_who_should_read"><i class="fas fa-users"></i> Who Should Read This</label>
-              <textarea id="cl_who_should_read" name="cl_who_should_read" class="form-input" rows="4" placeholder="Marketing professionals&#10;Business owners&#10;SEO specialists"></textarea>
-              <p class="form-help">One audience type per line. Displayed as a bullet list.</p>
+              <label class="form-label" for="cl_chapters"><i class="fas fa-list-ul"></i> Chapters (point form)</label>
+              <textarea id="cl_chapters" name="cl_chapters" class="form-input" rows="6" placeholder="Why visual identity matters in Laos now&#10;Logo shape psychology&#10;Color meaning in the Lao context"></textarea>
+              <p class="form-help">One chapter title per line. Shown as a compact bullet list on the sidebar.</p>
             </div>
 
             <div class="form-group">
-              <label class="form-label"><i class="fas fa-lightbulb"></i> What You'll Learn (Key Points)</label>
-              <p class="form-help" style="margin-bottom: 8px;">Add key points with a bold title and description.</p>
+              <label class="form-label" for="cl_facts"><i class="fas fa-bolt"></i> Quick Facts</label>
+              <textarea id="cl_facts" name="cl_facts" class="form-input" rows="4" placeholder="Judgments form in ~50 milliseconds&#10;54.3% of Lao people are on social media"></textarea>
+              <p class="form-help">3–4 punchy facts max. One fact per line.</p>
+            </div>
+
+            <div class="form-group" style="display:none;">
+              <label class="form-label" for="cl_who_should_read"><i class="fas fa-users"></i> Who Should Read This (optional / legacy)</label>
+              <textarea id="cl_who_should_read" name="cl_who_should_read" class="form-input" rows="3" placeholder="Marketing professionals&#10;Business owners"></textarea>
+              <p class="form-help">Legacy field. Prefer chapters + facts for a cleaner teaser card.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label"><i class="fas fa-lightbulb"></i> Key Points (optional / legacy)</label>
+              <p class="form-help" style="margin-bottom: 8px;">Optional. Prefer <strong>Chapters</strong> above for TOC-style bullets. Title-only key points still work.</p>
               <div id="keyPointsList" class="key-points-list"></div>
               <button type="button" id="addKeyPointBtn" class="btn btn-secondary" style="margin-top: 8px;">
                 <i class="fas fa-plus"></i> Add Key Point
@@ -697,7 +709,7 @@
 
             <div class="form-group">
               <label class="form-label"><i class="fas fa-book-open"></i> Sources Referenced</label>
-              <p class="form-help" style="margin-bottom: 8px;">Add source badges and links shown on the sidebar card.</p>
+              <p class="form-help" style="margin-bottom: 8px;">3–4 source badges is ideal for the teaser card.</p>
               <div id="sidebarSourcesList" class="sidebar-sources-list"></div>
               <button type="button" id="addSidebarSourceBtn" class="btn btn-secondary" style="margin-top: 8px;">
                 <i class="fas fa-plus"></i> Add Source
@@ -2902,6 +2914,20 @@ document.addEventListener('DOMContentLoaded', function() {
   if (contentLabelsData.who_should_read && Array.isArray(contentLabelsData.who_should_read)) {
     document.getElementById('cl_who_should_read').value = contentLabelsData.who_should_read.join('\n');
   }
+  var chaptersEl = document.getElementById('cl_chapters');
+  if (chaptersEl) {
+    var chapters = contentLabelsData.chapters;
+    if ((!chapters || !chapters.length) && Array.isArray(contentLabelsData.key_points)) {
+      chapters = contentLabelsData.key_points.map(function(kp) {
+        return typeof kp === 'string' ? kp : (kp && kp.title ? kp.title : '');
+      }).filter(Boolean);
+    }
+    if (chapters && chapters.length) chaptersEl.value = chapters.join('\n');
+  }
+  var factsEl = document.getElementById('cl_facts');
+  if (factsEl && Array.isArray(contentLabelsData.facts)) {
+    factsEl.value = contentLabelsData.facts.join('\n');
+  }
   if (contentLabelsData.faqs_count) document.getElementById('cl_faqs_count').value = contentLabelsData.faqs_count;
   if (contentLabelsData.cta_text) document.getElementById('cl_cta_text').value = contentLabelsData.cta_text;
 
@@ -2909,20 +2935,42 @@ document.addEventListener('DOMContentLoaded', function() {
   sidebarSourcesData = contentLabelsData.sources || [];
   renderKeyPoints();
   renderSidebarSources();
+
+  // Keep hidden JSON in sync when teaser fields change
+  ['cl_description', 'cl_chapters', 'cl_facts', 'cl_who_should_read', 'cl_faqs_count', 'cl_cta_text'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateContentLabels);
+  });
 });
 
 function updateContentLabels() {
   var desc = document.getElementById('cl_description').value.trim();
-  var whoLines = document.getElementById('cl_who_should_read').value.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l; });
+  var whoEl = document.getElementById('cl_who_should_read');
+  var whoLines = whoEl
+    ? whoEl.value.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l; })
+    : [];
+  var chaptersEl = document.getElementById('cl_chapters');
+  var chapters = chaptersEl
+    ? chaptersEl.value.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l; })
+    : [];
+  var factsEl = document.getElementById('cl_facts');
+  var facts = factsEl
+    ? factsEl.value.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l; }).slice(0, 6)
+    : [];
   var faqsCount = parseInt(document.getElementById('cl_faqs_count').value) || 0;
   var ctaText = document.getElementById('cl_cta_text').value.trim();
 
   contentLabelsData.description = desc;
+  contentLabelsData.chapters = chapters;
+  contentLabelsData.facts = facts;
   contentLabelsData.who_should_read = whoLines;
-  contentLabelsData.key_points = keyPointsData;
+  // Mirror chapters into key_points (title-only) for older renderers
+  contentLabelsData.key_points = chapters.length
+    ? chapters.map(function(t) { return { title: t }; })
+    : keyPointsData;
   contentLabelsData.sources = sidebarSourcesData;
   contentLabelsData.faqs_count = faqsCount;
-  contentLabelsData.cta_text = ctaText;
+  contentLabelsData.cta_text = ctaText || 'Read full article';
 
   document.getElementById('content_labels').value = JSON.stringify(contentLabelsData);
 }
