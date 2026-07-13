@@ -1529,6 +1529,46 @@ router.get('/v1/articles/:idOrSlug', async (req, res) => {
 });
 
 /**
+ * POST /v1/articles
+ * Create a minimal article row (title required; slug derived or explicit,
+ * deduplicated; status defaults to draft). Returns { id, slug } — push the
+ * full payload with PUT /v1/articles/:id afterwards. The helper script's
+ * `create-article` command chains both calls.
+ */
+router.post('/v1/articles', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const title = String(body.title || '').trim();
+    if (!title) return fail(res, 'title is required');
+    const status = String(body.status || 'draft').toLowerCase();
+    if (!['draft', 'published', 'archived'].includes(status)) {
+      return fail(res, 'status must be draft|published|archived');
+    }
+
+    const requested = String(body.slug || title).toLowerCase();
+    const slugBase = requested.split(/[^a-z0-9]+/).filter(Boolean).join('-').slice(0, 200) || 'article';
+    let slug = slugBase;
+    for (let n = 2; (await db.query(
+      `SELECT 1 FROM articles WHERE slug = $1 OR $1 = ANY(COALESCE(previous_slugs, '{}')) LIMIT 1`, [slug]
+    )).rows.length; n++) {
+      slug = `${slugBase}-${n}`;
+    }
+
+    const result = await db.query(
+      `INSERT INTO articles (title, slug, status, published_at)
+       VALUES ($1, $2, $3::VARCHAR, CASE WHEN $3::VARCHAR = 'published' THEN CURRENT_TIMESTAMP ELSE NULL END)
+       RETURNING id, slug, status`,
+      [title.slice(0, 500), slug, status]
+    );
+    await audit(req, 'articles/create', slug);
+    return ok(res, { article: result.rows[0] }, 201);
+  } catch (e) {
+    console.error('[machine-api] POST articles', e);
+    return fail(res, 'Failed to create article: ' + e.message, 500);
+  }
+});
+
+/**
  * PUT /v1/articles/:idOrSlug
  * Upsert article fields used by the public article SPA + admin form.
  * Optional body.slug renames the public URL slug (must be unique).

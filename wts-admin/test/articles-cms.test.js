@@ -152,6 +152,35 @@ test('slug rename records the old slug and every reader keeps answering on it', 
   assert.equal(saved.seo_title, 'Written via the old slug');
 });
 
+test('machine POST creates a draft with a deduplicated slug, PUT fills it', async () => {
+  const created = await fetch(`${machine()}/articles`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ title: 'TestCms Logo Guide' }), // same title as the seeded article
+  });
+  assert.equal(created.status, 201);
+  const body = await created.json();
+  assert.ok(body.article.id, 'returns the new id');
+  assert.notEqual(body.article.slug, SLUG, 'slug deduplicates against existing rows');
+  assert.match(body.article.slug, /^testcms-logo-guide-\d+$/);
+  assert.equal(body.article.status, 'draft');
+
+  const filled = await fetch(`${machine()}/articles/${body.article.id}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({
+      text_article: '<h2>Only Section</h2><p>Body.</p>',
+      content_labels: { description: 'Hook', chapters: ['Only Section'] },
+      status: 'published',
+    }),
+  });
+  assert.equal(filled.status, 200);
+  const row = (await pool.query('SELECT content, text_article, status FROM articles WHERE id = $1', [body.article.id])).rows[0];
+  assert.equal(row.status, 'published');
+  assert.match(row.text_article, /Only Section/);
+  assert.match(row.content, /data-teaser-source="content_labels"/, 'teaser regenerated on the fill PUT');
+});
+
 test('renaming back reuses the slug without clashing with its own history', async () => {
   const res = await fetch(`${machine()}/articles/${RENAMED_SLUG}`, {
     method: 'PUT',

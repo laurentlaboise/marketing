@@ -831,45 +831,14 @@
           <!-- GitHub Publishing Section -->
           <div class="form-section">
             <h3 class="form-section-title"><i class="fab fa-github"></i> Publish to GitHub Pages</h3>
-            <p class="form-help" style="margin-bottom: 12px;">Generate a static HTML article file and push it to your GitHub repository. The article will be live on GitHub Pages after deployment.</p>
+            <p class="form-help" style="margin-bottom: 12px;">Generate a static HTML article file and push it to the site repository. Publishing runs through the server using its own GitHub credentials — no token in the browser.</p>
 
-            <!-- GitHub Settings -->
             <div class="github-settings" style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-              <h4 style="font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 12px;"><i class="fas fa-cog"></i> GitHub Settings</h4>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="gh_token">Personal Access Token</label>
-                  <input type="password" id="gh_token" class="form-input" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
-                  <p class="form-help">Stored in browser localStorage. Needs repo write access.</p>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="gh_repo">Repository</label>
-                  <input type="text" id="gh_repo" class="form-input" value="laurentlaboise/marketing" placeholder="owner/repo">
-                </div>
+              <div class="form-group" style="margin: 0;">
+                <label class="form-label" for="gh_path">File Path</label>
+                <input type="text" id="gh_path" class="form-input" placeholder="en/articles/your-slug.html" readonly>
+                <p class="form-help">Auto-generated from the URL slug. Commits go to laurentlaboise/marketing on main via the server's GITHUB_TOKEN.</p>
               </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="gh_branch">Branch</label>
-                  <input type="text" id="gh_branch" class="form-input" value="main" placeholder="main">
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="gh_path">File Path</label>
-                  <input type="text" id="gh_path" class="form-input" placeholder="en/articles/your-slug.html" readonly>
-                  <p class="form-help">Auto-generated from article slug</p>
-                </div>
-              </div>
-
-              <div class="gh-settings-buttons">
-                <button type="button" id="saveGhSettingsBtn" class="btn btn-secondary btn-sm">
-                  <i class="fas fa-save"></i> Save Settings
-                </button>
-                <button type="button" id="testGhConnectionBtn" class="btn btn-secondary btn-sm">
-                  <i class="fas fa-plug"></i> Test Connection
-                </button>
-              </div>
-              <div id="ghConnectionStatus" style="display: none; margin-top: 8px;"></div>
             </div>
 
             <!-- Publish Actions -->
@@ -3625,9 +3594,7 @@ function updateCompletionIndicator() {
   var pDot = document.querySelector('.completion-dot[data-section="publish"]');
   if (pDot) {
     var hasPubUrl = document.getElementById('published_url').value.trim();
-    var ghToken = localStorage.getItem('wts_gh_token');
     if (hasPubUrl) { pDot.className = 'completion-dot complete'; complete++; }
-    else if (ghToken) { pDot.className = 'completion-dot partial'; }
     else { pDot.className = 'completion-dot'; }
   }
 
@@ -4221,68 +4188,27 @@ function openPreviewInNewTab() {
 }
 
 // ==================== GITHUB PUBLISHING ====================
+// Publishing goes through the server (POST /content/articles/publish-github),
+// which holds the GitHub credential. The old client-side flow kept a
+// repo-write PAT in localStorage — purge it from browsers that still have it.
 function initGitHubSettings() {
-  // Load saved settings from localStorage
-  var savedToken = localStorage.getItem('wts_gh_token') || '';
-  var savedRepo = localStorage.getItem('wts_gh_repo') || 'laurentlaboise/marketing';
-  var savedBranch = localStorage.getItem('wts_gh_branch') || 'main';
-
-  var tokenEl = document.getElementById('gh_token');
-  var repoEl = document.getElementById('gh_repo');
-  var branchEl = document.getElementById('gh_branch');
-
-  if (tokenEl && savedToken) tokenEl.value = savedToken;
-  if (repoEl) repoEl.value = savedRepo;
-  if (branchEl) branchEl.value = savedBranch;
-
+  try {
+    localStorage.removeItem('wts_gh_token');
+    localStorage.removeItem('wts_gh_repo');
+    localStorage.removeItem('wts_gh_branch');
+  } catch (e) { /* storage unavailable */ }
   updateGhFilePath();
 }
 
 function updateGhFilePath() {
-  var title = document.getElementById('title').value || '';
-  var slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  var slugInput = document.getElementById('slug');
+  var slug = slugInput && slugInput.value ? slugInput.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : '';
+  if (!slug) {
+    var title = document.getElementById('title').value || '';
+    slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
   var pathEl = document.getElementById('gh_path');
   if (pathEl) pathEl.value = slug ? 'en/articles/' + slug + '.html' : '';
-}
-
-function saveGhSettings() {
-  localStorage.setItem('wts_gh_token', document.getElementById('gh_token').value);
-  localStorage.setItem('wts_gh_repo', document.getElementById('gh_repo').value);
-  localStorage.setItem('wts_gh_branch', document.getElementById('gh_branch').value);
-
-  var statusEl = document.getElementById('ghConnectionStatus');
-  statusEl.style.display = 'block';
-  statusEl.innerHTML = '<div style="padding: 8px 12px; background: #d4edda; border: 1px solid #28a745; border-radius: 6px; font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Settings saved to browser storage.</div>';
-  setTimeout(function() { statusEl.style.display = 'none'; }, 3000);
-}
-
-function testGhConnection() {
-  var token = document.getElementById('gh_token').value;
-  var repo = document.getElementById('gh_repo').value;
-  var statusEl = document.getElementById('ghConnectionStatus');
-
-  if (!token) {
-    statusEl.style.display = 'block';
-    statusEl.innerHTML = '<div style="padding: 8px 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Please enter a GitHub Personal Access Token.</div>';
-    return;
-  }
-
-  statusEl.style.display = 'block';
-  statusEl.innerHTML = '<div style="padding: 8px 12px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: 6px; font-size: 13px; color: var(--primary);"><i class="fas fa-spinner fa-spin"></i> Testing connection...</div>';
-
-  fetch('https://api.github.com/repos/' + repo, {
-    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
-  })
-  .then(function(r) {
-    if (r.ok) return r.json();
-    throw new Error('HTTP ' + r.status);
-  })
-  .then(function(data) {
-    statusEl.innerHTML = '<div style="padding: 8px 12px; background: #d4edda; border: 1px solid #28a745; border-radius: 6px; font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Connected to <strong>' + data.full_name + '</strong>. Permissions: ' + (data.permissions && data.permissions.push ? 'Write' : 'Read-only') + '.</div>';
-  })
-  .catch(function(err) {
-    statusEl.innerHTML = '<div style="padding: 8px 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Connection failed: ' + err.message + '</div>';
-  });
 }
 
 function generateFullArticleHTML() {
@@ -4531,9 +4457,6 @@ function escapeHTMLForAttr(str) {
 }
 
 function publishToGitHub() {
-  var token = document.getElementById('gh_token').value || localStorage.getItem('wts_gh_token');
-  var repo = document.getElementById('gh_repo').value;
-  var branch = document.getElementById('gh_branch').value;
   var filePath = document.getElementById('gh_path').value;
 
   var progressEl = document.getElementById('publishProgress');
@@ -4541,11 +4464,6 @@ function publishToGitHub() {
   var progressText = document.getElementById('publishProgressText');
   var resultEl = document.getElementById('publishResult');
 
-  if (!token) {
-    resultEl.style.display = 'block';
-    resultEl.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> GitHub Personal Access Token is required. Enter it in the GitHub Settings above.</div>';
-    return;
-  }
   if (!filePath) {
     resultEl.style.display = 'block';
     resultEl.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 6px; font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Article title is required to generate file path.</div>';
@@ -4590,63 +4508,33 @@ function publishToGitHub() {
     return;
   }
 
-  progressFill.style.width = '30%';
-  progressText.textContent = 'Checking for existing file...';
+  progressFill.style.width = '40%';
+  progressText.textContent = 'Publishing through the server...';
 
-  var apiBase = 'https://api.github.com/repos/' + repo + '/contents/' + filePath;
-  var headers = {
-    'Authorization': 'Bearer ' + token,
-    'Accept': 'application/vnd.github.v3+json',
-    'Content-Type': 'application/json'
-  };
-
-  // Check if file exists (to get SHA for update)
-  fetch(apiBase + '?ref=' + branch, { headers: headers })
+  // The server holds the GitHub credential and constrains the path to
+  // en/articles/*.html; the global fetch wrapper attaches the CSRF token.
+  fetch('/content/articles/publish-github', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ path: filePath, html: articleHTML, title: title })
+  })
     .then(function(r) {
-      if (r.ok) return r.json();
-      if (r.status === 404) return null;
-      throw new Error('GitHub API error: HTTP ' + r.status);
-    })
-    .then(function(existing) {
-      progressFill.style.width = '50%';
-      progressText.textContent = 'Pushing to GitHub...';
-
-      var content = btoa(unescape(encodeURIComponent(articleHTML)));
-      var body = {
-        message: (existing ? 'Update' : 'Add') + ' article: ' + title,
-        content: content,
-        branch: branch
-      };
-
-      if (existing && existing.sha) {
-        body.sha = existing.sha;
-      }
-
-      return fetch(apiBase, {
-        method: 'PUT',
-        headers: headers,
-        body: JSON.stringify(body)
+      return r.json().then(function(data) {
+        if (!r.ok || !data.success) throw new Error(data.error || 'HTTP ' + r.status);
+        return data;
       });
-    })
-    .then(function(r) {
-      if (!r.ok) {
-        return r.json().then(function(err) {
-          throw new Error(err.message || 'HTTP ' + r.status);
-        });
-      }
-      return r.json();
     })
     .then(function(data) {
       progressFill.style.width = '80%';
-      progressText.textContent = 'Triggering GitHub Pages rebuild...';
+      progressText.textContent = 'Pushed — GitHub Pages is rebuilding...';
 
       // GitHub Pages auto-rebuilds on push, show success
       setTimeout(function() {
         progressFill.style.width = '100%';
         progressText.textContent = 'Published successfully!';
 
-        var publishedUrl = 'https://wordsthatsells.website/' + filePath;
-        var githubUrl = 'https://github.com/' + repo + '/blob/' + branch + '/' + filePath;
+        var publishedUrl = data.published_url || ('https://wordsthatsells.website/' + filePath);
+        var githubUrl = data.github_url || '#';
 
         // Also update published_url field
         var pubUrlField = document.getElementById('published_url');
@@ -4752,9 +4640,11 @@ function publishToGitHub() {
 document.addEventListener('DOMContentLoaded', function() {
   initGitHubSettings();
 
-  // Update file path when title changes
+  // Update file path when the title or slug changes
   var titleEl = document.getElementById('title');
   if (titleEl) titleEl.addEventListener('input', function() { updateGhFilePath(); });
+  var slugFieldEl = document.getElementById('slug');
+  if (slugFieldEl) slugFieldEl.addEventListener('input', function() { updateGhFilePath(); });
 
   // Bind Publish tab buttons
   function bind(id, fn) { var el = document.getElementById(id); if (el) el.addEventListener('click', fn); }
@@ -4784,8 +4674,6 @@ document.addEventListener('DOMContentLoaded', function() {
   bind('openPreviewNewTabBtn', function() { openPreviewInNewTab(); });
 
   // GitHub settings
-  bind('saveGhSettingsBtn', function() { saveGhSettings(); });
-  bind('testGhConnectionBtn', function() { testGhConnection(); });
   bind('publishToGithubBtn', function() { publishToGitHub(); });
 });
 

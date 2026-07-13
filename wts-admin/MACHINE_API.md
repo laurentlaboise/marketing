@@ -87,6 +87,7 @@ https://admin.wordsthatsells.website/api/machine/v1
 | GET | `/menus` | List menu items (`?location=footer`) |
 | PATCH | `/menus/:id` | Update menu item URL/label/etc. |
 | GET | `/articles/:idOrSlug` | Fetch one article by UUID or slug, any status (old slugs keep resolving after a rename) |
+| POST | `/articles` | Create a minimal article (title required; slug optional, deduplicated) — then PUT the full payload |
 | PUT | `/articles/:idOrSlug` | Update article fields; `?force=true` skips the stale-write guard |
 
 ## Articles
@@ -138,6 +139,17 @@ Or let the helper script do the read-merge-put dance:
 ```bash
 ./scripts/machine-api.sh put-article <id-or-slug> @scripts/payloads/logo-design-article.json         # guarded
 ./scripts/machine-api.sh put-article <id-or-slug> @scripts/payloads/logo-design-article.json force   # overwrite
+```
+
+### Create an article
+
+`POST /v1/articles` creates the row (title required; slug optional and
+deduplicated; status defaults to `draft`), returning `{ id, slug }` — push the
+full payload with PUT afterwards. The helper chains both:
+
+```bash
+./scripts/machine-api.sh create-article @scripts/payloads/korea-ai-law-article.json
+./scripts/machine-api.sh create-article '{"title": "My New Article", "status": "draft", "text_article": "<p>Body…</p>"}'
 ```
 
 ### Rename a slug
