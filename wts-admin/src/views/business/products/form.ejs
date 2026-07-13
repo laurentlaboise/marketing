@@ -503,6 +503,21 @@
                   placeholder="Read: Logo Design guide" maxlength="255">
               </div>
             </div>
+            <div class="form-group">
+              <label class="form-label" for="article_chapters">In this guide — chapters (one per line)</label>
+              <textarea id="article_chapters" name="article_chapters" class="form-input" rows="4" placeholder="Why a strong logo matters&#10;AI vs human designer path&#10;How delivery works"><%= product && product.article_chapters ? (Array.isArray(product.article_chapters) ? product.article_chapters.join('\n') : product.article_chapters) : '' %></textarea>
+              <small style="color:#666;">Shown as short bullets in the side panel (not the full article).</small>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="article_facts">Quick facts (one per line)</label>
+                <textarea id="article_facts" name="article_facts" class="form-input" rows="3" placeholder="Two delivery paths: AI speed or designer craft"><%= product && product.article_facts ? (Array.isArray(product.article_facts) ? product.article_facts.join('\n') : product.article_facts) : '' %></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="article_sources">Sources (one per line)</label>
+                <textarea id="article_sources" name="article_sources" class="form-input" rows="3" placeholder="Words That Sells Logo Design guide"><%= product && product.article_sources ? (Array.isArray(product.article_sources) ? product.article_sources.join('\n') : product.article_sources) : '' %></textarea>
+              </div>
+            </div>
           </div>
         </div>
       </div>

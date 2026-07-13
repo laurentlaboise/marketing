@@ -549,7 +549,7 @@ router.post('/products', async (req, res) => {
       name, slug, description, price, currency, category, features, image_url, status,
       service_page, icon_class, animation_class, sort_order, product_type, download_url,
       slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
-      article_url, article_title,
+      article_url, article_title, article_chapters, article_facts, article_sources,
       stripe_product_id, stripe_price_id, is_featured,
       pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
       allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
@@ -571,6 +571,7 @@ router.post('/products', async (req, res) => {
     }
 
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
+    const linesArr = (v) => (v ? String(v).split('\n').map((x) => x.trim()).filter(Boolean) : []);
     const productSlug = slug && slug.trim() ? slugify(slug) : slugify(name);
     // Pass the whole body so normalizePricing can also read the tier arrays.
     const pricing = normalizePricing(req.body);
@@ -582,14 +583,14 @@ router.post('/products', async (req, res) => {
         name, slug, description, price, currency, category, features, image_url, status,
         service_page, icon_class, animation_class, sort_order, product_type, download_url,
         slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
-        article_url, article_title,
+        article_url, article_title, article_chapters, article_facts, article_sources,
         stripe_product_id, stripe_price_id, is_featured,
         pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
         allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
         subcategory, purchase_mode, price_unit, industries, sku, stripe_payment_link,
         cta_form_type, quantity_tiers, setup_fee, setup_fee_label, stripe_price_id_setup,
         bcel_qr_url, price_lak, bcel_options, price_options
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48)`,
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51)`,
       [
         name, productSlug,
         description,
@@ -604,6 +605,7 @@ router.post('/products', async (req, res) => {
         slide_in_image || null, slide_in_video || null,
         (article_url && String(article_url).trim()) || null,
         (article_title && String(article_title).trim()) || null,
+        linesArr(article_chapters), linesArr(article_facts), linesArr(article_sources),
         stripe_product_id || null, stripe_price_id || null, is_featured === 'true',
         pricing.pricing_type, pricing.monthly_price, pricing.yearly_price, pricing.annual_discount_pct,
         pricing.default_billing, pricing.allow_billing_toggle,
@@ -656,7 +658,7 @@ router.post('/products/:id', async (req, res) => {
       name, slug, description, price, currency, category, features, image_url, status,
       service_page, icon_class, animation_class, sort_order, product_type, download_url,
       slide_in_title, slide_in_subtitle, slide_in_content, slide_in_image, slide_in_video,
-      article_url, article_title,
+      article_url, article_title, article_chapters, article_facts, article_sources,
       stripe_product_id, stripe_price_id, is_featured,
       pricing_type, monthly_price, yearly_price, annual_discount_pct, default_billing,
       allow_billing_toggle, stripe_price_id_monthly, stripe_price_id_yearly,
@@ -679,6 +681,7 @@ router.post('/products/:id', async (req, res) => {
     }
 
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
+    const linesArr = (v) => (v ? String(v).split('\n').map((x) => x.trim()).filter(Boolean) : []);
     const productSlug = slug && slug.trim() ? slugify(slug) : slugify(name);
     // Pass the whole body so normalizePricing can also read the tier arrays.
     const pricing = normalizePricing(req.body);
@@ -691,17 +694,17 @@ router.post('/products/:id', async (req, res) => {
         image_url=$8, status=$9, service_page=$10, icon_class=$11, animation_class=$12,
         sort_order=$13, product_type=$14, download_url=$15, slide_in_title=$16,
         slide_in_subtitle=$17, slide_in_content=$18, slide_in_image=$19, slide_in_video=$20,
-        article_url=$21, article_title=$22,
-        stripe_product_id=$23, stripe_price_id=$24, is_featured=$25,
-        pricing_type=$26, monthly_price=$27, yearly_price=$28, annual_discount_pct=$29,
-        default_billing=$30, allow_billing_toggle=$31,
-        stripe_price_id_monthly=$32, stripe_price_id_yearly=$33,
-        subcategory=$34, purchase_mode=$35, price_unit=$36, industries=$37, sku=$38,
-        stripe_payment_link=$39, cta_form_type=$40, quantity_tiers=$41,
-        setup_fee=$42, setup_fee_label=$43, stripe_price_id_setup=$44,
-        bcel_qr_url=$45, price_lak=$46, bcel_options=$47, price_options=$48,
+        article_url=$21, article_title=$22, article_chapters=$23, article_facts=$24, article_sources=$25,
+        stripe_product_id=$26, stripe_price_id=$27, is_featured=$28,
+        pricing_type=$29, monthly_price=$30, yearly_price=$31, annual_discount_pct=$32,
+        default_billing=$33, allow_billing_toggle=$34,
+        stripe_price_id_monthly=$35, stripe_price_id_yearly=$36,
+        subcategory=$37, purchase_mode=$38, price_unit=$39, industries=$40, sku=$41,
+        stripe_payment_link=$42, cta_form_type=$43, quantity_tiers=$44,
+        setup_fee=$45, setup_fee_label=$46, stripe_price_id_setup=$47,
+        bcel_qr_url=$48, price_lak=$49, bcel_options=$50, price_options=$51,
         updated_at=CURRENT_TIMESTAMP
-      WHERE id=$49`,
+      WHERE id=$52`,
       [
         name, productSlug, description,
         (pricing.pricing_type === 'options' && pricing.options_from_price != null)
@@ -715,6 +718,7 @@ router.post('/products/:id', async (req, res) => {
         slide_in_image || null, slide_in_video || null,
         (article_url && String(article_url).trim()) || null,
         (article_title && String(article_title).trim()) || null,
+        linesArr(article_chapters), linesArr(article_facts), linesArr(article_sources),
         stripe_product_id || null, stripe_price_id || null, is_featured === 'true',
         pricing.pricing_type, pricing.monthly_price, pricing.yearly_price, pricing.annual_discount_pct,
         pricing.default_billing, pricing.allow_billing_toggle,

@@ -348,6 +348,9 @@
         video: si.video || '',
         article_url: product.article_url || si.article_url || '',
         article_title: product.article_title || si.article_title || '',
+        article_chapters: product.article_chapters || si.chapters || [],
+        article_facts: product.article_facts || si.facts || [],
+        article_sources: product.article_sources || si.sources || [],
         features: product.features || [],
         price: product.price ? parseFloat(product.price) : null,
         currency: product.currency || 'USD',
@@ -409,37 +412,91 @@
     }
   }
 
+  function listItems(arr) {
+    if (!Array.isArray(arr)) return [];
+    return arr.map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+  }
+
+  function panelSection(title, items, iconClass) {
+    var rows = listItems(items);
+    if (!rows.length) return '';
+    var html = '<div class="panel-teaser-section" style="margin-top:1.15rem;text-align:left;">' +
+      '<h3 style="font-size:0.95rem;font-weight:700;color:#0f172a;margin:0 0 0.55rem;display:flex;align-items:center;gap:0.4rem;">' +
+        (iconClass ? '<i class="' + iconClass + '" style="color:#3b82f6;font-size:0.9rem;"></i>' : '') +
+        esc(title) +
+      '</h3>' +
+      '<ul style="list-style:none;padding:0;margin:0;">';
+    rows.slice(0, 8).forEach(function (row) {
+      html += '<li style="display:flex;align-items:flex-start;gap:0.5rem;margin:0 0 0.4rem;font-size:0.92rem;line-height:1.45;color:#334155;">' +
+        '<span style="color:#3b82f6;flex:none;margin-top:0.15em;">•</span>' +
+        '<span>' + esc(row) + '</span></li>';
+    });
+    html += '</ul></div>';
+    return html;
+  }
+
+  /**
+   * Knowledge teaser panel (glossary-style): short blurb + chapters + facts +
+   * sources + strong CTA into the full article. Commerce stays secondary.
+   */
+  function buildArticleTeaserHTML(data) {
+    var articleUrl = sanitizeUrl(data.article_url || '');
+    var label = data.article_title || ('Read full guide: ' + (data.name || data.title || 'service'));
+    var shortDesc = truncateText(data.subtitle || data.description || '', 180);
+    // Prefer curated chapters; fall back to product features as outline points
+    var chapters = listItems(data.article_chapters);
+    if (!chapters.length) chapters = listItems(data.features).slice(0, 6);
+    var facts = listItems(data.article_facts);
+    var sources = listItems(data.article_sources);
+
+    var html = '<div class="product-article-teaser" style="text-align:left;">';
+    if (shortDesc) {
+      html += '<p style="font-size:1.02rem;line-height:1.55;color:#475569;margin:0 0 0.25rem;">' + esc(shortDesc) + '</p>';
+    }
+    html += panelSection('In this guide', chapters, 'fas fa-list-ul');
+    html += panelSection('Quick facts', facts, 'fas fa-lightbulb');
+    html += panelSection('Sources', sources, 'fas fa-quote-left');
+
+    if (articleUrl) {
+      html += '<div style="margin-top:1.35rem;display:flex;flex-direction:column;gap:0.65rem;align-items:stretch;">' +
+        '<a class="btn btn-accent-magenta slide-in-read-article" href="' + esc(articleUrl) + '" target="_blank" rel="noopener noreferrer" ' +
+          'style="display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;font-size:1.05rem;padding:0.85rem 1.25rem;text-decoration:none;border-radius:10px;">' +
+          '<i class="fas fa-book-open" aria-hidden="true"></i> ' + esc(label.indexOf('Read') === 0 ? label : ('Read full article')) +
+        '</a>' +
+        '<p style="margin:0;font-size:0.82rem;color:#64748b;text-align:center;">Open the full guide for the complete walkthrough, examples, and recommendations.</p>' +
+      '</div>';
+    }
+
+    // Secondary path: talk to us (no heavy price stack in teaser mode)
+    html += '<div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #e2e8f0;text-align:center;">' +
+      buildCtaHTML(data, null) +
+    '</div>';
+    html += buildShareHTML(data);
+    html += '</div>';
+    return html;
+  }
+
+  /** Lighter product panel when there is no linked article. */
+  function buildSimpleProductHTML(data) {
+    var html = '';
+    var shortDesc = truncateText(data.subtitle || data.description || '', 160);
+    if (shortDesc) {
+      html += '<p style="font-size:1.02rem;line-height:1.55;color:#475569;margin:0 0 0.5rem;text-align:left;">' + esc(shortDesc) + '</p>';
+    }
+    html += panelSection('What you get', listItems(data.features).slice(0, 6), 'fas fa-check');
+    html += buildPricingBlock(data);
+    return html;
+  }
+
   function renderDetail(key) {
     var data = detailMap[key];
     if (!data || !elPanel) return;
     currentDetailKey = key;
 
-    // Build panel content
-    var html = '';
-
-    if (data.subtitle) {
-      html += '<p style="font-size:1.1rem;color:var(--color-slate-500,#64748b);margin-bottom:1.5rem;">' + esc(data.subtitle) + '</p>';
-    }
-
-    if (data.video) {
-      html += '<div style="margin-bottom:1.5rem;">' +
-        '<iframe width="100%" height="400" src="' + esc(data.video) + '" title="' + esc(data.title) +
-        '" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" ' +
-        'allowfullscreen style="border-radius:var(--border-radius-lg,12px);"></iframe></div>';
-    }
-
-    if (data.content) {
-      html += '<div class="feature-content" style="line-height:1.7;">' + data.content + '</div>';
-    }
-
-    if (data.features.length) {
-      html += '<div style="margin-top:1.5rem;"><h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;">Features</h3><ul style="padding-left:1.2rem;">';
-      data.features.forEach(function (f) { html += '<li style="margin-bottom:0.4rem;">' + esc(f) + '</li>'; });
-      html += '</ul></div>';
-    }
-
-    // Price + billing selector + Add to My Services
-    html += buildPricingBlock(data);
+    var hasArticle = !!sanitizeUrl(data.article_url || '');
+    // Article-linked products → short teaser that drives the full article click.
+    // Others → compact product view (not a wall of HTML).
+    var html = hasArticle ? buildArticleTeaserHTML(data) : buildSimpleProductHTML(data);
 
     // Set panel title — optional knowledge-article icon (book) next to title
     if (elTitle) setSlideInTitle(data);
@@ -470,14 +527,12 @@
     // Bind the purchase-mode CTA (Request a Quote / Buy Now)
     bindCtaButtons();
 
-    // Bind the monthly/yearly billing toggle (subscriptions only)
-    bindBillingToggle(data);
-
-    // Bind the quantity selector + live total (tiered pricing only)
-    bindQuantitySelector(data);
-
-    // Bind named price options (one product, multiple SKUs/prices)
-    bindPriceOptions(data);
+    // Pricing controls only when full pricing block is present
+    if (!hasArticle) {
+      bindBillingToggle(data);
+      bindQuantitySelector(data);
+      bindPriceOptions(data);
+    }
 
     // Share service (everyone, signed-in or not)
     bindShareButtons();

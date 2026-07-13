@@ -613,6 +613,16 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='article_title') THEN
             ALTER TABLE products ADD COLUMN article_title VARCHAR(255);
           END IF;
+          -- Side-panel teaser (drive full-article clicks): chapters / facts / sources
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='article_chapters') THEN
+            ALTER TABLE products ADD COLUMN article_chapters TEXT[];
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='article_facts') THEN
+            ALTER TABLE products ADD COLUMN article_facts TEXT[];
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='article_sources') THEN
+            ALTER TABLE products ADD COLUMN article_sources TEXT[];
+          END IF;
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='is_featured') THEN
             ALTER TABLE products ADD COLUMN is_featured BOOLEAN DEFAULT FALSE;
           END IF;

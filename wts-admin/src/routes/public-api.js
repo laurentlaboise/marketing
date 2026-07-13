@@ -780,6 +780,9 @@ router.get('/products', async (req, res) => {
         (p.yearly_price && parseFloat(p.yearly_price) > 0)),
       article_url: p.article_url || null,
       article_title: p.article_title || null,
+      article_chapters: p.article_chapters || [],
+      article_facts: p.article_facts || [],
+      article_sources: p.article_sources || [],
       slide_in: {
         title: p.slide_in_title || p.name,
         subtitle: p.slide_in_subtitle || '',
@@ -787,7 +790,10 @@ router.get('/products', async (req, res) => {
         image: p.slide_in_image || p.image_url || '',
         video: p.slide_in_video || '',
         article_url: p.article_url || '',
-        article_title: p.article_title || ''
+        article_title: p.article_title || '',
+        chapters: p.article_chapters || [],
+        facts: p.article_facts || [],
+        sources: p.article_sources || []
       }
     }));
 
@@ -843,6 +849,9 @@ router.get('/products/:slug', async (req, res) => {
         (p.yearly_price && parseFloat(p.yearly_price) > 0)),
       article_url: p.article_url || null,
       article_title: p.article_title || null,
+      article_chapters: p.article_chapters || [],
+      article_facts: p.article_facts || [],
+      article_sources: p.article_sources || [],
       slide_in: {
         title: p.slide_in_title || p.name,
         subtitle: p.slide_in_subtitle || '',
@@ -850,7 +859,10 @@ router.get('/products/:slug', async (req, res) => {
         image: p.slide_in_image || p.image_url || '',
         video: p.slide_in_video || '',
         article_url: p.article_url || '',
-        article_title: p.article_title || ''
+        article_title: p.article_title || '',
+        chapters: p.article_chapters || [],
+        facts: p.article_facts || [],
+        sources: p.article_sources || []
       }
     });
   } catch (error) {

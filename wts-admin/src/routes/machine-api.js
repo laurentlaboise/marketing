@@ -553,6 +553,14 @@ router.post('/v1/products/bulk-update-copy', async (req, res) => {
       if (u.image_url != null) add('image_url', String(u.image_url).trim() || null);
       if (u.article_url != null) add('article_url', String(u.article_url).trim() || null);
       if (u.article_title != null) add('article_title', String(u.article_title).trim().slice(0, 255) || null);
+      const asLines = (val) => {
+        if (val == null) return undefined;
+        if (Array.isArray(val)) return val.map((x) => String(x).trim()).filter(Boolean);
+        return String(val).split('\n').map((x) => x.trim()).filter(Boolean);
+      };
+      if (u.article_chapters != null) add('article_chapters', asLines(u.article_chapters));
+      if (u.article_facts != null) add('article_facts', asLines(u.article_facts));
+      if (u.article_sources != null) add('article_sources', asLines(u.article_sources));
       if (!fields.length) {
         results.push({ ok: false, error: 'no fields', slug, id });
         continue;
