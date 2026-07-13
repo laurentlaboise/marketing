@@ -1977,6 +1977,18 @@ const db = {
           console.warn('Admin bootstrap (ADMIN_EMAILS) failed:', e.message);
         }
       }
+
+      // Auto-link repairs: reconcile glossary slugs with the static pages and
+      // clean nested/dead auto-links out of stored content. Idempotent (zero
+      // writes once clean) and never allowed to block startup.
+      try {
+        const hygiene = await require('./link-hygiene-migration').run(client);
+        if (hygiene.slugsRenamed || hygiene.rowsCleaned) {
+          console.log(`Link hygiene: ${hygiene.slugsRenamed} glossary slugs renamed, ${hygiene.rowsCleaned} rows cleaned`);
+        }
+      } catch (e) {
+        console.warn('Link hygiene migration failed:', e.message);
+      }
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('Database initialization error:', error);

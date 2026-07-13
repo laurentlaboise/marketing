@@ -3951,43 +3951,87 @@ function escapeRegex(str) {
 }
 
 function hyperlinkContent(htmlContent, terms) {
-  if (!terms || !htmlContent) return { html: htmlContent, count: 0, details: { glossary: 0, seo: 0, ai_tool: 0 } };
+  var details = { glossary: 0, seo: 0, 'ai-tool': 0 };
+  if (!terms || !htmlContent) return { html: htmlContent, count: 0, details: details };
 
-  // Combine all terms and sort by length (longest first for greedy matching)
+  // Longest term first so "technical SEO" beats "SEO"; unlinkable entries
+  // (no target page) are dropped up front.
   var allTerms = [].concat(
     terms.glossary || [],
     terms.seo_terms || [],
     terms.ai_tools || []
-  ).sort(function(a, b) { return b.term.length - a.term.length; });
+  ).filter(function(t) { return t.term && t.term.length >= 3 && t.link; })
+   .sort(function(a, b) { return b.term.length - a.term.length; });
 
-  var linked = {};
-  var result = htmlContent;
+  // Split into text/tag segments and mark where links must never go —
+  // inside existing anchors, headings, script/style. Same walk as the
+  // server engine (src/lib/interlink.js); the old single-regex version
+  // matched text inside existing links, which is how pressing the button
+  // twice used to double-wrap every term.
+  var segs = [];
+  var tagRe = /<[^>]*>/g;
+  var last = 0, anchorDepth = 0, blockedDepth = 0, m;
+  while ((m = tagRe.exec(htmlContent)) !== null) {
+    if (m.index > last) segs.push({ text: htmlContent.slice(last, m.index), ok: anchorDepth === 0 && blockedDepth === 0 });
+    var tag = m[0];
+    var nameM = tag.match(/^<\/?\s*([a-zA-Z][a-zA-Z0-9]*)/);
+    var lower = nameM ? nameM[1].toLowerCase() : '';
+    var closing = /^<\s*\//.test(tag);
+    var selfClosing = /\/>$/.test(tag);
+    if (lower === 'a' && !selfClosing) anchorDepth = Math.max(0, anchorDepth + (closing ? -1 : 1));
+    if ((/^h[1-6]$/.test(lower) || lower === 'script' || lower === 'style') && !selfClosing) {
+      blockedDepth = Math.max(0, blockedDepth + (closing ? -1 : 1));
+    }
+    segs.push({ tag: tag });
+    last = tagRe.lastIndex;
+  }
+  if (last < htmlContent.length) segs.push({ text: htmlContent.slice(last), ok: anchorDepth === 0 && blockedDepth === 0 });
+
+  // Idempotence: a target that is already auto-linked anywhere in the
+  // document never gets a second link — re-pressing the button is a no-op.
+  var alreadyLinked = {};
+  htmlContent.replace(/<a\b[^>]*href="([^"]*)"[^>]*class="[^"]*auto-linked[^"]*"/g, function(whole, href) {
+    alreadyLinked[href] = true;
+    return whole;
+  });
+
+  var esc = function(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  };
   var count = 0;
-  var details = { glossary: 0, seo: 0, ai_tool: 0 };
+  var linkedNames = {};
 
   for (var i = 0; i < allTerms.length; i++) {
-    var termData = allTerms[i];
-    var termKey = termData.term.toLowerCase();
-    if (linked[termKey]) continue;
-    if (!termData.link) continue;
+    var t = allTerms[i];
+    var key = t.term.toLowerCase();
+    if (linkedNames[key] || alreadyLinked[t.link]) continue;
 
-    var escaped = escapeRegex(termData.term);
-    // Match term not already inside an HTML tag or existing link
-    var regex = new RegExp('(?<![<\\/\\w])\\b(' + escaped + ')\\b(?![^<]*>)', 'i');
-
-    var match = result.match(regex);
-    if (match) {
-      var linkClass = 'auto-linked auto-linked-' + termData.type;
-      var title = (termData.definition || '').replace(/"/g, '&quot;');
-      var replacement = '<a href="' + termData.link + '" class="' + linkClass + '" title="' + title + '" data-type="' + termData.type + '">' + match[1] + '</a>';
-      result = result.replace(regex, replacement);
-      linked[termKey] = true;
+    for (var s = 0; s < segs.length; s++) {
+      var seg = segs[s];
+      if (seg.tag !== undefined || !seg.ok || !seg.text) continue;
+      // Word-boundary match; proper-noun terms (AI tools) are matched
+      // case-sensitively and refuse a capitalized next word, so "Claude
+      // Hopkins" or "Type Foundry" never links to a tool page.
+      var guard = t.properNoun ? '(?!\\s+[A-Z][a-z])' : '';
+      var re = new RegExp('(^|[^A-Za-z0-9_])(' + escapeRegex(t.term) + ')(?![A-Za-z0-9_])' + guard, t.caseSensitive ? '' : 'i');
+      var mm = seg.text.match(re);
+      if (!mm) continue;
+      var start = mm.index + mm[1].length;
+      var matched = mm[2];
+      var anchor = '<a href="' + esc(t.link) + '" class="auto-linked auto-linked-' + t.type + '" title="' + esc((t.definition || '').slice(0, 200)) + '" data-type="' + t.type + '">' + matched + '</a>';
+      segs.splice(s, 1,
+        { text: seg.text.slice(0, start), ok: true },
+        { tag: anchor },
+        { text: seg.text.slice(start + matched.length), ok: true });
+      linkedNames[key] = true;
       count++;
-      if (details[termData.type] !== undefined) details[termData.type]++;
+      if (details[t.type] !== undefined) details[t.type]++;
+      break;
     }
   }
 
-  return { html: result, count: count, details: details };
+  var html = segs.map(function(sg) { return sg.tag !== undefined ? sg.tag : sg.text; }).join('');
+  return { html: html, count: count, details: details };
 }
 
 function autoHyperlinkField(fieldId, statusId) {
@@ -4006,7 +4050,7 @@ function autoHyperlinkField(fieldId, statusId) {
     field.value = result.html;
 
     var totalTerms = (terms.glossary || []).length + (terms.seo_terms || []).length + (terms.ai_tools || []).length;
-    statusEl.innerHTML = '<div style="padding: 10px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius, 6px); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Linked <strong>' + result.count + '</strong> terms (Glossary: ' + result.details.glossary + ', SEO: ' + result.details.seo + ', AI Tools: ' + result.details.ai_tool + ') from ' + totalTerms + ' available terms.</div>';
+    statusEl.innerHTML = '<div style="padding: 10px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius, 6px); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Linked <strong>' + result.count + '</strong> terms (Glossary: ' + result.details.glossary + ', SEO: ' + result.details.seo + ', AI Tools: ' + result.details['ai-tool'] + ') from ' + totalTerms + ' available terms.</div>';
 
     formDirty = true;
     document.getElementById('unsavedBadge').style.display = 'inline-flex';
@@ -4039,7 +4083,7 @@ function autoHyperlinkAll() {
       '<div class="hyperlink-stat-item"><i class="fas fa-link"></i> Total Linked: <span class="stat-count">' + totalLinked + '</span></div>' +
       '<div class="hyperlink-stat-item"><i class="fas fa-book"></i> Glossary: <span class="stat-count">' + textResult.details.glossary + '</span></div>' +
       '<div class="hyperlink-stat-item"><i class="fas fa-search"></i> SEO Terms: <span class="stat-count">' + textResult.details.seo + '</span></div>' +
-      '<div class="hyperlink-stat-item"><i class="fas fa-robot"></i> AI Tools: <span class="stat-count">' + textResult.details.ai_tool + '</span></div>' +
+      '<div class="hyperlink-stat-item"><i class="fas fa-robot"></i> AI Tools: <span class="stat-count">' + textResult.details['ai-tool'] + '</span></div>' +
       '<div class="hyperlink-stat-item"><i class="fas fa-database"></i> Available: <span class="stat-count">' + totalTerms + '</span></div>';
 
     // Show undo button

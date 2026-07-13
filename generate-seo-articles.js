@@ -18,6 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const striptags = require('striptags');
 const sidebarLib = require('./js/services/article-sidebar');
+const linkHygiene = require('./wts-admin/src/lib/link-hygiene');
 const API_BASE_URL = 'https://admin.wordsthatsells.website/api/public';
 const SITE_BASE_URL = 'https://wordsthatsells.website';
 const OUTPUT_DIR = path.join(__dirname, 'en', 'articles');
@@ -466,9 +467,15 @@ function generateArticleHTML(article) {
   const canonicalUrl = social.canonicalUrl || articleUrl;
   const schemaMarkup = generateSchemaMarkup(article);
 
-  // Anchor ids baked into the static HTML so chapter links work without JS
+  // Anchor ids baked into the static HTML so chapter links work without JS.
+  // sanitizeAutoLinks first: bodies edited before the link-hygiene fixes can
+  // still carry nested auto-links or pre-reconciliation glossary hrefs, and
+  // a crawlable page must never ship invalid anchors or 404 links.
   const bodyWithAnchors = sidebarLib.injectHeadingIds(
-    highlightTermsInHTML(article.full_article_content || article.content || '<p>Content not available.</p>', seoTermsCache)
+    highlightTermsInHTML(
+      linkHygiene.sanitizeAutoLinks(article.full_article_content || article.content || '<p>Content not available.</p>'),
+      seoTermsCache
+    )
   );
   const sidebarHTML = generateSidebarHTML(article, bodyWithAnchors.headings);
 

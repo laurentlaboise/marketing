@@ -1618,6 +1618,117 @@ test('library sweep cross-links every content type and never re-opens paid trans
   }
 });
 
+test('AI-tool links are internal, page-gated, case-sensitive, and skip longer proper nouns', async () => {
+  const session = new Session(server.base);
+  await session.login('admin@test.local');
+  const token = await session.getCsrfToken('/dashboard');
+  const headers = { 'content-type': 'application/json', accept: 'application/json', 'x-csrf-token': token };
+
+  // 'claude' and 'type' have real static pages under en/resources/ai-tools/;
+  // the third tool deliberately has none.
+  await pool.query(`DELETE FROM ai_tools WHERE slug IN ('claude', 'type', 'testtool-no-page')`);
+  const tools = await pool.query(
+    `INSERT INTO ai_tools (name, slug, description, status) VALUES
+       ('Claude', 'claude', 'Anthropic assistant', 'active'),
+       ('Type', 'type', 'AI document editor', 'active'),
+       ('TestTool NoPage', 'testtool-no-page', 'No static page', 'active')
+     RETURNING id`
+  );
+  const art = await pool.query(
+    `INSERT INTO articles (title, slug, content, text_article, status)
+     VALUES ('TestTerm Tool Linking', 'testterm-tool-linking', '<p>teaser</p>',
+             '<p>Claude Hopkins pioneered advertising. Today Claude drafts the copy. Any body type works here, and TestTool NoPage stays plain.</p>',
+             'published')
+     RETURNING id`
+  );
+
+  try {
+    const res = await session.fetch(`/content/articles/${art.rows[0].id}/interlink`, { method: 'POST', headers, body: '{}' });
+    assert.equal(res.status, 200);
+    const saved = (await pool.query('SELECT text_article FROM articles WHERE id = $1', [art.rows[0].id])).rows[0].text_article;
+
+    assert.ok(saved.includes('href="/en/resources/ai-tools/claude/"'), 'tool links to its own page, not the vendor site');
+    assert.ok(!saved.includes('claude.ai'), 'vendor domain never appears');
+    assert.ok(saved.includes('Claude Hopkins pioneered'), 'prose kept');
+    assert.ok(!saved.includes('Claude</a> Hopkins'), '"Claude Hopkins" is a person, not the tool');
+    assert.match(saved, />Claude<\/a> drafts/, 'the standalone mention is the one that links');
+    assert.ok(!saved.includes('/en/resources/ai-tools/type/'), 'lowercase "type" in prose never matches the Type tool');
+    assert.ok(!saved.includes('testtool-no-page'), 'a tool without a static page mints no link');
+  } finally {
+    await pool.query('DELETE FROM articles WHERE id = $1', [art.rows[0].id]);
+    await pool.query('DELETE FROM ai_tools WHERE id = ANY($1)', [tools.rows.map((r) => r.id)]);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Link-hygiene boot migration (glossary slug reconciliation + content repair)
+// ---------------------------------------------------------------------------
+
+test('boot hygiene renames legacy glossary slugs, unwraps nested links, refreshes hashes', async () => {
+  const hygiene = require('../database/link-hygiene-migration');
+  const core = require('../src/lib/translation-core');
+
+  // 'anchor-text' is a real legacy slug from GLOSSARY_SLUG_MAP; clear any
+  // leftovers so the rename path is deterministic across reruns.
+  await pool.query(`DELETE FROM glossary WHERE slug IN ('anchor-text', 'anchor-text-optimization-guide-2026')`);
+  // The exact damage shape found in production: a double-wrapped auto-link
+  // whose href uses a pre-reconciliation slug.
+  const nested =
+    '<p>Use <a href="/en/resources/glossary/website.html" class="auto-linked auto-linked-glossary" data-type="glossary">' +
+    '<a href="/en/resources/glossary/website.html" class="auto-linked auto-linked-glossary" data-type="glossary">website</a></a> wisely.</p>';
+  const g = await pool.query(
+    `INSERT INTO glossary (term, definition, letter, slug)
+     VALUES ('TestTerm Hygiene Anchor', $1, 'T', 'anchor-text') RETURNING id`,
+    [nested]
+  );
+  const gid = g.rows[0].id;
+  const staleSource = await core.fetchEntitySource('glossary', String(gid));
+  const tr = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, status, content_payload, source_hash)
+     VALUES ('glossary', $1, 'la', 'published', '{"term":"ຄຳ"}'::jsonb, $2) RETURNING id`,
+    [gid, staleSource.hash]
+  );
+  const art = await pool.query(
+    `INSERT INTO articles (title, slug, content, text_article, status)
+     VALUES ('TestTerm Hygiene Article', 'testterm-hygiene-article', '<p>teaser</p>', $1, 'draft')
+     RETURNING id`,
+    [nested]
+  );
+
+  const client = await pool.connect();
+  try {
+    const summary = await hygiene.run(client);
+    assert.ok(summary.slugsRenamed >= 1, 'legacy slug renamed');
+    assert.ok(summary.rowsCleaned >= 2, 'glossary definition and article body both cleaned');
+
+    const gAfter = (await pool.query('SELECT slug, definition FROM glossary WHERE id = $1', [gid])).rows[0];
+    assert.equal(gAfter.slug, 'anchor-text-optimization-guide-2026', 'slug now matches the static page');
+    assert.equal((gAfter.definition.match(/<a /g) || []).length, 1, 'nested wrap unwrapped');
+    assert.ok(gAfter.definition.includes('href="/en/resources/glossary/website-seo-fundamentals-2026.html"'),
+      'dead glossary href repaired');
+
+    const aAfter = (await pool.query('SELECT text_article FROM articles WHERE id = $1', [art.rows[0].id])).rows[0];
+    assert.equal((aAfter.text_article.match(/<a /g) || []).length, 1, 'article body unwrapped too');
+
+    // Money-safety: the definition changed, so the hash moved — and the
+    // published translation must carry the fresh hash.
+    const fresh = await core.fetchEntitySource('glossary', String(gid));
+    assert.notEqual(fresh.hash, staleSource.hash, 'cleaning changed the source hash');
+    const trAfter = (await pool.query('SELECT source_hash FROM translations WHERE id = $1', [tr.rows[0].id])).rows[0];
+    assert.equal(trAfter.source_hash, fresh.hash, 'published translation stays closed');
+
+    // Idempotence on OUR rows: a second run changes nothing.
+    await hygiene.run(client);
+    const gAgain = (await pool.query('SELECT slug, definition FROM glossary WHERE id = $1', [gid])).rows[0];
+    assert.deepEqual(gAgain, gAfter, 'second run is a no-op for the repaired term');
+  } finally {
+    client.release();
+    await pool.query('DELETE FROM translations WHERE id = $1', [tr.rows[0].id]);
+    await pool.query('DELETE FROM articles WHERE id = $1', [art.rows[0].id]);
+    await pool.query('DELETE FROM glossary WHERE id = $1', [gid]);
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Assessment-report fixes: titles, paging, seeding, invites, payout guard
 // ---------------------------------------------------------------------------

@@ -279,7 +279,7 @@ router.get('/articles/api/link-terms', async (req, res) => {
     const [glossary, seoTerms, aiTools] = await Promise.all([
       db.query('SELECT id, term, definition, slug, category FROM glossary ORDER BY LENGTH(term) DESC'),
       db.query('SELECT id, term, short_definition, definition, category, slug, article_link, glossary_link FROM seo_terms ORDER BY LENGTH(term) DESC'),
-      db.query("SELECT id, name, description, category, website_url FROM ai_tools WHERE status = 'active' ORDER BY LENGTH(name) DESC")
+      db.query("SELECT id, name, slug, description, category, website_url FROM ai_tools WHERE status = 'active' ORDER BY LENGTH(name) DESC")
     ]);
 
     res.json({
@@ -301,13 +301,20 @@ router.get('/articles/api/link-terms', async (req, res) => {
         link: s.article_link || s.glossary_link || '',
         type: 'seo'
       })),
+      // Tools link to their OWN page on this site (never the vendor's
+      // domain), and only when that static page actually exists — the
+      // client-side linker skips entries with an empty link. Tool names are
+      // proper nouns that collide with plain English (Type, Durable…), so
+      // the client matches them case-sensitively via these flags.
       ai_tools: aiTools.rows.map(t => ({
         id: t.id,
         term: t.name,
         definition: (t.description || '').substring(0, 200),
         category: t.category,
-        link: t.website_url || '',
-        type: 'ai-tool'
+        link: interlinkLib.aiToolPageLink(t.slug),
+        type: 'ai-tool',
+        caseSensitive: true,
+        properNoun: true
       }))
     });
   } catch (error) {

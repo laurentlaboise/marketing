@@ -3,16 +3,16 @@
   <!-- Primary clean URL list (best first fetch for GSC) -->
   <sitemap>
     <loc>https://wordsthatsells.website/sitemap-google.xml</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
   </sitemap>
   <!-- Full multi-language sitemap with hreflang + optional image tags -->
   <sitemap>
     <loc>https://wordsthatsells.website/sitemap.xml</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
   </sitemap>
   <!-- Google Images discovery -->
   <sitemap>
     <loc>https://wordsthatsells.website/sitemap-images.xml</loc>
-    <lastmod>2026-07-12</lastmod>
+    <lastmod>2026-07-13</lastmod>
   </sitemap>
 </sitemapindex>
