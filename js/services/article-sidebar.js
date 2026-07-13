@@ -164,11 +164,13 @@
     if (!description && !hasChapters && !facts.length && !sources.length) return '';
 
     var category = article.categories && article.categories.length ? article.categories[0] : (article.category || '');
-    var readingTime = article.time_to_read || calcReadingTime(article.full_article_content || article.text_article || '');
-    var wordCount = article.word_count || null;
+    // Numeric fields arrive from JSON blobs/API payloads — coerce hard so a
+    // non-numeric value can never reach the HTML string unescaped.
+    var readingTime = Number(article.time_to_read) || calcReadingTime(article.full_article_content || article.text_article || '');
+    var wordCount = Number(article.word_count) || null;
     var publishedDate = formatDate(article.published_at || article.created_at);
     var sourcesCount = (cl.sources || []).length || (article.citations || []).length;
-    var faqsCount = cl.faqs_count || 0;
+    var faqsCount = Number(cl.faqs_count) || 0;
     var ctaText = cl.cta_text || 'Read full article';
     var ctaHref = opts.ctaHref || '#article-container';
 
