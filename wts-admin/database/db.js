@@ -473,6 +473,22 @@ const db = {
         CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_tools_slug_unique
         ON ai_tools (slug) WHERE slug IS NOT NULL AND slug <> '';
       `);
+      // Backfill: slug was never written by the admin routes, so public
+      // detail URLs were re-derived from the (mutable) name on every
+      // request — renaming a tool silently moved its URL away from the
+      // static page. Freeze the current name-derived slug once; idempotent
+      // (only touches rows without a slug).
+      {
+        const unslugged = await client.query(`SELECT id, name FROM ai_tools WHERE slug IS NULL OR slug = ''`);
+        for (const row of unslugged.rows) {
+          const base = String(row.name || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).join('-').slice(0, 80) || 'tool';
+          let slug = base;
+          for (let n = 2; (await client.query('SELECT 1 FROM ai_tools WHERE slug = $1 LIMIT 1', [slug])).rows.length; n++) {
+            slug = `${base}-${n}`;
+          }
+          await client.query('UPDATE ai_tools SET slug = $1 WHERE id = $2', [slug, row.id]);
+        }
+      }
 
       // Glossary table
       await client.query(`

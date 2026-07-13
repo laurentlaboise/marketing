@@ -40,6 +40,9 @@ Commands:
   footer                         GET  /v1/footer-settings
   menus [location]               GET  /v1/menus
   article <id-or-slug>           GET  /v1/articles/:idOrSlug
+  create-article <json|@file>    POST /v1/articles then PUT the full payload
+                                 (payload needs at least "title"; "slug"
+                                 optional — deduplicated server-side)
   put-article <id-or-slug> <json|@file> [force]
                                  PUT  /v1/articles/:idOrSlug
                                  Auto-injects base_updated_at from the current
@@ -164,6 +167,46 @@ case "$cmd" in
     [[ -n "$key" ]] || { echo "Usage: $0 article <id-or-slug>" >&2; exit 1; }
     enc="$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$key")"
     api GET "/v1/articles/${enc}"
+    ;;
+  create-article)
+    body="${1:-}"
+    [[ -n "$body" ]] || { echo "Usage: $0 create-article '<json>' | @payload.json" >&2; exit 1; }
+    # @file payloads belong to the caller; inline JSON goes to a temp file
+    # this command owns and must clean up on every exit path.
+    src_is_tmp=0
+    if [[ "$body" == @* ]]; then
+      src="${body:1}"
+      [[ -f "$src" ]] || { echo "Error: payload file not found: $src" >&2; exit 1; }
+    else
+      src="$(mktemp)"
+      src_is_tmp=1
+      printf '%s' "$body" > "$src"
+    fi
+    # 1) create the minimal row (title/slug/status), 2) push the full payload
+    tmp_min="$(mktemp)"; tmp_created="$(mktemp)"
+    python3 - "$src" "$tmp_min" <<'PY'
+import json, sys
+body = json.load(open(sys.argv[1]))
+minimal = {k: body[k] for k in ('title', 'slug', 'status') if k in body}
+json.dump(minimal, open(sys.argv[2], 'w'), ensure_ascii=False)
+PY
+    curl -sS -X POST "${BASE}/v1/articles" \
+      -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/json" \
+      -H "Content-Type: application/json" --data-binary "@${tmp_min}" -o "$tmp_created"
+    new_id="$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print((d.get('article') or {}).get('id') or '')" "$tmp_created")"
+    if [[ -z "$new_id" ]]; then
+      echo "Create failed:" >&2
+      cat "$tmp_created" >&2; echo >&2
+      rm -f "$tmp_min" "$tmp_created"
+      [[ "$src_is_tmp" == 1 ]] && rm -f "$src"
+      exit 1
+    fi
+    echo "Created article ${new_id} — pushing full payload..."
+    rm -f "$tmp_min" "$tmp_created"
+    rc=0
+    "$0" put-article "$new_id" "@${src}" force || rc=$?
+    [[ "$src_is_tmp" == 1 ]] && rm -f "$src"
+    exit $rc
     ;;
   put-article)
     key="${1:-}"; body="${2:-}"; force="${3:-}"

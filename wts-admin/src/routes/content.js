@@ -234,7 +234,7 @@ router.post('/articles', [
 
     await db.query(
       `INSERT INTO articles (title, slug, content, excerpt, category, tags, seo_title, seo_description, seo_keywords, status, featured_image, published_url, article_code, featured, author_id, published_at, updated_at, time_to_read, article_images, og_title, og_description, og_image, og_type, twitter_card, twitter_title, twitter_description, twitter_image, twitter_site, twitter_creator, canonical_url, robots_meta, schema_markup, citations, content_labels, text_article, audio_files, word_count, author_type, author_name, author_job_title, author_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19::jsonb, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32::jsonb, $33::jsonb, $34::jsonb, $35, $36::jsonb, $37, $38, $39, $40, $41)`,
       [title, slug, contentToSave, excerpt, category, normalizedTags, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, published_url, article_code, isFeatured, req.user.id, publishedAtValue, updatedAtValue, timeToRead, JSON.stringify(articleImagesArray), og_title, og_description, og_image, og_type || 'article', twitter_card || 'summary_large_image', twitter_title, twitter_description, twitter_image, normalizedTwitterSite, normalizedTwitterCreator, resolvedCanonical, robots_meta || 'index, follow', schemaMarkupJson ? JSON.stringify(schemaMarkupJson) : null, JSON.stringify(citationsArray), JSON.stringify(contentLabelsJson), text_article || null, JSON.stringify(audioFilesJson), wordCount, author_type || 'organization', author_name || null, author_job_title || null, author_url || null]
     );
 
@@ -247,7 +247,10 @@ router.post('/articles', [
       article: req.body,
       articleId: null,
       currentPage: 'articles',
-      error: 'Failed to create article'
+      // 23505 = a concurrent save took the deduplicated slug first
+      error: error.code === '23505'
+        ? 'That URL slug was taken a moment ago — save again to get a fresh one'
+        : 'Failed to create article'
     });
   }
 });
@@ -343,6 +346,57 @@ router.post('/interlink-library', logActivity('interlink_library'), async (req, 
     }
     console.error('Library interlink error:', error);
     res.status(500).json({ success: false, error: 'Library interlink failed' });
+  }
+});
+
+// Publish a static article HTML file to GitHub Pages using the SERVER's
+// GITHUB_TOKEN (same credential path as the image library and footer
+// publish). Replaces the old client-side flow that kept a repo-write
+// personal access token in browser localStorage. Registered before the
+// /:id routes so 'publish-github' is never captured as an id.
+const githubContent = require('../lib/github-content');
+const { CDN_CONFIG } = require('../utils/storage');
+router.post('/articles/publish-github', logActivity('article_publish_github'), async (req, res) => {
+  try {
+    if (!process.env.GITHUB_TOKEN) {
+      return res.status(503).json({ success: false, error: 'GITHUB_TOKEN is not configured on the server (Railway → Variables).' });
+    }
+    const html = typeof req.body.html === 'string' ? req.body.html : '';
+    if (!html.trim()) {
+      return res.status(400).json({ success: false, error: 'html is required' });
+    }
+    if (Buffer.byteLength(html, 'utf8') > 2 * 1024 * 1024) {
+      return res.status(413).json({ success: false, error: 'Article HTML exceeds the 2MB publish limit' });
+    }
+    // Path stays constrained to article pages — this route must never
+    // become an arbitrary-repo-write primitive.
+    const repoPath = String(req.body.path || '').trim();
+    if (!/^en\/articles\/[a-z0-9][a-z0-9-]*\.html$/.test(repoPath)) {
+      return res.status(400).json({ success: false, error: 'path must look like en/articles/<slug>.html' });
+    }
+
+    const existing = await githubContent.getFile(repoPath);
+    const message = `${existing ? 'Update' : 'Add'} article: ${String(req.body.title || repoPath).slice(0, 120)}`;
+    const result = await githubContent.putFile(repoPath, html, message, existing ? existing.sha : undefined);
+    if (!result.ok) {
+      const why = result.reason === 'auth'
+        ? 'GitHub rejected the server token — check the GITHUB_TOKEN permissions on Railway'
+        : result.reason === 'no_token'
+          ? 'GITHUB_TOKEN is not configured on the server'
+          : `GitHub push failed (${result.reason})`;
+      return res.status(502).json({ success: false, error: why });
+    }
+
+    res.json({
+      success: true,
+      path: repoPath,
+      updated: !!existing,
+      published_url: `https://wordsthatsells.website/${repoPath}`,
+      github_url: `https://github.com/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/blob/${CDN_CONFIG.branch}/${repoPath}`,
+    });
+  } catch (error) {
+    console.error('Article GitHub publish error:', error);
+    res.status(500).json({ success: false, error: 'Publish failed: ' + error.message });
   }
 });
 
@@ -794,6 +848,15 @@ router.get('/seo-terms/api/list', async (req, res) => {
 
 // ==================== AI TOOLS ====================
 
+// The form caps ratings at 0–5 client-side, but the column accepts up to
+// 9.99 — clamp server-side so a hand-crafted request can't skew the public
+// directory's rating sort. Preserves an explicit 0; anything else invalid → null.
+const clampToolRating = (raw) => {
+  if (raw == null || String(raw).trim() === '') return null;
+  const n = Number.parseFloat(raw);
+  return Number.isFinite(n) && n >= 0 && n <= 5 ? n : null;
+};
+
 router.get('/ai-tools', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM ai_tools ORDER BY name ASC');
@@ -826,19 +889,46 @@ router.post('/ai-tools', async (req, res) => {
       name, description, category, website_url, pricing_model, features, pros, cons,
       rating, logo_url, status, app_store_url, play_store_url
     } = req.body;
+    if (!name || !String(name).trim()) {
+      return res.render('content/ai-tools/form', {
+        title: 'New AI Tool - WTS Admin',
+        tool: req.body,
+        currentPage: 'ai-tools',
+        error: 'Name is required'
+      });
+    }
     const featuresArray = features ? features.split('\n').map(f => f.trim()).filter(f => f) : [];
     const prosArray = pros ? pros.split('\n').map(p => p.trim()).filter(p => p) : [];
     const consArray = cons ? cons.split('\n').map(c => c.trim()).filter(c => c) : [];
+    const ratingValue = clampToolRating(rating);
 
-    await db.query(
-      `INSERT INTO ai_tools
-        (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status, app_store_url, play_store_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-      [
-        name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray,
-        rating || null, logo_url, status || 'active', app_store_url || null, play_store_url || null
-      ]
-    );
+    // Freeze the public detail URL at creation: the slug is stored once and
+    // never re-derived, so renaming a tool later can't move its URL (the
+    // public API and directory prefer the stored slug over the name).
+    // Retry on unique-violation: a concurrent create with the same name can
+    // land between the dedup check and the insert.
+    const slugBase = String(name).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).join('-').slice(0, 80) || 'tool';
+    for (let attempt = 1; ; attempt++) {
+      let slug = slugBase;
+      for (let n = 2; (await db.query('SELECT 1 FROM ai_tools WHERE slug = $1 LIMIT 1', [slug])).rows.length; n++) {
+        slug = `${slugBase}-${n}`;
+      }
+      try {
+        await db.query(
+          `INSERT INTO ai_tools
+            (name, description, category, website_url, pricing_model, features, pros, cons, rating, logo_url, status, app_store_url, play_store_url, slug)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+          [
+            name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray,
+            ratingValue, logo_url, status || 'active', app_store_url || null, play_store_url || null, slug
+          ]
+        );
+        break;
+      } catch (e) {
+        if (e.code === '23505' && attempt < 3) continue;
+        throw e;
+      }
+    }
     req.session.successMessage = 'AI tool created successfully';
     res.redirect('/content/ai-tools');
   } catch (error) {
@@ -886,7 +976,7 @@ router.post('/ai-tools/:id', async (req, res) => {
        WHERE id = $14`,
       [
         name, description, category, website_url, pricing_model, featuresArray, prosArray, consArray,
-        rating || null, logo_url, status, app_store_url || null, play_store_url || null, req.params.id
+        clampToolRating(rating), logo_url, status, app_store_url || null, play_store_url || null, req.params.id
       ]
     );
     req.session.successMessage = 'AI tool updated successfully';
