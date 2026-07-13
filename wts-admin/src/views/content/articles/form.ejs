@@ -132,6 +132,16 @@
             </div>
 
             <div class="form-group">
+              <label class="form-label" for="slug"><i class="fas fa-link"></i> URL Slug</label>
+              <input type="text" id="slug" name="slug" class="form-input" value="<%= article ? article.slug : '' %>" placeholder="auto-generated from title" spellcheck="false" style="font-family: monospace; font-size: 13px;">
+              <p class="form-help">
+                Public URL: <code>/en/articles/<span id="slugPreview"><%= article && article.slug ? article.slug : 'your-slug' %></span>.html</code>.
+                Editing the title never moves the article — change this field to rename the URL.
+                Renaming automatically keeps the old URL working (visitors and Google get redirected to the new one).
+              </p>
+            </div>
+
+            <div class="form-group">
               <label class="form-label" for="excerpt">Excerpt</label>
               <textarea id="excerpt" name="excerpt" class="form-input" rows="2" placeholder="Brief summary of the article"><%= article ? article.excerpt : '' %></textarea>
             </div>
@@ -166,9 +176,23 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="content"><i class="fas fa-file-code"></i> Listing / Sidemenu Teaser *</label>
-              <textarea id="content" name="content" class="form-input" rows="10" required placeholder="Short HTML teaser for the articles listing modal / slide-in. NOT the full article."><%= article ? article.content : '' %></textarea>
-              <p class="form-help"><strong>Short teaser only</strong> (description, chapter bullets, a few facts, CTA link). Used on the articles listing when someone opens the preview card. The full article lives in <em>Full Article (Text)</em> above and in Content Labels for the sticky side card.</p>
+              <label class="form-label" for="content"><i class="fas fa-file-code"></i> Listing Teaser <span style="font-weight: 400; color: var(--gray-500);">(auto-generated — read only)</span></label>
+              <% if (article && article.content) { %>
+                <!-- Fully sandboxed preview: the stored HTML renders visually
+                     but can never run scripts or touch the admin page -->
+                <iframe id="teaserPreviewBox" title="Listing teaser preview" sandbox
+                        style="width: 100%; height: 420px; border: 1px dashed var(--gray-300); border-radius: 8px; background: #fff;"
+                        srcdoc="<%= article.content %>"></iframe>
+              <% } else { %>
+                <div id="teaserPreviewBox" style="border: 1px dashed var(--gray-300); border-radius: 8px; padding: 12px; background: var(--gray-50);">
+                  <p style="color: var(--gray-500); font-size: 14px; margin: 0;">The teaser card appears here after the first save.</p>
+                </div>
+              <% } %>
+              <details style="margin-top: 8px;">
+                <summary style="cursor: pointer; font-size: 13px; color: var(--gray-600);">View teaser HTML</summary>
+                <textarea id="content" name="content" class="form-input" rows="8" readonly style="margin-top: 8px; background: var(--gray-50); color: var(--gray-600); font-family: monospace; font-size: 12px;"><%= article ? article.content : '' %></textarea>
+              </details>
+              <p class="form-help"><strong>You don't edit this box.</strong> The server rebuilds it from Title, Category, Featured Image and the <em>Content Labels</em> section (chapters / facts / sources) on every save — it's the preview card on the articles listing. The article body readers see lives in <em>Full Article (Text)</em> above.</p>
             </div>
 
             <!-- Auto-Hyperlink Button -->
@@ -176,15 +200,12 @@
               <div class="autolink-header">
                 <label class="form-label" style="margin-bottom: 0;"><i class="fas fa-link" style="color: var(--primary);"></i> Auto-Hyperlink Content</label>
                 <div class="autolink-buttons">
-                  <button type="button" id="autoHyperlinkContentBtn" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-magic"></i> Auto-Link Sidemenu
-                  </button>
                   <button type="button" id="autoHyperlinkTextBtn" class="btn btn-secondary btn-sm">
                     <i class="fas fa-magic"></i> Auto-Link Text Article
                   </button>
                 </div>
               </div>
-              <p class="form-help" style="margin: 0;">Scans content and auto-creates hyperlinks for glossary terms, SEO terms, and AI tools from your database. First occurrence of each term gets linked.</p>
+              <p class="form-help" style="margin: 0;">Scans the Full Article and auto-creates hyperlinks for glossary terms, SEO terms, and AI tools from your database. First occurrence of each term gets linked.</p>
               <div id="hyperlinkStatus" style="display: none; margin-top: 8px;"></div>
             </div>
 
@@ -681,9 +702,15 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="cl_chapters"><i class="fas fa-list-ul"></i> Chapters (point form)</label>
-              <textarea id="cl_chapters" name="cl_chapters" class="form-input" rows="6" placeholder="Why visual identity matters in Laos now&#10;Logo shape psychology&#10;Color meaning in the Lao context"></textarea>
-              <p class="form-help">One chapter title per line. Shown as a compact bullet list on the sidebar.</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                <label class="form-label" for="cl_chapters" style="margin-bottom: 0;"><i class="fas fa-list-ul"></i> Chapters (point form)</label>
+                <button type="button" id="generateChaptersBtn" class="btn btn-secondary btn-sm" title="Read the section headings out of the Full Article text">
+                  <i class="fas fa-wand-magic-sparkles"></i> Auto-fill from headings
+                </button>
+              </div>
+              <textarea id="cl_chapters" name="cl_chapters" class="form-input" rows="6" style="margin-top: 8px;" placeholder="Why visual identity matters in Laos now&#10;Logo shape psychology&#10;Color meaning in the Lao context"></textarea>
+              <p class="form-help">One chapter title per line. Shown as the clickable "In this guide" menu on the article's sticky sidebar. <strong>Auto-fill</strong> pulls the section headings (H2 / numbered sections) from the Full Article so you never type them twice.</p>
+              <div id="generateChaptersStatus" style="display: none; margin-top: 6px;"></div>
             </div>
 
             <div class="form-group">
@@ -2975,6 +3002,96 @@ function updateContentLabels() {
   document.getElementById('content_labels').value = JSON.stringify(contentLabelsData);
 }
 
+// ==================== Chapters from Article Headings ====================
+// Pull the section headings out of the Full Article so the sidebar menu never
+// has to be typed twice. Handles HTML bodies (<h2>) and plain-text bodies
+// ("1. Section title" / "# Section title" lines — same heuristics the public
+// article page uses to render text_article).
+function decodeEntitiesLite(s) {
+  return String(s)
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0*39;|&apos;/gi, "'")
+    .replace(/&amp;/gi, '&');
+}
+
+function extractChaptersFromArticle(text) {
+  if (!text || !text.trim()) return [];
+  var chapters = [];
+  var hasBlockHtml = /<(h[1-6]|p|ul|ol|div|article|section)[\s>]/i.test(text);
+  if (hasBlockHtml) {
+    // Pure text scan — the article HTML is never parsed into a live DOM here
+    var re = /<h2[^>]*>([\s\S]*?)<\/h2>/gi;
+    var m;
+    while ((m = re.exec(text)) !== null) {
+      var t = decodeEntitiesLite(m[1].replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+      if (t) chapters.push(t);
+    }
+  } else {
+    text.replace(/\r\n/g, '\n').split('\n').forEach(function(raw) {
+      var line = raw.trim();
+      if (!line) return;
+      if (/^#\s+/.test(line) && !/^##/.test(line)) {
+        chapters.push(line.replace(/^#+\s*/, ''));
+      } else if (/^\d+\.?\s+\S/.test(line) && !/^\d+\.\d+/.test(line) && line.length < 120 && !/[.!?]$/.test(line)) {
+        chapters.push(line);
+      }
+    });
+  }
+  // Strip "1." numbering and boilerplate sections that don't belong in a TOC
+  var skip = /^(frequently asked questions|faq|sources|references|learn more|conclusion)$/i;
+  return chapters
+    .map(function(c) { return c.replace(/^\d+(\.\d+)*\.?\s*/, '').trim(); })
+    .filter(function(c) { return c && !skip.test(c); });
+}
+
+function generateChaptersFromArticle() {
+  var statusEl = document.getElementById('generateChaptersStatus');
+  var textVal = document.getElementById('text_article').value || '';
+  var chapters = extractChaptersFromArticle(textVal);
+  statusEl.style.display = 'block';
+  if (!chapters.length) {
+    statusEl.innerHTML = '<span style="font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> No section headings found in the Full Article (looking for &lt;h2&gt; tags or numbered "1. Title" lines).</span>';
+    return;
+  }
+  var chaptersEl = document.getElementById('cl_chapters');
+  var existing = chaptersEl.value.trim();
+  if (existing && !confirm('Replace the current ' + existing.split('\n').length + ' chapter line(s) with ' + chapters.length + ' heading(s) found in the article?')) {
+    statusEl.style.display = 'none';
+    return;
+  }
+  chaptersEl.value = chapters.join('\n');
+  updateContentLabels();
+  formDirty = true;
+  var badge = document.getElementById('unsavedBadge');
+  if (badge) badge.style.display = 'inline-flex';
+  statusEl.innerHTML = '<span style="font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Filled ' + chapters.length + ' chapters from the article headings. Trim or reword any line — the sidebar menu updates on save.</span>';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var genBtn = document.getElementById('generateChaptersBtn');
+  if (genBtn) genBtn.addEventListener('click', generateChaptersFromArticle);
+
+  // Live URL preview under the slug field
+  var slugInput = document.getElementById('slug');
+  var slugPreview = document.getElementById('slugPreview');
+  var titleInput = document.getElementById('title');
+  function slugify(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  function refreshSlugPreview() {
+    if (!slugPreview) return;
+    var v = slugify(slugInput && slugInput.value);
+    if (!v && titleInput) v = slugify(titleInput.value);
+    slugPreview.textContent = v || 'your-slug';
+  }
+  if (slugInput) slugInput.addEventListener('input', refreshSlugPreview);
+  if (titleInput) titleInput.addEventListener('input', refreshSlugPreview);
+  refreshSlugPreview();
+});
+
 function addKeyPoint() {
   keyPointsData.push({ title: '', description: '' });
   updateContentLabels();
@@ -3833,7 +3950,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ==================== AUTO-HYPERLINK ENGINE ====================
 var linkTermsCache = null;
-var contentBeforeLinks = null;
 var textArticleBeforeLinks = null;
 
 function fetchLinkTerms(callback) {
@@ -3904,7 +4020,6 @@ function autoHyperlinkField(fieldId, statusId) {
     var content = field.value;
 
     // Save original content for undo
-    if (fieldId === 'content') contentBeforeLinks = content;
     if (fieldId === 'text_article') textArticleBeforeLinks = content;
 
     var result = hyperlinkContent(content, terms);
@@ -3924,20 +4039,17 @@ function autoHyperlinkAll() {
   statusEl.innerHTML = '<div style="padding: 10px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius, 6px); font-size: 13px; color: var(--primary);"><i class="fas fa-spinner fa-spin"></i> Fetching terms and scanning all content fields...</div>';
 
   fetchLinkTerms(function(terms) {
-    var contentField = document.getElementById('content');
+    // Teaser (content) is server-generated from Content Labels — only the
+    // Full Article body takes links.
     var textField = document.getElementById('text_article');
 
-    // Save originals for undo
-    contentBeforeLinks = contentField.value;
+    // Save original for undo
     textArticleBeforeLinks = textField.value;
 
-    var contentResult = hyperlinkContent(contentField.value, terms);
     var textResult = hyperlinkContent(textField.value, terms);
-
-    contentField.value = contentResult.html;
     textField.value = textResult.html;
 
-    var totalLinked = contentResult.count + textResult.count;
+    var totalLinked = textResult.count;
     var totalTerms = (terms.glossary || []).length + (terms.seo_terms || []).length + (terms.ai_tools || []).length;
 
     // Show stats
@@ -3945,15 +4057,15 @@ function autoHyperlinkAll() {
     statsEl.style.display = 'grid';
     statsEl.innerHTML =
       '<div class="hyperlink-stat-item"><i class="fas fa-link"></i> Total Linked: <span class="stat-count">' + totalLinked + '</span></div>' +
-      '<div class="hyperlink-stat-item"><i class="fas fa-book"></i> Glossary: <span class="stat-count">' + (contentResult.details.glossary + textResult.details.glossary) + '</span></div>' +
-      '<div class="hyperlink-stat-item"><i class="fas fa-search"></i> SEO Terms: <span class="stat-count">' + (contentResult.details.seo + textResult.details.seo) + '</span></div>' +
-      '<div class="hyperlink-stat-item"><i class="fas fa-robot"></i> AI Tools: <span class="stat-count">' + (contentResult.details.ai_tool + textResult.details.ai_tool) + '</span></div>' +
+      '<div class="hyperlink-stat-item"><i class="fas fa-book"></i> Glossary: <span class="stat-count">' + textResult.details.glossary + '</span></div>' +
+      '<div class="hyperlink-stat-item"><i class="fas fa-search"></i> SEO Terms: <span class="stat-count">' + textResult.details.seo + '</span></div>' +
+      '<div class="hyperlink-stat-item"><i class="fas fa-robot"></i> AI Tools: <span class="stat-count">' + textResult.details.ai_tool + '</span></div>' +
       '<div class="hyperlink-stat-item"><i class="fas fa-database"></i> Available: <span class="stat-count">' + totalTerms + '</span></div>';
 
     // Show undo button
     document.getElementById('pubUndoLinksBtn').style.display = 'inline-flex';
 
-    statusEl.innerHTML = '<div style="padding: 10px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius, 6px); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Successfully auto-linked <strong>' + totalLinked + '</strong> terms across both content fields.</div>';
+    statusEl.innerHTML = '<div style="padding: 10px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius, 6px); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> Successfully auto-linked <strong>' + totalLinked + '</strong> terms in the Full Article.</div>';
 
     formDirty = true;
     document.getElementById('unsavedBadge').style.display = 'inline-flex';
@@ -3961,10 +4073,6 @@ function autoHyperlinkAll() {
 }
 
 function undoAutoLinks() {
-  if (contentBeforeLinks !== null) {
-    document.getElementById('content').value = contentBeforeLinks;
-    contentBeforeLinks = null;
-  }
   if (textArticleBeforeLinks !== null) {
     document.getElementById('text_article').value = textArticleBeforeLinks;
     textArticleBeforeLinks = null;
@@ -4651,8 +4759,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Bind Publish tab buttons
   function bind(id, fn) { var el = document.getElementById(id); if (el) el.addEventListener('click', fn); }
 
-  // Content tab auto-hyperlink buttons
-  bind('autoHyperlinkContentBtn', function() { autoHyperlinkField('content', 'hyperlinkStatus'); });
+  // Content tab auto-hyperlink button (teaser is server-generated, so only
+  // the Full Article gets linked)
   bind('autoHyperlinkTextBtn', function() { autoHyperlinkField('text_article', 'hyperlinkStatus'); });
 
   // Calculate reading time
@@ -4662,14 +4770,11 @@ document.addEventListener('DOMContentLoaded', function() {
   bind('pubAutoHyperlinkBtn', function() { autoHyperlinkAll(); });
   bind('pubPreviewLinksBtn', function() {
     fetchLinkTerms(function(terms) {
-      var content = document.getElementById('content').value || '';
       var textArticle = document.getElementById('text_article').value || '';
-      var contentResult = hyperlinkContent(content, terms);
       var textResult = hyperlinkContent(textArticle, terms);
-      var total = contentResult.count + textResult.count;
       var statusEl = document.getElementById('pubHyperlinkStatus');
       statusEl.style.display = 'block';
-      statusEl.innerHTML = '<div style="padding: 10px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius, 6px); font-size: 13px; color: var(--primary);"><i class="fas fa-info-circle"></i> Preview: <strong>' + total + '</strong> terms would be linked (Sidemenu: ' + contentResult.count + ', Text Article: ' + textResult.count + '). Click "Auto-Hyperlink All Content" to apply.</div>';
+      statusEl.innerHTML = '<div style="padding: 10px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius, 6px); font-size: 13px; color: var(--primary);"><i class="fas fa-info-circle"></i> Preview: <strong>' + textResult.count + '</strong> terms would be linked in the Full Article. Click "Auto-Hyperlink All Content" to apply.</div>';
     });
   });
   bind('pubUndoLinksBtn', function() { undoAutoLinks(); });

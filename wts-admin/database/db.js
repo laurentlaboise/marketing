@@ -383,6 +383,10 @@ const db = {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='author_url') THEN
             ALTER TABLE articles ADD COLUMN author_url TEXT;
           END IF;
+          -- Slug rename history: public API answers old URLs via this list
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='articles' AND column_name='previous_slugs') THEN
+            ALTER TABLE articles ADD COLUMN previous_slugs TEXT[] DEFAULT '{}';
+          END IF;
         END $$;
       `);
 

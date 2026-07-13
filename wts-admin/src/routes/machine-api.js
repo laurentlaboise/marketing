@@ -11,6 +11,7 @@ const db = require('../../database/db');
 const { requireMachineToken } = require('../middleware/machine-auth');
 const { seedPricingDefaults } = require('../lib/pricing-seed-data');
 const { seedAiTools } = require('../lib/ai-tools-seed');
+const { buildArticleListingTeaserHtml } = require('../lib/article-teaser');
 
 const router = express.Router();
 
@@ -1511,10 +1512,12 @@ router.get('/v1/articles/:idOrSlug', async (req, res) => {
     const key = String(req.params.idOrSlug || '').trim().replace(/\.html?$/i, '');
     if (!key) return fail(res, 'id or slug required');
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key);
+    // Renamed slugs keep resolving via previous_slugs (exact slug wins)
     const result = await db.query(
       isUuid
         ? 'SELECT * FROM articles WHERE id = $1 LIMIT 1'
-        : 'SELECT * FROM articles WHERE slug = $1 LIMIT 1',
+        : `SELECT * FROM articles WHERE slug = $1 OR $1 = ANY(COALESCE(previous_slugs, '{}'))
+           ORDER BY (slug = $1) DESC LIMIT 1`,
       [key]
     );
     if (!result.rows.length) return fail(res, 'Article not found', 404);
@@ -1537,15 +1540,38 @@ router.put('/v1/articles/:idOrSlug', async (req, res) => {
     const body = req.body || {};
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key);
 
+    // Full row: conflict guard + teaser regen need current values, and a
+    // renamed slug keeps resolving via previous_slugs (exact slug wins).
     const existing = await db.query(
       isUuid
-        ? 'SELECT id, slug FROM articles WHERE id = $1 LIMIT 1'
-        : 'SELECT id, slug FROM articles WHERE slug = $1 LIMIT 1',
+        ? 'SELECT * FROM articles WHERE id = $1 LIMIT 1'
+        : `SELECT * FROM articles WHERE slug = $1 OR $1 = ANY(COALESCE(previous_slugs, '{}'))
+           ORDER BY (slug = $1) DESC LIMIT 1`,
       [key]
     );
     if (!existing.rows.length) return fail(res, 'Article not found', 404);
-    const id = existing.rows[0].id;
-    let slug = existing.rows[0].slug;
+    const row = existing.rows[0];
+    const id = row.id;
+    let slug = row.slug;
+
+    // Optimistic-concurrency guard: a payload that was written against an
+    // older copy of the row must not silently clobber newer admin-UI edits.
+    // Clients send base_updated_at = the updated_at they last read; skip the
+    // check deliberately with ?force=true (or body.force) to overwrite.
+    const force = req.query.force === 'true' || body.force === true;
+    if (body.base_updated_at != null && !force) {
+      const base = new Date(body.base_updated_at);
+      if (Number.isNaN(base.getTime())) return fail(res, 'Invalid base_updated_at timestamp');
+      const current = row.updated_at ? new Date(row.updated_at) : null;
+      if (current && current.getTime() - base.getTime() > 1000) {
+        return res.status(409).json({
+          success: false,
+          error: 'Article changed since base_updated_at — someone (admin UI?) saved a newer version. GET the article, merge, and retry; or repeat with ?force=true to overwrite.',
+          current_updated_at: current.toISOString(),
+          base_updated_at: base.toISOString(),
+        });
+      }
+    }
 
     const str = (v, max) => {
       if (v == null) return undefined;
@@ -1590,12 +1616,36 @@ router.put('/v1/articles/:idOrSlug', async (req, res) => {
         );
         if (clash.rows.length) return fail(res, `Slug already in use: ${nextSlug}`, 409);
         add('slug', nextSlug);
+        // Record the old slug so the public API keeps answering the old URL
+        const prior = Array.isArray(row.previous_slugs) ? row.previous_slugs : [];
+        add('previous_slugs', [...new Set([...prior, slug])].filter((s) => s && s !== nextSlug));
         slug = nextSlug;
       }
     }
 
+    // The teaser (content) is derived from Content Labels, exactly like the
+    // admin form save: whenever a teaser input arrives in this payload,
+    // regenerate it from the merged (payload over current row) values so the
+    // two write paths can't drift. Empty labels → provided content stands.
+    let contentOverride;
+    const teaserInputTouched = ['title', 'featured_image', 'author_name', 'time_to_read', 'published_url', 'category']
+      .some((k) => body[k] != null) || body.content_labels !== undefined || (body.slug != null && String(body.slug).trim());
+    if (teaserInputTouched) {
+      contentOverride = buildArticleListingTeaserHtml({
+        title: body.title != null ? String(body.title) : row.title,
+        featured_image: body.featured_image != null ? String(body.featured_image) : row.featured_image,
+        author_name: body.author_name != null ? String(body.author_name) : row.author_name,
+        time_to_read: body.time_to_read != null ? (parseInt(body.time_to_read, 10) || null) : row.time_to_read,
+        published_url: body.published_url != null ? String(body.published_url) : row.published_url,
+        slug,
+        category: body.category != null ? String(body.category) : row.category,
+        content_labels: body.content_labels !== undefined ? asJson(body.content_labels, {}) : row.content_labels,
+      }) || undefined;
+    }
+
     if (body.title != null) add('title', str(body.title, 500));
-    if (body.content != null) add('content', str(body.content));
+    if (contentOverride != null) add('content', contentOverride);
+    else if (body.content != null) add('content', str(body.content));
     if (body.excerpt != null) add('excerpt', str(body.excerpt, 5000));
     if (body.category != null) add('category', str(body.category, 100) || null);
     if (body.tags != null) {
