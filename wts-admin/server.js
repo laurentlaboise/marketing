@@ -129,10 +129,12 @@ app.use((req, res, next) => {
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// The shared article-sidebar module lives in the site tree
-// (js/services/article-sidebar.js at the repo root, present in the Railway
-// checkout). The article form pre-renders the publish/preview sidebar with
-// it, and CSP script-src is 'self' + nonce — so serve it same-origin.
+// The shared article-sidebar module (js/services/article-sidebar.js at the
+// repo root) is normally served from the committed copy in public/vendor/
+// by the static middleware above — Railway roots the service at wts-admin/
+// and does NOT carry the site tree, which made this route 404 in
+// production. This handler is only the dev-checkout fallback if the
+// bundled copy is ever removed; a test keeps the bundle byte-identical.
 // Filesystem-touching route → its own rate budget (outside the /api limiter).
 const vendorLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

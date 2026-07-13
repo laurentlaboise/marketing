@@ -46,7 +46,14 @@ function aiToolPageSet() {
         .map((d) => d.name)
     );
   } catch (e) {
-    return new Set();
+    // Deployed containers (Railway roots the service at wts-admin/) don't
+    // carry the site tree — fall back to the committed manifest, which a
+    // test keeps byte-in-sync with the real page directories.
+    try {
+      return new Set(require('../../config/ai-tool-pages.json'));
+    } catch (e2) {
+      return new Set();
+    }
   }
 }
 const aiToolPageUrl = (slug) => `/en/resources/ai-tools/${slug}/`;
