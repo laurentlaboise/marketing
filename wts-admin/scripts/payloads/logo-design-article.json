@@ -199,39 +199,22 @@
     }
   ],
   "content_labels": {
-    "description": "What logo design actually does for Lao businesses — verified psychology research, rebrand ROI data, real 2025–2026 costs, WCAG rules, and Southeast Asian market context. A data-backed guide for SMEs in Vientiane and beyond.",
-    "who_should_read": [
-      "Lao SME owners building a professional brand identity",
-      "Startups and shops launching on Facebook, LINE, and Google",
-      "Agencies and freelancers advising clients in Laos and SEA",
-      "Marketers choosing logo shapes, colors, and rebrand timing",
-      "Businesses comparing DIY makers vs professional logo systems"
+    "description": "Science-backed logo strategy for Lao SMEs: first impressions, shape psychology, local color meaning, rebrand ROI, and real 2026 costs.",
+    "chapters": [
+      "Why visual identity matters in Laos now",
+      "Logo shape psychology (neuroscience)",
+      "Color meaning in the Lao context",
+      "Famous failures: Tropicana & Gap",
+      "Rebrand ROI data that pays back",
+      "Accessibility, dark mode & responsive marks",
+      "What professional logo design costs",
+      "Practical checklist for Lao owners"
     ],
-    "key_points": [
-      {
-        "title": "50ms first impressions",
-        "description": "Lindgaard et al. (2006): visual appeal judgments form in 50 milliseconds — before a customer reads a word."
-      },
-      {
-        "title": "Shape psychology that converts",
-        "description": "Circular logos signal warmth; angular logos signal durability (Jiang et al., 2016) — match geometry to your promise."
-      },
-      {
-        "title": "Lao color meaning",
-        "description": "Gold (sacred/prestige), saffron (Buddhist respect), red (luck in Chinese-influenced commerce) — dual local/international reading."
-      },
-      {
-        "title": "Rebrand ROI vs failure costs",
-        "description": "Tropicana −20% sales; Gap reversed in 6 days; rebranded banks 13.6% CAGR vs 7.4% industry average."
-      },
-      {
-        "title": "WCAG + responsive systems",
-        "description": "4.5:1 body text contrast, dark-mode variants, and marks that survive 16px favicons to building signs."
-      },
-      {
-        "title": "2025–2026 cost ranges",
-        "description": "DIY $0–$100, freelancers $100–$2,500, agencies $2,500–$10,000+ — highest-leverage marketing line item for SMEs."
-      }
+    "facts": [
+      "Judgments form in ~50 milliseconds (Lindgaard et al., 2006)",
+      "54.3% of Lao people are on social media (DataReportal 2025)",
+      "Rebranded banks grew 13.6% CAGR vs 7.4% industry avg",
+      "Most SMEs spend a few hundred to $2,500 on identity"
     ],
     "sources": [
       {
@@ -239,36 +222,47 @@
         "url": "https://doi.org/10.1080/01449290500330448"
       },
       {
-        "name": "Bar & Neta 2007",
-        "url": "https://doi.org/10.1016/j.neuropsychologia.2007.02.013"
-      },
-      {
         "name": "Jiang et al. 2016",
         "url": "https://doi.org/10.1093/jcr/ucv049"
       },
       {
-        "name": "DataReportal Laos 2025",
+        "name": "DataReportal Laos",
         "url": "https://datareportal.com/reports/digital-2025-laos"
       },
       {
         "name": "e-Conomy SEA 2025",
         "url": "https://economysea.withgoogle.com/"
-      },
-      {
-        "name": "W3C WCAG",
-        "url": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"
-      },
-      {
-        "name": "Adrenaline / ABA",
-        "url": "https://bankingjournal.aba.com/"
-      },
-      {
-        "name": "Mordor Intelligence",
-        "url": "https://www.mordorintelligence.com/industry-reports/graphic-design-market"
       }
     ],
+    "key_points": [
+      {
+        "title": "Why visual identity matters in Laos now"
+      },
+      {
+        "title": "Logo shape psychology (neuroscience)"
+      },
+      {
+        "title": "Color meaning in the Lao context"
+      },
+      {
+        "title": "Famous failures: Tropicana & Gap"
+      },
+      {
+        "title": "Rebrand ROI data that pays back"
+      },
+      {
+        "title": "Accessibility, dark mode & responsive marks"
+      },
+      {
+        "title": "What professional logo design costs"
+      },
+      {
+        "title": "Practical checklist for Lao owners"
+      }
+    ],
+    "who_should_read": [],
     "faqs_count": 6,
-    "cta_text": "Read Full Guide"
+    "cta_text": "Read full article"
   },
   "author_type": "person",
   "author_name": "Laurent Laboise",
