@@ -129,6 +129,17 @@ app.use((req, res, next) => {
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
+// The shared article-sidebar module lives in the site tree
+// (js/services/article-sidebar.js at the repo root, present in the Railway
+// checkout). The article form pre-renders the publish/preview sidebar with
+// it, and CSP script-src is 'self' + nonce — so serve it same-origin.
+app.get('/vendor/article-sidebar.js', (req, res) => {
+  const modulePath = path.resolve(__dirname, '..', 'js/services/article-sidebar.js');
+  res.sendFile(modulePath, (err) => {
+    if (err && !res.headersSent) res.status(404).end();
+  });
+});
+
 // View engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src/views'));

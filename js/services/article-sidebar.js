@@ -88,6 +88,19 @@
     return null;
   }
 
+  // Chapters straight from content_labels, with the legacy key_points
+  // fallback every surface needs.
+  function chaptersFromLabels(cl) {
+    cl = cl || {};
+    if (Array.isArray(cl.chapters) && cl.chapters.length) return cl.chapters;
+    if (Array.isArray(cl.key_points)) {
+      return cl.key_points.map(function (kp) {
+        return typeof kp === 'string' ? kp : (kp && kp.title) || '';
+      }).filter(Boolean);
+    }
+    return [];
+  }
+
   // Resolve a chapters list against the headings once, in order.
   // Returns [{ text, id|null }].
   function resolveChapters(chapters, headings) {
@@ -131,6 +144,12 @@
       return '<h' + level + attrs + '>' + inner + '</h' + level + '>';
     });
     return { html: out, headings: headings };
+  }
+
+  // Source URLs come from CMS data — only plain web links may become
+  // clickable (a javascript: value must never reach an href).
+  function isSafeHttpUrl(url) {
+    return /^https?:\/\//i.test(String(url || '').trim());
   }
 
   function calcReadingTime(text) {
@@ -221,7 +240,7 @@
       sources.forEach(function (src) {
         var name = typeof src === 'string' ? src : (src && src.name) || 'Source';
         var url = (typeof src === 'object' && src && src.url) ? src.url : '';
-        if (url) {
+        if (url && isSafeHttpUrl(url)) {
           html += '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" class="sidebar-source-badge">' + escapeHtml(name) + '</a>';
         } else {
           html += '<span class="sidebar-source-badge">' + escapeHtml(name) + '</span>';
@@ -360,13 +379,7 @@
   function renderInto(sidebarEl, article, headings, opts) {
     if (!sidebarEl) return;
     injectStyles();
-    var cl = article.content_labels || {};
-    var chapters = Array.isArray(cl.chapters) && cl.chapters.length
-      ? cl.chapters
-      : (Array.isArray(cl.key_points) ? cl.key_points.map(function (kp) {
-          return typeof kp === 'string' ? kp : (kp && kp.title) || '';
-        }).filter(Boolean) : []);
-    var entries = resolveChapters(chapters, headings || []);
+    var entries = resolveChapters(chaptersFromLabels(article.content_labels), headings || []);
     var html = buildCardHTML(article, entries, opts);
     if (!html) { sidebarEl.style.display = 'none'; return; }
     sidebarEl.innerHTML = html;
@@ -415,9 +428,11 @@
 
   return {
     escapeHtml: escapeHtml,
+    isSafeHttpUrl: isSafeHttpUrl,
     slugifyHeading: slugifyHeading,
     chapterTokens: chapterTokens,
     matchChapterToHeading: matchChapterToHeading,
+    chaptersFromLabels: chaptersFromLabels,
     resolveChapters: resolveChapters,
     injectHeadingIds: injectHeadingIds,
     calcReadingTime: calcReadingTime,

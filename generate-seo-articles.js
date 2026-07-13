@@ -447,11 +447,8 @@ function generateSchemaMarkup(article) {
  * the static HTML before any JavaScript runs.
  */
 function generateSidebarHTML(article, headings) {
-  const cl = article.content_labels || {};
-  const chapters = Array.isArray(cl.chapters) && cl.chapters.length
-    ? cl.chapters
-    : (Array.isArray(cl.key_points) ? cl.key_points.map(kp => (typeof kp === 'string' ? kp : (kp && kp.title) || '')).filter(Boolean) : []);
-  const entries = sidebarLib.resolveChapters(chapters, headings || []);
+  const entries = sidebarLib.resolveChapters(
+    sidebarLib.chaptersFromLabels(article.content_labels), headings || []);
   const card = sidebarLib.buildCardHTML(article, entries, { ctaHref: '#article-container' });
   if (!card) return '';
   return '<aside class="article-sidebar">' + card + '</aside>';

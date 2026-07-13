@@ -67,3 +67,21 @@ test('buildCardHTML renders chapters as links, escapes text, honors ctaHref', ()
 test('buildCardHTML returns empty string when there is nothing to show', () => {
   assert.equal(lib.buildCardHTML({ title: 'T', content_labels: {} }, []), '');
 });
+
+test('source URLs with unsafe schemes render as plain badges, never links', () => {
+  const html = lib.buildCardHTML({
+    title: 'T',
+    content_labels: {
+      description: 'd',
+      sources: [
+        { name: 'Evil', url: 'javascript:alert(1)' },
+        { name: 'Data', url: 'data:text/html,x' },
+        { name: 'Fine', url: 'https://example.org/x' },
+      ],
+    },
+  }, []);
+  assert.ok(!html.includes('javascript:'), 'javascript: URL never reaches an href');
+  assert.ok(!html.includes('data:text'), 'data: URL never reaches an href');
+  assert.match(html, /<span class="sidebar-source-badge">Evil<\/span>/, 'unsafe source falls back to a span');
+  assert.match(html, /href="https:\/\/example.org\/x"/, 'https link stays clickable');
+});
