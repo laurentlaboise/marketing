@@ -259,6 +259,13 @@ async function fetchSeoTerms() {
  * Wraps first occurrence of each term with <span class="seo-term-link"> and data attributes.
  * Skips terms inside existing links, code blocks, and headings.
  */
+// Term links come from the CMS database; only http(s) URLs and site-relative
+// paths may ever reach an href (a poisoned row must not mint javascript: links).
+function safeTermLink(url) {
+  const u = String(url || '').trim();
+  return /^(https?:\/\/|\/)/i.test(u) ? u : '';
+}
+
 function highlightTermsInHTML(htmlContent, terms) {
   if (!terms || terms.length === 0 || !htmlContent) return htmlContent;
 
@@ -279,7 +286,7 @@ function highlightTermsInHTML(htmlContent, terms) {
     const match = result.match(regex);
     if (match) {
       const shortDef = escapeHtml(termData.short_definition || termData.definition || '').substring(0, 200);
-      const replacement = `<span class="seo-term-link" data-term-id="${termData.id}" data-term="${escapeHtml(termData.term.toLowerCase())}" data-def="${shortDef}" data-category="${escapeHtml(termData.category || '')}" data-article-link="${termData.article_link || ''}" data-glossary-link="${termData.glossary_link || ''}" role="button" tabindex="0">${match[1]}</span>`;
+      const replacement = `<span class="seo-term-link" data-term-id="${termData.id}" data-term="${escapeHtml(termData.term.toLowerCase())}" data-def="${shortDef}" data-category="${escapeHtml(termData.category || '')}" data-article-link="${escapeHtml(safeTermLink(termData.article_link))}" data-glossary-link="${escapeHtml(safeTermLink(termData.glossary_link))}" role="button" tabindex="0">${match[1]}</span>`;
       result = result.replace(regex, replacement);
       linked.add(termKey);
     }
@@ -1083,10 +1090,13 @@ ${JSON.stringify(schemaMarkup, null, 2)}
             t.appendChild(def);
             var links = document.createElement('div');
             links.className = 'seo-term-tooltip-links';
-            var artLink = el.getAttribute('data-article-link');
-            if (artLink) { var a = document.createElement('a'); a.href = artLink; a.className = 'tt-read-more'; a.target = '_blank'; a.textContent = 'Read Article'; links.appendChild(a); }
-            var glLink = el.getAttribute('data-glossary-link');
-            if (glLink) { var g = document.createElement('a'); g.href = glLink; g.className = 'tt-glossary'; g.target = '_blank'; g.textContent = 'Glossary'; links.appendChild(g); }
+            // Attribute values are validated at build time too, but hrefs are
+            // re-gated here so only http(s)/site-relative URLs are clickable.
+            function safeHref(u) { return /^(https?:\\/\\/|\\/)/i.test(u || '') ? u : ''; }
+            var artLink = safeHref(el.getAttribute('data-article-link'));
+            if (artLink) { var a = document.createElement('a'); a.href = artLink; a.className = 'tt-read-more'; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Read Article'; links.appendChild(a); }
+            var glLink = safeHref(el.getAttribute('data-glossary-link'));
+            if (glLink) { var g = document.createElement('a'); g.href = glLink; g.className = 'tt-glossary'; g.target = '_blank'; g.rel = 'noopener'; g.textContent = 'Glossary'; links.appendChild(g); }
             if (links.children.length > 0) t.appendChild(links);
             document.body.appendChild(t);
             activeTooltip = t;
