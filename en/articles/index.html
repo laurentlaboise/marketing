@@ -850,13 +850,22 @@
             if (article.published_at || article.created_at) articleObj.datePublished = article.published_at || article.created_at;
             if (article.updated_at || article.created_at) articleObj.dateModified = article.updated_at || article.created_at;
 
-            // 4. Author + Publisher with sameAs
-            articleObj.author = {
-                "@type": "Organization",
-                "name": "Words That Sells",
-                "url": "https://wordsthatsells.website",
-                "sameAs": SOCIAL_LINKS
-            };
+            // 4. Author + Publisher with sameAs (Person when CMS author_type=person)
+            if (article.author_type === 'person' && article.author_name) {
+                articleObj.author = {
+                    "@type": "Person",
+                    "name": article.author_name
+                };
+                if (article.author_job_title) articleObj.author.jobTitle = article.author_job_title;
+                if (article.author_url) articleObj.author.url = article.author_url;
+            } else {
+                articleObj.author = {
+                    "@type": "Organization",
+                    "name": "Words That Sells",
+                    "url": "https://wordsthatsells.website",
+                    "sameAs": SOCIAL_LINKS
+                };
+            }
             articleObj.publisher = {
                 "@type": "Organization",
                 "name": "Words That Sells",
@@ -1049,6 +1058,15 @@
                 // Current page URL for sharing
                 const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
 
+                // Author line (Person author preferred for E-E-A-T)
+                let authorMetaHtml = '';
+                if (article.author_type === 'person' && article.author_name) {
+                    const job = article.author_job_title ? ` · ${article.author_job_title}` : '';
+                    authorMetaHtml = `<span><i class="fas fa-user-edit"></i> ${article.author_name}${job}</span>`;
+                } else {
+                    authorMetaHtml = `<span><i class="fas fa-building"></i> Words That Sells</span>`;
+                }
+
                 // Render article
                 container.innerHTML = `
                     <article>
@@ -1056,6 +1074,7 @@
                             <h1>${article.title}</h1>
 
                             <div class="article-meta">
+                                ${authorMetaHtml}
                                 <span><i class="fas fa-calendar"></i> ${publishedDate}</span>
                                 ${updatedDate ? `<span><i class="fas fa-clock"></i> Updated: ${updatedDate}</span>` : ''}
                                 <span><i class="fas fa-book-open"></i> ${readingTime} min read</span>
