@@ -211,12 +211,14 @@
                         <th style="padding:0.75rem;text-align:left;">You earn / month</th>
                     </tr>
                 </thead>
-                <tbody>
+                <!-- Rows below are a static fallback; live plans and prices are
+                     re-rendered from /api/public/pricing (price_models, active only) -->
+                <tbody id="commission-plan-rows">
                     <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:0.75rem;">Digital Footprint</td><td style="padding:0.75rem;">$329 / mo</td><td style="padding:0.75rem;">20% (Bronze)</td><td style="padding:0.75rem;"><strong>$65.80</strong></td></tr>
                     <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:0.75rem;">Growth Engine</td><td style="padding:0.75rem;">$649 / mo</td><td style="padding:0.75rem;">22% (Silver)</td><td style="padding:0.75rem;"><strong>$142.78</strong></td></tr>
                     <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:0.75rem;">Automation Pro</td><td style="padding:0.75rem;">$1,099 / mo</td><td style="padding:0.75rem;">25% (Gold)</td><td style="padding:0.75rem;"><strong>$274.75</strong></td></tr>
-                    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:0.75rem;">Legacy Standard</td><td style="padding:0.75rem;">$290 / mo</td><td style="padding:0.75rem;">20%</td><td style="padding:0.75rem;"><strong>$58</strong></td></tr>
-                    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:0.75rem;">Legacy Professional</td><td style="padding:0.75rem;">$790 / mo</td><td style="padding:0.75rem;">25%</td><td style="padding:0.75rem;"><strong>$197.50</strong></td></tr>
+                    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:0.75rem;">Standard</td><td style="padding:0.75rem;">$290 / mo</td><td style="padding:0.75rem;">20%</td><td style="padding:0.75rem;"><strong>$58.00</strong></td></tr>
+                    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:0.75rem;">Professional</td><td style="padding:0.75rem;">$790 / mo</td><td style="padding:0.75rem;">25%</td><td style="padding:0.75rem;"><strong>$197.50</strong></td></tr>
                 </tbody>
             </table>
             <p style="margin-top:1rem;font-size:0.95rem;color:var(--color-slate-500);">Full plan details and hard scope caps: <a href="/en/digital-marketing-services/prices/">pricing page</a>. One-time project SKUs (landing pages, sites, content packs) earn commission at your tier rate when the sale closes.</p>
@@ -232,11 +234,10 @@
             <p class="reveal reveal-delay-1">Lead with monthly retainers (Footprint → Growth → Automation). Use project packages to open doors or upsell. Every package has <strong>hard caps</strong>—not “unlimited catalogue for one low fee.”</p>
         </div>
         <div class="services-grid" style="margin-bottom:3rem;">
-            <div class="card-base card reveal" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;">Digital Footprint — $329/mo</h3><p>Laos-first professional presence: 1–2 platforms (Facebook first), 8 posts/mo, foundational content, monthly report. Ideal first retainer.</p></div>
-            <div class="card-base card reveal reveal-delay-1" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;">Growth Engine — $649/mo</h3><p>SEO cadence, social foundation, lead assets, ad <em>management</em> (spend separate). Thailand growth + scaling Lao SMEs. LINE/TikTok modules available as platform swaps or add-ons.</p></div>
-            <div class="card-base card reveal reveal-delay-2" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;">Automation Pro — $1,099/mo</h3><p>CRM orientation, email workflows, priority ops, advanced reporting—for teams ready to systemize.</p></div>
-            <div class="card-base card reveal" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;">Landing &amp; site projects</h3><p>Landing Sprint $349 · Pro Page $899 · Multi-Page Starter $2,490 · Lead Form + Pipeline $490. Fast first sales when a shop needs a real web asset.</p></div>
-            <div class="card-base card reveal reveal-delay-1" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;">Content &amp; lead magnets</h3><p>SEO Content Pack (5) $750 · Lead Magnet Kit $390. Sell tangible deliverables with clear revision limits.</p></div>
+            <div class="card-base card reveal" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;" data-ladder-plan="digital-footprint">Digital Footprint — $329/mo</h3><p>Laos-first professional presence: 1–2 platforms (Facebook first), 8 posts/mo, foundational content, monthly report. Ideal first retainer.</p></div>
+            <div class="card-base card reveal reveal-delay-1" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;" data-ladder-plan="growth-engine">Growth Engine — $649/mo</h3><p>SEO cadence, social foundation, lead assets, ad <em>management</em> (spend separate). Thailand growth + scaling Lao SMEs. LINE/TikTok modules available as platform swaps or add-ons.</p></div>
+            <div class="card-base card reveal reveal-delay-2" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;" data-ladder-plan="automation-pro">Automation Pro — $1,099/mo</h3><p>CRM orientation, email workflows, priority ops, advanced reporting—for teams ready to systemize.</p></div>
+            <div class="card-base card reveal" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;">One-time projects</h3><p id="affiliate-onetime-copy">Fixed-scope projects (sites, forms, content) earn commission at your tier rate when the sale closes. The current project menu lives on the <a href="/en/digital-marketing-services/prices/">pricing page</a> and in the client portal.</p></div>
             <div class="card-base card reveal reveal-delay-2" style="padding:1.25rem;"><h3 style="font-size:1.1rem;color:#d62b83;">Agencies / white-label</h3><p>Resell under your brand. Same ladder. You keep the client—we deliver. See <a href="/en/company/digital-agencies/">agency partners</a>.</p></div>
         </div>
 
@@ -348,6 +349,72 @@
     
     <script type="module" src="/js/main.js"></script>
     <script src="/js/services/page-sidebar.js" defer></script>
+
+    <script>
+    // Keep affiliate plan economics in sync with the admin backend.
+    // Static HTML above is only a fallback for when the API is unreachable.
+    (function () {
+        var API_BASE = 'https://admin.wordsthatsells.website/api/public';
+        // Example commission tier shown per plan (program copy, not stored in the DB)
+        var RATE_BY_SLUG = {
+            'digital-footprint': { pct: 20, label: '20% (Bronze)' },
+            'growth-engine': { pct: 22, label: '22% (Silver)' },
+            'automation-pro': { pct: 25, label: '25% (Gold)' },
+            'standard': { pct: 20, label: '20%' },
+            'professional': { pct: 25, label: '25%' }
+        };
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function money(n, decimals) {
+            return '$' + Number(n).toLocaleString('en-US', {
+                minimumFractionDigits: decimals, maximumFractionDigits: decimals
+            });
+        }
+        function syncPlans(plans) {
+            if (!Array.isArray(plans) || !plans.length) return;
+            var tbody = document.getElementById('commission-plan-rows');
+            if (tbody) {
+                tbody.innerHTML = plans.map(function (p) {
+                    var rate = RATE_BY_SLUG[p.slug] || { pct: 20, label: '20% (Bronze)' };
+                    var price = Number(p.price) || 0;
+                    return '<tr style="border-bottom:1px solid #e5e7eb;">' +
+                        '<td style="padding:0.75rem;">' + esc(p.name) + '</td>' +
+                        '<td style="padding:0.75rem;">' + money(price, 0) + ' / mo</td>' +
+                        '<td style="padding:0.75rem;">' + rate.label + '</td>' +
+                        '<td style="padding:0.75rem;"><strong>' + money(price * rate.pct / 100, 2) + '</strong></td></tr>';
+                }).join('');
+            }
+            plans.forEach(function (p) {
+                var h = document.querySelector('[data-ladder-plan="' + p.slug + '"]');
+                if (h && p.price != null) {
+                    h.textContent = p.name + ' — ' + money(Number(p.price), 0) + '/mo';
+                }
+            });
+        }
+        function syncOneTime(products) {
+            var el = document.getElementById('affiliate-onetime-copy');
+            if (!el || !Array.isArray(products)) return;
+            var featured = products.filter(function (p) { return p && p.is_featured; });
+            if (!featured.length) return;
+            var list = featured.map(function (p) {
+                var from = p.pricing && p.pricing.from_price != null ? p.pricing.from_price : p.price;
+                var isOptions = p.pricing && p.pricing.type === 'options';
+                return esc(p.name) + (from != null ? ' — ' + (isOptions ? 'from ' : '') + money(Number(from), 0) : '');
+            }).join(' · ');
+            el.innerHTML = list + '. Commission at your tier rate when the sale closes. Full menu on the <a href="/en/digital-marketing-services/prices/">pricing page</a>.';
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch(API_BASE + '/pricing').then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (d) { if (d) syncPlans(d.subscriptions); })
+                .catch(function () { /* static fallback stays */ });
+            fetch(API_BASE + '/products').then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (d) { if (d) syncOneTime(d); })
+                .catch(function () { /* static fallback stays */ });
+        });
+    })();
+    </script>
 
 </body>
 </html>
