@@ -1508,7 +1508,7 @@ router.post('/v1/whatsapp/send', async (req, res) => {
  */
 router.get('/v1/articles/:idOrSlug', async (req, res) => {
   try {
-    const key = String(req.params.idOrSlug || '').trim();
+    const key = String(req.params.idOrSlug || '').trim().replace(/\.html?$/i, '');
     if (!key) return fail(res, 'id or slug required');
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key);
     const result = await db.query(
@@ -1528,12 +1528,11 @@ router.get('/v1/articles/:idOrSlug', async (req, res) => {
 /**
  * PUT /v1/articles/:idOrSlug
  * Upsert article fields used by the public article SPA + admin form.
- * Body: partial or full article payload. Does NOT rewrite slug on update
- * (keeps stable public URLs like /en/articles/logo-design.html).
+ * Optional body.slug renames the public URL slug (must be unique).
  */
 router.put('/v1/articles/:idOrSlug', async (req, res) => {
   try {
-    const key = String(req.params.idOrSlug || '').trim();
+    const key = String(req.params.idOrSlug || '').trim().replace(/\.html?$/i, '');
     if (!key) return fail(res, 'id or slug required');
     const body = req.body || {};
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key);
@@ -1546,7 +1545,7 @@ router.put('/v1/articles/:idOrSlug', async (req, res) => {
     );
     if (!existing.rows.length) return fail(res, 'Article not found', 404);
     const id = existing.rows[0].id;
-    const slug = existing.rows[0].slug;
+    let slug = existing.rows[0].slug;
 
     const str = (v, max) => {
       if (v == null) return undefined;
@@ -1574,6 +1573,26 @@ router.put('/v1/articles/:idOrSlug', async (req, res) => {
       params.push(val);
       fields.push(`${col} = $${params.length}${cast || ''}`);
     };
+
+    // Optional slug rename (public URL)
+    if (body.slug != null && String(body.slug).trim()) {
+      const nextSlug = String(body.slug)
+        .trim()
+        .toLowerCase()
+        .replace(/\.html?$/i, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      if (!nextSlug) return fail(res, 'Invalid slug');
+      if (nextSlug !== slug) {
+        const clash = await db.query(
+          'SELECT id FROM articles WHERE slug = $1 AND id <> $2 LIMIT 1',
+          [nextSlug, id]
+        );
+        if (clash.rows.length) return fail(res, `Slug already in use: ${nextSlug}`, 409);
+        add('slug', nextSlug);
+        slug = nextSlug;
+      }
+    }
 
     if (body.title != null) add('title', str(body.title, 500));
     if (body.content != null) add('content', str(body.content));

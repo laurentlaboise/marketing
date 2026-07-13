@@ -704,17 +704,22 @@
 
         // Extract slug from URL path (clean URL format)
         function getSlugFromURL() {
-            // Get path: /en/articles/article-slug
+            // Get path: /en/articles/article-slug or /en/articles/article-slug.html
             const path = window.location.pathname;
             const parts = path.split('/').filter(p => p && p !== 'index.html');
 
             // Last part should be the slug
-            // Path will be: ['en', 'articles', 'article-slug']
-            const slug = parts[parts.length - 1];
+            // Path will be: ['en', 'articles', 'article-slug'] or ['en', 'articles', 'article-slug.html']
+            let slug = parts[parts.length - 1];
 
             // If slug is 'articles', it means we're at /en/articles/ with no slug
             if (slug === 'articles') {
                 return null;
+            }
+
+            // Strip trailing .html / .htm so API lookup matches CMS slug
+            if (slug) {
+                slug = slug.replace(/\.html?$/i, '');
             }
 
             return slug || null;

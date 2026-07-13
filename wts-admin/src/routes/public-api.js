@@ -121,9 +121,11 @@ router.get('/articles', async (req, res) => {
 // Get single article by slug
 router.get('/articles/:slug', async (req, res) => {
   try {
+    // Accept both /articles/my-slug and /articles/my-slug.html (SPA path leftovers)
+    const slug = String(req.params.slug || '').trim().replace(/\.html?$/i, '');
     const result = await db.query(
       `SELECT * FROM articles WHERE slug = $1 AND status = 'published'`,
-      [req.params.slug]
+      [slug]
     );
 
     if (result.rows.length === 0) {
