@@ -200,6 +200,19 @@ curl -sS -X PATCH https://admin.wordsthatsells.website/api/machine/v1/footer-set
   -d '{"footer_social_youtube":"https://www.youtube.com/@wordsthatsells928"}'
 ```
 
+### Wire product images (image_url / slide_in_image)
+
+Product image URLs are written through `POST /v1/products/bulk-update-copy`,
+but **only after the file is live** on the marketing CDN. Use the dedicated
+script, which verifies HTTP 200 before every write and re-checks the public
+payload afterwards (see `PRODUCT_IMAGES_PIPELINE.md` in the repo root):
+
+```bash
+node scripts/sync-product-images.js            # dry-run
+node scripts/sync-product-images.js --apply    # verify + write
+node scripts/sync-product-images.js --apply --library   # + Image Library rows
+```
+
 ## Security notes
 
 - Token is a **shared secret** — never commit it; never expose it to the public site.
