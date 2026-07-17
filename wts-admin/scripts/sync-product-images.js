@@ -45,10 +45,23 @@ const TOKEN = process.env.ADMIN_API_TOKEN || '';
 
 // DB slug → asset basename, where they differ. Everything else uses
 // `${slug}-featured.webp` in images/products/.
+// The July 2026 catalogue consolidation merged variant SKUs into single
+// products with named options; their art keeps the variant filenames, so
+// each consolidated slug maps to one representative variant's image
+// (matching the URLs already wired in the DB).
 const SLUG_TO_FILE = {
   'document-translation': 'ai-document-translation',
   'website-copywriting': 'website-copywriting-1000-characters',
   'seo-article-copywriting-package': '3-seo-article-copywriting-package',
+  'metal-utap-nfc-cards': '25-metal-utap-nfc-cards',
+  'virtual-cards': 'virtual-card-biz-plus',
+  'seo-branded-stock-photos': '10-seo-branded-stock-photos',
+  'social-media-post-generator': 'social-media-post-generator-starter',
+  'wordpress-divi-services': 'wordpress-divi-website-setup-and-design',
+  'website-forms': 'standard-website-form',
+  'video-forms': 'video-form',
+  'sme-all-in-one-digital-package': 'sme-all-in-one-digital-package-basic-monthly',
+  'canva-pro-access': 'canva-pro-access-monthly',
 };
 
 // jsDelivr mirror of the same repo path — the Image Library's cdn_url convention.

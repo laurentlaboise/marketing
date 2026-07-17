@@ -272,6 +272,20 @@
         '<span style="display:block;font-size:0.8rem;color:#16a34a;font-weight:600;">Buy more, save more</span>';
     }
 
+    // Named options (one product, multiple price points): lead with the
+    // cheapest path and say there is a choice — the picker itself lives in
+    // the Learn More slide-in. Without this branch these products fall
+    // through to the one_time render and show a bare single price.
+    if (pr.type === 'options' && Array.isArray(pr.options) && pr.options.length) {
+      var optPrices = pr.options
+        .map(function (o) { return parseFloat(o.price); })
+        .filter(function (v) { return !isNaN(v); });
+      if (!optPrices.length) return '';
+      return '<span class="product-price" style="' + style + '">From ' + fmtMoney(Math.min.apply(null, optPrices), pr.currency) +
+        '<span style="font-size:0.85em;font-weight:500;color:var(--color-slate-500,#64748b);"> · ' + pr.options.length + ' options</span>' +
+        '</span>';
+    }
+
     if (pr.one_time_price != null) {
       return '<span class="product-price" style="' + style + '">' + fmtMoney(pr.one_time_price, pr.currency) +
         (pr.unit && pr.unit !== 'fixed' ? '<span style="font-size:0.85em;font-weight:500;color:var(--color-slate-500,#64748b);">' + esc(unitSuffix(pr.unit)) + '</span>' : '') +
@@ -1770,8 +1784,10 @@
 
   function unitSuffix(unit) {
     if (unit === 'hour') return ' / hour';
-    if (unit === 'quantity') return ' / unit';
     if (unit === 'item') return ' / item';
+    // 'quantity' covers packs and character bundles (10 stock photos,
+    // 1,000 characters, …) where the price already buys the whole pack —
+    // a "/ unit" suffix misreads as per-piece pricing, so show nothing.
     return '';
   }
 
