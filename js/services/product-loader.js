@@ -447,6 +447,9 @@
       if (data.image) {
         var safeUrl = sanitizeUrl(data.image);
         if (safeUrl) {
+          // A URL that fails to load must fall back to the no-image state,
+          // not the browser's broken-image icon.
+          elImage.onerror = function () { elImage.style.display = 'none'; };
           elImage.src = safeUrl;
           elImage.alt = data.title;
           elImage.style.display = '';
