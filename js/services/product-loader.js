@@ -278,11 +278,11 @@
     // through to the one_time render and show a bare single price.
     if (pr.type === 'options' && Array.isArray(pr.options) && pr.options.length) {
       var optPrices = pr.options
-        .map(function (o) { return parseFloat(o.price); })
-        .filter(function (v) { return !isNaN(v); });
+        .map(function (o) { return o && parseFloat(o.price); })
+        .filter(function (v) { return v != null && !isNaN(v); });
       if (!optPrices.length) return '';
       return '<span class="product-price" style="' + style + '">From ' + fmtMoney(Math.min.apply(null, optPrices), pr.currency) +
-        '<span style="font-size:0.85em;font-weight:500;color:var(--color-slate-500,#64748b);"> · ' + pr.options.length + ' options</span>' +
+        '<span style="font-size:0.85em;font-weight:500;color:var(--color-slate-500,#64748b);"> · ' + optPrices.length + ' options</span>' +
         '</span>';
     }
 

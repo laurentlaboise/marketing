@@ -91,9 +91,9 @@ Write paths, in order of preference:
 
 1. In admin, set `is_featured = true` on the six Top8 project products →
    the prices-page projects section appears (no deploy needed).
-2. Run `node scripts/sync-product-images.js --apply --library` (with
-   `ADMIN_API_TOKEN`) to wire the 16 empty-image products with exact-match
-   art. The 6 Top8 products stay placeholder until art is generated
+2. Run `node wts-admin/scripts/sync-product-images.js --apply --library`
+   from the repo root (with `ADMIN_API_TOKEN`) to wire the 16 empty-image
+   products with exact-match art. The 6 Top8 products stay placeholder until art is generated
    (follow `PRODUCT_IMAGES_PIPELINE.md`).
 3. Optional polish: friendly empty-state message in service grids when the
    API is unreachable.
