@@ -83,8 +83,9 @@
       border: 1px solid rgba(255,255,255,0.22);
       color: #fff;
       border-radius: 10px;
-      width: 2.35rem;
-      height: 2.35rem;
+      width: 2.75rem;
+      height: 2.75rem;
+      flex-shrink: 0; /* keep the 44px tap target when the bar gets tight */
       cursor: pointer;
       font-size: 1.15rem;
       line-height: 1;
@@ -158,31 +159,47 @@
       flex-direction: column;
       gap: 0.35rem;
     }
+    /* --topbar-h is kept in sync with the real topbar height by the script in
+       partials/topbar (the bar is taller than 56px when its actions wrap). */
     @media (min-width: 900px) {
-      .sidebar { display: flex; position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; }
+      .sidebar {
+        display: flex;
+        position: sticky;
+        top: var(--topbar-h, 56px);
+        height: calc(100vh - var(--topbar-h, 56px));
+        overflow-y: auto;
+      }
     }
-    body.nav-open .sidebar {
-      display: flex;
-      position: fixed;
-      inset: 56px 0 0 0;
-      z-index: 35;
-      height: auto;
-      max-width: min(300px, 88vw);
-      box-shadow: 12px 0 40px rgba(15,23,42,0.18);
-    }
-    body.nav-open::after {
-      content: '';
-      position: fixed;
-      inset: 56px 0 0 0;
-      background: rgba(15,23,42,0.35);
-      z-index: 30;
-    }
-    @media (min-width: 900px) {
-      body.nav-open::after { display: none; }
-      .topbar .menu-toggle { display: none !important; }
-    }
+    /* Drawer mode only below the sidebar breakpoint, so a drawer left open
+       across a resize can never leak fixed-positioning into the grid layout */
     @media (max-width: 899px) {
       .topbar .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+      body.nav-open { overflow: hidden; }
+      body.nav-open .sidebar {
+        display: flex;
+        position: fixed;
+        inset: var(--topbar-h, 56px) 0 0 0;
+        z-index: 35;
+        height: auto;
+        max-width: min(300px, 88vw);
+        box-shadow: 12px 0 40px rgba(15,23,42,0.18);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+      }
+      body.nav-open::after {
+        content: '';
+        position: fixed;
+        inset: var(--topbar-h, 56px) 0 0 0;
+        background: rgba(15,23,42,0.35);
+        z-index: 30;
+      }
+    }
+    /* Compact app bar on phones: drop the wordmark and the My Profile pill
+       (Profile stays reachable from the drawer) so the bar keeps one line */
+    @media (max-width: 640px) {
+      .topbar a.brand .brand-text { display: none; }
+      .topbar .top-actions a.pill { display: none; }
     }
     .sidebar-group {
       font-size: 0.68rem;
@@ -196,7 +213,7 @@
       display: flex;
       align-items: center;
       gap: 0.65rem;
-      padding: 0.62rem 0.75rem;
+      padding: 0.7rem 0.75rem; /* >=44px touch target with the 1px borders */
       border-radius: 12px;
       color: var(--wts-text-2);
       text-decoration: none;
