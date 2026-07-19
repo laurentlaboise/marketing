@@ -32,7 +32,10 @@
   </div>
 </div>
 <% if (!isMinimal) { %>
-<script>
+<%# The global helmet CSP only executes inline scripts that carry the
+    per-request nonce — without it this block is silently blocked and the
+    hamburger does nothing (links/forms in the bar keep working). %>
+<script nonce="<%= cspNonce %>">
   (function () {
     var btn = document.getElementById('nav-toggle');
     if (!btn) return;
