@@ -106,7 +106,7 @@ Phases are ordered by user-visible value per unit of risk. Each item lists accep
 
 ### Phase 2 — Data integrity (files, GitHub, DB agree)
 1. **Rename:** fetch bytes (local or old CDN URL), push new path, delete old path (with sha), purge jsDelivr, collision-check target against DB + GitHub, then update DB — mirroring what optimize already does. AC: rename → thumbnail and copied URL work; no silent overwrite.
-2. **Same-format optimize:** call `getGitHubFileSha()` and pass sha on update. AC: no more guaranteed-422 pushes.
+2. **Same-format optimize:** call `getGitHubFileSha()` and pass sha on update. AC: no more guaranteed-422 pushes. *(Done in this PR — pulled forward so the new honest-CDN warning doesn't fire on every same-format optimize.)*
 3. **Ordering:** never delete the old file until the new file's push is confirmed. AC: no CDN-vanished images.
 4. **Duplicate-name guard against DB (+ UNIQUE index on `images.file_path`)**, not ephemeral disk.
 5. **Replace:** honor "URL stays the same" — re-encode into the existing format by default; explicit opt-in + "URL will change" warning otherwise.

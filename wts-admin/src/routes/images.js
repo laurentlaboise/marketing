@@ -56,6 +56,9 @@ router.use(ensureAuthenticated);
 // it, and its text/plain 429s break the client fetch handlers, which expect
 // JSON from these endpoints.
 const OWN_LIMITER_PATHS = /^\/(?:[^/]+\/(?:analyze|optimize-preview)|analyze-upload)$/;
+// server.js's mount-level /images limiter must apply the same exemption, or its
+// 100/15min budget trips before these dedicated limiters ever see a request.
+router.OWN_LIMITER_PATHS = OWN_LIMITER_PATHS;
 const imagesLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -1116,10 +1119,13 @@ router.post('/:id/optimize', async (req, res) => {
       fs.unlinkSync(oldFullPath);
     }
 
-    // Push to GitHub CDN
+    // Push to GitHub CDN. A same-format optimize overwrites an existing repo
+    // file, and the Contents API 422s an update without the current blob sha -
+    // fetch it first (resolves null for brand-new paths).
     const newCdnUrl = buildCdnUrl(newRelPath);
     const fileBuffer = fs.readFileSync(newFullPath);
-    const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Optimize image: ${newFilename}`);
+    const existingSha = await getGitHubFileSha(newRelPath);
+    const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Optimize image: ${newFilename}`, existingSha);
 
     // If file changed names, also delete old file from GitHub
     if (image.file_path !== newRelPath) {
@@ -1151,6 +1157,7 @@ router.post('/:id/optimize', async (req, res) => {
       new_width: newMeta.width,
       new_height: newMeta.height,
       cdn_pushed: ghResult.pushed || false,
+      cdn_error: ghResult.pushed ? null : describePushFailure(ghResult.reason),
       cdn_url: newCdnUrl,
     });
   } catch (error) {
@@ -1255,7 +1262,7 @@ router.post('/bulk-optimize', async (req, res) => {
 
         const originalSize = fs.statSync(sourcePath).size;
         // .rotate() with no args applies EXIF orientation so the output isn't sideways
-    let sharpInstance = sharp(sourcePath).rotate();
+        let sharpInstance = sharp(sourcePath).rotate();
         const meta = await sharpInstance.metadata();
 
         // Resize large images

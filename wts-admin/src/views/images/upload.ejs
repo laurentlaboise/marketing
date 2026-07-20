@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.value = '';
     content.style.display = '';
     preview.style.display = 'none';
-    // Disable AI Auto-fill button when file is removed
+    // Disable the AI SEO-text button when file is removed
     const aiBtn = document.getElementById('aiAnalyzeUploadBtn');
     if (aiBtn) aiBtn.disabled = true;
   });
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     content.style.display = 'none';
     preview.style.display = 'flex';
 
-    // Enable AI Auto-fill button when a file is selected
+    // Enable the AI SEO-text button when a file is selected
     const aiBtn = document.getElementById('aiAnalyzeUploadBtn');
     if (aiBtn) aiBtn.disabled = false;
   }
