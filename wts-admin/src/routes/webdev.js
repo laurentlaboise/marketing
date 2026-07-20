@@ -1469,7 +1469,10 @@ function redirectBack(req, res, fallback) {
   if (ref) {
     try {
       const u = new URL(ref, `${req.protocol}://${req.get('host')}`);
-      if (u.host === req.get('host')) target = u.pathname + u.search;
+      // Reject protocol-relative paths (//evil.com) - browsers treat them as absolute
+      if (u.host === req.get('host') && !u.pathname.startsWith('//')) {
+        target = u.pathname + u.search;
+      }
     } catch (e) { /* keep fallback */ }
   }
   res.redirect(target);

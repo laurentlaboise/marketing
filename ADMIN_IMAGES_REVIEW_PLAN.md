@@ -43,7 +43,7 @@ The hardcoded model id `claude-sonnet-4-5-20250929` is legacy but still active �
 - Multi-upload page (`upload-multiple.ejs`) has **no AI button and no SEO fields at all** — every batch-uploaded image lands with empty alt text (Medium). This is the most likely "I uploaded some images" path.
 - Fragile free-text JSON parsing (no forced tool-use), 1024 `max_tokens` with no `stop_reason` check → "Failed to parse AI response" on truncation (Medium).
 - 30 s socket timeout can abort legitimate vision calls on multi-MB payloads (Medium).
-- Shared 100-req/15-min limiter counts every optimize-preview slider tweak and library navigation; once exhausted the AI button dies with `Unexpected token…` because the 429 is text/plain (critic gap).
+- Shared 100-req/15-min limiter counted every optimize-preview slider tweak and library navigation; once exhausted the AI button died with `Unexpected token…` because the 429 was text/plain (critic gap). *Fixed in this PR: analyze and optimize-preview now bypass the shared limiter and have dedicated limiters that return JSON 429s.*
 - On Railway's ephemeral disk, analyzing a previously uploaded image depends on a fragile jsDelivr re-fetch; bytes are never validated as an image (Medium).
 - AI results overwrite existing fields with no undo, and are easily lost before Save (no unsaved-changes guard; the Optimize success message even invites a reload) (Medium).
 - Errors show raw Anthropic internals a non-developer cannot act on; the "analyzing…" box is ~1.4:1 contrast (High).
@@ -86,6 +86,8 @@ The hardcoded model id `claude-sonnet-4-5-20250929` is legacy but still active �
 Phases are ordered by user-visible value per unit of risk. Each item lists acceptance criteria (AC).
 
 ### Phase 0 — Quick wins (hours, no schema changes)
+
+> **Status: implemented in this PR.** All six items below landed (relabeled cards/microcopy, `--primary-tint`, pre-API downscale, `.rotate()` in every pipeline, dedicated JSON-429 limiters for analyze/preview, Referer-based redirect helper, honest CDN warning).
 1. **Split the two "optimizations" in the UI.** Card → "SEO Metadata (text)"; button → "AI: write alt text & tags"; caption: *"Analyzes the image and fills in the text fields below. It does not modify, compress, or improve the image file — use Compress & Convert for that."* Rename the pixel card to "Compress & Convert". AC: a first-time user can predict each button's effect from its label.
 2. **Add a real tint token.** `--primary-tint: #eaf4fb`; point the five background usages at it. AC: all status boxes ≥ 4.5:1 contrast.
 3. **Downscale before the API call.** In `analyzeImageWithAI`, run `sharp(buffer).rotate().resize({width:1568, height:1568, fit:'inside', withoutEnlargement:true}).jpeg({quality:80})` before base64. AC: a 20 MB upload analyzes successfully; vision cost drops (see §5.5).
@@ -115,7 +117,7 @@ Phases are ordered by user-visible value per unit of risk. Each item lists accep
 10. **Archive:** add Archived filter + Restore action (or change the copy).
 
 ### Phase 3 — Make the SEO actually ship (close the loop to the site)
-1. **Consume `/api/public/images/seo` at build time:** a build step fetches the metadata map and injects alt/title into generated pages, ImageObject JSON-LD, and the image sitemap. AC: metadata edited in admin is observable in deployed HTML.
+1. **Consume `/api/public/images/seo` at build time:** a build step fetches the metadata map and injects alt/title into generated pages, ImageObject JSON-LD, and the image sitemap. Precondition: make the endpoint's lookup deterministic — exact `image_id` or canonical `cdn_url` match, rejecting ambiguous results — since its current LIKE/filename matching can return a colliding image's metadata to a build-time consumer. AC: metadata edited in admin is observable in deployed HTML, and a lookup never resolves to a different image than intended.
 2. **Commit `sitemap-images.xml`** in `localize-site.yml` (add it to the `git add` line). AC: nightly sitemap actually updates.
 3. **Refresh article image alt text at render/build** from the DB instead of stale pick-time copies.
 4. **Batch the GitHub pushes:** queue file operations and commit via the Git Trees API (one commit per batch); add a path filter or `[skip ci]` strategy so a 50-file upload is 1 deploy, not 50. AC: batch upload = one commit, one deploy.
@@ -141,7 +143,8 @@ Phases are ordered by user-visible value per unit of risk. Each item lists accep
 This section is the requested technique blueprint: highest quality at the lowest token burn.
 
 ### 5.1 Single-image loop (generate → validate → repair)
-```
+
+```text
 downscale(1568px) → vision call (forced tool-use, schema) → validate
   ├─ alt_text 60–125 chars? title non-empty? 4–8 lowercase tags? description 1–2 sentences?
   ├─ pass → present to user (fill-empty-only by default)
@@ -159,6 +162,7 @@ Nightly or on-demand "SEO sweep" over the whole library, structured as three pas
 The two loops nest: the batch loop invokes the single-image loop's validator, and only failed items re-enter pass 2 on the next sweep — a converging multi-loop, not an endless one.
 
 ### 5.3 Vertical memory (layered, persistent — pay for context once)
+
 | Layer | Contents | Storage | Token effect |
 |-------|----------|---------|--------------|
 | L0 Brand | Site identity, audience, tone, target keywords ("digital marketing agency, Laos/SEA…") | Static system prompt | **Prompt-cached** — written once, ~90 % discount on every call |
@@ -175,6 +179,7 @@ The two loops nest: the batch loop invokes the single-image loop's validator, an
 - **Category taxonomy unification** (UI dropdown = sync route = machine API) so tagging isn't undermined by phantom categories.
 
 ### 5.5 Token & cost budget
+
 | Technique | Effect |
 |-----------|--------|
 | Downscale to ≤1568 px before vision | Largest single saving — vision tokens scale with pixels; also fixes the 5 MB failures. ~1600 tokens/image vs 6000+ |
@@ -245,6 +250,6 @@ Order-of-magnitude: full-library backfill of ~330 images ≈ one batch run at ro
 3. Machine API `seo-upsert`/`seo-bulk`: fabricated rows, fuzzy matching can hit the wrong image.
 4. No cross-entity reference integrity for products/glossary/articles on destructive image ops.
 5. Rename silently overwrites an existing target file (collision, data loss).
-6. Rate-limiter starvation + `max_tokens` truncation + double-upload on `analyze-upload` — three unexamined AI-button failure modes.
+6. Rate-limiter starvation + `max_tokens` truncation + double-upload on `analyze-upload` — three unexamined AI-button failure modes. *(Limiter starvation fixed in this PR; truncation and double-upload remain open for Phase 1.)*
 7. One-commit-per-file → full Pages rebuild per image; "View on Web" 404s until deploy lands.
 8. `POST /images/sync` category drift (`products` etc.) silently reclassified to `general` on save.
