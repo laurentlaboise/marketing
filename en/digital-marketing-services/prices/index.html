@@ -2992,7 +2992,17 @@
             function openVideo(card) {
                 if (!overlay || !card) return;
                 const name = card.getAttribute('data-project') || 'Project overview';
-                const src = (card.getAttribute('data-video') || '').trim();
+                // data-video round-trips API data through a DOM attribute, so
+                // validate it as an http(s) URL instead of trusting the text
+                // (CodeQL: DOM text reinterpreted as HTML).
+                const rawSrc = (card.getAttribute('data-video') || '').trim();
+                let src = '';
+                if (rawSrc) {
+                    try {
+                        const u = new URL(rawSrc, location.origin);
+                        if (u.protocol === 'https:' || u.protocol === 'http:') src = u.href;
+                    } catch (e) { /* not a URL -> treat as no video */ }
+                }
                 if (titleEl) titleEl.textContent = name;
                 if (stage) stage.classList.toggle('has-src', !!src);
                 if (videoEl && src) {
