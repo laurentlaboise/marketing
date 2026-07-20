@@ -10,6 +10,10 @@ on:
     paths:
       - 'footers.json'
       - 'scripts/inject-footers.js'
+      # footer.css (with variables.css tokens resolved) is inlined into pages
+      # that don't load the site stylesheet, so CSS edits must re-bake too.
+      - 'css/layout/footer.css'
+      - 'css/base/variables.css'
   workflow_dispatch:
 
 permissions:

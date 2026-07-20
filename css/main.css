@@ -550,7 +550,7 @@ transition: var(--transition-medium);
 }
 .footer-contact-item span,
 .footer-contact-item a {
-flex: 1 1 auto;
+flex: 0 1 auto;
 min-width: 0;
 word-break: break-word;
 }
