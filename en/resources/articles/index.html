@@ -1189,7 +1189,12 @@
 
         // Calculate reading time (assumes average reading speed of 200 words per minute)
         function calculateReadingTime(content) {
-            const text = content.replace(/<[^>]*>/g, ''); // Strip HTML
+            // Strip HTML to a fixpoint: one pass can let split tags re-form
+            // (e.g. "<scr<script>ipt>"), which CodeQL flags as incomplete
+            // multi-character sanitization.
+            let text = String(content || '');
+            let prev;
+            do { prev = text; text = text.replace(/<[^>]*>/g, ''); } while (text !== prev);
             const wordCount = text.split(/\s+/).length;
             const minutes = Math.ceil(wordCount / 200);
             return minutes;

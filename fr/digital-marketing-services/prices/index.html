@@ -2908,7 +2908,8 @@
                             if (exists) return;
                             const tr = document.createElement('tr');
                             tr.className = 'compare-row-extra';
-                            let cells = `<td>${name}</td>`;
+                            const escCell = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                            let cells = `<td>${escCell(name)}</td>`;
                             plans.forEach((plan) => {
                                 const has = plan.features && plan.features[feature.key];
                                 const pop = plan.highlight || /growth/i.test(plan.slug || plan.name || '') ? ' class="col-pop"' : '';
