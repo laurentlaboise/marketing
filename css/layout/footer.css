@@ -130,9 +130,12 @@
     margin-top: 0.15em;
     transition: var(--transition-medium);
 }
+/* Text must shrink-wrap (flex-grow 0): a growing item fills the row and
+   cancels the justify-content centering on mobile, pinning icon + text to
+   the left edge while every other footer element is centered. */
 .footer-contact-item span,
 .footer-contact-item a {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
     word-break: break-word;
 }
