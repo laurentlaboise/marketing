@@ -193,8 +193,23 @@ function findFooterBlock(html) {
   }
 }
 
+// A footer without the .social-links region predates the managed markup.
+// The injector only fills regions that exist, so such pages shipped with no
+// social icons at all (201 pages when this was added). Create the region —
+// empty; renderSocial fills it right after — at the end of the brand block,
+// mirroring buildWholeFooter's structure. Footers with no brand block are
+// left alone (nowhere sensible to anchor the icons).
+function ensureSocialRegion(footerHtml) {
+  if (findOpenDiv(footerHtml, 'social-links', 0)) return footerHtml;
+  const brand = findDivInnerRange(footerHtml, 'footer-brand');
+  if (!brand) return footerHtml;
+  return footerHtml.slice(0, brand.innerEnd) + '<div class="social-links"></div>' + footerHtml.slice(brand.innerEnd);
+}
+
 function injectIntoFooter(footerHtml, variant) {
   let changed = false;
+  const withSocial = ensureSocialRegion(footerHtml);
+  if (withSocial !== footerHtml) { footerHtml = withSocial; changed = true; }
   const apply = (cls, rendered) => {
     if (rendered == null) return;
     const next = replaceDivInner(footerHtml, cls, rendered);
@@ -216,6 +231,77 @@ function injectIntoFooter(footerHtml, variant) {
     );
   if (footerHtml !== beforeLogo) changed = true;
   return changed ? footerHtml : null;
+}
+
+// ── Strip legacy page-local footer CSS ─────────────────────────
+//
+// Pages that predate the canonical footer carry their own footer rules in
+// page-local <style> blocks. Those load after main.css, so equal-specificity
+// rules win by source order and the shared footer renders differently page to
+// page (e.g. the old auto-fit grid on the prices page vs. the strict 1/2/3
+// column system). On variant-managed pages the canonical look is the
+// contract, so drop every rule whose selectors ALL target footer classes;
+// mixed selector groups (`.header, .footer { … }`) are kept — removing them
+// would change non-footer styling. The injector-owned #wts-footer-css block
+// is never touched, and "keep" pages are never stripped (a custom footer may
+// rely on its local CSS).
+const FOOTER_CLASS_RE = /\.footer(?:-[a-z0-9_-]+)?(?![a-z0-9_-])/i;
+
+function selectorGroupIsFooterOnly(prelude) {
+  const clean = prelude.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+  if (!clean || clean.charAt(0) === '@') return false;
+  return clean.split(',').every((s) => FOOTER_CLASS_RE.test(s));
+}
+
+// Remove footer-only rules from one CSS text. Scans by brace depth (no
+// regex over nested blocks); recurses into grouping at-rules (@media,
+// @supports) and drops them when stripping leaves them empty. Other at-rules
+// (@keyframes, @font-face, …) are copied through untouched.
+function stripFooterRulesFromCss(css) {
+  let out = '';
+  let i = 0;
+  let changed = false;
+  while (i < css.length) {
+    const open = css.indexOf('{', i);
+    if (open === -1) { out += css.slice(i); break; }
+    const prelude = css.slice(i, open);
+    let depth = 1;
+    let j = open + 1;
+    while (j < css.length && depth > 0) {
+      const ch = css.charAt(j);
+      if (ch === '{') depth++;
+      else if (ch === '}') depth--;
+      j++;
+    }
+    const body = css.slice(open + 1, Math.max(open + 1, j - 1));
+    const preludeClean = prelude.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+    if (/^@(media|supports)\b/i.test(preludeClean)) {
+      const inner = stripFooterRulesFromCss(body);
+      if (inner !== body) changed = true;
+      if (inner.trim()) out += prelude + '{' + inner + '}';
+      else changed = true; // stripped empty — drop the whole at-rule
+    } else if (selectorGroupIsFooterOnly(prelude)) {
+      changed = true; // drop the rule (its leading comment goes with it)
+    } else {
+      out += prelude + '{' + body + '}';
+    }
+    i = j;
+  }
+  return changed ? out : css;
+}
+
+function stripLegacyFooterCss(html) {
+  const styleRe = /<style\b([^>]*)>([\s\S]*?)<\/style>/gi;
+  let changed = false;
+  const out = html.replace(styleRe, (full, attrs, css) => {
+    if (/id\s*=\s*["']wts-footer-css["']/i.test(attrs)) return full;
+    if (!FOOTER_CLASS_RE.test(css)) return full;
+    const stripped = stripFooterRulesFromCss(css);
+    if (stripped === css) return full;
+    changed = true;
+    return '<style' + attrs + '>' + stripped + '</style>';
+  });
+  return changed ? out : html;
 }
 
 // ── Footer language selector (the ONLY switching surface) ──────
@@ -587,6 +673,9 @@ function main() {
         out = ensureFooterCss(out);
         out = ensureFontAwesome(out); // footer has icon glyphs — guarantee Font Awesome
         out = ensureFavicon(out);
+        // Canonical footer styling is the contract on variant-managed pages —
+        // drop page-local legacy footer rules that would override it.
+        out = stripLegacyFooterCss(out);
         // After translateFooterHtml, so the native-script labels are never
         // run through the chrome-string replacement.
         out = ensureLangSwitcher(out, file);
@@ -597,7 +686,7 @@ function main() {
         // Content page (or explicitly assigned) with no footer — build one
         // (self-styled so it works even on standalone pages) and insert it.
         const created = translateFooterHtml(buildWholeFooter(variant), langOfPath(urlPath));
-        const withCss = ensureFavicon(ensureFontAwesome(ensureFooterCss(html)));
+        const withCss = ensureFavicon(ensureFontAwesome(ensureFooterCss(stripLegacyFooterCss(html))));
         fs.writeFileSync(file, ensureLangSwitcher(insertBeforeBodyClose(withCss, created), file));
         stats.created++;
         byVariant[variantName] = (byVariant[variantName] || 0) + 1;
@@ -622,4 +711,4 @@ if (require.main === module) main();
 
 // Exported for tests (wts-admin/test/footer-lang-switcher.test.js), which
 // pass an explicit fixture `base` instead of the repo's real tree.
-module.exports = { langSwitcherFor, ensureLangSwitcher };
+module.exports = { langSwitcherFor, ensureLangSwitcher, ensureSocialRegion, stripLegacyFooterCss, stripFooterRulesFromCss };

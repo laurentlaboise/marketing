@@ -258,40 +258,6 @@ button.share-btn,
     max-width: 100%;
   }
 }
-
-/* Footer must not inherit article column width */
-.footer,
-.footer .container {
-  max-width: none;
-  width: 100%;
-}
-.footer .container {
-  width: min(1200px, 92%);
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  box-sizing: border-box;
-}
-.footer-top {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  align-items: flex-start;
-}
-@media (min-width: 900px) {
-  .footer-top {
-    flex-wrap: nowrap;
-  }
-  .footer-brand {
-    flex: 0 0 240px;
-    max-width: 260px;
-  }
-  .footer-grid {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-}
 /* Fluid category / filter chips */
 .category-pills,
 .glossary-filters,
