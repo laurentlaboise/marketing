@@ -6,7 +6,8 @@
   /* Colors */
   --primary: #2085c8;
   --primary-dark: #1a6fa8;
-  --primary-light: #3a9ee0;
+  --primary-light: #3a9ee0; /* light text on the dark sidebar - NOT a background tint */
+  --primary-tint: #eaf4fb;  /* pale background for info boxes, active states */
   --secondary: #d62b83;
   --accent: #e85aaa;
 
@@ -2769,8 +2770,8 @@ select.form-input {
 }
 
 .folder-nav-item.active {
-  background: var(--primary-light, #eff6ff);
-  color: var(--primary);
+  background: var(--primary-tint, #eff6ff);
+  color: var(--primary-dark);
   font-weight: 600;
 }
 
@@ -2894,7 +2895,7 @@ select.form-input {
   justify-content: space-between;
   padding: 10px 16px;
   margin-bottom: 16px;
-  background: var(--primary-light, #eff6ff);
+  background: var(--primary-tint, #eff6ff);
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: var(--radius);
   animation: slideDown 0.2s ease;

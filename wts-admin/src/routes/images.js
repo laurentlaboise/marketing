@@ -51,11 +51,21 @@ function isSafeRedirectPath(target) {
 const router = express.Router();
 router.use(ensureAuthenticated);
 
+// AI analysis and optimize-preview get their own budgets below. The shared
+// limiter must skip them: slider-driven preview bursts would otherwise exhaust
+// it, and its text/plain 429s break the client fetch handlers, which expect
+// JSON from these endpoints.
+const OWN_LIMITER_PATHS = /^\/(?:[^/]+\/(?:analyze|optimize-preview)|analyze-upload)$/;
 const imagesLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  skip: (req) => OWN_LIMITER_PATHS.test(req.path),
 });
 router.use(imagesLimiter);
+
+const json429 = (req, res) => res.status(429).json({ error: 'Too many requests. Please wait a few minutes and try again.' });
+const analyzeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, handler: json429 });
+const previewLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 600, handler: json429 });
 
 // CDN config, image/upload roots and path helpers come from the shared
 // storage module (env-configurable roots; see src/utils/storage.js).
@@ -849,6 +859,7 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
           }
 
           await sharpInstance
+            .rotate()
             .resize(resizeOpts)
             .webp({ quality: 82 })
             .toFile(finalPath);
@@ -961,6 +972,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       }
 
       await sharpInstance
+        .rotate()
         .resize(resizeOpts)
         .webp({ quality: 82 })
         .toFile(finalPath);
@@ -1042,7 +1054,8 @@ router.post('/:id/optimize', async (req, res) => {
     }
 
     const originalSize = fs.statSync(sourcePath).size;
-    let sharpInstance = sharp(sourcePath);
+    // .rotate() with no args applies EXIF orientation so the output isn't sideways
+    let sharpInstance = sharp(sourcePath).rotate();
     const meta = await sharpInstance.metadata();
 
     // Resize if requested
@@ -1147,7 +1160,7 @@ router.post('/:id/optimize', async (req, res) => {
 });
 
 // Preview optimization (returns estimated size without saving)
-router.post('/:id/optimize-preview', async (req, res) => {
+router.post('/:id/optimize-preview', previewLimiter, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
     if (result.rows.length === 0) {
@@ -1175,7 +1188,8 @@ router.post('/:id/optimize-preview', async (req, res) => {
     }
 
     const originalSize = fs.statSync(sourcePath).size;
-    let sharpInstance = sharp(sourcePath);
+    // .rotate() with no args applies EXIF orientation so the output isn't sideways
+    let sharpInstance = sharp(sourcePath).rotate();
 
     const resizeOpts = {};
     if (maxW > 0) resizeOpts.width = maxW;
@@ -1240,7 +1254,8 @@ router.post('/bulk-optimize', async (req, res) => {
         }
 
         const originalSize = fs.statSync(sourcePath).size;
-        let sharpInstance = sharp(sourcePath);
+        // .rotate() with no args applies EXIF orientation so the output isn't sideways
+    let sharpInstance = sharp(sourcePath).rotate();
         const meta = await sharpInstance.metadata();
 
         // Resize large images
@@ -1317,9 +1332,6 @@ async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
     throw new Error('ANTHROPIC_API_KEY is not configured. Add it to your environment variables.');
   }
 
-  // Convert image to base64
-  const base64Image = imageBuffer.toString('base64');
-
   // Map MIME types for Anthropic API
   const supportedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   let mediaType = mimeType;
@@ -1328,6 +1340,23 @@ async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
     const converted = await sharp(imageBuffer).png().toBuffer();
     return analyzeImageWithAI(converted, 'image/png', filename);
   }
+
+  // Downscale before sending: the API rejects images over ~5MB / 8000px, and
+  // beyond ~1568px on the long edge extra pixels only add cost, not analysis
+  // accuracy. WebP keeps transparency, and sharp reads the actual bytes, so a
+  // stale DB mime_type doesn't matter. If sharp can't decode, send as-is.
+  try {
+    imageBuffer = await sharp(imageBuffer)
+      .rotate()
+      .resize({ width: 1568, height: 1568, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+    mediaType = 'image/webp';
+  } catch (e) {
+    console.error('AI analyze: downscale failed, sending original bytes:', e.message);
+  }
+
+  const base64Image = imageBuffer.toString('base64');
 
   const requestBody = JSON.stringify({
     model: 'claude-sonnet-4-5-20250929',
@@ -1415,7 +1444,7 @@ Focus on: what the image depicts, its purpose on a marketing website, and releva
 }
 
 // Analyze existing image (from detail page)
-router.post('/:id/analyze', async (req, res) => {
+router.post('/:id/analyze', analyzeLimiter, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
     if (result.rows.length === 0) {
@@ -1455,7 +1484,7 @@ router.post('/:id/analyze', async (req, res) => {
 });
 
 // Analyze image during upload (before saving) - accepts file via multipart
-router.post('/analyze-upload', upload.single('image'), async (req, res) => {
+router.post('/analyze-upload', analyzeLimiter, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No image provided' });
@@ -1694,7 +1723,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
         if (meta.width > 2400 || meta.height > 2400) {
           resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
         }
-        await sharpInstance.resize(resizeOpts).webp({ quality: 82 }).toFile(fullPath);
+        await sharpInstance.rotate().resize(resizeOpts).webp({ quality: 82 }).toFile(fullPath);
         const optimizedMeta = await sharp(fullPath).metadata();
         width = optimizedMeta.width;
         height = optimizedMeta.height;
@@ -1714,7 +1743,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
         if (meta.width > 2400 || meta.height > 2400) {
           resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
         }
-        await sharpInstance.resize(resizeOpts).webp({ quality: 82 }).toFile(newFullPath);
+        await sharpInstance.rotate().resize(resizeOpts).webp({ quality: 82 }).toFile(newFullPath);
         const optimizedMeta = await sharp(newFullPath).metadata();
         width = optimizedMeta.width;
         height = optimizedMeta.height;
