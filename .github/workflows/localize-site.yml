@@ -8,10 +8,14 @@ name: Localize site (/th /la /fr)
 #     is published) — the SuperAdmin "Publish & Generate" path
 #   - manual runs from the Actions tab
 #
-# Requires the repository variable WTS_ADMIN_URL (e.g. the Railway URL of
-# wts-admin) so the generator can read published translations from
-# /api/public/translations/:lang/page. The generator is idempotent: every
-# run rebuilds all published pages, so missed dispatches self-heal.
+# The generator reads published translations from the wts-admin public
+# API (/api/public/translations/:lang/page). The admin base URL resolves
+# in order: repository VARIABLE WTS_ADMIN_URL → repository SECRET
+# WTS_ADMIN_URL (either place works — the two tabs are easy to mix up) →
+# the live admin domain as a default. The URL is not sensitive: it is the
+# public address of the admin panel, referenced throughout the repo docs.
+# The generator is idempotent: every run rebuilds all published pages, so
+# missed dispatches self-heal.
 on:
   workflow_dispatch:
     inputs:
@@ -46,16 +50,17 @@ jobs:
 
       - name: Check admin URL is configured
         env:
-          ADMIN_URL: ${{ vars.WTS_ADMIN_URL }}
+          ADMIN_URL: ${{ vars.WTS_ADMIN_URL || secrets.WTS_ADMIN_URL || 'https://admin.wordsthatsells.website' }}
         run: |
           if [ -z "$ADMIN_URL" ]; then
             echo "::error::Set the repository variable WTS_ADMIN_URL to the wts-admin base URL (Settings → Secrets and variables → Actions → Variables)."
             exit 1
           fi
+          echo "Admin URL resolved."
 
       - name: Generate localized pages
         env:
-          ADMIN_URL: ${{ vars.WTS_ADMIN_URL }}
+          ADMIN_URL: ${{ vars.WTS_ADMIN_URL || secrets.WTS_ADMIN_URL || 'https://admin.wordsthatsells.website' }}
         run: |
           node scripts/generate-localized-pages.js \
             --api "$ADMIN_URL" \
