@@ -52,6 +52,22 @@ test('a language is linked as soon as its mirror exists on disk', () => {
   assert.match(nav, /<span class="lang-soon"[^>]*>FR<\/span>/);
 });
 
+test('a legacy redirect stub is not a mirror: span, never a bouncing link', () => {
+  const base = fixtureTree(['en/index.html', 'th/index.html']);
+  // Lao "exists" only as a meta-refresh stub that bounces to /en/ — the
+  // exact leftover that made the footer offer a Lao button which
+  // boomeranged visitors back to the English homepage.
+  const stub = path.join(base, 'la', 'index.html');
+  fs.mkdirSync(path.dirname(stub), { recursive: true });
+  fs.writeFileSync(stub,
+    '<!DOCTYPE html><html lang="en"><head><meta http-equiv="refresh" content="0;url=/en/"></head></html>');
+
+  const nav = langSwitcherFor(path.join(base, 'en', 'index.html'), base);
+  assert.match(nav, /<a href="\/th\/" data-lang-dir="th"/, 'real Thai mirror stays a link');
+  assert.match(nav, /<span class="lang-soon"[^>]*>ລາວ<\/span>/, 'stubbed Lao renders inert');
+  assert.doesNotMatch(nav, /href="\/la/, 'no crawlable link to a redirect stub');
+});
+
 test('per-page granularity: a language published on one page is not linked on another', () => {
   const base = fixtureTree(['en/index.html', 'en/prices/index.html', 'th/index.html']);
 
