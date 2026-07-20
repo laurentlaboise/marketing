@@ -1404,7 +1404,9 @@ async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
 
   const requestBody = JSON.stringify({
     model: ANTHROPIC_MODEL,
-    max_tokens: 2048,
+    // Roomy budget: on current models adaptive thinking shares max_tokens
+    // with the tool call, so a tight cap could truncate mid-analysis.
+    max_tokens: 4096,
     tools: [SEO_TOOL],
     tool_choice: { type: 'tool', name: SEO_TOOL.name },
     messages: [
