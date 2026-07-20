@@ -779,6 +779,8 @@ body:not(.dashboard-layout) .admin-legal-footer {
 .user-avatar {
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
+  aspect-ratio: 1;
   border-radius: 50%;
   background: var(--primary);
   display: flex;
@@ -798,18 +800,25 @@ body:not(.dashboard-layout) .admin-legal-footer {
 .user-details {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .user-name {
   color: var(--white);
   font-weight: 500;
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-role {
   color: rgba(255, 255, 255, 0.5);
   font-size: 12px;
   text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .logout-btn {
@@ -1159,6 +1168,8 @@ body:not(.dashboard-layout) .admin-legal-footer {
 .user-avatar-small {
   width: 32px;
   height: 32px;
+  flex-shrink: 0;
+  aspect-ratio: 1;
   border-radius: 50%;
   background: var(--primary);
   display: flex;
