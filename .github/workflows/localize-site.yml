@@ -26,6 +26,15 @@ on:
         description: 'Languages to generate (comma-separated)'
         required: false
         default: 'th,la,fr'
+  # Nightly self-heal: the publish-time dispatch from wts-admin is
+  # best-effort, so a missed or failed dispatch would leave published
+  # translations absent from the live site until someone notices. The
+  # generator is idempotent and cheap; regenerating nightly guarantees
+  # the site converges on the published state within a day. Runs 30 min
+  # before the daily localization watchdog Routine (01:01 UTC), which
+  # then verifies the freshly generated state.
+  schedule:
+    - cron: '30 0 * * *'
 
 permissions:
   contents: write
@@ -82,7 +91,7 @@ jobs:
         # scalar (a column-1 line inside `run: |` ends the block and
         # invalidates the whole workflow file).
         env:
-          REASON: ${{ github.event.inputs.reason || 'manual run' }}
+          REASON: ${{ github.event.inputs.reason || (github.event_name == 'schedule' && 'nightly self-heal' || 'manual run') }}
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "wts-localize-bot"
