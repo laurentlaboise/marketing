@@ -14,6 +14,7 @@ const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
+const { ipKeyGenerator } = require('express-rate-limit');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -158,6 +159,11 @@ const sessionConfig = {
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  // Sliding expiry: the cookie's 24h clock resets on every response, so a
+  // worker mid-shift is never logged out under an open editor (which
+  // surfaced as an unexplained "Invalid CSRF token" on their next save).
+  // Idle sessions still die 24h after the last request.
+  rolling: true,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
@@ -331,6 +337,10 @@ const translationsLimiter = rateLimit({
   max: Number(process.env.TRANSLATIONS_RATE_LIMIT_MAX) || 600,
   standardHeaders: true,
   legacyHeaders: false,
+  // Per-account budget (passport.session runs earlier in the stack, so
+  // req.user is set for logged-in requests): the workforce shares
+  // office/NAT IPs, and one busy verifier must never 429 a colleague.
+  keyGenerator: (req) => (req.user && req.user.id ? `u:${req.user.id}` : ipKeyGenerator(req.ip)),
   skip: (req) => req.originalUrl.split('?')[0] === '/translations/ai-batch/status',
   handler: (req, res) => {
     const wantsJson = req.xhr || (req.get('accept') || '').includes('application/json');

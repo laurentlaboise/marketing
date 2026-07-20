@@ -130,15 +130,30 @@
 
 <script nonce="<%= cspNonce %>">
 (function () {
-  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  var csrf = csrfMeta ? csrfMeta.content : '';
   var id = '<%= item.id %>';
 
+  // Robust POST wrapper: non-JSON bodies (rate-limit text, proxy error
+  // pages) and network failures resolve to a readable error instead of an
+  // unhandled rejection that leaves buttons dead.
   function post(url, body) {
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
       body: JSON.stringify(body || {})
-    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+    }).then(function (r) {
+      return r.json().catch(function () {
+        return { error: r.status === 429 ? 'Too many requests — wait a minute and try again.' : ('Request failed (' + r.status + '). Try again.') };
+      }).then(function (d) {
+        if (r.status === 401) {
+          d.error = d.error || 'Your session has expired — please log in again.';
+        }
+        return { ok: r.ok, data: d };
+      });
+    }).catch(function () {
+      return { ok: false, data: { error: 'No connection — check your internet and try again.' } };
+    });
   }
 
   var approveBtn = document.getElementById('approveBtn');

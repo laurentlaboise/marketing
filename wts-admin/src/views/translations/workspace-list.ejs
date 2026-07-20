@@ -29,21 +29,103 @@
           <div class="empty-state-icon"><i class="fas fa-language"></i></div>
           <h3>No Languages Assigned</h3>
           <p>An administrator needs to assign languages to your account before you can translate.</p>
+          <p style="color:var(--gray-500); font-size:0.85rem;">
+            If you were just invited, this usually means onboarding isn't finished yet — contact your
+            coordinator so they can add your language(s) under Team &amp; Vendors. In the meantime, other
+            paid work may be waiting in your <a href="/workforce/my">Work Hub</a>.
+          </p>
         </div>
       </div>
     </div>
     <% } else { %>
+        <%
+          // Worker-facing status vocabulary: every state answers "who has
+          // it now, and what should I do". Raw internal names read like
+          // instructions to the worker ("requires review" — by them?).
+          var STATUS_UI = {
+            pending:         { label: 'Ready to start',              color: '#6b7280' },
+            translating:     { label: 'In progress',                 color: '#2563eb' },
+            rejected:        { label: 'Returned — needs your fixes', color: '#dc2626' },
+            requires_review: { label: 'Submitted — being checked',   color: '#d97706' },
+            verified:        { label: 'Verified — awaiting publish', color: '#0d9488' },
+            published:       { label: 'Published',                   color: '#059669' },
+          };
+          var REASON_LABELS = {
+            mistranslation: 'Mistranslation', tone: 'Tone', terminology: 'Terminology',
+            markup: 'Markup / HTML', incomplete: 'Incomplete', other: 'Other',
+          };
+          function statusPill(status) {
+            var ui = STATUS_UI[status] || { label: status.replace(/_/g, ' '), color: '#6b7280' };
+            return '<span style="display:inline-block; padding:0.15rem 0.5rem; border-radius:999px; font-size:0.75rem; color:#fff; background:' + ui.color + ';">' + ui.label + '</span>';
+          }
+          // Reviewer notes arrive as "[reason] free text" — split the coded
+          // prefix into a chip and keep the message readable.
+          function splitNote(note) {
+            var m = /^\[([a-z_]+)\]\s*([\s\S]*)$/.exec(note || '');
+            if (m && REASON_LABELS[m[1]]) return { reason: REASON_LABELS[m[1]], text: m[2] };
+            return { reason: null, text: note || '' };
+          }
+          function fmtMoney(amount, currency) {
+            var n = parseFloat(amount);
+            if (!isFinite(n)) return '';
+            return (currency || 'USD') + ' ' + (currency === 'LAK'
+              ? Math.round(n).toLocaleString('en-US')
+              : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+          }
+          // What a queue row is expected to pay under the worker's active
+          // rate card. Translation of per-1000-chars work can't be metered
+          // before the target text exists, so those show the rate itself.
+          function translatePayHint(item) {
+            var r = rates && rates[item.target_language] && rates[item.target_language].translation;
+            if (!r) return '';
+            if (r.rate_type === 'per_word') {
+              return item.word_count ? '≈ ' + fmtMoney(parseFloat(r.rate_amount) * item.word_count, r.currency) : '';
+            }
+            if (r.rate_type === 'per_1000_chars') return fmtMoney(r.rate_amount, r.currency) + ' / 1,000 chars';
+            return fmtMoney(r.rate_amount, r.currency) + ' flat';
+          }
+          function verifyPayHint(item) {
+            var r = rates && rates[item.target_language] && rates[item.target_language].verification;
+            if (!r) return '';
+            if (r.rate_type === 'per_1000_chars') {
+              var chars = parseInt(item.target_char_count, 10);
+              return chars ? '≈ ' + fmtMoney(parseFloat(r.rate_amount) * chars / 1000, r.currency) : fmtMoney(r.rate_amount, r.currency) + ' / 1,000 chars';
+            }
+            if (r.rate_type === 'per_word') {
+              return item.word_count ? '≈ ' + fmtMoney(parseFloat(r.rate_amount) * item.word_count, r.currency) : '';
+            }
+            return fmtMoney(r.rate_amount, r.currency) + ' flat';
+          }
+          function daysWaiting(ts) {
+            var ms = Date.now() - new Date(ts).getTime();
+            if (!isFinite(ms) || ms < 0) return '';
+            var d = Math.floor(ms / 86400000);
+            if (d >= 1) return d + (d === 1 ? ' day' : ' days');
+            var h = Math.floor(ms / 3600000);
+            return h >= 1 ? h + 'h' : 'new';
+          }
+        %>
         <% function pager(q, param) { %>
           <% if (q.total > q.to || q.from > 1) { %>
-          <div style="display:flex; gap:0.75rem; align-items:center; padding:0.5rem 1rem 0.75rem; color:var(--gray-500); font-size:0.85rem;">
+          <div style="display:flex; gap:0.75rem; align-items:center; padding:0.5rem 1rem 0.75rem; color:var(--gray-500); font-size:0.85rem; flex-wrap:wrap;">
             <span>Showing <%= q.from %>–<%= q.to %> of <%= q.total %></span>
-            <% var other = param === 'tpage' ? ('vpage=' + queuePaging.verify.page) : ('tpage=' + queuePaging.translate.page); %>
-            <% if (q.page > 1) { %><a class="btn btn-sm btn-secondary" href="?<%= param %>=<%= q.page - 1 %>&<%= other %>&per=<%= queuePaging.per %>">&larr; Prev</a><% } %>
+            <%
+              // Preserve the other two queues' positions while paging this one.
+              var pageParams = { tpage: queuePaging.translate.page, spage: queuePaging.submitted.page, vpage: queuePaging.verify.page };
+              function pageHref(target, resetOthers) {
+                var parts = [];
+                Object.keys(pageParams).forEach(function (k) {
+                  parts.push(k + '=' + (k === param ? target : (resetOthers ? 1 : pageParams[k])));
+                });
+                return '?' + parts.join('&') + '&per=' + (resetOthers || queuePaging.per);
+              }
+            %>
+            <% if (q.page > 1) { %><a class="btn btn-sm btn-secondary" href="<%= pageHref(q.page - 1) %>">&larr; Prev</a><% } %>
             <span>Page <%= q.page %> / <%= q.totalPages %></span>
-            <% if (q.page < q.totalPages) { %><a class="btn btn-sm btn-secondary" href="?<%= param %>=<%= q.page + 1 %>&<%= other %>&per=<%= queuePaging.per %>">Next &rarr;</a><% } %>
+            <% if (q.page < q.totalPages) { %><a class="btn btn-sm btn-secondary" href="<%= pageHref(q.page + 1) %>">Next &rarr;</a><% } %>
             <span style="margin-left:auto;">Per page:
               <% queuePaging.perChoices.forEach(function (c) { %>
-                <% if (c === queuePaging.per) { %><strong><%= c %></strong><% } else { %><a href="?<%= param %>=1&<%= other.replace(/=\d+/, '=1') %>&per=<%= c %>"><%= c %></a><% } %>
+                <% if (c === queuePaging.per) { %><strong><%= c %></strong><% } else { %><a href="<%= pageHref(1, c) %>"><%= c %></a><% } %>
               <% }); %>
             </span>
           </div>
@@ -57,7 +139,12 @@
           <h3 style="margin:0;"><i class="fas fa-clipboard-check"></i> To Verify</h3>
           <p style="margin:0.25rem 0 0.5rem; color:var(--gray-500); font-size:0.85rem;">
             Read the draft, fix light issues directly, approve — or return it for a full re-translation.
-            Paid per 1,000 characters verified, plus reworked segments.
+            <% var vr = null; (assigned || []).forEach(function (l) { if (!vr && rates && rates[l] && rates[l].verification) vr = rates[l].verification; }); %>
+            <% if (vr) { %>
+              Pays <strong><%= fmtMoney(vr.rate_amount, vr.currency) %><%= vr.rate_type === 'per_1000_chars' ? ' per 1,000 characters read' : (vr.rate_type === 'per_word' ? ' per source word' : ' per item') %></strong>, plus reworked segments on top.
+            <% } else { %>
+              Paid per 1,000 characters verified, plus reworked segments.
+            <% } %>
           </p>
         </div>
         <% if (verifyItems.length > 0) { %>
@@ -69,6 +156,8 @@
                 <th>Type</th>
                 <th>Language</th>
                 <th>Source</th>
+                <th>Size / Pay</th>
+                <th>Waiting</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -91,9 +180,16 @@
                     <span style="color:#059669; font-size:0.8rem; white-space:nowrap;"> · <i class="fas fa-list-check"></i> <%= ssDone %> section<%= ssDone === 1 ? '' : 's' %> verified</span>
                   <% } %>
                 </td>
+                <td data-label="Size / Pay">
+                  <% var vChars = parseInt(item.target_char_count, 10); %>
+                  <% if (vChars) { %><span style="white-space:nowrap;"><%= vChars >= 1000 ? (vChars / 1000).toFixed(1) + 'k' : vChars %> chars</span><% } else { %>—<% } %>
+                  <% var vPay = verifyPayHint(item); %>
+                  <% if (vPay) { %><br><span style="color:#059669; font-size:0.8rem; white-space:nowrap;"><%= vPay %></span><% } %>
+                </td>
+                <td data-label="Waiting"><span style="color:var(--gray-500);"><%= daysWaiting(item.updated_at) %></span></td>
                 <td data-label="Actions">
                   <a href="/translations/verify/<%= item.id %>" class="btn btn-sm btn-primary">
-                    <i class="fas fa-clipboard-check"></i> Verify
+                    <i class="fas fa-clipboard-check"></i> <%= item.verifier_id ? 'Continue' : 'Verify' %>
                   </a>
                 </td>
               </tr>
@@ -103,18 +199,26 @@
         </div>
         <% } else { %>
         <div class="empty-state" style="padding: 1.5rem;">
-          <p style="margin:0; color:var(--gray-500);">Nothing waiting for verification right now.</p>
+          <p style="margin:0; color:var(--gray-500);">Nothing waiting for verification right now.
+            New drafts appear here automatically when the AI or another translator finishes something in your language.</p>
         </div>
         <% } %>
         <% pager(queuePaging.verify, "vpage") %>
       </div>
     </div>
 
-    <!-- Translate queue -->
-    <div class="card">
+    <!-- Translate queue: only rows the worker can actually act on -->
+    <div class="card" style="margin-bottom:1rem;">
       <div class="card-body" style="padding: 0;">
         <div style="padding: 1rem 1rem 0.5rem;">
           <h3 style="margin:0;"><i class="fas fa-pen"></i> To Translate</h3>
+          <p style="margin:0.25rem 0 0.5rem; color:var(--gray-500); font-size:0.85rem;">
+            Items that need your work: new content, drafts you started, and returned submissions.
+            <% var tr0 = null; (assigned || []).forEach(function (l) { if (!tr0 && rates && rates[l] && rates[l].translation) tr0 = rates[l].translation; }); %>
+            <% if (tr0) { %>
+              Pays <strong><%= fmtMoney(tr0.rate_amount, tr0.currency) %><%= tr0.rate_type === 'per_word' ? ' per source word' : (tr0.rate_type === 'per_1000_chars' ? ' per 1,000 characters' : ' per item') %></strong> when published.
+            <% } %>
+          </p>
         </div>
         <% if (items.length > 0) { %>
         <div class="table-container">
@@ -125,31 +229,34 @@
                 <th>Type</th>
                 <th>Language</th>
                 <th>Status</th>
-                <th>Words</th>
+                <th>Words / Pay</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <% items.forEach(item => { %>
               <tr>
-                <td data-label="Content"><strong><%= item.entity_title %></strong></td>
-                <td data-label="Type"><%= item.entity_type %></td>
-                <td data-label="Language"><%= languageNames[item.target_language] || item.target_language %></td>
-                <td data-label="Status">
-                  <%
-                    var statusColors = { pending: '#6b7280', translating: '#2563eb', requires_review: '#d97706', published: '#059669', rejected: '#dc2626' };
-                  %>
-                  <span style="display:inline-block; padding:0.15rem 0.5rem; border-radius:999px; font-size:0.75rem; color:#fff; background:<%= statusColors[item.status] || '#6b7280' %>;">
-                    <%= item.status.replace('_', ' ') %>
-                  </span>
-                  <% if (item.status === 'rejected' && item.review_note) { %>
-                    <i class="fas fa-comment-dots" title="<%= item.review_note %>"></i>
+                <td data-label="Content">
+                  <strong><%= item.entity_title %></strong>
+                  <% if (item.status === 'rejected' && item.review_note) { var note = splitNote(item.review_note); %>
+                    <div style="margin-top:0.35rem; font-size:0.8rem; color:#991b1b; background:#fef2f2; border-left:3px solid #dc2626; border-radius:4px; padding:0.35rem 0.5rem;">
+                      <% if (note.reason) { %><span style="display:inline-block; background:#dc2626; color:#fff; border-radius:999px; padding:0 0.5rem; font-size:0.7rem; margin-right:0.35rem;"><%= note.reason %></span><% } %>
+                      <%= note.text || 'Returned for changes — open the item for details.' %>
+                    </div>
                   <% } %>
                 </td>
-                <td data-label="Words"><%= item.word_count || '-' %></td>
+                <td data-label="Type"><%= item.entity_type %></td>
+                <td data-label="Language"><%= languageNames[item.target_language] || item.target_language %></td>
+                <td data-label="Status"><%- statusPill(item.status) %></td>
+                <td data-label="Words / Pay">
+                  <%= item.word_count || '-' %>
+                  <% var tPay = translatePayHint(item); %>
+                  <% if (tPay) { %><br><span style="color:#059669; font-size:0.8rem; white-space:nowrap;"><%= tPay %></span><% } %>
+                </td>
                 <td data-label="Actions">
                   <a href="/translations/workspace/<%= item.id %>" class="btn btn-sm btn-primary">
-                    <i class="fas fa-pen"></i> <%= item.status === 'published' ? 'View' : 'Translate' %>
+                    <i class="fas fa-pen"></i>
+                    <%= item.status === 'rejected' ? 'Fix & resubmit' : (item.status === 'translating' ? 'Continue' : 'Start') %>
                   </a>
                 </td>
               </tr>
@@ -161,10 +268,83 @@
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
           <h3>Nothing to Translate</h3>
-          <p>There is no content queued for your languages right now. Check back later.</p>
+          <p>There is no content queued for your languages right now.</p>
+          <p style="color:var(--gray-500); font-size:0.85rem;">
+            New items appear here automatically when content is queued for your languages — you'll get a
+            notification when something is assigned to you. Drafts to check may be waiting in
+            <strong>To Verify</strong> above.
+          </p>
         </div>
         <% } %>
         <% pager(queuePaging.translate, "tpage") %>
+      </div>
+    </div>
+
+    <!-- Submitted work: where finished items went, and what they paid -->
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <div style="padding: 1rem 1rem 0.5rem;">
+          <h3 style="margin:0;"><i class="fas fa-paper-plane"></i> <%= (typeof isAdminAll !== 'undefined' && isAdminAll) ? 'Submitted Work (all translators)' : 'My Submitted Work' %></h3>
+          <p style="margin:0.25rem 0 0.5rem; color:var(--gray-500); font-size:0.85rem;">
+            Submissions move through <strong>being checked → verified → published</strong>. Publishing credits
+            your earnings automatically — nothing else to do here. Submitted something too soon? Open it and
+            press <strong>Recall &amp; Edit</strong> while it's still being checked.
+          </p>
+        </div>
+        <% if (submittedItems.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Content</th>
+                <th>Type</th>
+                <th>Language</th>
+                <th>Where is it now?</th>
+                <th>Earned</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% submittedItems.forEach(item => { %>
+              <tr>
+                <td data-label="Content"><strong><%= item.entity_title %></strong></td>
+                <td data-label="Type"><%= item.entity_type %></td>
+                <td data-label="Language"><%= languageNames[item.target_language] || item.target_language %></td>
+                <td data-label="Where is it now?">
+                  <%- statusPill(item.status) %>
+                  <% if (item.status === 'requires_review' && item.verifier_id) { %>
+                    <div style="color:var(--gray-500); font-size:0.78rem; margin-top:0.25rem;"><i class="fas fa-user-check"></i> a verifier is reading it now</div>
+                  <% } else if (item.status === 'verified') { %>
+                    <div style="color:var(--gray-500); font-size:0.78rem; margin-top:0.25rem;">an admin publishes it next<%= item.edited_segments ? ' · ' + item.edited_segments + ' segment(s) were adjusted' : '' %></div>
+                  <% } else if (item.status === 'published' && item.published_at) { %>
+                    <div style="color:var(--gray-500); font-size:0.78rem; margin-top:0.25rem;">live since <%= new Date(item.published_at).toLocaleDateString('en-GB') %></div>
+                  <% } %>
+                </td>
+                <td data-label="Earned">
+                  <% if (item.status === 'published' && item.payout_amount != null) { %>
+                    <span style="color:#059669; white-space:nowrap;"><i class="fas fa-coins"></i> <%= fmtMoney(item.payout_amount, item.payout_currency) %></span>
+                  <% } else if (item.status === 'published') { %>
+                    <span style="color:var(--gray-500);">—</span>
+                  <% } else { %>
+                    <span style="color:var(--gray-500); font-size:0.8rem;">on publish</span>
+                  <% } %>
+                </td>
+                <td data-label="Actions">
+                  <a href="/translations/workspace/<%= item.id %>" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-eye"></i> View
+                  </a>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state" style="padding: 1.5rem;">
+          <p style="margin:0; color:var(--gray-500);">Nothing submitted yet — items you send for review will show up here with their progress and what they paid.</p>
+        </div>
+        <% } %>
+        <% pager(queuePaging.submitted, "spage") %>
       </div>
     </div>
     <% } %>

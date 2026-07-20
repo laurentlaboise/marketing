@@ -282,6 +282,90 @@ test('translator saves a draft and submits for review; superadmins are alerted',
   assert.ok(notif.rows.length >= 1, 'superadmin notified of submission');
 });
 
+test('submitted work is locked (no edits or resubmits); recall reopens it', async () => {
+  // laRow entered requires_review in the previous test.
+  const session = new Session(server.base);
+  await session.login('translator@test.local');
+  const headers = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await session.getCsrfToken('/translations/workspace'),
+  };
+
+  // The queue: submitted rows live under "My Submitted Work" with a
+  // worker-facing status, not in "To Translate" behind a dead Submit.
+  const list = await session.fetch('/translations/workspace');
+  assert.equal(list.status, 200);
+  const listHtml = await list.text();
+  assert.match(listHtml, /My Submitted Work/);
+  assert.match(listHtml, /Submitted — being checked/);
+
+  // The editor is read-only with a recall affordance instead of a Submit
+  // button that could only 409.
+  const editor = await session.fetch(`/translations/workspace/${laRow.id}`);
+  const editorHtml = await editor.text();
+  assert.ok(!editorHtml.includes('id="submitBtn"'), 'no Submit button on a submitted row');
+  assert.ok(editorHtml.includes('id="recallBtn"'), 'recall is offered while unclaimed');
+
+  // Saving over a submitted row is refused — it would silently change
+  // text a reviewer is reading.
+  const save = await session.fetch(`/translations/workspace/${laRow.id}/save`, {
+    method: 'POST', headers,
+    body: JSON.stringify({ content_payload: { term: 'changed under review' } }),
+  });
+  assert.equal(save.status, 409);
+  assert.match((await save.json()).error, /[Rr]ecall/);
+
+  const resubmit = await session.fetch(`/translations/workspace/${laRow.id}/submit`, {
+    method: 'POST', headers, body: JSON.stringify({}),
+  });
+  assert.equal(resubmit.status, 409, 'double-submit is refused');
+
+  // Recall → translating → editable and submittable again.
+  const recall = await session.fetch(`/translations/workspace/${laRow.id}/recall`, {
+    method: 'POST', headers, body: JSON.stringify({}),
+  });
+  assert.equal(recall.status, 200);
+  assert.equal((await recall.json()).status, 'translating');
+
+  const reopened = await session.fetch(`/translations/workspace/${laRow.id}`);
+  assert.ok((await reopened.text()).includes('id="submitBtn"'), 'submit is back after recall');
+
+  // Resubmit to restore the review state the downstream tests expect.
+  const resubmit2 = await session.fetch(`/translations/workspace/${laRow.id}/submit`, {
+    method: 'POST', headers, body: JSON.stringify({}),
+  });
+  assert.equal(resubmit2.status, 200);
+  const row = (await pool.query('SELECT status FROM translations WHERE id = $1', [laRow.id])).rows[0];
+  assert.equal(row.status, 'requires_review');
+});
+
+test('recall is blocked once a verifier has claimed the submission', async () => {
+  const glossary = await pool.query(
+    `INSERT INTO glossary (term, definition, letter) VALUES ('TestTerm RecallClaim', 'Recall vs claim.', 'T') RETURNING id`
+  );
+  const seeded = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, content_payload, status,
+                               translator_id, verifier_id, word_count)
+     VALUES ('glossary', $1, 'la', $2, 'requires_review',
+             (SELECT id FROM users WHERE email = 'translator@test.local'),
+             (SELECT id FROM users WHERE email = 'verifier@test.local'), 2)
+     RETURNING id`,
+    [glossary.rows[0].id, JSON.stringify({ term: 'ຄຳແປ' })]
+  );
+  const session = new Session(server.base);
+  await session.login('translator@test.local');
+  const res = await session.fetch(`/translations/workspace/${seeded.rows[0].id}/recall`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json', accept: 'application/json',
+      'x-csrf-token': await session.getCsrfToken('/translations/workspace'),
+    },
+    body: JSON.stringify({}),
+  });
+  assert.equal(res.status, 409);
+  assert.match((await res.json()).error, /verifier/i);
+});
+
 test('translator cannot approve; approval is superadmin-only', async () => {
   const session = new Session(server.base);
   await session.login('translator@test.local');
@@ -720,6 +804,121 @@ test('a translator cannot verify their own translation', async () => {
   });
   assert.equal(res.status, 403);
   assert.match((await res.json()).error, /own translation/);
+});
+
+test('reject and verifier-return reset the verify-cycle snapshot for a clean next pass', async () => {
+  const translatorId2 = (await pool.query(`SELECT id FROM users WHERE email = 'translator@test.local'`)).rows[0].id;
+  const verifierId2 = (await pool.query(`SELECT id FROM users WHERE email = 'verifier@test.local'`)).rows[0].id;
+  const seedRow = async (name) => {
+    const glossary = await pool.query(
+      `INSERT INTO glossary (term, definition, letter) VALUES ($1, 'Cycle hygiene.', 'T') RETURNING id`, [name]
+    );
+    return (await pool.query(
+      `INSERT INTO translations (entity_type, entity_id, target_language, content_payload, status,
+                                 translator_id, verifier_id, verified_by, verified_at,
+                                 ai_draft_payload, edited_chars, edited_segments, section_status, word_count)
+       VALUES ('glossary', $1, 'la', $2, 'requires_review', $3, $4, $4, CURRENT_TIMESTAMP,
+               $5, 42, 1, '{"term":{"verified":true}}', 2)
+       RETURNING id`,
+      [glossary.rows[0].id, JSON.stringify({ term: 'ສະບັບໃໝ່' }), translatorId2, verifierId2, JSON.stringify({ term: 'ສະບັບເກົ່າ' })]
+    )).rows[0].id;
+  };
+  const CYCLE_FIELDS = ['verifier_id', 'verified_by', 'verified_at', 'ai_draft_payload', 'edited_chars', 'edited_segments', 'section_status'];
+
+  // Admin reject clears every artifact of the cycle.
+  const rejectId = await seedRow('TestTerm CycleReset A');
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const reject = await admin.fetch(`/translations/${rejectId}/reject`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json', accept: 'application/json',
+      'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+    },
+    body: JSON.stringify({ note: 'redo it', reason: 'tone' }),
+  });
+  assert.equal(reject.status, 200);
+  const afterReject = (await pool.query('SELECT * FROM translations WHERE id = $1', [rejectId])).rows[0];
+  assert.equal(afterReject.status, 'rejected');
+  for (const f of CYCLE_FIELDS) {
+    assert.equal(afterReject[f], null, `${f} cleared on reject`);
+  }
+
+  // Verifier "Return for Redo" clears the same set.
+  const returnId = await seedRow('TestTerm CycleReset B');
+  const verifierSession = new Session(server.base);
+  await verifierSession.login('verifier@test.local');
+  const ret = await verifierSession.fetch(`/translations/verify/${returnId}/return`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json', accept: 'application/json',
+      'x-csrf-token': await verifierSession.getCsrfToken('/translations/workspace'),
+    },
+    body: JSON.stringify({ note: 'needs a full redo', reason: 'mistranslation' }),
+  });
+  assert.equal(ret.status, 200);
+  const afterReturn = (await pool.query('SELECT * FROM translations WHERE id = $1', [returnId])).rows[0];
+  assert.equal(afterReturn.status, 'rejected', 'human rows return to their translator');
+  for (const f of CYCLE_FIELDS) {
+    assert.equal(afterReturn[f], null, `${f} cleared on return`);
+  }
+});
+
+test('an active verifier cannot be assigned as the row translator (deadlock guard)', async () => {
+  const glossary = await pool.query(
+    `INSERT INTO glossary (term, definition, letter) VALUES ('TestTerm AssignGuard', 'Deadlock check.', 'T') RETURNING id`
+  );
+  const verifierId3 = (await pool.query(`SELECT id FROM users WHERE email = 'verifier@test.local'`)).rows[0].id;
+  const seeded = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, content_payload, status, ai_model, verifier_id, word_count)
+     VALUES ('glossary', $1, 'la', $2, 'requires_review', 'test-model', $3, 2) RETURNING id`,
+    [glossary.rows[0].id, JSON.stringify({ term: 'ຮ່າງ AI' }), verifierId3]
+  );
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const res = await admin.fetch(`/translations/${seeded.rows[0].id}/assign`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json', accept: 'application/json',
+      'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+    },
+    body: JSON.stringify({ translator_id: verifierId3 }),
+  });
+  assert.equal(res.status, 400);
+  assert.match((await res.json()).error, /verifying/i);
+});
+
+test('publishing over an active verification warns the admin before paying nobody', async () => {
+  const glossary = await pool.query(
+    `INSERT INTO glossary (term, definition, letter) VALUES ('TestTerm PublishOverClaim', 'Warn first.', 'T') RETURNING id`
+  );
+  const verifierId4 = (await pool.query(`SELECT id FROM users WHERE email = 'verifier@test.local'`)).rows[0].id;
+  const seeded = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, content_payload, status, ai_model,
+                               verifier_id, section_status, word_count)
+     VALUES ('glossary', $1, 'la', $2, 'requires_review', 'test-model', $3, '{"term":{"verified":true}}', 2)
+     RETURNING id`,
+    [glossary.rows[0].id, JSON.stringify({ term: 'ຄຳແປ AI', definition: 'ຄຳນິຍາມ' }), verifierId4]
+  );
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const headers = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+  };
+
+  const unacknowledged = await admin.fetch(`/translations/${seeded.rows[0].id}/approve`, {
+    method: 'POST', headers, body: JSON.stringify({}),
+  });
+  assert.equal(unacknowledged.status, 409);
+  const gate = await unacknowledged.json();
+  assert.equal(gate.requiresAcknowledgement, true);
+  assert.ok(gate.warnings.some((w) => /still verifying/i.test(w)), 'warns that a verifier is mid-work');
+
+  const acknowledged = await admin.fetch(`/translations/${seeded.rows[0].id}/approve`, {
+    method: 'POST', headers, body: JSON.stringify({ acknowledge: true }),
+  });
+  assert.equal(acknowledged.status, 200, 'explicit acknowledgement still publishes');
 });
 
 test('leads: capture → dedupe → qualify → admin approves tier credit → conversion bonus', async () => {

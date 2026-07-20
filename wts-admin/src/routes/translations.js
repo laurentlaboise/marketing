@@ -4,7 +4,7 @@
 //                 vendor & rate management, payout requests
 //   Translator  — locked workspace (assigned languages only) + earnings
 const express = require('express');
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const db = require('../../database/db');
 const {
   ensureSuperAdmin,
@@ -25,11 +25,16 @@ const router = express.Router();
 // own generous limiter below, so it can never starve navigation. Sized
 // for the per-section verify flow, where every tick and field blur is a
 // small auto-save POST (a fast verifier produces ~10 requests per item).
+// Keyed per authenticated account (this router mounts behind
+// ensureAuthenticated, so req.user is always set here): the workforce
+// shares office/NAT IPs, and one busy verifier must never 429 a
+// colleague on the same connection.
 router.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: Number(process.env.TRANSLATIONS_RATE_LIMIT_MAX) || 600,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => (req.user && req.user.id ? `u:${req.user.id}` : ipKeyGenerator(req.ip)),
   skip: (req) => req.path === '/ai-batch/status',
 }));
 
@@ -409,6 +414,16 @@ router.post('/:id/assign', ensureSuperAdmin, logActivity('translation_assign'), 
       if (!core.isUuid(translatorId)) {
         return asJson(res, 400, { success: false, error: 'Invalid translator id' });
       }
+      // Mirror of assign-verifier's self-check: the row's active verifier
+      // cannot become its translator — verifyAccessError would then lock
+      // them out ("cannot verify your own translation") while their claim
+      // blocks every other verifier, deadlocking the row.
+      if (row.verifier_id && String(row.verifier_id) === String(translatorId)) {
+        return asJson(res, 400, {
+          success: false,
+          error: 'This user is currently verifying this row — clear the verifier assignment first.',
+        });
+      }
       const translator = (await db.query(
         `SELECT id, role, assigned_languages FROM users WHERE id = $1`,
         [translatorId]
@@ -696,6 +711,21 @@ router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve')
             warnings.push(`No edit rate for ${nameOf(verifierVendor)} (${row.target_language}) — the rework credit will be skipped.`);
           }
         }
+        // Verification in progress: credits pay verified_by, which is only
+        // set by the verifier's final approve. Publishing over an active
+        // claim ships their fixes but pays them nothing and 409s their
+        // next save — the admin must knowingly choose that.
+        if (row.verifier_id && !row.verified_by) {
+          const activeVerifier = (await db.query(
+            'SELECT first_name, last_name, email FROM users WHERE id = $1', [row.verifier_id]
+          )).rows[0];
+          const verifierName = activeVerifier
+            ? ([activeVerifier.first_name, activeVerifier.last_name].filter(Boolean).join(' ') || activeVerifier.email)
+            : 'A verifier';
+          const ss = row.section_status || {};
+          const ticked = Object.keys(ss).filter((k) => ss[k] && ss[k].verified).length;
+          warnings.push(`${verifierName} is still verifying this row${ticked ? ` (${ticked} section(s) signed off so far)` : ''} — publishing now ends their work unpaid. Let them finish, or clear the verifier assignment first.`);
+        }
         warnings.push(...await collectContentWarnings(row));
         if (warnings.length) {
           return asJson(res, 409, { success: false, requiresAcknowledgement: true, warnings });
@@ -744,10 +774,18 @@ router.post('/:id/reject', ensureSuperAdmin, logActivity('translation_reject'), 
     }
     const note = noteWithReason(req.body);
     // Rejection sends the text back for rework — per-section sign-offs
-    // vouched for words that are about to change.
+    // vouched for words that are about to change, and every artifact of
+    // the verification cycle goes with them: the verifier claim, the
+    // verified_by stamp, and the draft snapshot + edit meters. Left in
+    // place they poison the NEXT cycle — computeEditStats would diff the
+    // rework against an obsolete snapshot and a publish straight from
+    // requires_review would credit a verifier who never saw the new text.
+    // (Same reset the AI redraft path performs in ai-translator.js.)
     await db.query(
       `UPDATE translations
        SET status = 'rejected', review_note = $1, reviewed_by = $2, section_status = NULL,
+           verifier_id = NULL, verified_by = NULL, verified_at = NULL,
+           ai_draft_payload = NULL, edited_chars = NULL, edited_segments = NULL,
            reviewed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
        WHERE id = $3`,
       [note, req.user.id, row.id]
@@ -774,8 +812,18 @@ router.post('/:id/reopen', ensureSuperAdmin, logActivity('translation_reopen'), 
     if (!core.canTransition(row.status, 'translating')) {
       return asJson(res, 409, { success: false, error: `Cannot reopen from status "${row.status}"` });
     }
+    // Reopening starts a fresh edit cycle: the previous cycle's verify
+    // artifacts (sign-offs, verified_by, draft snapshot, edit meters) no
+    // longer describe the text that will ship. Credits already written
+    // stay in the ledger; the alreadyCredited guard keeps re-publishing
+    // from paying twice.
     await db.query(
-      `UPDATE translations SET status = 'translating', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+      `UPDATE translations
+       SET status = 'translating', section_status = NULL, verifier_id = NULL,
+           verified_by = NULL, verified_at = NULL,
+           ai_draft_payload = NULL, edited_chars = NULL, edited_segments = NULL,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
       [row.id]
     );
     asJson(res, 200, { success: true });
@@ -1238,8 +1286,10 @@ router.get('/workspace', ensureTranslator, async (req, res, next) => {
         title: 'Translation Workspace - WTS Admin',
         currentPage: 'workspace',
         items: [],
+        submittedItems: [],
         verifyItems: [],
         assigned,
+        rates: {},
         languageNames: core.LANGUAGE_NAMES,
         noLanguages: true,
       });
@@ -1259,12 +1309,15 @@ router.get('/workspace', ensureTranslator, async (req, res, next) => {
     };
 
     // Translate queue: my claimed rows plus unclaimed rows that need a
-    // human translation pass (pending / rejected).
+    // human translation pass (pending / rejected). Rows the worker already
+    // submitted (requires_review / verified / published) live in their own
+    // "Submitted work" list below — mixing them here put an active
+    // Submit button on rows whose submit could only 409.
     const translateWhere = admin
-      ? `status <> 'requires_review'`
+      ? `status NOT IN ('requires_review', 'verified', 'published')`
       : `target_language = ANY($1)
          AND (translator_id = $2 OR (translator_id IS NULL AND status IN ('pending', 'rejected')))
-         AND status IN ('pending', 'translating', 'rejected', 'requires_review', 'verified', 'published')`;
+         AND status IN ('pending', 'translating', 'rejected')`;
     const translateParams = admin ? [] : [assigned, req.user.id];
     const translateTotal = (await db.query(
       `SELECT COUNT(*)::int AS c FROM translations WHERE ${translateWhere}`, translateParams
@@ -1275,6 +1328,25 @@ router.get('/workspace', ensureTranslator, async (req, res, next) => {
        ORDER BY ${admin ? 'updated_at DESC' : `(status = 'rejected') DESC, (status = 'pending') DESC, updated_at DESC`}
        LIMIT $${translateParams.length + 1} OFFSET $${translateParams.length + 2}`,
       [...translateParams, per, tPage.offset]
+    );
+
+    // Submitted work: where the worker's finished items actually are —
+    // being checked, verified and awaiting publish, or published (with
+    // what they paid). The queue answers "where did my submission go".
+    const submittedWhere = admin
+      ? `status IN ('requires_review', 'verified', 'published') AND translator_id IS NOT NULL`
+      : `target_language = ANY($1) AND translator_id = $2
+         AND status IN ('requires_review', 'verified', 'published')`;
+    const submittedParams = admin ? [] : [assigned, req.user.id];
+    const submittedTotal = (await db.query(
+      `SELECT COUNT(*)::int AS c FROM translations WHERE ${submittedWhere}`, submittedParams
+    )).rows[0].c;
+    const sPage = pageOf(req.query.spage, submittedTotal);
+    const submittedRows = await db.query(
+      `SELECT * FROM translations WHERE ${submittedWhere}
+       ORDER BY updated_at DESC
+       LIMIT $${submittedParams.length + 1} OFFSET $${submittedParams.length + 2}`,
+      [...submittedParams, per, sPage.offset]
     );
 
     // Verify queue: drafted rows awaiting a native sign-off — someone
@@ -1299,18 +1371,34 @@ router.get('/workspace', ensureTranslator, async (req, res, next) => {
       [...verifyParams, per, vPage.offset]
     );
 
+    // Pay transparency: the worker's active rate card per assigned
+    // language and work type, so the queues can show what an item pays
+    // (the admin review page already shows this — workers deserve it too).
+    const rates = {};
+    if (!admin) {
+      for (const lang of assigned) {
+        rates[lang] = {
+          translation: await core.resolveRate(req.user.id, lang, db, 'translation'),
+          verification: await core.resolveRate(req.user.id, lang, db, 'verification'),
+        };
+      }
+    }
+
     res.render('translations/workspace-list', {
       title: 'Translation Workspace - WTS Admin',
       currentPage: 'workspace',
       items: await withEntityTitles(translateRows.rows),
+      submittedItems: await withEntityTitles(submittedRows.rows),
       verifyItems: await withEntityTitles(verifyRows.rows),
       assigned,
       isAdminAll: admin,
+      rates,
       languageNames: core.LANGUAGE_NAMES,
       noLanguages: false,
       queuePaging: {
         per, perChoices: PER_CHOICES,
         translate: { ...tPage, total: translateTotal, from: translateTotal ? tPage.offset + 1 : 0, to: Math.min(tPage.offset + per, translateTotal) },
+        submitted: { ...sPage, total: submittedTotal, from: submittedTotal ? sPage.offset + 1 : 0, to: Math.min(sPage.offset + per, submittedTotal) },
         verify: { ...vPage, total: verifyTotal, from: verifyTotal ? vPage.offset + 1 : 0, to: Math.min(vPage.offset + per, verifyTotal) },
       },
     });
@@ -1324,7 +1412,13 @@ router.get('/workspace/:id', ensureTranslator, async (req, res, next) => {
     const row = await loadTranslation(req, res);
     if (!row) return;
     const reason = core.rowAccessError(req.user, row);
-    if (reason) {
+    // Published rows are readable by the verifier who signed them off —
+    // their earnings ledger links here so a credit can be traced to the
+    // text it paid for. Read-only is guaranteed: published rows never
+    // render editable controls.
+    const verifierViewingPublished = reason && row.status === 'published' &&
+      (row.verifier_id === req.user.id || row.verified_by === req.user.id);
+    if (reason && !verifierViewingPublished) {
       return res.status(403).render('error', { title: 'Access Denied', message: reason, code: 403 });
     }
     const source = await core.fetchEntitySource(row.entity_type, row.entity_id);
@@ -1335,6 +1429,12 @@ router.get('/workspace/:id', ensureTranslator, async (req, res, next) => {
         code: 404,
       });
     }
+    // Read-only covers every state where an edit could no longer be
+    // submitted or would silently change text someone signed off on:
+    // submitted (requires_review), verified, and published. The submit
+    // path from each is a 409 in the status machine, so offering live
+    // Save/Submit buttons here only manufactured errors.
+    const readOnly = ['requires_review', 'verified', 'published'].includes(row.status);
     res.render('translations/workspace-editor', {
       title: 'Translate - WTS Admin',
       currentPage: 'workspace',
@@ -1342,7 +1442,11 @@ router.get('/workspace/:id', ensureTranslator, async (req, res, next) => {
       source,
       languageNames: core.LANGUAGE_NAMES,
       entityConfig: core.ENTITY_SOURCES[row.entity_type],
-      readOnly: row.status === 'published',
+      readOnly,
+      // The translator's undo for "submitted too soon": allowed while the
+      // submission awaits review and no verifier has claimed it.
+      canRecall: row.status === 'requires_review' && Boolean(row.translator_id) && !row.verifier_id &&
+        (isSuperAdmin(req.user) || row.translator_id === req.user.id),
     });
   } catch (error) {
     next(error);
@@ -1358,6 +1462,22 @@ router.post('/workspace/:id/save', ensureTranslator, async (req, res) => {
     if (deniedForRow(req, res, row)) return;
     if (row.status === 'published') {
       return asJson(res, 409, { success: false, error: 'Published translations are read-only. Ask an admin to reopen it.' });
+    }
+    // A submitted or verified row is out of the translator's hands: saving
+    // over it would silently change text a reviewer is reading — or worse,
+    // text a verifier already signed off — while keeping the trusted
+    // status. Route the worker to the recall flow instead.
+    if (row.status === 'requires_review') {
+      return asJson(res, 409, {
+        success: false,
+        error: 'This translation was submitted and is being reviewed. Recall it from the editor to make changes.',
+      });
+    }
+    if (row.status === 'verified') {
+      return asJson(res, 409, {
+        success: false,
+        error: 'This translation was verified and is awaiting publication — it can no longer be edited here. Ask an admin if it must change.',
+      });
     }
 
     const { payload, error } = core.sanitizePayload(row.entity_type, req.body.content_payload);
@@ -1384,6 +1504,45 @@ router.post('/workspace/:id/save', ensureTranslator, async (req, res) => {
   } catch (error) {
     console.error('Draft save failed:', error.message);
     asJson(res, 500, { success: false, error: 'Save failed' });
+  }
+});
+
+// Recall a submission: the translator's own undo for "submitted too
+// soon". requires_review → translating (a documented status-machine
+// edge), only while no verifier has claimed the row — a recall must
+// never vaporize checking work in progress. Per-section sign-offs are
+// cleared: they vouched for text that is about to change.
+router.post('/workspace/:id/recall', ensureTranslator, logActivity('translation_recall'), async (req, res) => {
+  try {
+    const row = await loadTranslation(req, res);
+    if (!row) return;
+    if (deniedForRow(req, res, row)) return;
+    if (row.status !== 'requires_review') {
+      return asJson(res, 409, { success: false, error: `Only a submission awaiting review can be recalled (status is "${row.status.replace('_', ' ')}")` });
+    }
+    if (!row.translator_id) {
+      return asJson(res, 409, { success: false, error: 'AI drafts are checked in the Verify queue — there is nothing to recall.' });
+    }
+    if (row.verifier_id) {
+      return asJson(res, 409, { success: false, error: 'A verifier has already started checking this submission — ask an admin if it must come back.' });
+    }
+    // Conditions re-checked atomically: a verifier claiming or an admin
+    // resolving the row between the guards above and this write loses
+    // nothing — the recall simply reports the conflict.
+    const updated = await db.query(
+      `UPDATE translations
+       SET status = 'translating', section_status = NULL, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND status = 'requires_review' AND verifier_id IS NULL
+       RETURNING id`,
+      [row.id]
+    );
+    if (updated.rows.length === 0) {
+      return asJson(res, 409, { success: false, error: 'This submission changed while you were looking at it — reload the page.' });
+    }
+    asJson(res, 200, { success: true, status: 'translating' });
+  } catch (error) {
+    console.error('Recall failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Recall failed' });
   }
 });
 
@@ -1453,6 +1612,15 @@ router.get('/verify/:id', ensureTranslator, async (req, res, next) => {
       });
     }
     const source = await core.fetchEntitySource(row.entity_type, row.entity_id);
+    // Pay transparency: the verifier's active per-1,000-chars rate (and
+    // edit rate), so the editor can show what this item pays instead of
+    // the vague "paid per 1,000 characters".
+    const verifyRate = req.user.role === 'translator'
+      ? await core.resolveRate(req.user.id, row.target_language, db, 'verification')
+      : null;
+    const editRate = req.user.role === 'translator'
+      ? await core.resolveRate(req.user.id, row.target_language, db, 'edit')
+      : null;
     res.render('translations/verify-editor', {
       title: 'Verify - WTS Admin',
       currentPage: 'workspace',
@@ -1463,6 +1631,8 @@ router.get('/verify/:id', ensureTranslator, async (req, res, next) => {
       entityConfig: core.ENTITY_SOURCES[row.entity_type],
       readOnly: row.status === 'verified',
       targetChars: core.countChars(row.content_payload),
+      verifyRate,
+      editRate,
     });
   } catch (error) {
     next(error);
@@ -1558,26 +1728,41 @@ router.post('/verify/:id/section', ensureTranslator, async (req, res) => {
       chars: core.countChars({ [field]: value }),
     };
 
-    await db.query(
+    // Status + claim re-checked atomically: without the predicate two
+    // verifiers who opened the same unclaimed item would silently steal
+    // the claim from each other, and a write racing an admin resolve
+    // could land on a rejected/published row.
+    const isWorkerWrite = req.user.role === 'translator';
+    const sectionParams = [
+      JSON.stringify(merged),
+      isWorkerWrite ? req.user.id : row.verifier_id,
+      JSON.stringify(row.content_payload || {}),
+      field,
+      JSON.stringify(stamp),
+      core.countChars(merged),
+      stats.editedChars,
+      stats.editedSegments,
+      row.id,
+    ];
+    let sectionGuard = `AND status = 'requires_review'`;
+    if (isWorkerWrite) {
+      sectionParams.push(req.user.id);
+      sectionGuard += ` AND (verifier_id IS NULL OR verifier_id = $${sectionParams.length})`;
+    }
+    const sectionWrite = await db.query(
       `UPDATE translations
        SET content_payload = $1, verifier_id = $2,
            ai_draft_payload = COALESCE(ai_draft_payload, $3),
            section_status = jsonb_set(COALESCE(section_status, '{}'::jsonb), ARRAY[$4], $5::jsonb),
            target_char_count = $6, edited_chars = $7, edited_segments = $8,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $9`,
-      [
-        JSON.stringify(merged),
-        req.user.role === 'translator' ? req.user.id : row.verifier_id,
-        JSON.stringify(row.content_payload || {}),
-        field,
-        JSON.stringify(stamp),
-        core.countChars(merged),
-        stats.editedChars,
-        stats.editedSegments,
-        row.id,
-      ]
+       WHERE id = $9 ${sectionGuard}
+       RETURNING id`,
+      sectionParams
     );
+    if (sectionWrite.rows.length === 0) {
+      return asJson(res, 409, { success: false, error: 'This item changed while you were working (claimed or resolved by someone else) — reload the page.' });
+    }
 
     const source = await core.fetchEntitySource(row.entity_type, row.entity_id);
     const keys = sectionKeysFor({ ...row, content_payload: merged }, source, core.ENTITY_SOURCES[row.entity_type]);
@@ -1602,23 +1787,35 @@ router.post('/verify/:id/save', ensureTranslator, async (req, res) => {
 
     const draft = row.ai_draft_payload || row.content_payload || {};
     const stats = core.computeEditStats(draft, payload);
-    await db.query(
+    // Same atomic status + claim predicate as the per-section write.
+    const isWorkerWrite = req.user.role === 'translator';
+    const saveParams = [
+      JSON.stringify(payload),
+      isWorkerWrite ? req.user.id : row.verifier_id,
+      JSON.stringify(row.content_payload || {}),
+      core.countChars(payload),
+      stats.editedChars,
+      stats.editedSegments,
+      row.id,
+    ];
+    let saveGuard = `AND status = 'requires_review'`;
+    if (isWorkerWrite) {
+      saveParams.push(req.user.id);
+      saveGuard += ` AND (verifier_id IS NULL OR verifier_id = $${saveParams.length})`;
+    }
+    const saveWrite = await db.query(
       `UPDATE translations
        SET content_payload = $1, verifier_id = $2,
            ai_draft_payload = COALESCE(ai_draft_payload, $3),
            target_char_count = $4, edited_chars = $5, edited_segments = $6,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $7`,
-      [
-        JSON.stringify(payload),
-        req.user.role === 'translator' ? req.user.id : row.verifier_id,
-        JSON.stringify(row.content_payload || {}),
-        core.countChars(payload),
-        stats.editedChars,
-        stats.editedSegments,
-        row.id,
-      ]
+       WHERE id = $7 ${saveGuard}
+       RETURNING id`,
+      saveParams
     );
+    if (saveWrite.rows.length === 0) {
+      return asJson(res, 409, { success: false, error: 'This item changed while you were working (claimed or resolved by someone else) — reload the page.' });
+    }
     asJson(res, 200, { success: true, editedChars: stats.editedChars, editedSegments: stats.editedSegments });
   } catch (error) {
     console.error('Verify save failed:', error.message);
@@ -1664,26 +1861,41 @@ router.post('/verify/:id/approve', ensureTranslator, logActivity('translation_ve
 
     const draft = row.ai_draft_payload || row.content_payload || {};
     const stats = core.computeEditStats(draft, payload);
-    const verifierId = req.user.role === 'translator' ? req.user.id : (row.verifier_id || req.user.id);
+    const isWorkerWrite = req.user.role === 'translator';
+    const verifierId = isWorkerWrite ? req.user.id : (row.verifier_id || req.user.id);
 
-    await db.query(
+    // Atomic transition: approve must land on a row that is still
+    // requires_review and (for workers) still unclaimed or theirs — a
+    // racing admin reject/publish or a rival claim answers 409 instead of
+    // silently forcing an illegal rejected/published → verified flip.
+    const approveParams = [
+      JSON.stringify(payload),
+      verifierId,
+      JSON.stringify(row.content_payload || {}),
+      core.countChars(payload),
+      stats.editedChars,
+      stats.editedSegments,
+      row.id,
+    ];
+    let approveGuard = `AND status = 'requires_review'`;
+    if (isWorkerWrite) {
+      approveParams.push(req.user.id);
+      approveGuard += ` AND (verifier_id IS NULL OR verifier_id = $${approveParams.length})`;
+    }
+    const approveWrite = await db.query(
       `UPDATE translations
        SET content_payload = $1, status = 'verified',
            verifier_id = $2, verified_by = $2, verified_at = CURRENT_TIMESTAMP,
            ai_draft_payload = COALESCE(ai_draft_payload, $3),
            target_char_count = $4, edited_chars = $5, edited_segments = $6,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $7`,
-      [
-        JSON.stringify(payload),
-        verifierId,
-        JSON.stringify(row.content_payload || {}),
-        core.countChars(payload),
-        stats.editedChars,
-        stats.editedSegments,
-        row.id,
-      ]
+       WHERE id = $7 ${approveGuard}
+       RETURNING id`,
+      approveParams
     );
+    if (approveWrite.rows.length === 0) {
+      return asJson(res, 409, { success: false, error: 'This item changed while you were working (claimed or resolved by someone else) — reload the page.' });
+    }
     await core.notifySuperAdmins(
       'Translation verified',
       `${req.user.first_name || req.user.email} verified a ${row.entity_type} (${core.LANGUAGE_NAMES[row.target_language] || row.target_language})${stats.editedSegments ? ` with ${stats.editedSegments} segment(s) reworked` : ' as-is'}.`,
@@ -1708,15 +1920,25 @@ router.post('/verify/:id/return', ensureTranslator, logActivity('translation_ver
     }
     const note = noteWithReason(req.body);
     const nextStatus = row.translator_id ? 'rejected' : 'pending';
-    // A redo invalidates every per-section sign-off: the text those ticks
-    // vouched for is about to change.
-    await db.query(
+    // A redo invalidates every artifact of this verification cycle: the
+    // per-section sign-offs, any verified_by stamp from a prior pass, and
+    // the draft snapshot + edit meters — kept, they would make the NEXT
+    // verifier's edit pay diff against an obsolete draft (same reset the
+    // AI redraft path performs). Status re-checked atomically so a racing
+    // approve/publish is reported, not clobbered.
+    const returned = await db.query(
       `UPDATE translations
        SET status = $1, review_note = $2, verifier_id = NULL, section_status = NULL,
+           verified_by = NULL, verified_at = NULL,
+           ai_draft_payload = NULL, edited_chars = NULL, edited_segments = NULL,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $3`,
+       WHERE id = $3 AND status = 'requires_review'
+       RETURNING id`,
       [nextStatus, note, row.id]
     );
+    if (returned.rows.length === 0) {
+      return asJson(res, 409, { success: false, error: 'This item changed while you were working (already resolved by someone else) — reload the page.' });
+    }
     if (row.translator_id) {
       await core.notifyUser(
         row.translator_id,
@@ -1784,7 +2006,7 @@ router.get('/earnings', ensureWorker, async (req, res, next) => {
   try {
     const [ledger, requests, balances] = await Promise.all([
       db.query(
-        `SELECT l.*, t.entity_type, t.target_language
+        `SELECT l.*, t.entity_type, t.entity_id, t.target_language
          FROM payout_ledger l LEFT JOIN translations t ON t.id = l.translation_id
          WHERE l.translator_id = $1 ORDER BY l.created_at DESC LIMIT 100`,
         [req.user.id]
@@ -1825,7 +2047,10 @@ router.get('/earnings', ensureWorker, async (req, res, next) => {
     res.render('translations/earnings', {
       title: 'My Earnings - WTS Admin',
       currentPage: 'earnings',
-      ledger: ledger.rows,
+      // Entity titles make credits traceable: "Translated <article title>"
+      // instead of an opaque credit row (non-translation credits keep a
+      // null title and render from their description as before).
+      ledger: await withEntityTitles(ledger.rows),
       requests: requests.rows,
       balances: balances.rows,
       totalAvailable,
