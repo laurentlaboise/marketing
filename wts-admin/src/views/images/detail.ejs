@@ -291,6 +291,10 @@
               <i class="fas fa-info-circle"></i> The AI button fills in the text fields below by analyzing the image.
               It does not modify, compress, or improve the image file itself<% if (image.mime_type !== 'image/svg+xml') { %> &mdash; use <strong>Compress &amp; Convert</strong> for that<% } %>.
             </p>
+            <label style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; font-size: 12px; color: var(--gray-600); cursor: pointer;">
+              <input type="checkbox" id="aiOverwrite">
+              <span>Let AI overwrite fields that already have text</span>
+            </label>
 
             <!-- AI Analysis Status -->
             <div id="aiAnalysisStatus" style="display: none; margin-bottom: 16px;"></div>
@@ -555,9 +559,48 @@ document.addEventListener('DOMContentLoaded', () => {
     reBtn.disabled = true;
     reBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Replacing...';
   });
+
+  // Warn before leaving with unsaved SEO edits (AI fills count as edits) -
+  // e.g. the Compress & Convert success box invites a reload that would
+  // otherwise silently wipe freshly generated metadata.
+  const seoForm = document.querySelector('form[action="/images/<%= image.id %>"]');
+  if (seoForm) {
+    seoForm.addEventListener('input', () => { seoFormDirty = true; });
+    seoForm.addEventListener('submit', () => { seoFormDirty = false; });
+  }
+  window.addEventListener('beforeunload', (e) => {
+    if (seoFormDirty) { e.preventDefault(); e.returnValue = ''; }
+  });
 });
 
 // AI Image Analysis
+var seoFormDirty = false;
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function aiDetailHtml(detail) {
+  if (!detail) return '';
+  return '<details style="margin-top: 6px;"><summary style="cursor: pointer;">Technical details</summary><div style="font-size: 12px; word-break: break-all; margin-top: 4px;">' + escapeHtml(detail) + '</div></details>';
+}
+
+// Fill a field only when it's empty (or Overwrite is ticked) and flash it so
+// the change is visible. Returns 'filled' | 'skipped' | 'none'.
+function aiFillField(id, value) {
+  const el = document.getElementById(id);
+  if (!el || !value) return 'none';
+  const overwrite = document.getElementById('aiOverwrite');
+  if (el.value.trim() && !(overwrite && overwrite.checked)) return 'skipped';
+  el.value = value;
+  el.dispatchEvent(new Event('input'));
+  seoFormDirty = true;
+  el.style.transition = 'background-color 0.4s';
+  el.style.backgroundColor = '#fff3bf';
+  setTimeout(() => { el.style.backgroundColor = ''; }, 1400);
+  return 'filled';
+}
+
 function analyzeWithAI() {
   const btn = document.getElementById('aiAnalyzeBtn');
   const status = document.getElementById('aiAnalysisStatus');
@@ -573,30 +616,39 @@ function analyzeWithAI() {
   })
   .then(res => res.json())
   .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-robot"></i> AI: Write SEO Text';
+
     if (data.error) {
-      status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> ' + data.error + '</div>';
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-robot"></i> AI: Write SEO Text';
+      status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> ' + escapeHtml(data.error) + aiDetailHtml(data.detail) + '</div>';
       return;
     }
 
-    // Fill in the fields
-    if (data.alt_text) document.getElementById('alt_text').value = data.alt_text;
-    if (data.title) document.getElementById('title').value = data.title;
-    if (data.description) document.getElementById('description').value = data.description;
-    if (data.tags) document.getElementById('tags').value = data.tags;
+    const outcomes = [
+      aiFillField('alt_text', data.alt_text),
+      aiFillField('title', data.title),
+      aiFillField('description', data.description),
+      aiFillField('tags', data.tags),
+    ];
+    const filled = outcomes.filter(o => o === 'filled').length;
+    const skipped = outcomes.filter(o => o === 'skipped').length;
 
-    // Trigger updates
-    document.getElementById('alt_text').dispatchEvent(new Event('input'));
-    document.getElementById('title').dispatchEvent(new Event('input'));
-    document.getElementById('description').dispatchEvent(new Event('input'));
-
-    status.innerHTML = '<div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> AI wrote the SEO text fields below. Review and edit as needed, then click Save. The image file itself was not changed.</div>';
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-robot"></i> AI: Write SEO Text';
+    let msg;
+    if (filled) {
+      msg = 'AI wrote ' + filled + ' SEO text field' + (filled !== 1 ? 's' : '') + ' below.';
+    } else {
+      msg = 'No fields were changed.';
+    }
+    if (skipped) {
+      msg += ' ' + skipped + ' field' + (skipped !== 1 ? 's' : '') + ' with existing text ' + (skipped !== 1 ? 'were' : 'was') + ' kept &mdash; tick "Let AI overwrite" above to replace them.';
+    }
+    if (filled) {
+      msg += ' Review and edit as needed, then click Save. The image file itself was not changed.';
+    }
+    status.innerHTML = '<div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> ' + msg + '</div>';
   })
   .catch(err => {
-    status.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: var(--radius); font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Failed to analyze: ' + err.message + '</div>';
+    status.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: var(--radius); font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Failed to analyze: ' + escapeHtml(err.message) + '</div>';
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-robot"></i> AI: Write SEO Text';
   });

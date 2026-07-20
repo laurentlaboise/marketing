@@ -1332,6 +1332,43 @@ router.post('/bulk-optimize', async (req, res) => {
 
 // ==================== AI IMAGE ANALYSIS ====================
 
+// Model is env-configurable so a retired ID needs a config change, not a
+// deploy. claude-sonnet-5 is the current Sonnet-tier alias (same tier as the
+// previously hardcoded Sonnet 4.5 snapshot).
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
+
+// Forced tool call: the model must "call" this tool, so the reply arrives as
+// a schema-validated tool_use block instead of free text that needs parsing.
+const SEO_TOOL = {
+  name: 'record_image_seo',
+  description: 'Record the SEO metadata for the analyzed image.',
+  strict: true,
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['alt_text', 'title', 'description', 'tags'],
+    properties: {
+      alt_text: {
+        type: 'string',
+        description: 'Concise descriptive alt text for accessibility and SEO, 60-125 characters. Describe what the image shows naturally with relevant keywords.',
+      },
+      title: {
+        type: 'string',
+        description: 'A clear, keyword-rich title for the image, suitable as a tooltip and for AI crawlers.',
+      },
+      description: {
+        type: 'string',
+        description: 'A detailed 1-2 sentence description for Schema.org ImageObject markup. Mention the context, subject matter, and relevance to digital marketing services.',
+      },
+      tags: {
+        type: 'array',
+        items: { type: 'string' },
+        description: '4-8 lowercase tags for categorization.',
+      },
+    },
+  },
+};
+
 // Helper: call Anthropic Claude Vision API to analyze an image
 async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -1366,8 +1403,10 @@ async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
   const base64Image = imageBuffer.toString('base64');
 
   const requestBody = JSON.stringify({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 1024,
+    model: ANTHROPIC_MODEL,
+    max_tokens: 2048,
+    tools: [SEO_TOOL],
+    tool_choice: { type: 'tool', name: SEO_TOOL.name },
     messages: [
       {
         role: 'user',
@@ -1382,26 +1421,44 @@ async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
           },
           {
             type: 'text',
-            text: `Analyze this image for SEO optimization on a digital marketing agency website (WordsThatSells.website). The filename is: "${filename}"
+            text: `Analyze this image for SEO on a digital marketing agency website (WordsThatSells.website). The filename is: "${filename}"
 
-Return ONLY valid JSON (no markdown, no code fences) with these exact fields:
-{
-  "alt_text": "Concise descriptive alt text for accessibility and SEO, 60-125 characters. Describe what the image shows naturally with relevant keywords.",
-  "title": "A clear, keyword-rich title for the image, suitable as a tooltip and for AI crawlers.",
-  "description": "A detailed 1-2 sentence description for Schema.org ImageObject markup. Mention the context, subject matter, and relevance to digital marketing services.",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
-}
-
-Tags should be lowercase, relevant for categorization. Include 4-8 tags.
-Focus on: what the image depicts, its purpose on a marketing website, and relevant SEO keywords.`
+Focus on: what the image depicts, its purpose on a marketing website, and relevant SEO keywords. Record the metadata with the ${SEO_TOOL.name} tool.`
           }
         ]
       }
     ]
   });
 
+  // One automatic retry for transient failures (network, timeout, rate limit,
+  // 5xx, truncation); permanent failures (bad key, refusal) surface at once.
+  let lastErr;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      return await requestSeoAnalysis(requestBody, apiKey);
+    } catch (err) {
+      lastErr = err;
+      if (!err.retryable || attempt === 2) break;
+      await sleep(2000);
+    }
+  }
+  throw lastErr;
+}
+
+// Build a user-facing error: `message` is shown in the status box, `detail`
+// keeps the raw cause for the collapsible "technical details", `retryable`
+// drives the single automatic retry above.
+function aiError(message, detail, retryable) {
+  const err = new Error(message);
+  err.detail = detail || '';
+  err.retryable = !!retryable;
+  return err;
+}
+
+// One POST /v1/messages attempt; resolves with the validated tool input.
+function requestSeoAnalysis(requestBody, apiKey) {
   return new Promise((resolve, reject) => {
-    const options = {
+    const req = https.request({
       hostname: 'api.anthropic.com',
       port: 443,
       path: '/v1/messages',
@@ -1412,39 +1469,56 @@ Focus on: what the image depicts, its purpose on a marketing website, and releva
         'anthropic-version': '2023-06-01',
         'Content-Length': Buffer.byteLength(requestBody),
       },
-    };
-
-    const req = https.request(options, (res) => {
+    }, (res) => {
       let data = '';
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
+        let body;
         try {
-          const response = JSON.parse(data);
-          if (response.error) {
-            reject(new Error(response.error.message || 'Anthropic API error'));
-            return;
-          }
-
-          // Extract text content from response
-          const textBlock = response.content && response.content.find(b => b.type === 'text');
-          if (!textBlock || !textBlock.text) {
-            reject(new Error('No text response from AI'));
-            return;
-          }
-
-          // Parse JSON from the response (strip any markdown fences if present)
-          let jsonText = textBlock.text.trim();
-          jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
-          const result = JSON.parse(jsonText);
-          resolve(result);
+          body = JSON.parse(data);
         } catch (e) {
-          reject(new Error('Failed to parse AI response: ' + e.message));
+          return reject(aiError('The AI service returned an unreadable response. Try again.', data.slice(0, 200), true));
         }
+
+        const apiDetail = body.error && body.error.message;
+        if (res.statusCode === 401 || res.statusCode === 403) {
+          return reject(aiError('The AI service rejected the credentials. Check ANTHROPIC_API_KEY in the environment settings.', apiDetail));
+        }
+        if (res.statusCode === 404) {
+          return reject(aiError(`The configured AI model "${ANTHROPIC_MODEL}" was not found - it may have been retired. Set ANTHROPIC_MODEL to a current model.`, apiDetail));
+        }
+        if (res.statusCode === 429) {
+          return reject(aiError('The AI service is rate-limited right now. Wait a minute and try again.', apiDetail, true));
+        }
+        if (res.statusCode === 413) {
+          return reject(aiError('The image is too large for the AI service even after resizing.', apiDetail));
+        }
+        if (res.statusCode >= 500) {
+          return reject(aiError('The AI service is temporarily unavailable. Try again shortly.', apiDetail, true));
+        }
+        if (res.statusCode !== 200 || body.error) {
+          return reject(aiError('The AI service rejected the request.', apiDetail || `HTTP ${res.statusCode}`));
+        }
+
+        if (body.stop_reason === 'refusal') {
+          return reject(aiError('The AI declined to analyze this image.', body.stop_details && body.stop_details.explanation));
+        }
+        if (body.stop_reason === 'max_tokens') {
+          return reject(aiError('The AI response was cut off before it finished. Try again.', 'stop_reason=max_tokens', true));
+        }
+
+        const toolBlock = (body.content || []).find(b => b.type === 'tool_use' && b.name === SEO_TOOL.name);
+        const input = toolBlock && toolBlock.input;
+        if (!input || typeof input.alt_text !== 'string' || typeof input.title !== 'string' ||
+            typeof input.description !== 'string' || !Array.isArray(input.tags)) {
+          return reject(aiError('The AI returned an unexpected response format. Try again.', 'content types: ' + (body.content || []).map(b => b.type).join(', '), true));
+        }
+        resolve(input);
       });
     });
 
-    req.on('error', (e) => reject(new Error('API request failed: ' + e.message)));
-    req.setTimeout(30000, () => { req.destroy(); reject(new Error('API request timed out')); });
+    req.on('error', (e) => reject(aiError('Could not reach the AI service. Check the network and try again.', e.message, true)));
+    req.setTimeout(120000, () => { req.destroy(); reject(aiError('AI analysis timed out. Try again.', 'timeout after 120s', true)); });
     req.write(requestBody);
     req.end();
   });
@@ -1475,6 +1549,18 @@ router.post('/:id/analyze', analyzeLimiter, async (req, res) => {
     } else {
       return res.status(404).json({ error: 'Image file not found on disk and no CDN URL available' });
     }
+
+    // CDN re-hydration can hand back an error page or truncated bytes; make
+    // sure this is a decodable image before shipping it to the API.
+    try {
+      await sharp(imageBuffer).metadata();
+    } catch (probeErr) {
+      return res.status(422).json({
+        error: 'The stored image file could not be read - it may be corrupted or missing from the CDN. Try re-uploading the image.',
+        detail: probeErr.message,
+      });
+    }
+
     const analysis = await analyzeImageWithAI(imageBuffer, image.mime_type, image.filename);
 
     res.json({
@@ -1486,7 +1572,7 @@ router.post('/:id/analyze', analyzeLimiter, async (req, res) => {
     });
   } catch (error) {
     console.error('Image analysis error:', error);
-    res.status(500).json({ error: error.message || 'Failed to analyze image' });
+    res.status(500).json({ error: error.message || 'Failed to analyze image', detail: error.detail || undefined });
   }
 });
 
@@ -1543,7 +1629,7 @@ router.post('/analyze-upload', analyzeLimiter, upload.single('image'), async (re
         fs.unlinkSync(resolvedPath);
       }
     }
-    res.status(500).json({ error: error.message || 'Failed to analyze image' });
+    res.status(500).json({ error: error.message || 'Failed to analyze image', detail: error.detail || undefined });
   }
 });
 

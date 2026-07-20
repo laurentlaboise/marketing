@@ -96,6 +96,8 @@ Phases are ordered by user-visible value per unit of risk. Each item lists accep
 6. **Honest CDN status.** When `cdn_pushed:false`, show a visible warning, not a green "Optimized!". AC: user can tell local-only success from published success.
 
 ### Phase 1 — AI feature correctness ("make the button trustworthy")
+
+> **Status: implemented in this PR** (items 1-4, 6, 7 fully; item 5 partially — `ANTHROPIC_MODEL` env with a current-alias default landed for the images route; the app-wide shared client remains Phase 4). Forced strict tool-use replaces free-text JSON parsing; one automatic retry on transient failures; human-actionable error messages with raw detail in a collapsible; 120 s timeout; CDN-rehydrated bytes validated; AI fills only empty fields by default with an overwrite toggle, field flash, and a `beforeunload` unsaved-changes guard.
 1. **Forced tool-use structured output** (as `webdev` already does) instead of free-text JSON + fence stripping; check `stop_reason`; raise `max_tokens` to 2048. AC: zero "Failed to parse AI response" in normal operation.
 2. **One retry loop** on truncation/parse/5xx (single retry, exponential backoff). AC: transient failures self-heal.
 3. **Humanize errors.** Map API errors to actionable copy ("Image too large — it was auto-resized and retried", "AI service unavailable, try again"), keep raw detail in a collapsible. AC: no raw Anthropic internals in the status box.
