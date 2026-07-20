@@ -108,6 +108,21 @@
 .footer-list > li:last-child {
     margin-bottom: 0;
 }
+/* Comfortable tap targets: pad each link's hit area and cancel it with a
+   negative margin so the text doesn't move and the list rhythm is unchanged.
+   0.25rem vertical keeps adjacent hit boxes touching without overlapping at
+   the list's 0.5rem pitch. Contact rows are excluded — they lay out their
+   own flex geometry (icon + text). */
+.footer-list > li:not(.footer-contact-item) > a {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    margin: -0.25rem -0.5rem;
+}
+.footer-legal a {
+    display: inline-block;
+    padding: 0.25rem 0.35rem;
+    margin: -0.25rem -0.35rem;
+}
 
 /* Contact rows share link-column rhythm; multi-line address stays readable */
 .footer-contact-item {

@@ -72,11 +72,12 @@ existing footer. Verified with a real `npm run build`:
 - `wts-admin/src/lib/github-content.js` — minimal GitHub Contents API get/put.
 - `POST /webdev/footer-settings/publish` — wires the two together.
 
-### Known limitation
-The admin stores a plain WhatsApp number and email, so Publish writes
-`https://wa.me/<digits>` and `mailto:<email>` — it does **not** reproduce the
-hand-tuned prefilled WhatsApp message / email subject+body in the current
-homepage footer. (Add fields for those later if needed.)
+### Prefilled contact links
+Footer Settings includes fields for the WhatsApp prefill message and the
+email subject + body; Publish renders them into the `wa.me/<digits>?text=…`
+and `mailto:<email>?subject=…&body=…` links. The WhatsApp *display* text is
+whatever is typed in the number field (use the international
+`+856 20 5552 8034` form — the link always uses digits only either way).
 
 ## Footer Manager (named variants + per-page assignments)
 

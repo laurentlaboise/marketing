@@ -47,9 +47,15 @@ export function initModalsAndButtons() {
   const backToTopButton = document.querySelector('.back-to-top');
   const modalOverlay = document.getElementById('quote-modal-overlay');
   const closeModalBtn = document.getElementById('modal-close-btn');
+  const siteFooter = document.querySelector('footer.footer');
 
   const handleFloatingButtons = () => {
-    const shouldShow = window.scrollY > 300;
+    // Hide once the footer scrolls into view: fixed bottom-right, the button
+    // sits on top of the footer's own links (worst on mobile), and the footer
+    // ends the page — there's nothing further down to scroll back from.
+    const footerVisible = siteFooter &&
+      siteFooter.getBoundingClientRect().top < window.innerHeight;
+    const shouldShow = window.scrollY > 300 && !footerVisible;
     if (backToTopButton) backToTopButton.classList.toggle('show', shouldShow);
   };
 

@@ -53,7 +53,7 @@ const COLUMNS = [
   { heading: 'Resources', links: [
     { label: 'Articles', url: '/resources/articles/', t: true },
     { label: 'Glossary', url: '/resources/glossary/', t: true },
-    { label: 'Ai Tools', url: '/resources/ai-tools/', t: true },
+    { label: 'AI Tools', url: '/resources/ai-tools/', t: true },
     { label: 'E-Guides', url: '/resources/guides/', t: true }
   ] }
 ];
