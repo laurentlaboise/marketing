@@ -91,6 +91,29 @@ const csrfProtection = (req, res, next) => {
     return next();
   }
 
+  // A PROVIDED token that no longer matches, on an unauthenticated
+  // request, is almost always an EXPIRED session: the page was rendered
+  // under the old sid and the browser now carries a fresh one. Say so —
+  // a bare "invalid CSRF token" sends a worker who left an editor open
+  // overnight into a retry loop with no way out. A request with no token
+  // at all stays a plain 403 (that is a missing token, not expiry). This
+  // middleware runs after passport.session, so req.isAuthenticated is
+  // available here.
+  const sessionExpired = Boolean(provided) &&
+    typeof req.isAuthenticated === 'function' && !req.isAuthenticated();
+  if (sessionExpired) {
+    if (wantsJson(req)) {
+      return res.status(401).json({
+        success: false,
+        error: 'Your session has expired. Open the login page in a new tab, sign in, then retry — your unsaved text is still in this page.',
+        sessionExpired: true,
+      });
+    }
+    req.session.returnTo = req.get('referer') || '/dashboard';
+    req.session.errorMessage = 'Your session expired — please log in again.';
+    return res.redirect('/auth/login');
+  }
+
   if (wantsJson(req)) {
     return res.status(403).json({ success: false, error: 'Invalid or missing CSRF token' });
   }

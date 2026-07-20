@@ -12,6 +12,7 @@
           Verify: <%= entityConfig.label %> → <strong><%= languageNames[item.target_language] || item.target_language %></strong>
           · <%= item.ai_model ? 'AI draft (' + item.ai_model + ')' : 'human translation' %>
           · <span id="charCount"><%= targetChars %></span> characters
+          <span id="payEstimate" style="color:#059669;"></span>
           <% if (item.status === 'verified') { %> · <strong>already verified</strong><% } %>
         </p>
       </div>
@@ -30,7 +31,12 @@
       <span>
         This is a sense-check, not a re-translation: confirm the text reads naturally and carries the
         meaning, fix light issues (phrasing, word choice, tone) directly in the right column, and
-        <strong>Return</strong> anything that needs a full re-do. Verification pays per 1,000 characters read;
+        <strong>Return</strong> anything that needs a full re-do.
+        <% if (typeof verifyRate !== 'undefined' && verifyRate) { %>
+          Verification pays <strong><%= (verifyRate.currency || 'USD') %> <%= verifyRate.currency === 'LAK' ? Math.round(parseFloat(verifyRate.rate_amount)).toLocaleString('en-US') : parseFloat(verifyRate.rate_amount).toFixed(2) %><%= verifyRate.rate_type === 'per_1000_chars' ? ' per 1,000 characters read' : (verifyRate.rate_type === 'per_word' ? ' per source word' : ' per item') %></strong>;
+        <% } else { %>
+          Verification pays per 1,000 characters read;
+        <% } %>
         segments you rework are compensated on top. Work one section at a time — tick
         <strong>"Section verified"</strong> as you finish each one (it saves automatically), then press
         <strong>Mark Verified</strong> when the bar is full.
@@ -98,7 +104,7 @@
                 Section verified
               </label>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="seg-grid">
               <div>
                 <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">English source (reference)</div>
                 <div style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:400px; overflow:auto; white-space:pre-wrap; background:var(--gray-50, #f9fafb);"><%= sourceValue || '—' %></div>
@@ -139,12 +145,20 @@
   </div>
 </main>
 
+<style nonce="<%= cspNonce %>">
+  /* Side-by-side on desktop; stacked on phones so the target textarea
+     gets the full width (this workforce is mobile-first). */
+  .seg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 767px) { .seg-grid { grid-template-columns: 1fr; } }
+</style>
 <script nonce="<%= cspNonce %>">
   // Baseline for edit tracking: the AI draft snapshot when it exists (that
   // is what edit pay is measured against server-side), else the payload as
   // loaded. Sources ship only when short — TM-lite needs them to spot
   // repeated fields, and page-length sources aren't repeated fields.
   window.__VERIFY_BASE__ = <%- JSON.stringify(item.ai_draft_payload || item.content_payload || {}).replace(/</g, '\\u003c') %>;
+  // Active verification rate for the live pay estimate (null when no card).
+  window.__VERIFY_RATE__ = <%- JSON.stringify((typeof verifyRate !== 'undefined' && verifyRate) ? { amount: parseFloat(verifyRate.rate_amount), currency: verifyRate.currency || 'USD', type: verifyRate.rate_type } : null).replace(/</g, '\\u003c') %>;
   window.__VERIFY_SRC__ = <%- JSON.stringify((function () {
       var out = {};
       if (source && source.fields) Object.keys(source.fields).forEach(function (f) {
@@ -156,7 +170,8 @@
 </script>
 <script nonce="<%= cspNonce %>">
 (function () {
-  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  var csrf = csrfMeta ? csrfMeta.content : '';
   var id = '<%= item.id %>';
   var PAGE_READONLY = <%= readOnly ? 'true' : 'false' %>;
   // Unsaved changes tracked per field: section auto-saves clear only the
@@ -214,6 +229,18 @@
     document.querySelectorAll('.verify-field').forEach(function (f) { total += payText(f.value).length; });
     var el = document.getElementById('charCount');
     if (el) el.textContent = total.toLocaleString();
+    // Live pay estimate: what THIS item earns at the worker's rate card.
+    var rate = window.__VERIFY_RATE__;
+    var est = document.getElementById('payEstimate');
+    if (est && rate && rate.amount > 0) {
+      var amount = rate.type === 'per_1000_chars' ? rate.amount * total / 1000
+        : (rate.type === 'per_word' ? null : rate.amount);
+      if (amount != null) {
+        est.textContent = ' · ≈ ' + rate.currency + ' ' +
+          (rate.currency === 'LAK' ? Math.round(amount).toLocaleString() : amount.toFixed(2)) +
+          ' for this item';
+      }
+    }
   }
 
   function renderDraft(name) {
@@ -417,12 +444,27 @@
     return payload;
   }
 
+  // Robust POST wrapper: non-JSON bodies (rate-limit text, proxy error
+  // pages) and network failures resolve to a readable error instead of an
+  // unhandled rejection that leaves buttons dead. A 401 names the real
+  // problem — an expired session — rather than a cryptic token error.
   function post(url, body) {
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
       body: JSON.stringify(body || {})
-    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+    }).then(function (r) {
+      return r.json().catch(function () {
+        return { error: r.status === 429 ? 'Too many requests — wait a minute and try again.' : ('Request failed (' + r.status + '). Try again.') };
+      }).then(function (d) {
+        if (r.status === 401) {
+          d.error = d.error || 'Your session has expired. Open the login page in a new tab, sign in, then retry — your text is still here.';
+        }
+        return { ok: r.ok, data: d };
+      });
+    }).catch(function () {
+      return { ok: false, data: { error: 'No connection — check your internet and try again. Your text is still here.' } };
+    });
   }
 
   var saveBtn = document.getElementById('saveBtn');

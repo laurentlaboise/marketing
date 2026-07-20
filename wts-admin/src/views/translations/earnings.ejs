@@ -43,6 +43,23 @@
           <% if (requestBlockReason) { %>
             <div style="font-size:0.75rem; color:#b45309; margin-top:0.25rem;"><i class="fas fa-circle-info"></i> <%= requestBlockReason %></div>
           <% } %>
+          <%
+            // How close is the kip balance to the payout floor? Answer it
+            // visually instead of leaving a worker at 150k guessing.
+            var lakBal = balances.find(function (b) { return b.currency === 'LAK'; });
+            var lakAvail = lakBal ? parseFloat(lakBal.available) : 0;
+          %>
+          <% if (lakMinPayout > 0 && lakAvail > 0 && lakAvail < lakMinPayout) { %>
+            <div style="margin-top:0.5rem;">
+              <div style="height:6px; background:var(--gray-200, #e5e7eb); border-radius:999px; overflow:hidden;">
+                <div style="height:100%; width:<%= Math.min(100, Math.round(lakAvail * 100 / lakMinPayout)) %>%; background:#d97706;"></div>
+              </div>
+              <div style="font-size:0.72rem; color:var(--gray-500); margin-top:0.2rem;">
+                LAK <%= Math.round(lakAvail).toLocaleString('en-US') %> of <%= lakMinPayout.toLocaleString('en-US') %> —
+                about LAK <%= Math.round(lakMinPayout - lakAvail).toLocaleString('en-US') %> to go
+              </div>
+            </div>
+          <% } %>
         </div>
       </div>
     </div>
@@ -153,21 +170,37 @@
       </div>
     </div>
 
+    <%
+      // Plain-language money states: every raw status gets a label that
+      // says what happens next, so the lifecycle explains itself.
+      var MONEY_STATUS = {
+        available:  { label: 'Ready to request',            color: '#059669', bg: '#d1fae5' },
+        requested:  { label: 'Requested — waiting for admin', color: '#92400e', bg: '#fef3c7' },
+        processing: { label: 'Payment on the way',          color: '#1e40af', bg: '#dbeafe' },
+        paid:       { label: 'Paid ✓',                      color: '#065f46', bg: '#d1fae5' },
+        completed:  { label: 'Paid ✓',                      color: '#065f46', bg: '#d1fae5' },
+        cancelled:  { label: 'Cancelled',                   color: '#6b7280', bg: '#f3f4f6' },
+      };
+      function moneyChip(status) {
+        var ui = MONEY_STATUS[status] || { label: status, color: '#6b7280', bg: '#f3f4f6' };
+        return '<span style="display:inline-block; padding:0.1rem 0.5rem; border-radius:999px; font-size:0.75rem; color:' + ui.color + '; background:' + ui.bg + '; white-space:nowrap;">' + ui.label + '</span>';
+      }
+    %>
     <!-- Requests -->
     <% if (requests.length > 0) { %>
     <div class="card" style="margin-bottom:1rem;">
       <div class="card-body">
         <h3 style="margin:0 0 0.75rem;">My Payout Requests</h3>
         <div class="table-container">
-          <table class="table">
+          <table class="table table-responsive-cards">
             <thead><tr><th>Date</th><th>Amount</th><th>Status</th><th>Reference</th></tr></thead>
             <tbody>
               <% requests.forEach(r => { %>
               <tr>
-                <td><%= new Date(r.created_at).toLocaleDateString() %></td>
-                <td><%= r.currency %> <%= parseFloat(r.amount).toFixed(2) %></td>
-                <td><%= r.status %></td>
-                <td><code style="font-size:0.75rem;"><%= r.gateway_reference || '—' %></code></td>
+                <td data-label="Date"><%= new Date(r.created_at).toLocaleDateString() %></td>
+                <td data-label="Amount"><%= r.currency %> <%= fmt(r.amount, r.currency) %></td>
+                <td data-label="Status"><%- moneyChip(r.status) %></td>
+                <td data-label="Reference"><code style="font-size:0.75rem;"><%= r.gateway_reference || '—' %></code></td>
               </tr>
               <% }); %>
             </tbody>
@@ -181,17 +214,40 @@
     <div class="card">
       <div class="card-body">
         <h3 style="margin:0 0 0.75rem;">Ledger History</h3>
+        <p style="margin:-0.4rem 0 0.75rem; color:var(--gray-500); font-size:0.8rem;">
+          Credits appear the moment a translation you worked on is published, as <strong>Ready to
+          request</strong>. Press <strong>Request Payout</strong> above to bundle them; the admin then
+          sends the money and they flip to <strong>Paid</strong>.
+        </p>
         <div class="table-container">
-          <table class="table">
-            <thead><tr><th>Date</th><th>Work</th><th>Amount</th><th>Status</th><th>Description</th></tr></thead>
+          <table class="table table-responsive-cards">
+            <thead><tr><th>Date</th><th>Work</th><th>Amount</th><th>Status</th><th>Details</th></tr></thead>
             <tbody>
               <% ledger.forEach(l => { %>
               <tr>
-                <td><%= new Date(l.created_at).toLocaleDateString() %></td>
-                <td><span style="font-size:0.8rem;"><%= (l.type || '').replace(/_/g, ' ') %></span></td>
-                <td><%= l.currency %> <%= l.currency === 'LAK' ? Math.round(parseFloat(l.amount)).toLocaleString() : parseFloat(l.amount).toFixed(2) %></td>
-                <td><%= l.status %></td>
-                <td style="color:var(--gray-500);"><%= l.description || l.type %></td>
+                <td data-label="Date"><%= new Date(l.created_at).toLocaleDateString() %></td>
+                <td data-label="Work"><span style="font-size:0.8rem;"><%= (l.type || '').replace(/_/g, ' ') %></span></td>
+                <td data-label="Amount"><%= l.currency %> <%= fmt(l.amount, l.currency) %></td>
+                <td data-label="Status"><%- moneyChip(l.status) %></td>
+                <td data-label="Details" style="color:var(--gray-500);">
+                  <% if (l.entity_title) { %>
+                    <a href="/translations/workspace/<%= l.translation_id %>" style="color:inherit; text-decoration:underline;"><%= l.entity_title %></a>
+                    <span style="font-size:0.8rem;">(<%= l.entity_type %><%= l.target_language ? ' · ' + l.target_language : '' %>)</span>
+                  <% } else { %>
+                    <%= l.description || l.type %>
+                  <% } %>
+                  <%
+                    // Meter math from the credit's own metadata: chars × rate,
+                    // so the amount is checkable, not just announced.
+                    var md = l.metadata || {};
+                    var meterChars = l.type === 'edit_credit' ? md.edited_chars : md.target_char_count;
+                  %>
+                  <% if (md.rate_type === 'per_1000_chars' && meterChars && md.rate_amount) { %>
+                    <div style="font-size:0.75rem;"><%= parseInt(meterChars, 10).toLocaleString() %> chars × <%= l.currency %> <%= fmt(md.rate_amount, l.currency) %>/1,000</div>
+                  <% } else if (md.rate_type === 'per_word' && md.word_count && md.rate_amount) { %>
+                    <div style="font-size:0.75rem;"><%= parseInt(md.word_count, 10).toLocaleString() %> words × <%= l.currency %> <%= fmt(md.rate_amount, l.currency) %></div>
+                  <% } %>
+                </td>
               </tr>
               <% }); %>
               <% if (ledger.length === 0) { %>
@@ -207,14 +263,29 @@
 
 <script nonce="<%= cspNonce %>">
 (function () {
-  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  var csrf = csrfMeta ? csrfMeta.content : '';
 
+  // Robust POST wrapper: non-JSON bodies (rate-limit text, proxy error
+  // pages) and network failures resolve to a readable error instead of an
+  // unhandled rejection that leaves buttons dead.
   function post(url, body) {
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
       body: JSON.stringify(body || {})
-    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+    }).then(function (r) {
+      return r.json().catch(function () {
+        return { error: r.status === 429 ? 'Too many requests — wait a minute and try again.' : ('Request failed (' + r.status + '). Try again.') };
+      }).then(function (d) {
+        if (r.status === 401) {
+          d.error = d.error || 'Your session has expired — please log in again.';
+        }
+        return { ok: r.ok, data: d };
+      });
+    }).catch(function () {
+      return { ok: false, data: { error: 'No connection — check your internet and try again.' } };
+    });
   }
 
   var requestBtn = document.getElementById('requestBtn');

@@ -221,7 +221,14 @@
     <a href="/translations/workspace" class="<%= currentPage === 'workspace' ? 'active' : '' %>"><i class="fas fa-pen-to-square"></i><span>Workspace</span></a>
     <a href="/partners" class="<%= currentPage === 'partners' ? 'active' : '' %>"><i class="fas fa-handshake-angle"></i><span>Partners</span></a>
   <% } else if (isWorker) { %>
+    <%// The translation workspace is translator-role only (ensureTranslator
+      // rejects vendor workers with role 'user') — their primary surface is
+      // the Work Hub, so never dock a link that can only 403 on them. %>
+    <% if (isTranslatorRole) { %>
     <a href="/translations/workspace" class="<%= currentPage === 'workspace' ? 'active' : '' %>"><i class="fas fa-pen-to-square"></i><span>Workspace</span></a>
+    <% } else { %>
+    <a href="/dashboard" class="<%= currentPage === 'dashboard' ? 'active' : '' %>"><i class="fas fa-home"></i><span>Dashboard</span></a>
+    <% } %>
     <a href="/workforce/my" class="<%= currentPage === 'work-hub' ? 'active' : '' %>"><i class="fas fa-briefcase"></i><span>Work Hub</span></a>
     <a href="/translations/earnings" class="<%= currentPage === 'earnings' ? 'active' : '' %>"><i class="fas fa-coins"></i><span>Earnings</span></a>
   <% } else { %>

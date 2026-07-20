@@ -19,17 +19,80 @@
         <% if (!readOnly) { %>
         <button type="button" class="btn btn-secondary" id="saveBtn"><i class="fas fa-save"></i> Save Draft</button>
         <button type="button" class="btn btn-primary" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit for Review</button>
+        <% } else if (typeof canRecall !== 'undefined' && canRecall) { %>
+        <button type="button" class="btn btn-secondary" id="recallBtn" title="Take the submission back to fix something — only possible while no verifier has started on it">
+          <i class="fas fa-rotate-left"></i> Recall &amp; Edit
+        </button>
         <% } %>
       </div>
     </div>
 
     <% if (item.status === 'rejected' && item.review_note) { %>
+      <%
+        var noteMatch = /^\[([a-z_]+)\]\s*([\s\S]*)$/.exec(item.review_note);
+        var REASON_LABELS = { mistranslation: 'Mistranslation', tone: 'Tone', terminology: 'Terminology', markup: 'Markup / HTML', incomplete: 'Incomplete', other: 'Other' };
+        var noteReason = noteMatch && REASON_LABELS[noteMatch[1]] ? REASON_LABELS[noteMatch[1]] : null;
+        var noteText = noteMatch && noteReason ? noteMatch[2] : item.review_note;
+      %>
     <div class="alert alert-error" style="position:static; margin-bottom:1rem;">
       <i class="fas fa-comment-dots"></i>
-      <span><strong>Reviewer note:</strong> <%= item.review_note %></span>
+      <span>
+        <strong>Reviewer note<% if (noteReason) { %> (<%= noteReason %>)<% } %>:</strong>
+        <%= noteText || 'Returned for changes.' %>
+      </span>
     </div>
     <% } %>
-    <% if (readOnly) { %>
+
+    <%
+      // The post-submit journey: submitted work is read-only, and this
+      // strip answers "where is it now" instead of leaving the worker in
+      // front of a dead editor. Every fact comes off the row itself.
+      var isSubmittedState = ['requires_review', 'verified', 'published'].includes(item.status);
+      function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-GB') : null; }
+      var journey = [
+        { label: 'Submitted', done: true, note: null },
+        { label: 'Being checked', done: item.status !== 'requires_review' || Boolean(item.verifier_id),
+          note: item.status === 'requires_review' ? (item.verifier_id ? 'a verifier has it now' : 'waiting for a verifier') : null },
+        { label: 'Verified', done: ['verified', 'published'].includes(item.status),
+          note: item.verified_at ? fmtDate(item.verified_at) : null },
+        { label: 'Published', done: item.status === 'published',
+          note: item.status === 'published' ? ((fmtDate(item.published_at) || '') + (item.payout_amount != null ? ' · credited to your earnings' : '')) : null },
+      ];
+    %>
+    <% if (isSubmittedState) { %>
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0.75rem 1rem;">
+        <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+          <% journey.forEach(function (step, i) { %>
+            <% if (i > 0) { %><span style="color:var(--gray-300, #d1d5db);">&rarr;</span><% } %>
+            <span style="display:inline-flex; flex-direction:column; align-items:flex-start;">
+              <span style="display:inline-flex; align-items:center; gap:0.3rem; font-size:0.85rem; <%= step.done ? 'color:#059669; font-weight:600;' : 'color:var(--gray-500);' %>">
+                <i class="fas <%= step.done ? 'fa-circle-check' : 'fa-circle' %>" style="font-size:0.7rem;"></i>
+                <%= step.label %>
+              </span>
+              <% if (step.note) { %><span style="font-size:0.72rem; color:var(--gray-500); margin-left:1rem;"><%= step.note %></span><% } %>
+            </span>
+          <% }); %>
+          <% if (item.status === 'published') { %>
+            <a href="/translations/earnings" style="margin-left:auto; font-size:0.8rem;"><i class="fas fa-coins"></i> See it in My Earnings</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (item.status === 'requires_review') { %>
+    <div class="alert alert-success" style="position:static; margin-bottom:1rem;">
+      <i class="fas fa-hourglass-half"></i>
+      <span>This translation was <strong>submitted</strong> and is being checked — it's read-only while reviewers work on it.
+        <% if (typeof canRecall !== 'undefined' && canRecall) { %>Spotted a mistake? Use <strong>Recall &amp; Edit</strong> above to take it back.<% } else if (item.verifier_id) { %>A verifier has already started, so it can no longer be recalled.<% } %></span>
+    </div>
+    <% } else if (item.status === 'verified') { %>
+    <div class="alert alert-success" style="position:static; margin-bottom:1rem;">
+      <i class="fas fa-clipboard-check"></i>
+      <span>This translation was <strong>verified</strong> by a native reviewer and is waiting for an administrator to publish it. No further action needed from you.</span>
+    </div>
+    <% } else if (readOnly) { %>
     <div class="alert alert-success" style="position:static; margin-bottom:1rem;">
       <i class="fas fa-lock"></i>
       <span>This translation is published and read-only. Ask an administrator to reopen it for changes.</span>
@@ -53,7 +116,7 @@
         <div class="card" style="margin-bottom:1rem;">
           <div class="card-body">
             <h3 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; color:var(--gray-500);"><%= fieldLabel %></h3>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="seg-grid">
               <div>
                 <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">English source (read-only)</div>
                 <div style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:400px; overflow:auto; white-space:pre-wrap; background:var(--gray-50, #f9fafb);"><%= sourceValue %></div>
@@ -78,9 +141,17 @@
   </div>
 </main>
 
+<style nonce="<%= cspNonce %>">
+  /* Side-by-side on desktop; stacked on phones so the target textarea
+     gets the full width (this workforce is mobile-first). */
+  .seg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 767px) { .seg-grid { grid-template-columns: 1fr; } }
+</style>
+
 <script nonce="<%= cspNonce %>">
 (function () {
-  var csrf = document.querySelector('meta[name="csrf-token"]').content;
+  var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  var csrf = csrfMeta ? csrfMeta.content : '';
   var id = '<%= item.id %>';
   var dirty = false;
 
@@ -99,12 +170,27 @@
     return payload;
   }
 
+  // Robust POST wrapper: non-JSON bodies (rate-limit text, proxy error
+  // pages) and network failures resolve to a readable error instead of an
+  // unhandled rejection that leaves buttons dead. A 401 names the real
+  // problem — an expired session — rather than a cryptic token error.
   function post(url, body) {
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrf },
       body: JSON.stringify(body || {})
-    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+    }).then(function (r) {
+      return r.json().catch(function () {
+        return { error: r.status === 429 ? 'Too many requests — wait a minute and try again.' : ('Request failed (' + r.status + '). Try again.') };
+      }).then(function (d) {
+        if (r.status === 401) {
+          d.error = d.error || 'Your session has expired. Open the login page in a new tab, sign in, then retry — your text is still here.';
+        }
+        return { ok: r.ok, data: d };
+      });
+    }).catch(function () {
+      return { ok: false, data: { error: 'No connection — check your internet and try again. Your text is still here.' } };
+    });
   }
 
   function save() {
@@ -144,6 +230,21 @@
           alert(res2.data.error || 'Submit failed');
         }
       });
+    });
+  });
+
+  var recallBtn = document.getElementById('recallBtn');
+  if (recallBtn) recallBtn.addEventListener('click', function () {
+    if (!confirm('Take this submission back for editing? It leaves the review queue until you submit it again.')) return;
+    var btn = this;
+    btn.disabled = true;
+    post('/translations/workspace/' + id + '/recall').then(function (res) {
+      if (res.ok) {
+        location.reload();
+      } else {
+        btn.disabled = false;
+        alert(res.data.error || 'Recall failed');
+      }
     });
   });
 })();
