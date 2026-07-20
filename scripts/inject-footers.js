@@ -248,7 +248,17 @@ const SWITCHER_LANGS = [
 // this script after the generator restores the real links by itself — there
 // is nothing to hand-edit back.
 function mirrorExists(base, dir, fileRest) {
-  return fs.existsSync(path.join(base, dir, fileRest));
+  // Only real localized content counts. Legacy meta-refresh redirect
+  // stubs (old "moved" pages that bounce to /en/) would otherwise render
+  // as live language links that boomerang the visitor straight back to
+  // English — worse than the honest "coming soon" span. Same rule as the
+  // hreflang generator's presence check (generate-localized-pages.js).
+  try {
+    const head = fs.readFileSync(path.join(base, dir, fileRest), 'utf8').slice(0, 2048);
+    return !/http-equiv=["']refresh["']/i.test(head);
+  } catch {
+    return false; // missing/unreadable — not a mirror
+  }
 }
 
 // Build the selector for a page file, or null when the file is not under a
