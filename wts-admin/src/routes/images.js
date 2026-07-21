@@ -1414,12 +1414,20 @@ router.post('/:id/optimize-preview', previewLimiter, async (req, res) => {
   }
 });
 
-// Bulk optimize multiple images
 // Bulk AI: write missing SEO text for selected images. Fills only fields
 // that are empty (existing text is never overwritten here) and tolerates
 // per-image failures. Capped per invocation to bound cost and request time;
 // its own tight limiter since each image is a paid vision call.
-const bulkAnalyzeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, handler: json429 });
+const bulkAnalyzeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  // Full-page form POST, so flash + redirect rather than the JSON 429 the
+  // fetch endpoints use.
+  handler: (req, res) => {
+    req.session.errorMessage = 'Bulk AI is rate-limited. Wait a few minutes and try again.';
+    res.redirect('/images');
+  },
+});
 const BULK_ANALYZE_CAP = 10;
 router.post('/bulk-analyze', bulkAnalyzeLimiter, async (req, res) => {
   try {
@@ -1487,7 +1495,11 @@ router.post('/bulk-analyze', bulkAnalyzeLimiter, async (req, res) => {
     if (skippedComplete > 0) msg += `. ${skippedComplete} already had every field filled`;
     if (allIds.length > BULK_ANALYZE_CAP) msg += `. Only the first ${BULK_ANALYZE_CAP} selected images were processed - run it again for the rest`;
     if (failedCount > 0) msg += `. ${failedCount} failed: ${firstError}`;
-    req.session.successMessage = msg;
+    if (filled === 0 && failedCount > 0) {
+      req.session.errorMessage = msg;
+    } else {
+      req.session.successMessage = msg;
+    }
     // return_to only ever points back into the library; rebuild the target
     // from a constant path so request input is confined to the query string.
     const rt = typeof req.body.return_to === 'string' ? req.body.return_to : '';
@@ -1500,6 +1512,7 @@ router.post('/bulk-analyze', bulkAnalyzeLimiter, async (req, res) => {
   }
 });
 
+// Bulk optimize multiple images
 router.post('/bulk-optimize', async (req, res) => {
   try {
     const { image_ids, format, quality } = req.body;
