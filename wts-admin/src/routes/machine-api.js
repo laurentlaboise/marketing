@@ -1230,9 +1230,43 @@ router.post('/v1/form-templates/upsert', async (req, res) => {
 
 // ── Image Library SEO metadata ──────────────────────────────────────
 
+
+/**
+ * Normalize image library tags: lowercase slug-style, unique, max 12.
+ * Accepts array or comma-separated string (same shape as admin UI).
+ */
+function normalizeImageTags(raw) {
+  if (raw == null || raw === '') return undefined;
+  let list;
+  if (Array.isArray(raw)) {
+    list = raw.map((t) => String(t).trim()).filter(Boolean);
+  } else {
+    list = String(raw)
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+  const out = [];
+  const seen = new Set();
+  for (const t of list) {
+    const tag = t
+      .toLowerCase()
+      .replace(/[_/]+/g, '-')
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    if (!tag || seen.has(tag)) continue;
+    seen.add(tag);
+    out.push(tag);
+    if (out.length >= 12) break;
+  }
+  return out;
+}
+
 /**
  * POST /v1/images/seo-upsert
- * Body: { filename?|cdn_url?|id?, alt_text?, title?, description?, width?, height? }
+ * Body: { filename?|cdn_url?|id?, alt_text?, title?, description?, tags?, category?, width?, height? }
  * Updates Image Library SEO fields so public pages can join them for bots.
  */
 router.post('/v1/images/seo-upsert', async (req, res) => {
@@ -1244,6 +1278,8 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
       alt_text,
       title,
       description,
+      tags,
+      category,
       width,
       height,
       new_filename,
@@ -1254,6 +1290,15 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
     if (!id && !filename && !cdn_url && !also_match) {
       return fail(res, 'id, filename, cdn_url, or also_match is required');
     }
+
+    const tagsNorm = tags !== undefined ? normalizeImageTags(tags) : undefined;
+    const categoryNorm =
+      category !== undefined
+        ? String(category || '')
+            .trim()
+            .toLowerCase()
+            .slice(0, 80) || null
+        : undefined;
 
     let row;
     if (id) {
@@ -1283,8 +1328,8 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
           `INSERT INTO images (
              original_filename, filename, file_path, file_size, mime_type,
              width, height, alt_text, title, description, category, tags, cdn_url, status
-           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'seo',ARRAY[]::text[],$11,'active')
-           RETURNING id, filename, cdn_url`,
+           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'active')
+           RETURNING id, filename, cdn_url, tags, category`,
           [
             new_filename,
             new_filename,
@@ -1296,6 +1341,8 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
             alt_text || '',
             title || '',
             description || '',
+            categoryNorm || 'product',
+            tagsNorm || [],
             new_cdn_url,
           ]
         );
@@ -1316,6 +1363,8 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
     add('alt_text', alt_text !== undefined ? String(alt_text) : undefined);
     add('title', title !== undefined ? String(title) : undefined);
     add('description', description !== undefined ? String(description) : undefined);
+    add('tags', tagsNorm);
+    add('category', categoryNorm);
     if (width !== undefined && width !== null && width !== '') add('width', Number(width) || null);
     if (height !== undefined && height !== null && height !== '') add('height', Number(height) || null);
     if (new_filename) {
@@ -1330,7 +1379,7 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
     const updated = await db.query(
       `UPDATE images SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
        WHERE id = $${params.length}
-       RETURNING id, filename, cdn_url, alt_text, title`,
+       RETURNING id, filename, cdn_url, alt_text, title, tags, category`,
       params
     );
     await audit(req, 'images/seo-upsert', updated.rows[0].filename || imgId);
@@ -1341,6 +1390,8 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
       cdn_url: updated.rows[0].cdn_url,
       alt_text: updated.rows[0].alt_text,
       title: updated.rows[0].title,
+      tags: updated.rows[0].tags,
+      category: updated.rows[0].category,
     });
   } catch (e) {
     console.error('[machine-api] images seo-upsert', e);
@@ -1350,7 +1401,7 @@ router.post('/v1/images/seo-upsert', async (req, res) => {
 
 /**
  * POST /v1/images/seo-bulk
- * Body: { items: [{ filename|cdn_url, alt_text?, title?, description? }] }
+ * Body: { items: [{ filename|cdn_url, alt_text?, title?, description?, tags?, category? }] }
  */
 router.post('/v1/images/seo-bulk', async (req, res) => {
   try {
@@ -1379,14 +1430,31 @@ router.post('/v1/images/seo-bulk', async (req, res) => {
           skipped += 1;
           continue;
         }
+        const tagsNorm = it.tags !== undefined ? normalizeImageTags(it.tags) : undefined;
+        const categoryNorm =
+          it.category !== undefined
+            ? String(it.category || '')
+                .trim()
+                .toLowerCase()
+                .slice(0, 80) || null
+            : undefined;
         await db.query(
           `UPDATE images SET
              alt_text = COALESCE(NULLIF($1, ''), alt_text),
              title = COALESCE(NULLIF($2, ''), title),
              description = COALESCE(NULLIF($3, ''), description),
+             tags = COALESCE($4::text[], tags),
+             category = COALESCE(NULLIF($5, ''), category),
              updated_at = CURRENT_TIMESTAMP
-           WHERE id = $4`,
-          [it.alt_text || '', it.title || '', it.description || '', row.rows[0].id]
+           WHERE id = $6`,
+          [
+            it.alt_text || '',
+            it.title || '',
+            it.description || '',
+            tagsNorm || null,
+            categoryNorm || '',
+            row.rows[0].id,
+          ]
         );
         updated += 1;
       } catch (e) {

@@ -384,7 +384,7 @@ router.get('/images/seo', async (req, res) => {
         }
       }
       const result = await db.query(
-        `SELECT filename, original_filename, file_path, cdn_url, alt_text, title, description, width, height, mime_type
+        `SELECT filename, original_filename, file_path, cdn_url, alt_text, title, description, width, height, mime_type, tags, category
          FROM images
          WHERE status = 'active'
            AND (
@@ -407,6 +407,8 @@ router.get('/images/seo', async (req, res) => {
         width: r.width,
         height: r.height,
         mime_type: r.mime_type,
+        tags: r.tags || [],
+        category: r.category || null,
       }));
       const ambiguous = rows.length > 1;
       return respond(res, { count: rows.length, ambiguous, images: rows, image: ambiguous ? null : (rows[0] || null) });
@@ -414,7 +416,7 @@ router.get('/images/seo', async (req, res) => {
 
     // Full map (capped) for static generators
     const result = await db.query(
-      `SELECT filename, original_filename, cdn_url, alt_text, title, description, width, height, mime_type
+      `SELECT filename, original_filename, cdn_url, alt_text, title, description, width, height, mime_type, tags, category
        FROM images
        WHERE status = 'active' AND cdn_url IS NOT NULL AND cdn_url <> ''
        ORDER BY updated_at DESC NULLS LAST
@@ -430,6 +432,8 @@ router.get('/images/seo', async (req, res) => {
       width: r.width,
       height: r.height,
       mime_type: r.mime_type,
+      tags: r.tags || [],
+      category: r.category || null,
     }));
     respond(res, { count: images.length, images });
   } catch (error) {
