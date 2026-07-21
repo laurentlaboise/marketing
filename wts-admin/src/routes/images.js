@@ -161,16 +161,19 @@ async function uniqueFilename(catDir, base, ext) {
 // just contributes zero instead of breaking the caller.
 const REFERENCE_SOURCES = [
   { singular: 'product', plural: 'products', sql: "SELECT COUNT(*)::int AS n FROM products WHERE image_url LIKE $1 OR slide_in_image LIKE $1" },
-  { singular: 'article', plural: 'articles', sql: "SELECT COUNT(*)::int AS n FROM articles WHERE article_images::text LIKE $1" },
+  // article_images is JSONB - its text cast ends with ]/}, so an ends-with
+  // needle can never match. URLs inside it are quote-terminated, so match
+  // '/filename"' anywhere instead.
+  { singular: 'article', plural: 'articles', jsonb: true, sql: "SELECT COUNT(*)::int AS n FROM articles WHERE article_images::text LIKE $1" },
   { singular: 'glossary entry', plural: 'glossary entries', sql: "SELECT COUNT(*)::int AS n FROM glossary WHERE featured_image LIKE $1" },
   { singular: 'SEO term', plural: 'SEO terms', sql: "SELECT COUNT(*)::int AS n FROM seo_terms WHERE featured_image LIKE $1" },
 ];
 
 async function countImageReferences(image) {
-  const needle = `%/${image.filename}`;
   const parts = [];
   let total = 0;
   for (const src of REFERENCE_SOURCES) {
+    const needle = src.jsonb ? `%/${image.filename}"%` : `%/${image.filename}`;
     try {
       const r = await db.query(src.sql, [needle]);
       const n = r.rows[0] ? r.rows[0].n : 0;
@@ -1946,9 +1949,12 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
 
     // Determine where the file should go (validate paths to prevent traversal)
     const fullPath = localPathFor(image.file_path);
-    // Keep the RESOLVED validated path for all uses below - the raw
-    // req.file.path must not touch the filesystem again after this check.
-    const uploadedPath = assertPathWithin(req.file.path, UPLOAD_TEMP_DIR);
+    // Rebuild the temp path from its basename under the fixed multer root
+    // (multer stores flat, random-named files there). This breaks the taint
+    // on req.file.path in a way static analysis recognizes; assertPathWithin
+    // keeps the runtime guarantee.
+    const uploadedPath = path.join(UPLOAD_TEMP_DIR, path.basename(req.file.path));
+    assertPathWithin(uploadedPath, UPLOAD_TEMP_DIR);
     const destDir = path.dirname(fullPath);
     if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 
@@ -1985,7 +1991,10 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
         if (meta.width > 2400 || meta.height > 2400) {
           resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
         }
-        let inst = sharp(uploadedPath).rotate().resize(resizeOpts);
+        // Only WebP can carry the source's animation; other targets
+        // inherently flatten to one frame.
+        const animatedSrc = (meta.pages || 1) > 1 && fmt === '.webp';
+        let inst = sharp(uploadedPath, { animated: animatedSrc }).rotate().resize(resizeOpts);
         switch (fmt) {
           case '.jpg':
           case '.jpeg':
