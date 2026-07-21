@@ -397,6 +397,102 @@ async function deleteFromGitHub(repoPath, sha, commitMessage) {
   return last;
 }
 
+// Minimal authenticated GitHub API JSON request (used by the Git Data API
+// batch push below; the single-file paths keep their dedicated helpers).
+function githubJsonRequest(method, apiPath, body) {
+  const token = process.env.GITHUB_TOKEN;
+  const payload = body ? JSON.stringify(body) : null;
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: apiPath,
+      method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'WTS-Admin-ImageLibrary',
+        'Accept': 'application/vnd.github.v3+json',
+        ...(payload ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) } : {}),
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => { data += c; });
+      res.on('end', () => {
+        let parsed = null;
+        try { parsed = JSON.parse(data); } catch (e) { /* leave null */ }
+        resolve({ statusCode: res.statusCode, body: parsed, raw: data.slice(0, 200) });
+      });
+    });
+    req.on('error', (err) => resolve({ statusCode: 0, body: null, raw: err.message }));
+    req.setTimeout(30000, () => { req.destroy(); resolve({ statusCode: 0, body: null, raw: 'timeout' }); });
+    if (payload) req.write(payload);
+    req.end();
+  });
+}
+
+// Push many files to the repo in ONE commit via the Git Data API (blobs ->
+// tree -> commit -> ref update). The Contents API makes one commit per file,
+// and every commit to main triggers a full site build - a 50-file batch
+// upload used to mean 50 sequential deploys.
+// files: [{ relPath, localPath }]. Returns { pushed, reason, details }.
+async function pushManyToGitHub(files, commitMessage) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.warn('GITHUB_TOKEN not set - images will not be pushed to repo/CDN');
+    return { pushed: false, reason: 'no_token' };
+  }
+  const base = `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}`;
+  const fail = (step, r) => {
+    console.error(`Batch push failed at ${step}:`, r.statusCode, r.raw);
+    return { pushed: false, reason: r.statusCode ? `github_${r.statusCode}` : 'network_error', details: r.raw };
+  };
+
+  // Blobs are content-addressed - upload once, reuse across ref-race retries.
+  const treeEntries = [];
+  for (const f of files) {
+    const blob = await githubJsonRequest('POST', `${base}/git/blobs`, {
+      content: fs.readFileSync(f.localPath).toString('base64'),
+      encoding: 'base64',
+    });
+    if (blob.statusCode !== 201 || !blob.body || !blob.body.sha) return fail('blob', blob);
+    treeEntries.push({ path: f.relPath, mode: '100644', type: 'blob', sha: blob.body.sha });
+  }
+
+  // The ref update can race a concurrent single-file push; retry the
+  // read-tree-commit-update sequence once on a non-fast-forward 422.
+  let last = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const ref = await githubJsonRequest('GET', `${base}/git/ref/heads/${CDN_CONFIG.branch}`);
+    if (ref.statusCode !== 200 || !ref.body || !ref.body.object) return fail('ref', ref);
+    const headSha = ref.body.object.sha;
+
+    const headCommit = await githubJsonRequest('GET', `${base}/git/commits/${headSha}`);
+    if (headCommit.statusCode !== 200 || !headCommit.body || !headCommit.body.tree) return fail('head-commit', headCommit);
+
+    const tree = await githubJsonRequest('POST', `${base}/git/trees`, {
+      base_tree: headCommit.body.tree.sha,
+      tree: treeEntries,
+    });
+    if (tree.statusCode !== 201 || !tree.body || !tree.body.sha) return fail('tree', tree);
+
+    const commit = await githubJsonRequest('POST', `${base}/git/commits`, {
+      message: commitMessage,
+      tree: tree.body.sha,
+      parents: [headSha],
+    });
+    if (commit.statusCode !== 201 || !commit.body || !commit.body.sha) return fail('commit', commit);
+
+    const update = await githubJsonRequest('PATCH', `${base}/git/refs/heads/${CDN_CONFIG.branch}`, { sha: commit.body.sha });
+    if (update.statusCode === 200) {
+      for (const f of files) await purgeJsDelivr(f.relPath);
+      return { pushed: true };
+    }
+    last = update;
+    if (update.statusCode !== 422 || attempt === 2) break;
+    await sleep(1000);
+  }
+  return fail('ref-update', last);
+}
+
 // Turn a pushToGitHub() failure reason into an actionable warning for the UI.
 function describePushFailure(reason) {
   switch (reason) {
@@ -867,6 +963,7 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
     let notPushed = 0;
     const errors = [];
     const pushReasons = new Set();
+    const pendingPushes = [];
 
     for (const file of req.files) {
       try {
@@ -925,13 +1022,9 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
         const relPath = catDir ? `images/${catDir}/${finalFilename}` : `images/${finalFilename}`;
         const cdnUrl = buildCdnUrl(relPath);
 
-        // Push to GitHub CDN
-        const fileBuffer = fs.readFileSync(finalPath);
-        const ghResult = await pushToGitHub(relPath, fileBuffer, `Upload image: ${finalFilename}`);
-        if (!ghResult.pushed) {
-          notPushed++;
-          if (ghResult.reason) pushReasons.add(ghResult.reason);
-        }
+        // Queue for one batched repo commit after the loop - a commit per
+        // file meant a full site deploy per file.
+        pendingPushes.push({ relPath, localPath: finalPath });
 
         // Save to database
         await db.query(
@@ -947,6 +1040,24 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
         cleanupTempFile(file.path);
         failed++;
         errors.push(file.originalname);
+      }
+    }
+
+    // One commit for the whole batch; on failure fall back to per-file
+    // Contents API pushes so behavior degrades to the previous working path.
+    if (pendingPushes.length > 0) {
+      const batchResult = await pushManyToGitHub(
+        pendingPushes,
+        `Upload ${pendingPushes.length} image${pendingPushes.length !== 1 ? 's' : ''} (batch)`
+      );
+      if (!batchResult.pushed) {
+        for (const p of pendingPushes) {
+          const ghResult = await pushToGitHub(p.relPath, fs.readFileSync(p.localPath), `Upload image: ${path.basename(p.relPath)}`);
+          if (!ghResult.pushed) {
+            notPushed++;
+            if (ghResult.reason) pushReasons.add(ghResult.reason);
+          }
+        }
       }
     }
 

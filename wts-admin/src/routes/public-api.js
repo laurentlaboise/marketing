@@ -30,6 +30,46 @@ const respond = (res, data, status = 200) => {
   res.status(status).json(data);
 };
 
+// Refresh article_images entries from the Image Library at read time. The
+// stored JSONB copies alt/title/cdn_url from pick time and goes stale when
+// library metadata is edited (or the file is renamed/converted) later.
+// Best-effort: on any failure the stored copies are served unchanged.
+async function refreshArticleImages(articles) {
+  const ids = [...new Set(
+    articles
+      .flatMap((a) => (Array.isArray(a.article_images) ? a.article_images : []))
+      .map((img) => Number.parseInt(img && img.id, 10))
+      .filter(Number.isFinite)
+  )];
+  if (ids.length === 0) return articles;
+  try {
+    const r = await db.query(
+      'SELECT id, cdn_url, filename, alt_text, title, width, height FROM images WHERE id = ANY($1::int[])',
+      [ids]
+    );
+    const byId = new Map(r.rows.map((row) => [row.id, row]));
+    for (const a of articles) {
+      if (!Array.isArray(a.article_images)) continue;
+      a.article_images = a.article_images.map((img) => {
+        const live = img && byId.get(Number.parseInt(img.id, 10));
+        if (!live) return img;
+        return {
+          ...img,
+          cdn_url: live.cdn_url,
+          filename: live.filename,
+          alt_text: live.alt_text || '',
+          title: live.title || '',
+          width: live.width,
+          height: live.height,
+        };
+      });
+    }
+  } catch (e) {
+    console.error('article_images refresh failed, serving stored copies:', e.message);
+  }
+  return articles;
+}
+
 // ==================== ARTICLES ====================
 
 // Get all published articles
@@ -114,6 +154,8 @@ router.get('/articles', async (req, res) => {
       }
     }));
 
+    await refreshArticleImages(articles);
+
     respond(res, articles);
   } catch (error) {
     console.error('Public API - Articles error:', error);
@@ -141,6 +183,7 @@ router.get('/articles/:slug', async (req, res) => {
     }
 
     const article = result.rows[0];
+    await refreshArticleImages([article]);
     respond(res, {
       id: article.id,
       title: article.title,
@@ -323,21 +366,37 @@ router.get('/images/seo', async (req, res) => {
     const filename = (req.query.filename || '').trim();
 
     if (url || filename) {
+      // Deterministic lookup only: exact cdn_url, exact repo file_path (also
+      // derived from a site URL's pathname), or exact filename. The previous
+      // suffix LIKE matching could hand a build-time consumer a colliding
+      // image's metadata. Multiple matches are reported as ambiguous with
+      // image:null instead of silently picking one.
+      let pathCandidate = '';
+      if (url) {
+        try {
+          const u = new URL(url, 'https://wordsthatsells.website');
+          pathCandidate = decodeURIComponent(u.pathname).replace(/^\/+/, '');
+        } catch (e) {
+          pathCandidate = url.replace(/^\/+/, '');
+        }
+      }
       const result = await db.query(
-        `SELECT filename, original_filename, cdn_url, alt_text, title, description, width, height, mime_type
+        `SELECT filename, original_filename, file_path, cdn_url, alt_text, title, description, width, height, mime_type
          FROM images
          WHERE status = 'active'
            AND (
-             ($1 <> '' AND (cdn_url = $1 OR cdn_url LIKE '%' || $1 OR $1 LIKE '%' || filename))
-             OR ($2 <> '' AND (filename = $2 OR original_filename = $2 OR filename ILIKE $2 OR original_filename ILIKE $2))
+             ($1 <> '' AND cdn_url = $1)
+             OR ($3 <> '' AND file_path = $3)
+             OR ($2 <> '' AND (LOWER(filename) = LOWER($2) OR LOWER(original_filename) = LOWER($2)))
            )
          ORDER BY updated_at DESC NULLS LAST
          LIMIT 5`,
-        [url, filename]
+        [url, filename, pathCandidate]
       );
       const rows = result.rows.map((r) => ({
         filename: r.filename,
         original_filename: r.original_filename,
+        file_path: r.file_path,
         cdn_url: r.cdn_url,
         alt_text: r.alt_text || '',
         title: r.title || '',
@@ -346,7 +405,8 @@ router.get('/images/seo', async (req, res) => {
         height: r.height,
         mime_type: r.mime_type,
       }));
-      return respond(res, { count: rows.length, images: rows, image: rows[0] || null });
+      const ambiguous = rows.length > 1;
+      return respond(res, { count: rows.length, ambiguous, images: rows, image: ambiguous ? null : (rows[0] || null) });
     }
 
     // Full map (capped) for static generators
