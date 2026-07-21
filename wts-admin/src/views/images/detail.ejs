@@ -54,6 +54,16 @@
                 <% } %>
                 <tr><td style="font-weight: 600;">Category</td><td><span class="status-badge <%= image.category %>"><%= image.category %></span></td></tr>
                 <tr><td style="font-weight: 600;">Folder</td><td><%= currentFolderName ? currentFolderName : '<span style="color:var(--gray-400);">None</span>' %></td></tr>
+                <tr>
+                  <td style="font-weight: 600;">Used by</td>
+                  <td title="Matched by filename in products, articles, glossary entries, and SEO terms">
+                    <% if (references && references.total > 0) { %>
+                    <span style="color: var(--warning);"><i class="fas fa-link"></i> <%= references.parts.join(', ') %></span>
+                    <% } else { %>
+                    <span style="color: var(--gray-400);">No tracked references</span>
+                    <% } %>
+                  </td>
+                </tr>
                 <tr><td style="font-weight: 600;">File Path</td><td style="word-break: break-all;"><code><%= image.file_path %></code></td></tr>
                 <tr><td style="font-weight: 600;">Uploaded</td><td><%= new Date(image.created_at).toLocaleDateString() %></td></tr>
               </tbody>
@@ -113,7 +123,13 @@
                     <i class="fas fa-pen"></i> Rename
                   </button>
                 </div>
-                <p class="form-help">Use lowercase, hyphens, no spaces. Extension is preserved automatically.</p>
+                <p class="form-help">Use lowercase, hyphens, no spaces. Extension is preserved automatically. The file is republished to the CDN under the new name.</p>
+                <% if (references && references.total > 0) { %>
+                <p class="form-help" style="color: #856404;">
+                  <i class="fas fa-exclamation-triangle"></i> Renaming changes the URL, and this image is referenced by
+                  <%= references.parts.join(', ') %> &mdash; those references will need updating afterwards.
+                </p>
+                <% } %>
               </div>
             </form>
           </div>
@@ -126,8 +142,8 @@
           </div>
           <div class="card-body">
             <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">
-              Upload a new file to replace this image. All SEO metadata (alt text, title, description, tags) will be preserved.
-              The CDN URL stays the same &mdash; unless "Optimize (WebP)" converts a non-WebP image, in which case the URL changes to .webp.
+              Upload a new file to replace this image. All SEO metadata (alt text, title, description, tags) is preserved
+              and the CDN URL stays the same &mdash; the new file is re-encoded in the image's current format.
             </p>
             <form action="/images/<%= image.id %>/reupload?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data" id="reuploadForm">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -148,7 +164,7 @@
               <div style="display: flex; gap: 12px; align-items: center;">
                 <label class="form-checkbox" style="margin: 0;">
                   <input type="checkbox" name="optimize" value="on" checked>
-                  <span style="font-size: 13px;">Optimize (WebP)</span>
+                  <span style="font-size: 13px;">Optimize (recompress)</span>
                 </label>
                 <button type="submit" class="btn btn-primary btn-sm" id="reuploadBtn" disabled>
                   <i class="fas fa-redo"></i> Replace Image
@@ -244,19 +260,32 @@
         </div>
         <% } %>
 
-        <!-- Archive -->
+        <!-- Archive / Restore -->
         <div class="card" style="margin-top: 20px;">
           <div class="card-body delete-card-body">
+            <% if (image.status === 'archived') { %>
+            <div>
+              <p style="font-weight: 600;">This image is archived</p>
+              <p class="form-help">It is hidden from the library. Restore it to make it visible again.</p>
+            </div>
+            <form action="/images/<%= image.id %>/restore" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="btn btn-sm btn-primary">
+                <i class="fas fa-rotate-left"></i> Restore
+              </button>
+            </form>
+            <% } else { %>
             <div>
               <p style="font-weight: 600;">Archive this image</p>
-              <p class="form-help">Hides it from the library. The file is kept and can be restored.</p>
+              <p class="form-help">Hides it from the library. Restore it any time from the Archived filter.</p>
             </div>
             <form action="/images/<%= image.id %>/delete" method="POST">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button type="submit" class="btn btn-sm btn-secondary" data-confirm-delete="Archive this image? It will be hidden but the file is kept and can be restored.">
+              <button type="submit" class="btn btn-sm btn-secondary" data-confirm-delete="Archive this image? It will be hidden but you can restore it from the Archived filter.">
                 <i class="fas fa-box-archive"></i> Archive
               </button>
             </form>
+            <% } %>
           </div>
         </div>
 

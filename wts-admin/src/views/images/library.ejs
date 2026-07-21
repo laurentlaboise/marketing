@@ -84,6 +84,9 @@
           <% if (activeFolder) { %>
           <input type="hidden" name="folder" value="<%= activeFolder %>">
           <% } %>
+          <% if (pagination.status === 'archived') { %>
+          <input type="hidden" name="status" value="archived">
+          <% } %>
           <input type="text" name="search" class="form-input filter-input" placeholder="Search images..." value="<%= pagination.search || '' %>">
           <select name="category" class="form-input filter-select">
             <option value="">All Categories</option>
@@ -99,10 +102,13 @@
             <i class="fas fa-search"></i> Search
           </button>
           <div style="margin-left: auto; display: flex; gap: 4px;">
-            <a href="?view=grid&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= activeFolder || '' %>" class="btn btn-sm <%= view === 'grid' ? 'btn-primary' : 'btn-secondary' %>" title="Grid view">
+            <a href="<%= pagination.status === 'archived' ? '/images' : '/images?status=archived' %>" class="btn btn-sm <%= pagination.status === 'archived' ? 'btn-primary' : 'btn-secondary' %>" title="<%= pagination.status === 'archived' ? 'Back to the library' : 'View archived images' %>">
+              <i class="fas fa-box-archive"></i> Archived
+            </a>
+            <a href="?view=grid&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= activeFolder || '' %>&status=<%= pagination.status || '' %>" class="btn btn-sm <%= view === 'grid' ? 'btn-primary' : 'btn-secondary' %>" title="Grid view">
               <i class="fas fa-th"></i>
             </a>
-            <a href="?view=list&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= activeFolder || '' %>" class="btn btn-sm <%= view === 'list' ? 'btn-primary' : 'btn-secondary' %>" title="List view">
+            <a href="?view=list&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= activeFolder || '' %>&status=<%= pagination.status || '' %>" class="btn btn-sm <%= view === 'list' ? 'btn-primary' : 'btn-secondary' %>" title="List view">
               <i class="fas fa-list"></i>
             </a>
           </div>
@@ -165,12 +171,21 @@
                   <a href="/images/<%= image.id %>" class="btn btn-sm btn-secondary" title="Edit SEO">
                     <i class="fas fa-edit"></i>
                   </a>
+                  <% if (image.status === 'archived') { %>
+                  <form action="/images/<%= image.id %>/restore" method="POST" style="display: inline;" onclick="event.stopPropagation()">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-sm btn-secondary" title="Restore to library">
+                      <i class="fas fa-rotate-left"></i>
+                    </button>
+                  </form>
+                  <% } else { %>
                   <form action="/images/<%= image.id %>/delete" method="POST" style="display: inline;" onclick="event.stopPropagation()">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                    <button type="submit" class="btn btn-sm btn-secondary" title="Archive (hide, keeps file)" data-confirm-delete="Archive this image? It will be hidden but the file is kept and can be restored.">
+                    <button type="submit" class="btn btn-sm btn-secondary" title="Archive (hide, keeps file)" data-confirm-delete="Archive this image? It will be hidden but you can restore it from the Archived filter.">
                       <i class="fas fa-box-archive"></i>
                     </button>
                   </form>
+                  <% } %>
                   <form action="/images/<%= image.id %>/destroy" method="POST" style="display: inline;" onclick="event.stopPropagation()">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <button type="submit" class="btn btn-sm btn-danger" title="Delete permanently" data-confirm-delete="Permanently delete this image? This removes it from the library AND the CDN and cannot be undone.">
@@ -242,12 +257,21 @@
                       <a href="/images/<%= image.id %>" class="btn btn-sm btn-secondary" title="Edit">
                         <i class="fas fa-edit"></i>
                       </a>
+                      <% if (image.status === 'archived') { %>
+                      <form action="/images/<%= image.id %>/restore" method="POST" style="display: inline;">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-sm btn-secondary" title="Restore to library">
+                          <i class="fas fa-rotate-left"></i>
+                        </button>
+                      </form>
+                      <% } else { %>
                       <form action="/images/<%= image.id %>/delete" method="POST" style="display: inline;">
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                        <button type="submit" class="btn btn-sm btn-secondary" title="Archive (hide, keeps file)" data-confirm-delete="Archive this image? It will be hidden but the file is kept and can be restored.">
+                        <button type="submit" class="btn btn-sm btn-secondary" title="Archive (hide, keeps file)" data-confirm-delete="Archive this image? It will be hidden but you can restore it from the Archived filter.">
                           <i class="fas fa-box-archive"></i>
                         </button>
                       </form>
+                      <% } %>
                       <form action="/images/<%= image.id %>/destroy" method="POST" style="display: inline;">
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <button type="submit" class="btn btn-sm btn-danger" title="Delete permanently" data-confirm-delete="Permanently delete this image? This removes it from the library AND the CDN and cannot be undone.">
@@ -267,17 +291,17 @@
           <div class="card-footer">
             <div class="pagination">
               <% if (pagination.page > 1) { %>
-              <a href="?page=<%= pagination.page - 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>" class="pagination-btn">
+              <a href="?page=<%= pagination.page - 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>&status=<%= pagination.status || '' %>" class="pagination-btn">
                 <i class="fas fa-chevron-left"></i>
               </a>
               <% } %>
               <% for (let i = 1; i <= pagination.totalPages; i++) { %>
-              <a href="?page=<%= i %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>" class="pagination-btn <%= i === pagination.page ? 'active' : '' %>">
+              <a href="?page=<%= i %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>&status=<%= pagination.status || '' %>" class="pagination-btn <%= i === pagination.page ? 'active' : '' %>">
                 <%= i %>
               </a>
               <% } %>
               <% if (pagination.page < pagination.totalPages) { %>
-              <a href="?page=<%= pagination.page + 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>" class="pagination-btn">
+              <a href="?page=<%= pagination.page + 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>&status=<%= pagination.status || '' %>" class="pagination-btn">
                 <i class="fas fa-chevron-right"></i>
               </a>
               <% } %>
@@ -285,6 +309,15 @@
           </div>
           <% } %>
 
+        <% } else if (pagination.status === 'archived') { %>
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <i class="fas fa-box-archive"></i>
+          </div>
+          <h3>No Archived Images</h3>
+          <p>Images you archive from the library will appear here and can be restored.</p>
+          <a href="/images" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Library</a>
+        </div>
         <% } else { %>
         <div class="empty-state">
           <div class="empty-state-icon">

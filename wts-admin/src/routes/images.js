@@ -132,19 +132,57 @@ function slugifyFilename(name) {
     .replace(/^-+|-+$/g, '');
 }
 
-// Build a filename that doesn't collide with an existing file in destDir.
-// Without this, two uploads with the same name resolve to the same path and
-// the second silently overwrites the first locally and 422s on the GitHub
-// push (which requires the existing file's sha to replace it). At volume this
-// is a real data-loss/dedupe hazard, so we suffix -2, -3, ... as needed.
-function uniqueFilename(destDir, base, ext) {
+// True when a candidate repo path is already taken on any authority: local
+// disk (fast, but wiped on redeploy - Railway), the images table, or the
+// GitHub repo itself. Checking only the disk let re-uploads after a redeploy
+// silently alias an existing CDN object and 422 on the push.
+async function isPathTaken(relPath, excludeImageId) {
+  if (fs.existsSync(localPathFor(relPath))) return true;
+  const dbHit = excludeImageId
+    ? await db.query('SELECT 1 FROM images WHERE file_path = $1 AND id <> $2 LIMIT 1', [relPath, excludeImageId])
+    : await db.query('SELECT 1 FROM images WHERE file_path = $1 LIMIT 1', [relPath]);
+  if (dbHit.rows.length > 0) return true;
+  return Boolean(await getGitHubFileSha(relPath));
+}
+
+// Build a filename that doesn't collide with an existing file, suffixing
+// -2, -3, ... as needed.
+async function uniqueFilename(catDir, base, ext) {
   let candidate = `${base}${ext}`;
-  let n = 2;
-  while (fs.existsSync(path.join(destDir, candidate))) {
+  for (let n = 2; ; n++) {
+    const relPath = catDir ? `images/${catDir}/${candidate}` : `images/${candidate}`;
+    if (!(await isPathTaken(relPath))) return candidate;
     candidate = `${base}-${n}${ext}`;
-    n++;
   }
-  return candidate;
+}
+
+// Count rows in other tables that reference this image by URL/filename.
+// Best-effort: tables and columns vary between installs, so a failed query
+// just contributes zero instead of breaking the caller.
+const REFERENCE_SOURCES = [
+  { singular: 'product', plural: 'products', sql: "SELECT COUNT(*)::int AS n FROM products WHERE image_url LIKE $1 OR slide_in_image LIKE $1" },
+  { singular: 'article', plural: 'articles', sql: "SELECT COUNT(*)::int AS n FROM articles WHERE article_images::text LIKE $1" },
+  { singular: 'glossary entry', plural: 'glossary entries', sql: "SELECT COUNT(*)::int AS n FROM glossary WHERE featured_image LIKE $1" },
+  { singular: 'SEO term', plural: 'SEO terms', sql: "SELECT COUNT(*)::int AS n FROM seo_terms WHERE featured_image LIKE $1" },
+];
+
+async function countImageReferences(image) {
+  const needle = `%/${image.filename}`;
+  const parts = [];
+  let total = 0;
+  for (const src of REFERENCE_SOURCES) {
+    try {
+      const r = await db.query(src.sql, [needle]);
+      const n = r.rows[0] ? r.rows[0].n : 0;
+      if (n > 0) parts.push(`${n} ${n === 1 ? src.singular : src.plural}`);
+      total += n;
+    } catch (e) { /* table or column absent on this install */ }
+  }
+  return { total, parts };
+}
+
+function describeReferences(refs) {
+  return refs.parts.join(', ');
 }
 
 // Helper: get category subdirectory
@@ -623,7 +661,9 @@ router.get('/', async (req, res) => {
       params.push(folderId);
     }
 
-    conditions.push("status = 'active'");
+    const statusFilter = req.query.status === 'archived' ? 'archived' : 'active';
+    conditions.push(`status = $${params.length + 1}`);
+    params.push(statusFilter);
 
     if (conditions.length > 0) {
       query += ' WHERE ' + conditions.join(' AND ');
@@ -665,7 +705,8 @@ router.get('/', async (req, res) => {
       currentFolder,
       activeFolder: folderId,
       unfiledCount,
-      pagination: { page, totalPages, search, category, folder: folderId },
+      statusFilter,
+      pagination: { page, totalPages, search, category, folder: folderId, status: statusFilter },
     });
   } catch (error) {
     console.error('Image library error:', error);
@@ -679,7 +720,8 @@ router.get('/', async (req, res) => {
       currentFolder: null,
       activeFolder: '',
       unfiledCount: 0,
-      pagination: { page: 1, totalPages: 0, search: '', category: '', folder: '' },
+      statusFilter: 'active',
+      pagination: { page: 1, totalPages: 0, search: '', category: '', folder: '', status: 'active' },
       error: 'Failed to load image library',
     });
   }
@@ -834,7 +876,7 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
           const ext = path.extname(file.originalname).toLowerCase();
           const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
           if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-          finalFilename = uniqueFilename(destDir, seoFilename, ext);
+          finalFilename = await uniqueFilename(catDir, seoFilename, ext);
           finalPath = path.join(destDir, finalFilename);
           fs.copyFileSync(file.path, finalPath);
           fileSize = fs.statSync(finalPath).size;
@@ -850,18 +892,19 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
         } else {
           const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
           if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-          finalFilename = uniqueFilename(destDir, seoFilename, '.webp');
+          finalFilename = await uniqueFilename(catDir, seoFilename, '.webp');
           finalPath = path.join(destDir, finalFilename);
 
-          const sharpInstance = sharp(file.path);
-          const meta = await sharpInstance.metadata();
+          const meta = await sharp(file.path).metadata();
+          const animated = (meta.pages || 1) > 1;
 
           let resizeOpts = {};
           if (meta.width > 2400 || meta.height > 2400) {
             resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
           }
 
-          await sharpInstance
+          // animated:true keeps GIF frames when converting to WebP
+          await sharp(file.path, { animated })
             .rotate()
             .resize(resizeOpts)
             .webp({ quality: 82 })
@@ -944,7 +987,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       const ext = path.extname(req.file.originalname).toLowerCase();
       const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-      finalFilename = uniqueFilename(destDir, seoFilename, ext);
+      finalFilename = await uniqueFilename(catDir, seoFilename, ext);
       finalPath = path.join(destDir, finalFilename);
       fs.copyFileSync(req.file.path, finalPath);
       const stats = fs.statSync(finalPath);
@@ -962,11 +1005,11 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       // Optimize: convert to WebP
       const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-      finalFilename = uniqueFilename(destDir, seoFilename, '.webp');
+      finalFilename = await uniqueFilename(catDir, seoFilename, '.webp');
       finalPath = path.join(destDir, finalFilename);
 
-      const sharpInstance = sharp(req.file.path);
-      const meta = await sharpInstance.metadata();
+      const meta = await sharp(req.file.path).metadata();
+      const animated = (meta.pages || 1) > 1;
 
       // Resize if larger than 2400px on either dimension
       let resizeOpts = {};
@@ -974,7 +1017,8 @@ router.post('/upload', upload.single('image'), async (req, res) => {
         resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
       }
 
-      await sharpInstance
+      // animated:true keeps GIF frames when converting to WebP
+      await sharp(req.file.path, { animated })
         .rotate()
         .resize(resizeOpts)
         .webp({ quality: 82 })
@@ -1057,9 +1101,18 @@ router.post('/:id/optimize', async (req, res) => {
     }
 
     const originalSize = fs.statSync(sourcePath).size;
+    const targetFormat = format || 'webp';
+
+    // Animated sources keep their frames only in WebP - any other target
+    // would silently flatten them to the first frame.
+    const meta = await sharp(sourcePath).metadata();
+    const isAnimated = (meta.pages || 1) > 1;
+    if (isAnimated && targetFormat !== 'webp') {
+      return res.status(400).json({ error: 'This is an animated image - convert it to WebP to keep the animation (other formats keep only the first frame).' });
+    }
+
     // .rotate() with no args applies EXIF orientation so the output isn't sideways
-    let sharpInstance = sharp(sourcePath).rotate();
-    const meta = await sharpInstance.metadata();
+    let sharpInstance = sharp(sourcePath, { animated: isAnimated }).rotate();
 
     // Resize if requested
     const resizeOpts = {};
@@ -1074,7 +1127,6 @@ router.post('/:id/optimize', async (req, res) => {
     }
 
     // Determine output format and extension
-    const targetFormat = format || 'webp';
     let newExt, newMime;
     switch (targetFormat) {
       case 'webp':
@@ -1113,12 +1165,6 @@ router.post('/:id/optimize', async (req, res) => {
     const newMeta = await sharp(newFullPath).metadata();
     const newSize = fs.statSync(newFullPath).size;
 
-    // If format changed, delete old file (if different path)
-    const oldFullPath = localPathFor(image.file_path);
-    if (oldFullPath !== newFullPath && fs.existsSync(oldFullPath)) {
-      fs.unlinkSync(oldFullPath);
-    }
-
     // Push to GitHub CDN. A same-format optimize overwrites an existing repo
     // file, and the Contents API 422s an update without the current blob sha -
     // fetch it first (resolves null for brand-new paths).
@@ -1127,8 +1173,22 @@ router.post('/:id/optimize', async (req, res) => {
     const existingSha = await getGitHubFileSha(newRelPath);
     const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Optimize image: ${newFilename}`, existingSha);
 
-    // If file changed names, also delete old file from GitHub
-    if (image.file_path !== newRelPath) {
+    const pathChanged = image.file_path !== newRelPath;
+    if (pathChanged && !ghResult.pushed) {
+      // Never strand the image: drop the unpublished converted file and keep
+      // the old format, path, and URL untouched.
+      try { fs.unlinkSync(newFullPath); } catch (e) { /* ignore */ }
+      return res.status(502).json({
+        error: 'Conversion aborted - the converted file could not be published to the CDN, so the image keeps its current format and URL. ' + describePushFailure(ghResult.reason),
+      });
+    }
+
+    // Only after a confirmed publish do we retire the old file
+    if (pathChanged) {
+      const oldFullPath = localPathFor(image.file_path);
+      if (fs.existsSync(oldFullPath)) {
+        try { fs.unlinkSync(oldFullPath); } catch (e) { /* ignore */ }
+      }
       try {
         const oldSha = await getGitHubFileSha(image.file_path);
         if (oldSha) {
@@ -1195,8 +1255,14 @@ router.post('/:id/optimize-preview', previewLimiter, async (req, res) => {
     }
 
     const originalSize = fs.statSync(sourcePath).size;
+    const previewMeta = await sharp(sourcePath).metadata();
+    const isAnimated = (previewMeta.pages || 1) > 1;
+    if (isAnimated && (format || 'webp') !== 'webp') {
+      // Mirror the SVG sentinel: the client quietly skips the preview
+      return res.json({ original_size: originalSize, estimated_size: originalSize, savings_pct: 0, error: 'ANIMATED' });
+    }
     // .rotate() with no args applies EXIF orientation so the output isn't sideways
-    let sharpInstance = sharp(sourcePath).rotate();
+    let sharpInstance = sharp(sourcePath, { animated: isAnimated }).rotate();
 
     const resizeOpts = {};
     if (maxW > 0) resizeOpts.width = maxW;
@@ -1246,6 +1312,9 @@ router.post('/bulk-optimize', async (req, res) => {
     const qualityInt = Math.min(100, Math.max(1, parseInt(quality) || 82));
     let totalSavings = 0;
     let optimizedCount = 0;
+    let skippedAnimated = 0;
+    let cdnFailed = 0;
+    let cdnFailReason = null;
 
     for (const id of ids) {
       try {
@@ -1261,9 +1330,15 @@ router.post('/bulk-optimize', async (req, res) => {
         }
 
         const originalSize = fs.statSync(sourcePath).size;
+        const meta = await sharp(sourcePath).metadata();
+        const isAnimated = (meta.pages || 1) > 1;
+        if (isAnimated && targetFormat !== 'webp') {
+          // Converting an animated image to this format would flatten it
+          skippedAnimated++;
+          continue;
+        }
         // .rotate() with no args applies EXIF orientation so the output isn't sideways
-        let sharpInstance = sharp(sourcePath).rotate();
-        const meta = await sharpInstance.metadata();
+        let sharpInstance = sharp(sourcePath, { animated: isAnimated }).rotate();
 
         // Resize large images
         if (meta.width > 2400 || meta.height > 2400) {
@@ -1292,16 +1367,34 @@ router.post('/bulk-optimize', async (req, res) => {
         const newMeta = await sharp(newFullPath).metadata();
         const newSize = fs.statSync(newFullPath).size;
 
-        // Delete old file if name changed
-        const oldFullPath = localPathFor(image.file_path);
-        if (oldFullPath !== newFullPath && fs.existsSync(oldFullPath)) {
-          fs.unlinkSync(oldFullPath);
-        }
-
-        // Push to CDN
+        // Push to CDN first (sha needed when overwriting the same path)
         const newCdnUrl = buildCdnUrl(newRelPath);
         const fileBuffer = fs.readFileSync(newFullPath);
-        await pushToGitHub(newRelPath, fileBuffer, `Bulk optimize: ${newFilename}`);
+        const existingSha = await getGitHubFileSha(newRelPath);
+        const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Bulk optimize: ${newFilename}`, existingSha);
+
+        const pathChanged = image.file_path !== newRelPath;
+        if (!ghResult.pushed) {
+          cdnFailed++;
+          cdnFailReason = cdnFailReason || ghResult.reason;
+          if (pathChanged) {
+            // Keep the old format/URL rather than strand the image
+            try { fs.unlinkSync(newFullPath); } catch (e) { /* ignore */ }
+            continue;
+          }
+        }
+
+        // Retire the old file only after a confirmed publish
+        if (pathChanged) {
+          const oldFullPath = localPathFor(image.file_path);
+          if (fs.existsSync(oldFullPath)) {
+            try { fs.unlinkSync(oldFullPath); } catch (e) { /* ignore */ }
+          }
+          try {
+            const oldSha = await getGitHubFileSha(image.file_path);
+            if (oldSha) await deleteFromGitHub(image.file_path, oldSha, `Remove old image: ${image.filename}`);
+          } catch (e) { /* ignore cleanup errors */ }
+        }
 
         // Update DB
         await db.query(
@@ -1320,7 +1413,14 @@ router.post('/bulk-optimize', async (req, res) => {
       ? (totalSavings / (1024 * 1024)).toFixed(1) + ' MB'
       : (totalSavings / 1024).toFixed(1) + ' KB';
 
-    req.session.successMessage = `${optimizedCount} image${optimizedCount !== 1 ? 's' : ''} optimized to ${targetFormat.toUpperCase()}. Total savings: ${savedFormatted}`;
+    let bulkMsg = `${optimizedCount} image${optimizedCount !== 1 ? 's' : ''} optimized to ${targetFormat.toUpperCase()}. Total savings: ${savedFormatted}`;
+    if (skippedAnimated > 0) {
+      bulkMsg += `. ${skippedAnimated} animated image${skippedAnimated !== 1 ? 's' : ''} skipped - convert those to WebP to keep the animation`;
+    }
+    if (cdnFailed > 0) {
+      bulkMsg += `. Warning: ${cdnFailed} not pushed to CDN - ${describePushFailure(cdnFailReason)}`;
+    }
+    req.session.successMessage = bulkMsg;
     const redirectTarget = isSafeRedirectPath(req.body.return_to) ? req.body.return_to : '/images';
     res.redirect(redirectTarget);
   } catch (error) {
@@ -1657,12 +1757,16 @@ router.get('/:id', async (req, res) => {
       if (folderResult.rows.length > 0) currentFolderName = folderResult.rows[0].name;
     }
 
+    // Where this image is used, so URL-changing actions can be judged safely
+    const references = await countImageReferences(image);
+
     res.render('images/detail', {
       title: (image.title || image.filename) + ' - Image Library',
       image,
       currentPage: 'images',
       folders,
       currentFolderName,
+      references,
     });
   } catch (error) {
     console.error('Image detail error:', error);
@@ -1733,29 +1837,83 @@ router.post('/:id/rename', async (req, res) => {
     }
 
     const image = result.rows[0];
-    const oldFullPath = localPathFor(image.file_path);
     const ext = path.extname(image.filename);
     const slugged = slugifyFilename(new_filename + ext);
+    if (!slugged) {
+      req.session.errorMessage = 'Filename must contain letters or numbers';
+      return res.redirect('/images/' + req.params.id);
+    }
     const newFilename = slugged + ext;
-
-    // Build new paths
     const dir = path.dirname(image.file_path);
     const newRelPath = path.join(dir, newFilename);
-    const newFullPath = localPathFor(newRelPath);
 
-    // Rename on filesystem
-    if (fs.existsSync(oldFullPath)) {
-      fs.renameSync(oldFullPath, newFullPath);
+    if (newRelPath === image.file_path) {
+      req.session.successMessage = 'Filename unchanged';
+      return res.redirect('/images/' + req.params.id);
     }
 
-    const newCdnUrl = buildCdnUrl(newRelPath);
+    // Refuse to clobber another image (checks DB, repo, and local disk)
+    if (await isPathTaken(newRelPath, image.id)) {
+      req.session.errorMessage = `A file named ${newFilename} already exists - pick another name`;
+      return res.redirect('/images/' + req.params.id);
+    }
 
+    // Get the bytes; the ephemeral disk may have lost them, so fall back to
+    // re-fetching from the CDN.
+    const oldFullPath = localPathFor(image.file_path);
+    if (!fs.existsSync(oldFullPath)) {
+      if (!image.cdn_url) {
+        req.session.errorMessage = 'Image file not found on disk and no CDN URL to recover it from';
+        return res.redirect('/images/' + req.params.id);
+      }
+      try {
+        await fetchImageFromCdn(image);
+      } catch (cdnErr) {
+        req.session.errorMessage = 'Image file not found on disk and could not be fetched from CDN: ' + cdnErr.message;
+        return res.redirect('/images/' + req.params.id);
+      }
+    }
+    const fileBuffer = fs.readFileSync(oldFullPath);
+
+    // Publish under the new name BEFORE touching anything else - on failure
+    // the image stays fully intact under its old name.
+    const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Rename image: ${image.filename} -> ${newFilename}`);
+    if (!ghResult.pushed) {
+      req.session.errorMessage = 'Rename aborted - the new filename could not be published to the CDN, so nothing was changed. ' + describePushFailure(ghResult.reason);
+      return res.redirect('/images/' + req.params.id);
+    }
+
+    // Retire the old repo file (best-effort; the new file is already live)
+    let oldRemoved = false;
+    try {
+      const oldSha = await getGitHubFileSha(image.file_path);
+      if (oldSha) {
+        const del = await deleteFromGitHub(image.file_path, oldSha, `Remove old name: ${image.filename}`);
+        oldRemoved = Boolean(del && del.deleted);
+      }
+    } catch (e) { /* a stale old file is harmless */ }
+
+    // Local rename (ephemeral disk; failures don't matter)
+    try {
+      const newFullPath = localPathFor(newRelPath);
+      const destDirLocal = path.dirname(newFullPath);
+      if (!fs.existsSync(destDirLocal)) fs.mkdirSync(destDirLocal, { recursive: true });
+      fs.renameSync(oldFullPath, newFullPath);
+    } catch (e) { /* ignore */ }
+
+    const newCdnUrl = buildCdnUrl(newRelPath);
     await db.query(
       `UPDATE images SET filename = $1, file_path = $2, cdn_url = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4`,
       [newFilename, newRelPath, newCdnUrl, req.params.id]
     );
 
-    req.session.successMessage = `Image renamed to ${newFilename}`;
+    let msg = `Image renamed to ${newFilename} and published to the CDN`;
+    if (!oldRemoved) msg += '. Note: the old file could not be removed from the repo';
+    const refs = await countImageReferences(image);
+    if (refs.total > 0) {
+      msg += `. Warning: the old URL is still referenced by ${describeReferences(refs)} - update those to the new URL`;
+    }
+    req.session.successMessage = msg;
     res.redirect('/images/' + req.params.id);
   } catch (error) {
     console.error('Rename error:', error);
@@ -1806,70 +1964,43 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
         } catch (e) { /* ignore */ }
       }
     } else {
-      // If the existing file is WebP, optimize to WebP
-      // If it's a different format, convert to WebP and update the filename/path
-      const isWebp = ext.toLowerCase() === '.webp';
-
-      if (isWebp) {
-        // Replace in-place as WebP
-        const sharpInstance = sharp(req.file.path);
-        const meta = await sharpInstance.metadata();
+      // Recompress in place, keeping the image's current format and URL -
+      // the UI promises "the CDN URL stays the same". GIFs are saved as-is
+      // because re-encoding would flatten the animation.
+      const fmt = ext.toLowerCase();
+      if (fmt === '.gif') {
+        fs.copyFileSync(req.file.path, fullPath);
+        fileSize = fs.statSync(fullPath).size;
+        mimeType = 'image/gif';
+        try {
+          const meta = await sharp(fullPath).metadata();
+          width = meta.width;
+          height = meta.height;
+        } catch (e) { /* ignore */ }
+      } else {
+        const meta = await sharp(req.file.path).metadata();
         let resizeOpts = {};
         if (meta.width > 2400 || meta.height > 2400) {
           resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
         }
-        await sharpInstance.rotate().resize(resizeOpts).webp({ quality: 82 }).toFile(fullPath);
+        let inst = sharp(req.file.path).rotate().resize(resizeOpts);
+        switch (fmt) {
+          case '.jpg':
+          case '.jpeg':
+            inst = inst.jpeg({ quality: 82, mozjpeg: true }); mimeType = 'image/jpeg'; break;
+          case '.png':
+            inst = inst.png({ compressionLevel: 9 }); mimeType = 'image/png'; break;
+          case '.avif':
+            inst = inst.avif({ quality: 60 }); mimeType = 'image/avif'; break;
+          case '.webp':
+          default:
+            inst = inst.webp({ quality: 82 }); mimeType = 'image/webp'; break;
+        }
+        await inst.toFile(fullPath);
         const optimizedMeta = await sharp(fullPath).metadata();
         width = optimizedMeta.width;
         height = optimizedMeta.height;
         fileSize = fs.statSync(fullPath).size;
-        mimeType = 'image/webp';
-      } else {
-        // Convert to WebP - update filename and path
-        const baseName = path.basename(image.filename, ext);
-        const newFilename = baseName + '.webp';
-        const dir = path.dirname(image.file_path);
-        const newRelPath = path.join(dir, newFilename);
-        const newFullPath = localPathFor(newRelPath);
-
-        const sharpInstance = sharp(req.file.path);
-        const meta = await sharpInstance.metadata();
-        let resizeOpts = {};
-        if (meta.width > 2400 || meta.height > 2400) {
-          resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
-        }
-        await sharpInstance.rotate().resize(resizeOpts).webp({ quality: 82 }).toFile(newFullPath);
-        const optimizedMeta = await sharp(newFullPath).metadata();
-        width = optimizedMeta.width;
-        height = optimizedMeta.height;
-        fileSize = fs.statSync(newFullPath).size;
-        mimeType = 'image/webp';
-
-        // Update DB with new filename/path
-        const newCdnUrl = buildCdnUrl(newRelPath);
-        await db.query(
-          `UPDATE images SET filename = $1, file_path = $2, cdn_url = $3 WHERE id = $4`,
-          [newFilename, newRelPath, newCdnUrl, req.params.id]
-        );
-
-        // Push new file to GitHub
-        const fileBuffer = fs.readFileSync(newFullPath);
-        const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Re-upload image: ${newFilename}`);
-
-        // Clean up temp file (validated path)
-        cleanupTempFile(req.file.path);
-
-        // Update file metadata in DB
-        await db.query(
-          `UPDATE images SET file_size = $1, mime_type = $2, width = $3, height = $4, original_filename = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6`,
-          [fileSize, mimeType, width, height, req.file.originalname, req.params.id]
-        );
-
-        let msg = 'Image replaced successfully (converted to WebP)';
-        if (ghResult.pushed) msg += ' and pushed to CDN';
-        else msg += '. Warning: ' + describePushFailure(ghResult.reason);
-        req.session.successMessage = msg;
-        return res.redirect('/images/' + req.params.id);
       }
     }
 
@@ -1942,13 +2073,25 @@ router.post('/:id/delete', async (req, res) => {
     // Soft delete: mark as archived
     await db.query("UPDATE images SET status = 'archived', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [req.params.id]);
 
-    req.session.successMessage = `Image "${image.filename}" archived`;
+    req.session.successMessage = `Image "${image.filename}" archived - find it under the Archived filter to restore it`;
     res.redirect('/images');
   } catch (error) {
     console.error('Archive image error:', error);
     req.session.errorMessage = 'Failed to archive image';
     res.redirect('/images');
   }
+});
+
+// Restore an archived image back into the library
+router.post('/:id/restore', async (req, res) => {
+  try {
+    await db.query("UPDATE images SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [req.params.id]);
+    req.session.successMessage = 'Image restored to the library';
+  } catch (error) {
+    console.error('Restore image error:', error);
+    req.session.errorMessage = 'Failed to restore image: ' + error.message;
+  }
+  res.redirect('/images?status=archived');
 });
 
 // Permanently delete image (removes the DB row, the local working copy, and the
