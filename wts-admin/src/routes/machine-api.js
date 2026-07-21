@@ -1469,6 +1469,91 @@ router.post('/v1/images/seo-bulk', async (req, res) => {
   }
 });
 
+
+/**
+ * POST /v1/images/archive
+ * Soft-delete Image Library rows (status=archived), same as Admin UI archive.
+ * Body: { items: [{ id?|filename?|cdn_url? }], permanent?: false }
+ * permanent=true hard-deletes DB row only (does not remove CDN blobs).
+ */
+router.post('/v1/images/archive', async (req, res) => {
+  try {
+    const items = Array.isArray(req.body?.items) ? req.body.items : [];
+    if (!items.length) return fail(res, 'items[] required');
+    const permanent = req.body?.permanent === true || req.body?.permanent === '1';
+    let archived = 0;
+    let deleted = 0;
+    let skipped = 0;
+    const errors = [];
+    const results = [];
+
+    for (const it of items.slice(0, 500)) {
+      try {
+        const id = it.id || null;
+        const filename = it.filename ? String(it.filename) : '';
+        const cdn_url = it.cdn_url ? String(it.cdn_url) : '';
+        let row;
+        if (id) {
+          row = await db.query(
+            `SELECT id, filename, cdn_url, status FROM images WHERE id = $1 LIMIT 1`,
+            [id]
+          );
+        } else if (filename || cdn_url) {
+          row = await db.query(
+            `SELECT id, filename, cdn_url, status FROM images
+             WHERE ($1 <> '' AND (filename = $1 OR original_filename = $1 OR filename ILIKE $1))
+                OR ($2 <> '' AND (cdn_url = $2 OR cdn_url LIKE '%' || $2))
+             ORDER BY updated_at DESC NULLS LAST
+             LIMIT 1`,
+            [filename, cdn_url]
+          );
+        } else {
+          skipped += 1;
+          results.push({ ok: false, error: 'id, filename, or cdn_url required' });
+          continue;
+        }
+        if (!row.rows.length) {
+          skipped += 1;
+          results.push({ ok: false, error: 'not found', filename, cdn_url });
+          continue;
+        }
+        const img = row.rows[0];
+        if (permanent) {
+          await db.query('DELETE FROM images WHERE id = $1', [img.id]);
+          deleted += 1;
+          results.push({ ok: true, action: 'deleted', id: img.id, filename: img.filename });
+        } else {
+          if (img.status === 'archived') {
+            skipped += 1;
+            results.push({ ok: true, action: 'already_archived', id: img.id, filename: img.filename });
+            continue;
+          }
+          await db.query(
+            `UPDATE images SET status = 'archived', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+            [img.id]
+          );
+          archived += 1;
+          results.push({ ok: true, action: 'archived', id: img.id, filename: img.filename });
+        }
+      } catch (e) {
+        errors.push(String(e.message || e));
+        results.push({ ok: false, error: String(e.message || e) });
+      }
+    }
+    await audit(req, 'images/archive', `a=${archived} d=${deleted} s=${skipped}`);
+    return ok(res, {
+      archived,
+      deleted,
+      skipped,
+      errors: errors.slice(0, 20),
+      results: results.slice(0, 100),
+    });
+  } catch (e) {
+    console.error('[machine-api] images archive', e);
+    return fail(res, 'Image archive failed: ' + e.message, 500);
+  }
+});
+
 // ── WhatsApp Cloud API (terminal bridge) ────────────────────────────
 
 router.get('/v1/whatsapp/status', async (req, res) => {
