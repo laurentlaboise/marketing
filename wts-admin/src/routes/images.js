@@ -1488,8 +1488,11 @@ router.post('/bulk-analyze', bulkAnalyzeLimiter, async (req, res) => {
     if (allIds.length > BULK_ANALYZE_CAP) msg += `. Only the first ${BULK_ANALYZE_CAP} selected images were processed - run it again for the rest`;
     if (failedCount > 0) msg += `. ${failedCount} failed: ${firstError}`;
     req.session.successMessage = msg;
-    const redirectTarget = isSafeRedirectPath(req.body.return_to) ? req.body.return_to : '/images';
-    res.redirect(redirectTarget);
+    // return_to only ever points back into the library; rebuild the target
+    // from a constant path so request input is confined to the query string.
+    const rt = typeof req.body.return_to === 'string' ? req.body.return_to : '';
+    const folderMatch = rt.match(/^\/images\?folder=([\w-]+)$/);
+    res.redirect(folderMatch ? '/images?folder=' + encodeURIComponent(folderMatch[1]) : '/images');
   } catch (error) {
     console.error('Bulk analyze error:', error);
     req.session.errorMessage = 'Bulk AI failed: ' + error.message;
@@ -1619,8 +1622,11 @@ router.post('/bulk-optimize', async (req, res) => {
       bulkMsg += `. Warning: ${cdnFailed} not pushed to CDN - ${describePushFailure(cdnFailReason)}`;
     }
     req.session.successMessage = bulkMsg;
-    const redirectTarget = isSafeRedirectPath(req.body.return_to) ? req.body.return_to : '/images';
-    res.redirect(redirectTarget);
+    // return_to only ever points back into the library; rebuild the target
+    // from a constant path so request input is confined to the query string.
+    const rt = typeof req.body.return_to === 'string' ? req.body.return_to : '';
+    const folderMatch = rt.match(/^\/images\?folder=([\w-]+)$/);
+    res.redirect(folderMatch ? '/images?folder=' + encodeURIComponent(folderMatch[1]) : '/images');
   } catch (error) {
     console.error('Bulk optimize error:', error);
     req.session.errorMessage = 'Bulk optimization failed: ' + error.message;
