@@ -34,24 +34,27 @@ const respond = (res, data, status = 200) => {
 // stored JSONB copies alt/title/cdn_url from pick time and goes stale when
 // library metadata is edited (or the file is renamed/converted) later.
 // Best-effort: on any failure the stored copies are served unchanged.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function refreshArticleImages(articles) {
+  // images.id is a UUID - keep ids as validated strings
   const ids = [...new Set(
     articles
       .flatMap((a) => (Array.isArray(a.article_images) ? a.article_images : []))
-      .map((img) => Number.parseInt(img && img.id, 10))
-      .filter(Number.isFinite)
+      .map((img) => (img && img.id != null ? String(img.id) : ''))
+      .filter((id) => UUID_RE.test(id))
   )];
   if (ids.length === 0) return articles;
   try {
     const r = await db.query(
-      'SELECT id, cdn_url, filename, alt_text, title, width, height FROM images WHERE id = ANY($1::int[])',
+      'SELECT id, cdn_url, filename, alt_text, title, width, height FROM images WHERE id = ANY($1::uuid[])',
       [ids]
     );
-    const byId = new Map(r.rows.map((row) => [row.id, row]));
+    const byId = new Map(r.rows.map((row) => [String(row.id), row]));
     for (const a of articles) {
       if (!Array.isArray(a.article_images)) continue;
       a.article_images = a.article_images.map((img) => {
-        const live = img && byId.get(Number.parseInt(img.id, 10));
+        const live = img && img.id != null && byId.get(String(img.id));
         if (!live) return img;
         return {
           ...img,
