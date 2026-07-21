@@ -20,7 +20,7 @@
         <button class="btn btn-secondary btn-sm copy-cdn-url" data-url="<%= image.cdn_url %>">
           <i class="fas fa-link"></i> Copy CDN URL
         </button>
-        <a href="<%= image.web_url %>" target="_blank" class="btn btn-secondary btn-sm">
+        <a href="<%= image.web_url %>" target="_blank" class="btn btn-secondary btn-sm" title="Served from the website host - available a few minutes after upload, once the site redeploys. The CDN URL works immediately.">
           <i class="fas fa-external-link-alt"></i> View on Web
         </a>
       </div>
@@ -54,6 +54,16 @@
                 <% } %>
                 <tr><td style="font-weight: 600;">Category</td><td><span class="status-badge <%= image.category %>"><%= image.category %></span></td></tr>
                 <tr><td style="font-weight: 600;">Folder</td><td><%= currentFolderName ? currentFolderName : '<span style="color:var(--gray-400);">None</span>' %></td></tr>
+                <tr>
+                  <td style="font-weight: 600;">Used by</td>
+                  <td title="Matched by filename in products, articles, glossary entries, and SEO terms">
+                    <% if (references && references.total > 0) { %>
+                    <span style="color: var(--warning);"><i class="fas fa-link"></i> <%= references.parts.join(', ') %></span>
+                    <% } else { %>
+                    <span style="color: var(--gray-400);">No tracked references</span>
+                    <% } %>
+                  </td>
+                </tr>
                 <tr><td style="font-weight: 600;">File Path</td><td style="word-break: break-all;"><code><%= image.file_path %></code></td></tr>
                 <tr><td style="font-weight: 600;">Uploaded</td><td><%= new Date(image.created_at).toLocaleDateString() %></td></tr>
               </tbody>
@@ -113,7 +123,13 @@
                     <i class="fas fa-pen"></i> Rename
                   </button>
                 </div>
-                <p class="form-help">Use lowercase, hyphens, no spaces. Extension is preserved automatically.</p>
+                <p class="form-help">Use lowercase, hyphens, no spaces. Extension is preserved automatically. The file is republished to the CDN under the new name.</p>
+                <% if (references && references.total > 0) { %>
+                <p class="form-help" style="color: #856404;">
+                  <i class="fas fa-exclamation-triangle"></i> Renaming changes the URL, and this image is referenced by
+                  <%= references.parts.join(', ') %> &mdash; those references will need updating afterwards.
+                </p>
+                <% } %>
               </div>
             </form>
           </div>
@@ -126,13 +142,14 @@
           </div>
           <div class="card-body">
             <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">
-              Upload a new file to replace this image. All SEO metadata (alt text, title, description, tags) will be preserved. The CDN URL stays the same.
+              Upload a new file to replace this image. All SEO metadata (alt text, title, description, tags) is preserved
+              and the CDN URL stays the same &mdash; the new file is re-encoded in the image's current format.
             </p>
             <form action="/images/<%= image.id %>/reupload?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data" id="reuploadForm">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <div class="form-group">
                 <div id="reuploadDropzone" style="border: 2px dashed var(--gray-300); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; transition: border-color 0.2s;">
-                  <input type="file" id="reuploadFile" name="image" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,image/avif" required style="display: none;">
+                  <input type="file" id="reuploadFile" name="image" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,image/avif" required class="visually-hidden">
                   <div id="reuploadContent">
                     <i class="fas fa-cloud-upload-alt" style="font-size: 28px; color: var(--gray-400); margin-bottom: 8px;"></i>
                     <p style="font-size: 14px; color: var(--gray-600);">Drop new image here or <span style="color: var(--primary); cursor: pointer;">browse</span></p>
@@ -147,7 +164,7 @@
               <div style="display: flex; gap: 12px; align-items: center;">
                 <label class="form-checkbox" style="margin: 0;">
                   <input type="checkbox" name="optimize" value="on" checked>
-                  <span style="font-size: 13px;">Optimize (WebP)</span>
+                  <span style="font-size: 13px;">Optimize (recompress)</span>
                 </label>
                 <button type="submit" class="btn btn-primary btn-sm" id="reuploadBtn" disabled>
                   <i class="fas fa-redo"></i> Replace Image
@@ -161,11 +178,12 @@
         <% if (image.mime_type !== 'image/svg+xml') { %>
         <div class="card" style="margin-top: 20px;">
           <div class="card-header">
-            <h2 class="card-title"><i class="fas fa-compress-arrows-alt"></i> Optimize Image</h2>
+            <h2 class="card-title"><i class="fas fa-compress-arrows-alt"></i> Compress &amp; Convert Image</h2>
           </div>
           <div class="card-body">
             <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">
-              Convert format, adjust quality, or resize to reduce file size. The optimized file replaces the current one and is pushed to CDN.
+              Convert format, adjust quality, or resize to reduce file size. This changes the image file itself (not its SEO text).
+              The new file replaces the current one and is pushed to CDN.
             </p>
 
             <div class="form-row">
@@ -242,19 +260,32 @@
         </div>
         <% } %>
 
-        <!-- Archive -->
+        <!-- Archive / Restore -->
         <div class="card" style="margin-top: 20px;">
           <div class="card-body delete-card-body">
+            <% if (image.status === 'archived') { %>
+            <div>
+              <p style="font-weight: 600;">This image is archived</p>
+              <p class="form-help">It is hidden from the library. Restore it to make it visible again.</p>
+            </div>
+            <form action="/images/<%= image.id %>/restore" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="btn btn-sm btn-primary">
+                <i class="fas fa-rotate-left"></i> Restore
+              </button>
+            </form>
+            <% } else { %>
             <div>
               <p style="font-weight: 600;">Archive this image</p>
-              <p class="form-help">Hides it from the library. The file is kept and can be restored.</p>
+              <p class="form-help">Hides it from the library. Restore it any time from the Archived filter.</p>
             </div>
             <form action="/images/<%= image.id %>/delete" method="POST">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button type="submit" class="btn btn-sm btn-secondary" data-confirm-delete="Archive this image? It will be hidden but the file is kept and can be restored.">
+              <button type="submit" class="btn btn-sm btn-secondary" data-confirm-delete="Archive this image? It will be hidden but you can restore it from the Archived filter.">
                 <i class="fas fa-box-archive"></i> Archive
               </button>
             </form>
+            <% } %>
           </div>
         </div>
 
@@ -279,12 +310,21 @@
       <div>
         <div class="card">
           <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 class="card-title"><i class="fas fa-search"></i> SEO Optimization</h2>
+            <h2 class="card-title"><i class="fas fa-search"></i> SEO Metadata (text)</h2>
             <button type="button" id="aiAnalyzeBtn" class="btn btn-sm btn-primary" onclick="analyzeWithAI()">
-              <i class="fas fa-robot"></i> AI Auto-fill
+              <i class="fas fa-robot"></i> AI: Write SEO Text
             </button>
           </div>
           <div class="card-body">
+            <p class="form-help" style="margin-bottom: 16px;">
+              <i class="fas fa-info-circle"></i> The AI button fills in the text fields below by analyzing the image.
+              It does not modify, compress, or improve the image file itself<% if (image.mime_type !== 'image/svg+xml') { %> &mdash; use <strong>Compress &amp; Convert</strong> for that<% } %>.
+            </p>
+            <label style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; font-size: 12px; color: var(--gray-600); cursor: pointer;">
+              <input type="checkbox" id="aiOverwrite">
+              <span>Let AI overwrite fields that already have text</span>
+            </label>
+
             <!-- AI Analysis Status -->
             <div id="aiAnalysisStatus" style="display: none; margin-bottom: 16px;"></div>
 
@@ -548,9 +588,48 @@ document.addEventListener('DOMContentLoaded', () => {
     reBtn.disabled = true;
     reBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Replacing...';
   });
+
+  // Warn before leaving with unsaved SEO edits (AI fills count as edits) -
+  // e.g. the Compress & Convert success box invites a reload that would
+  // otherwise silently wipe freshly generated metadata.
+  const seoForm = document.querySelector('form[action="/images/<%= image.id %>"]');
+  if (seoForm) {
+    seoForm.addEventListener('input', () => { seoFormDirty = true; });
+    seoForm.addEventListener('submit', () => { seoFormDirty = false; });
+  }
+  window.addEventListener('beforeunload', (e) => {
+    if (seoFormDirty) { e.preventDefault(); e.returnValue = ''; }
+  });
 });
 
 // AI Image Analysis
+var seoFormDirty = false;
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function aiDetailHtml(detail) {
+  if (!detail) return '';
+  return '<details style="margin-top: 6px;"><summary style="cursor: pointer;">Technical details</summary><div style="font-size: 12px; word-break: break-all; margin-top: 4px;">' + escapeHtml(detail) + '</div></details>';
+}
+
+// Fill a field only when it's empty (or Overwrite is ticked) and flash it so
+// the change is visible. Returns 'filled' | 'skipped' | 'none'.
+function aiFillField(id, value) {
+  const el = document.getElementById(id);
+  if (!el || !value) return 'none';
+  const overwrite = document.getElementById('aiOverwrite');
+  if (el.value.trim() && !(overwrite && overwrite.checked)) return 'skipped';
+  el.value = value;
+  el.dispatchEvent(new Event('input'));
+  seoFormDirty = true;
+  el.style.transition = 'background-color 0.4s';
+  el.style.backgroundColor = '#fff3bf';
+  setTimeout(() => { el.style.backgroundColor = ''; }, 1400);
+  return 'filled';
+}
+
 function analyzeWithAI() {
   const btn = document.getElementById('aiAnalyzeBtn');
   const status = document.getElementById('aiAnalysisStatus');
@@ -558,7 +637,7 @@ function analyzeWithAI() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
   status.style.display = 'block';
-  status.innerHTML = '<div style="padding: 12px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius); font-size: 13px; color: var(--primary);"><i class="fas fa-robot"></i> AI is analyzing the image content and filename...</div>';
+  status.innerHTML = '<div style="padding: 12px; background: var(--primary-tint, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius); font-size: 13px; color: var(--primary-dark);"><i class="fas fa-robot"></i> AI is analyzing the image content and filename...</div>';
 
   fetch('/images/<%= image.id %>/analyze', {
     method: 'POST',
@@ -566,32 +645,41 @@ function analyzeWithAI() {
   })
   .then(res => res.json())
   .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-robot"></i> AI: Write SEO Text';
+
     if (data.error) {
-      status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> ' + data.error + '</div>';
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-robot"></i> AI Auto-fill';
+      status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> ' + escapeHtml(data.error) + aiDetailHtml(data.detail) + '</div>';
       return;
     }
 
-    // Fill in the fields
-    if (data.alt_text) document.getElementById('alt_text').value = data.alt_text;
-    if (data.title) document.getElementById('title').value = data.title;
-    if (data.description) document.getElementById('description').value = data.description;
-    if (data.tags) document.getElementById('tags').value = data.tags;
+    const outcomes = [
+      aiFillField('alt_text', data.alt_text),
+      aiFillField('title', data.title),
+      aiFillField('description', data.description),
+      aiFillField('tags', data.tags),
+    ];
+    const filled = outcomes.filter(o => o === 'filled').length;
+    const skipped = outcomes.filter(o => o === 'skipped').length;
 
-    // Trigger updates
-    document.getElementById('alt_text').dispatchEvent(new Event('input'));
-    document.getElementById('title').dispatchEvent(new Event('input'));
-    document.getElementById('description').dispatchEvent(new Event('input'));
-
-    status.innerHTML = '<div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> AI analysis complete! Fields have been filled. Review and edit as needed, then click Save.</div>';
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-robot"></i> AI Auto-fill';
+    let msg;
+    if (filled) {
+      msg = 'AI wrote ' + filled + ' SEO text field' + (filled !== 1 ? 's' : '') + ' below.';
+    } else {
+      msg = 'No fields were changed.';
+    }
+    if (skipped) {
+      msg += ' ' + skipped + ' field' + (skipped !== 1 ? 's' : '') + ' with existing text ' + (skipped !== 1 ? 'were' : 'was') + ' kept &mdash; tick "Let AI overwrite" above to replace them.';
+    }
+    if (filled) {
+      msg += ' Review and edit as needed, then click Save. The image file itself was not changed.';
+    }
+    status.innerHTML = '<div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> ' + msg + '</div>';
   })
   .catch(err => {
-    status.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: var(--radius); font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Failed to analyze: ' + err.message + '</div>';
+    status.innerHTML = '<div style="padding: 12px; background: #f8d7da; border: 1px solid #dc3545; border-radius: var(--radius); font-size: 13px; color: #721c24;"><i class="fas fa-times-circle"></i> Failed to analyze: ' + escapeHtml(err.message) + '</div>';
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-robot"></i> AI Auto-fill';
+    btn.innerHTML = '<i class="fas fa-robot"></i> AI: Write SEO Text';
   });
 }
 
@@ -658,7 +746,7 @@ function runOptimization() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Optimizing...';
   status.style.display = 'block';
-  status.innerHTML = '<div style="padding: 12px; background: var(--primary-light, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius); font-size: 13px; color: var(--primary);"><i class="fas fa-compress-arrows-alt"></i> Processing image and pushing to CDN...</div>';
+  status.innerHTML = '<div style="padding: 12px; background: var(--primary-tint, #eff6ff); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius); font-size: 13px; color: var(--primary-dark);"><i class="fas fa-compress-arrows-alt"></i> Processing image and pushing to CDN...</div>';
 
   const params = getOptimizeParams();
 
@@ -673,18 +761,24 @@ function runOptimization() {
     btn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i> Optimize Now';
 
     if (data.error) {
-      status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> ' + data.error + '</div>';
+      status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> ' + escapeHtml(data.error) + '</div>';
       return;
     }
 
     const savedText = data.savings >= 0
       ? 'Saved ' + formatBytes(data.savings) + ' (' + data.savings_pct + '% smaller)'
       : 'Size increased by ' + formatBytes(Math.abs(data.savings));
-    const cdnText = data.cdn_pushed ? ' Pushed to CDN.' : '';
+    const sizeText = formatBytes(data.original_size) + ' &rarr; ' + formatBytes(data.new_size) + '. ' + savedText + '.';
+    const reloadLink = ' <a href="" onclick="location.reload(); return false;" style="color: inherit; text-decoration: underline;">Reload page</a> to see updated info.';
 
-    status.innerHTML = '<div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> ' +
-      '<strong>Optimized!</strong> ' + formatBytes(data.original_size) + ' &rarr; ' + formatBytes(data.new_size) + '. ' + savedText + '.' + cdnText +
-      ' <a href="" onclick="location.reload(); return false;" style="color: #155724; text-decoration: underline;">Reload page</a> to see updated info.</div>';
+    if (data.cdn_pushed) {
+      status.innerHTML = '<div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: var(--radius); font-size: 13px; color: #155724;"><i class="fas fa-check-circle"></i> ' +
+        '<strong>Optimized!</strong> ' + sizeText + ' Pushed to CDN.' + reloadLink + '</div>';
+    } else {
+      const cdnDetail = data.cdn_error ? ' ' + escapeHtml(data.cdn_error) : ' The public site may still serve the old file.';
+      status.innerHTML = '<div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius); font-size: 13px; color: #856404;"><i class="fas fa-exclamation-triangle"></i> ' +
+        '<strong>Optimized locally, but NOT pushed to the CDN.</strong> ' + sizeText + cdnDetail + reloadLink + '</div>';
+    }
   })
   .catch(err => {
     btn.disabled = false;

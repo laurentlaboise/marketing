@@ -311,7 +311,28 @@ app.use('/api', require('./src/routes/quick'));
 // Express still matches /api/* here for other paths only after prior routers
 // call next(); machine routes always end the response themselves.
 app.use('/api', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, apiRoutes);
-app.use('/images', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, imagesRoutes);
+// /images keeps the same 100/15min surface budget, but the AI-analyze and
+// optimize-preview endpoints are carved out into their own pre-auth budget:
+// slider-driven preview bursts would exhaust the shared bucket, and this
+// limiter's default 429 body breaks those endpoints' JSON fetch handlers.
+// The images router applies tighter per-endpoint limits after auth.
+const imagesAiPaths = imagesRoutes.OWN_LIMITER_PATHS;
+const imagesSurfaceLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => imagesAiPaths.test(req.path),
+});
+const imagesAiBurstLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => !imagesAiPaths.test(req.path),
+  handler: (req, res) => res.status(429).json({ error: 'Too many requests. Please wait a few minutes and try again.' }),
+});
+app.use('/images', imagesSurfaceLimiter, imagesAiBurstLimiter, ensureAuthenticated, ensureAdmin, imagesRoutes);
 app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webdevRoutes);
 // Partner-program approval queue (applications come from the client portal).
 app.use('/partners', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, require('./src/routes/partners'));

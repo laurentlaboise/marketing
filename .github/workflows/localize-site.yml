@@ -96,7 +96,7 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "wts-localize-bot"
             git config user.email "actions@users.noreply.github.com"
-            git add th la fr en sitemap.xml 2>/dev/null || true
+            git add th la fr en sitemap.xml sitemap-images.xml 2>/dev/null || true
             git commit -m "Regenerate localized pages from published translations" -m "Triggered: $REASON"
             git push
           else

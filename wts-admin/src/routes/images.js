@@ -51,11 +51,24 @@ function isSafeRedirectPath(target) {
 const router = express.Router();
 router.use(ensureAuthenticated);
 
+// AI analysis and optimize-preview get their own budgets below. The shared
+// limiter must skip them: slider-driven preview bursts would otherwise exhaust
+// it, and its text/plain 429s break the client fetch handlers, which expect
+// JSON from these endpoints.
+const OWN_LIMITER_PATHS = /^\/(?:[^/]+\/(?:analyze|optimize-preview)|analyze-upload)$/;
+// server.js's mount-level /images limiter must apply the same exemption, or its
+// 100/15min budget trips before these dedicated limiters ever see a request.
+router.OWN_LIMITER_PATHS = OWN_LIMITER_PATHS;
 const imagesLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  skip: (req) => OWN_LIMITER_PATHS.test(req.path),
 });
 router.use(imagesLimiter);
+
+const json429 = (req, res) => res.status(429).json({ error: 'Too many requests. Please wait a few minutes and try again.' });
+const analyzeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, handler: json429 });
+const previewLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 600, handler: json429 });
 
 // CDN config, image/upload roots and path helpers come from the shared
 // storage module (env-configurable roots; see src/utils/storage.js).
@@ -119,19 +132,60 @@ function slugifyFilename(name) {
     .replace(/^-+|-+$/g, '');
 }
 
-// Build a filename that doesn't collide with an existing file in destDir.
-// Without this, two uploads with the same name resolve to the same path and
-// the second silently overwrites the first locally and 422s on the GitHub
-// push (which requires the existing file's sha to replace it). At volume this
-// is a real data-loss/dedupe hazard, so we suffix -2, -3, ... as needed.
-function uniqueFilename(destDir, base, ext) {
+// True when a candidate repo path is already taken on any authority: local
+// disk (fast, but wiped on redeploy - Railway), the images table, or the
+// GitHub repo itself. Checking only the disk let re-uploads after a redeploy
+// silently alias an existing CDN object and 422 on the push.
+async function isPathTaken(relPath, excludeImageId) {
+  if (fs.existsSync(localPathFor(relPath))) return true;
+  const dbHit = excludeImageId
+    ? await db.query('SELECT 1 FROM images WHERE file_path = $1 AND id <> $2 LIMIT 1', [relPath, excludeImageId])
+    : await db.query('SELECT 1 FROM images WHERE file_path = $1 LIMIT 1', [relPath]);
+  if (dbHit.rows.length > 0) return true;
+  return Boolean(await getGitHubFileSha(relPath));
+}
+
+// Build a filename that doesn't collide with an existing file, suffixing
+// -2, -3, ... as needed.
+async function uniqueFilename(catDir, base, ext) {
   let candidate = `${base}${ext}`;
-  let n = 2;
-  while (fs.existsSync(path.join(destDir, candidate))) {
+  for (let n = 2; ; n++) {
+    const relPath = catDir ? `images/${catDir}/${candidate}` : `images/${candidate}`;
+    if (!(await isPathTaken(relPath))) return candidate;
     candidate = `${base}-${n}${ext}`;
-    n++;
   }
-  return candidate;
+}
+
+// Count rows in other tables that reference this image by URL/filename.
+// Best-effort: tables and columns vary between installs, so a failed query
+// just contributes zero instead of breaking the caller.
+const REFERENCE_SOURCES = [
+  { singular: 'product', plural: 'products', sql: "SELECT COUNT(*)::int AS n FROM products WHERE image_url LIKE $1 OR slide_in_image LIKE $1" },
+  // article_images is JSONB - its text cast ends with ]/}, so an ends-with
+  // needle can never match. URLs inside it are quote-terminated, so match
+  // '/filename"' anywhere instead.
+  { singular: 'article', plural: 'articles', jsonb: true, sql: "SELECT COUNT(*)::int AS n FROM articles WHERE article_images::text LIKE $1" },
+  { singular: 'glossary entry', plural: 'glossary entries', sql: "SELECT COUNT(*)::int AS n FROM glossary WHERE featured_image LIKE $1" },
+  { singular: 'SEO term', plural: 'SEO terms', sql: "SELECT COUNT(*)::int AS n FROM seo_terms WHERE featured_image LIKE $1" },
+];
+
+async function countImageReferences(image) {
+  const parts = [];
+  let total = 0;
+  for (const src of REFERENCE_SOURCES) {
+    const needle = src.jsonb ? `%/${image.filename}"%` : `%/${image.filename}`;
+    try {
+      const r = await db.query(src.sql, [needle]);
+      const n = r.rows[0] ? r.rows[0].n : 0;
+      if (n > 0) parts.push(`${n} ${n === 1 ? src.singular : src.plural}`);
+      total += n;
+    } catch (e) { /* table or column absent on this install */ }
+  }
+  return { total, parts };
+}
+
+function describeReferences(refs) {
+  return refs.parts.join(', ');
 }
 
 // Helper: get category subdirectory
@@ -341,6 +395,102 @@ async function deleteFromGitHub(repoPath, sha, commitMessage) {
     await sleep(i * 1000);
   }
   return last;
+}
+
+// Minimal authenticated GitHub API JSON request (used by the Git Data API
+// batch push below; the single-file paths keep their dedicated helpers).
+function githubJsonRequest(method, apiPath, body) {
+  const token = process.env.GITHUB_TOKEN;
+  const payload = body ? JSON.stringify(body) : null;
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: apiPath,
+      method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'WTS-Admin-ImageLibrary',
+        'Accept': 'application/vnd.github.v3+json',
+        ...(payload ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) } : {}),
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => { data += c; });
+      res.on('end', () => {
+        let parsed = null;
+        try { parsed = JSON.parse(data); } catch (e) { /* leave null */ }
+        resolve({ statusCode: res.statusCode, body: parsed, raw: data.slice(0, 200) });
+      });
+    });
+    req.on('error', (err) => resolve({ statusCode: 0, body: null, raw: err.message }));
+    req.setTimeout(30000, () => { req.destroy(); resolve({ statusCode: 0, body: null, raw: 'timeout' }); });
+    if (payload) req.write(payload);
+    req.end();
+  });
+}
+
+// Push many files to the repo in ONE commit via the Git Data API (blobs ->
+// tree -> commit -> ref update). The Contents API makes one commit per file,
+// and every commit to main triggers a full site build - a 50-file batch
+// upload used to mean 50 sequential deploys.
+// files: [{ relPath, localPath }]. Returns { pushed, reason, details }.
+async function pushManyToGitHub(files, commitMessage) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.warn('GITHUB_TOKEN not set - images will not be pushed to repo/CDN');
+    return { pushed: false, reason: 'no_token' };
+  }
+  const base = `/repos/${CDN_CONFIG.user}/${CDN_CONFIG.repo}`;
+  const fail = (step, r) => {
+    console.error(`Batch push failed at ${step}:`, r.statusCode, r.raw);
+    return { pushed: false, reason: r.statusCode ? `github_${r.statusCode}` : 'network_error', details: r.raw };
+  };
+
+  // Blobs are content-addressed - upload once, reuse across ref-race retries.
+  const treeEntries = [];
+  for (const f of files) {
+    const blob = await githubJsonRequest('POST', `${base}/git/blobs`, {
+      content: fs.readFileSync(f.localPath).toString('base64'),
+      encoding: 'base64',
+    });
+    if (blob.statusCode !== 201 || !blob.body || !blob.body.sha) return fail('blob', blob);
+    treeEntries.push({ path: f.relPath, mode: '100644', type: 'blob', sha: blob.body.sha });
+  }
+
+  // The ref update can race a concurrent single-file push; retry the
+  // read-tree-commit-update sequence once on a non-fast-forward 422.
+  let last = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const ref = await githubJsonRequest('GET', `${base}/git/ref/heads/${CDN_CONFIG.branch}`);
+    if (ref.statusCode !== 200 || !ref.body || !ref.body.object) return fail('ref', ref);
+    const headSha = ref.body.object.sha;
+
+    const headCommit = await githubJsonRequest('GET', `${base}/git/commits/${headSha}`);
+    if (headCommit.statusCode !== 200 || !headCommit.body || !headCommit.body.tree) return fail('head-commit', headCommit);
+
+    const tree = await githubJsonRequest('POST', `${base}/git/trees`, {
+      base_tree: headCommit.body.tree.sha,
+      tree: treeEntries,
+    });
+    if (tree.statusCode !== 201 || !tree.body || !tree.body.sha) return fail('tree', tree);
+
+    const commit = await githubJsonRequest('POST', `${base}/git/commits`, {
+      message: commitMessage,
+      tree: tree.body.sha,
+      parents: [headSha],
+    });
+    if (commit.statusCode !== 201 || !commit.body || !commit.body.sha) return fail('commit', commit);
+
+    const update = await githubJsonRequest('PATCH', `${base}/git/refs/heads/${CDN_CONFIG.branch}`, { sha: commit.body.sha });
+    if (update.statusCode === 200) {
+      for (const f of files) await purgeJsDelivr(f.relPath);
+      return { pushed: true };
+    }
+    last = update;
+    if (update.statusCode !== 422 || attempt === 2) break;
+    await sleep(1000);
+  }
+  return fail('ref-update', last);
 }
 
 // Turn a pushToGitHub() failure reason into an actionable warning for the UI.
@@ -594,7 +744,9 @@ router.get('/', async (req, res) => {
     const conditions = [];
 
     if (search) {
-      conditions.push(`(filename ILIKE $${params.length + 1} OR alt_text ILIKE $${params.length + 1} OR title ILIKE $${params.length + 1})`);
+      // Include description and tags so images are findable by the metadata
+      // the AI writes, not just by filename.
+      conditions.push(`(filename ILIKE $${params.length + 1} OR alt_text ILIKE $${params.length + 1} OR title ILIKE $${params.length + 1} OR description ILIKE $${params.length + 1} OR array_to_string(tags, ' ') ILIKE $${params.length + 1})`);
       params.push(`%${search}%`);
     }
 
@@ -610,7 +762,9 @@ router.get('/', async (req, res) => {
       params.push(folderId);
     }
 
-    conditions.push("status = 'active'");
+    const statusFilter = req.query.status === 'archived' ? 'archived' : 'active';
+    conditions.push(`status = $${params.length + 1}`);
+    params.push(statusFilter);
 
     if (conditions.length > 0) {
       query += ' WHERE ' + conditions.join(' AND ');
@@ -652,7 +806,8 @@ router.get('/', async (req, res) => {
       currentFolder,
       activeFolder: folderId,
       unfiledCount,
-      pagination: { page, totalPages, search, category, folder: folderId },
+      statusFilter,
+      pagination: { page, totalPages, search, category, folder: folderId, status: statusFilter },
     });
   } catch (error) {
     console.error('Image library error:', error);
@@ -666,7 +821,8 @@ router.get('/', async (req, res) => {
       currentFolder: null,
       activeFolder: '',
       unfiledCount: 0,
-      pagination: { page: 1, totalPages: 0, search: '', category: '', folder: '' },
+      statusFilter: 'active',
+      pagination: { page: 1, totalPages: 0, search: '', category: '', folder: '', status: 'active' },
       error: 'Failed to load image library',
     });
   }
@@ -809,6 +965,7 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
     let notPushed = 0;
     const errors = [];
     const pushReasons = new Set();
+    const pendingPushes = [];
 
     for (const file of req.files) {
       try {
@@ -821,7 +978,7 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
           const ext = path.extname(file.originalname).toLowerCase();
           const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
           if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-          finalFilename = uniqueFilename(destDir, seoFilename, ext);
+          finalFilename = await uniqueFilename(catDir, seoFilename, ext);
           finalPath = path.join(destDir, finalFilename);
           fs.copyFileSync(file.path, finalPath);
           fileSize = fs.statSync(finalPath).size;
@@ -837,18 +994,20 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
         } else {
           const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
           if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-          finalFilename = uniqueFilename(destDir, seoFilename, '.webp');
+          finalFilename = await uniqueFilename(catDir, seoFilename, '.webp');
           finalPath = path.join(destDir, finalFilename);
 
-          const sharpInstance = sharp(file.path);
-          const meta = await sharpInstance.metadata();
+          const meta = await sharp(file.path).metadata();
+          const animated = (meta.pages || 1) > 1;
 
           let resizeOpts = {};
           if (meta.width > 2400 || meta.height > 2400) {
             resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
           }
 
-          await sharpInstance
+          // animated:true keeps GIF frames when converting to WebP
+          await sharp(file.path, { animated })
+            .rotate()
             .resize(resizeOpts)
             .webp({ quality: 82 })
             .toFile(finalPath);
@@ -865,13 +1024,9 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
         const relPath = catDir ? `images/${catDir}/${finalFilename}` : `images/${finalFilename}`;
         const cdnUrl = buildCdnUrl(relPath);
 
-        // Push to GitHub CDN
-        const fileBuffer = fs.readFileSync(finalPath);
-        const ghResult = await pushToGitHub(relPath, fileBuffer, `Upload image: ${finalFilename}`);
-        if (!ghResult.pushed) {
-          notPushed++;
-          if (ghResult.reason) pushReasons.add(ghResult.reason);
-        }
+        // Queue for one batched repo commit after the loop - a commit per
+        // file meant a full site deploy per file.
+        pendingPushes.push({ relPath, localPath: finalPath });
 
         // Save to database
         await db.query(
@@ -887,6 +1042,24 @@ router.post('/upload-multiple', upload.array('images', 50), async (req, res) => 
         cleanupTempFile(file.path);
         failed++;
         errors.push(file.originalname);
+      }
+    }
+
+    // One commit for the whole batch; on failure fall back to per-file
+    // Contents API pushes so behavior degrades to the previous working path.
+    if (pendingPushes.length > 0) {
+      const batchResult = await pushManyToGitHub(
+        pendingPushes,
+        `Upload ${pendingPushes.length} image${pendingPushes.length !== 1 ? 's' : ''} (batch)`
+      );
+      if (!batchResult.pushed) {
+        for (const p of pendingPushes) {
+          const ghResult = await pushToGitHub(p.relPath, fs.readFileSync(p.localPath), `Upload image: ${path.basename(p.relPath)}`);
+          if (!ghResult.pushed) {
+            notPushed++;
+            if (ghResult.reason) pushReasons.add(ghResult.reason);
+          }
+        }
       }
     }
 
@@ -930,7 +1103,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       const ext = path.extname(req.file.originalname).toLowerCase();
       const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-      finalFilename = uniqueFilename(destDir, seoFilename, ext);
+      finalFilename = await uniqueFilename(catDir, seoFilename, ext);
       finalPath = path.join(destDir, finalFilename);
       fs.copyFileSync(req.file.path, finalPath);
       const stats = fs.statSync(finalPath);
@@ -948,11 +1121,11 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       // Optimize: convert to WebP
       const destDir = catDir ? path.join(IMAGES_DIR, catDir) : IMAGES_DIR;
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-      finalFilename = uniqueFilename(destDir, seoFilename, '.webp');
+      finalFilename = await uniqueFilename(catDir, seoFilename, '.webp');
       finalPath = path.join(destDir, finalFilename);
 
-      const sharpInstance = sharp(req.file.path);
-      const meta = await sharpInstance.metadata();
+      const meta = await sharp(req.file.path).metadata();
+      const animated = (meta.pages || 1) > 1;
 
       // Resize if larger than 2400px on either dimension
       let resizeOpts = {};
@@ -960,7 +1133,9 @@ router.post('/upload', upload.single('image'), async (req, res) => {
         resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
       }
 
-      await sharpInstance
+      // animated:true keeps GIF frames when converting to WebP
+      await sharp(req.file.path, { animated })
+        .rotate()
         .resize(resizeOpts)
         .webp({ quality: 82 })
         .toFile(finalPath);
@@ -1042,8 +1217,18 @@ router.post('/:id/optimize', async (req, res) => {
     }
 
     const originalSize = fs.statSync(sourcePath).size;
-    let sharpInstance = sharp(sourcePath);
-    const meta = await sharpInstance.metadata();
+    const targetFormat = format || 'webp';
+
+    // Animated sources keep their frames only in WebP - any other target
+    // would silently flatten them to the first frame.
+    const meta = await sharp(sourcePath).metadata();
+    const isAnimated = (meta.pages || 1) > 1;
+    if (isAnimated && targetFormat !== 'webp') {
+      return res.status(400).json({ error: 'This is an animated image - convert it to WebP to keep the animation (other formats keep only the first frame).' });
+    }
+
+    // .rotate() with no args applies EXIF orientation so the output isn't sideways
+    let sharpInstance = sharp(sourcePath, { animated: isAnimated }).rotate();
 
     // Resize if requested
     const resizeOpts = {};
@@ -1058,7 +1243,6 @@ router.post('/:id/optimize', async (req, res) => {
     }
 
     // Determine output format and extension
-    const targetFormat = format || 'webp';
     let newExt, newMime;
     switch (targetFormat) {
       case 'webp':
@@ -1097,19 +1281,30 @@ router.post('/:id/optimize', async (req, res) => {
     const newMeta = await sharp(newFullPath).metadata();
     const newSize = fs.statSync(newFullPath).size;
 
-    // If format changed, delete old file (if different path)
-    const oldFullPath = localPathFor(image.file_path);
-    if (oldFullPath !== newFullPath && fs.existsSync(oldFullPath)) {
-      fs.unlinkSync(oldFullPath);
-    }
-
-    // Push to GitHub CDN
+    // Push to GitHub CDN. A same-format optimize overwrites an existing repo
+    // file, and the Contents API 422s an update without the current blob sha -
+    // fetch it first (resolves null for brand-new paths).
     const newCdnUrl = buildCdnUrl(newRelPath);
     const fileBuffer = fs.readFileSync(newFullPath);
-    const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Optimize image: ${newFilename}`);
+    const existingSha = await getGitHubFileSha(newRelPath);
+    const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Optimize image: ${newFilename}`, existingSha);
 
-    // If file changed names, also delete old file from GitHub
-    if (image.file_path !== newRelPath) {
+    const pathChanged = image.file_path !== newRelPath;
+    if (pathChanged && !ghResult.pushed) {
+      // Never strand the image: drop the unpublished converted file and keep
+      // the old format, path, and URL untouched.
+      try { fs.unlinkSync(newFullPath); } catch (e) { /* ignore */ }
+      return res.status(502).json({
+        error: 'Conversion aborted - the converted file could not be published to the CDN, so the image keeps its current format and URL. ' + describePushFailure(ghResult.reason),
+      });
+    }
+
+    // Only after a confirmed publish do we retire the old file
+    if (pathChanged) {
+      const oldFullPath = localPathFor(image.file_path);
+      if (fs.existsSync(oldFullPath)) {
+        try { fs.unlinkSync(oldFullPath); } catch (e) { /* ignore */ }
+      }
       try {
         const oldSha = await getGitHubFileSha(image.file_path);
         if (oldSha) {
@@ -1138,6 +1333,7 @@ router.post('/:id/optimize', async (req, res) => {
       new_width: newMeta.width,
       new_height: newMeta.height,
       cdn_pushed: ghResult.pushed || false,
+      cdn_error: ghResult.pushed ? null : describePushFailure(ghResult.reason),
       cdn_url: newCdnUrl,
     });
   } catch (error) {
@@ -1147,7 +1343,7 @@ router.post('/:id/optimize', async (req, res) => {
 });
 
 // Preview optimization (returns estimated size without saving)
-router.post('/:id/optimize-preview', async (req, res) => {
+router.post('/:id/optimize-preview', previewLimiter, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
     if (result.rows.length === 0) {
@@ -1175,7 +1371,14 @@ router.post('/:id/optimize-preview', async (req, res) => {
     }
 
     const originalSize = fs.statSync(sourcePath).size;
-    let sharpInstance = sharp(sourcePath);
+    const previewMeta = await sharp(sourcePath).metadata();
+    const isAnimated = (previewMeta.pages || 1) > 1;
+    if (isAnimated && (format || 'webp') !== 'webp') {
+      // Mirror the SVG sentinel: the client quietly skips the preview
+      return res.json({ original_size: originalSize, estimated_size: originalSize, savings_pct: 0, error: 'ANIMATED' });
+    }
+    // .rotate() with no args applies EXIF orientation so the output isn't sideways
+    let sharpInstance = sharp(sourcePath, { animated: isAnimated }).rotate();
 
     const resizeOpts = {};
     if (maxW > 0) resizeOpts.width = maxW;
@@ -1211,6 +1414,104 @@ router.post('/:id/optimize-preview', async (req, res) => {
   }
 });
 
+// Bulk AI: write missing SEO text for selected images. Fills only fields
+// that are empty (existing text is never overwritten here) and tolerates
+// per-image failures. Capped per invocation to bound cost and request time;
+// its own tight limiter since each image is a paid vision call.
+const bulkAnalyzeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  // Full-page form POST, so flash + redirect rather than the JSON 429 the
+  // fetch endpoints use.
+  handler: (req, res) => {
+    req.session.errorMessage = 'Bulk AI is rate-limited. Wait a few minutes and try again.';
+    res.redirect('/images');
+  },
+});
+const BULK_ANALYZE_CAP = 10;
+router.post('/bulk-analyze', bulkAnalyzeLimiter, async (req, res) => {
+  try {
+    const { image_ids } = req.body;
+    if (!image_ids) {
+      req.session.errorMessage = 'No images selected';
+      return res.redirect('/images');
+    }
+    const allIds = Array.isArray(image_ids) ? image_ids : [image_ids];
+    const ids = allIds.slice(0, BULK_ANALYZE_CAP);
+
+    let filled = 0;
+    let skippedComplete = 0;
+    let failedCount = 0;
+    let firstError = null;
+
+    for (const id of ids) {
+      try {
+        const result = await db.query('SELECT * FROM images WHERE id = $1', [id]);
+        if (result.rows.length === 0) continue;
+        const image = result.rows[0];
+
+        const missing = {
+          alt_text: !(image.alt_text || '').trim(),
+          title: !(image.title || '').trim(),
+          description: !(image.description || '').trim(),
+          tags: !(image.tags && image.tags.length),
+        };
+        if (!missing.alt_text && !missing.title && !missing.description && !missing.tags) {
+          skippedComplete++;
+          continue;
+        }
+
+        const imagePath = localPathFor(image.file_path);
+        if (!fs.existsSync(imagePath)) {
+          if (!image.cdn_url) throw new Error('file missing and no CDN URL');
+          await fetchImageFromCdn(image);
+        }
+        const imageBuffer = fs.readFileSync(imagePath);
+        const analysis = await analyzeImageWithAI(imageBuffer, image.mime_type, image.filename);
+
+        await db.query(
+          `UPDATE images SET
+             alt_text = CASE WHEN $1 THEN $2 ELSE alt_text END,
+             title = CASE WHEN $3 THEN $4 ELSE title END,
+             description = CASE WHEN $5 THEN $6 ELSE description END,
+             tags = CASE WHEN $7 THEN $8::text[] ELSE tags END,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE id = $9`,
+          [missing.alt_text, analysis.alt_text || '',
+           missing.title, analysis.title || '',
+           missing.description, analysis.description || '',
+           missing.tags, Array.isArray(analysis.tags) ? analysis.tags : [],
+           id]
+        );
+        filled++;
+      } catch (err) {
+        console.error('Bulk analyze error for image %s:', id, err.message);
+        failedCount++;
+        if (!firstError) firstError = err.message;
+      }
+    }
+
+    let msg = `AI wrote SEO text for ${filled} image${filled !== 1 ? 's' : ''}`;
+    if (skippedComplete > 0) msg += `. ${skippedComplete} already had every field filled`;
+    if (allIds.length > BULK_ANALYZE_CAP) msg += `. Only the first ${BULK_ANALYZE_CAP} selected images were processed - run it again for the rest`;
+    if (failedCount > 0) msg += `. ${failedCount} failed: ${firstError}`;
+    if (filled === 0 && failedCount > 0) {
+      req.session.errorMessage = msg;
+    } else {
+      req.session.successMessage = msg;
+    }
+    // return_to only ever points back into the library; rebuild the target
+    // from a constant path so request input is confined to the query string.
+    const rt = typeof req.body.return_to === 'string' ? req.body.return_to : '';
+    const folderMatch = rt.match(/^\/images\?folder=([\w-]+)$/);
+    res.redirect(folderMatch ? '/images?folder=' + encodeURIComponent(folderMatch[1]) : '/images');
+  } catch (error) {
+    console.error('Bulk analyze error:', error);
+    req.session.errorMessage = 'Bulk AI failed: ' + error.message;
+    res.redirect('/images');
+  }
+});
+
 // Bulk optimize multiple images
 router.post('/bulk-optimize', async (req, res) => {
   try {
@@ -1225,6 +1526,9 @@ router.post('/bulk-optimize', async (req, res) => {
     const qualityInt = Math.min(100, Math.max(1, parseInt(quality) || 82));
     let totalSavings = 0;
     let optimizedCount = 0;
+    let skippedAnimated = 0;
+    let cdnFailed = 0;
+    let cdnFailReason = null;
 
     for (const id of ids) {
       try {
@@ -1240,8 +1544,15 @@ router.post('/bulk-optimize', async (req, res) => {
         }
 
         const originalSize = fs.statSync(sourcePath).size;
-        let sharpInstance = sharp(sourcePath);
-        const meta = await sharpInstance.metadata();
+        const meta = await sharp(sourcePath).metadata();
+        const isAnimated = (meta.pages || 1) > 1;
+        if (isAnimated && targetFormat !== 'webp') {
+          // Converting an animated image to this format would flatten it
+          skippedAnimated++;
+          continue;
+        }
+        // .rotate() with no args applies EXIF orientation so the output isn't sideways
+        let sharpInstance = sharp(sourcePath, { animated: isAnimated }).rotate();
 
         // Resize large images
         if (meta.width > 2400 || meta.height > 2400) {
@@ -1270,16 +1581,34 @@ router.post('/bulk-optimize', async (req, res) => {
         const newMeta = await sharp(newFullPath).metadata();
         const newSize = fs.statSync(newFullPath).size;
 
-        // Delete old file if name changed
-        const oldFullPath = localPathFor(image.file_path);
-        if (oldFullPath !== newFullPath && fs.existsSync(oldFullPath)) {
-          fs.unlinkSync(oldFullPath);
-        }
-
-        // Push to CDN
+        // Push to CDN first (sha needed when overwriting the same path)
         const newCdnUrl = buildCdnUrl(newRelPath);
         const fileBuffer = fs.readFileSync(newFullPath);
-        await pushToGitHub(newRelPath, fileBuffer, `Bulk optimize: ${newFilename}`);
+        const existingSha = await getGitHubFileSha(newRelPath);
+        const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Bulk optimize: ${newFilename}`, existingSha);
+
+        const pathChanged = image.file_path !== newRelPath;
+        if (!ghResult.pushed) {
+          cdnFailed++;
+          cdnFailReason = cdnFailReason || ghResult.reason;
+          if (pathChanged) {
+            // Keep the old format/URL rather than strand the image
+            try { fs.unlinkSync(newFullPath); } catch (e) { /* ignore */ }
+            continue;
+          }
+        }
+
+        // Retire the old file only after a confirmed publish
+        if (pathChanged) {
+          const oldFullPath = localPathFor(image.file_path);
+          if (fs.existsSync(oldFullPath)) {
+            try { fs.unlinkSync(oldFullPath); } catch (e) { /* ignore */ }
+          }
+          try {
+            const oldSha = await getGitHubFileSha(image.file_path);
+            if (oldSha) await deleteFromGitHub(image.file_path, oldSha, `Remove old image: ${image.filename}`);
+          } catch (e) { /* ignore cleanup errors */ }
+        }
 
         // Update DB
         await db.query(
@@ -1298,9 +1627,19 @@ router.post('/bulk-optimize', async (req, res) => {
       ? (totalSavings / (1024 * 1024)).toFixed(1) + ' MB'
       : (totalSavings / 1024).toFixed(1) + ' KB';
 
-    req.session.successMessage = `${optimizedCount} image${optimizedCount !== 1 ? 's' : ''} optimized to ${targetFormat.toUpperCase()}. Total savings: ${savedFormatted}`;
-    const redirectTarget = isSafeRedirectPath(req.body.return_to) ? req.body.return_to : '/images';
-    res.redirect(redirectTarget);
+    let bulkMsg = `${optimizedCount} image${optimizedCount !== 1 ? 's' : ''} optimized to ${targetFormat.toUpperCase()}. Total savings: ${savedFormatted}`;
+    if (skippedAnimated > 0) {
+      bulkMsg += `. ${skippedAnimated} animated image${skippedAnimated !== 1 ? 's' : ''} skipped - convert those to WebP to keep the animation`;
+    }
+    if (cdnFailed > 0) {
+      bulkMsg += `. Warning: ${cdnFailed} not pushed to CDN - ${describePushFailure(cdnFailReason)}`;
+    }
+    req.session.successMessage = bulkMsg;
+    // return_to only ever points back into the library; rebuild the target
+    // from a constant path so request input is confined to the query string.
+    const rt = typeof req.body.return_to === 'string' ? req.body.return_to : '';
+    const folderMatch = rt.match(/^\/images\?folder=([\w-]+)$/);
+    res.redirect(folderMatch ? '/images?folder=' + encodeURIComponent(folderMatch[1]) : '/images');
   } catch (error) {
     console.error('Bulk optimize error:', error);
     req.session.errorMessage = 'Bulk optimization failed: ' + error.message;
@@ -1310,15 +1649,49 @@ router.post('/bulk-optimize', async (req, res) => {
 
 // ==================== AI IMAGE ANALYSIS ====================
 
+// Model is env-configurable so a retired ID needs a config change, not a
+// deploy. claude-sonnet-5 is the current Sonnet-tier alias (same tier as the
+// previously hardcoded Sonnet 4.5 snapshot).
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
+
+// Forced tool call: the model must "call" this tool, so the reply arrives as
+// a schema-validated tool_use block instead of free text that needs parsing.
+const SEO_TOOL = {
+  name: 'record_image_seo',
+  description: 'Record the SEO metadata for the analyzed image.',
+  strict: true,
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['alt_text', 'title', 'description', 'tags'],
+    properties: {
+      alt_text: {
+        type: 'string',
+        description: 'Concise descriptive alt text for accessibility and SEO, 60-125 characters. Describe what the image shows naturally with relevant keywords.',
+      },
+      title: {
+        type: 'string',
+        description: 'A clear, keyword-rich title for the image, suitable as a tooltip and for AI crawlers.',
+      },
+      description: {
+        type: 'string',
+        description: 'A detailed 1-2 sentence description for Schema.org ImageObject markup. Mention the context, subject matter, and relevance to digital marketing services.',
+      },
+      tags: {
+        type: 'array',
+        items: { type: 'string' },
+        description: '4-8 lowercase tags for categorization.',
+      },
+    },
+  },
+};
+
 // Helper: call Anthropic Claude Vision API to analyze an image
 async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     throw new Error('ANTHROPIC_API_KEY is not configured. Add it to your environment variables.');
   }
-
-  // Convert image to base64
-  const base64Image = imageBuffer.toString('base64');
 
   // Map MIME types for Anthropic API
   const supportedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -1329,9 +1702,30 @@ async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
     return analyzeImageWithAI(converted, 'image/png', filename);
   }
 
+  // Downscale before sending: the API rejects images over ~5MB / 8000px, and
+  // beyond ~1568px on the long edge extra pixels only add cost, not analysis
+  // accuracy. WebP keeps transparency, and sharp reads the actual bytes, so a
+  // stale DB mime_type doesn't matter. If sharp can't decode, send as-is.
+  try {
+    imageBuffer = await sharp(imageBuffer)
+      .rotate()
+      .resize({ width: 1568, height: 1568, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+    mediaType = 'image/webp';
+  } catch (e) {
+    console.error('AI analyze: downscale failed, sending original bytes:', e.message);
+  }
+
+  const base64Image = imageBuffer.toString('base64');
+
   const requestBody = JSON.stringify({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 1024,
+    model: ANTHROPIC_MODEL,
+    // Roomy budget: on current models adaptive thinking shares max_tokens
+    // with the tool call, so a tight cap could truncate mid-analysis.
+    max_tokens: 4096,
+    tools: [SEO_TOOL],
+    tool_choice: { type: 'tool', name: SEO_TOOL.name },
     messages: [
       {
         role: 'user',
@@ -1346,26 +1740,44 @@ async function analyzeImageWithAI(imageBuffer, mimeType, filename) {
           },
           {
             type: 'text',
-            text: `Analyze this image for SEO optimization on a digital marketing agency website (WordsThatSells.website). The filename is: "${filename}"
+            text: `Analyze this image for SEO on a digital marketing agency website (WordsThatSells.website). The filename is: "${filename}"
 
-Return ONLY valid JSON (no markdown, no code fences) with these exact fields:
-{
-  "alt_text": "Concise descriptive alt text for accessibility and SEO, 60-125 characters. Describe what the image shows naturally with relevant keywords.",
-  "title": "A clear, keyword-rich title for the image, suitable as a tooltip and for AI crawlers.",
-  "description": "A detailed 1-2 sentence description for Schema.org ImageObject markup. Mention the context, subject matter, and relevance to digital marketing services.",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
-}
-
-Tags should be lowercase, relevant for categorization. Include 4-8 tags.
-Focus on: what the image depicts, its purpose on a marketing website, and relevant SEO keywords.`
+Focus on: what the image depicts, its purpose on a marketing website, and relevant SEO keywords. Record the metadata with the ${SEO_TOOL.name} tool.`
           }
         ]
       }
     ]
   });
 
+  // One automatic retry for transient failures (network, timeout, rate limit,
+  // 5xx, truncation); permanent failures (bad key, refusal) surface at once.
+  let lastErr;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      return await requestSeoAnalysis(requestBody, apiKey);
+    } catch (err) {
+      lastErr = err;
+      if (!err.retryable || attempt === 2) break;
+      await sleep(2000);
+    }
+  }
+  throw lastErr;
+}
+
+// Build a user-facing error: `message` is shown in the status box, `detail`
+// keeps the raw cause for the collapsible "technical details", `retryable`
+// drives the single automatic retry above.
+function aiError(message, detail, retryable) {
+  const err = new Error(message);
+  err.detail = detail || '';
+  err.retryable = !!retryable;
+  return err;
+}
+
+// One POST /v1/messages attempt; resolves with the validated tool input.
+function requestSeoAnalysis(requestBody, apiKey) {
   return new Promise((resolve, reject) => {
-    const options = {
+    const req = https.request({
       hostname: 'api.anthropic.com',
       port: 443,
       path: '/v1/messages',
@@ -1376,46 +1788,63 @@ Focus on: what the image depicts, its purpose on a marketing website, and releva
         'anthropic-version': '2023-06-01',
         'Content-Length': Buffer.byteLength(requestBody),
       },
-    };
-
-    const req = https.request(options, (res) => {
+    }, (res) => {
       let data = '';
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
+        let body;
         try {
-          const response = JSON.parse(data);
-          if (response.error) {
-            reject(new Error(response.error.message || 'Anthropic API error'));
-            return;
-          }
-
-          // Extract text content from response
-          const textBlock = response.content && response.content.find(b => b.type === 'text');
-          if (!textBlock || !textBlock.text) {
-            reject(new Error('No text response from AI'));
-            return;
-          }
-
-          // Parse JSON from the response (strip any markdown fences if present)
-          let jsonText = textBlock.text.trim();
-          jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
-          const result = JSON.parse(jsonText);
-          resolve(result);
+          body = JSON.parse(data);
         } catch (e) {
-          reject(new Error('Failed to parse AI response: ' + e.message));
+          return reject(aiError('The AI service returned an unreadable response. Try again.', data.slice(0, 200), true));
         }
+
+        const apiDetail = body.error && body.error.message;
+        if (res.statusCode === 401 || res.statusCode === 403) {
+          return reject(aiError('The AI service rejected the credentials. Check ANTHROPIC_API_KEY in the environment settings.', apiDetail));
+        }
+        if (res.statusCode === 404) {
+          return reject(aiError(`The configured AI model "${ANTHROPIC_MODEL}" was not found - it may have been retired. Set ANTHROPIC_MODEL to a current model.`, apiDetail));
+        }
+        if (res.statusCode === 429) {
+          return reject(aiError('The AI service is rate-limited right now. Wait a minute and try again.', apiDetail, true));
+        }
+        if (res.statusCode === 413) {
+          return reject(aiError('The image is too large for the AI service even after resizing.', apiDetail));
+        }
+        if (res.statusCode >= 500) {
+          return reject(aiError('The AI service is temporarily unavailable. Try again shortly.', apiDetail, true));
+        }
+        if (res.statusCode !== 200 || body.error) {
+          return reject(aiError('The AI service rejected the request.', apiDetail || `HTTP ${res.statusCode}`));
+        }
+
+        if (body.stop_reason === 'refusal') {
+          return reject(aiError('The AI declined to analyze this image.', body.stop_details && body.stop_details.explanation));
+        }
+        if (body.stop_reason === 'max_tokens') {
+          return reject(aiError('The AI response was cut off before it finished. Try again.', 'stop_reason=max_tokens', true));
+        }
+
+        const toolBlock = (body.content || []).find(b => b.type === 'tool_use' && b.name === SEO_TOOL.name);
+        const input = toolBlock && toolBlock.input;
+        if (!input || typeof input.alt_text !== 'string' || typeof input.title !== 'string' ||
+            typeof input.description !== 'string' || !Array.isArray(input.tags)) {
+          return reject(aiError('The AI returned an unexpected response format. Try again.', 'content types: ' + (body.content || []).map(b => b.type).join(', '), true));
+        }
+        resolve(input);
       });
     });
 
-    req.on('error', (e) => reject(new Error('API request failed: ' + e.message)));
-    req.setTimeout(30000, () => { req.destroy(); reject(new Error('API request timed out')); });
+    req.on('error', (e) => reject(aiError('Could not reach the AI service. Check the network and try again.', e.message, true)));
+    req.setTimeout(120000, () => { req.destroy(); reject(aiError('AI analysis timed out. Try again.', 'timeout after 120s', true)); });
     req.write(requestBody);
     req.end();
   });
 }
 
 // Analyze existing image (from detail page)
-router.post('/:id/analyze', async (req, res) => {
+router.post('/:id/analyze', analyzeLimiter, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM images WHERE id = $1', [req.params.id]);
     if (result.rows.length === 0) {
@@ -1439,6 +1868,18 @@ router.post('/:id/analyze', async (req, res) => {
     } else {
       return res.status(404).json({ error: 'Image file not found on disk and no CDN URL available' });
     }
+
+    // CDN re-hydration can hand back an error page or truncated bytes; make
+    // sure this is a decodable image before shipping it to the API.
+    try {
+      await sharp(imageBuffer).metadata();
+    } catch (probeErr) {
+      return res.status(422).json({
+        error: 'The stored image file could not be read - it may be corrupted or missing from the CDN. Try re-uploading the image.',
+        detail: probeErr.message,
+      });
+    }
+
     const analysis = await analyzeImageWithAI(imageBuffer, image.mime_type, image.filename);
 
     res.json({
@@ -1450,12 +1891,12 @@ router.post('/:id/analyze', async (req, res) => {
     });
   } catch (error) {
     console.error('Image analysis error:', error);
-    res.status(500).json({ error: error.message || 'Failed to analyze image' });
+    res.status(500).json({ error: error.message || 'Failed to analyze image', detail: error.detail || undefined });
   }
 });
 
 // Analyze image during upload (before saving) - accepts file via multipart
-router.post('/analyze-upload', upload.single('image'), async (req, res) => {
+router.post('/analyze-upload', analyzeLimiter, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No image provided' });
@@ -1507,7 +1948,7 @@ router.post('/analyze-upload', upload.single('image'), async (req, res) => {
         fs.unlinkSync(resolvedPath);
       }
     }
-    res.status(500).json({ error: error.message || 'Failed to analyze image' });
+    res.status(500).json({ error: error.message || 'Failed to analyze image', detail: error.detail || undefined });
   }
 });
 
@@ -1533,12 +1974,16 @@ router.get('/:id', async (req, res) => {
       if (folderResult.rows.length > 0) currentFolderName = folderResult.rows[0].name;
     }
 
+    // Where this image is used, so URL-changing actions can be judged safely
+    const references = await countImageReferences(image);
+
     res.render('images/detail', {
       title: (image.title || image.filename) + ' - Image Library',
       image,
       currentPage: 'images',
       folders,
       currentFolderName,
+      references,
     });
   } catch (error) {
     console.error('Image detail error:', error);
@@ -1609,29 +2054,83 @@ router.post('/:id/rename', async (req, res) => {
     }
 
     const image = result.rows[0];
-    const oldFullPath = localPathFor(image.file_path);
     const ext = path.extname(image.filename);
     const slugged = slugifyFilename(new_filename + ext);
+    if (!slugged) {
+      req.session.errorMessage = 'Filename must contain letters or numbers';
+      return res.redirect('/images/' + req.params.id);
+    }
     const newFilename = slugged + ext;
-
-    // Build new paths
     const dir = path.dirname(image.file_path);
     const newRelPath = path.join(dir, newFilename);
-    const newFullPath = localPathFor(newRelPath);
 
-    // Rename on filesystem
-    if (fs.existsSync(oldFullPath)) {
-      fs.renameSync(oldFullPath, newFullPath);
+    if (newRelPath === image.file_path) {
+      req.session.successMessage = 'Filename unchanged';
+      return res.redirect('/images/' + req.params.id);
     }
 
-    const newCdnUrl = buildCdnUrl(newRelPath);
+    // Refuse to clobber another image (checks DB, repo, and local disk)
+    if (await isPathTaken(newRelPath, image.id)) {
+      req.session.errorMessage = `A file named ${newFilename} already exists - pick another name`;
+      return res.redirect('/images/' + req.params.id);
+    }
 
+    // Get the bytes; the ephemeral disk may have lost them, so fall back to
+    // re-fetching from the CDN.
+    const oldFullPath = localPathFor(image.file_path);
+    if (!fs.existsSync(oldFullPath)) {
+      if (!image.cdn_url) {
+        req.session.errorMessage = 'Image file not found on disk and no CDN URL to recover it from';
+        return res.redirect('/images/' + req.params.id);
+      }
+      try {
+        await fetchImageFromCdn(image);
+      } catch (cdnErr) {
+        req.session.errorMessage = 'Image file not found on disk and could not be fetched from CDN: ' + cdnErr.message;
+        return res.redirect('/images/' + req.params.id);
+      }
+    }
+    const fileBuffer = fs.readFileSync(oldFullPath);
+
+    // Publish under the new name BEFORE touching anything else - on failure
+    // the image stays fully intact under its old name.
+    const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Rename image: ${image.filename} -> ${newFilename}`);
+    if (!ghResult.pushed) {
+      req.session.errorMessage = 'Rename aborted - the new filename could not be published to the CDN, so nothing was changed. ' + describePushFailure(ghResult.reason);
+      return res.redirect('/images/' + req.params.id);
+    }
+
+    // Retire the old repo file (best-effort; the new file is already live)
+    let oldRemoved = false;
+    try {
+      const oldSha = await getGitHubFileSha(image.file_path);
+      if (oldSha) {
+        const del = await deleteFromGitHub(image.file_path, oldSha, `Remove old name: ${image.filename}`);
+        oldRemoved = Boolean(del && del.deleted);
+      }
+    } catch (e) { /* a stale old file is harmless */ }
+
+    // Local rename (ephemeral disk; failures don't matter)
+    try {
+      const newFullPath = localPathFor(newRelPath);
+      const destDirLocal = path.dirname(newFullPath);
+      if (!fs.existsSync(destDirLocal)) fs.mkdirSync(destDirLocal, { recursive: true });
+      fs.renameSync(oldFullPath, newFullPath);
+    } catch (e) { /* ignore */ }
+
+    const newCdnUrl = buildCdnUrl(newRelPath);
     await db.query(
       `UPDATE images SET filename = $1, file_path = $2, cdn_url = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4`,
       [newFilename, newRelPath, newCdnUrl, req.params.id]
     );
 
-    req.session.successMessage = `Image renamed to ${newFilename}`;
+    let msg = `Image renamed to ${newFilename} and published to the CDN`;
+    if (!oldRemoved) msg += '. Note: the old file could not be removed from the repo';
+    const refs = await countImageReferences(image);
+    if (refs.total > 0) {
+      msg += `. Warning: the old URL is still referenced by ${describeReferences(refs)} - update those to the new URL`;
+    }
+    req.session.successMessage = msg;
     res.redirect('/images/' + req.params.id);
   } catch (error) {
     console.error('Rename error:', error);
@@ -1664,13 +2163,18 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
 
     // Determine where the file should go (validate paths to prevent traversal)
     const fullPath = localPathFor(image.file_path);
-    assertPathWithin(req.file.path, UPLOAD_TEMP_DIR);
+    // Rebuild the temp path from its basename under the fixed multer root
+    // (multer stores flat, random-named files there). This breaks the taint
+    // on req.file.path in a way static analysis recognizes; assertPathWithin
+    // keeps the runtime guarantee.
+    const uploadedPath = path.join(UPLOAD_TEMP_DIR, path.basename(req.file.path));
+    assertPathWithin(uploadedPath, UPLOAD_TEMP_DIR);
     const destDir = path.dirname(fullPath);
     if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 
     if (isSvg || !optimize) {
       // Save as-is
-      fs.copyFileSync(req.file.path, fullPath);
+      fs.copyFileSync(uploadedPath, fullPath);
       fileSize = fs.statSync(fullPath).size;
       mimeType = req.file.mimetype;
 
@@ -1682,75 +2186,51 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
         } catch (e) { /* ignore */ }
       }
     } else {
-      // If the existing file is WebP, optimize to WebP
-      // If it's a different format, convert to WebP and update the filename/path
-      const isWebp = ext.toLowerCase() === '.webp';
-
-      if (isWebp) {
-        // Replace in-place as WebP
-        const sharpInstance = sharp(req.file.path);
-        const meta = await sharpInstance.metadata();
+      // Recompress in place, keeping the image's current format and URL -
+      // the UI promises "the CDN URL stays the same". GIFs are saved as-is
+      // because re-encoding would flatten the animation.
+      const fmt = ext.toLowerCase();
+      if (fmt === '.gif') {
+        fs.copyFileSync(uploadedPath, fullPath);
+        fileSize = fs.statSync(fullPath).size;
+        mimeType = 'image/gif';
+        try {
+          const meta = await sharp(fullPath).metadata();
+          width = meta.width;
+          height = meta.height;
+        } catch (e) { /* ignore */ }
+      } else {
+        const meta = await sharp(uploadedPath).metadata();
         let resizeOpts = {};
         if (meta.width > 2400 || meta.height > 2400) {
           resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
         }
-        await sharpInstance.resize(resizeOpts).webp({ quality: 82 }).toFile(fullPath);
+        // Only WebP can carry the source's animation; other targets
+        // inherently flatten to one frame.
+        const animatedSrc = (meta.pages || 1) > 1 && fmt === '.webp';
+        let inst = sharp(uploadedPath, { animated: animatedSrc }).rotate().resize(resizeOpts);
+        switch (fmt) {
+          case '.jpg':
+          case '.jpeg':
+            inst = inst.jpeg({ quality: 82, mozjpeg: true }); mimeType = 'image/jpeg'; break;
+          case '.png':
+            inst = inst.png({ compressionLevel: 9 }); mimeType = 'image/png'; break;
+          case '.avif':
+            inst = inst.avif({ quality: 60 }); mimeType = 'image/avif'; break;
+          case '.webp':
+          default:
+            inst = inst.webp({ quality: 82 }); mimeType = 'image/webp'; break;
+        }
+        await inst.toFile(fullPath);
         const optimizedMeta = await sharp(fullPath).metadata();
         width = optimizedMeta.width;
         height = optimizedMeta.height;
         fileSize = fs.statSync(fullPath).size;
-        mimeType = 'image/webp';
-      } else {
-        // Convert to WebP - update filename and path
-        const baseName = path.basename(image.filename, ext);
-        const newFilename = baseName + '.webp';
-        const dir = path.dirname(image.file_path);
-        const newRelPath = path.join(dir, newFilename);
-        const newFullPath = localPathFor(newRelPath);
-
-        const sharpInstance = sharp(req.file.path);
-        const meta = await sharpInstance.metadata();
-        let resizeOpts = {};
-        if (meta.width > 2400 || meta.height > 2400) {
-          resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
-        }
-        await sharpInstance.resize(resizeOpts).webp({ quality: 82 }).toFile(newFullPath);
-        const optimizedMeta = await sharp(newFullPath).metadata();
-        width = optimizedMeta.width;
-        height = optimizedMeta.height;
-        fileSize = fs.statSync(newFullPath).size;
-        mimeType = 'image/webp';
-
-        // Update DB with new filename/path
-        const newCdnUrl = buildCdnUrl(newRelPath);
-        await db.query(
-          `UPDATE images SET filename = $1, file_path = $2, cdn_url = $3 WHERE id = $4`,
-          [newFilename, newRelPath, newCdnUrl, req.params.id]
-        );
-
-        // Push new file to GitHub
-        const fileBuffer = fs.readFileSync(newFullPath);
-        const ghResult = await pushToGitHub(newRelPath, fileBuffer, `Re-upload image: ${newFilename}`);
-
-        // Clean up temp file (validated path)
-        cleanupTempFile(req.file.path);
-
-        // Update file metadata in DB
-        await db.query(
-          `UPDATE images SET file_size = $1, mime_type = $2, width = $3, height = $4, original_filename = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6`,
-          [fileSize, mimeType, width, height, req.file.originalname, req.params.id]
-        );
-
-        let msg = 'Image replaced successfully (converted to WebP)';
-        if (ghResult.pushed) msg += ' and pushed to CDN';
-        else msg += '. Warning: ' + describePushFailure(ghResult.reason);
-        req.session.successMessage = msg;
-        return res.redirect('/images/' + req.params.id);
       }
     }
 
     // Clean up temp file (validated path)
-    cleanupTempFile(req.file.path);
+    cleanupTempFile(uploadedPath);
 
     // Push to GitHub (get existing SHA first for update)
     const sha = await getGitHubFileSha(image.file_path);
@@ -1818,13 +2298,25 @@ router.post('/:id/delete', async (req, res) => {
     // Soft delete: mark as archived
     await db.query("UPDATE images SET status = 'archived', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [req.params.id]);
 
-    req.session.successMessage = `Image "${image.filename}" archived`;
+    req.session.successMessage = `Image "${image.filename}" archived - find it under the Archived filter to restore it`;
     res.redirect('/images');
   } catch (error) {
     console.error('Archive image error:', error);
     req.session.errorMessage = 'Failed to archive image';
     res.redirect('/images');
   }
+});
+
+// Restore an archived image back into the library
+router.post('/:id/restore', async (req, res) => {
+  try {
+    await db.query("UPDATE images SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [req.params.id]);
+    req.session.successMessage = 'Image restored to the library';
+  } catch (error) {
+    console.error('Restore image error:', error);
+    req.session.errorMessage = 'Failed to restore image: ' + error.message;
+  }
+  res.redirect('/images?status=archived');
 });
 
 // Permanently delete image (removes the DB row, the local working copy, and the

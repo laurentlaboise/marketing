@@ -1053,7 +1053,7 @@ router.get('/form-templates', async (req, res) => {
   } catch (error) {
     console.error('Form templates list error:', error);
     req.session.errorMessage = 'Failed to load form templates';
-    res.redirect('/webdev');
+    res.redirect('/dashboard');
   }
 });
 
@@ -1460,6 +1460,24 @@ async function resolveButtonTarget(body) {
   return { page_url: resolvePageUrl(body), product_slug: null, product_name: null };
 }
 
+// Express 5 removed the res.redirect('back') magic string; recreate it by
+// extracting the local path from the Referer, falling back to the
+// form-templates page the form-buttons UI lives on.
+function redirectBack(req, res, fallback) {
+  let target = fallback;
+  const ref = req.get('referer');
+  if (ref) {
+    try {
+      const u = new URL(ref, `${req.protocol}://${req.get('host')}`);
+      // Reject protocol-relative paths (//evil.com) - browsers treat them as absolute
+      if (u.host === req.get('host') && !u.pathname.startsWith('//')) {
+        target = u.pathname + u.search;
+      }
+    } catch (e) { /* keep fallback */ }
+  }
+  res.redirect(target);
+}
+
 router.post('/form-buttons', async (req, res) => {
   try {
     const {
@@ -1469,7 +1487,7 @@ router.post('/form-buttons', async (req, res) => {
 
     if (!form_type || !button_label) {
       req.session.errorMessage = 'Form type and button label are required.';
-      return res.redirect('back');
+      return redirectBack(req, res, '/webdev/form-templates');
     }
 
     const target = await resolveButtonTarget(req.body);
@@ -1500,7 +1518,7 @@ router.post('/form-buttons', async (req, res) => {
     console.error('Add form button error:', error);
     req.session.errorMessage = 'Failed to add button. ' + (error.detail || error.message);
   }
-  res.redirect('back');
+  redirectBack(req, res, '/webdev/form-templates');
 });
 
 router.post('/form-buttons/:id', async (req, res) => {
@@ -1541,7 +1559,7 @@ router.post('/form-buttons/:id', async (req, res) => {
     console.error('Update form button error:', error);
     req.session.errorMessage = 'Failed to update button';
   }
-  res.redirect('back');
+  redirectBack(req, res, '/webdev/form-templates');
 });
 
 router.post('/form-buttons/:id/delete', async (req, res) => {
@@ -1551,7 +1569,7 @@ router.post('/form-buttons/:id/delete', async (req, res) => {
   } catch (error) {
     req.session.errorMessage = 'Failed to delete button';
   }
-  res.redirect('back');
+  redirectBack(req, res, '/webdev/form-templates');
 });
 
 // ==================== FORM SUBMISSIONS ====================
@@ -1582,7 +1600,7 @@ router.get('/submissions', async (req, res) => {
   } catch (error) {
     console.error('Submissions list error:', error);
     req.session.errorMessage = 'Failed to load submissions';
-    res.redirect('/webdev');
+    res.redirect('/dashboard');
   }
 });
 

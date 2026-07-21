@@ -6,7 +6,8 @@
   /* Colors */
   --primary: #2085c8;
   --primary-dark: #1a6fa8;
-  --primary-light: #3a9ee0;
+  --primary-light: #3a9ee0; /* light text on the dark sidebar - NOT a background tint */
+  --primary-tint: #eaf4fb;  /* pale background for info boxes, active states */
   --secondary: #d62b83;
   --accent: #e85aaa;
 
@@ -1443,6 +1444,35 @@ body:not(.dashboard-layout) .admin-legal-footer {
   color: var(--gray-600);
 }
 
+/* Image library category badges */
+.status-badge.hero { background: #ede9fe; color: #5b21b6; }
+.status-badge.portfolio { background: #e0f2fe; color: #075985; }
+.status-badge.logos { background: #fef3c7; color: #92400e; }
+.status-badge.articles { background: #dcfce7; color: #166534; }
+.status-badge.og { background: #ffe4e6; color: #9f1239; }
+.status-badge.icons { background: #f3e8ff; color: #6b21a8; }
+.status-badge.general { background: var(--gray-100); color: var(--gray-600); }
+
+/* Keeps a form control reachable by keyboard while invisible - unlike
+   display:none, which removes it from the tab order entirely. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Ring the dropzone when a keyboard user tabs to its hidden file input */
+div:has(> input[type="file"].visually-hidden:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .status-badge.scheduled {
   background: rgba(59, 130, 246, 0.1);
   color: var(--info);
@@ -2769,8 +2799,8 @@ select.form-input {
 }
 
 .folder-nav-item.active {
-  background: var(--primary-light, #eff6ff);
-  color: var(--primary);
+  background: var(--primary-tint, #eff6ff);
+  color: var(--primary-dark);
   font-weight: 600;
 }
 
@@ -2803,7 +2833,8 @@ select.form-input {
   gap: 2px;
 }
 
-.folder-nav-item-wrapper:hover .folder-actions {
+.folder-nav-item-wrapper:hover .folder-actions,
+.folder-nav-item-wrapper:focus-within .folder-actions {
   display: flex;
 }
 
@@ -2894,7 +2925,7 @@ select.form-input {
   justify-content: space-between;
   padding: 10px 16px;
   margin-bottom: 16px;
-  background: var(--primary-light, #eff6ff);
+  background: var(--primary-tint, #eff6ff);
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: var(--radius);
   animation: slideDown 0.2s ease;
@@ -2952,6 +2983,7 @@ select.form-input {
 }
 
 .image-card:hover .image-select-grid,
+.image-card:focus-within .image-select-grid,
 .image-select-grid:has(input:checked) {
   opacity: 1;
 }
