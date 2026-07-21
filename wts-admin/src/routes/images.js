@@ -1946,13 +1946,15 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
 
     // Determine where the file should go (validate paths to prevent traversal)
     const fullPath = localPathFor(image.file_path);
-    assertPathWithin(req.file.path, UPLOAD_TEMP_DIR);
+    // Keep the RESOLVED validated path for all uses below - the raw
+    // req.file.path must not touch the filesystem again after this check.
+    const uploadedPath = assertPathWithin(req.file.path, UPLOAD_TEMP_DIR);
     const destDir = path.dirname(fullPath);
     if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 
     if (isSvg || !optimize) {
       // Save as-is
-      fs.copyFileSync(req.file.path, fullPath);
+      fs.copyFileSync(uploadedPath, fullPath);
       fileSize = fs.statSync(fullPath).size;
       mimeType = req.file.mimetype;
 
@@ -1969,7 +1971,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
       // because re-encoding would flatten the animation.
       const fmt = ext.toLowerCase();
       if (fmt === '.gif') {
-        fs.copyFileSync(req.file.path, fullPath);
+        fs.copyFileSync(uploadedPath, fullPath);
         fileSize = fs.statSync(fullPath).size;
         mimeType = 'image/gif';
         try {
@@ -1978,12 +1980,12 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
           height = meta.height;
         } catch (e) { /* ignore */ }
       } else {
-        const meta = await sharp(req.file.path).metadata();
+        const meta = await sharp(uploadedPath).metadata();
         let resizeOpts = {};
         if (meta.width > 2400 || meta.height > 2400) {
           resizeOpts = { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true };
         }
-        let inst = sharp(req.file.path).rotate().resize(resizeOpts);
+        let inst = sharp(uploadedPath).rotate().resize(resizeOpts);
         switch (fmt) {
           case '.jpg':
           case '.jpeg':
@@ -2005,7 +2007,7 @@ router.post('/:id/reupload', upload.single('image'), async (req, res) => {
     }
 
     // Clean up temp file (validated path)
-    cleanupTempFile(req.file.path);
+    cleanupTempFile(uploadedPath);
 
     // Push to GitHub (get existing SHA first for update)
     const sha = await getGitHubFileSha(image.file_path);
