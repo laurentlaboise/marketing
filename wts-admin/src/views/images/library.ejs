@@ -133,6 +133,9 @@
               <button type="button" class="btn btn-sm btn-secondary" onclick="openBulkOptimizeModal()" style="background: var(--success); color: white; border-color: var(--success);">
                 <i class="fas fa-compress-arrows-alt"></i> Optimize
               </button>
+              <button type="button" class="btn btn-sm btn-primary" onclick="submitBulkAnalyze()">
+                <i class="fas fa-robot"></i> AI: Fill Missing SEO
+              </button>
               <button type="button" class="btn btn-sm btn-secondary" onclick="clearSelection()">
                 <i class="fas fa-times"></i> Clear
               </button>
@@ -295,11 +298,27 @@
                 <i class="fas fa-chevron-left"></i>
               </a>
               <% } %>
-              <% for (let i = 1; i <= pagination.totalPages; i++) { %>
-              <a href="?page=<%= i %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>&status=<%= pagination.status || '' %>" class="pagination-btn <%= i === pagination.page ? 'active' : '' %>">
-                <%= i %>
-              </a>
-              <% } %>
+              <%
+                // Windowed page list: first, last, current +/-2, with gaps -
+                // rendering every number overflowed on mobile for big libraries
+                const pageItems = [];
+                for (let i = 1; i <= pagination.totalPages; i++) {
+                  if (i === 1 || i === pagination.totalPages || Math.abs(i - pagination.page) <= 2) {
+                    pageItems.push(i);
+                  } else if (pageItems[pageItems.length - 1] !== '...') {
+                    pageItems.push('...');
+                  }
+                }
+              %>
+              <% pageItems.forEach(pi => { %>
+                <% if (pi === '...') { %>
+                <span class="pagination-btn" style="pointer-events: none; border-color: transparent;">&hellip;</span>
+                <% } else { %>
+                <a href="?page=<%= pi %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>&status=<%= pagination.status || '' %>" class="pagination-btn <%= pi === pagination.page ? 'active' : '' %>">
+                  <%= pi %>
+                </a>
+                <% } %>
+              <% }); %>
               <% if (pagination.page < pagination.totalPages) { %>
               <a href="?page=<%= pagination.page + 1 %>&search=<%= pagination.search || '' %>&category=<%= pagination.category || '' %>&folder=<%= pagination.folder || '' %>&view=<%= view %>&status=<%= pagination.status || '' %>" class="pagination-btn">
                 <i class="fas fa-chevron-right"></i>
@@ -309,6 +328,20 @@
           </div>
           <% } %>
 
+        <% } else if (pagination.search || pagination.category || activeFolder) { %>
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <i class="fas fa-filter"></i>
+          </div>
+          <h3>No Images Match Your Filters</h3>
+          <p>
+            <% if (pagination.search) { %>Nothing matches "<%= pagination.search %>"<% } else { %>Nothing here<% } %>
+            <%= pagination.category ? ' in the ' + pagination.category + ' category' : '' %><%= activeFolder ? ' in this folder' : '' %><%= pagination.status === 'archived' ? ' among archived images' : '' %>.
+          </p>
+          <a href="/images<%= pagination.status === 'archived' ? '?status=archived' : '' %>" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Clear Filters
+          </a>
+        </div>
         <% } else if (pagination.status === 'archived') { %>
         <div class="empty-state">
           <div class="empty-state-icon">
@@ -485,6 +518,13 @@
     </div>
   </div>
 
+  <!-- Bulk AI (no options to pick, so no modal - confirm() + hidden form) -->
+  <form id="bulkAnalyzeForm" action="/images/bulk-analyze" method="POST" style="display: none;">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="return_to" value="/images<%= activeFolder ? '?folder=' + activeFolder : '' %>">
+    <div id="bulkAnalyzeInputs"></div>
+  </form>
+
   <!-- Copy URL toast -->
   <div id="copyToast" class="copy-toast">
     <i class="fas fa-check-circle"></i> CDN URL copied to clipboard
@@ -567,6 +607,24 @@ function openBulkOptimizeModal() {
   });
 
   document.getElementById('bulkOptimizeModal').style.display = 'flex';
+}
+
+function submitBulkAnalyze() {
+  const ids = getSelectedIds();
+  if (ids.length === 0) return;
+  const capped = ids.length > 10 ? ' Only the first 10 will be processed this run.' : '';
+  if (!confirm('Run AI on ' + ids.length + ' selected image(s)? Only empty SEO fields are filled - existing text is kept. This can take a minute or two.' + capped)) return;
+
+  const container = document.getElementById('bulkAnalyzeInputs');
+  container.innerHTML = '';
+  ids.forEach(id => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'image_ids';
+    input.value = id;
+    container.appendChild(input);
+  });
+  document.getElementById('bulkAnalyzeForm').submit();
 }
 
 // Wire up the grid "select all" checkbox

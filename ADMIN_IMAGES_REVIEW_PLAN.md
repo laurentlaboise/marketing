@@ -130,6 +130,8 @@ Phases are ordered by user-visible value per unit of risk. Each item lists accep
 5. **"View on Web" honesty:** show deploy-pending state (check jsDelivr first, Pages after).
 
 ### Phase 4 — Interface & architecture coherence
+
+> **Status: image-section items implemented in this PR** (parts of items 3, 4, 6): library search now covers description and tags; windowed pagination; filter-aware empty states; styled category badges; keyboard-focusable file inputs with dropzone focus rings; focus-within reveals for selection checkboxes and folder actions; and a bulk "AI: Fill Missing SEO" action (fills empty fields only, capped per run) that closes the batch-upload metadata gap. Remaining (app-wide refactors deserving their own round): shared Anthropic client lib (item 1), unified feedback partial (item 2), full per-image metadata on batch upload, reusable image-picker partial (item 5), and the dashboard hygiene list (item 7).
 1. **One shared Anthropic client lib** (SDK, retries, env-config model, forced tool-use) replacing the three hand-rolled clients; images, content, webdev migrate to it. This fixes the AI button's fragility class-wide.
 2. **One feedback component** (EJS partial + `aria-live="polite"`), replacing the ~10 inline status divs and 4 patterns.
 3. **Keyboard a11y:** visually-hidden (not `display:none`) file inputs; dropzones `tabindex="0" role="button"` with Enter/Space; focus-visible selection checkboxes; folder actions reachable without hover.

@@ -744,7 +744,9 @@ router.get('/', async (req, res) => {
     const conditions = [];
 
     if (search) {
-      conditions.push(`(filename ILIKE $${params.length + 1} OR alt_text ILIKE $${params.length + 1} OR title ILIKE $${params.length + 1})`);
+      // Include description and tags so images are findable by the metadata
+      // the AI writes, not just by filename.
+      conditions.push(`(filename ILIKE $${params.length + 1} OR alt_text ILIKE $${params.length + 1} OR title ILIKE $${params.length + 1} OR description ILIKE $${params.length + 1} OR array_to_string(tags, ' ') ILIKE $${params.length + 1})`);
       params.push(`%${search}%`);
     }
 
@@ -1413,6 +1415,88 @@ router.post('/:id/optimize-preview', previewLimiter, async (req, res) => {
 });
 
 // Bulk optimize multiple images
+// Bulk AI: write missing SEO text for selected images. Fills only fields
+// that are empty (existing text is never overwritten here) and tolerates
+// per-image failures. Capped per invocation to bound cost and request time;
+// its own tight limiter since each image is a paid vision call.
+const bulkAnalyzeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, handler: json429 });
+const BULK_ANALYZE_CAP = 10;
+router.post('/bulk-analyze', bulkAnalyzeLimiter, async (req, res) => {
+  try {
+    const { image_ids } = req.body;
+    if (!image_ids) {
+      req.session.errorMessage = 'No images selected';
+      return res.redirect('/images');
+    }
+    const allIds = Array.isArray(image_ids) ? image_ids : [image_ids];
+    const ids = allIds.slice(0, BULK_ANALYZE_CAP);
+
+    let filled = 0;
+    let skippedComplete = 0;
+    let failedCount = 0;
+    let firstError = null;
+
+    for (const id of ids) {
+      try {
+        const result = await db.query('SELECT * FROM images WHERE id = $1', [id]);
+        if (result.rows.length === 0) continue;
+        const image = result.rows[0];
+
+        const missing = {
+          alt_text: !(image.alt_text || '').trim(),
+          title: !(image.title || '').trim(),
+          description: !(image.description || '').trim(),
+          tags: !(image.tags && image.tags.length),
+        };
+        if (!missing.alt_text && !missing.title && !missing.description && !missing.tags) {
+          skippedComplete++;
+          continue;
+        }
+
+        const imagePath = localPathFor(image.file_path);
+        if (!fs.existsSync(imagePath)) {
+          if (!image.cdn_url) throw new Error('file missing and no CDN URL');
+          await fetchImageFromCdn(image);
+        }
+        const imageBuffer = fs.readFileSync(imagePath);
+        const analysis = await analyzeImageWithAI(imageBuffer, image.mime_type, image.filename);
+
+        await db.query(
+          `UPDATE images SET
+             alt_text = CASE WHEN $1 THEN $2 ELSE alt_text END,
+             title = CASE WHEN $3 THEN $4 ELSE title END,
+             description = CASE WHEN $5 THEN $6 ELSE description END,
+             tags = CASE WHEN $7 THEN $8::text[] ELSE tags END,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE id = $9`,
+          [missing.alt_text, analysis.alt_text || '',
+           missing.title, analysis.title || '',
+           missing.description, analysis.description || '',
+           missing.tags, Array.isArray(analysis.tags) ? analysis.tags : [],
+           id]
+        );
+        filled++;
+      } catch (err) {
+        console.error('Bulk analyze error for image %s:', id, err.message);
+        failedCount++;
+        if (!firstError) firstError = err.message;
+      }
+    }
+
+    let msg = `AI wrote SEO text for ${filled} image${filled !== 1 ? 's' : ''}`;
+    if (skippedComplete > 0) msg += `. ${skippedComplete} already had every field filled`;
+    if (allIds.length > BULK_ANALYZE_CAP) msg += `. Only the first ${BULK_ANALYZE_CAP} selected images were processed - run it again for the rest`;
+    if (failedCount > 0) msg += `. ${failedCount} failed: ${firstError}`;
+    req.session.successMessage = msg;
+    const redirectTarget = isSafeRedirectPath(req.body.return_to) ? req.body.return_to : '/images';
+    res.redirect(redirectTarget);
+  } catch (error) {
+    console.error('Bulk analyze error:', error);
+    req.session.errorMessage = 'Bulk AI failed: ' + error.message;
+    res.redirect('/images');
+  }
+});
+
 router.post('/bulk-optimize', async (req, res) => {
   try {
     const { image_ids, format, quality } = req.body;
