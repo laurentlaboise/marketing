@@ -616,8 +616,83 @@ router.post('/articles/:id/delete', async (req, res) => {
 
 // ==================== AI ARTICLE ANALYSIS ====================
 
-// Helper: call Anthropic Claude API to analyze article content
-function analyzeArticleWithAI(title, content, excerpt) {
+// Model is env-configurable so a retired snapshot needs a config change, not a
+// deploy. claude-sonnet-5 is the current Sonnet-tier alias (same tier as the
+// previously hardcoded Sonnet 4.5 snapshot) and matches the image route.
+const ARTICLE_AI_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
+
+const ARTICLE_CATEGORIES = [
+  'Digital Marketing', 'SEO', 'AI & Automation', 'Social Media Marketing',
+  'Content Strategy', 'Business Growth', 'Web Development', 'E-Commerce',
+  'Analytics & Data', 'Email Marketing', 'PPC & Paid Advertising', 'Branding & Design',
+];
+
+// Forced tool call: the model must "call" this tool, so the reply arrives as a
+// schema-validated tool_use block instead of free-form JSON we strip fences off
+// and JSON.parse by hand - the old path failed whenever the model added any
+// prose or the reply was truncated mid-object. Enum on category guarantees a
+// value the form dropdown accepts.
+const ARTICLE_SEO_TOOL = {
+  name: 'record_article_seo',
+  description: 'Record the SEO-optimized metadata generated for the article.',
+  strict: true,
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: [
+      'excerpt', 'seo_title', 'seo_description', 'seo_keywords', 'tags', 'category',
+      'og_title', 'og_description', 'twitter_title', 'twitter_description', 'content_labels',
+    ],
+    properties: {
+      excerpt: { type: 'string', description: 'A compelling 1-2 sentence summary of the article (150-200 chars). Hook the reader.' },
+      seo_title: { type: 'string', description: 'SEO-optimized page title (50-60 chars). Include the primary keyword near the start.' },
+      seo_description: { type: 'string', description: 'Meta description for search results (150-160 chars). Include a call-to-action.' },
+      seo_keywords: { type: 'array', items: { type: 'string' }, description: '5 relevant SEO keywords for digital marketing.' },
+      tags: { type: 'array', items: { type: 'string' }, description: '4-6 lowercase tags.' },
+      category: { type: 'string', enum: ARTICLE_CATEGORIES, description: 'The single best-fitting category from the allowed list.' },
+      og_title: { type: 'string', description: 'Engaging social share title (40-60 chars), optimized for clicks on Facebook/LinkedIn.' },
+      og_description: { type: 'string', description: 'Social sharing description (100-200 chars). Compelling and actionable.' },
+      twitter_title: { type: 'string', description: 'X/Twitter optimized title (max 70 chars). Punchy and attention-grabbing.' },
+      twitter_description: { type: 'string', description: 'X/Twitter description (max 200 chars). Concise with a value proposition.' },
+      content_labels: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['description', 'who_should_read', 'key_points'],
+        properties: {
+          description: { type: 'string', description: 'A short sidebar card description (2-3 sentences) explaining what the reader will gain.' },
+          who_should_read: { type: 'array', items: { type: 'string' }, description: '3 audience types who should read this.' },
+          key_points: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['title', 'description'],
+              properties: {
+                title: { type: 'string' },
+                description: { type: 'string' },
+              },
+            },
+            description: '3 key takeaways, each a title plus a brief explanation.',
+          },
+        },
+      },
+    },
+  },
+};
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Build a user-facing error: `message` is shown in the status box; `retryable`
+// drives the single automatic retry below.
+function articleAiError(message, retryable) {
+  const err = new Error(message);
+  err.retryable = !!retryable;
+  return err;
+}
+
+// Helper: call the Anthropic Claude API to analyze article content and return
+// schema-validated SEO metadata. One automatic retry for transient failures.
+async function analyzeArticleWithAI(title, content, excerpt) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     throw new Error('ANTHROPIC_API_KEY is not configured. Add it to your environment variables.');
@@ -627,54 +702,51 @@ function analyzeArticleWithAI(title, content, excerpt) {
   const truncatedContent = content && content.length > 8000 ? content.substring(0, 8000) + '...' : content;
 
   const requestBody = JSON.stringify({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2048,
+    model: ARTICLE_AI_MODEL,
+    // Roomy budget: this tool returns a large payload (SEO + OG + Twitter +
+    // nested content labels) and, on current models, adaptive thinking shares
+    // max_tokens with the tool call, so a tight cap could truncate mid-object.
+    max_tokens: 8192,
+    tools: [ARTICLE_SEO_TOOL],
+    tool_choice: { type: 'tool', name: ARTICLE_SEO_TOOL.name },
     messages: [
       {
         role: 'user',
-        content: `You are an SEO and content marketing expert for WordsThatSells.website, a digital marketing agency. Analyze this article and generate optimized metadata.
+        content: `You are an SEO and content marketing expert for WordsThatSells.website, a digital marketing agency. Analyze this article and generate optimized metadata, then record it with the ${ARTICLE_SEO_TOOL.name} tool.
 
 Article Title: "${title}"
 ${excerpt ? `Excerpt: "${excerpt}"` : ''}
 Content:
 ${truncatedContent || '(No content provided)'}
 
-Return ONLY valid JSON (no markdown, no code fences) with these exact fields:
-{
-  "excerpt": "A compelling 1-2 sentence summary of the article (150-200 chars). Hook the reader.",
-  "seo_title": "SEO-optimized page title (50-60 chars). Include primary keyword near the start.",
-  "seo_description": "Meta description for search results (150-160 chars). Include a call-to-action.",
-  "seo_keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "category": "one of: Digital Marketing, SEO, AI & Automation, Social Media Marketing, Content Strategy, Business Growth, Web Development, E-Commerce, Analytics & Data, Email Marketing, PPC & Paid Advertising, Branding & Design",
-  "og_title": "Engaging social share title (40-60 chars). Optimized for clicks on Facebook/LinkedIn.",
-  "og_description": "Social sharing description (100-200 chars). Compelling and actionable.",
-  "twitter_title": "X/Twitter optimized title (max 70 chars). Punchy and attention-grabbing.",
-  "twitter_description": "X/Twitter description (max 200 chars). Concise with value proposition.",
-  "content_labels": {
-    "description": "A short sidebar card description (2-3 sentences) explaining what the reader will gain.",
-    "who_should_read": ["Audience type 1", "Audience type 2", "Audience type 3"],
-    "key_points": [
-      {"title": "Key Point 1", "description": "Brief explanation"},
-      {"title": "Key Point 2", "description": "Brief explanation"},
-      {"title": "Key Point 3", "description": "Brief explanation"}
-    ]
-  }
-}
-
 Focus on:
-- Natural keyword integration for Google, Bing, ChatGPT, Perplexity
+- Natural keyword integration for Google, Bing, ChatGPT, and Perplexity
 - Compelling copy that drives clicks and engagement
-- Accurate content representation
-- Keywords should be relevant SEO terms for digital marketing
-- Tags should be lowercase, 4-6 tags
-- Category must be one of the listed options exactly as written (case-sensitive)`
-      }
-    ]
+- Accurate representation of the article's content
+- Tags should be lowercase`,
+      },
+    ],
   });
 
+  // One automatic retry for transient failures (network, timeout, rate limit,
+  // 5xx, truncation); permanent failures (bad key, refusal) surface at once.
+  let lastErr;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      return await requestArticleSeo(requestBody, apiKey);
+    } catch (err) {
+      lastErr = err;
+      if (!err.retryable || attempt === 2) break;
+      await sleep(2000);
+    }
+  }
+  throw lastErr;
+}
+
+// One POST /v1/messages attempt; resolves with the validated tool input.
+function requestArticleSeo(requestBody, apiKey) {
   return new Promise((resolve, reject) => {
-    const options = {
+    const apiReq = https.request({
       hostname: 'api.anthropic.com',
       port: 443,
       path: '/v1/messages',
@@ -685,39 +757,54 @@ Focus on:
         'anthropic-version': '2023-06-01',
         'Content-Length': Buffer.byteLength(requestBody),
       },
-    };
-
-    const req = https.request(options, (res) => {
+    }, (res) => {
       let data = '';
-      res.on('data', chunk => { data += chunk; });
+      res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
+        let body;
         try {
-          const response = JSON.parse(data);
-          if (response.error) {
-            reject(new Error(response.error.message || 'Anthropic API error'));
-            return;
-          }
-
-          const textBlock = response.content && response.content.find(b => b.type === 'text');
-          if (!textBlock || !textBlock.text) {
-            reject(new Error('No text response from AI'));
-            return;
-          }
-
-          let jsonText = textBlock.text.trim();
-          jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
-          const result = JSON.parse(jsonText);
-          resolve(result);
+          body = JSON.parse(data);
         } catch (e) {
-          reject(new Error('Failed to parse AI response: ' + e.message));
+          return reject(articleAiError('The AI service returned an unreadable response. Try again.', true));
         }
+
+        const apiDetail = body.error && body.error.message;
+        if (res.statusCode === 401 || res.statusCode === 403) {
+          return reject(articleAiError('The AI service rejected the credentials. Check ANTHROPIC_API_KEY in the environment settings.'));
+        }
+        if (res.statusCode === 404) {
+          return reject(articleAiError(`The configured AI model "${ARTICLE_AI_MODEL}" was not found - it may have been retired. Set ANTHROPIC_MODEL to a current model.`));
+        }
+        if (res.statusCode === 429) {
+          return reject(articleAiError('The AI service is rate-limited right now. Wait a minute and try again.', true));
+        }
+        if (res.statusCode >= 500) {
+          return reject(articleAiError('The AI service is temporarily unavailable. Try again shortly.', true));
+        }
+        if (res.statusCode !== 200 || body.error) {
+          return reject(articleAiError(apiDetail || `The AI service rejected the request (HTTP ${res.statusCode}).`));
+        }
+
+        if (body.stop_reason === 'refusal') {
+          return reject(articleAiError('The AI declined to analyze this article.'));
+        }
+        if (body.stop_reason === 'max_tokens') {
+          return reject(articleAiError('The AI response was cut off before it finished. Try again.', true));
+        }
+
+        const toolBlock = (body.content || []).find((b) => b.type === 'tool_use' && b.name === ARTICLE_SEO_TOOL.name);
+        const input = toolBlock && toolBlock.input;
+        if (!input || typeof input.seo_title !== 'string' || typeof input.seo_description !== 'string') {
+          return reject(articleAiError('The AI returned an unexpected response format. Try again.', true));
+        }
+        resolve(input);
       });
     });
 
-    req.on('error', (e) => reject(new Error('API request failed: ' + e.message)));
-    req.setTimeout(60000, () => { req.destroy(); reject(new Error('API request timed out')); });
-    req.write(requestBody);
-    req.end();
+    apiReq.on('error', (e) => reject(articleAiError('Could not reach the AI service. Check the network and try again.', true)));
+    apiReq.setTimeout(120000, () => { apiReq.destroy(); reject(articleAiError('AI analysis timed out. Try again.', true)); });
+    apiReq.write(requestBody);
+    apiReq.end();
   });
 }
 
