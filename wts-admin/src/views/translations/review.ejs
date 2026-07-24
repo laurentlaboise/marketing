@@ -96,6 +96,7 @@
       var segIndex = 0;
     %>
     <% var hasThaiRef = typeof thaiRef !== 'undefined' && thaiRef; %>
+    <% var canEditInline = ['requires_review', 'verified'].includes(item.status); %>
     <% fieldList.forEach(field => {
          var sourceValue = source && source.fields[field];
          var targetValue = item.content_payload ? item.content_payload[field] : null;
@@ -111,9 +112,30 @@
               <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;">English source</div>
               <div style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:320px; overflow:auto; white-space:pre-wrap; background:var(--gray-50, #f9fafb);"><%= sourceValue || '—' %></div>
             </div>
-            <div>
-              <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:0.25rem;"><%= languageNames[item.target_language] || item.target_language %></div>
-              <div style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:320px; overflow:auto; white-space:pre-wrap;"><%= targetValue || '—' %></div>
+            <div class="seg-target" data-field="<%= field %>">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem;">
+                <span style="font-size:0.75rem; color:var(--gray-500);"><%= languageNames[item.target_language] || item.target_language %></span>
+                <% if (canEditInline) { %>
+                <span style="display:inline-flex; gap:0.5rem; align-items:center;">
+                  <span class="seg-saved" hidden style="font-size:0.72rem; color:#059669;"><i class="fas fa-check"></i> Saved</span>
+                  <button type="button" class="seg-edit-btn" data-field="<%= field %>"
+                    title="Fix this segment right here — no need to reject the whole item for one change"
+                    style="background:none; border:1px solid var(--gray-300, #d1d5db); border-radius:6px; padding:0.1rem 0.6rem; color:var(--gray-600, #4b5563); cursor:pointer; font-size:0.75rem;">
+                    <i class="fas fa-pen"></i> Edit
+                  </button>
+                </span>
+                <% } %>
+              </div>
+              <div class="seg-view" style="border:1px solid var(--gray-200); border-radius:6px; padding:0.75rem; max-height:320px; overflow:auto; white-space:pre-wrap;"><%= targetValue || '—' %></div>
+              <% if (canEditInline) { %>
+              <div class="seg-editor" hidden>
+                <textarea class="form-input seg-input" rows="6" style="width:100%; font-family:inherit; resize:vertical; line-height:1.7;"><%= targetValue || '' %></textarea>
+                <div style="display:flex; gap:0.5rem; margin-top:0.35rem;">
+                  <button type="button" class="btn btn-sm btn-primary seg-save-btn" data-field="<%= field %>"><i class="fas fa-check"></i> Save segment</button>
+                  <button type="button" class="btn btn-sm btn-secondary seg-cancel-btn" data-field="<%= field %>">Cancel</button>
+                </div>
+              </div>
+              <% } %>
             </div>
             <% if (hasThaiRef) { %>
               <div class="thai-ref-cell" hidden>
@@ -253,6 +275,59 @@
         return;
       }
       watchJob();
+    });
+  });
+
+  // --- Inline segment editing: fix one segment right here and publish,
+  // instead of rejecting a whole item for a single wording change. Each
+  // save posts only that segment; the server merges it into the payload.
+  var VERIFIER_ACTIVE = <%= item.verifier_id && !item.verified_by ? 'true' : 'false' %>;
+  var warnedVerifier = false;
+  function segEl(cls, field) { return document.querySelector('.seg-target[data-field="' + CSS.escape(field) + '"] .' + cls); }
+  document.querySelectorAll('.seg-edit-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (VERIFIER_ACTIVE && !warnedVerifier) {
+        if (!confirm('A verifier is currently working on this item — a change you save here may be overwritten by their next save. Continue?')) return;
+        warnedVerifier = true;
+      }
+      var field = btn.getAttribute('data-field');
+      var editor = segEl('seg-editor', field);
+      var input = segEl('seg-input', field);
+      input.dataset.original = input.value;
+      segEl('seg-view', field).hidden = true;
+      editor.hidden = false;
+      btn.hidden = true;
+      input.focus();
+    });
+  });
+  document.querySelectorAll('.seg-cancel-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var field = btn.getAttribute('data-field');
+      var input = segEl('seg-input', field);
+      if (input.dataset.original !== undefined) input.value = input.dataset.original;
+      segEl('seg-editor', field).hidden = true;
+      segEl('seg-view', field).hidden = false;
+      segEl('seg-edit-btn', field).hidden = false;
+    });
+  });
+  document.querySelectorAll('.seg-save-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var field = btn.getAttribute('data-field');
+      var input = segEl('seg-input', field);
+      var payload = {};
+      payload[field] = input.value;
+      btn.disabled = true;
+      post('/translations/' + id + '/edit', { content_payload: payload }).then(function (res) {
+        btn.disabled = false;
+        if (!res.ok) return alert(res.data.error || 'Save failed');
+        var view = segEl('seg-view', field);
+        view.textContent = input.value || '—';
+        segEl('seg-editor', field).hidden = true;
+        view.hidden = false;
+        segEl('seg-edit-btn', field).hidden = false;
+        var saved = segEl('seg-saved', field);
+        if (saved) { saved.hidden = false; setTimeout(function () { saved.hidden = true; }, 1800); }
+      });
     });
   });
 

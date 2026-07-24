@@ -1565,6 +1565,70 @@ test('assign-verifier routes a drafted row to a verifier with the right guards',
 // Glossary/SEO interlinking (internal-link SEO inside the translation flow)
 // ---------------------------------------------------------------------------
 
+test('admin inline edit: merges one segment, recounts chars, and respects status gates', async () => {
+  const glossary = await pool.query(
+    `INSERT INTO glossary (term, definition, letter) VALUES ('TestTerm InlineEdit', 'Inline touch-up.', 'T') RETURNING id`
+  );
+  const seeded = await pool.query(
+    `INSERT INTO translations (entity_type, entity_id, target_language, content_payload, status, ai_model, word_count)
+     VALUES ('glossary', $1, 'la', $2, 'requires_review', 'test-model', 3) RETURNING id`,
+    [glossary.rows[0].id, JSON.stringify({ term: 'ຄຳເດີມ', definition: '**ຄຳນິຍາມ**' })]
+  );
+  const id = seeded.rows[0].id;
+
+  // Translators cannot use the admin touch-up endpoint.
+  const translator = new Session(server.base);
+  await translator.login('translator@test.local');
+  const denied = await translator.fetch(`/translations/${id}/edit`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json', accept: 'application/json',
+      'x-csrf-token': await translator.getCsrfToken('/translations/workspace'),
+    },
+    body: JSON.stringify({ content_payload: { definition: 'x' } }),
+  });
+  assert.equal(denied.status, 403);
+
+  const admin = new Session(server.base);
+  await admin.login('admin@test.local');
+  const headers = {
+    'content-type': 'application/json', accept: 'application/json',
+    'x-csrf-token': await admin.getCsrfToken('/dashboard'),
+  };
+
+  // The review page offers the inline editor for reviewable rows.
+  const page = await admin.fetch(`/translations/review/${id}`);
+  assert.match(await page.text(), /seg-edit-btn/, 'review page renders inline edit affordance');
+
+  // Partial save: only the posted field changes, the rest is preserved.
+  const fixed = 'ຄຳນິຍາມທີ່ແກ້ແລ້ວ';
+  const edit = await admin.fetch(`/translations/${id}/edit`, {
+    method: 'POST', headers,
+    body: JSON.stringify({ content_payload: { definition: fixed } }),
+  });
+  assert.equal(edit.status, 200);
+  const row = (await pool.query('SELECT * FROM translations WHERE id = $1', [id])).rows[0];
+  assert.equal(row.content_payload.definition, fixed, 'edited segment updated');
+  assert.equal(row.content_payload.term, 'ຄຳເດີມ', 'untouched segment preserved');
+  assert.equal(row.status, 'requires_review', 'status unchanged by a touch-up');
+  assert.equal(row.target_char_count, fixed.length + 'ຄຳເດີມ'.length, 'char meter recounted');
+
+  // Unknown fields are rejected; published rows are read-only here.
+  const badField = await admin.fetch(`/translations/${id}/edit`, {
+    method: 'POST', headers, body: JSON.stringify({ content_payload: { nope: 'x' } }),
+  });
+  assert.equal(badField.status, 400);
+
+  const publish = await admin.fetch(`/translations/${id}/approve`, {
+    method: 'POST', headers, body: JSON.stringify({ acknowledge: true }),
+  });
+  assert.equal(publish.status, 200);
+  const afterPublish = await admin.fetch(`/translations/${id}/edit`, {
+    method: 'POST', headers, body: JSON.stringify({ content_payload: { definition: 'nope' } }),
+  });
+  assert.equal(afterPublish.status, 409, 'published rows cannot be inline-edited');
+});
+
 test('injectTermLinks links first mentions only, in eligible text, longest term first', () => {
   const { injectTermLinks } = require('../src/lib/interlink');
   const terms = [

@@ -765,6 +765,48 @@ router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve')
   }
 });
 
+// Inline touch-up from the review page: fix one segment and publish,
+// instead of bouncing a whole item back for a single wording change.
+// Merge semantics — only the posted fields change, everything else stays —
+// so the client can save segment by segment. Deliberately does NOT touch
+// the verifier meters (ai_draft_payload / edited_chars): admin touch-ups
+// are not verifier work and must never inflate anyone's edit pay.
+router.post('/:id/edit', ensureSuperAdmin, logActivity('translation_admin_edit'), async (req, res) => {
+  try {
+    const row = await loadTranslation(req, res);
+    if (!row) return;
+    if (!['requires_review', 'verified'].includes(row.status)) {
+      return asJson(res, 409, {
+        success: false,
+        error: 'Only a translation in review (or verified, before publishing) can be edited here — reopen published items first.',
+      });
+    }
+    const { payload, error } = core.sanitizePayload(row.entity_type, req.body.content_payload);
+    if (error) return asJson(res, 400, { success: false, error });
+    if (Object.keys(payload).length === 0) {
+      return asJson(res, 400, { success: false, error: 'Nothing to save' });
+    }
+
+    const merged = { ...(row.content_payload || {}), ...payload };
+    // Status re-checked atomically: a concurrent verifier approve / admin
+    // action between load and write is reported, never silently clobbered.
+    const updated = await db.query(
+      `UPDATE translations
+       SET content_payload = $1, target_char_count = $2, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3 AND status = $4
+       RETURNING id`,
+      [JSON.stringify(merged), core.countChars(merged), row.id, row.status]
+    );
+    if (updated.rows.length === 0) {
+      return asJson(res, 409, { success: false, error: 'This item changed while you were editing — reload the page.' });
+    }
+    asJson(res, 200, { success: true, targetChars: core.countChars(merged) });
+  } catch (error) {
+    console.error('Admin edit failed:', error.message);
+    asJson(res, 500, { success: false, error: 'Save failed' });
+  }
+});
+
 router.post('/:id/reject', ensureSuperAdmin, logActivity('translation_reject'), async (req, res) => {
   try {
     const row = await loadTranslation(req, res);
