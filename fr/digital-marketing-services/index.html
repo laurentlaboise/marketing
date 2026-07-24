@@ -611,35 +611,7 @@
         .svc-trust { grid-template-columns: 1fr; }
       }
 
-      /* ── Restored programs sticky + horizontal scroll menu ── */
-      .sticky-tab-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        background: rgba(255,255,255,0.96);
-        backdrop-filter: blur(10px);
-        padding: 0.85rem 1.25rem;
-        box-shadow: 0 8px 24px rgba(15,23,42,0.08);
-        display: none;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-        border-bottom: 1px solid #e2e8f0;
-      }
-      .sticky-tab-header .tab-header-text h2 {
-        margin: 0;
-        font-size: 1.05rem;
-        color: #122a3f;
-        font-weight: 800;
-      }
-      .sticky-tab-header .tab-header-text p {
-        margin: 0.1rem 0 0;
-        color: #64748b;
-        font-size: 0.88rem;
-        font-weight: 600;
-      }
+      /* ── Programs horizontal scroll menu ── */
       .tab-section {
         padding: 2.5rem 0 1rem;
         background: #fff;
@@ -826,7 +798,6 @@
         .case-study-two-column-layout { grid-template-columns: 1fr; }
         .left-column-container { position: static; }
         .right-column-scrollable { max-height: none; }
-        .sticky-tab-header { display: none !important; }
       }
 
     </style>
@@ -885,19 +856,6 @@
     </div>
   </header>
 
-
-  <!-- Sticky programs bar (appears while scrolling menu in view) -->
-  <div id="sticky-tab-header" class="sticky-tab-header">
-    <div class="svc-wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%;gap:1rem;">
-      <div class="tab-header-text">
-        <h2>Programmes de marketing digital</h2>
-        <p>For Agencies, Affiliates &amp; Clients</p>
-      </div>
-      <a href="https://admin.wordsthatsells.website/portal/login?from=services&amp;src=sticky_programs" class="btn btn-magenta" style="padding:0.5rem 1rem;font-size:0.88rem;">
-        <i class="fa-solid fa-user-plus"></i> Get portal access
-      </a>
-    </div>
-  </div>
 
   <!-- Horizontal scrolling menu (ePartners / eServices / eTalents) -->
   <section class="tab-section" id="programs" aria-labelledby="programs-heading">
@@ -1358,21 +1316,6 @@
             '<span class="card-enable-text">Enable</span>';
         }
       });
-
-      // Sticky programs header only while scrolled past the tab section's
-      // top and the section is still in view — never before reaching it.
-      var tabSection = document.querySelector('.tab-section');
-      var stickyHeader = document.getElementById('sticky-tab-header');
-      if (tabSection && stickyHeader) {
-        var updateStickyHeader = function () {
-          var rect = tabSection.getBoundingClientRect();
-          var show = rect.top < 0 && rect.bottom > 0;
-          stickyHeader.style.display = show ? 'flex' : 'none';
-        };
-        window.addEventListener('scroll', updateStickyHeader, { passive: true });
-        window.addEventListener('resize', updateStickyHeader);
-        updateStickyHeader();
-      }
     });
   </script>
 
