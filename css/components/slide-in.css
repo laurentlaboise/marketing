@@ -101,6 +101,11 @@
     border: none;
     cursor: pointer;
     padding: var(--spacing-sm);
+    transition: color 0.2s ease-in-out;
+}
+
+#slide-in-close:hover {
+    color: var(--color-slate-800);
 }
 
 .slide-in-body {

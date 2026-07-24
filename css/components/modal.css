@@ -28,15 +28,20 @@
     animation: fadeIn 0.3s ease-out; 
 }
 
-.modal-close { 
-    position: absolute; 
-    top: 1rem; 
-    right: 1rem; 
-    background: none; 
-    border: none; 
-    font-size: var(--font-size-2xl); 
-    cursor: pointer; 
-    color: #9ca3af; 
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: var(--font-size-2xl);
+    cursor: pointer;
+    color: var(--color-slate-500);
+    transition: color 0.2s ease-in-out;
+}
+
+.modal-close:hover {
+    color: var(--color-slate-800);
 }
 
 .modal-title { 

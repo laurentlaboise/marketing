@@ -1,84 +1,85 @@
-/* --- Buttons --- */
-.btn { 
-    display: inline-flex; 
-    align-items: center; 
-    justify-content: center; 
-    padding: var(--spacing-sm) var(--spacing-md); 
-    font-family: var(--font-family-heading); 
-    font-size: var(--font-size-base); 
-    font-weight: 600; 
-    border-radius: var(--border-radius-md); 
-    cursor: pointer; 
-    transition: var(--transition-medium); 
-    text-decoration: none; 
-    border: 2px solid transparent; 
+/* ==========================================================================
+   Buttons — unified site button system
+   --------------------------------------------------------------------------
+   Hierarchy
+     Primary    .btn-primary  (aliases: .btn-accent-magenta, .btn-accent)
+                Solid magenta — the single main CTA of a view.
+     Secondary  .btn-secondary (alias: .btn-inverse-magenta)
+                White fill, magenta outline/text; fills magenta on hover.
+     Ghost      .btn-ghost-light — dark/photo backgrounds only.
+     Blue       .btn-accent-blue / .btn-inverse-blue and the .btn-form-*
+                admin presets — form submits and lower-emphasis utility CTAs.
+   States
+     default → hover (darken one step + 2px lift) → active (press, darker)
+     focus-visible: two-tone ring, visible on any background.
+     disabled: dimmed, inert.
+   Every fill keeps ≥ 4.5:1 text contrast in every state.
+   ========================================================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: var(--transition-medium);
+    text-decoration: none;
+    border: 2px solid transparent;
+    min-height: 44px;
+}
+
+/* --- PRIMARY (solid magenta) --- */
+.btn-primary,
+.btn-accent-magenta,
+.btn-accent {
+    background: var(--color-accent-magenta);
+    color: var(--color-white);
+    border-color: var(--color-accent-magenta);
 }
 
 .btn-accent {
-    background: radial-gradient(circle at center, rgba(249, 7, 132, 0.82) 37%, var(--color-accent-magenta) 100%);
-    color: var(--color-white);
-    border-color: var(--color-accent-magenta);
     box-shadow: var(--shadow-md);
 }
 
-.btn-accent:hover {
-    transform: translateY(-2px);
-}
-
-.btn-premium {
-    background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300));
-    color: var(--color-white);
-    box-shadow: var(--shadow-lg);
-}
-
-.btn-premium:hover {
-    transform: translateY(-2px);
-}
-
-.btn-learn-more {
-    margin-top: var(--spacing-md);
-}
-
-/* --- MAGENTA BUTTONS --- */
-.btn-accent-magenta { 
-    background-color: var(--color-accent-magenta); 
-    color: var(--color-white); 
-    border-color: var(--color-accent-magenta); 
-}
-.btn-accent-magenta:hover { 
-    background-color: #f90784; 
-    border-color: #f90784; 
-    color: var(--color-white); 
-}
+/* --- SECONDARY (outlined magenta, light backgrounds) --- */
+.btn-secondary,
 .btn-inverse-magenta {
     background-color: var(--color-white);
     border-color: var(--color-accent-magenta);
     color: var(--color-accent-magenta);
 }
-.btn-inverse-magenta:hover {
-    background-color: var(--color-accent-magenta);
+
+/* --- GHOST (dark or photographic backgrounds only) --- */
+.btn-ghost-light {
+    background-color: transparent;
+    border-color: rgba(255, 255, 255, 0.85);
     color: var(--color-white);
 }
 
-/* --- BLUE BUTTONS --- */
-.btn-accent-blue { 
-    background-color: #1F85C8;
-    color: var(--color-white); 
-    border-color: #1F85C8;
-}
-.btn-accent-blue:hover { 
-    background-color: #2593d9;
-    border-color: #2593d9;
-    color: var(--color-white); 
+/* --- BLUE BUTTONS (form submits, utility) --- */
+.btn-accent-blue {
+    background-color: var(--color-primary-strong);
+    color: var(--color-white);
+    border-color: var(--color-primary-strong);
 }
 .btn-inverse-blue {
     background-color: var(--color-white);
-    border-color: #1F85C8;
-    color: #1F85C8;
+    border-color: var(--color-primary-strong);
+    color: var(--color-primary-strong);
 }
-.btn-inverse-blue:hover {
-    background-color: #1F85C8;
+
+/* --- PREMIUM (blue gradient, resource-card CTAs) --- */
+.btn-premium {
+    background: linear-gradient(90deg, var(--color-primary-strong), var(--color-slate-700));
     color: var(--color-white);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-learn-more {
+    margin-top: var(--spacing-md);
 }
 
 /* --- FORM BUTTON PRESETS (admin-managed CTA buttons) --- */
@@ -92,16 +93,11 @@
 }
 
 .btn-form-primary {
-    background-color: var(--color-primary-base);
+    background-color: var(--color-primary-strong);
     color: var(--color-white);
-    border-color: var(--color-primary-base);
+    border-color: var(--color-primary-strong);
     padding: var(--spacing-sm) var(--spacing-lg);
     font-size: var(--font-size-lg);
-}
-.btn-form-primary:hover {
-    background-color: var(--color-indigo-300);
-    border-color: var(--color-indigo-300);
-    transform: translateY(-2px);
 }
 
 .btn-form-secondary {
@@ -111,48 +107,30 @@
     padding: var(--spacing-sm) var(--spacing-lg);
     font-size: var(--font-size-lg);
 }
-.btn-form-secondary:hover {
-    background-color: var(--color-slate-800);
-    border-color: var(--color-slate-800);
-    transform: translateY(-2px);
-}
 
 .btn-form-outline {
     background-color: transparent;
-    color: var(--color-primary-base);
-    border-color: var(--color-primary-base);
+    color: var(--color-primary-strong);
+    border-color: var(--color-primary-strong);
     padding: var(--spacing-sm) var(--spacing-lg);
     font-size: var(--font-size-lg);
-}
-.btn-form-outline:hover {
-    background-color: var(--color-primary-base);
-    color: var(--color-white);
-    transform: translateY(-2px);
 }
 
 .btn-form-ghost {
     background-color: rgba(31, 133, 201, 0.1);
-    color: var(--color-primary-base);
+    color: var(--color-slate-700);
     border-color: transparent;
     padding: var(--spacing-sm) var(--spacing-lg);
     font-size: var(--font-size-lg);
 }
-.btn-form-ghost:hover {
-    background-color: rgba(31, 133, 201, 0.2);
-    transform: translateY(-2px);
-}
 
 .btn-form-gradient {
-    background: linear-gradient(135deg, var(--color-primary-base) 0%, var(--color-accent-magenta) 100%);
+    background: linear-gradient(135deg, var(--color-primary-strong) 0%, var(--color-accent-magenta) 100%);
     color: var(--color-white);
     border-color: transparent;
     padding: var(--spacing-sm) var(--spacing-lg);
     font-size: var(--font-size-lg);
     box-shadow: var(--shadow-md);
-}
-.btn-form-gradient:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
 }
 
 .btn-form-cta {
@@ -164,12 +142,6 @@
     border-radius: var(--border-radius-full);
     box-shadow: var(--shadow-lg);
 }
-.btn-form-cta:hover {
-    background-color: #f90784;
-    border-color: #f90784;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-xl);
-}
 
 /* --- Icon Styling (applies to all buttons) --- */
 .btn i {
@@ -178,35 +150,145 @@
 }
 
 /* ==========================================
-   RESPONSIVE BUTTON DESIGN
+   INTERACTION STATES
    ========================================== */
 
-/* Touch-friendly base: minimum hit target */
-.btn {
-    min-height: 44px;
-}
-
-/* Hover effects only for pointer devices */
+/* Hover: darken one step + lift. Pointer devices only, so taps don't stick. */
 @media (hover: hover) {
+    .btn-primary:hover,
+    .btn-accent-magenta:hover,
     .btn-accent:hover,
-    .btn-premium:hover,
-    .btn-form-primary:hover,
-    .btn-form-secondary:hover,
-    .btn-form-outline:hover,
-    .btn-form-ghost:hover,
-    .btn-form-gradient:hover,
     .btn-form-cta:hover {
+        background: var(--color-accent-magenta-dark);
+        border-color: var(--color-accent-magenta-dark);
+        color: var(--color-white);
         transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-form-cta:hover {
+        box-shadow: var(--shadow-xl);
+    }
+
+    .btn-secondary:hover,
+    .btn-inverse-magenta:hover {
+        background-color: var(--color-accent-magenta);
+        border-color: var(--color-accent-magenta);
+        color: var(--color-white);
+        transform: translateY(-2px);
+    }
+
+    .btn-ghost-light:hover {
+        background-color: var(--color-white);
+        border-color: var(--color-white);
+        color: var(--color-slate-900);
+        transform: translateY(-2px);
+    }
+
+    .btn-accent-blue:hover,
+    .btn-form-primary:hover {
+        background-color: var(--color-slate-700);
+        border-color: var(--color-slate-700);
+        color: var(--color-white);
+        transform: translateY(-2px);
+    }
+
+    .btn-inverse-blue:hover,
+    .btn-form-outline:hover {
+        background-color: var(--color-primary-strong);
+        border-color: var(--color-primary-strong);
+        color: var(--color-white);
+        transform: translateY(-2px);
+    }
+
+    .btn-form-secondary:hover {
+        background-color: var(--color-slate-800);
+        border-color: var(--color-slate-800);
+        transform: translateY(-2px);
+    }
+
+    .btn-form-ghost:hover {
+        background-color: rgba(31, 133, 201, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .btn-premium:hover,
+    .btn-form-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-xl);
     }
 }
 
-/* Remove hover transforms on touch devices */
+/* Focus: two-tone ring, visible on any fill or background */
+.btn:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-accent-magenta);
+}
+
+/* Active / pressed: cancel the lift, compress, darken one more step */
+.btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn-primary:active,
+.btn-accent-magenta:active,
+.btn-accent:active,
+.btn-secondary:active,
+.btn-inverse-magenta:active,
+.btn-form-cta:active {
+    background: var(--color-accent-magenta-deep);
+    border-color: var(--color-accent-magenta-deep);
+    color: var(--color-white);
+}
+
+.btn-accent-blue:active,
+.btn-form-primary:active,
+.btn-inverse-blue:active,
+.btn-form-outline:active {
+    background-color: var(--color-slate-800);
+    border-color: var(--color-slate-800);
+    color: var(--color-white);
+}
+
+.btn-form-secondary:active {
+    background-color: var(--color-slate-900);
+    border-color: var(--color-slate-900);
+}
+
+.btn-ghost-light:active {
+    background-color: var(--color-slate-100);
+    border-color: var(--color-white);
+    color: var(--color-slate-900);
+}
+
+/* Disabled: dimmed, no motion. Anchors also need pointer-events off. */
+.btn:disabled,
+.btn[disabled],
+.btn.disabled,
+.btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+a.btn.disabled,
+a.btn[aria-disabled="true"] {
+    pointer-events: none;
+}
+
+/* ==========================================
+   RESPONSIVE BUTTON DESIGN
+   ========================================== */
+
+/* Touch devices: no lift, compress on tap */
 @media (hover: none) {
     .btn:hover {
         transform: none;
     }
     .btn:active {
-        transform: scale(0.97);
+        transform: scale(0.98);
     }
 }
 

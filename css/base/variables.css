@@ -1,7 +1,10 @@
 :root {
     /* Colors */
     --color-primary-base: #1f85c9;
+    --color-primary-strong: #1b74b0; /* Accessible brand blue for button fills/text: 5.0:1 with white */
     --color-accent-magenta: #d62b83;
+    --color-accent-magenta-dark: #b91c6f; /* Button hover: 6.1:1 with white */
+    --color-accent-magenta-deep: #a1185f; /* Button pressed: 7.5:1 with white */
     --color-slate-900: #122a3f;
     --color-slate-800: #154266;
     --color-slate-700: #185a8d;

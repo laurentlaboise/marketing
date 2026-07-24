@@ -318,46 +318,11 @@
             }
         }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--spacing-sm) var(--spacing-md);
-            font-family: var(--font-family-heading);
-            font-size: var(--font-size-base);
-            font-weight: 600;
-            border-radius: var(--border-radius-md);
-            cursor: pointer;
-            transition: var(--transition-medium);
-            text-decoration: none;
-            border: 2px solid transparent;
-        }
 
-        .btn-accent {
-            background: radial-gradient(circle at center, rgba(249, 7, 132, 0.82) 37%, var(--color-accent-magenta) 100%);
-            color: var(--color-white);
-            border-color: var(--color-accent-magenta);
-            box-shadow: var(--shadow-md);
-        }
 
-        .btn-accent:hover {
-            transform: translateY(-2px);
-        }
 
-        .btn-premium {
-            background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300));
-            color: var(--color-white);
-            box-shadow: var(--shadow-lg);
-        }
 
-        .btn-premium:hover {
-            transform: translateY(-2px);
-        }
 
-        .btn i {
-            margin-right: var(--spacing-sm);
-            font-size: 1.1em;
-        }
 
         .back-to-top {
             position: fixed;
@@ -387,7 +352,7 @@
         }
 
         .back-to-top:hover {
-            background-color: #f90784;
+            background-color: #b91c6f;
             color: white;
         }
 
@@ -418,7 +383,7 @@
         }
 
         .quote-tab:hover {
-            background-color: #f90784;
+            background-color: #b91c6f;
         }
 
         #details-overlay {
@@ -475,22 +440,23 @@
             font-size: 1.1rem;
             font-weight: 600;
             color: #ffffff;
-            background-color: var(--color-primary-base);
-            border: 2px solid var(--color-primary-base);
+            background-color: var(--color-primary-strong, #1b74b0);
+            border: 2px solid var(--color-primary-strong, #1b74b0);
             border-radius: var(--border-radius-md);
             text-decoration: none;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            box-shadow: 0 4px 10px rgba(41, 128, 185, 0.2);
+            box-shadow: 0 4px 10px rgba(27, 116, 176, 0.2);
             width: auto;
             align-self: flex-start;
         }
 
         .slide-in-published-btn:hover {
-            background-color: transparent;
-            color: var(--color-primary-base);
+            background-color: var(--color-slate-700, #185a8d);
+            border-color: var(--color-slate-700, #185a8d);
+            color: #ffffff;
             transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(41, 128, 185, 0.3);
+            box-shadow: 0 6px 15px rgba(27, 116, 176, 0.3);
         }
 
         .slide-in-published-btn i {
@@ -548,24 +514,25 @@
         /* Read More Button */
         .read-button {
             display: inline-block;
-            background-color: var(--color-primary-base);
+            background-color: var(--color-primary-strong, #1b74b0);
             color: #ffffff;
             padding: 12px 28px;
             border-radius: var(--border-radius-md);
             text-decoration: none;
             font-weight: 600;
             font-size: 0.95rem;
-            border: 2px solid var(--color-primary-base);
+            border: 2px solid var(--color-primary-strong, #1b74b0);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            box-shadow: 0 4px 10px rgba(41, 128, 185, 0.2);
+            box-shadow: 0 4px 10px rgba(27, 116, 176, 0.2);
             cursor: pointer;
         }
 
         .read-button:hover {
-            background-color: transparent;
-            color: var(--color-primary-base);
+            background-color: var(--color-slate-700, #185a8d);
+            border-color: var(--color-slate-700, #185a8d);
+            color: #ffffff;
             transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(41, 128, 185, 0.3);
+            box-shadow: 0 6px 15px rgba(27, 116, 176, 0.3);
         }
 
         .read-button i {

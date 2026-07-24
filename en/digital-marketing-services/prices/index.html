@@ -282,7 +282,7 @@
             margin-top: 1rem;
         }
         .ad-account-button {
-            background-color: var(--color-primary-base);
+            background-color: var(--color-primary-strong, #1b74b0);
             color: white;
             padding: 0.75rem 1.5rem;
             border-radius: 8px;
@@ -296,6 +296,7 @@
             gap: 0.5rem;
         }
         .ad-account-button:hover {
+            background-color: var(--color-slate-700, #185a8d);
             transform: translateY(-2px); 
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
@@ -333,10 +334,15 @@
             font-weight: 600;
         }
 
-        .btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 8px; background-color: var(--color-primary-base); color: white; text-decoration: none; font-weight: 600; transition: all 0.2s; border: none; cursor: pointer; font-family: var(--font-family-heading); }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 8px; background-color: var(--color-primary-strong, #1b74b0); color: white; text-decoration: none; font-weight: 600; transition: all 0.2s; border: none; cursor: pointer; font-family: var(--font-family-heading); }
+        .btn:hover { background-color: var(--color-slate-700, #185a8d); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn:active { background-color: var(--color-slate-800, #154266); transform: translateY(0) scale(.98); }
+        .btn:disabled, .btn.disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
         .btn-accent { background-color: var(--color-accent-magenta); }
-        .btn-outline { background: transparent; border: 2px solid var(--color-primary-base); color: var(--color-primary-base); }
+        .btn-accent:hover { background-color: var(--color-accent-magenta-dark, #b91c6f); }
+        .btn-accent:active { background-color: var(--color-accent-magenta-deep, #a1185f); }
+        .btn-outline { background: transparent; border: 2px solid var(--color-primary-strong, #1b74b0); color: var(--color-primary-strong, #1b74b0); }
+        .btn-outline:hover { background: var(--color-primary-strong, #1b74b0); color: #fff; }
 
         .grid-2 { display: grid; gap: 1.5rem; }
         @media(min-width: 768px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } }
@@ -767,7 +773,9 @@
             color: #fff;
         }
         .pricing-hero__actions .btn-ghost:hover {
-            background: rgba(255,255,255,0.12);
+            background: #fff;
+            border-color: #fff;
+            color: var(--color-slate-900, #122a3f);
             box-shadow: none;
         }
         .pricing-hero__scroll {
@@ -953,7 +961,9 @@
             font-family: inherit;
         }
         .project-flip__back .btn-ghost-light:hover {
-            background: rgba(255,255,255,0.12);
+            background: #fff;
+            border-color: #fff;
+            color: var(--color-slate-900, #122a3f);
         }
         /* Project video modal (blank placeholder until Manus clip) */
         .project-video-overlay {
@@ -1549,7 +1559,8 @@
             transition: all 0.2s;
             margin-top: 0.5rem;
         }
-        .form-submit-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .form-submit-btn:hover { background: var(--color-accent-magenta-dark, #b91c6f); transform: translateY(-1px); }
+        .form-submit-btn:active { background: var(--color-accent-magenta-deep, #a1185f); transform: translateY(0); }
         .form-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .form-success {
             text-align: center;

@@ -25,9 +25,15 @@
     pointer-events: auto;
 }
 
-.back-to-top:hover { 
-    background-color: #f90784;
-    color: white; 
+.back-to-top:hover {
+    background-color: var(--color-accent-magenta-dark);
+    color: var(--color-white);
+}
+
+.back-to-top:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-accent-magenta);
 }
 
 /* The hard-coded `.quote-tab` floating tab has been retired. Its admin-managed
@@ -65,8 +71,14 @@
 }
 
 .wts-sticky-tab:hover {
-    background-color: #f90784;
+    background-color: var(--color-accent-magenta-dark);
     padding-right: 16px;
+}
+
+.wts-sticky-tab:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-accent-magenta);
 }
 
 @media (max-width: 576px) {
@@ -114,7 +126,13 @@
 }
 
 .help-tab:hover {
-    background-color: #f90784;
+    background-color: var(--color-accent-magenta-dark);
+}
+
+.help-tab:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-accent-magenta);
 }
 
 .help-tab i {

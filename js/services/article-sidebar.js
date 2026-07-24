@@ -298,7 +298,7 @@
     '.sidebar-read-stats span{display:flex;align-items:center;gap:4px;}',
     '.sidebar-read-stats i{color:var(--color-primary-base,#1f85c9);font-size:0.7rem;}',
     '.sidebar-cta-btn{display:inline-flex;align-items:center;gap:6px;background:var(--color-accent-magenta,#d62b83);color:var(--color-white,#fff);font-size:0.78rem;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;transition:background 0.2s;white-space:nowrap;}',
-    '.sidebar-cta-btn:hover{background:#b8236f;color:var(--color-white,#fff);}',
+    '.sidebar-cta-btn:hover{background:#b91c6f;color:var(--color-white,#fff);}',
     '.article-content h2,.article-content h3{scroll-margin-top:96px;}',
     '@media (max-width:960px){.wts-article-layout{grid-template-columns:1fr;}.article-sidebar{position:static;order:-1;}}',
   ].join('\n');
