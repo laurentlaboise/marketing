@@ -4,7 +4,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
   <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->
-  <!-- URL count: 331 | generated 2026-07-24 by scripts/generate-sitemap.js -->
+  <!-- URL count: 350 | generated 2026-07-24 by scripts/generate-sitemap.js -->
 
   <url>
     <loc>https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html</loc>
@@ -42,7 +42,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/about-us/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/about-us/" />
@@ -77,7 +77,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/affiliate-sales/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/affiliate-sales/" />
@@ -100,10 +100,11 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/contact-us/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/contact-us/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/contact-us/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/contact-us/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/contact-us/" />
     <image:image>
@@ -113,20 +114,32 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/th/company/contact-us/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/contact-us/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/contact-us/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/contact-us/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/contact-us/" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/fr/company/contact-us/</loc>
     <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/contact-us/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/contact-us/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/contact-us/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/contact-us/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/digital-agencies/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/digital-agencies/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/digital-agencies/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/digital-agencies/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/digital-agencies/" />
     <image:image>
@@ -134,20 +147,32 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/th/company/digital-agencies/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/digital-agencies/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/digital-agencies/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/digital-agencies/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/digital-agencies/" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/fr/company/digital-agencies/</loc>
     <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/digital-agencies/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/digital-agencies/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/digital-agencies/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/digital-agencies/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/" />
     <image:image>
@@ -157,20 +182,42 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/th/company/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/fr/company/</loc>
     <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/Software-licence-agreement.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/Software-licence-agreement.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/company/legal/Software-licence-agreement.html</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/Software-licence-agreement.html" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/Software-licence-agreement.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html" />
   </url>
@@ -180,15 +227,27 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/Software-licence-agreement.html" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/Software-licence-agreement.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/Software-licence-agreement.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/cookie-policy.html</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/cookie-policy.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/cookie-policy.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/cookie-policy.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/cookie-policy.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/company/legal/cookie-policy.html</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/cookie-policy.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/cookie-policy.html" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/cookie-policy.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/cookie-policy.html" />
   </url>
@@ -198,15 +257,27 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/cookie-policy.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/cookie-policy.html" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/cookie-policy.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/cookie-policy.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/company/legal/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/" />
   </url>
@@ -216,15 +287,27 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/privacy-policy.html</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/privacy-policy.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/privacy-policy.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/company/legal/privacy-policy.html</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/privacy-policy.html" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/privacy-policy.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" />
   </url>
@@ -234,12 +317,13 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/privacy-policy.html" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/privacy-policy.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/privacy-policy.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/terms-and-conditions.html</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html" />
@@ -257,10 +341,21 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/terms_of_services_and_sales.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/terms_of_services_and_sales.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/company/legal/terms_of_services_and_sales.html</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/terms_of_services_and_sales.html" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/terms_of_services_and_sales.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html" />
   </url>
@@ -270,15 +365,17 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/company/legal/terms_of_services_and_sales.html" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/company/legal/terms_of_services_and_sales.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/company/legal/terms_of_services_and_sales.html" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/business-tools/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/business-tools/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/business-tools/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
     <image:image>
@@ -286,6 +383,16 @@
       <image:title>WordsThatSells.website - AI Digital Marketing Agency in Laos</image:title>
       <image:caption>WordsThatSells.website - AI Digital Marketing Agency in Laos</image:caption>
     </image:image>
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/digital-marketing-services/business-tools/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/business-tools/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/business-tools/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/fr/digital-marketing-services/business-tools/</loc>
@@ -293,15 +400,17 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/business-tools/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/business-tools/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/content-creation/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/content-creation/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/content-creation/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
     <image:image>
@@ -311,20 +420,32 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/th/digital-marketing-services/content-creation/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/content-creation/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/content-creation/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/fr/digital-marketing-services/content-creation/</loc>
     <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/content-creation/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/content-creation/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/" />
     <image:image>
@@ -334,11 +455,22 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/th/digital-marketing-services/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/fr/digital-marketing-services/</loc>
     <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/" />
   </url>
@@ -348,6 +480,7 @@
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/prices/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/prices/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
     <image:image>
@@ -355,20 +488,32 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/th/digital-marketing-services/prices/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/prices/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/prices/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/fr/digital-marketing-services/prices/</loc>
     <lastmod>2026-07-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/prices/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/prices/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/prices/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/social-media-management/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/social-media-management/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/social-media-management/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
     <image:image>
@@ -376,6 +521,16 @@
       <image:title>WordsThatSells.website - AI Digital Marketing Agency in Laos</image:title>
       <image:caption>WordsThatSells.website - AI Digital Marketing Agency in Laos</image:caption>
     </image:image>
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/digital-marketing-services/social-media-management/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/social-media-management/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/social-media-management/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/fr/digital-marketing-services/social-media-management/</loc>
@@ -383,15 +538,17 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/social-media-management/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/social-media-management/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/digital-marketing-services/web-development/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/web-development/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/web-development/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
     <image:image>
@@ -401,17 +558,28 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/th/digital-marketing-services/web-development/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/web-development/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/web-development/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/fr/digital-marketing-services/web-development/</loc>
     <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/digital-marketing-services/web-development/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/digital-marketing-services/web-development/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/digital-marketing-services/web-development/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/" />
@@ -426,7 +594,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/th/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/" />
@@ -436,7 +604,7 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/fr/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/" />
@@ -1206,10 +1374,21 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/ai-tools/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/ai-tools/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/ai-tools/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/resources/ai-tools/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/ai-tools/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/ai-tools/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/" />
   </url>
@@ -1219,6 +1398,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/ai-tools/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/ai-tools/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/" />
   </url>
@@ -2064,10 +2244,11 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/articles/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/articles/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/articles/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/articles/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/articles/" />
     <image:image>
@@ -2077,11 +2258,22 @@
     </image:image>
   </url>
   <url>
+    <loc>https://wordsthatsells.website/th/resources/articles/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/articles/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/articles/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/articles/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/articles/" />
+  </url>
+  <url>
     <loc>https://wordsthatsells.website/fr/resources/articles/</loc>
     <lastmod>2026-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/articles/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/articles/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/articles/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/articles/" />
   </url>
@@ -2464,10 +2656,21 @@
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/glossary/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/glossary/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/glossary/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/resources/glossary/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/glossary/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/glossary/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/" />
   </url>
@@ -2477,6 +2680,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/glossary/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/glossary/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/glossary/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/glossary/" />
   </url>
@@ -3149,6 +3353,17 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/guides/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/guides/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/guides/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/guides/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/resources/guides/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/guides/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/guides/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/guides/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/guides/" />
   </url>
@@ -3158,15 +3373,27 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/guides/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/guides/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/guides/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/guides/" />
   </url>
   <url>
     <loc>https://wordsthatsells.website/en/resources/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/th/resources/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/" />
   </url>
@@ -3176,6 +3403,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/resources/" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/" />
   </url>
