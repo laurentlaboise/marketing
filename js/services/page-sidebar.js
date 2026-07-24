@@ -60,7 +60,7 @@
       'opacity:0;transform:translateY(-50%) rotate(270deg) translateX(20px);pointer-events:none;' +
       'display:flex;align-items:center;gap:6px;font-size:.9rem;border:none;font-family:inherit;}' +
       '.help-tab.show{opacity:1;transform:translateY(-50%) rotate(270deg) translateX(0);pointer-events:auto;}' +
-      '.help-tab:hover{background-color:#f90784;}' +
+      '.help-tab:hover{background-color:#b91c6f;}' +
       '.help-tab i{font-size:1rem;}' +
 
       /* Overlay */
@@ -103,7 +103,7 @@
       '.help-form-submit{margin-top:.5rem;width:100%;background:#d62b83;color:#fff;border:none;' +
       'padding:.75rem 1rem;border-radius:8px;font-weight:700;font-size:.95rem;cursor:pointer;' +
       'display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background-color .3s;}' +
-      '.help-form-submit:hover{background:#f90784;}' +
+      '.help-form-submit:hover{background:#b91c6f;}' +
       '.help-form-submit:disabled{opacity:.7;cursor:default;}' +
       '.help-form-success{text-align:center;padding:2rem 1rem;}' +
       '.help-form-success i{font-size:3rem;color:#10b981;margin-bottom:1rem;display:block;}' +

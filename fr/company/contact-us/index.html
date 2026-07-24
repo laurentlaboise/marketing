@@ -638,90 +638,14 @@
             padding-left: var(--spacing-md);
         }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--spacing-sm) var(--spacing-md);
-            font-family: var(--font-family-heading);
-            font-size: var(--font-size-base);
-            font-weight: 600;
-            border-radius: var(--border-radius-md);
-            cursor: pointer;
-            transition: var(--transition-medium);
-            text-decoration: none;
-            border: 2px solid transparent;
-        }
 
-        .btn-accent {
-            background: radial-gradient(circle at center, rgba(249, 7, 132, 0.82) 37%, var(--color-accent-magenta) 100%);
-            color: var(--color-white);
-            border-color: var(--color-accent-magenta);
-            box-shadow: var(--shadow-md);
-        }
 
-        .btn-accent:hover {
-            transform: translateY(-2px);
-        }
 
-        .btn-premium {
-            background: linear-gradient(90deg, var(--color-primary-base), var(--color-indigo-300));
-            color: var(--color-white);
-            box-shadow: var(--shadow-lg);
-        }
 
-        .btn-premium:hover {
-            transform: translateY(-2px);
-        }
 
-        .btn-learn-more {
-            margin-top: var(--spacing-md);
-        }
 
-        .btn-accent-magenta {
-            background-color: var(--color-accent-magenta);
-            color: var(--color-white);
-            border-color: var(--color-accent-magenta);
-        }
-        .btn-accent-magenta:hover {
-            background-color: #f90784;
-            border-color: #f90784;
-            color: var(--color-white);
-        }
-        .btn-inverse-magenta {
-            background-color: var(--color-white);
-            border-color: var(--color-accent-magenta);
-            color: var(--color-accent-magenta);
-        }
-        .btn-inverse-magenta:hover {
-            background-color: var(--color-accent-magenta);
-            color: var(--color-white);
-        }
 
-        .btn-accent-blue {
-            background-color: #1F85C8;
-            color: var(--color-white);
-            border-color: #1F85C8;
-        }
-        .btn-accent-blue:hover {
-            background-color: #2593d9;
-            border-color: #2593d9;
-            color: var(--color-white);
-        }
-        .btn-inverse-blue {
-            background-color: var(--color-white);
-            border-color: #1F85C8;
-            color: #1F85C8;
-        }
-        .btn-inverse-blue:hover {
-            background-color: #1F85C8;
-            color: var(--color-white);
-        }
 
-        .btn i {
-            margin-right: var(--spacing-sm);
-            font-size: 1.1em;
-        }
 
         .card-base {
             background-color: var(--color-white);
@@ -1004,7 +928,7 @@
         }
 
         .back-to-top:hover {
-            background-color: #f90784;
+            background-color: #b91c6f;
             color: white;
         }
 
@@ -1035,7 +959,7 @@
         }
 
         .quote-tab:hover {
-            background-color: #f90784;
+            background-color: #b91c6f;
         }
 
         input[type="text"], input[type="email"], textarea, select {
@@ -1556,10 +1480,21 @@
         min-height: 48px;
         border: none;
         border-radius: 8px;
-        background: #e91e8c;
+        background: var(--color-accent-magenta, #d62b83);
         color: #fff;
         font-weight: 600;
         cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+      }
+      .wts-page-form button[type="submit"]:hover {
+        background: var(--color-accent-magenta-dark, #b91c6f);
+      }
+      .wts-page-form button[type="submit"]:active {
+        background: var(--color-accent-magenta-deep, #a1185f);
+      }
+      .wts-page-form button[type="submit"]:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
       }
       .wts-form-loading { margin: 0; color: #64748b; }
       .wts-form-error { color: #b91c1c; }

@@ -537,7 +537,7 @@
       for (var L = 0; L < labels.length; L++) {
         var inp = labels[L].querySelector('.price-option-radio');
         var on = inp && inp.checked;
-        labels[L].style.borderColor = on ? '#e11d74' : '#e2e8f0';
+        labels[L].style.borderColor = on ? '#d62b83' : '#e2e8f0';
         labels[L].style.boxShadow = on ? '0 0 0 3px rgba(225,29,116,0.12)' : 'none';
       }
     }
@@ -811,7 +811,7 @@
       tiers.forEach(function (t) { if (q >= t.min_qty) activeMin = t.min_qty; });
       for (var i = 0; i < rows.length; i++) {
         rows[i].style.background = parseInt(rows[i].getAttribute('data-min'), 10) === activeMin
-          ? 'rgba(214,42,131,0.08)' : '';
+          ? 'rgba(214,43,131,0.08)' : '';
       }
       var ctas = elContent.querySelectorAll('.product-cta');
       for (var j = 0; j < ctas.length; j++) ctas[j].setAttribute('data-quantity', q);
@@ -1714,12 +1714,12 @@
       var first = pr.options[0];
       var show$ = canShowPrices();
       html += '<div class="opt-dynamic-summary" style="text-align:left;background:linear-gradient(135deg,#fdf2f8 0%,#f8fafc 100%);border:1px solid #fbcfe8;border-radius:12px;padding:0.9rem 1rem;margin:0 0 1rem;">' +
-        '<div style="font-size:0.72rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#e11d74;margin-bottom:0.25rem;">Selected path</div>' +
+        '<div style="font-size:0.72rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#d62b83;margin-bottom:0.25rem;">Selected path</div>' +
         '<div class="opt-dyn-title" style="font-size:1.05rem;font-weight:700;color:#0f172a;">' + esc(first.label) + '</div>' +
         '<p class="opt-dyn-desc" style="margin:0.35rem 0 0;font-size:0.9rem;line-height:1.5;color:#475569;">' +
           esc(first.description || first.strategy && first.strategy.replace(/_/g, ' ') || '') +
         '</p>' +
-        '<div class="opt-dyn-price" style="margin-top:0.55rem;font-size:1.25rem;font-weight:800;color:#e11d74;">' +
+        '<div class="opt-dyn-price" style="margin-top:0.55rem;font-size:1.25rem;font-weight:800;color:#d62b83;">' +
           (show$
             ? fmtMoney(first.price, pr.currency)
             : '<span style="font-size:0.88rem;font-weight:600;color:#64748b;">Sign in to see pricing</span>') +
@@ -1732,7 +1732,7 @@
         var checked = idx === 0 ? ' checked' : '';
         html += '<label for="' + id + '" class="price-option-label" style="display:flex;gap:0.7rem;align-items:center;border:1.5px solid #e2e8f0;border-radius:12px;padding:0.75rem 0.9rem;cursor:pointer;background:#fff;transition:border-color .15s,box-shadow .15s;">' +
           '<input type="radio" id="' + id + '" name="price-option-' + esc(String(data.id)) + '" value="' + esc(opt.key) + '" class="price-option-radio"' + checked +
-          ' style="width:1.05rem;height:1.05rem;accent-color:#e11d74;flex:none;"' +
+          ' style="width:1.05rem;height:1.05rem;accent-color:#d62b83;flex:none;"' +
           ' data-price="' + esc(String(opt.price)) + '"' +
           ' data-label="' + esc(opt.label) + '"' +
           ' data-description="' + esc(opt.description || '') + '">' +
@@ -1740,7 +1740,7 @@
             '<strong style="display:block;color:#0f172a;font-size:0.98rem;">' + esc(opt.label) + '</strong>' +
           '</span>' +
           (show$
-            ? '<strong style="color:#e11d74;white-space:nowrap;font-size:1rem;">' + fmtMoney(opt.price, pr.currency) + '</strong>'
+            ? '<strong style="color:#d62b83;white-space:nowrap;font-size:1rem;">' + fmtMoney(opt.price, pr.currency) + '</strong>'
             : '') +
         '</label>';
       });
@@ -2234,8 +2234,8 @@
     var st = document.createElement('style');
     st.id = 'wts-product-flash-style';
     st.textContent =
-      '@keyframes wtsProductFlash{0%,100%{box-shadow:0 0 0 0 rgba(214,42,131,0);}' +
-      '15%{box-shadow:0 0 0 4px rgba(214,42,131,0.55);}}' +
+      '@keyframes wtsProductFlash{0%,100%{box-shadow:0 0 0 0 rgba(214,43,131,0);}' +
+      '15%{box-shadow:0 0 0 4px rgba(214,43,131,0.55);}}' +
       '.wts-product-flash{animation:wtsProductFlash 1s ease-in-out 2;border-radius:12px;}';
     document.head.appendChild(st);
   }

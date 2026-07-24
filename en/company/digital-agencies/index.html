@@ -173,13 +173,19 @@
       .agency-hero__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
       .agency-btn {
         display: inline-block; padding: .85rem 1.5rem; border-radius: 10px; font-weight: 700; font-size: 1rem;
-        text-decoration: none; border: none; cursor: pointer; font-family: inherit; transition: transform .15s, box-shadow .15s;
+        text-decoration: none; border: none; cursor: pointer; font-family: inherit;
+        transition: transform .15s, box-shadow .15s, background-color .15s, color .15s, border-color .15s;
       }
       .agency-btn:hover { transform: translateY(-2px); }
-      .agency-btn--primary { background: #d62b83; color: #fff; }
-      .agency-btn--ghost { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.75); }
-      .agency-btn--outline { background: #fff; color: #122a3f; border: 2px solid #e2e8f0; }
-      .agency-btn--outline:hover { border-color: #d62b83; color: #d62b83; }
+      .agency-btn:active { transform: translateY(0) scale(.98); }
+      .agency-btn--primary { background: var(--color-accent-magenta, #d62b83); color: #fff; }
+      .agency-btn--primary:hover { background: var(--color-accent-magenta-dark, #b91c6f); }
+      .agency-btn--primary:active { background: var(--color-accent-magenta-deep, #a1185f); }
+      .agency-btn--ghost { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.85); }
+      .agency-btn--ghost:hover { background: #fff; border-color: #fff; color: var(--color-slate-900, #122a3f); }
+      .agency-btn--outline { background: #fff; color: var(--color-accent-magenta, #d62b83); border: 2px solid var(--color-accent-magenta, #d62b83); }
+      .agency-btn--outline:hover { background: var(--color-accent-magenta, #d62b83); border-color: var(--color-accent-magenta, #d62b83); color: #fff; }
+      .agency-btn--outline:active { background: var(--color-accent-magenta-dark, #b91c6f); border-color: var(--color-accent-magenta-dark, #b91c6f); color: #fff; }
       .agency-section { padding: 4.5rem 0; }
       .agency-section--alt { background: #f8fafc; }
       .agency-kicker {
