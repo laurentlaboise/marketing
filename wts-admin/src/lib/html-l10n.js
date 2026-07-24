@@ -182,14 +182,35 @@ function extractSegments(html) {
   return segments;
 }
 
+// Rewrite /en/ links that sit *inside* translated segment text (AI often
+// leaves English paths, or invents broken localized slugs). Only rewrites
+// known site URL shapes — never free-form path invention.
+function rewriteSegmentHrefs(text, toDir) {
+  if (!text || typeof text !== 'string' || !toDir || toDir === 'en') return text;
+  let out = text;
+  out = out.replace(/(https?:\/\/(?:www\.)?wordsthatsells\.website)\/en\//g, `$1/${toDir}/`);
+  out = out.replace(/(https?:\/\/(?:www\.)?wordsthatsells\.website)\/en(["'\s>])/g, `$1/${toDir}$2`);
+  out = out.replace(/((?:href|src|action|data-href)=["'])\/en\//gi, `$1/${toDir}/`);
+  out = out.replace(/((?:href|src|action|data-href)=["'])\/en(["'])/gi, `$1/${toDir}$2`);
+  // Common AI-invented French company slugs → real site paths
+  if (toDir === 'fr') {
+    out = out.replace(/\/fr\/entreprise\/nous-contacter\/?/g, '/fr/company/contact-us/');
+    out = out.replace(/\/fr\/entreprise\/a-propos\/?/g, '/fr/company/about-us/');
+    out = out.replace(/\/fr\/entreprise\/?/g, '/fr/company/');
+  }
+  return out;
+}
+
 // English page + translated payload → localized page. Sites whose key is
 // missing from the payload stay English (progressive localization).
-function applySegments(html, payload) {
+function applySegments(html, payload, options = {}) {
   if (!payload || typeof payload !== 'object') return { html, applied: 0 };
+  const toDir = options.toDir || null;
   const ops = [];
   for (const site of collectSegmentSites(html)) {
-    const translated = payload[segmentKey(site.text)];
+    let translated = payload[segmentKey(site.text)];
     if (typeof translated !== 'string' || !translated.trim()) continue;
+    if (toDir) translated = rewriteSegmentHrefs(translated, toDir);
     if (normalizeText(translated) === normalizeText(site.text)) continue;
     const isAttr = !site.kind.startsWith('el:');
     let replacement;
@@ -440,11 +461,13 @@ function localizePage(englishHtml, {
   const pageUrl = `${SITE_ORIGIN}/${config.dir}${sitePath}`;
 
   let html = englishHtml;
-  const segmentResult = applySegments(html, segmentsPayload);
+  const segmentResult = applySegments(html, segmentsPayload, { toDir: config.dir });
   html = segmentResult.html;
   const chromeResult = applyChromeStrings(html, chromePairs);
   html = chromeResult.html;
   html = rewriteLinks(html, config.dir);
+  // Second pass: catch any /en/ still left inside translated markup/attrs
+  html = rewriteSegmentHrefs(html, config.dir);
   html = setHtmlLang(html, config.hreflang);
   html = setInLanguage(html, config.hreflang);
   html = replaceLinkHref(html, 'canonical', pageUrl);
@@ -468,6 +491,7 @@ module.exports = {
   excludedRanges,
   extractSegments,
   applySegments,
+  rewriteSegmentHrefs,
   buildChromeDict,
   applyChromeStrings,
   rewriteLinks,
