@@ -9,6 +9,7 @@
   "nav": {
     "home": "Accueil",
     "aboutUs": "À propos",
+    "aboutUsLower": "À propos",
     "services": "Services",
     "pricing": "Tarifs",
     "resources": "Ressources",
@@ -38,11 +39,15 @@
     "articles": "Articles",
     "glossary": "Glossaire",
     "aiTools": "Outils IA",
-    "findUsOnGoogle": "Retrouvez-nous sur Google"
+    "findUsOnGoogle": "Retrouvez-nous sur Google",
+    "privacyShort": "Confidentialité",
+    "termsShort": "Conditions",
+    "cookiesShort": "Cookies"
   },
   "legal-links": {
     "privacyPolicy": "Politique de confidentialité",
     "termsAndConditions": "Conditions générales",
+    "termsAndConditionsLong": "Conditions générales",
     "cookiePolicy": "Politique de cookies",
     "licence": "Licence",
     "termsOfSales": "Conditions de vente",
@@ -56,19 +61,36 @@
   },
   "forms": {
     "yourName": "Votre nom",
+    "yourNameLower": "Votre nom",
     "yourEmail": "Votre e-mail",
+    "yourEmailLower": "votre@email.com",
     "company": "Société",
+    "companyName": "Nom de l'entreprise",
+    "yourCompanyName": "Nom de votre entreprise",
     "companyOptional": "Société (facultatif)",
     "phoneOptional": "Téléphone (facultatif)",
     "message": "Message",
     "messagePlaceholder": "Comment pouvons-nous vous aider ?",
+    "projectPlaceholder": "Parlez-nous de votre projet...",
     "emailPlaceholder": "Entrez votre adresse e-mail",
     "emailAria": "Adresse e-mail",
     "submitRequest": "Envoyer la demande",
     "sendMessage": "Envoyer le message",
     "subscribe": "S'abonner",
     "successGeneric": "Merci ! Votre message a bien été envoyé — nous vous recontacterons rapidement.",
-    "selectService": "Sélectionnez un service d'intérêt"
+    "selectService": "Sélectionnez un service d'intérêt",
+    "serviceDigitalMarketingStrategy": "Stratégie de marketing digital",
+    "serviceSeoContentCreation": "Création de contenu SEO",
+    "serviceSocialMediaManagement": "Gestion des réseaux sociaux",
+    "serviceWebDevelopment": "Développement web",
+    "serviceGraphicDesign": "Design graphique",
+    "serviceAppDevelopment": "Développement d'applications",
+    "serviceAiMarketingHub": "Centre de marketing IA",
+    "challengesGoalsPlaceholder": "Quels défis rencontrez-vous ? Quels objectifs souhaitez-vous atteindre ?",
+    "registeredNamePlaceholder": "Nom enregistré si disponible",
+    "websiteOrSocialPlaceholder": "Votre site web ou profil social principal",
+    "agencyOrCompanyName": "Nom de votre agence ou entreprise",
+    "phoneLaPlaceholder": "+856 20 xxxx xxxx"
   },
   "common": {
     "readMore": "En savoir plus",
@@ -84,7 +106,8 @@
       "fr": "Français"
     },
     "getStartedLower": "Commencer",
-    "allRightsReserved": "Tous droits réservés"
+    "allRightsReserved": "Tous droits réservés",
+    "pricingPage": "page des tarifs"
   },
   "cta": {
     "requestAQuote": "Demander un devis",
@@ -92,6 +115,7 @@
     "digitalAgencies": "Agences digitales",
     "getStarted": "Commencer",
     "learnMore": "En savoir plus",
-    "viewPricing": "Voir les tarifs"
+    "viewPricing": "Voir les tarifs",
+    "seePriceInPortal": "Voir le prix dans le portail"
   }
 }

@@ -239,29 +239,59 @@ function buildChromeDict(enLocale, targetLocale) {
 // Replace chrome strings in element text (">Read More<") and common
 // attribute values, everywhere outside raw containers — including the
 // footer and modal, which is exactly where most chrome lives.
+//
+// Also:
+//   - free-text exact matches in HTML (e.g. "All rights reserved" mid-sentence)
+//   - quoted string literals inside <script> for short chrome CTAs
+//     (e.g. const ctaText = 'Get started')
 function applyChromeStrings(html, pairs) {
-  const rawOnly = [];
+  const scriptRanges = [];
+  const rawNonScript = [];
   for (const tag of ['script', 'style', 'svg', 'template']) {
-    for (const r of findElementRanges(html, tag)) rawOnly.push({ start: r.openStart, end: r.closeEnd });
+    for (const r of findElementRanges(html, tag)) {
+      const range = { start: r.openStart, end: r.closeEnd };
+      if (tag === 'script') scriptRanges.push(range);
+      else rawNonScript.push(range);
+    }
   }
-  rawOnly.sort((a, b) => a.start - b.start);
+  const rawOnly = [...scriptRanges, ...rawNonScript].sort((a, b) => a.start - b.start);
 
   const chunks = [];
   let cursor = 0;
   for (const r of rawOnly) {
     if (r.start < cursor) continue; // nested raw region already covered
-    chunks.push({ text: html.slice(cursor, r.start), translate: true });
-    chunks.push({ text: html.slice(r.start, r.end), translate: false });
+    const isScript = scriptRanges.some((s) => s.start === r.start && s.end === r.end);
+    chunks.push({ text: html.slice(cursor, r.start), translate: true, kind: 'html' });
+    chunks.push({ text: html.slice(r.start, r.end), translate: isScript, kind: isScript ? 'script' : 'raw' });
     cursor = r.end;
   }
-  chunks.push({ text: html.slice(cursor), translate: true });
+  chunks.push({ text: html.slice(cursor), translate: true, kind: 'html' });
 
   const ATTRS = ['placeholder', 'aria-label', 'title', 'value', 'alt', 'content'];
   let replaced = 0;
   const out = chunks.map((chunk) => {
     if (!chunk.translate) return chunk.text;
     let text = chunk.text;
+
+    if (chunk.kind === 'script') {
+      // Rewrite chrome UI copy embedded in JS (quoted literals AND template
+      // HTML snippets like `...">See price in portal</a>`). Skip short tokens
+      // so identifiers stay intact.
+      for (const [en, target] of pairs) {
+        if (!en || en === target) continue;
+        if (en.length < 6) continue;
+        if (!text.includes(en)) continue;
+        const enEsc = escapeRegExp(en);
+        text = text.replace(new RegExp(enEsc, 'g'), () => {
+          replaced += 1;
+          return target;
+        });
+      }
+      return text;
+    }
+
     for (const [en, target] of pairs) {
+      if (!en || en === target) continue;
       const enEsc = escapeRegExp(en);
       text = text.replace(new RegExp(`>(\\s*)${enEsc}(\\s*)<`, 'g'), (m, lead, trail) => {
         replaced += 1;
@@ -273,6 +303,17 @@ function applyChromeStrings(html, pairs) {
           return p1 + escapeAttr(target) + p2;
         });
       }
+      // Free-text exact match outside tags (footer copyright, mixed sentences).
+      // Longest-first pair order prevents short tokens eating longer phrases.
+      text = text.replace(new RegExp(enEsc, 'g'), (match, offset) => {
+        // Skip matches that sit inside a tag (<...>) — only text nodes.
+        const before = text.slice(Math.max(0, offset - 200), offset);
+        const lastLt = before.lastIndexOf('<');
+        const lastGt = before.lastIndexOf('>');
+        if (lastLt > lastGt) return match; // inside a tag
+        replaced += 1;
+        return escapeHtml(target);
+      });
     }
     return text;
   }).join('');

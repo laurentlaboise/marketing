@@ -9,6 +9,7 @@
   "nav": {
     "home": "หน้าแรก",
     "aboutUs": "เกี่ยวกับเรา",
+    "aboutUsLower": "เกี่ยวกับเรา",
     "services": "บริการ",
     "pricing": "ราคา",
     "resources": "แหล่งข้อมูล",
@@ -38,11 +39,15 @@
     "articles": "บทความ",
     "glossary": "อภิธานศัพท์",
     "aiTools": "เครื่องมือ AI",
-    "findUsOnGoogle": "ค้นหาเราบน Google"
+    "findUsOnGoogle": "ค้นหาเราบน Google",
+    "privacyShort": "ความเป็นส่วนตัว",
+    "termsShort": "ข้อกำหนด",
+    "cookiesShort": "คุกกี้"
   },
   "legal-links": {
     "privacyPolicy": "นโยบายความเป็นส่วนตัว",
     "termsAndConditions": "ข้อกำหนดและเงื่อนไข",
+    "termsAndConditionsLong": "ข้อกำหนดและเงื่อนไข",
     "cookiePolicy": "นโยบายคุกกี้",
     "licence": "ใบอนุญาต",
     "termsOfSales": "เงื่อนไขการขาย",
@@ -56,19 +61,36 @@
   },
   "forms": {
     "yourName": "ชื่อของคุณ",
+    "yourNameLower": "ชื่อของคุณ",
     "yourEmail": "อีเมลของคุณ",
+    "yourEmailLower": "your@email.com",
     "company": "บริษัท",
+    "companyName": "ชื่อบริษัท",
+    "yourCompanyName": "ชื่อบริษัทของคุณ",
     "companyOptional": "บริษัท (ไม่บังคับ)",
     "phoneOptional": "โทรศัพท์ (ไม่บังคับ)",
     "message": "ข้อความ",
     "messagePlaceholder": "ให้เราช่วยอะไรคุณได้บ้าง?",
+    "projectPlaceholder": "บอกเราเกี่ยวกับโปรเจกต์ของคุณ...",
     "emailPlaceholder": "กรอกอีเมลของคุณ",
     "emailAria": "อีเมล",
     "submitRequest": "ส่งคำขอ",
     "sendMessage": "ส่งข้อความ",
     "subscribe": "สมัครรับข่าวสาร",
     "successGeneric": "ขอบคุณ! เราได้รับข้อความของคุณแล้ว และจะติดต่อกลับโดยเร็ว",
-    "selectService": "เลือกบริการที่สนใจ"
+    "selectService": "เลือกบริการที่สนใจ",
+    "serviceDigitalMarketingStrategy": "กลยุทธ์การตลาดดิจิทัล",
+    "serviceSeoContentCreation": "การสร้างคอนเทนต์ SEO",
+    "serviceSocialMediaManagement": "การจัดการโซเชียลมีเดีย",
+    "serviceWebDevelopment": "พัฒนาเว็บไซต์",
+    "serviceGraphicDesign": "กราฟิกดีไซน์",
+    "serviceAppDevelopment": "พัฒนาแอป",
+    "serviceAiMarketingHub": "ศูนย์การตลาด AI",
+    "challengesGoalsPlaceholder": "คุณกำลังเผชิญความท้าทายอะไร? เป้าหมายที่ต้องการคืออะไร?",
+    "registeredNamePlaceholder": "ชื่อจดทะเบียน (ถ้ามี)",
+    "websiteOrSocialPlaceholder": "เว็บไซต์หรือโปรไฟล์โซเชียลหลักของคุณ",
+    "agencyOrCompanyName": "ชื่อเอเจนซีหรือบริษัทของคุณ",
+    "phoneLaPlaceholder": "+856 20 xxxx xxxx"
   },
   "common": {
     "readMore": "อ่านเพิ่มเติม",
@@ -84,7 +106,8 @@
       "fr": "Français"
     },
     "getStartedLower": "เริ่มต้น",
-    "allRightsReserved": "สงวนลิขสิทธิ์"
+    "allRightsReserved": "สงวนลิขสิทธิ์",
+    "pricingPage": "หน้าราคา"
   },
   "cta": {
     "requestAQuote": "ขอใบเสนอราคา",
@@ -92,6 +115,7 @@
     "digitalAgencies": "เอเจนซีดิจิทัล",
     "getStarted": "เริ่มต้นใช้งาน",
     "learnMore": "เรียนรู้เพิ่มเติม",
-    "viewPricing": "ดูราคา"
+    "viewPricing": "ดูราคา",
+    "seePriceInPortal": "ดูราคาในพอร์ทัล"
   }
 }

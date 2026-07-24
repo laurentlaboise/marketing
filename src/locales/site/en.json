@@ -9,6 +9,7 @@
   "nav": {
     "home": "Home",
     "aboutUs": "About Us",
+    "aboutUsLower": "About us",
     "services": "Services",
     "pricing": "Pricing",
     "resources": "Resources",
@@ -16,7 +17,7 @@
     "articles": "Articles",
     "glossary": "Glossary",
     "guides": "Guides",
-    "aiTools": "Ai Tools",
+    "aiTools": "AI Tools",
     "digitalAgencies": "Digital Agencies",
     "affiliateProgram": "Affiliate Program"
   },
@@ -37,12 +38,16 @@
     "automation": "Automation",
     "articles": "Articles",
     "glossary": "Glossary",
-    "aiTools": "Ai Tools",
-    "findUsOnGoogle": "Find us on Google"
+    "aiTools": "AI Tools",
+    "findUsOnGoogle": "Find us on Google",
+    "privacyShort": "Privacy",
+    "termsShort": "Terms",
+    "cookiesShort": "Cookies"
   },
   "legal-links": {
     "privacyPolicy": "Privacy Policy",
     "termsAndConditions": "Terms & Conditions",
+    "termsAndConditionsLong": "Terms and Conditions",
     "cookiePolicy": "Cookie Policy",
     "licence": "Licence",
     "termsOfSales": "Terms of Sales",
@@ -56,19 +61,36 @@
   },
   "forms": {
     "yourName": "Your Name",
+    "yourNameLower": "Your name",
     "yourEmail": "Your Email",
+    "yourEmailLower": "your@email.com",
     "company": "Company",
+    "companyName": "Company Name",
+    "yourCompanyName": "Your company name",
     "companyOptional": "Company (optional)",
     "phoneOptional": "Phone (optional)",
     "message": "Message",
     "messagePlaceholder": "How can we help?",
+    "projectPlaceholder": "Tell us about your project...",
     "emailPlaceholder": "Enter your email address",
     "emailAria": "Email Address",
     "submitRequest": "Submit Request",
     "sendMessage": "Send Message",
     "subscribe": "Subscribe",
     "successGeneric": "Thank you! Your message has been sent — we'll be in touch soon.",
-    "selectService": "Select a Service of Interest"
+    "selectService": "Select a Service of Interest",
+    "serviceDigitalMarketingStrategy": "Digital Marketing Strategy",
+    "serviceSeoContentCreation": "SEO Content Creation",
+    "serviceSocialMediaManagement": "Social Media Management",
+    "serviceWebDevelopment": "Web Development",
+    "serviceGraphicDesign": "Graphic Design",
+    "serviceAppDevelopment": "App Development",
+    "serviceAiMarketingHub": "AI Marketing Hub",
+    "challengesGoalsPlaceholder": "What challenges are you facing? What goals do you want to achieve?",
+    "registeredNamePlaceholder": "Registered name if available",
+    "websiteOrSocialPlaceholder": "Your website or main social profile URL",
+    "agencyOrCompanyName": "Your agency or company name",
+    "phoneLaPlaceholder": "+856 20 xxxx xxxx"
   },
   "common": {
     "readMore": "Read More",
@@ -84,7 +106,8 @@
       "fr": "Français"
     },
     "getStartedLower": "Get started",
-    "allRightsReserved": "All rights reserved"
+    "allRightsReserved": "All rights reserved",
+    "pricingPage": "pricing page"
   },
   "cta": {
     "requestAQuote": "Request a Quote",
@@ -92,6 +115,7 @@
     "digitalAgencies": "Digital Agencies",
     "getStarted": "Get Started",
     "learnMore": "Learn More",
-    "viewPricing": "View Pricing"
+    "viewPricing": "View Pricing",
+    "seePriceInPortal": "See price in portal"
   }
 }
