@@ -203,6 +203,12 @@ function rewriteSegmentHrefs(text, toDir) {
 
 // English page + translated payload → localized page. Sites whose key is
 // missing from the payload stay English (progressive localization).
+//
+// Nested sites (e.g. <span> inside <h1>) are both extractable for the
+// admin editor, but applying BOTH with original offsets corrupts markup:
+// child replaces shift the string, then the parent replace (stale end)
+// eats into the closing tag — `</h1>` becomes visible `h1>`. When an
+// ancestor site also has a translation, descendants are skipped.
 function applySegments(html, payload, options = {}) {
   if (!payload || typeof payload !== 'object') return { html, applied: 0 };
   const toDir = options.toDir || null;
@@ -221,13 +227,26 @@ function applySegments(html, payload, options = {}) {
       const trail = (site.text.match(/\s*$/) || [''])[0];
       replacement = lead + translated.trim() + trail;
     }
-    ops.push({ start: site.start, end: site.end, replacement });
+    ops.push({ start: site.start, end: site.end, replacement, kind: site.kind });
   }
-  return { html: applyOps(html, ops), applied: ops.length };
+
+  // Prefer outermost translated sites: drop any op strictly inside another.
+  const filtered = ops.filter((op) => {
+    return !ops.some(
+      (other) =>
+        other !== op &&
+        other.start <= op.start &&
+        other.end >= op.end &&
+        other.end - other.start > op.end - op.start
+    );
+  });
+
+  return { html: applyOps(html, filtered), applied: filtered.length };
 }
 
 function applyOps(html, ops) {
   let out = html;
+  // Non-overlapping after filter; still apply high→low so earlier indexes stay valid.
   for (const op of ops.sort((a, b) => b.start - a.start)) {
     out = out.slice(0, op.start) + op.replacement + out.slice(op.end);
   }
