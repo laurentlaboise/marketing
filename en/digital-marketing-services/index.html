@@ -1359,18 +1359,19 @@
         }
       });
 
-      // Sticky programs header while tab section leaves viewport top
+      // Sticky programs header only while scrolled past the tab section's
+      // top and the section is still in view — never before reaching it.
       var tabSection = document.querySelector('.tab-section');
       var stickyHeader = document.getElementById('sticky-tab-header');
       if (tabSection && stickyHeader) {
-        var stickyHeaderObserver = new IntersectionObserver(
-          function (entries) {
-            var e = entries[0];
-            stickyHeader.style.display = e.intersectionRatio < 1 ? 'flex' : 'none';
-          },
-          { threshold: [1], rootMargin: '-1px 0px 0px 0px' }
-        );
-        stickyHeaderObserver.observe(tabSection);
+        var updateStickyHeader = function () {
+          var rect = tabSection.getBoundingClientRect();
+          var show = rect.top < 0 && rect.bottom > 0;
+          stickyHeader.style.display = show ? 'flex' : 'none';
+        };
+        window.addEventListener('scroll', updateStickyHeader, { passive: true });
+        window.addEventListener('resize', updateStickyHeader);
+        updateStickyHeader();
       }
     });
   </script>
