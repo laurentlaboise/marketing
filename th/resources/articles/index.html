@@ -905,7 +905,7 @@
     <main>
         <div class="section">
             <div class="container">
-                <a href="/th/digital-marketing-services/" class="back-link" aria-label="Return to Digital Marketing Services"><i class="fas fa-arrow-left"></i> Digital Marketing Services</a>
+                <a href="/th/digital-marketing-services/" class="back-link" aria-label="Return to Digital Marketing Services"><i class="fas fa-arrow-left"></i> การตลาดดิจิทัล บริการ</a>
                 <div class="section-header reveal">
                     <center>
                         <div class="heading-accent-line"></div>
@@ -970,7 +970,7 @@
         //   cd wts-admin
         //   ./scripts/machine-api.sh create-article @scripts/payloads/korea-ai-law-article.json
         //   ./scripts/machine-api.sh create-article @scripts/payloads/sea-ai-2026-article.json
-        // After import, mergeStaticArticles() below automatically prefers the
+        // After import, mergeStaticบทความ() below automatically prefers the
         // CMS version (deduped by slug) — these entries then act purely as
         // offline fallbacks and can eventually be deleted.
         const STATIC_ARTICLES = [
@@ -1055,7 +1055,7 @@
             return url;
         }
 
-        function mergeStaticArticles(apiPosts) {
+        function mergeStaticบทความ(apiPosts) {
             // One entry per canonical slug (prevents duplicate Korea cards when API
             // uses a short slug like south-korea-ai-law-compliance-guide).
             const bySlug = new Map();
@@ -1130,7 +1130,7 @@
 
                 // Transform API data to match expected format
                 // Note: API already returns only published articles
-                blogPosts = mergeStaticArticles(list.map(article => transformArticle(article)));
+                blogPosts = mergeStaticบทความ(list.map(article => transformArticle(article)));
 
                 // Extract unique categories from all articles
                 categories = [...new Set(blogPosts.flatMap(post => post.categories))].filter(cat => cat && cat.trim()).sort();
@@ -1143,7 +1143,7 @@
             } catch (error) {
                 console.error('Error fetching data:', error);
                 // Fallback: still show static articles so the blog is never empty
-                blogPosts = mergeStaticArticles([]);
+                blogPosts = mergeStaticบทความ([]);
                 categories = [...new Set(blogPosts.flatMap(post => post.categories))].filter(Boolean).sort();
                 featuredPosts = blogPosts.filter(post => post.featured);
                 isLoading = false;
@@ -1231,20 +1231,20 @@
             document.getElementById('meta-twitter-image').setAttribute('content', twImage);
 
             // Update page title
-            document.title = `${article.title} | Digital Marketing Blog`;
+            document.title = `${article.title} | การตลาดดิจิทัล Blog`;
         }
 
         // Reset meta tags to default
         function resetMetaTags() {
             document.getElementById('meta-description').setAttribute('content', 'Insights and strategies to help your business thrive in the digital world. Browse our collection of articles on SEO, social media, web development, and more.');
-            document.getElementById('meta-og-title').setAttribute('content', 'Digital Marketing Articles');
+            document.getElementById('meta-og-title').setAttribute('content', 'การตลาดดิจิทัล บทความ');
             document.getElementById('meta-og-description').setAttribute('content', 'Insights and strategies to help your business thrive in the digital world.');
             document.getElementById('meta-og-image').setAttribute('content', 'https://wordsthatsells.website/images/default-blog.jpg');
             document.getElementById('meta-og-url').setAttribute('content', 'https://wordsthatsells.website/articles/');
-            document.getElementById('meta-twitter-title').setAttribute('content', 'Digital Marketing Articles');
+            document.getElementById('meta-twitter-title').setAttribute('content', 'การตลาดดิจิทัล บทความ');
             document.getElementById('meta-twitter-description').setAttribute('content', 'Insights and strategies to help your business thrive in the digital world.');
             document.getElementById('meta-twitter-image').setAttribute('content', 'https://wordsthatsells.website/images/default-blog.jpg');
-            document.title = 'Digital Marketing Blog';
+            document.title = 'การตลาดดิจิทัล Blog';
         }
 
         // Generate Schema.org JSON-LD for BlogPosting
@@ -1318,7 +1318,7 @@
             const errorHTML = `
                 <div class="error-state">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Unable to Load Articles</h3>
+                    <h3>Unable to Load บทความ</h3>
                     <p>We're having trouble loading the articles. Please try again later.</p>
                     <p style="font-size: 0.875rem; color: var(--color-slate-500);">${message}</p>
                 </div>
@@ -1631,5 +1631,5 @@
         }
     </script>
 <script src="/js/services/page-sidebar.js"></script>
-<footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">ติดต่อเรา</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane,<br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">ค้นหาเราบน Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">+856 20 5552 8034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">โซลูชัน</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">การตลาดดิจิทัล</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">พัฒนาเว็บไซต์</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">การสร้างคอนเทนต์</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">โซเชียลมีเดีย</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">เครื่องมือธุรกิจ</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">บริการ</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">ราคา</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">โปรแกรมพันธมิตร</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">เอเจนซี</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">ระบบอัตโนมัติ</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">แหล่งข้อมูล</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">บทความ</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">อภิธานศัพท์</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">AI Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">กฎหมาย</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">นโยบายความเป็นส่วนตัว</a></li><li><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Terms &amp; Conditions</a></li><li><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">นโยบายคุกกี้</a></li><li><a href="https://wordsthatsells.website/en/company/legal/">เอกสารทางกฎหมายทั้งหมด</a></li></ul></div></div></div><div class="footer-bottom"><div class="footer-legal"><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Privacy</a><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Terms</a><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Cookies</a></div><p>© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="th"><a href="/en/resources/articles/" data-lang-dir="en" hreflang="en" lang="en" title="English">EN</a><a href="/th/resources/articles/" data-lang-dir="th" hreflang="th" lang="th" title="ไทย (Thai)" aria-current="true">ไทย</a><span class="lang-soon" lang="lo" title="ລາວ (Lao) translation coming soon" aria-disabled="true">ລາວ</span><a href="/fr/resources/articles/" data-lang-dir="fr" hreflang="fr" lang="fr" title="Français">FR</a></nav></div></div></footer></body>
+<footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">ติดต่อเรา</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane,<br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">ค้นหาเราบน Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">+856 20 5552 8034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">โซลูชัน</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">การตลาดดิจิทัล</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">พัฒนาเว็บไซต์</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">การสร้างคอนเทนต์</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">โซเชียลมีเดีย</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">เครื่องมือธุรกิจ</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">บริการ</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">ราคา</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">โปรแกรมพันธมิตร</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">เอเจนซี</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">ระบบอัตโนมัติ</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">แหล่งข้อมูล</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">บทความ</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">อภิธานศัพท์</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">เครื่องมือ AI</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">กฎหมาย</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">นโยบายความเป็นส่วนตัว</a></li><li><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">ข้อกำหนด &amp; Conditions</a></li><li><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">นโยบายคุกกี้</a></li><li><a href="https://wordsthatsells.website/en/company/legal/">เอกสารทางกฎหมายทั้งหมด</a></li></ul></div></div></div><div class="footer-bottom"><div class="footer-legal"><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">ความเป็นส่วนตัว</a><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">ข้อกำหนด</a><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">คุกกี้</a></div><p>© 2026 Laboise eworker Laos enterprise. สงวนลิขสิทธิ์. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="th"><a href="/en/resources/articles/" data-lang-dir="en" hreflang="en" lang="en" title="English">EN</a><a href="/th/resources/articles/" data-lang-dir="th" hreflang="th" lang="th" title="ไทย (Thai)" aria-current="true">ไทย</a><span class="lang-soon" lang="lo" title="ລາວ (Lao) translation coming soon" aria-disabled="true">ລາວ</span><a href="/fr/resources/articles/" data-lang-dir="fr" hreflang="fr" lang="fr" title="Français">FR</a></nav></div></div></footer></body>
 </html>

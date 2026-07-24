@@ -1725,7 +1725,7 @@
     <main>
         <div class="section">
             <div class="container">
-                <a href="/fr/digital-marketing-services/" class="back-link" aria-label="Return to Digital Marketing Services"><i class="fas fa-arrow-left"></i> Digital Marketing Services</a>
+                <a href="/fr/digital-marketing-services/" class="back-link" aria-label="Return to Digital Marketing Services"><i class="fas fa-arrow-left"></i> Marketing digital Services</a>
 
                 <div class="glossary-hero reveal">
                     <div class="heading-accent-line" style="margin:0 auto 1rem;"></div>
@@ -1872,7 +1872,7 @@
 {
   "@context": "https://schema.org",
   "@type": "DefinedTermSet",
-  "name": "SEO Glossary for Southeast Asia",
+  "name": "SEO Glossaire for Southeast Asia",
   "description": "Free SEO and digital marketing glossary for businesses in Laos, Thailand, Vietnam, Indonesia, Singapore, and Southeast Asia.",
   "url": "https://wordsthatsells.website/fr/resources/glossary/",
   "inLanguage": "fr",
@@ -2174,7 +2174,7 @@
         let groupedTerms = {};
 
         // Fetch glossary data from backend API
-        async function fetchGlossary() {
+        async function fetchGlossaire() {
             try {
                 const response = await fetch(`${API_BASE_URL}/glossary`);
                 if (!response.ok) throw new Error('API error');
@@ -2229,14 +2229,14 @@
             const glossaryContainer = document.getElementById('glossary-container');
             glossaryContainer.innerHTML = '<p style="text-align:center; padding:40px; color:var(--color-slate-500);">Loading glossary...</p>';
 
-            await fetchGlossary();
+            await fetchGlossaire();
 
             if (glossaryTerms.length === 0) {
                 glossaryContainer.innerHTML = '<p style="text-align:center; padding:40px; color:var(--color-slate-500);">No glossary terms available.</p>';
                 return;
             }
 
-            initGlossary();
+            initGlossaire();
             initSearch();
             initPills();
             initAlphabetNav();
@@ -2250,7 +2250,7 @@
             });
         }, { threshold: 0.1 });
 
-        function initGlossary(filteredTerms) {
+        function initGlossaire(filteredTerms) {
             if (!filteredTerms) filteredTerms = glossaryTerms;
             const glossaryContainer = document.getElementById('glossary-container');
             glossaryContainer.innerHTML = '';
@@ -2353,7 +2353,7 @@
                 const filtered = glossaryTerms.filter(term => {
                     return term.term.toLowerCase().includes(query) || term.definition.paragraph.toLowerCase().includes(query);
                 });
-                initGlossary(filtered);
+                initGlossaire(filtered);
             });
         }
 
@@ -2377,10 +2377,10 @@
                     const filter = target.getAttribute('data-filter');
 
                     if (filter === 'all') {
-                        initGlossary(glossaryTerms);
+                        initGlossaire(glossaryTerms);
                     } else {
                         const filtered = glossaryTerms.filter(term => term.categories.includes(filter));
-                        initGlossary(filtered);
+                        initGlossaire(filtered);
                     }
                 }
             });
@@ -2560,5 +2560,5 @@
         }
     </script>
 <script src="/js/services/page-sidebar.js"></script>
-<footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">Contactez-nous</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane,<br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">Retrouvez-nous sur Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">+856 20 5552 8034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Solutions</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">Marketing digital</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">Développement web</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">Création de contenu</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">Réseaux sociaux</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">Outils business</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Services</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">Tarifs</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">Programme d'affiliation</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">Agences</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Automatisation</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Ressources</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">Articles</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">Glossaire</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">AI Tools</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Mentions légales</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Politique de confidentialité</a></li><li><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Terms &amp; Conditions</a></li><li><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Politique de cookies</a></li><li><a href="https://wordsthatsells.website/en/company/legal/">Tous les documents légaux</a></li></ul></div></div></div><div class="footer-bottom"><div class="footer-legal"><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Privacy</a><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Terms</a><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Cookies</a></div><p>© 2026 Laboise eworker Laos enterprise. All rights reserved. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="fr"><a href="/en/resources/glossary/" data-lang-dir="en" hreflang="en" lang="en" title="English">EN</a><a href="/th/resources/glossary/" data-lang-dir="th" hreflang="th" lang="th" title="ไทย (Thai)">ไทย</a><span class="lang-soon" lang="lo" title="ລາວ (Lao) translation coming soon" aria-disabled="true">ລາວ</span><a href="/fr/resources/glossary/" data-lang-dir="fr" hreflang="fr" lang="fr" title="Français" aria-current="true">FR</a></nav></div></div></footer></body>
+<footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">Contactez-nous</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane,<br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">Retrouvez-nous sur Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">+856 20 5552 8034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Solutions</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">Marketing digital</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">Développement web</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">Création de contenu</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">Réseaux sociaux</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">Outils business</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Services</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">Tarifs</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">Programme d'affiliation</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">Agences</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Automatisation</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Ressources</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">Articles</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">Glossaire</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Outils IA</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Mentions légales</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Politique de confidentialité</a></li><li><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Conditions &amp; Conditions</a></li><li><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Politique de cookies</a></li><li><a href="https://wordsthatsells.website/en/company/legal/">Tous les documents légaux</a></li></ul></div></div></div><div class="footer-bottom"><div class="footer-legal"><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Confidentialité</a><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Conditions</a><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Cookies</a></div><p>© 2026 Laboise eworker Laos enterprise. Tous droits réservés. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="fr"><a href="/en/resources/glossary/" data-lang-dir="en" hreflang="en" lang="en" title="English">EN</a><a href="/th/resources/glossary/" data-lang-dir="th" hreflang="th" lang="th" title="ไทย (Thai)">ไทย</a><span class="lang-soon" lang="lo" title="ລາວ (Lao) translation coming soon" aria-disabled="true">ລາວ</span><a href="/fr/resources/glossary/" data-lang-dir="fr" hreflang="fr" lang="fr" title="Français" aria-current="true">FR</a></nav></div></div></footer></body>
 </html>
