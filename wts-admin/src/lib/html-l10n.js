@@ -30,12 +30,18 @@ const LANGUAGES = {
 const TARGET_DIRS = ['th', 'la', 'fr'];
 
 // Block-level text carriers that become translation segments.
-const SEGMENT_TAGS = ['title', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'blockquote', 'figcaption', 'summary', 'dt', 'dd'];
+// Include a/button/option/label so CTAs, form options, and nav chips
+// are not left English when they sit outside a <p>/<h*> wrapper.
+const SEGMENT_TAGS = [
+  'title', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'blockquote',
+  'figcaption', 'summary', 'dt', 'dd', 'a', 'button', 'option', 'label', 'span',
+];
 
 // Segments are never extracted from these regions. The footer and the
 // shared quote modal are chrome (localized via src/locales/site/*.json);
 // raw-text containers can't carry translated markup.
-const RAW_TAGS = ['script', 'style', 'svg', 'noscript', 'template', 'pre', 'code', 'textarea', 'select'];
+// Note: do NOT exclude <select> — its <option> labels must be localizable.
+const RAW_TAGS = ['script', 'style', 'svg', 'noscript', 'template', 'pre', 'code', 'textarea'];
 
 // A segment candidate containing any of these is a container, not a text
 // block — its inner blocks are extracted instead (prevents overlap).
