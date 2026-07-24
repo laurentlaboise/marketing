@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    </noscript>
+
+    <title>Paiement réussi - WordsThatSells</title>
+    <link rel="canonical" href="https://wordsthatsells.website/fr/checkout/success.html">
+    <link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/checkout/success.html">
+    <link rel="alternate" hreflang="th" href="https://wordsthatsells.website/th/checkout/success.html">
+    <link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/checkout/success.html">
+    <link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/checkout/success.html">
+<meta name="robots" content="noindex, nofollow">
+    <style>
+        .checkout-result { max-width: 600px; margin: 4rem auto; padding: 2rem; text-align: center; }
+        .checkout-result .icon { font-size: 4rem; margin-bottom: 1.5rem; }
+        .checkout-result.success .icon { color: #22c55e; }
+        .checkout-result h1 { margin-bottom: 1rem; }
+        .checkout-result p { color: #666; margin-bottom: 1.5rem; }
+        .download-btn { display: inline-block; padding: 0.8rem 2rem; background: var(--color-accent-magenta, #d62b83); color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background-color 0.3s ease-in-out; }
+        .download-btn:hover { background: var(--color-accent-magenta-dark, #b91c6f); }
+        .download-btn:active { background: var(--color-accent-magenta-deep, #a1185f); }
+        .order-details { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; text-align: left; }
+        .order-details dt { font-weight: 600; color: #333; }
+        .order-details dd { color: #666; margin-bottom: 0.75rem; margin-left: 0; }
+    </style>
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png"><link rel="shortcut icon" href="/favicon/favicon.ico"><link rel="manifest" href="/favicon/site.webmanifest"></head>
+<body>
+    <div class="checkout-result success">
+        <div class="icon"><i class="fas fa-check-circle"></i></div>
+        <h1>Paiement réussi !</h1>
+        <p>Merci pour votre achat. Votre commande a été confirmée.</p>
+        <div id="order-details" class="order-details" style="display:none;">
+            <dl>
+                <dt>Produit</dt>
+                <dd id="detail-product">-</dd>
+                <dt>Montant</dt>
+                <dd id="detail-amount">-</dd>
+                <dt>Statut</dt>
+                <dd id="detail-status">-</dd>
+            </dl>
+            <div id="download-section" style="display:none;text-align:center;margin-top:1rem;">
+                <a id="download-link" href="#" class="download-btn"><i class="fas fa-download"></i> Download Your Product</a>
+            </div>
+        </div>
+        <p><a href="/fr/digital-marketing-services/content-creation/" style="color:#667eea;">Retour aux services</a></p>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get('session_id');
+        if (sessionId) {
+            fetch('https://admin.wordsthatsells.website/api/payments/order-status/' + encodeURIComponent(sessionId))
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('order-details').style.display = 'block';
+                    document.getElementById('detail-product').textContent = data.product_name || 'Digital Product';
+                    document.getElementById('detail-amount').textContent = '$' + parseFloat(data.amount).toFixed(2) + ' ' + (data.currency || 'USD');
+                    document.getElementById('detail-status').textContent = data.status || 'Processing';
+                    if (data.download_url) {
+                        document.getElementById('download-section').style.display = 'block';
+                        document.getElementById('download-link').href = data.download_url;
+                    }
+                })
+                .catch(() => {});
+        }
+    </script>
+<footer class="footer" data-i18n-links><div class="container"><div class="footer-top"><div class="footer-brand"><img src="/images/SEO_AI_Digital_Marketing_Agency_Laos_Thailand_Asia_logo_with-words_white_colour_SVG.svg" alt="WordsThatSells.website - AI Digital Marketing Agency in Laos" class="footer-logo" width="200" height="50" loading="lazy" decoding="async"><div class="footer-brand-divider"></div><p class="footer-brand-text">Laboise eworker Laos enterprise<br>Empowering businesses in Southeast Asia with AI-driven marketing.</p><div class="social-links"><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Twitter"><i class="fab fa-twitter-square"></i></a><a href="https://www.youtube.com/@wordsthatsells928" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube"><i class="fab fa-youtube-square"></i></a></div></div><div class="footer-grid"><div class="footer-column"><h3 class="footer-heading">Contactez-nous</h3><ul class="footer-list"><li class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>20 Rue Samsenthai, Vientiane,<br>Vientiane Province</span></li><li class="footer-contact-item"><i class="fab fa-google"></i><a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" target="_blank" rel="noopener noreferrer">Retrouvez-nous sur Google</a></li><li class="footer-contact-item"><i class="fab fa-whatsapp"></i><a href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer">+856 20 5552 8034</a></li><li class="footer-contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@wordsthatsells.website" target="_blank" rel="noopener noreferrer">info@wordsthatsells.website</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Solutions</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/">Marketing digital</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/web-development/">Développement web</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/content-creation/">Création de contenu</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/social-media-management/">Réseaux sociaux</a></li><li><a href="https://wordsthatsells.website/en/digital-marketing-services/business-tools/">Outils business</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Services</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/digital-marketing-services/prices/">Tarifs</a></li><li><a href="https://wordsthatsells.website/en/company/affiliate-sales/">Programme d'affiliation</a></li><li><a href="https://wordsthatsells.website/en/company/digital-agencies/">Agences</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Automatisation</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Ressources</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/resources/articles/">Articles</a></li><li><a href="https://wordsthatsells.website/en/resources/glossary/">Glossaire</a></li><li><a href="https://wordsthatsells.website/en/resources/ai-tools/">Outils IA</a></li></ul></div><div class="footer-column"><h3 class="footer-heading">Mentions légales</h3><ul class="footer-list"><li><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Politique de confidentialité</a></li><li><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Conditions &amp; Conditions</a></li><li><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Politique de cookies</a></li><li><a href="https://wordsthatsells.website/en/company/legal/">Tous les documents légaux</a></li></ul></div></div></div><div class="footer-bottom"><div class="footer-legal"><a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Confidentialité</a><a href="https://wordsthatsells.website/en/company/legal/terms-and-conditions.html">Conditions</a><a href="https://wordsthatsells.website/en/company/legal/cookie-policy.html">Cookies</a></div><p>© 2026 Laboise eworker Laos enterprise. Tous droits réservés. Tax ID: 275618471000 | Reg ID: 08/04 – 000001253</p><nav class="lang-switcher" aria-label="Language" data-current="fr"><a href="/en/checkout/success.html" data-lang-dir="en" hreflang="en" lang="en" title="English">EN</a><a href="/th/checkout/success.html" data-lang-dir="th" hreflang="th" lang="th" title="ไทย (Thai)">ไทย</a><span class="lang-soon" lang="lo" title="ລາວ (Lao) translation coming soon" aria-disabled="true">ລາວ</span><a href="/fr/checkout/success.html" data-lang-dir="fr" hreflang="fr" lang="fr" title="Français" aria-current="true">FR</a></nav></div></div></footer></body>
+</html>
