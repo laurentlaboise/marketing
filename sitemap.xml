@@ -4,7 +4,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
   <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->
-  <!-- URL count: 352 | generated 2026-07-24 by scripts/generate-sitemap.js -->
+  <!-- URL count: 353 | generated 2026-07-24 by scripts/generate-sitemap.js -->
 
   <url>
     <loc>https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html</loc>
@@ -642,6 +642,16 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/10web/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/ai-tools/10web/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/10web/" />
+  </url>
+  <url>
+    <loc>https://wordsthatsells.website/fr/resources/ai-tools/10web/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wordsthatsells.website/en/resources/ai-tools/10web/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://wordsthatsells.website/fr/resources/ai-tools/10web/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://wordsthatsells.website/en/resources/ai-tools/10web/" />
   </url>
   <url>
