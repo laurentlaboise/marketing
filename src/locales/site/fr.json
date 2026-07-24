@@ -67,7 +67,8 @@
     "submitRequest": "Envoyer la demande",
     "sendMessage": "Envoyer le message",
     "subscribe": "S'abonner",
-    "successGeneric": "Merci ! Votre message a bien été envoyé — nous vous recontacterons rapidement."
+    "successGeneric": "Merci ! Votre message a bien été envoyé — nous vous recontacterons rapidement.",
+    "selectService": "Sélectionnez un service d'intérêt"
   },
   "common": {
     "readMore": "En savoir plus",
@@ -81,7 +82,9 @@
       "th": "ไทย",
       "lo": "ລາວ",
       "fr": "Français"
-    }
+    },
+    "getStartedLower": "Commencer",
+    "allRightsReserved": "Tous droits réservés"
   },
   "cta": {
     "requestAQuote": "Demander un devis",

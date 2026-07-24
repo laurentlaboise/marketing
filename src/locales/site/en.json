@@ -67,7 +67,8 @@
     "submitRequest": "Submit Request",
     "sendMessage": "Send Message",
     "subscribe": "Subscribe",
-    "successGeneric": "Thank you! Your message has been sent — we'll be in touch soon."
+    "successGeneric": "Thank you! Your message has been sent — we'll be in touch soon.",
+    "selectService": "Select a Service of Interest"
   },
   "common": {
     "readMore": "Read More",
@@ -81,7 +82,9 @@
       "th": "ไทย",
       "lo": "ລາວ",
       "fr": "Français"
-    }
+    },
+    "getStartedLower": "Get started",
+    "allRightsReserved": "All rights reserved"
   },
   "cta": {
     "requestAQuote": "Request a Quote",

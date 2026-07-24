@@ -67,7 +67,8 @@
     "submitRequest": "ส่งคำขอ",
     "sendMessage": "ส่งข้อความ",
     "subscribe": "สมัครรับข่าวสาร",
-    "successGeneric": "ขอบคุณ! เราได้รับข้อความของคุณแล้ว และจะติดต่อกลับโดยเร็ว"
+    "successGeneric": "ขอบคุณ! เราได้รับข้อความของคุณแล้ว และจะติดต่อกลับโดยเร็ว",
+    "selectService": "เลือกบริการที่สนใจ"
   },
   "common": {
     "readMore": "อ่านเพิ่มเติม",
@@ -81,7 +82,9 @@
       "th": "ไทย",
       "lo": "ລາວ",
       "fr": "Français"
-    }
+    },
+    "getStartedLower": "เริ่มต้น",
+    "allRightsReserved": "สงวนลิขสิทธิ์"
   },
   "cta": {
     "requestAQuote": "ขอใบเสนอราคา",

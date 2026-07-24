@@ -105,11 +105,9 @@ function excludedRanges(html) {
   for (const r of findElementRanges(html, 'footer')) {
     ranges.push({ start: r.openStart, end: r.closeEnd });
   }
-  for (const r of findElementRanges(html, 'div')) {
-    if (/id="quote-modal-overlay"/.test(r.attrs)) {
-      ranges.push({ start: r.openStart, end: r.closeEnd });
-    }
-  }
+  // Quote modal used to be fully excluded as "chrome", but that left form
+  // labels/options English forever (select options never hit site locale JSON).
+  // Modal copy is now segment-localizable like the rest of the page.
   return ranges;
 }
 
