@@ -1623,10 +1623,20 @@ test('admin inline edit: merges one segment, recounts chars, and respects status
     method: 'POST', headers, body: JSON.stringify({ acknowledge: true }),
   });
   assert.equal(publish.status, 200);
+
+  // Published rows stay editable for the admin — a live fix. The site
+  // regeneration dispatch is attempted (best-effort; skipped without a
+  // GitHub token in this suite) and the status never changes.
+  const liveFix = 'ຄຳນິຍາມສະບັບ live-fix';
   const afterPublish = await admin.fetch(`/translations/${id}/edit`, {
-    method: 'POST', headers, body: JSON.stringify({ content_payload: { definition: 'nope' } }),
+    method: 'POST', headers, body: JSON.stringify({ content_payload: { definition: liveFix } }),
   });
-  assert.equal(afterPublish.status, 409, 'published rows cannot be inline-edited');
+  assert.equal(afterPublish.status, 200, 'published rows accept admin touch-ups');
+  const publishedBody = await afterPublish.json();
+  assert.ok('regeneration' in publishedBody, 'published edits report the rebuild dispatch');
+  const publishedRow = (await pool.query('SELECT * FROM translations WHERE id = $1', [id])).rows[0];
+  assert.equal(publishedRow.content_payload.definition, liveFix);
+  assert.equal(publishedRow.status, 'published', 'a live fix never demotes the row');
 });
 
 test('injectTermLinks links first mentions only, in eligible text, longest term first', () => {

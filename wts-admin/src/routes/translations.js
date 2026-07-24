@@ -765,22 +765,20 @@ router.post('/:id/approve', ensureSuperAdmin, logActivity('translation_approve')
   }
 });
 
-// Inline touch-up from the review page: fix one segment and publish,
+// Inline touch-up from the review page: fix one segment right there,
 // instead of bouncing a whole item back for a single wording change.
-// Merge semantics — only the posted fields change, everything else stays —
-// so the client can save segment by segment. Deliberately does NOT touch
-// the verifier meters (ai_draft_payload / edited_chars): admin touch-ups
-// are not verifier work and must never inflate anyone's edit pay.
+// Available to the admin in EVERY status — the review page is the
+// control plane's editing surface. Merge semantics — only the posted
+// fields change, everything else stays — so the client saves segment by
+// segment. Deliberately does NOT touch the verifier meters
+// (ai_draft_payload / edited_chars): admin touch-ups are not verifier
+// work and must never inflate anyone's edit pay. Editing a PUBLISHED row
+// additionally dispatches the site regeneration, so a live fix reaches
+// the website without a reopen → re-publish cycle.
 router.post('/:id/edit', ensureSuperAdmin, logActivity('translation_admin_edit'), async (req, res) => {
   try {
     const row = await loadTranslation(req, res);
     if (!row) return;
-    if (!['requires_review', 'verified'].includes(row.status)) {
-      return asJson(res, 409, {
-        success: false,
-        error: 'Only a translation in review (or verified, before publishing) can be edited here — reopen published items first.',
-      });
-    }
     const { payload, error } = core.sanitizePayload(row.entity_type, req.body.content_payload);
     if (error) return asJson(res, 400, { success: false, error });
     if (Object.keys(payload).length === 0) {
@@ -800,7 +798,15 @@ router.post('/:id/edit', ensureSuperAdmin, logActivity('translation_admin_edit')
     if (updated.rows.length === 0) {
       return asJson(res, 409, { success: false, error: 'This item changed while you were editing — reload the page.' });
     }
-    asJson(res, 200, { success: true, targetChars: core.countChars(merged) });
+
+    // Live fix: the text on the website comes from generated files, so an
+    // edit to a published row triggers the rebuild that carries it out.
+    const regeneration = row.status === 'published' ? await triggerSiteRegeneration(row) : null;
+    asJson(res, 200, {
+      success: true,
+      targetChars: core.countChars(merged),
+      regeneration: regeneration ? { dispatched: regeneration.ok, reason: regeneration.ok ? undefined : regeneration.reason } : null,
+    });
   } catch (error) {
     console.error('Admin edit failed:', error.message);
     asJson(res, 500, { success: false, error: 'Save failed' });
