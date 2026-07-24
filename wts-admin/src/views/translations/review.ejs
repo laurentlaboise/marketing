@@ -96,7 +96,10 @@
       var segIndex = 0;
     %>
     <% var hasThaiRef = typeof thaiRef !== 'undefined' && thaiRef; %>
-    <% var canEditInline = ['requires_review', 'verified'].includes(item.status); %>
+    <%// The admin can always touch up segments here — the review page is
+      // the control plane's editing surface. Published edits auto-trigger
+      // the site rebuild; draft edits warn about the active worker. %>
+    <% var canEditInline = true; %>
     <% fieldList.forEach(field => {
          var sourceValue = source && source.fields[field];
          var targetValue = item.content_payload ? item.content_payload[field] : null;
@@ -278,16 +281,19 @@
     });
   });
 
-  // --- Inline segment editing: fix one segment right here and publish,
-  // instead of rejecting a whole item for a single wording change. Each
-  // save posts only that segment; the server merges it into the payload.
-  var VERIFIER_ACTIVE = <%= item.verifier_id && !item.verified_by ? 'true' : 'false' %>;
+  // --- Inline segment editing: fix one segment right here, in any
+  // status. Each save posts only that segment; the server merges it into
+  // the payload. Published edits dispatch the site rebuild automatically.
+  var VERIFIER_ACTIVE = <%= item.status === 'requires_review' && item.verifier_id && !item.verified_by ? 'true' : 'false' %>;
+  var TRANSLATOR_ACTIVE = <%= ['pending', 'translating', 'rejected'].includes(item.status) && item.translator_id ? 'true' : 'false' %>;
+  var IS_PUBLISHED = <%= item.status === 'published' ? 'true' : 'false' %>;
   var warnedVerifier = false;
   function segEl(cls, field) { return document.querySelector('.seg-target[data-field="' + CSS.escape(field) + '"] .' + cls); }
   document.querySelectorAll('.seg-edit-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      if (VERIFIER_ACTIVE && !warnedVerifier) {
-        if (!confirm('A verifier is currently working on this item — a change you save here may be overwritten by their next save. Continue?')) return;
+      if ((VERIFIER_ACTIVE || TRANSLATOR_ACTIVE) && !warnedVerifier) {
+        var who = VERIFIER_ACTIVE ? 'A verifier' : 'A translator';
+        if (!confirm(who + ' is currently working on this item — a change you save here may be overwritten by their next save. Continue?')) return;
         warnedVerifier = true;
       }
       var field = btn.getAttribute('data-field');
@@ -326,7 +332,15 @@
         view.hidden = false;
         segEl('seg-edit-btn', field).hidden = false;
         var saved = segEl('seg-saved', field);
-        if (saved) { saved.hidden = false; setTimeout(function () { saved.hidden = true; }, 1800); }
+        if (saved) {
+          // Published fix: tell the admin the website update is on its way.
+          var rebuilt = IS_PUBLISHED && res.data.regeneration && res.data.regeneration.dispatched;
+          saved.innerHTML = rebuilt
+            ? '<i class="fas fa-check"></i> Saved · site rebuilding'
+            : '<i class="fas fa-check"></i> Saved';
+          saved.hidden = false;
+          setTimeout(function () { saved.hidden = true; }, rebuilt ? 3500 : 1800);
+        }
       });
     });
   });
