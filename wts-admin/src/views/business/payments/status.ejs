@@ -46,6 +46,41 @@
               </td>
             </tr>
             <tr>
+              <td>Publishable key<br><span style="font-weight:400;color:#64748b;font-size:0.8rem;">(in-page payment panel)</span></td>
+              <td>
+                <% if (stripe.publishable.envInvalid) { %>
+                  <div style="color:#b91c1c;font-weight:600;margin-bottom:0.35rem;">
+                    &#9888; <code>STRIPE_PUBLISHABLE_KEY</code> is set but is NOT a publishable key (pk_&hellip;) — it is being ignored.
+                    If you pasted the secret key there, move it out and roll it in the Stripe dashboard.
+                  </div>
+                <% } %>
+                <% if (stripe.publishable.source === 'env') { %>
+                  <span style="color:#16a34a;font-weight:600;">&#10003; set via env</span>
+                  &middot; &hellip;<%= stripe.publishable.value.slice(-4) %> — the cart&rsquo;s slide-in Stripe panel is active.
+                <% } else { %>
+                  <% if (stripe.publishable.source === 'admin') { %>
+                    <span style="color:#16a34a;font-weight:600;">&#10003; set here</span>
+                    &middot; mode: <strong><%= stripe.publishable.value.startsWith('pk_live') ? 'live' : 'test' %></strong>
+                    &middot; &hellip;<%= stripe.publishable.value.slice(-4) %> — the slide-in panel is active.
+                  <% } else { %>
+                    <span style="color:#92400e;font-weight:600;">not set</span>
+                    — clients get the Stripe-hosted page instead of the slide-in panel.
+                  <% } %>
+                  <form method="POST" action="/business/payments/publishable-key" style="display:flex;gap:0.5rem;margin-top:0.45rem;flex-wrap:wrap;align-items:center;">
+                    <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                    <input type="text" name="publishable_key" value="<%= stripe.publishable.source === 'admin' ? stripe.publishable.value : '' %>"
+                           placeholder="pk_live_…" spellcheck="false" autocomplete="off"
+                           style="flex:1;min-width:280px;max-width:520px;padding:0.4rem 0.6rem;border:1px solid #cbd5e1;border-radius:8px;font-size:0.85rem;font-family:monospace;">
+                    <button type="submit" class="btn btn-primary" style="padding:0.35rem 0.9rem;">Save</button>
+                  </form>
+                  <div style="color:#64748b;font-size:0.85rem;margin-top:0.25rem;">
+                    Stripe dashboard &rarr; Developers &rarr; API keys &rarr; <strong>Publishable key</strong> (safe to share, unlike the secret key).
+                    Takes effect immediately — no redeploy. Paste an empty value to clear.
+                  </div>
+                <% } %>
+              </td>
+            </tr>
+            <tr>
               <td>BCEL transfer details</td>
               <td>
                 <% if (bcelConfigured) { %>

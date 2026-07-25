@@ -911,12 +911,31 @@ router.get('/payments', async (req, res) => {
   try {
     const key = process.env.STRIPE_SECRET_KEY || '';
     const whsec = process.env.STRIPE_WEBHOOK_SECRET || '';
+    // Publishable key powers the cart's in-page payment panel. It is public
+    // by design (it ships to every browser), so a DB-backed setting the
+    // admin pastes here is fine — the env var, when set AND valid, wins.
+    // A malformed env value (e.g. a secret key pasted by mistake) is never
+    // used or echoed; the panel calls it out so it gets fixed.
+    const PK_RE = /^pk_(live|test)_[A-Za-z0-9]{10,}$/;
+    const envPkRaw = process.env.STRIPE_PUBLISHABLE_KEY || '';
+    const envPk = PK_RE.test(envPkRaw) ? envPkRaw : '';
+    let dbPk = '';
+    try {
+      const r = await db.query("SELECT value FROM site_settings WHERE key = 'stripe_publishable_key'");
+      const v = (r.rows[0] && r.rows[0].value) || '';
+      if (PK_RE.test(v)) dbPk = v;
+    } catch (e) { /* settings table missing = not configured */ }
     const stripe = {
       keyPresent: !!key,
       keyMode: key.startsWith('sk_live') ? 'live' : (key.startsWith('sk_test') ? 'test' : (key ? 'unknown' : null)),
       keyLast4: key ? key.slice(-4) : null,
       webhookSecretPresent: !!whsec,
-      webhookSecretLast4: whsec ? whsec.slice(-4) : null
+      webhookSecretLast4: whsec ? whsec.slice(-4) : null,
+      publishable: {
+        value: envPk || dbPk,
+        source: envPk ? 'env' : (dbPk ? 'admin' : null),
+        envInvalid: !!envPkRaw && !envPk
+      }
     };
 
     const lastEvents = (await db.query(
@@ -952,13 +971,46 @@ router.get('/payments', async (req, res) => {
       title: 'Payments',
       currentPage: 'payments',
       user: req.user,
-      messages: req.flash ? req.flash() : {},
+      // messages comes from res.locals (session success/error, set globally)
       stripe, lastEvents, funnel, pendingBank, recent,
       bcelConfigured: !!(process.env.BCEL_QR_URL || process.env.BCEL_ACCOUNT_NOTE)
     });
   } catch (error) {
     console.error('Payments panel error:', error);
     res.status(500).send('Failed to load the payments panel');
+  }
+});
+
+// Save (or clear) the Stripe publishable key from the payments panel, so
+// the cart's embedded payment panel can be activated without touching the
+// deploy environment. Format-checked; an empty submit clears it.
+router.post('/payments/publishable-key', async (req, res) => {
+  try {
+    const value = String(req.body.publishable_key || '').trim();
+    if (value && !/^pk_(live|test)_[A-Za-z0-9]{10,}$/.test(value)) {
+      req.session.errorMessage = 'That does not look like a Stripe publishable key — it starts with pk_live_ or pk_test_ (the secret key sk_… does NOT belong here).';
+      return res.redirect('/business/payments');
+    }
+    if (value) {
+      await db.query(
+        `INSERT INTO site_settings (key, value) VALUES ('stripe_publishable_key', $1)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
+        [value]
+      );
+      req.session.successMessage = `Publishable key saved (${value.startsWith('pk_live') ? 'live' : 'test'} mode) — the in-page payment panel is now active.`;
+    } else {
+      await db.query("DELETE FROM site_settings WHERE key = 'stripe_publishable_key'");
+      // The env var (when valid) still powers the panel after the DB row is
+      // gone — say so instead of promising a fallback that won't happen.
+      req.session.successMessage = /^pk_(live|test)_[A-Za-z0-9]{10,}$/.test(process.env.STRIPE_PUBLISHABLE_KEY || '')
+        ? 'Admin-saved key cleared — STRIPE_PUBLISHABLE_KEY from the environment is still active, so the in-page panel stays on.'
+        : 'Publishable key cleared — checkout falls back to the Stripe-hosted page.';
+    }
+    res.redirect('/business/payments');
+  } catch (error) {
+    console.error('Publishable key save error:', error);
+    req.session.errorMessage = 'Could not save the key — try again.';
+    res.redirect('/business/payments');
   }
 });
 
