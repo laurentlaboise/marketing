@@ -11,7 +11,7 @@ const os = require('os');
 const path = require('path');
 
 const REPO_ROOT = path.resolve(__dirname, '../..');
-const { langSwitcherFor } = require(path.join(REPO_ROOT, 'scripts', 'inject-footers.js'));
+const { langSwitcherFor, localizeFooterLinks } = require(path.join(REPO_ROOT, 'scripts', 'inject-footers.js'));
 
 // A fixture tree containing only the given page files (relative to the base).
 function fixtureTree(files) {
@@ -78,4 +78,67 @@ test('per-page granularity: a language published on one page is not linked on an
   const prices = langSwitcherFor(path.join(base, 'en', 'prices', 'index.html'), base);
   assert.doesNotMatch(prices, /href="\/th\/prices/);
   assert.match(prices, /<span class="lang-soon"[^>]*>ไทย<\/span>/);
+});
+
+// ── localizeFooterLinks: footer nav hrefs follow the page language ──
+// The reset-to-English bug was footer content links hardcoded to /en/. These
+// pin the fix: on a localized page, a footer /en/ link is rewritten to the
+// page's locale when (and only when) that localized page exists on disk.
+
+test('footer /en/ links are localized to the page language when the mirror exists', () => {
+  const base = fixtureTree([
+    'th/digital-marketing-services/index.html',
+    'th/company/legal/privacy-policy.html',
+  ]);
+  const footer =
+    '<a href="https://wordsthatsells.website/en/digital-marketing-services/">Services</a>' +
+    '<a href="https://wordsthatsells.website/en/company/legal/privacy-policy.html">Privacy</a>';
+  const out = localizeFooterLinks(footer, 'th', base);
+
+  assert.match(out, /href="https:\/\/wordsthatsells\.website\/th\/digital-marketing-services\/"/);
+  assert.match(out, /href="https:\/\/wordsthatsells\.website\/th\/company\/legal\/privacy-policy\.html"/);
+  assert.doesNotMatch(out, /\/en\//, 'no /en/ link should survive when a Thai mirror exists');
+});
+
+test('footer link with no localized mirror keeps the working English URL', () => {
+  const base = fixtureTree(['th/index.html']); // no Thai resources page
+  const footer = '<a href="https://wordsthatsells.website/en/resources/ai-tools/">Automation</a>';
+  const out = localizeFooterLinks(footer, 'th', base);
+
+  // Honest fallback: a real English page beats a crawlable /th/ 404.
+  assert.equal(out, footer);
+});
+
+test('a redirect-stub mirror is not localized (would boomerang to English)', () => {
+  const base = fixtureTree(['th/index.html']);
+  const stub = path.join(base, 'th', 'company', 'about-us', 'index.html');
+  fs.mkdirSync(path.dirname(stub), { recursive: true });
+  fs.writeFileSync(stub,
+    '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=/en/"></head></html>');
+  const footer = '<a href="https://wordsthatsells.website/en/company/about-us/">About</a>';
+
+  assert.equal(localizeFooterLinks(footer, 'th', base), footer);
+});
+
+test('root-relative /en/ hrefs are localized too', () => {
+  const base = fixtureTree(['la/resources/glossary/index.html']);
+  const out = localizeFooterLinks('<a href="/en/resources/glossary/">Glossary</a>', 'la', base);
+  assert.match(out, /href="\/la\/resources\/glossary\/"/);
+});
+
+test('external links and non-/en paths are never rewritten', () => {
+  const base = fixtureTree(['th/index.html']);
+  const footer =
+    '<a href="https://www.instagram.com/wordsthatsells.website.laos/">IG</a>' +
+    '<a href="mailto:info@wordsthatsells.website">Mail</a>' +
+    '<a href="/enterprise/plans/">Enterprise</a>' + // /en is not a locale segment here
+    '<img src="https://wordsthatsells.website/images/logo.svg">';
+  assert.equal(localizeFooterLinks(footer, 'th', base), footer);
+});
+
+test('English pages are left completely untouched', () => {
+  const base = fixtureTree(['th/index.html']);
+  const footer = '<a href="https://wordsthatsells.website/en/digital-marketing-services/">Services</a>';
+  assert.equal(localizeFooterLinks(footer, 'en', base), footer);
+  assert.equal(localizeFooterLinks(footer, null, base), footer);
 });
