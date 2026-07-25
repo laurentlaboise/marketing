@@ -61,20 +61,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Re-annotate + register after dynamic mounts so tools match final DOM
   await initWebMCP();
-
-  updateFooterLanguageLinks();
 });
-
-function updateFooterLanguageLinks() {
-  const pathParts = window.location.pathname.split('/');
-  const currentLang = pathParts[1] || 'en';
-  const linkContainers = document.querySelectorAll('[data-i18n-links]');
-  linkContainers.forEach((container) => {
-    container.querySelectorAll('a').forEach((link) => {
-      const href = link.getAttribute('href');
-      if (href && href.startsWith('/') && !href.startsWith(`/${currentLang}/`)) {
-        link.setAttribute('href', `/${currentLang}${href}`);
-      }
-    });
-  });
-}
