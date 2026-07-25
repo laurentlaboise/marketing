@@ -5,6 +5,11 @@ const assert = require('node:assert/strict');
 const { Pool } = require('pg');
 const { startServer, Session, TEST_DB_URL } = require('./helpers');
 
+// Some tests require server libs in-process (translation-core, faq-export);
+// their shared database/db pool resolves DATABASE_URL at first require, so
+// pin it to the test database before anything can pull that module in.
+process.env.DATABASE_URL = TEST_DB_URL;
+
 const PORT = 3230;
 let server;
 let pool;
@@ -156,4 +161,25 @@ test('translation platform registers faq entity types', () => {
   assert.ok(core.ENTITY_SOURCES.faq, 'faq entity registered');
   assert.ok(core.ENTITY_SOURCES.faq_category, 'faq_category entity registered');
   assert.deepEqual(core.ENTITY_SOURCES.faq.fields, ['question', 'answer_html']);
+});
+
+test('faq-export builds per-language payloads and expanded placements', async () => {
+  const { buildFaqsJson } = require('../src/lib/faq-export');
+  const snapshot = await buildFaqsJson();
+
+  const alpha = snapshot.faqs.find((f) => f.slug === 'testfaq-alpha');
+  assert.ok(alpha, 'published FAQ exported');
+  assert.equal(alpha.question.en, 'Question testfaq-alpha?');
+  assert.equal(alpha.question.fr, 'Question FR?');
+  assert.ok(!snapshot.faqs.find((f) => f.slug === 'testfaq-draft'), 'draft excluded');
+
+  const page = snapshot.placements['/en/testfaq-page/'];
+  assert.deepEqual(page.pinned, ['testfaq-alpha']);
+  assert.deepEqual(page.pool, ['testfaq-bravo']);
+});
+
+// Separate from the fixture-cleanup after(): closes the in-process shared
+// db pool (used by the lib tests above) regardless of test order.
+after(async () => {
+  await require('../database/db').close();
 });

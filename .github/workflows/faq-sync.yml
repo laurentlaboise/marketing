@@ -1,0 +1,57 @@
+name: Sync FAQs into source HTML
+
+# GitHub Pages serves the committed source HTML, so FAQ content must live in
+# the source files (not only the build-time dist). When the admin publishes
+# FAQs (committing faqs.json), re-bake the accordion items, FAQPage JSON-LD
+# and question pools into every placement page's source HTML and commit the
+# result so the live site reflects the back-end.
+#
+# inject-faqs.js is all-or-nothing: any error on a targeted page fails the
+# run before anything is written, so a partial publication can never be
+# committed. localize-site.yml runs the same injector after regenerating the
+# language mirrors, so a mirror rebuild can't clobber the FAQ regions.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'faqs.json'
+      - 'scripts/inject-faqs.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: faq-sync
+  cancel-in-progress: false
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+
+      # inject-faqs.js uses only Node's fs/path — no dependencies to install.
+      - name: Bake FAQs into source HTML
+        run: node scripts/inject-faqs.js --source
+
+      - name: Commit changes (if any)
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            # A footer-sync or localize-site commit can land while this job
+            # runs; rebase keeps the push fast-forward instead of failing.
+            git commit -m "Bake FAQs into source HTML [auto]"
+            git pull --rebase origin main
+            git push
+          else
+            echo "No FAQ changes to commit."
+          fi
