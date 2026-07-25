@@ -457,6 +457,34 @@ status lives only in the portal — decision D7.
 
 ## 10. Decision log
 
+**2026-07-25 (evening) — Flow pivot per Laurent: the site sells the basket, the portal takes the payment.**
+
+Direction: clients browse the marketing site, pick products and quantities, and the cart
+in the client portal is the ONLY place money moves — one payment for everything, never a
+per-product jump to a payment page, and no individual payments for multiple purchases.
+The portal AI should also suggest and load products into the cart.
+
+Implemented:
+- *Marketing site (`product-loader.js`)* — every buy product's primary CTA is now
+  **Add to cart** (guests included; their localStorage cart migrates at sign-in). The
+  per-product "Pay now → Stripe" jump is gone. New hours picker for hourly products
+  (`bindHoursSelector`) so quantity rides into the cart line. "Due today" became "Total"
+  (nothing charges on the site). Sub-note explains: pay one total from the portal.
+  *Kept:* the BCEL QR in-panel modal as a small secondary on BCEL products — Laos's only
+  self-serve rail until D12 provides cart transfer totals.
+- *Portal cart (`portal-cart.js`, `cart.ejs`)* — **subscriptions join the single
+  payment**: recurring lines enter "Ready to pay" with a per-line billing-cycle selector,
+  checkout builds ONE Stripe session (`mode=subscription` when recurring lines exist;
+  one-time lines + setup fees ride the first invoice). Stripe's one-interval-per-session
+  rule surfaces as a "align your billing cycles" notice with the selector as the fix.
+  Total box shows "Then $X/mo until cancelled". The old
+  "subscriptions check out individually" section is gone.
+- *Portal AI (`strategist.js`, `portal.js /chat`, `chat.ejs`)* — the strategist knows the
+  full active catalog and marks recommendations with a machine-readable SUGGEST line; the
+  chat strips it, resolves ids against the live catalog, and renders **tap-to-add cart
+  cards** (AI proposes, client taps, normal cart endpoint adds). Odysseus backend remains
+  text-only.
+
 **2026-07-25 (later still) — Cart approved ("go"); Phase 1 core implemented on this branch.**
 
 D9–D14 locked with the recommended defaults: concept split (D9), mixed cart with combined

@@ -120,6 +120,30 @@
     }
     .offline a { color: var(--wts-magenta); font-weight: 700; }
     .chat-note { text-align: center; color: var(--wts-muted); font-size: 0.8rem; padding: 0.85rem 0 0; line-height: 1.5; font-weight: 500; }
+    .ai-suggest {
+      align-self: flex-start;
+      max-width: 92%;
+      margin-left: 2.55rem;
+      background: #fff;
+      border: 1px solid #fbcfe8;
+      border-radius: 14px;
+      padding: 0.7rem 0.85rem;
+      box-shadow: 0 3px 12px rgba(214, 43, 131, 0.08);
+    }
+    .ai-suggest .s-intro { font-size: 0.78rem; font-weight: 700; color: var(--wts-magenta-dark); margin: 0 0 0.5rem; }
+    .ai-suggest .s-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+      padding: 0.4rem 0; border-top: 1px dashed #fde8f2; flex-wrap: wrap;
+    }
+    .ai-suggest .s-item:first-of-type { border-top: none; }
+    .ai-suggest .s-name { font-size: 0.88rem; font-weight: 600; color: var(--wts-text); }
+    .ai-suggest .s-price { font-size: 0.78rem; color: var(--wts-muted); font-weight: 600; }
+    .ai-suggest button {
+      background: var(--wts-magenta); color: #fff; border: none; border-radius: 999px;
+      padding: 0.35rem 0.9rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      white-space: nowrap;
+    }
+    .ai-suggest button:disabled { background: #16a34a; cursor: default; }
     .typing-dots span {
       display: inline-block;
       width: 6px; height: 6px;
@@ -180,7 +204,10 @@
               thinking: <%- JSON.stringify(t('chat.thinking')) %>,
               errorGeneric: <%- JSON.stringify(t('chat.errorGeneric')) %>,
               errorConnection: <%- JSON.stringify(t('chat.errorConnection')) %>,
-              avatar: <%- JSON.stringify(t('chat.avatarLabel')) %>
+              avatar: <%- JSON.stringify(t('chat.avatarLabel')) %>,
+              suggestIntro: <%- JSON.stringify(t('chat.suggestIntro')) %>,
+              suggestAdd: <%- JSON.stringify(t('chat.suggestAdd')) %>,
+              suggestAdded: <%- JSON.stringify(t('chat.suggestAdded')) %>
             };
             var msgs = document.getElementById('msgs');
             var form = document.getElementById('composer');
@@ -218,6 +245,56 @@
               return d;
             }
 
+            // AI-recommended services become tap-to-add cart cards — the AI
+            // proposes, the client decides; adds go through the normal cart.
+            function renderSuggestions(items) {
+              var card = document.createElement('div');
+              card.className = 'ai-suggest';
+              var intro = document.createElement('p');
+              intro.className = 's-intro';
+              intro.textContent = I18N.suggestIntro;
+              card.appendChild(intro);
+              items.forEach(function (s) {
+                if (!s || !s.id || !s.name) return;
+                var row = document.createElement('div');
+                row.className = 's-item';
+                var left = document.createElement('div');
+                var name = document.createElement('div');
+                name.className = 's-name';
+                name.textContent = s.name;
+                left.appendChild(name);
+                if (s.price_label) {
+                  var price = document.createElement('div');
+                  price.className = 's-price';
+                  price.textContent = s.price_label;
+                  left.appendChild(price);
+                }
+                row.appendChild(left);
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = I18N.suggestAdd;
+                btn.addEventListener('click', function () {
+                  btn.disabled = true;
+                  fetch('/portal/cart/items/' + encodeURIComponent(s.id) + '/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+                    credentials: 'same-origin',
+                    body: '{}'
+                  })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                      if (d && d.ok) { btn.textContent = I18N.suggestAdded; }
+                      else { btn.disabled = false; }
+                    })
+                    .catch(function () { btn.disabled = false; });
+                });
+                row.appendChild(btn);
+                card.appendChild(row);
+              });
+              msgs.appendChild(card);
+              msgs.scrollTop = msgs.scrollHeight;
+            }
+
             function sendMessage(text) {
               if (!text || send.disabled) return;
               add('user', text);
@@ -234,6 +311,9 @@
                 .then(function (res) {
                   pending.className = 'msg bot';
                   pending.textContent = res.ok && res.d.reply ? res.d.reply : (res.d.error || I18N.errorGeneric);
+                  if (res.ok && Array.isArray(res.d.suggestions) && res.d.suggestions.length) {
+                    renderSuggestions(res.d.suggestions);
+                  }
                 })
                 .catch(function () {
                   pending.className = 'msg bot';

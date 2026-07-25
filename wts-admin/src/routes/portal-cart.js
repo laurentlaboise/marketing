@@ -48,9 +48,11 @@ const num = (v) => (v === null || v === undefined || v === '') ? null : parseFlo
 // ── Cart resolution ─────────────────────────────────────────────
 //
 // Turns saved_services rows into classified, priced lines:
-//   payable      — buy products with a resolvable one-time total (v1 scope)
-//   subscription — buy subscriptions (v1: checked out individually)
-//   quote        — consult products, and buy products without a valid price
+//   payable — buy products, INCLUDING subscriptions: everything pays as one
+//             total in one Stripe session (mode=subscription when recurring
+//             lines are present; Stripe allows one-time lines alongside, as
+//             long as every recurring line shares one billing interval)
+//   quote   — consult products, and buy products without a valid price
 // A payable options-product without a chosen option is kept in `payable`
 // with needs_choice=true so the view can render its picker; checkout
 // refuses until every payable line is resolved.
@@ -60,7 +62,8 @@ async function resolveCart(customerId) {
             s.quote_requested_at,
             p.name, p.slug, p.service_page, p.purchase_mode, p.pricing_type,
             p.product_type, p.price, p.price_unit, p.currency, p.sku,
-            p.price_options, p.quantity_tiers, p.monthly_price, p.yearly_price
+            p.price_options, p.quantity_tiers, p.monthly_price, p.yearly_price,
+            p.default_billing, p.setup_fee, p.setup_fee_label
      FROM saved_services s
      JOIN products p ON p.id = s.product_id AND p.status = 'active'
      WHERE s.customer_id = $1
@@ -69,7 +72,6 @@ async function resolveCart(customerId) {
   )).rows;
 
   const payable = [];
-  const subscriptions = [];
   const quote = [];
 
   for (const r of rows) {
@@ -91,12 +93,31 @@ async function resolveCart(customerId) {
       continue;
     }
     if (isSubscription) {
-      subscriptions.push({
+      const monthly = num(r.monthly_price);
+      const yearly = num(r.yearly_price);
+      if (monthly == null && yearly == null) { quote.push({ ...base, kind: 'quote' }); continue; }
+      let period = (r.billing_period === 'yearly' || r.billing_period === 'monthly')
+        ? r.billing_period
+        : (r.default_billing === 'yearly' ? 'yearly' : 'monthly');
+      if (period === 'monthly' && monthly == null) period = 'yearly';
+      if (period === 'yearly' && yearly == null) period = 'monthly';
+      const recurring = period === 'yearly' ? yearly : monthly;
+      const setupFee = num(r.setup_fee) || 0;
+      payable.push({
         ...base,
         kind: 'subscription',
-        billing_period: r.billing_period || null,
-        monthly_price: num(r.monthly_price),
-        yearly_price: num(r.yearly_price),
+        billing_period: period,
+        has_both: monthly != null && yearly != null,
+        monthly_price: monthly,
+        yearly_price: yearly,
+        interval: period === 'yearly' ? 'year' : 'month',
+        recurring_price: recurring,
+        setup_fee: setupFee,
+        setup_fee_label: r.setup_fee_label || null,
+        quantity: 1,
+        unit_price: recurring,
+        // First payment: the period price plus the one-time setup fee.
+        amount: Math.round((recurring + setupFee) * 100) / 100,
       });
       continue;
     }
@@ -153,16 +174,26 @@ async function resolveCart(customerId) {
   const total = currencies.length === 1
     ? Math.round(resolved.reduce((s, l) => s + l.amount, 0) * 100) / 100
     : null;
+  // Recurring summary ("then $X/mo") + the one-interval constraint Stripe
+  // puts on a mixed session: >1 distinct interval blocks checkout until the
+  // customer aligns billing periods with the per-line selector.
+  const subLines = resolved.filter((l) => l.kind === 'subscription');
+  const intervals = [...new Set(subLines.map((l) => l.interval))];
+  const recurring = intervals.map((iv) => ({
+    interval: iv,
+    sum: Math.round(subLines.filter((l) => l.interval === iv).reduce((s, l) => s + l.recurring_price, 0) * 100) / 100,
+  }));
 
   return {
     payable,
-    subscriptions,
     quote,
     resolved,
     currencies,
     total,
     currency: currencies.length === 1 ? currencies[0] : null,
     itemCount: rows.length,
+    intervals,
+    recurring,
   };
 }
 
@@ -193,6 +224,7 @@ router.get('/', async (req, res) => {
         quoted: req.query.quoted === '1',
         incomplete: req.query.incomplete === '1',
         mixed: req.query.mixed === '1',
+        mixedcycle: req.query.mixedcycle === '1',
         payerr: req.query.payerr === '1',
       },
     });
@@ -208,7 +240,7 @@ router.get('/', async (req, res) => {
 router.post('/items/:productId', async (req, res) => {
   try {
     const product = (await db.query(
-      "SELECT id, pricing_type, price_options, quantity_tiers, price_unit FROM products WHERE id = $1 AND status = 'active'",
+      "SELECT id, pricing_type, price_options, quantity_tiers, price_unit, monthly_price, yearly_price FROM products WHERE id = $1 AND status = 'active'",
       [req.params.productId]
     )).rows[0];
     if (!product) return res.redirect('/portal/cart');
@@ -227,18 +259,51 @@ router.post('/items/:productId', async (req, res) => {
     } else if (product.price_unit === 'hour' || product.price_unit === 'item') {
       quantity = Math.min(9999, Math.max(1, Number.isFinite(qtyNum) ? qtyNum : 1));
     }
+    // Billing-cycle choice for subscription lines — only periods the product
+    // actually prices are accepted (this is also how a customer aligns
+    // cycles when the mixed-interval notice appears).
+    let billing = null;
+    if (req.body.billing_period === 'monthly' && product.monthly_price != null) billing = 'monthly';
+    if (req.body.billing_period === 'yearly' && product.yearly_price != null) billing = 'yearly';
 
     await db.query(
       `UPDATE saved_services
          SET option_key = COALESCE($1, option_key),
-             quantity = COALESCE($2, quantity)
-       WHERE customer_id = $3 AND product_id = $4`,
-      [optionKey, quantity, req.session.customerId, req.params.productId]
+             quantity = COALESCE($2, quantity),
+             billing_period = COALESCE($3, billing_period)
+       WHERE customer_id = $4 AND product_id = $5`,
+      [optionKey, quantity, billing, req.session.customerId, req.params.productId]
     );
     res.redirect('/portal/cart?updated=1');
   } catch (e) {
     console.error('Cart item update error:', e);
     res.redirect('/portal/cart');
+  }
+});
+
+// JSON add — used by the AI strategist's suggestion cards in /portal/chat
+// (CSRF via the X-CSRF-Token header, same as the chat POST itself).
+router.post('/items/:productId/add', express.json(), async (req, res) => {
+  try {
+    const product = (await db.query(
+      "SELECT id FROM products WHERE id = $1 AND status = 'active'",
+      [req.params.productId]
+    )).rows[0];
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    await db.query(
+      `INSERT INTO saved_services (customer_id, product_id)
+       VALUES ($1, $2)
+       ON CONFLICT (customer_id, product_id) DO NOTHING`,
+      [req.session.customerId, req.params.productId]
+    );
+    const count = (await db.query(
+      'SELECT COUNT(*)::int AS n FROM saved_services WHERE customer_id = $1',
+      [req.session.customerId]
+    )).rows[0].n;
+    res.json({ ok: true, cartCount: count });
+  } catch (e) {
+    console.error('Cart JSON add error:', e);
+    res.status(500).json({ error: 'Failed to add to cart' });
   }
 });
 
@@ -266,6 +331,12 @@ router.post('/checkout', async (req, res) => {
     if (cart.currencies.length !== 1) {
       return res.redirect('/portal/cart?mixed=1');
     }
+    // Stripe allows recurring + one-time lines in ONE session only when all
+    // recurring lines share a billing interval; the cart view's per-line
+    // cycle selector is how the customer aligns them.
+    if (cart.intervals.length > 1) {
+      return res.redirect('/portal/cart?mixedcycle=1');
+    }
     const stripe = getStripe();
     if (!stripe) return res.redirect('/portal/cart?payerr=1');
 
@@ -281,18 +352,49 @@ router.post('/checkout', async (req, res) => {
     const cartId = crypto.randomUUID();
     const base = PORTAL_BASE();
 
-    const sessionConfig = {
-      payment_method_types: ['card'],
-      mode: 'payment',
-      customer_email: customer.email,
-      line_items: cart.resolved.map((l) => ({
+    const hasSubs = cart.resolved.some((l) => l.kind === 'subscription');
+    const lineItems = cart.resolved.map((l) => {
+      const name = l.option_label ? `${l.name} — ${l.option_label}` : l.name;
+      if (l.kind === 'subscription') {
+        return {
+          price_data: {
+            currency,
+            product_data: { name },
+            recurring: { interval: l.interval },
+            unit_amount: Math.round(l.recurring_price * 100),
+          },
+          quantity: 1,
+        };
+      }
+      return {
         price_data: {
           currency,
-          product_data: { name: l.option_label ? `${l.name} — ${l.option_label}` : l.name },
+          product_data: { name },
           unit_amount: Math.round(l.unit_price * 100),
         },
         quantity: l.quantity,
-      })),
+      };
+    });
+    // Subscription setup fees ride the first invoice as one-time lines,
+    // mirroring the single-product flow in routes/payments.js.
+    for (const l of cart.resolved) {
+      if (l.kind === 'subscription' && l.setup_fee > 0) {
+        lineItems.push({
+          price_data: {
+            currency,
+            product_data: { name: `${l.name} — ${l.setup_fee_label || 'Setup fee'} (one-time)` },
+            unit_amount: Math.round(l.setup_fee * 100),
+          },
+          quantity: 1,
+        });
+      }
+    }
+
+    const sessionConfig = {
+      payment_method_types: ['card'],
+      mode: hasSubs ? 'subscription' : 'payment',
+      customer_email: customer.email,
+      line_items: lineItems,
       success_url: `${base}/portal/cart/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/portal/cart`,
       metadata: {
@@ -317,7 +419,14 @@ router.post('/checkout', async (req, res) => {
           l.product_id, customer.id, customer.email, l.amount, l.currency,
           session.id, l.option_sku || l.sku, l.quantity, l.unit_price,
           cartId,
-          JSON.stringify({ source: 'portal-cart', option_key: l.option_key, option_label: l.option_label || null }),
+          JSON.stringify({
+            source: 'portal-cart',
+            option_key: l.option_key,
+            option_label: l.option_label || null,
+            ...(l.kind === 'subscription'
+              ? { billing_period: l.billing_period, setup_fee: l.setup_fee || 0 }
+              : {}),
+          }),
         ]
       );
     }

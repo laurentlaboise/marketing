@@ -43,7 +43,9 @@ async function buildCustomerContext(customerId) {
       [customerId]
     ).catch(() => ({ rows: [] })),
     db.query(
-      `SELECT service_page, COUNT(*) AS n FROM products WHERE status = 'active' GROUP BY service_page`
+      `SELECT id, name, service_page, purchase_mode, pricing_type, price, currency,
+              monthly_price, yearly_price
+       FROM products WHERE status = 'active' ORDER BY service_page, name LIMIT 60`
     ).catch(() => ({ rows: [] }))
   ]);
   const c = customer.rows[0] || {};
@@ -62,7 +64,16 @@ async function buildCustomerContext(customerId) {
       ? 'Files shared with them:\n' + files.rows.map((f) => `- ${f.title}${f.description ? ' — ' + f.description : ''} (${fmt(f.created_at)})`).join('\n')
       : 'Files shared with them: none yet.',
     catalog.rows.length
-      ? 'WTS catalog: active services across ' + catalog.rows.map((r) => `${r.service_page} (${r.n})`).join(', ') + '.'
+      ? 'WTS catalog (id | name | area | how it sells | price):\n' + catalog.rows.map((p) => {
+          let priceLabel = 'quote';
+          if (p.pricing_type === 'subscription' || p.monthly_price != null || p.yearly_price != null) {
+            priceLabel = [p.monthly_price != null ? p.monthly_price + '/mo' : null,
+                          p.yearly_price != null ? p.yearly_price + '/yr' : null].filter(Boolean).join(' or ') || 'quote';
+          } else if (p.price != null) {
+            priceLabel = p.price + ' ' + (p.currency || 'USD');
+          }
+          return `- ${p.id} | ${p.name} | ${p.service_page} | ${p.purchase_mode} | ${priceLabel}`;
+        }).join('\n')
       : ''
   ].filter(Boolean).join('\n\n');
 }
@@ -76,10 +87,53 @@ Rules:
 - You cannot change orders, issue refunds, or upload files. For anything that needs the team, tell them to use "Request new content" or "Ask a question" on their dashboard, and the team will reply by email within one business day.
 - Payments: card via Stripe, or BCEL OnePay bank transfer in Laos (they include a WTS- reference in the transfer note).
 - Be warm and concise; short paragraphs; no markdown headings. Answer in the language the client writes in when you can.
-- If you don't know something, say so plainly rather than guessing.`;
+- If you don't know something, say so plainly rather than guessing.
+- The client has a CART in their portal: they collect services there and pay one total (quote-first services become one combined quote request from the same cart). When you recommend specific WTS services from the catalog above and it genuinely fits the conversation, end your reply with EXACTLY one final line of the form SUGGEST:["<id>","<id>"] using ids from the catalog (1-4 ids, most relevant first). The portal turns that line into add-to-cart buttons — never mention the line, the ids, or the mechanism in your prose; just recommend naturally. Omit the line entirely when you are not recommending services.`;
+
+// The model marks recommendations with a trailing SUGGEST:["id",...] line.
+// Parse it off the reply and resolve the ids against the live catalog — an
+// id the model invented (or a retired product) simply drops out. Returns
+// { text, suggestions } where suggestions is [] when nothing was marked.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+async function extractSuggestions(rawText) {
+  const m = rawText.match(/\nSUGGEST:(\[[^\n]*\])\s*$/);
+  if (!m) return { text: rawText.trim(), suggestions: [] };
+  const text = rawText.slice(0, m.index).trim();
+  let ids = [];
+  try {
+    ids = JSON.parse(m[1]).filter((v) => typeof v === 'string' && UUID_RE.test(v)).slice(0, 4);
+  } catch (_) { /* malformed marker → plain reply */ }
+  if (!ids.length) return { text, suggestions: [] };
+  try {
+    const rows = (await db.query(
+      `SELECT id, name, purchase_mode, pricing_type, price, currency, monthly_price, yearly_price
+       FROM products WHERE id = ANY($1::uuid[]) AND status = 'active'`,
+      [ids]
+    )).rows;
+    const byId = Object.fromEntries(rows.map((p) => [String(p.id), p]));
+    const suggestions = ids.filter((id) => byId[id]).map((id) => {
+      const p = byId[id];
+      let priceLabel = null;
+      if (p.pricing_type === 'subscription' || p.monthly_price != null || p.yearly_price != null) {
+        priceLabel = p.monthly_price != null
+          ? `${p.monthly_price} ${p.currency || 'USD'}/mo`
+          : (p.yearly_price != null ? `${p.yearly_price} ${p.currency || 'USD'}/yr` : null);
+      } else if (p.price != null) {
+        priceLabel = `${p.price} ${p.currency || 'USD'}`;
+      }
+      return { id: String(p.id), name: p.name, purchase_mode: p.purchase_mode || 'consult', price_label: priceLabel };
+    });
+    return { text, suggestions };
+  } catch (e) {
+    console.warn('Strategist suggestion lookup failed:', e.message);
+    return { text, suggestions: [] };
+  }
+}
 
 // One chat turn. history: [{role, content}] — the route keeps it in the
 // session and caps its length; we cap again defensively here.
+// Returns { text, suggestions } — suggestions are catalog products the
+// model recommended, ready for the chat UI's add-to-cart cards.
 async function chatReply(customerId, history, userMessage) {
   const context = await buildCustomerContext(customerId);
   const messages = history.slice(-12).concat([{ role: 'user', content: userMessage }]);
@@ -93,14 +147,15 @@ async function chatReply(customerId, history, userMessage) {
     messages
   });
   if (response.stop_reason === 'refusal') {
-    return "I can't help with that one — but I'm happy to talk about your marketing, services, or orders.";
+    return { text: "I can't help with that one — but I'm happy to talk about your marketing, services, or orders.", suggestions: [] };
   }
-  const text = response.content
+  const raw = response.content
     .filter((b) => b.type === 'text')
     .map((b) => b.text)
     .join('')
     .trim();
-  return text || "Sorry — I couldn't come up with a reply. Please try rephrasing.";
+  if (!raw) return { text: "Sorry — I couldn't come up with a reply. Please try rephrasing.", suggestions: [] };
+  return extractSuggestions(raw);
 }
 
 module.exports = { isConfigured, chatReply, buildCustomerContext };

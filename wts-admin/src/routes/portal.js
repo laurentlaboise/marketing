@@ -690,22 +690,27 @@ router.post('/chat', requireCustomer, chatLimiter, async (req, res) => {
   if (!message) return res.status(400).json({ error: req.t('chat.emptyMessage') });
   try {
     if (!Array.isArray(req.session.chatHistory)) req.session.chatHistory = [];
-    const reply = useOdysseus
-      ? await helpAi.portalReply({
-          sessionID: req.sessionID,
-          customerId: req.session.customerId,
-          history: req.session.chatHistory,
-          message
-        })
+    // The strategist returns { text, suggestions } (catalog products for the
+    // chat's add-to-cart cards); the odysseus backend stays text-only.
+    const result = useOdysseus
+      ? {
+          text: await helpAi.portalReply({
+            sessionID: req.sessionID,
+            customerId: req.session.customerId,
+            history: req.session.chatHistory,
+            message
+          }),
+          suggestions: []
+        }
       : await strategist.chatReply(req.session.customerId, req.session.chatHistory, message);
     req.session.chatHistory = req.session.chatHistory
-      .concat([{ role: 'user', content: message }, { role: 'assistant', content: reply }])
+      .concat([{ role: 'user', content: message }, { role: 'assistant', content: result.text }])
       .slice(-12);
     // Commit the history before replying: end-of-response auto-save is
     // fire-and-forget, and a quick next message must see this turn (the
     // odysseus backend replays session history after a backend restart).
     await new Promise((resolve) => req.session.save(resolve));
-    res.json({ reply });
+    res.json({ reply: result.text, suggestions: result.suggestions });
   } catch (e) {
     console.error('Portal chat error:', e.status || '', e.message);
     res.status(502).json({ error: req.t('chat.upstreamError') });
