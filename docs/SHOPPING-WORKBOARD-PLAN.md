@@ -6,7 +6,8 @@
 guest CTA hierarchy, cart fulfillment edge cases, deposit sequencing split, `ball_with`
 staleness guard, Phase 2 split (2A trust core → 2B kanban), independent `FEATURE_CART` /
 `FEATURE_DEPOSITS` flags, revised estimates, tightened D1–D8 recommendations.
-D1–D8 still await final sign-off.*
+v3 (2026-07-25, later): Phase 1 redefined as the portal cart (see §10) — D1–D8 approved
+and Phase 0 shipped; **D9–D14 await sign-off**.*
 
 Date: 2026-07-25 · Scope: marketing site purchase flow, portal, admin, and the
 order-to-delivery "workboard" process. Grounded in the actual code (file paths cited
@@ -79,6 +80,9 @@ exactly like `FEATURE_WHITEBOARD`.
 Guest on service page
   → card shows value + "Self-serve" or "Quote" badge (+ teaser "from $X" — decision D4)
   → slide-in: full detail, clear CTA per pricing type, WhatsApp handoff button
+  → multi-part project (e.g. website = template + WordPress + SEO content + photos):
+    Add to cart across products → portal cart → ONE total → one payment,
+    quote-only parts become one combined quote request from the same basket
   → small SKU: sign in (magic link) → Pay now (Stripe) or BCEL QR (LAK shown)
   → bigger scope: Request quote (form OR WhatsApp) → quote → optional 30% deposit online
   → Success page v2: order reference, 3 "what happens next" steps, Open portal,
@@ -106,7 +110,7 @@ Payment confirmed (Stripe webhook / admin BCEL confirm)
 | Phase | Name | Contents | Risk | Rough effort |
 |-------|------|----------|------|--------------|
 | **0** | Say what it costs, say what happens | CTA matrix by pricing type, card badges, Success page v2, BCEL prominence + LAK display, WhatsApp handoff, quote-received experience, CTA i18n | Very low — copy + front-end only | 4–6 dev-days |
-| **1** | Checkout that matches the catalog | Mini-cart ("Checkout selected" from My Services), deposits for fixed-price consult, hourly "book hours" framing | Low–medium | 5–8 dev-days |
+| **1** | **The Cart** *(revised)* | Portal cart at `/portal/cart`: pick parts across the catalog, pay one total (one Stripe session), mixed-cart quote handoff with prefilled WhatsApp item list, bank-transfer total path, deposits, Cart vs My Services concept split | Medium | 8–12 dev-days (1.6 subs +2) |
 | **2** | **The Workboard** | `projects` layer, admin kanban, portal "My Projects", auto-create on payment, updates + notifications, whiteboard/deliverables linking, retire Notion embed | Medium — new schema, flagged | 12–16 dev-days (2A trust core → 2B kanban) |
 | **3** | Portal as a storefront | In-portal catalog "Add services", post-pay provisioning, kickoff checklist, billing empty-state cross-links | Low | 4–6 dev-days |
 | **4** | Trust & ops hardening | Lao locale, price-privacy decision, per-option Stripe price IDs, payment links for proposals only, funnel analytics | Low, ongoing | continuous |
@@ -182,49 +186,91 @@ hours") instead of a bare thank-you, mirroring the BCEL reference pattern buyers
 `document.documentElement.lang`-keyed map (en/fr/th now, lo ready) so non-English pages stop
 showing English buy buttons. (Full Lao rollout is Phase 4.)
 
-### Phase 1 — Checkout that matches the catalog
+### Phase 1 — The Cart: pick parts, pay one total in the portal *(revised 2026-07-25)*
 
-**1.1 Mini-cart: "Checkout selected (N)" from My Services.** The à-la-carte catalog
-(copy + photos + form) currently forces N separate checkouts.
-- Portal dashboard + slide-in "My Services" list get checkboxes over the existing
-  `saved_services` (`public-api.js:1422-1494`).
-- New endpoint `POST /api/payments/create-cart-session`: validates every item is
-  `purchase_mode='buy'`, same currency, **one-time only in v1** (no subscriptions in cart —
-  Stripe session mode conflict; subscriptions keep single checkout), resolves each to a
-  line item via the same branches as today's single-product flow (`payments.js:115-241`),
-  creates **one Stripe session with multiple `line_items`**, and one order row per item
-  sharing a `cart_id` so portal billing and fulfillment stay per-product.
-- Items needing an option/qty prompt for it at cart review (add nullable `option_key`,
-  `quantity` to `saved_services`).
-- **BCEL cart constraint:** static per-amount QRs can't express an arbitrary cart total.
-  v1: BCEL cart checkout renders one combined order + reference with the account/open-amount
-  QR and the exact LAK total to type. If no open-amount merchant QR exists, BCEL stays
-  per-product and the cart is card-only — decision D3. **Default posture until the bank app
-  is checked: cart v1 is Stripe-only.**
-- **Fulfillment edge cases (required so Phase 2 can trust cart orders):**
-  (a) *Webhook idempotency* — the completion webhook's single `UPDATE … WHERE
-  stripe_session_id` already flips all N rows at once (`payments.js:468-482`), which is fine;
-  the real risk is side effects on retries, so project auto-creation (Phase 2) must guard on
-  "no project exists for this `order_id`" before insert — same guard on the admin BCEL
-  confirm path. (b) *Per-line refunds/cancellations* — refunding one item cancels that order
-  row and closes its project only, never the whole cart. (c) *Cart review gating* —
-  "Checkout selected (N)" stays disabled until every selected line has its option/qty
-  resolved.
+**The scenario this is built for:** a client building a website doesn't buy one product —
+they assemble a project from parts: a Divi template + WordPress setup + SEO articles +
+stock photos. Some of those parts are self-serve buys, some need a quote. The cart lets
+them **pick and choose across the whole catalog**, see one running total, and **pay that
+total inside their portal** — with the parts that need a conversation turning into one
+combined quote request instead of blocking the payment.
 
-**1.2 Deposits for fixed-price consult products.** Standard SEA practice: 30–50% down to
-start, balance on delivery.
-- New product fields: `deposit_pct` (nullable), enabled per product in the admin form.
-- Consult CTA gains secondary button **Reserve with 30% deposit ($105)** → normal checkout
-  session flagged `metadata.wts_kind='deposit'`; order records `amount_total_expected`.
-- Balance collected later via a balance checkout link from the project (Phase 2) or invoice.
-- Keeps "consult" products consultative while letting a ready buyer commit today.
-- **Sequencing (explicit):** Phase 1 ships checkout mechanics only — deposit session,
-  `metadata.wts_kind='deposit'`, order fields. The deposit → auto-project + balance-payment
-  link wiring lands with Phase 2. Phase 1 release notes must not promise a project view
-  that doesn't exist yet.
+**1.0 Concept split — Cart vs My Services.** Today `saved_services` doubles as wishlist
+and "my stuff", which is why it can't check out. Split the concepts:
+- **Cart** = pre-purchase. The existing `saved_services` table becomes its storage
+  (gaining `option_key`, `quantity`), so the guest-localStorage → account migration that
+  already exists (`product-loader.js` `migrateLocalSaved`) keeps working unchanged.
+- **My Services** = owned. Derived from completed orders (Phase 3.2 provisioning), shown
+  on the dashboard as what the client actually has — not what they once bookmarked.
+- Buttons relabel accordingly: panel "Add to My Services" → **Add to cart** (localized:
+  Ajouter au panier / เพิ่มลงตะกร้า / ເພີ່ມໃສ່ກະຕ່າ); paying removes the purchased lines
+  from the cart.
 
-**1.3 Hourly products** get the "Book hours" framing from the CTA matrix: quantity = hours,
-estimate note, and "Ask us to estimate" opens quote/WhatsApp. No schema change.
+**1.1 Add-to-cart surfaces (marketing site, light JS).** Every product panel keeps its
+add button (now "Add to cart"), including consult products — quote-first parts belong in
+the same project basket. The floating account pill and panel show a cart count badge
+linking to `/portal/cart`. Guests keep the existing localStorage path; sign-in migrates.
+
+**1.2 Portal cart page — `/portal/cart` (EJS in wts-admin, `requireCustomer`).** The heart
+of the feature, same-origin with the API so auth is just the session cookie:
+- Lines grouped in two sections: **Ready to pay** (buy products, with option/qty pickers
+  inline — a line missing its option shows a "choose" prompt) and **Needs a quote**
+  (consult products).
+- Live totals per line and one **subtotal for the payable section**, server-computed from
+  the products table on every render — prices are never trusted from the client and never
+  snapshotted stale.
+- Primary CTA: **Pay $X now** (payable section). Secondary: **Request one quote for the
+  rest (N items)**. Tertiary: remove line / keep for later.
+- Empty state and "add more" link to the service pages (full in-portal catalog remains
+  Phase 3).
+
+**1.3 Pay the total — one Stripe session.** `POST /portal/cart/checkout`:
+- Validates every payable line (`purchase_mode='buy'`, same currency, option resolved via
+  `findPriceOption`, qty via tiers), reusing the exact pricing branches of today's
+  single-product flow (`payments.js:115-241`).
+- Creates **one Stripe Checkout session with N `line_items`** and one order row per item
+  sharing a `cart_id` (new nullable column on `orders`) — billing and fulfillment stay
+  per-product; the billing page groups rows by `cart_id`.
+- **v1 payable scope: one-time items only.** Subscriptions stay single-product checkout
+  (v1.5 below lifts this).
+- Success returns **into the portal** (`/portal/cart/success?cart_id=…`): same
+  "what happens next" pattern as the Phase 0 pages, plus the order references and — once
+  Phase 2 lands — the link to the project it created.
+- **Fulfillment edge cases (unchanged from v2, still binding):** (a) webhook retries must
+  be idempotent — project auto-creation guards on "no project exists for this
+  `cart_id`/`order_id`" before insert, same guard on the admin BCEL confirm path; (b)
+  refunding one line cancels that order row (and its project component) only, never the
+  whole cart; (c) checkout stays disabled until every payable line has option/qty resolved.
+
+**1.4 The quote side of a mixed cart.** "Request one quote for the rest" submits a single
+`form_submissions` entry listing every quote line (product, option, qty) tagged
+`source: 'portal-cart'` — one coherent project enquiry instead of N fragments — and offers
+the WhatsApp handoff with the **item list prefilled into the message**. In SEA terms this
+is the feature: the client walks into the chat with their basket already written out.
+Quote lines stay in the cart (badge: "quote requested") until closed or converted.
+
+**1.5 BCEL / bank transfer for the cart total.** Static per-amount QRs can't express an
+arbitrary total, so the portal path is a **combined transfer order**: one order row set
+`awaiting_payment` with a WTS-reference, showing the exact LAK total, the account details
+(`BCEL_ACCOUNT_NOTE` env already exists) and/or an open-amount merchant QR if the bank
+provides one (D12). Admin confirms in the existing `/business/payments` panel — the same
+reference-match flow BCEL buyers already use per-product. Stripe-only until the account
+details/QR are provided.
+
+**1.6 (v1.5) Subscriptions in the cart.** Stripe Checkout `mode='subscription'` supports
+one-time line items alongside recurring ones **if all recurring items share one billing
+interval**. So a cart with one-or-more same-interval subscriptions + any one-time items
+can still be a single session. Ship after 1.3 stabilizes; mixed-interval carts prompt the
+client to check out the odd subscription separately.
+
+**1.7 Deposits for fixed-price consult products** (unchanged from v2, now naturally
+riding on the cart): `deposit_pct` per product; a quote-section line with a deposit-enabled
+product shows **Reserve with 30% deposit** which joins the payable section as a
+`metadata.wts_kind='deposit'` line. Balance collection wires up with Phase 2's project
+view. Phase 1 ships mechanics only — no promised project view before Phase 2.
+
+**1.8 Hourly products** keep the "Book hours" framing from Phase 0; the hours stepper
+lands with the cart's qty picker (same control).
 
 ### Phase 2 — The Workboard (core of this plan)
 
@@ -262,7 +308,14 @@ one state machine with two lifecycles and breaks existing billing views.)
 confirm (`business.js:865-892`): completed **buy** order → create project from
 `project_template` (default template if null), post a system update ("Payment received —
 we're on it"), email the portal link. Consult/quote work: admin "Create project" button on
-the order row and the customer page. Deposit paid (1.2) → project too.
+the order row and the customer page. Deposit paid (1.7) → project too.
+**Cart orders create ONE project, not N.** A paid cart (shared `cart_id`) is one client
+intent — "build my website" — so it becomes a single project titled from its dominant
+service page ("Web Development project — 4 items"), with each order line listed as a
+project component in the scope/checklist. Four disconnected projects for template + WP +
+SEO + photos would misrepresent the work and quadruple the client's board noise.
+Single-item orders keep the one-order-one-project rule. Idempotency guard is on `cart_id`
+for cart orders, `order_id` for singles.
 
 **2.3 Admin: `/business/workboard`** — kanban, columns = stages, cards = projects showing
 client, product, days-in-stage (stale = amber), ball-with, next action. Drag-drop with a
@@ -298,11 +351,13 @@ status lives only in the portal — decision D7.
 ### Phase 3 — Portal as a storefront
 
 - **3.1 `/portal/catalog`** (signed-in): same product data via the public API, grouped by the
-  4 service pages (`product-taxonomy.js`), buy CTAs identical to the marketing site (session
-  already present). Entry points: nav item under Work, billing empty state, "Add services"
-  button on dashboard, post-payment success page.
-- **3.2 Post-pay provisioning:** completed order auto-adds the SKU to `saved_services`
-  (`ON CONFLICT DO NOTHING`), so "My Services" reflects what the customer actually owns.
+  4 service pages (`product-taxonomy.js`), with **Add to cart** CTAs feeding the Phase 1
+  cart (plus direct pay for single items). Entry points: cart empty state and "add more"
+  link, nav item under Work, billing empty state, post-payment success page.
+- **3.2 Post-pay provisioning:** ownership derives from completed orders (the dashboard's
+  "My Services" renders owned products from `orders`, not from bookmarks), and paying a
+  cart clears its purchased lines — the cart table (`saved_services`) stays pre-purchase
+  only, per the 1.0 concept split.
 - **3.3 Kickoff checklist:** the project template's `kickoff_checklist` materializes as
   `client_action_items` on project creation — the portal immediately asks the client for
   what we need (brand files, access, copy), with `ball_with='client'`. This is the single
@@ -348,7 +403,9 @@ status lives only in the portal — decision D7.
 
 ---
 
-## 7. Decisions needed from you (D1–D8)
+## 7. Decisions needed from you (D1–D14)
+
+*(D1–D8 were approved 2026-07-25 — see §10. D9–D14 are the cart pivot's open calls.)*
 
 | # | Decision | Recommendation |
 |---|----------|----------------|
@@ -360,6 +417,12 @@ status lives only in the portal — decision D7.
 | D6 | WhatsApp number for product CTAs | footer number +856 20 5552 8034 — **verify it is the active sales / WhatsApp Business number** (vs any ads number) before launch |
 | D7 | Notion: retire fully, or internal-only | Internal-only allowed; client-facing portal-only |
 | D8 | Lao locale priority: Phase 4 as planned, or pull forward | Phase 4, unless Lao-market push is imminent |
+| D9 | Cart vs My Services concept split (§5 1.0): cart = pre-purchase (`saved_services` + option/qty), My Services = owned (derived from orders) | Yes — one list can't be both a wishlist and a checkout; the split is what makes "pay one total" possible |
+| D10 | Mixed cart: consult items join the basket and become ONE combined quote request (form or WhatsApp with the item list prefilled) instead of blocking payment | Yes — this is the "build my website from parts" scenario working end-to-end |
+| D11 | Cart naming: "Cart" / "Add to cart" (localized) vs a softer "My plan" | "Cart" — universally understood, matches the shopping mental model |
+| D12 | Bank-transfer cart totals: provide the BCEL account details (and/or an open-amount merchant QR) to display beside the WTS reference | Needed from you — until then the cart total is Stripe-only and BCEL stays per-product (supersedes D3's open question) |
+| D13 | Subscriptions in the cart (v1.5): allowed when all recurring lines share one billing interval; odd intervals check out separately | Accept the one-interval limit — it covers almost every real cart |
+| D14 | A paid cart becomes ONE project on the workboard (components as a checklist), not N separate projects | Yes — matches the client's intent ("build my website") and keeps the board readable |
 
 ---
 
@@ -393,7 +456,18 @@ status lives only in the portal — decision D7.
 
 ## 10. Decision log
 
-**2026-07-25 — Plan approved ("ok go"); Phase 0 implemented on this branch.**
+**2026-07-25 (later) — Cart pivot requested; Phase 1 redefined, awaiting D9–D14 sign-off.**
+
+Laurent's direction: clients assembling a project (e.g. a website = Divi template +
+WordPress + SEO content + images) should pick and choose across the catalog and **pay one
+total inside the client portal**. Phase 1 was rewritten from "mini-cart checkboxes on My
+Services" into a full portal cart (§5 1.0–1.8): Cart vs My Services concept split, add-to-
+cart on every product, `/portal/cart` with a payable section and a quote section, one
+Stripe session for the total, combined quote request with WhatsApp item-list prefill for
+the consult lines, bank-transfer path for totals, and cart → ONE workboard project
+(§5 2.2, D14). No implementation yet — this entry records the plan change only.
+
+**2026-07-25 — Plan approved ("ok go"); Phase 0 implemented on this branch (merged in PR #331).**
 
 | # | Decision |
 |---|----------|
