@@ -426,6 +426,7 @@ status lives only in the portal — decision D7.
 | D14 | A paid cart becomes ONE project on the workboard (components as a checklist), not N separate projects | Yes — matches the client's intent ("build my website") and keeps the board readable |
 | D15 | BCEL QR hosting: admins upload the QR screenshot in the product form and the site serves it from its own URL (`/api/public/qr/:id`), instead of pasting externally hosted image links | Done — uploads auto-append a BCEL price point; external URLs still accepted for existing rows |
 | D16 | Stripe cancel landing: abandoning Stripe Checkout returns to the portal cart with a "nothing was charged, your cart is saved" notice, not a dead end | Done — cart is the recovery point; one tap retries the same payment |
+| D17 | Cart payment UX: Stripe Embedded Checkout in a right-hand slide-in panel on the cart (same drawer pattern as other sidebars) instead of navigating away; closing the panel cancels with the cart intact. Root cause of the "Pay does nothing" stall was CSP `form-action 'self'` cancelling the browser's redirect to Stripe — fixed, and the no-JS fallback keeps the hosted redirect. Needs `STRIPE_PUBLISHABLE_KEY` in the deploy env; without it the panel falls back to the hosted page | Done — payment errors now show inside the panel instead of failing silently |
 
 ---
 

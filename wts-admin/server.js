@@ -67,12 +67,17 @@ app.use(helmet({
         "https://connect.facebook.net",
         "https://kit.fontawesome.com",
         "https://ka-f.fontawesome.com",
-        "https://cdn.jsdelivr.net"
+        "https://cdn.jsdelivr.net",
+        "https://js.stripe.com"
       ],
       workerSrc: ["'self'", "blob:"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https://accounts.google.com", "https://www.facebook.com", "https://ka-f.fontawesome.com", "https://checkout.stripe.com", "https://cdn.jsdelivr.net", "wss:", "ws:"],
-      frameSrc: ["https://accounts.google.com", "https://www.facebook.com", "https://checkout.stripe.com", "https://js.stripe.com"]
+      connectSrc: ["'self'", "https://accounts.google.com", "https://www.facebook.com", "https://ka-f.fontawesome.com", "https://checkout.stripe.com", "https://api.stripe.com", "https://m.stripe.com", "https://r.stripe.com", "https://cdn.jsdelivr.net", "wss:", "ws:"],
+      frameSrc: ["https://accounts.google.com", "https://www.facebook.com", "https://checkout.stripe.com", "https://js.stripe.com", "https://m.stripe.com", "https://hooks.stripe.com"],
+      // Chrome applies form-action to the redirect a form submission lands
+      // on: helmet's 'self' default silently cancelled the cart's 303 to
+      // Stripe Checkout — the session existed, the browser just never left.
+      formAction: ["'self'", "https://checkout.stripe.com"]
     }
   }
 }));

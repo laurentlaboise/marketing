@@ -323,23 +323,31 @@ router.post('/items/:productId/remove', async (req, res) => {
 
 // Pay the total: one Stripe Checkout session with every resolved payable
 // line, one order row per line sharing a cart_id (plan §5 1.3).
+//
+// Two clients, one route: the cart page's slide-in panel posts with
+// Accept: application/json and mounts Stripe's embedded checkout from the
+// response; a plain form post (no JS) gets the hosted-page 303 instead.
 router.post('/checkout', async (req, res) => {
+  const wantsJson = (req.get('accept') || '').includes('application/json');
+  const bail = (status, key) => wantsJson
+    ? res.status(status).json({ error: req.t(key) })
+    : res.redirect('/portal/cart?' + ({ 'cart.noticeIncomplete': 'incomplete', 'cart.noticeMixed': 'mixed', 'cart.noticeMixedCycle': 'mixedcycle', 'cart.noticePayError': 'payerr' }[key]) + '=1');
   try {
     const cart = await resolveCart(req.session.customerId);
     if (!cart.resolved.length || cart.payable.some((l) => l.needs_choice)) {
-      return res.redirect('/portal/cart?incomplete=1');
+      return bail(400, 'cart.noticeIncomplete');
     }
     if (cart.currencies.length !== 1) {
-      return res.redirect('/portal/cart?mixed=1');
+      return bail(400, 'cart.noticeMixed');
     }
     // Stripe allows recurring + one-time lines in ONE session only when all
     // recurring lines share a billing interval; the cart view's per-line
     // cycle selector is how the customer aligns them.
     if (cart.intervals.length > 1) {
-      return res.redirect('/portal/cart?mixedcycle=1');
+      return bail(400, 'cart.noticeMixedCycle');
     }
     const stripe = getStripe();
-    if (!stripe) return res.redirect('/portal/cart?payerr=1');
+    if (!stripe) return bail(503, 'cart.noticePayError');
 
     const customer = (await db.query(
       'SELECT id, email, name FROM customers WHERE id = $1', [req.session.customerId]
@@ -391,19 +399,31 @@ router.post('/checkout', async (req, res) => {
       }
     }
 
+    // The in-page panel needs the publishable key to mount Stripe.js; when
+    // it isn't configured the panel client falls back to the hosted URL.
+    const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
+    const embedded = wantsJson && !!publishableKey;
+
     const sessionConfig = {
       payment_method_types: ['card'],
       mode: hasSubs ? 'subscription' : 'payment',
       customer_email: customer.email,
       line_items: lineItems,
-      success_url: `${base}/portal/cart/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${base}/portal/cart?cancelled=1`,
       metadata: {
         wts_kind: 'cart',
         cart_id: cartId,
         item_count: String(cart.resolved.length),
       },
     };
+    if (embedded) {
+      // Embedded sessions take return_url only — success_url/cancel_url are
+      // rejected. Closing the panel is the cancel path; the cart is unchanged.
+      sessionConfig.ui_mode = 'embedded';
+      sessionConfig.return_url = `${base}/portal/cart/success?session_id={CHECKOUT_SESSION_ID}`;
+    } else {
+      sessionConfig.success_url = `${base}/portal/cart/success?session_id={CHECKOUT_SESSION_ID}`;
+      sessionConfig.cancel_url = `${base}/portal/cart?cancelled=1`;
+    }
     if (req.session.locale === 'th') sessionConfig.locale = 'th';
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
@@ -432,11 +452,18 @@ router.post('/checkout', async (req, res) => {
       );
     }
 
+    if (embedded) return res.json({ clientSecret: session.client_secret, publishableKey });
+    if (wantsJson) return res.json({ url: session.url });
     res.redirect(303, session.url);
   } catch (e) {
     // Stripe errors carry type/code — log them so a misconfigured key or a
     // rejected session config is diagnosable straight from the deploy logs.
     console.error('Cart checkout error:', e.type || e.name || '', e.code || '', e.message);
+    if (wantsJson) {
+      // The panel shows this — the customer (and Laurent testing) sees WHY
+      // instead of a silent reload.
+      return res.status(502).json({ error: req.t('cart.payPanelError'), detail: e.message });
+    }
     res.redirect('/portal/cart?payerr=1');
   }
 });
