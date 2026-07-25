@@ -109,7 +109,7 @@ test('bakes pinned items, JSON-LD and pool island; localizes links; maps la→lo
   assert.match(la, /id="faq-pool"/);
 });
 
-test('pool island carries per-item lang tags and survives hostile strings', () => {
+test('pool island is a structured tree with lang tags; hostile strings stay text', () => {
   const pool = region('en/pool-only/index.html');
   const island = /<script type="application\/json" id="faq-pool">(.*?)<\/script>/s.exec(pool)[1];
   // Serialized form may not contain raw <, > or & — a literal </script>
@@ -118,14 +118,42 @@ test('pool island carries per-item lang tags and survives hostile strings', () =
   const data = JSON.parse(island);
   assert.equal(data.lang, 'en');
   assert.equal(data.items.length, 2);
-  const bravo = data.items.find((i) => i.slug === 'bravo');
-  assert.match(bravo.a, /<\/script>/); // intact after parsing
 
-  // fr pool: alpha localized+tagged fr, bravo falls back tagged en.
-  bake();
-  const frPool = region('fr/index.html'); // pinned page still has an island
-  const frIsland = JSON.parse(/id="faq-pool">(.*?)<\/script>/s.exec(frPool)[1]);
+  // The island never carries HTML strings — answers are node trees.
+  const alpha = data.items.find((i) => i.slug === 'alpha');
+  assert.equal(alpha.a, undefined);
+  assert.equal(alpha.tree[0].t, 'p');
+  const link = alpha.tree[0].c.find((n) => typeof n === 'object' && n.t === 'a');
+  assert.equal(link.href, '/en/company/');
+  assert.equal(link.c[0], 'link');
+
+  // bravo's answer contains a literal </script> + <script> — the non-
+  // allowlisted tags become plain text inside the tree, alert-proof.
+  const bravo = data.items.find((i) => i.slug === 'bravo');
+  const flat = JSON.stringify(bravo.tree);
+  assert.match(flat, /<\/script>/);
+  assert.equal(bravo.lang, 'en');
+
+  // fr pool: page lang fr; alpha's tree link is localized to /fr/.
+  const frIsland = JSON.parse(/id="faq-pool">(.*?)<\/script>/s.exec(region('fr/index.html'))[1]);
   assert.equal(frIsland.lang, 'fr');
+});
+
+test('malformed answer markup degrades to plain text instead of failing the bake', () => {
+  const cfg = JSON.parse(JSON.stringify(CONFIG));
+  cfg.faqs.push({
+    slug: 'charlie',
+    category: 'general',
+    sort_order: 30,
+    question: { en: 'Charlie?' },
+    answer_html: { en: '<p>Unclosed <strong>tag soup</p>' },
+  });
+  cfg.placements['/en/pool-only/'].pool.push('charlie');
+  bake(cfg);
+  const island = JSON.parse(/id="faq-pool">(.*?)<\/script>/s.exec(region('en/pool-only/index.html'))[1]);
+  const charlie = island.items.find((i) => i.slug === 'charlie');
+  assert.deepEqual(charlie.tree, ['Unclosed tag soup']);
+  bake(); // restore baseline config for the following tests
 });
 
 test('is idempotent and skips marker-less pages silently', () => {

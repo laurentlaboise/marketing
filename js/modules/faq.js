@@ -19,37 +19,28 @@ function readPool() {
   }
 }
 
-// Answers are sanitized server-side (save + bake), but the client never
-// trusts markup either: parse inertly and copy only allowlisted elements —
-// the same allowlist the admin enforces — with `href` as the sole surviving
-// attribute (site-relative or https only). No innerHTML sink anywhere.
-const ALLOWED_ANSWER_TAGS = new Set(['A', 'P', 'UL', 'OL', 'LI', 'STRONG', 'EM', 'BR']);
+// The island carries answers as a structured node tree, never as HTML —
+// the bake step (scripts/inject-faqs.js) decomposes the sanitized markup
+// into { t: tag, href?, c: [child|string...] } nodes. Rendering walks the
+// tree with createElement/createTextNode against a fixed tag allowlist, so
+// the browser never re-parses CMS text as HTML at all.
+const ALLOWED_ANSWER_TAGS = new Set(['a', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'br']);
 
-function sanitizedAnswerFragment(html) {
-  const doc = new DOMParser().parseFromString(String(html), 'text/html');
-  const fragment = document.createDocumentFragment();
-  const copyChildren = (src, dst) => {
-    src.childNodes.forEach((node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        dst.appendChild(document.createTextNode(node.textContent));
-        return;
-      }
-      if (node.nodeType !== Node.ELEMENT_NODE) return;
-      if (!ALLOWED_ANSWER_TAGS.has(node.tagName)) {
-        copyChildren(node, dst); // unwrap: keep the text, drop the element
-        return;
-      }
-      const el = document.createElement(node.tagName.toLowerCase());
-      if (node.tagName === 'A') {
-        const href = node.getAttribute('href') || '';
-        if (/^(\/|https:\/\/)/.test(href)) el.setAttribute('href', href);
-      }
-      copyChildren(node, el);
-      dst.appendChild(el);
-    });
-  };
-  copyChildren(doc.body, fragment);
-  return fragment;
+function renderAnswerNodes(nodes, parent) {
+  if (!Array.isArray(nodes)) return;
+  nodes.forEach((node) => {
+    if (typeof node === 'string') {
+      parent.appendChild(document.createTextNode(node));
+      return;
+    }
+    if (!node || !ALLOWED_ANSWER_TAGS.has(node.t)) return;
+    const el = document.createElement(node.t);
+    if (node.t === 'a' && typeof node.href === 'string' && /^(\/|https:\/\/)/.test(node.href)) {
+      el.setAttribute('href', node.href);
+    }
+    if (node.t !== 'br') renderAnswerNodes(node.c, el);
+    parent.appendChild(el);
+  });
 }
 
 export function initFaqSection() {
@@ -84,7 +75,7 @@ export function initFaqSection() {
     summary.append(heading, icon);
     const content = document.createElement('div');
     content.className = 'accordion-content';
-    content.appendChild(sanitizedAnswerFragment(item.a));
+    renderAnswerNodes(item.tree, content);
     details.append(summary, content);
     faqList.appendChild(details);
     revealObserver.observe(details); // animate newly added item

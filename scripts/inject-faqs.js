@@ -79,6 +79,68 @@ function jsonForScript(value) {
 const escapeHtml = (t) => String(t)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+// The pool data island carries NO HTML strings: answers are decomposed into
+// a structured node tree ({ t: tag, href?, c: [child|string...] }) that the
+// frontend renders with createElement/textContent only. The browser never
+// re-parses CMS text as HTML, which is what makes the client immune to
+// markup injection by construction (and keeps CodeQL's DOM-text-to-HTML
+// query quiet for the right reason). The grammar is exactly the admin's
+// sanitizer allowlist; anything malformed degrades to plain text.
+const TREE_TAGS = ['a', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'br'];
+const TREE_TAG_RE = new RegExp(`<(\\/)?(${TREE_TAGS.join('|')})\\b([^>]*)>`, 'gi');
+
+const decodeEntities = (s) => String(s)
+  .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  .replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+
+const stripToText = (html) => decodeEntities(String(html).replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+
+function answerTree(html) {
+  const root = { c: [] };
+  const stack = [root];
+  let last = 0;
+  let m;
+  const re = new RegExp(TREE_TAG_RE.source, 'gi');
+  const pushText = (raw) => {
+    const text = decodeEntities(raw);
+    if (text) stack[stack.length - 1].c.push(text);
+  };
+  while ((m = re.exec(html))) {
+    pushText(html.slice(last, m.index));
+    last = re.lastIndex;
+    const closing = !!m[1];
+    const tag = m[2].toLowerCase();
+    if (tag === 'br') {
+      if (!closing) stack[stack.length - 1].c.push({ t: 'br' });
+      continue;
+    }
+    if (closing) {
+      const node = stack.pop();
+      if (!node || node.t !== tag) throw new Error('malformed answer markup');
+    } else {
+      const node = { t: tag, c: [] };
+      if (tag === 'a') {
+        const href = /href\s*=\s*"([^"]*)"/i.exec(m[3]);
+        if (href && /^(\/|https:\/\/)/.test(href[1])) node.href = href[1];
+      }
+      stack[stack.length - 1].c.push(node);
+      stack.push(node);
+    }
+  }
+  pushText(html.slice(last));
+  if (stack.length !== 1) throw new Error('malformed answer markup');
+  return root.c;
+}
+
+// Malformed markup must never fail the bake — it degrades to plain text.
+const answerTreeSafe = (html) => {
+  try {
+    return answerTree(html);
+  } catch (e) {
+    return [stripToText(html)];
+  }
+};
+
 // Editors author links against /en/; mirrors get language-local hrefs.
 // Covers root-relative and absolute-origin forms, same as the l10n pipeline.
 function localizeLinks(html, langDir) {
@@ -148,7 +210,7 @@ function buildRegion(config, pagePath, langDir) {
     pool.push({
       slug: faq.slug,
       q: q || faq.question.en,
-      a: localizeLinks(a || faq.answer_html.en, langDir),
+      tree: answerTreeSafe(localizeLinks(a || faq.answer_html.en, langDir)),
       lang: q && a ? langDir : 'en',
     });
   }
