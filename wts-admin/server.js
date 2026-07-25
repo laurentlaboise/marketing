@@ -496,6 +496,18 @@ async function startServer() {
       console.error('Catalog seed skipped:', e.message);
     }
 
+    // Same idea for the FAQ platform: an empty faqs table self-populates
+    // from database/faq_seed_data.json (questions, categories, placements,
+    // harvested fr/th translations) so the admin is editable out of the box
+    // with the exact content baked into the site. Never runs once any FAQ
+    // exists; failures must not block startup.
+    try {
+      const { seedFaqsIfEmpty } = require('./database/seed-faqs');
+      await seedFaqsIfEmpty();
+    } catch (e) {
+      console.error('FAQ seed skipped:', e.message);
+    }
+
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`WTS Admin server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);

@@ -156,6 +156,16 @@ test('admin create sanitizes answer HTML to the allowlist', async () => {
   await pool.query(`DELETE FROM faqs WHERE question = 'Testfaq sanitize probe?'`);
 });
 
+test('server boot auto-seeds the FAQ platform when the table is empty', async () => {
+  // The before() hook truncates only testfaq-% rows; the seed content
+  // arrives via seedFaqsIfEmpty() during this suite's (or an earlier
+  // suite's) server boot. Either way the platform must be populated.
+  const faqs = await pool.query('SELECT COUNT(*)::int AS n FROM faqs');
+  assert.ok(faqs.rows[0].n >= 100, `expected auto-seeded FAQs, got ${faqs.rows[0].n}`);
+  const placements = await pool.query('SELECT COUNT(*)::int AS n FROM faq_placements');
+  assert.ok(placements.rows[0].n >= 500, `expected auto-seeded placements, got ${placements.rows[0].n}`);
+});
+
 test('translation platform registers faq entity types', () => {
   const core = require('../src/lib/translation-core');
   assert.ok(core.ENTITY_SOURCES.faq, 'faq entity registered');
