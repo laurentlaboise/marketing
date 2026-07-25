@@ -23,7 +23,7 @@
     <main class="main">
       <div class="main-inner">
         <div class="ok-wrap">
-          <div class="ok-icon">✓</div>
+          <div class="ok-icon" aria-hidden="true"><%- include('partials/icon', { name: 'check' }) %></div>
           <h1><%= t('cart.successTitle') %></h1>
           <p style="color:var(--wts-text-3);"><%= t('cart.successSubtitle') %></p>
 

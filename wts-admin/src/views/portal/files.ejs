@@ -34,7 +34,7 @@
 
         <% if (files.length === 0) { %>
           <div class="empty-state">
-            <div class="empty-ico" aria-hidden="true">📁</div>
+            <div class="empty-ico" aria-hidden="true"><%- include('partials/icon', { name: 'folder' }) %></div>
             <p class="lead-empty"><%= t('files.emptyTitle') %></p>
             <p><%= t('files.emptyBody') %></p>
             <a class="cta" href="/portal/workspace"><%= t('nav.workspace') %></a>

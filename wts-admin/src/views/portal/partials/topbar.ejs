@@ -4,7 +4,7 @@
 <div class="topbar">
   <div class="topbar-left">
     <% if (!isMinimal) { %>
-    <button type="button" class="menu-toggle" id="nav-toggle" aria-label="<%= t('nav.openMenu') %>" aria-controls="portal-sidebar" aria-expanded="false">☰</button>
+    <button type="button" class="menu-toggle" id="nav-toggle" aria-label="<%= t('nav.openMenu') %>" aria-controls="portal-sidebar" aria-expanded="false"><%- include('icon', { name: 'menu' }) %></button>
     <% } %>
     <a class="brand" href="<%= isMinimal ? 'https://wordsthatsells.website' : '/portal/' %>">
       <img

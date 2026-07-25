@@ -40,7 +40,7 @@
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
           <div class="card">
-            <h2><span class="sec-ico" aria-hidden="true">✉</span><%= t('profile.contactHeading') %></h2>
+            <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'mail' }) %></span><%= t('profile.contactHeading') %></h2>
             <label for="pf-email"><%= t('profile.emailLabel') %></label>
             <input type="email" id="pf-email" value="<%= customer.email %>" disabled>
             <p class="note"><%= t('profile.emailNote') %></p>
@@ -53,7 +53,7 @@
           </div>
 
           <div class="card">
-            <h2><span class="sec-ico" aria-hidden="true">🔑</span><%= t('profile.passwordHeading') %>
+            <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'key' }) %></span><%= t('profile.passwordHeading') %>
               <% if (customer.password_hash) { %><span class="pw-state set"><%= t('profile.pwSet') %></span><% } else { %><span class="pw-state unset"><%= t('profile.pwUnset') %></span><% } %>
             </h2>
             <label for="pf-pass"><%= customer.password_hash ? t('profile.newPasswordLabel') : t('profile.choosePasswordLabel') %></label>
@@ -64,7 +64,7 @@
           </div>
 
           <div class="card">
-            <h2><span class="sec-ico" aria-hidden="true">🌐</span><%= t('profile.preferencesHeading') %></h2>
+            <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'globe' }) %></span><%= t('profile.preferencesHeading') %></h2>
             <label for="language"><%= t('profile.languageLabel') %></label>
             <% var prefLang = customer.preferred_language || locale; %>
             <select name="language" id="language">

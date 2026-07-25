@@ -40,6 +40,9 @@
       --wts-font: 'Poppins', 'Noto Sans Thai', system-ui, sans-serif;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Shared minimal icons (partials/icon.ejs): 1em so the container's
+       font-size controls the rendered size */
+    .wts-ico { width: 1em; height: 1em; flex-shrink: 0; }
     body {
       font-family: var(--wts-font);
       background: var(--wts-canvas);
@@ -311,7 +314,7 @@
       align-items: center;
       gap: 0.5rem;
     }
-    .card h2 .sec-ico, .section-title .sec-ico {
+    .sec-ico {
       width: 1.7rem; height: 1.7rem;
       border-radius: 9px;
       display: inline-flex; align-items: center; justify-content: center;

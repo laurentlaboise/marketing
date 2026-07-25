@@ -27,25 +27,25 @@
         <div class="stats">
           <% if (totalKeys.length === 0) { %>
           <div class="stat">
-            <div class="stat-top"><span class="stat-ico" aria-hidden="true">$</span></div>
+            <div class="stat-top"><span class="stat-ico" aria-hidden="true"><%- include('partials/icon', { name: 'dollar' }) %></span></div>
             <div class="num" style="font-size:1.25rem;"><%= fmtMoney(0, 'USD') %></div>
             <div class="lbl"><%= t('billing.totalPaid') %></div>
           </div>
           <% } else { totalKeys.forEach(function (cur) { %>
           <div class="stat">
-            <div class="stat-top"><span class="stat-ico" aria-hidden="true">$</span></div>
+            <div class="stat-top"><span class="stat-ico" aria-hidden="true"><%- include('partials/icon', { name: 'dollar' }) %></span></div>
             <div class="num" style="font-size:1.25rem;"><%= fmtMoney(totals[cur], cur) %></div>
             <div class="lbl"><%= t('billing.totalPaid') %></div>
           </div>
           <% }); } %>
           <div class="stat">
-            <div class="stat-top"><span class="stat-ico" aria-hidden="true">🧾</span></div>
+            <div class="stat-top"><span class="stat-ico" aria-hidden="true"><%- include('partials/icon', { name: 'receipt' }) %></span></div>
             <div class="num"><%= orders.length %></div>
             <div class="lbl"><%= t('billing.paymentsOrders') %></div>
           </div>
           <% if (awaitingCount > 0) { %>
           <div class="stat warn">
-            <div class="stat-top"><span class="stat-ico" aria-hidden="true">⚠</span></div>
+            <div class="stat-top"><span class="stat-ico" aria-hidden="true"><%- include('partials/icon', { name: 'alert' }) %></span></div>
             <div class="num"><%= awaitingCount %></div>
             <div class="lbl"><%= t('billing.awaitingTransfer') %></div>
           </div>
@@ -54,10 +54,10 @@
 
         <% if (subscriptions.length > 0) { %>
         <div class="card">
-          <h2><span class="sec-ico" aria-hidden="true">↻</span><%= t('billing.activeSubscriptions') %></h2>
+          <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'refresh' }) %></span><%= t('billing.activeSubscriptions') %></h2>
           <div>
             <% subscriptions.forEach(function (s) { const m = s.metadata || {}; %>
-            <span class="sub-chip"><span style="color:var(--wts-magenta);">↻</span> <%= s.product_name || t('billing.subscriptionFallback') %><%= m.billing_period ? ' · ' + m.billing_period : '' %></span>
+            <span class="sub-chip"><span style="color:var(--wts-magenta);display:inline-flex;" aria-hidden="true"><%- include('partials/icon', { name: 'refresh' }) %></span> <%= s.product_name || t('billing.subscriptionFallback') %><%= m.billing_period ? ' · ' + m.billing_period : '' %></span>
             <% }); %>
           </div>
           <p class="note" style="margin-top:0.6rem;"><%- t('billing.cancelNote', { link: '<a href="/portal/?sent=0#qa-form">' + esc(t('billing.cancelNoteLink')) + '</a>' }) %></p>
@@ -65,7 +65,7 @@
         <% } %>
 
         <div class="card">
-          <h2><span class="sec-ico" aria-hidden="true">💳</span><%= t('billing.paymentHistory') %></h2>
+          <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'card' }) %></span><%= t('billing.paymentHistory') %></h2>
           <% if (orders.length === 0) { %>
             <div class="empty-state" style="box-shadow:none;border-style:dashed;">
               <p class="lead-empty"><%= t('billing.historyEmpty') %></p>

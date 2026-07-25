@@ -41,7 +41,7 @@
       width: 2.5rem; height: 2.5rem; border-radius: 12px;
       background: #f59e0b; color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 1rem; flex-shrink: 0;
+      font-weight: 800; font-size: 1.2rem; flex-shrink: 0;
     }
     .attention-card strong { color: #92400e; font-size: 0.98rem; display: block; }
     .attention-card span { color: #a16207; font-size: 0.85rem; line-height: 1.45; }
@@ -179,7 +179,7 @@
       width: 1.6rem; height: 1.6rem; border-radius: 8px;
       background: #fff; border: 1px solid var(--wts-border);
       display: inline-flex; align-items: center; justify-content: center;
-      font-size: 0.85rem; flex-shrink: 0;
+      font-size: 0.95rem; color: var(--wts-magenta); flex-shrink: 0;
     }
 
     .qa-btns { display: flex; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
@@ -279,7 +279,7 @@
         <% if (awaiting > 0) { %>
         <div class="attention-row">
           <a class="attention-card" href="/portal/billing">
-            <div class="attention-icon" aria-hidden="true">!</div>
+            <div class="attention-icon" aria-hidden="true"><%- include('partials/icon', { name: 'alert' }) %></div>
             <div>
               <strong><%= t('dashboard.attentionAwaiting', { count: awaiting }) %></strong>
               <span><%= t('dashboard.attentionAwaitingBody') %></span>
@@ -290,28 +290,28 @@
 
         <div class="stats-grid">
           <a class="stat-card" href="/portal/workspace">
-            <div class="stat-icon purple" aria-hidden="true">◎</div>
+            <div class="stat-icon purple" aria-hidden="true"><%- include('partials/icon', { name: 'target' }) %></div>
             <div class="stat-content">
               <h3><%= savedList.length %></h3>
               <p><%= t('dashboard.statActiveServices') %></p>
             </div>
           </a>
           <a class="stat-card" href="#orders">
-            <div class="stat-icon blue" aria-hidden="true">🧾</div>
+            <div class="stat-icon blue" aria-hidden="true"><%- include('partials/icon', { name: 'receipt' }) %></div>
             <div class="stat-content">
               <h3><%= orders.length %></h3>
               <p><%= t('dashboard.statOrders') %></p>
             </div>
           </a>
           <a class="stat-card" href="/portal/files">
-            <div class="stat-icon green" aria-hidden="true">📁</div>
+            <div class="stat-icon green" aria-hidden="true"><%- include('partials/icon', { name: 'folder' }) %></div>
             <div class="stat-content">
               <h3><%= nFiles %></h3>
               <p><%= t('dashboard.statFiles') %></p>
             </div>
           </a>
           <a class="stat-card <%= awaiting > 0 ? 'warn' : '' %>" href="/portal/billing">
-            <div class="stat-icon orange" aria-hidden="true"><%= awaiting > 0 ? '⚠' : '💳' %></div>
+            <div class="stat-icon orange" aria-hidden="true"><%- include('partials/icon', { name: awaiting > 0 ? 'alert' : 'card' }) %></div>
             <div class="stat-content">
               <h3><%= awaiting %></h3>
               <p><%= t('dashboard.statAwaitingPayment') %></p>
@@ -323,7 +323,7 @@
           <!-- Payments snapshot (method + status like admin) -->
           <div class="dash-card" id="payments-card">
             <div class="dash-card-header">
-              <h2>💳 <%= t('dashboard.paymentsTitle') %></h2>
+              <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'card' }) %></span><%= t('dashboard.paymentsTitle') %></h2>
               <a href="/portal/billing"><%= t('dashboard.viewAllOrders') %></a>
             </div>
             <div class="dash-card-body">
@@ -367,7 +367,7 @@
           <!-- Recent files -->
           <div class="dash-card">
             <div class="dash-card-header">
-              <h2>📁 <%= t('dashboard.recentFilesTitle') %></h2>
+              <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'folder' }) %></span><%= t('dashboard.recentFilesTitle') %></h2>
               <a href="/portal/files"><%= t('dashboard.viewAllFiles') %></a>
             </div>
             <div class="dash-card-body">
@@ -390,18 +390,18 @@
           <!-- Quick links + request -->
           <div class="dash-card">
             <div class="dash-card-header">
-              <h2>⚡ <%= t('dashboard.quickLinksTitle') %></h2>
+              <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'bolt' }) %></span><%= t('dashboard.quickLinksTitle') %></h2>
             </div>
             <div class="dash-card-body pad">
               <div class="quick-grid">
-                <a href="/portal/workspace"><span class="qi" aria-hidden="true">◎</span><%= t('dashboard.linkWorkspace') %></a>
+                <a href="/portal/workspace"><span class="qi" aria-hidden="true"><%- include('partials/icon', { name: 'target' }) %></span><%= t('dashboard.linkWorkspace') %></a>
                 <% if (typeof featureWhiteboard !== 'undefined' && featureWhiteboard) { %>
-                <a href="/portal/boards"><span class="qi" aria-hidden="true">📋</span><%= t('dashboard.linkBoards') %></a>
+                <a href="/portal/boards"><span class="qi" aria-hidden="true"><%- include('partials/icon', { name: 'clipboard' }) %></span><%= t('dashboard.linkBoards') %></a>
                 <% } %>
-                <a href="/portal/chat"><span class="qi" aria-hidden="true">✨</span><%= t('dashboard.linkChat') %></a>
-                <a href="/portal/billing"><span class="qi" aria-hidden="true">💳</span><%= t('dashboard.linkBilling') %></a>
-                <a href="/portal/files"><span class="qi" aria-hidden="true">📁</span><%= t('dashboard.linkFiles') %></a>
-                <a href="/portal/profile"><span class="qi" aria-hidden="true">👤</span><%= t('dashboard.linkProfile') %></a>
+                <a href="/portal/chat"><span class="qi" aria-hidden="true"><%- include('partials/icon', { name: 'spark' }) %></span><%= t('dashboard.linkChat') %></a>
+                <a href="/portal/billing"><span class="qi" aria-hidden="true"><%- include('partials/icon', { name: 'card' }) %></span><%= t('dashboard.linkBilling') %></a>
+                <a href="/portal/files"><span class="qi" aria-hidden="true"><%- include('partials/icon', { name: 'folder' }) %></span><%= t('dashboard.linkFiles') %></a>
+                <a href="/portal/profile"><span class="qi" aria-hidden="true"><%- include('partials/icon', { name: 'user' }) %></span><%= t('dashboard.linkProfile') %></a>
               </div>
               <div style="margin-top:1rem;padding-top:0.85rem;border-top:1px solid #f1f5f9;">
                 <p style="font-size:0.82rem;font-weight:700;color:var(--wts-text);margin:0 0 0.55rem;"><%= t('dashboard.quickActions') %></p>
@@ -460,13 +460,13 @@
         <% if (savedList.length > 0) { %>
         <div class="dash-card" style="margin-bottom:1.25rem;">
           <div class="dash-card-header">
-            <h2>★ <%= t('dashboard.myServicesPlan') %></h2>
+            <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'star' }) %></span><%= t('dashboard.myServicesPlan') %></h2>
           </div>
           <div class="dash-card-body pad">
             <div class="service-chips">
               <% savedList.forEach(function (s) { %>
               <a href="https://wordsthatsells.website/en/digital-marketing-services/<%= s.service_page %>/#wts-product-<%= s.slug %>">
-                <span style="color:var(--wts-magenta);">★</span> <%= s.name %><%= s.billing_period ? ' · ' + s.billing_period : '' %>
+                <span style="color:var(--wts-magenta);display:inline-flex;" aria-hidden="true"><%- include('partials/icon', { name: 'star' }) %></span> <%= s.name %><%= s.billing_period ? ' · ' + s.billing_period : '' %>
               </a>
               <% }); %>
             </div>
@@ -476,13 +476,13 @@
 
         <div id="orders">
           <div class="dash-card-header" style="padding:0 0 0.75rem;border:none;">
-            <h2 style="font-size:1.05rem;font-weight:800;margin:0;color:var(--wts-text);">🧾 <%= t('dashboard.myOrders') %></h2>
+            <h2 style="font-size:1.05rem;font-weight:800;margin:0;color:var(--wts-text);"><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'receipt' }) %></span><%= t('dashboard.myOrders') %></h2>
             <a href="/portal/billing" style="font-size:0.85rem;font-weight:700;color:var(--wts-magenta);text-decoration:none;"><%= t('dashboard.viewBilling') %></a>
           </div>
 
           <% if (orders.length === 0) { %>
             <div class="empty-state">
-              <div class="empty-ico" aria-hidden="true">🛒</div>
+              <div class="empty-ico" aria-hidden="true"><%- include('partials/icon', { name: 'cart' }) %></div>
               <p class="lead-empty"><%= t('dashboard.noOrders') %></p>
               <p><%- t('dashboard.noOrdersBody', { email: '<strong>' + esc(customer.email) + '</strong>', browseLink: '<a href="https://wordsthatsells.website">' + esc(t('dashboard.browseServices')) + '</a>' }) %></p>
             </div>
