@@ -49,7 +49,7 @@
 
         <% if (boards.length === 0) { %>
           <div class="empty-state">
-            <div class="empty-ico" aria-hidden="true">📋</div>
+            <div class="empty-ico" aria-hidden="true"><%- include('../portal/partials/icon', { name: 'clipboard' }) %></div>
             <p class="lead-empty"><%= t('boards.emptyTitle') %></p>
             <p><%= t('boards.emptyBody') %></p>
             <a class="cta" href="/portal/workspace"><%= t('boards.emptyCta') %></a>

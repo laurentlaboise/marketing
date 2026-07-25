@@ -29,7 +29,7 @@
         <% } %>
 
         <div class="card">
-          <h2><span class="sec-ico" aria-hidden="true">◎</span><%= t('workspace.scopeTitle') %></h2>
+          <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'target' }) %></span><%= t('workspace.scopeTitle') %></h2>
           <p class="lead"><%= t('workspace.scopeLead') %></p>
           <% if (scopeHints && scopeHints.length) { %>
           <ul class="scope-list">
@@ -47,7 +47,7 @@
 
         <div class="grid-2">
           <div class="card">
-            <h2><span class="sec-ico" aria-hidden="true">📄</span><%= t('workspace.reportsTitle') %></h2>
+            <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'file' }) %></span><%= t('workspace.reportsTitle') %></h2>
             <p class="lead"><%= t('workspace.reportsLead') %></p>
             <% if (reports && reports.length) { %>
               <% reports.forEach(function (f) { %>
@@ -67,7 +67,7 @@
               <% }); %>
             <% } else { %>
               <div class="empty-state" style="box-shadow:none;border-style:dashed;">
-                <div class="empty-ico" aria-hidden="true">📊</div>
+                <div class="empty-ico" aria-hidden="true"><%- include('partials/icon', { name: 'chart' }) %></div>
                 <p class="lead-empty"><%= t('workspace.reportsEmptyTitle') %></p>
                 <p><%= t('workspace.reportsEmptyBody') %></p>
                 <a class="cta" href="/portal/chat"><%= t('workspace.reportsEmptyCta') %></a>
@@ -76,7 +76,7 @@
           </div>
 
           <div class="card">
-            <h2><span class="sec-ico" aria-hidden="true">✓</span><%= t('workspace.actionsTitle') %></h2>
+            <h2><span class="sec-ico" aria-hidden="true"><%- include('partials/icon', { name: 'check' }) %></span><%= t('workspace.actionsTitle') %></h2>
             <p class="lead"><%= t('workspace.actionsLead') %></p>
             <% if (actions && actions.length) { %>
               <% actions.forEach(function (a) { %>
@@ -100,7 +100,7 @@
               <% }); %>
             <% } else { %>
               <div class="empty-state" style="box-shadow:none;border-style:dashed;">
-                <div class="empty-ico" aria-hidden="true">✅</div>
+                <div class="empty-ico" aria-hidden="true"><%- include('partials/icon', { name: 'checkCircle' }) %></div>
                 <p class="lead-empty"><%= t('workspace.actionsEmptyTitle') %></p>
                 <p><%= t('workspace.actionsEmptyBody') %></p>
                 <% if (typeof featureWhiteboard !== 'undefined' && featureWhiteboard) { %>
