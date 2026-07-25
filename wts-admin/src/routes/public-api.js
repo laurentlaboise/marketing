@@ -958,6 +958,31 @@ router.get('/products/:slug', async (req, res) => {
 });
 
 // Get product categories for a service page
+// BCEL OnePay QR images uploaded in the admin — public because the payment
+// modal on the marketing site embeds them cross-origin. Content is only
+// ever an image the admin uploaded for exactly this purpose.
+router.get('/qr/:id', async (req, res) => {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.id)) {
+    return res.status(404).end();
+  }
+  try {
+    const r = await db.query('SELECT mime, data FROM product_qr_images WHERE id = $1', [req.params.id]);
+    if (!r.rows.length) return res.status(404).end();
+    res.set({
+      'Content-Type': r.rows[0].mime,
+      'Content-Length': r.rows[0].data.length,
+      'Cache-Control': 'public, max-age=86400',
+      // Helmet defaults to same-origin, which makes browsers refuse to embed
+      // this image on the marketing site's origin.
+      'Cross-Origin-Resource-Policy': 'cross-origin'
+    });
+    res.send(r.rows[0].data);
+  } catch (e) {
+    console.error('QR image serve error:', e.message);
+    res.status(500).end();
+  }
+});
+
 router.get('/products/categories/:service_page', async (req, res) => {
   try {
     const result = await db.query(

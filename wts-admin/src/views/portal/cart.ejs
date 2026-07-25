@@ -51,6 +51,7 @@
         <% if (notice.mixed) { %><div class="cart-note warn"><%= t('cart.noticeMixed') %></div><% } %>
         <% if (notice.mixedcycle) { %><div class="cart-note warn"><%= t('cart.noticeMixedCycle') %></div><% } %>
         <% if (notice.payerr) { %><div class="cart-note warn"><%= t('cart.noticePayError') %></div><% } %>
+        <% if (notice.cancelled) { %><div class="cart-note warn"><%= t('cart.noticeCancelled') %></div><% } %>
 
         <% if (cart.itemCount === 0) { %>
           <div class="empty-cart">
