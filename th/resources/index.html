@@ -1500,19 +1500,6 @@
     <!-- Quote Tab -->
 
     <script>
-        // Data for the FAQ section
-        const allFaqs = [
-            { q: "What makes you the best SEO expert in Asia for a small business?", a: "Our focus on affordable SEO services with transparent digital marketing packages and a proven track record of delivering ROI makes us the best choice for SMEs." },
-            { q: "How does your AI Marketing Agency improve Vientiane SEO?", a: "We use AI to analyze local search trends in Vientiane, optimize your Google My Business profile, and create content that attracts local customers." },
-            { q: "What is included in your SEO services in Asia package?", a: "Our SEO services include a full technical SEO audit, on-page optimization, content creation, and high-quality link building services Asia." },
-            { q: "As a top digital marketing agency in Asia, how do you handle clients in different time zones?", a: "We use modern project management tools and flexible communication schedules to seamlessly serve clients across Asia, from the UAE to South Korea." },
-            { q: "Why should I choose your SEO company in Asia over a cheaper freelancer?", a: "Our SEO company provides a full team of experts, advanced tools, and accountability, which a freelance SEO expert in Asia often cannot match." },
-            { q: "How long does it take for SEO to work in a competitive market like Singapore?", a: "In competitive markets, initial SEO results can be seen in 4-6 months, with significant gains typically achieved after a year of consistent effort." },
-            { q: "What is the best B2B digital marketing strategy for the Asian market?", a: "The best B2B strategy combines targeted LinkedIn campaigns, expert content marketing, and specialized B2B SEO services in Asia to reach key decision-makers." },
-            { q: "How do you approach social media management for a brand in Thailand?", a: "Our social media management in Thailand focuses on creating highly engaging, culturally relevant content for platforms like LINE, Facebook, and Instagram." },
-            { q: "What is the role of RSS in digital marketing?", a: "Beyond SEO, RSS in digital marketing is used to power email newsletters, syndicate content across platforms, and keep an audience updated automatically." },
-            { q: "How can you help my business rank higher on Google Maps?", a: "We fully optimize your Google My Business profile, build local citations, and generate positive reviews to improve your ranking on Google Maps." }
-        ];
 
         // This observer is shared with the main content and FAQ section
         const revealObserver = new IntersectionObserver((entries) => {
@@ -1522,37 +1509,12 @@
         }, { threshold: 0.1 });
 
         document.addEventListener('DOMContentLoaded', () => {
-            initFaqSection();
             initFloatingButtons();
             
             // Observe the main resource cards for animations
             document.querySelectorAll('.resources-card').forEach(el => revealObserver.observe(el));
         });
 
-        function initFaqSection() {
-            const faqList = document.getElementById('faq-list');
-            if (!faqList) return;
-
-            function addFaqToDom(faq) {
-                const details = document.createElement('details');
-                details.className = 'accordion-item reveal';
-                details.innerHTML = `
-                    <summary class="accordion-summary">
-                        <h3>${faq.q}</h3>
-                        <i class="fas fa-chevron-down icon"></i>
-                    </summary>
-                    <p class="accordion-content">${faq.a}</p>
-                `;
-                faqList.appendChild(details);
-                revealObserver.observe(details);
-            }
-
-            // Shuffle and display a limited number of FAQs initially
-            const shuffledFaqs = [...allFaqs].sort(() => 0.5 - Math.random());
-            shuffledFaqs.slice(0, 5).forEach((faq) => {
-                addFaqToDom(faq);
-            });
-        }
         
         function initFloatingButtons() {
             const backToTopButton = document.querySelector('.back-to-top');
@@ -1567,6 +1529,12 @@
             handleFloatingButtons();
         }
     </script>
+<script type="module">
+    // FAQ accordion: shared site-wide module (js/modules/faq.js) instead of
+    // a page-local copy of the FAQ data.
+    import { initFaqSection } from '/js/modules/faq.js';
+    initFaqSection();
+</script>
 <script src="/js/services/page-sidebar.js"></script>
 </body>
 </html>
