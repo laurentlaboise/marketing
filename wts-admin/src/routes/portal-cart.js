@@ -401,7 +401,14 @@ router.post('/checkout', async (req, res) => {
 
     // The in-page panel needs the publishable key to mount Stripe.js; when
     // it isn't configured the panel client falls back to the hosted URL.
-    const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
+    // Env var first, then the value the admin saved on /business/payments.
+    let publishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
+    if (!publishableKey) {
+      try {
+        const r = await db.query("SELECT value FROM site_settings WHERE key = 'stripe_publishable_key'");
+        publishableKey = (r.rows[0] && r.rows[0].value) || '';
+      } catch (e) { /* not configured */ }
+    }
     const embedded = wantsJson && !!publishableKey;
 
     const sessionConfig = {
