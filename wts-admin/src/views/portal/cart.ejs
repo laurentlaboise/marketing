@@ -11,6 +11,7 @@
     .cart-line .l-meta { color: var(--wts-text-3); font-size: 0.84rem; margin-top: 0.25rem; }
     .cart-line .l-amount { font-weight: 800; color: var(--wts-magenta); white-space: nowrap; font-size: 1.02rem; }
     .cart-line form.inline { display: inline-flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-top: 0.45rem; }
+    .cart-line .sub-note { display: block; color: var(--wts-muted); font-size: 0.78rem; margin-top: 0.3rem; }
     .cart-line select, .cart-line input[type=number] { padding: 0.35rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.86rem; font-family: inherit; max-width: 220px; }
     .cart-line input[type=number] { width: 5.2rem; }
     .btn-mini { border: 1px solid var(--wts-border); background: #fff; color: var(--wts-text-2); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; }
@@ -48,6 +49,7 @@
         <% if (notice.removed) { %><div class="cart-note ok"><%= t('cart.noticeRemoved') %></div><% } %>
         <% if (notice.incomplete) { %><div class="cart-note warn"><%= t('cart.noticeIncomplete') %></div><% } %>
         <% if (notice.mixed) { %><div class="cart-note warn"><%= t('cart.noticeMixed') %></div><% } %>
+        <% if (notice.mixedcycle) { %><div class="cart-note warn"><%= t('cart.noticeMixedCycle') %></div><% } %>
         <% if (notice.payerr) { %><div class="cart-note warn"><%= t('cart.noticePayError') %></div><% } %>
 
         <% if (cart.itemCount === 0) { %>
@@ -67,7 +69,19 @@
                 <strong><%= l.name %></strong>
                 <% if (l.needs_choice) { %> <span class="needs-choice"><%= t('cart.chooseOption') %></span><% } %>
                 <div class="l-meta">
-                  <% if (l.kind === 'options') { %>
+                  <% if (l.kind === 'subscription') { %>
+                    <% if (l.has_both) { %>
+                    <form class="inline" method="POST" action="/portal/cart/items/<%= l.product_id %>">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <select name="billing_period">
+                        <option value="monthly" <%= l.billing_period === 'monthly' ? 'selected' : '' %>><%= t('cart.monthly') %> · <%= l.monthly_price.toFixed(2) %> <%= l.currency %><%= t('cart.perMonth') %></option>
+                        <option value="yearly" <%= l.billing_period === 'yearly' ? 'selected' : '' %>><%= t('cart.yearly') %> · <%= l.yearly_price.toFixed(2) %> <%= l.currency %><%= t('cart.perYear') %></option>
+                      </select>
+                      <button class="btn-mini" type="submit"><%= t('cart.update') %></button>
+                    </form>
+                    <% } %>
+                    <span class="sub-note"><%= t('cart.renewNote', { amount: l.recurring_price.toFixed(2) + ' ' + l.currency, period: l.interval === 'year' ? t('cart.perYear') : t('cart.perMonth') }) %><%= l.setup_fee > 0 ? ' · ' + (l.setup_fee_label || t('cart.setupFee')) + ' ' + l.setup_fee.toFixed(2) + ' ' + l.currency + ' ' + t('cart.oneTime') : '' %></span>
+                  <% } else if (l.kind === 'options') { %>
                     <form class="inline" method="POST" action="/portal/cart/items/<%= l.product_id %>">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <select name="option_key">
@@ -90,7 +104,7 @@
                   <% } %>
                 </div>
               </div>
-              <span class="l-amount"><%= l.amount != null ? l.amount.toFixed(2) + ' ' + l.currency : '—' %></span>
+              <span class="l-amount"><%= l.amount != null ? l.amount.toFixed(2) + ' ' + l.currency : '—' %><% if (l.kind === 'subscription') { %><small style="display:block;font-size:0.68rem;font-weight:600;color:var(--wts-muted);"><%= t('cart.firstPayment') %></small><% } %></span>
               <form method="POST" action="/portal/cart/items/<%= l.product_id %>/remove">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button class="btn-mini danger" type="submit"><%= t('cart.remove') %></button>
@@ -105,32 +119,13 @@
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button class="btn-pay" type="submit"><%= t('cart.payNow', { amount: cart.total != null ? cart.total.toFixed(2) + ' ' + cart.currency : '' }) %></button>
               </form>
+              <% if (cart.recurring && cart.recurring.length) { %>
+              <span style="flex-basis:100%;font-size:0.82rem;color:var(--wts-muted);font-weight:600;">
+                <%= t('cart.thenRecurring', { summary: cart.recurring.map(function (r) { return r.sum.toFixed(2) + ' ' + cart.currency + (r.interval === 'year' ? t('cart.perYear') : t('cart.perMonth')); }).join(' · ') }) %>
+              </span>
+              <% } %>
             </div>
             <p class="hint"><%= t('cart.payHint') %></p>
-          </div>
-          <% } %>
-
-          <% if (cart.subscriptions.length) { %>
-          <div class="cart-section">
-            <h2><%= t('cart.sectionSubs') %></h2>
-            <% cart.subscriptions.forEach(function (l) { %>
-            <div class="cart-line">
-              <div class="l-main">
-                <strong><%= l.name %></strong>
-                <div class="l-meta">
-                  <%= l.monthly_price != null ? l.monthly_price.toFixed(2) + ' ' + l.currency + t('cart.perMonth') : '' %>
-                  <%= l.monthly_price != null && l.yearly_price != null ? ' · ' : '' %>
-                  <%= l.yearly_price != null ? l.yearly_price.toFixed(2) + ' ' + l.currency + t('cart.perYear') : '' %>
-                </div>
-              </div>
-              <button class="btn-mini js-subscribe" data-product-id="<%= l.product_id %>" data-billing="<%= l.billing_period || '' %>" type="button"><%= t('cart.subscribe') %></button>
-              <form method="POST" action="/portal/cart/items/<%= l.product_id %>/remove">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <button class="btn-mini danger" type="submit"><%= t('cart.remove') %></button>
-              </form>
-            </div>
-            <% }); %>
-            <p class="hint"><%= t('cart.subsHint') %></p>
           </div>
           <% } %>
 
@@ -165,23 +160,4 @@
       </div>
     </main>
   </div>
-  <script>
-    // Subscriptions check out individually in v1 (plan §5 1.6 lifts this):
-    // reuse the same public endpoint the marketing site uses.
-    document.querySelectorAll('.js-subscribe').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        btn.disabled = true;
-        var body = { product_id: btn.getAttribute('data-product-id') };
-        var billing = btn.getAttribute('data-billing');
-        if (billing) body.billing_period = billing;
-        fetch('/api/payments/create-checkout-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        }).then(function (r) { return r.json(); })
-          .then(function (d) { if (d && d.url) { window.location.href = d.url; } else { btn.disabled = false; } })
-          .catch(function () { btn.disabled = false; });
-      });
-    });
-  </script>
   <%- include('partials/footer') %>

@@ -235,7 +235,10 @@
     "suggest1": "What should I expect this month on my plan?",
     "suggest2": "How do I approve a deliverable on a board?",
     "suggest3": "Draft a Facebook post idea for my business",
-    "avatarLabel": "AI Strategist"
+    "avatarLabel": "AI Strategist",
+    "suggestIntro": "Suggested for you — tap to add to your cart:",
+    "suggestAdd": "Add to cart",
+    "suggestAdded": "In cart ✓"
   },
   "profile": {
     "heading": "My Profile",
@@ -599,6 +602,14 @@
     "nextStep1": "Your confirmation email is on its way — keep the reference handy.",
     "nextStep2": "Each item appears in your billing, and your files will arrive under Files.",
     "nextStep3": "Our team starts on it and sends a first update within 1 business day.",
-    "pendingNote": "Payment confirmation is still syncing — this page will show everything as confirmed within a few minutes."
+    "pendingNote": "Payment confirmation is still syncing — this page will show everything as confirmed within a few minutes.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "firstPayment": "first payment",
+    "renewNote": "Renews at {amount}{period}",
+    "thenRecurring": "Then {summary} until cancelled",
+    "noticeMixedCycle": "Your subscriptions use different billing cycles, so they can't share one payment yet — switch them to the same cycle (monthly or yearly) below, then pay.",
+    "setupFee": "Setup fee",
+    "oneTime": "(one-time)"
   }
 }
