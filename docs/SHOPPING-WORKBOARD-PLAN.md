@@ -160,9 +160,10 @@ that drift apart. Hourly is copy-only in Phase 0; its hours stepper ships with P
   prefer to talk it through? WhatsApp us.").
 
 **0.4 BCEL OnePay first-class:** same visual weight as the card button on buy products; button
-shows the LAK amount (`price_lak` already in the API); order of buttons flips (QR first) when
-the visitor's locale/currency context is Lao — simple heuristic: `lo`/`la` page dirs or a
-LAK price present. Keep Stripe first elsewhere.
+shows the LAK amount (`price_lak` already in the API); order of buttons flips (QR first) on
+Lao pages (`lo`/`la` dirs). Keep Stripe first elsewhere. *(A "LAK price present" trigger was
+considered and rejected: nearly every BCEL-enabled product carries a LAK amount, so it would
+flip QR-first on EN/FR/TH pages too and contradict "Stripe first elsewhere.")*
 
 **0.5 WhatsApp handoff everywhere a form is:** quote modal and consult CTAs gain
 "Chat on WhatsApp instead" using the number already in the footer (`wa.me/8562055528034`),
@@ -418,9 +419,10 @@ status lives only in the portal — decision D7.
 - `wts-admin/src/routes/payments.js` — `order-status` additionally returns `reference`
   (WTS-XXXXXXXX, same shape as BCEL) and `service_page`. Additive, backwards-compatible.
 - `en|fr|th/checkout/success.html` — reference row, "what happens next" steps, Open-portal
-  + WhatsApp buttons (reference prefilled), service-page-aware back link, and a
-  `wts_purchase_complete` GA4 event. Also fixed a live bug: the Thai page's Product label
-  contained a leaked translation-prompt string shown to every Thai buyer.
+  + WhatsApp buttons (reference prefilled), service-page-aware back link, and a standard
+  GA4 `purchase` event (`transaction_id` = order reference, so GA4 deduplicates repeat page
+  loads). Also fixed a live bug: the Thai page's Product label contained a leaked
+  translation-prompt string shown to every Thai buyer.
 - `en|fr|th/checkout/cancel.html` — reassurance, WhatsApp / alternative-payment path
   (BCEL, bank transfer), back link now goes to the services hub.
 

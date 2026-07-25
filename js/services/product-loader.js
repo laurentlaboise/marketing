@@ -1239,8 +1239,8 @@
         '</div>' +
         '<a id="wts-qm-wa" href="' + esc(waLink(productName)) + '" target="_blank" rel="noopener noreferrer" ' +
           'style="display:flex;align-items:center;justify-content:center;gap:0.45rem;margin-top:0.7rem;background:#25D366;color:#fff;border-radius:12px;padding:0.75rem;font-size:0.95rem;font-weight:700;text-decoration:none;">' +
-          '<i class="fab fa-whatsapp" style="font-size:1.2em;"></i> ' + tr('whatsappCta') + '</a>' +
-        '<p class="wts-qm-hint">No pressure, no spam — both options are free. ' + tr('slaPromise') + '</p>';
+          '<i class="fab fa-whatsapp" style="font-size:1.2em;"></i> Chat on WhatsApp</a>' +
+        '<p class="wts-qm-hint">No pressure, no spam — both options are free. We reply within 1 business day.</p>';
       body.querySelector('#wts-qm-pick-quick').addEventListener('click', showQuickForm);
       body.querySelector('#wts-qm-pick-account').addEventListener('click', showAccountForm);
       body.querySelector('#wts-qm-wa').addEventListener('click', function () {
@@ -2043,8 +2043,11 @@
     // One-time
     if (pr.one_time_price != null) {
       if (!canShowPrices()) {
-        html += '<p style="font-size:0.95rem;color:var(--color-slate-500,#64748b);margin-bottom:1rem;">' +
-          '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>' + tr('signInToSee') + '</p>';
+        // Same eligibility as the card teaser (D4): a guest who saw the
+        // price on the card must see it in the panel too — no bait-and-switch.
+        var teaser = guestTeaserHTML(data);
+        html += teaser || ('<p style="font-size:0.95rem;color:var(--color-slate-500,#64748b);margin-bottom:1rem;">' +
+          '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>' + tr('signInToSee') + '</p>');
       } else if (data.purchase_mode === 'buy' && (!pr.unit || pr.unit === 'fixed')) {
         // Same order-summary treatment as subscriptions, so the checkout
         // amount is stated explicitly.

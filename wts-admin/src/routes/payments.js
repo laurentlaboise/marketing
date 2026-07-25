@@ -464,6 +464,11 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     case 'checkout.session.completed': {
       const session = event.data.object;
 
+      // Orders paid via a durable Stripe Price ID are inserted with a null
+      // amount (Stripe owns the price) — backfill the actually-charged total
+      // from the session so billing, the success page and analytics see it.
+      const paidTotal = session.amount_total != null ? session.amount_total / 100 : null;
+
       // Update order status
       await db.query(
         `UPDATE orders SET
@@ -471,12 +476,14 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
           customer_email = $1,
           customer_name = $2,
           stripe_payment_intent = $3,
+          amount = COALESCE(amount, $4),
           updated_at = CURRENT_TIMESTAMP
-         WHERE stripe_session_id = $4`,
+         WHERE stripe_session_id = $5`,
         [
           session.customer_details?.email || session.customer_email || 'unknown',
           session.customer_details?.name || '',
           session.payment_intent || '',
+          paidTotal,
           session.id
         ]
       );

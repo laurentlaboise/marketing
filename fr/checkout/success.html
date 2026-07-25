@@ -91,7 +91,8 @@
                 .then(data => {
                     document.getElementById('order-details').style.display = 'block';
                     document.getElementById('detail-product').textContent = data.product_name || 'Produit digital';
-                    document.getElementById('detail-amount').textContent = '$' + parseFloat(data.amount).toFixed(2) + ' ' + (data.currency || 'USD');
+                    const amt = parseFloat(data.amount);
+                    document.getElementById('detail-amount').textContent = !isNaN(amt) ? '$' + amt.toFixed(2) + ' ' + (data.currency || 'USD') : '—';
                     document.getElementById('detail-status').textContent = data.status || 'En cours';
                     if (data.reference) {
                         document.getElementById('detail-reference').textContent = data.reference;
@@ -106,7 +107,7 @@
                         document.getElementById('download-section').style.display = 'block';
                         document.getElementById('download-link').href = data.download_url;
                     }
-                    try { if (typeof gtag === 'function') gtag('event', 'wts_purchase_complete', { value: parseFloat(data.amount) || 0, currency: data.currency || 'USD' }); } catch (e) {}
+                    try { if (typeof gtag === 'function' && data.reference) gtag('event', 'purchase', { transaction_id: data.reference, value: !isNaN(amt) ? amt : 0, currency: data.currency || 'USD' }); } catch (e) {}
                 })
                 .catch(() => {});
         }
