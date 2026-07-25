@@ -103,7 +103,8 @@ footer pattern for delivery, the translations pattern for languages.
 wts-admin (Postgres)
   faq_categories ─┬─ faqs (canonical EN, answer_html with internal links)
                   └─ faq_placements (page ⇄ faq, pinned flag, sort order)
-        │  translations rows (entity_type='faq') — same AI/vendor/publish flow
+        │  translations rows (entity_type='faq' | 'faq_category') —
+        │  same AI/vendor/publish flow
         ▼
   Admin UI: CRUD + per-page placement + translation workspace (existing)
         │  Publish → commit faqs.json + fire faq-sync workflow
@@ -140,12 +141,14 @@ Why this shape:
 ### Public API additions (wts-admin `src/routes/public-api.js`)
 
 ```
-GET /api/public/faqs?lang=en|th|lo|fr        → published FAQs + categories
+GET /api/public/faqs?lang=en|th|la|fr        → published FAQs + categories
 GET /api/public/faqs/placements              → page→faq map (pinned, order)
 ```
 
 Published-only, cached, same conventions as `/api/public/footer` and
-`/api/public/translations/:lang/page`. The generator consumes these; the
+`/api/public/translations/:lang/page`. `?lang=` takes the site's internal
+directory codes (`la`, not `lo` — see the canonical locale mapping in §5).
+The generator consumes these; the
 committed `faqs.json` snapshot is the offline fallback (mirrors the
 `--payloads` flag of `generate-localized-pages.js`).
 
@@ -184,12 +187,22 @@ random *extras* behind a user interaction are harmless.**
 
 ### Structured data rules the generator enforces
 
-- FAQPage `mainEntity` = exactly the pinned, server-rendered items — same
-  language, same text (tags stripped for the `Answer.text`), same order.
+- FAQPage `mainEntity` = exactly the pinned items actually rendered on that
+  page — same language, same text (tags stripped for the `Answer.text`),
+  same order. Untranslated items never enter a localized page's schema
+  because they never render there (fallback policy, §5).
 - One FAQPage block per page; `inLanguage` matches `<html lang>`.
 - Internal links inside answers are plain `<a href>` in the HTML answer —
   crawlable link equity (Google also accepts limited HTML incl. `<a>` in
   `Answer.text`).
+- Everything embedded in a `<script>` element — the FAQPage JSON-LD and the
+  `#faq-pool` data island — is serialized with an HTML-safe JSON encoder:
+  `<`, `>`, `&` emitted as the JSON escapes `\u003c`, `\u003e`,
+  `\u0026`, and U+2028/U+2029 emitted as `\u2028`/`\u2029`.
+  Tag-allowlist sanitization of `answer_html` does **not** cover this: a
+  literal `</script>` inside answer text would otherwise terminate the
+  script element. Regression tests feed hostile strings (`</script>`,
+  `<!--`, U+2028) through both serialization paths.
 - Note: since 2023 Google shows FAQ rich results mostly for
   government/health sites, but FAQPage remains valid, feeds AI
   Overviews/answer engines, and costs nothing here since it's generated.
@@ -227,17 +240,39 @@ random *extras* behind a user interaction are harmless.**
 
 ## 5. Translation considerations
 
-- **Reuse the `translations` table as-is** — it is already generic:
-  `entity_type='faq'`, `entity_id=faqs.id`,
-  `content_payload = {"question": …, "answer_html": …}`,
-  `source_hash` over the English source (auto re-queues a re-translation
-  when an editor edits the English), same
-  pending → AI batch (th/fr) / vendor workspace (lo) → approve → publish
+- **Canonical locale mapping (Lao).** One rule, owned by a single shared
+  helper in the injector: internal keys everywhere — API `?lang=`,
+  `faqs.json` payload keys, `translations.target_language`,
+  placement-derived paths — use the site's directory codes `en|th|la|fr`
+  (the existing `generate-localized-pages.js --langs th,la,fr`
+  convention). Only HTML-facing output maps `la → lo`: `<html lang>`,
+  `hreflang`, `lang` attributes on injected elements, and JSON-LD
+  `inLanguage`. A unit test asserts a Lao page resolves `la` payload keys
+  and emits `lo` markup — so Lao can never silently fall back to English
+  because a `lo` key was looked up in a `la`-keyed snapshot.
+- **Reuse the `translations` table as-is** — it is already generic. Two
+  entity types:
+  - `entity_type='faq'`, `entity_id=faqs.id`,
+    `content_payload = {"question": …, "answer_html": …}`;
+  - `entity_type='faq_category'`, `entity_id=faq_categories.id`,
+    `content_payload = {"name": …, "description": …}` (surfaces in the
+    admin UI and on the phase-2 hub page; regular page FAQ sections never
+    render category names).
+  Both use `source_hash` over the English source (auto re-queues a
+  re-translation when an editor edits the English) and the same
+  pending → AI batch (th/fr) / vendor workspace (la) → approve → publish
   states, payout ledger included for the Lao vendor.
-- **Fallback policy**: a language missing a published FAQ translation falls
-  back to English *for that item* (progressive, same as page segments) —
-  or the item can be held back from non-EN pages until translated
-  (editor choice per the existing tier conventions; default: fall back).
+- **Fallback policy — pinned vs. pool.** A pinned item on a non-English
+  page requires a **published** translation: an untranslated pinned item
+  is withheld from that language's rendered set *and* its JSON-LD (the
+  next translated pinned item takes the slot; the admin placements view
+  warns when a language's pinned set runs short). Visible content,
+  schema, and `inLanguage` therefore always agree — no mixed-language
+  structured data. The discovery pool *may* fall back to English so "Ask
+  another question" never runs dry, but a fallback entry carries its real
+  locale in the data island and is injected with `lang="en"` on the
+  `<details>`; pool items are never part of FAQPage JSON-LD in any
+  language.
 - **Link localization**: `inject-faqs.js` reuses the existing
   `html-l10n.js` link rewriting so `/en/...` hrefs inside answers become
   `/fr/...` etc. on mirrors — editors always author links against `/en/`.
@@ -301,6 +336,12 @@ table — no schema change:
   "question": "À quoi ressemble l'intégration des clients ?",
   "answer_html": "<p>L'intégration commence par un appel de lancement … <a href=\"/en/company/contact-us/\">contact</a>.</p>"
 }
+
+// translations.content_payload for entity_type='faq_category', target_language='fr'
+{
+  "name": "Intégration",
+  "description": "Questions sur le démarrage d'une collaboration."
+}
 ```
 
 Published snapshot committed to the repo (`faqs.json`, sibling of
@@ -315,7 +356,10 @@ Published snapshot committed to the repo (`faqs.json`, sibling of
       "slug": "client-onboarding",
       "category": "onboarding",
       "question":    { "en": "What does client onboarding look like?", "fr": "À quoi ressemble…", "th": "…" },
-      "answer_html": { "en": "<p>…</p>", "fr": "<p>…</p>" }   // missing lang ⇒ EN fallback
+      "answer_html": { "en": "<p>…</p>", "fr": "<p>…</p>" }
+      // keys are internal locale codes (en|th|la|fr). A missing key ⇒ the
+      // item is withheld from that language's pinned set/JSON-LD; in the
+      // pool it may fall back to EN, tagged with its real locale (§5).
     }
   ],
   "placements": {
@@ -356,8 +400,9 @@ Phased so every step ships working and the current behavior never breaks.
 5. Public API: `GET /api/public/faqs` (+`?lang=`) and
    `GET /api/public/faqs/placements`, published-only, following
    `public-api.js` conventions.
-6. Wire `entity_type='faq'` into the translation workspace list/filters and
-   the AI batch (th/fr) — the workspace and payout flow are already generic.
+6. Wire `entity_type='faq'` and `entity_type='faq_category'` into the
+   translation workspace list/filters and the AI batch (th/fr) — the
+   workspace and payout flow are already generic.
 
 **Phase 2 — bake pipeline (site repo)**
 7. `scripts/inject-faqs.js` (modeled on `inject-footers.js`): for each page
@@ -365,9 +410,15 @@ Phased so every step ships working and the current behavior never breaks.
    between `<!-- faq:start -->` / `<!-- faq:end -->` markers (added around
    `#faq-list` sections): pinned `<details>` items in the page language,
    matching FAQPage JSON-LD (replacing any hand-written FAQPage block), and
-   the `#faq-pool` data island (pool items only, localized). Per-file
-   errors log-and-skip; malformed `faqs.json` aborts (footer-injector
-   safety rules).
+   the `#faq-pool` data island (pool items only, localized). Error
+   contract — stricter than the footer injector, because a partial bake
+   means inconsistent content *and schema* across languages: a page
+   without FAQ markers is simply not targeted (skipped, like footer-less
+   pages); malformed `faqs.json` aborts before any write; any error on a
+   *targeted* page fails the whole run. The injector stages all output
+   and writes only when every targeted page/language succeeded, exiting
+   nonzero otherwise so the workflow never commits a partial publication
+   (the idempotent next run republishes everything).
 8. `faq-sync.yml` workflow: on push touching `faqs.json` or the injector →
    bake into source HTML → commit (clone of `footer-sync.yml`). Admin
    publish commits `faqs.json` via the existing `github-content.js`
@@ -404,11 +455,20 @@ Phased so every step ships working and the current behavior never breaks.
   pattern here; concurrency groups prevent races with footer-sync and
   localize-site — reuse one shared group or ordered triggers to avoid two
   workflows rewriting the same files simultaneously).
-- **HTML answers need sanitization.** Rich text from the admin must go
-  through an allowlist sanitizer server-side at save *and* at bake; the
-  frontend must stop building nodes via template-string `innerHTML`
-  (today's code interpolates data into `innerHTML` — fine for hardcoded
-  strings, not for CMS content).
+- **HTML answers need sanitization — in two distinct contexts.** Rich text
+  from the admin must go through an allowlist sanitizer server-side at
+  save *and* at bake; the frontend must stop building nodes via
+  template-string `innerHTML` (today's code interpolates data into
+  `innerHTML` — fine for hardcoded strings, not for CMS content). And
+  separately, script-context embedding (JSON-LD, `#faq-pool`) needs the
+  HTML-safe JSON serialization from §4 — tag sanitization alone does not
+  stop a literal `</script>` in text from terminating the element.
+- **Untranslated pinned items shrink non-English sets.** Strict
+  schema/language parity (§5) means a new question appears on `/en` first
+  and on mirrors only once its translation publishes. The admin
+  short-set warning plus the existing translation queue keep the gap
+  visible and short-lived — the same freshness lag the localized page
+  mirrors already accept.
 - **Randomness reduced, not removed.** The crawlable pinned set becomes
   stable; only "Ask another question" stays random. If the visible-shuffle
   compromise is adopted instead, JSON-LD stays valid but repeat visitors
