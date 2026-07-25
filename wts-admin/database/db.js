@@ -1063,6 +1063,24 @@ const db = {
         CREATE INDEX IF NOT EXISTS idx_orders_cart ON orders (cart_id) WHERE cart_id IS NOT NULL
       `);
 
+      // BCEL OnePay QR images uploaded in the admin product form. Stored in
+      // the row (BYTEA — survives Railway's ephemeral filesystem) and served
+      // publicly at /api/public/qr/:id, which becomes the bcel_options
+      // qr_url so every existing consumer works unchanged.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS product_qr_images (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+          label VARCHAR(80),
+          mime VARCHAR(50) NOT NULL,
+          data BYTEA NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_product_qr_images_product ON product_qr_images (product_id, created_at)
+      `);
+
       // Files the team shares with a client (reports, designs, final assets).
       // Small files live in the row itself (BYTEA — survives Railway's
       // ephemeral filesystem across deploys); bigger things are linked via

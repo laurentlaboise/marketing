@@ -466,7 +466,8 @@ router.get('/products/new', async (req, res) => {
     product: null,
     currentPage: 'products',
     taxonomy,
-    formTemplates: await getActiveFormTemplates()
+    formTemplates: await getActiveFormTemplates(),
+    qrImages: []
   });
 });
 
@@ -640,12 +641,17 @@ router.get('/products/:id/edit', async (req, res) => {
     if (result.rows.length === 0) {
       return res.redirect('/business/products');
     }
+    const qrImages = (await db.query(
+      'SELECT id, label, mime, created_at FROM product_qr_images WHERE product_id = $1 ORDER BY created_at',
+      [req.params.id]
+    ).catch(() => ({ rows: [] }))).rows;
     res.render('business/products/form', {
       title: 'Edit Product - WTS Admin',
       product: result.rows[0],
       currentPage: 'products',
       taxonomy,
-      formTemplates: await getActiveFormTemplates()
+      formTemplates: await getActiveFormTemplates(),
+      qrImages
     });
   } catch (error) {
     res.redirect('/business/products');
@@ -754,6 +760,103 @@ router.post('/products/:id/delete', async (req, res) => {
 // Clone a product to speed up entering a catalog of similar items. The copy
 // starts as a draft with a fresh name/slug and never inherits Stripe IDs —
 // pointing two products at one Stripe price would be a billing hazard.
+// ── BCEL OnePay QR uploads ──────────────────────────────────────
+//
+// The admin uploads the QR image itself (no external hosting needed): the
+// image is stored in Postgres, served publicly at /api/public/qr/:id, and
+// that URL is appended to the product's bcel_options — so the payment modal
+// and payments routes consume it with zero changes. The CSRF token rides
+// the form-action query string because multer parses the body after the
+// CSRF check runs (same pattern as the deliverables upload).
+const qrUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 }
+});
+const QR_MIMES = new Set(['image/png', 'image/jpeg', 'image/webp']);
+const publicApiBase = () =>
+  (process.env.APP_ADMIN_URL || process.env.PORTAL_URL || 'https://admin.wordsthatsells.website').replace(/\/$/, '');
+
+router.post('/products/:id/bcel-qr', qrUpload.single('qr_image'), async (req, res) => {
+  const backTo = `/business/products/${req.params.id}/edit`;
+  try {
+    const product = (await db.query('SELECT id, bcel_options, bcel_qr_url, price_lak FROM products WHERE id = $1', [req.params.id])).rows[0];
+    if (!product) {
+      req.session.errorMessage = 'Product not found';
+      return res.redirect('/business/products');
+    }
+    if (!req.file || !QR_MIMES.has(req.file.mimetype)) {
+      req.session.errorMessage = 'Please choose a PNG, JPEG or WebP image (max 2 MB).';
+      return res.redirect(backTo);
+    }
+    const label = String(req.body.label || '').trim().slice(0, 80);
+    const lakNum = Math.round(parseFloat(String(req.body.lak || '').replace(/[,\s]/g, '')));
+    const lak = Number.isFinite(lakNum) && lakNum > 0 ? lakNum : null;
+
+    const inserted = (await db.query(
+      'INSERT INTO product_qr_images (product_id, label, mime, data) VALUES ($1, $2, $3, $4) RETURNING id',
+      [product.id, label || null, req.file.mimetype, req.file.buffer]
+    )).rows[0];
+    const qrUrl = `${publicApiBase()}/api/public/qr/${inserted.id}`;
+
+    let options = Array.isArray(product.bcel_options) ? product.bcel_options.slice() : [];
+    options.push({ label, lak, qr_url: qrUrl });
+    await db.query(
+      `UPDATE products SET
+         bcel_options = $1,
+         bcel_qr_url = COALESCE(bcel_qr_url, $2),
+         price_lak = COALESCE(price_lak, $3),
+         updated_at = CURRENT_TIMESTAMP
+       WHERE id = $4`,
+      [JSON.stringify(options), qrUrl, lak, product.id]
+    );
+    req.session.successMessage = 'QR uploaded — it is now a BCEL price point on this product.';
+    res.redirect(backTo);
+  } catch (error) {
+    console.error('BCEL QR upload error:', error);
+    req.session.errorMessage = 'Failed to upload the QR image.';
+    res.redirect(backTo);
+  }
+});
+
+router.post('/products/:id/bcel-qr/:qrId/delete', async (req, res) => {
+  const backTo = `/business/products/${req.params.id}/edit`;
+  try {
+    const removed = (await db.query(
+      'DELETE FROM product_qr_images WHERE id = $1 AND product_id = $2 RETURNING id',
+      [req.params.qrId, req.params.id]
+    )).rows[0];
+    if (removed) {
+      const qrUrl = `${publicApiBase()}/api/public/qr/${removed.id}`;
+      const product = (await db.query('SELECT bcel_options, bcel_qr_url FROM products WHERE id = $1', [req.params.id])).rows[0];
+      if (product) {
+        const options = (Array.isArray(product.bcel_options) ? product.bcel_options : [])
+          .filter((o) => o && o.qr_url !== qrUrl);
+        await db.query(
+          `UPDATE products SET
+             bcel_options = $1,
+             bcel_qr_url = CASE WHEN bcel_qr_url = $2 THEN $3 ELSE bcel_qr_url END,
+             price_lak = CASE WHEN bcel_qr_url = $2 THEN $4 ELSE price_lak END,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE id = $5`,
+          [
+            JSON.stringify(options),
+            qrUrl,
+            options.length ? options[0].qr_url : null,
+            options.length && options[0].lak != null ? options[0].lak : null,
+            req.params.id
+          ]
+        );
+      }
+      req.session.successMessage = 'QR removed.';
+    }
+    res.redirect(backTo);
+  } catch (error) {
+    console.error('BCEL QR delete error:', error);
+    req.session.errorMessage = 'Failed to remove the QR image.';
+    res.redirect(backTo);
+  }
+});
+
 router.post('/products/:id/duplicate', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM products WHERE id = $1', [req.params.id]);

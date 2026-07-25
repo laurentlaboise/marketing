@@ -610,6 +610,7 @@
     "thenRecurring": "Then {summary} until cancelled",
     "noticeMixedCycle": "Your subscriptions use different billing cycles, so they can't share one payment yet — switch them to the same cycle (monthly or yearly) below, then pay.",
     "setupFee": "Setup fee",
-    "oneTime": "(one-time)"
+    "oneTime": "(one-time)",
+    "noticeCancelled": "Payment cancelled — nothing was charged. Your cart is saved; pay whenever you're ready, or message us if something went wrong."
   }
 }

@@ -226,6 +226,7 @@ router.get('/', async (req, res) => {
         mixed: req.query.mixed === '1',
         mixedcycle: req.query.mixedcycle === '1',
         payerr: req.query.payerr === '1',
+        cancelled: req.query.cancelled === '1',
       },
     });
   } catch (e) {
@@ -396,7 +397,7 @@ router.post('/checkout', async (req, res) => {
       customer_email: customer.email,
       line_items: lineItems,
       success_url: `${base}/portal/cart/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${base}/portal/cart`,
+      cancel_url: `${base}/portal/cart?cancelled=1`,
       metadata: {
         wts_kind: 'cart',
         cart_id: cartId,
@@ -433,7 +434,9 @@ router.post('/checkout', async (req, res) => {
 
     res.redirect(303, session.url);
   } catch (e) {
-    console.error('Cart checkout error:', e);
+    // Stripe errors carry type/code — log them so a misconfigured key or a
+    // rejected session config is diagnosable straight from the deploy logs.
+    console.error('Cart checkout error:', e.type || e.name || '', e.code || '', e.message);
     res.redirect('/portal/cart?payerr=1');
   }
 });

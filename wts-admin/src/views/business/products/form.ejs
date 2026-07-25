@@ -597,6 +597,47 @@
         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Product</button>
       </div>
     </form>
+
+    <%# ── BCEL OnePay QR uploads (separate form — multipart, and HTML forbids
+        nesting it inside the product form above). Uploading stores the image
+        in the database, serves it from this site's own /api/public/qr/ URL,
+        and appends a BCEL price-point row to this product automatically. %>
+    <% if (product && product.id) { %>
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:2rem;">
+      <h3 style="margin:0 0 0.35rem;font-size:1.05rem;color:#1a1a2e;"><i class="fas fa-qrcode" style="color:#c8102e;"></i> BCEL OnePay QR uploads</h3>
+      <p style="margin:0 0 1rem;font-size:0.85rem;color:#64748b;line-height:1.5;">
+        Upload the QR image straight from your BCEL One app screenshot — no external hosting needed.
+        Each upload becomes a BCEL price point on this product (served from this site's own URL).
+      </p>
+      <% if (qrImages && qrImages.length) { %>
+      <div style="display:flex;flex-wrap:wrap;gap:0.9rem;margin-bottom:1rem;">
+        <% qrImages.forEach(function (q) { %>
+        <div style="border:1px solid #e2e8f0;border-radius:10px;padding:0.6rem;text-align:center;width:130px;">
+          <img src="/api/public/qr/<%= q.id %>" alt="BCEL QR <%= q.label || '' %>" style="width:100%;border-radius:6px;">
+          <div style="font-size:0.75rem;color:#334155;font-weight:600;margin:0.35rem 0;word-break:break-word;"><%= q.label || '—' %></div>
+          <form method="POST" action="/business/products/<%= product.id %>/bcel-qr/<%= q.id %>/delete">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" style="background:none;border:1px solid #fca5a5;color:#b91c1c;border-radius:6px;padding:0.2rem 0.6rem;font-size:0.72rem;cursor:pointer;">Remove</button>
+          </form>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+      <form method="POST" action="/business/products/<%= product.id %>/bcel-qr?_csrf=<%= encodeURIComponent(csrfToken) %>" enctype="multipart/form-data"
+            style="display:grid;grid-template-columns:1.4fr 1fr 0.9fr auto;gap:0.6rem;align-items:end;">
+        <label style="font-size:0.8rem;color:#334155;font-weight:600;">QR image (PNG/JPEG/WebP, ≤2 MB)
+          <input type="file" name="qr_image" accept="image/png,image/jpeg,image/webp" required style="display:block;margin-top:0.3rem;font-size:0.82rem;">
+        </label>
+        <label style="font-size:0.8rem;color:#334155;font-weight:600;">Label (e.g. "Monthly")
+          <input type="text" name="label" maxlength="80" style="display:block;width:100%;box-sizing:border-box;margin-top:0.3rem;padding:0.45rem 0.6rem;border:1px solid #cbd5e1;border-radius:8px;font-size:0.85rem;">
+        </label>
+        <label style="font-size:0.8rem;color:#334155;font-weight:600;">Amount (LAK)
+          <input type="number" name="lak" min="0" step="1" style="display:block;width:100%;box-sizing:border-box;margin-top:0.3rem;padding:0.45rem 0.6rem;border:1px solid #cbd5e1;border-radius:8px;font-size:0.85rem;">
+        </label>
+        <button type="submit" class="btn btn-primary" style="white-space:nowrap;"><i class="fas fa-upload"></i> Upload QR</button>
+      </form>
+    </div>
+    <% } %>
   </div>
 </main>
 

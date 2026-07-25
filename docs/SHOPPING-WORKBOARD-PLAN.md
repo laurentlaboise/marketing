@@ -424,6 +424,8 @@ status lives only in the portal — decision D7.
 | D12 | Bank-transfer cart totals: provide the BCEL account details (and/or an open-amount merchant QR) to display beside the WTS reference | Needed from you — until then the cart total is Stripe-only and BCEL stays per-product (supersedes D3's open question) |
 | D13 | Subscriptions in the cart (v1.5): allowed when all recurring lines share one billing interval; odd intervals check out separately | Accept the one-interval limit — it covers almost every real cart |
 | D14 | A paid cart becomes ONE project on the workboard (components as a checklist), not N separate projects | Yes — matches the client's intent ("build my website") and keeps the board readable |
+| D15 | BCEL QR hosting: admins upload the QR screenshot in the product form and the site serves it from its own URL (`/api/public/qr/:id`), instead of pasting externally hosted image links | Done — uploads auto-append a BCEL price point; external URLs still accepted for existing rows |
+| D16 | Stripe cancel landing: abandoning Stripe Checkout returns to the portal cart with a "nothing was charged, your cart is saved" notice, not a dead end | Done — cart is the recovery point; one tap retries the same payment |
 
 ---
 
