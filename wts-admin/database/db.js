@@ -1038,6 +1038,31 @@ const db = {
         )
       `);
 
+      // Cart columns (plan §5 1.0): saved_services is the cart's storage, so
+      // a line can carry the chosen price option and quantity, and remember
+      // that a combined quote was requested for it. orders.cart_id groups the
+      // per-item order rows of one paid cart (one Stripe session, N rows).
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='saved_services' AND column_name='option_key') THEN
+            ALTER TABLE saved_services ADD COLUMN option_key VARCHAR(100);
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='saved_services' AND column_name='quantity') THEN
+            ALTER TABLE saved_services ADD COLUMN quantity INTEGER;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='saved_services' AND column_name='quote_requested_at') THEN
+            ALTER TABLE saved_services ADD COLUMN quote_requested_at TIMESTAMP;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='cart_id') THEN
+            ALTER TABLE orders ADD COLUMN cart_id UUID;
+          END IF;
+        END $$;
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_orders_cart ON orders (cart_id) WHERE cart_id IS NOT NULL
+      `);
+
       // Files the team shares with a client (reports, designs, final assets).
       // Small files live in the row itself (BYTEA — survives Railway's
       // ephemeral filesystem across deploys); bigger things are linked via

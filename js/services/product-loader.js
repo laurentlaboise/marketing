@@ -61,8 +61,10 @@
       consultTagline: 'Tell us what you need — we’ll tailor a plan and quote.',
       dueToday: 'Due today',
       estimatedTotal: 'Estimated total',
-      addToServices: 'Add to My Services',
-      addedToServices: 'Added to My Services',
+      addToServices: 'Add to cart',
+      addedToServices: 'In cart',
+      viewCart: 'View cart',
+      addedToast: 'Added to your cart — pay anytime from your portal.',
       signIn: 'Sign in',
       myAccount: 'My account',
       signedIn: 'Signed in',
@@ -93,8 +95,10 @@
       consultTagline: 'Dites-nous ce qu’il vous faut — nous préparons un plan et un devis sur mesure.',
       dueToday: 'À payer aujourd’hui',
       estimatedTotal: 'Total estimé',
-      addToServices: 'Ajouter à mes services',
-      addedToServices: 'Ajouté à mes services',
+      addToServices: 'Ajouter au panier',
+      addedToServices: 'Dans le panier',
+      viewCart: 'Voir le panier',
+      addedToast: 'Ajouté à votre panier — payez quand vous voulez depuis votre espace client.',
       signIn: 'Se connecter',
       myAccount: 'Mon compte',
       signedIn: 'Connecté',
@@ -125,8 +129,10 @@
       consultTagline: 'บอกเราว่าคุณต้องการอะไร — เราจะเสนอแผนและราคาที่เหมาะกับคุณ',
       dueToday: 'ยอดชำระวันนี้',
       estimatedTotal: 'ยอดรวมโดยประมาณ',
-      addToServices: 'เพิ่มในบริการของฉัน',
-      addedToServices: 'เพิ่มแล้ว',
+      addToServices: 'เพิ่มลงตะกร้า',
+      addedToServices: 'อยู่ในตะกร้าแล้ว',
+      viewCart: 'ดูตะกร้า',
+      addedToast: 'เพิ่มลงตะกร้าแล้ว — ชำระเงินได้ทุกเมื่อในพอร์ทัลของคุณ',
       signIn: 'เข้าสู่ระบบ',
       myAccount: 'บัญชีของฉัน',
       signedIn: 'เข้าสู่ระบบแล้ว',
@@ -157,8 +163,10 @@
       consultTagline: 'ບອກພວກເຮົາວ່າທ່ານຕ້ອງການຫຍັງ — ພວກເຮົາຈະສະເໜີແຜນແລະລາຄາທີ່ເໝາະສົມ',
       dueToday: 'ຍອດຈ່າຍມື້ນີ້',
       estimatedTotal: 'ຍອດລວມໂດຍປະມານ',
-      addToServices: 'ເພີ່ມໃສ່ບໍລິການຂອງຂ້ອຍ',
-      addedToServices: 'ເພີ່ມແລ້ວ',
+      addToServices: 'ເພີ່ມໃສ່ກະຕ່າ',
+      addedToServices: 'ຢູ່ໃນກະຕ່າແລ້ວ',
+      viewCart: 'ເບິ່ງກະຕ່າ',
+      addedToast: 'ເພີ່ມໃສ່ກະຕ່າແລ້ວ — ຈ່າຍເງິນໄດ້ທຸກເວລາໃນພອດທັລຂອງທ່ານ',
       signIn: 'ເຂົ້າສູ່ລະບົບ',
       myAccount: 'ບັນຊີຂອງຂ້ອຍ',
       signedIn: 'ເຂົ້າສູ່ລະບົບແລ້ວ',
@@ -253,6 +261,8 @@
         serverSaved = {};
         ((d && d.services) || []).forEach(function (s) { serverSaved[String(s.product_id)] = true; });
         migrateLocalSaved();
+        // The pill's cart badge depends on the freshly loaded count.
+        renderAccountPill();
       })
       .catch(function () { /* keep whatever we had */ });
   }
@@ -288,8 +298,14 @@
     }
     var pillStyle = 'display:inline-flex;align-items:center;gap:0.45rem;background:#fff;border:1px solid #e2e8f0;box-shadow:0 4px 14px rgba(15,23,42,0.15);border-radius:999px;padding:0.5rem 1.05rem;font-size:0.85rem;font-weight:600;color:#334155;font-family:inherit;';
     if (customerState.signedIn) {
+      var cartCount = Object.keys(serverSaved).length;
       pill.innerHTML = '<a href="' + PORTAL_URL + '" rel="noopener" style="' + pillStyle + 'text-decoration:none;">' +
-        '<i class="fas fa-circle-check" style="color:#16a34a;"></i> ' + tr('myAccount') + '</a>';
+        '<i class="fas fa-circle-check" style="color:#16a34a;"></i> ' + tr('myAccount') + '</a>' +
+        (cartCount > 0
+          ? '<a href="' + PORTAL_URL + '/cart" rel="noopener" style="' + pillStyle + 'text-decoration:none;margin-left:0.4rem;">' +
+            '<i class="fas fa-shopping-cart" style="color:var(--accent-color,#d62b83);"></i> ' + tr('viewCart') +
+            ' <span style="background:var(--accent-color,#d62b83);color:#fff;border-radius:999px;font-size:0.72rem;font-weight:700;padding:0.05rem 0.45rem;">' + cartCount + '</span></a>'
+          : '');
     } else {
       pill.innerHTML = '<button type="button" style="' + pillStyle + 'cursor:pointer;">' +
         '<i class="fas fa-user" style="color:var(--accent-color,#d62b83);"></i> ' + tr('signIn') + '</button>';
@@ -790,6 +806,9 @@
           ? tr('payNowAmount', { amount: fmtMoney(optAmount, pr.currency) })
           : tr('continuePayment'));
       }
+      // The cart line remembers the chosen option too (plan §5 1.1).
+      var optAddBtn = block.querySelector('.btn-add-service');
+      if (optAddBtn) optAddBtn.setAttribute('data-option-key', opt.key);
       // Highlight selected card
       var labels = block.querySelectorAll('.price-option-label');
       for (var L = 0; L < labels.length; L++) {
@@ -1078,6 +1097,9 @@
       if (qtyBuyBtn && canShowPrices() && total > 0) {
         qtyBuyBtn.innerHTML = '<i class="fas fa-bolt"></i> ' + tr('payNowAmount', { amount: fmtMoney(total, pr.currency) });
       }
+      // The cart line remembers the chosen quantity too (plan §5 1.1).
+      var qtyAddBtn = elContent.querySelector('.btn-add-service');
+      if (qtyAddBtn) qtyAddBtn.setAttribute('data-quantity', q);
     }
 
     if (input) {
@@ -2103,9 +2125,18 @@
       var quoteLabel = (kind === 'quote_fixed' && canShowPrices() && fromPrice != null)
         ? tr('requestQuoteFrom', { amount: fmtMoney(fromPrice, pr.currency) })
         : tr('requestQuote');
+      // D10: consult products join the cart too — the basket carries the
+      // whole project and turns these lines into ONE combined quote request.
+      var consultSave = customerState.signedIn
+        ? '<div style="margin-top:0.6rem;"><button class="btn-add-service"' + idAttr + nameAttr +
+          ' style="background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.45rem 1.1rem;border-radius:8px;cursor:pointer;color:var(--color-slate-500,#64748b);font-size:0.95rem;">' +
+          (isSaved(data.id) ? '<i class="fas fa-check"></i> ' + tr('addedToServices') : '<i class="fas fa-plus"></i> ' + tr('addToServices')) +
+          '</button></div>'
+        : '';
       return '<button class="btn btn-accent-magenta product-cta btn-request-quote"' + idAttr + nameAttr + formAttr + billingAttr +
         ctaStyle + '><i class="fas fa-comments"></i> ' + quoteLabel + '</button>' +
         '<div style="margin-top:0.6rem;">' + waButtonHTML(data) + '</div>' +
+        consultSave +
         '<p style="font-size:0.82rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">' + tr('consultTagline') + ' ' + tr('slaPromise') + '</p>';
     }
 
@@ -2344,6 +2375,9 @@
     var productId = btn.getAttribute('data-product-id');
     var productName = btn.getAttribute('data-product-name') || '';
     var billingPeriod = btn.getAttribute('data-billing-period') || null;
+    var optionKey = btn.getAttribute('data-option-key') || null;
+    var qtyAttr = parseInt(btn.getAttribute('data-quantity'), 10);
+    var quantity = isNaN(qtyAttr) ? null : qtyAttr;
 
     // Signed-in: the plan lives on the account so it follows the customer
     // across devices and shows up in the portal + admin.
@@ -2355,7 +2389,7 @@
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(adding
-          ? { product_id: productId, billing_period: billingPeriod }
+          ? { product_id: productId, billing_period: billingPeriod, option_key: optionKey, quantity: quantity }
           : { product_id: productId })
       })
         .then(function (r) {
@@ -2365,6 +2399,8 @@
           btn.innerHTML = adding
             ? '<i class="fas fa-check"></i> ' + tr('addedToServices')
             : '<i class="fas fa-plus"></i> ' + tr('addToServices');
+          renderAccountPill();
+          if (adding) showToast(tr('addedToast'));
         })
         .catch(function () { /* leave the button as it was */ })
         .then(function () { btn.disabled = false; });

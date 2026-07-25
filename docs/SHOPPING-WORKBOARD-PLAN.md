@@ -7,7 +7,8 @@ guest CTA hierarchy, cart fulfillment edge cases, deposit sequencing split, `bal
 staleness guard, Phase 2 split (2A trust core → 2B kanban), independent `FEATURE_CART` /
 `FEATURE_DEPOSITS` flags, revised estimates, tightened D1–D8 recommendations.
 v3 (2026-07-25, later): Phase 1 redefined as the portal cart (see §10) — D1–D8 approved
-and Phase 0 shipped; **D9–D14 await sign-off**.*
+and Phase 0 shipped. v3.1: cart approved ("go") and the Phase 1 core implemented; D12
+(bank details for transfer totals) is the one still-open input.*
 
 Date: 2026-07-25 · Scope: marketing site purchase flow, portal, admin, and the
 order-to-delivery "workboard" process. Grounded in the actual code (file paths cited
@@ -456,7 +457,36 @@ status lives only in the portal — decision D7.
 
 ## 10. Decision log
 
-**2026-07-25 (later) — Cart pivot requested; Phase 1 redefined, awaiting D9–D14 sign-off.**
+**2026-07-25 (later still) — Cart approved ("go"); Phase 1 core implemented on this branch.**
+
+D9–D14 locked with the recommended defaults: concept split (D9), mixed cart with combined
+quote (D10), named "Cart" (D11), **totals Stripe-only until bank details arrive** (D12
+still open — send the BCEL account details / open-amount QR to enable transfer totals),
+one-interval subscription rule accepted for v1.5 (D13), cart → one project (D14, lands
+with Phase 2 — `orders.cart_id` is already stamped).
+
+*Implemented (Phase 1 core):*
+- `database/db.js` — `saved_services.option_key/quantity/quote_requested_at`,
+  `orders.cart_id` (+ partial index), all additive `IF NOT EXISTS`.
+- `src/routes/portal-cart.js` (new) — `/portal/cart`: server-priced line resolution
+  (options/tiers/one-time/hourly), payable + subscription + quote buckets, option/qty
+  update + remove, **checkout: one Stripe session with N line items → one order row per
+  line sharing `cart_id`**, in-portal success page, combined quote request
+  (`form_submissions`, kind `cart_quote`) + WhatsApp link with the basket prefilled,
+  `FEATURE_CART=0` kill-switch.
+- `src/routes/portal.js` — cart mount + per-render `featureCart`/`cartCount` locals.
+- `src/routes/payments.js` — webhook clears purchased cart lines (idempotent).
+- `src/routes/public-api.js` — my-services accepts/returns `option_key`/`quantity`.
+- `views/portal/cart.ejs`, `cart-success.ejs`, nav item with count badge,
+  `locales/en.json` + `th.json` (43 cart keys each).
+- `js/services/product-loader.js` — "Add to My Services" → **Add to cart** (4 langs),
+  chosen option/qty ride along into the cart line, consult products get the add button
+  (signed-in), account pill shows a live cart-count "View cart" link, added-toast.
+
+*Deferred, per plan:* deposits (1.7), subscriptions-in-cart (1.6), BCEL/transfer totals
+(1.5 — blocked on D12), in-portal catalog (Phase 3).
+
+**2026-07-25 (later) — Cart pivot requested; Phase 1 redefined (D9–D14 were open at this point).**
 
 Laurent's direction: clients assembling a project (e.g. a website = Divi template +
 WordPress + SEO content + images) should pick and choose across the catalog and **pay one

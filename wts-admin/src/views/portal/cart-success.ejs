@@ -1,0 +1,59 @@
+<%- include('partials/head') %>
+  <style>
+    .ok-wrap { max-width: 560px; margin: 0 auto; text-align: center; }
+    .ok-icon { width: 64px; height: 64px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+    .ok-card { background: #fff; border: 1px solid var(--wts-border); border-radius: var(--wts-radius); box-shadow: var(--wts-shadow); padding: 1.25rem 1.35rem; text-align: left; margin: 1.25rem 0; }
+    .ok-card .row { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.4rem 0; font-size: 0.94rem; color: var(--wts-text-2); }
+    .ok-card .row strong { color: var(--wts-text); }
+    .ok-card .total { border-top: 1px dashed var(--wts-border); margin-top: 0.5rem; padding-top: 0.7rem; font-weight: 800; color: var(--wts-magenta); font-size: 1.1rem; }
+    .next { background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: var(--wts-radius); padding: 1.1rem 1.35rem; text-align: left; margin-bottom: 1.25rem; }
+    .next h2 { font-size: 1rem; margin: 0 0 0.5rem; color: var(--wts-text); }
+    .next ol { margin: 0; padding-left: 1.25rem; color: var(--wts-text-2); font-size: 0.92rem; line-height: 1.6; }
+    .ok-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .ok-actions a { border-radius: 999px; padding: 0.65rem 1.5rem; font-weight: 800; text-decoration: none; font-size: 0.94rem; }
+    .ok-actions a.primary { background: var(--wts-magenta); color: #fff; }
+    .ok-actions a.secondary { background: #fff; color: var(--wts-text-2); border: 1px solid var(--wts-border); }
+    .pending-note { color: var(--wts-muted); font-size: 0.84rem; margin-top: 0.8rem; }
+  </style>
+</head>
+<body class="portal-app">
+  <%- include('partials/topbar') %>
+  <div class="app-shell">
+    <%- include('partials/nav', { active: 'cart' }) %>
+    <main class="main">
+      <div class="main-inner">
+        <div class="ok-wrap">
+          <div class="ok-icon">✓</div>
+          <h1><%= t('cart.successTitle') %></h1>
+          <p style="color:var(--wts-text-3);"><%= t('cart.successSubtitle') %></p>
+
+          <div class="ok-card">
+            <div class="row"><span><%= t('cart.reference') %></span><strong><%= reference %></strong></div>
+            <% orders.forEach(function (o) { %>
+            <div class="row">
+              <span><%= o.product_name || t('cart.item') %><%= o.quantity > 1 ? ' × ' + o.quantity : '' %></span>
+              <strong><%= o.amount != null ? parseFloat(o.amount).toFixed(2) + ' ' + (o.currency || currency) : '—' %></strong>
+            </div>
+            <% }); %>
+            <div class="row total"><span><%= t('cart.totalLabel') %></span><span><%= total.toFixed(2) %> <%= currency %></span></div>
+          </div>
+
+          <div class="next">
+            <h2><%= t('cart.nextTitle') %></h2>
+            <ol>
+              <li><%= t('cart.nextStep1') %></li>
+              <li><%= t('cart.nextStep2') %></li>
+              <li><%= t('cart.nextStep3') %></li>
+            </ol>
+          </div>
+
+          <div class="ok-actions">
+            <a class="primary" href="/portal/"><%= t('nav.dashboard') %></a>
+            <a class="secondary" href="/portal/billing"><%= t('nav.billing') %></a>
+          </div>
+          <% if (!allCompleted) { %><p class="pending-note"><%= t('cart.pendingNote') %></p><% } %>
+        </div>
+      </div>
+    </main>
+  </div>
+  <%- include('partials/footer') %>
