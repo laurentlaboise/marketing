@@ -48,6 +48,12 @@
             <tr>
               <td>Publishable key<br><span style="font-weight:400;color:#64748b;font-size:0.8rem;">(in-page payment panel)</span></td>
               <td>
+                <% if (stripe.publishable.envInvalid) { %>
+                  <div style="color:#b91c1c;font-weight:600;margin-bottom:0.35rem;">
+                    &#9888; <code>STRIPE_PUBLISHABLE_KEY</code> is set but is NOT a publishable key (pk_&hellip;) — it is being ignored.
+                    If you pasted the secret key there, move it out and roll it in the Stripe dashboard.
+                  </div>
+                <% } %>
                 <% if (stripe.publishable.source === 'env') { %>
                   <span style="color:#16a34a;font-weight:600;">&#10003; set via env</span>
                   &middot; &hellip;<%= stripe.publishable.value.slice(-4) %> — the cart&rsquo;s slide-in Stripe panel is active.

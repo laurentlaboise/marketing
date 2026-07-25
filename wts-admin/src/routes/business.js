@@ -913,12 +913,17 @@ router.get('/payments', async (req, res) => {
     const whsec = process.env.STRIPE_WEBHOOK_SECRET || '';
     // Publishable key powers the cart's in-page payment panel. It is public
     // by design (it ships to every browser), so a DB-backed setting the
-    // admin pastes here is fine — the env var, when set, still wins.
-    const envPk = process.env.STRIPE_PUBLISHABLE_KEY || '';
+    // admin pastes here is fine — the env var, when set AND valid, wins.
+    // A malformed env value (e.g. a secret key pasted by mistake) is never
+    // used or echoed; the panel calls it out so it gets fixed.
+    const PK_RE = /^pk_(live|test)_[A-Za-z0-9]{10,}$/;
+    const envPkRaw = process.env.STRIPE_PUBLISHABLE_KEY || '';
+    const envPk = PK_RE.test(envPkRaw) ? envPkRaw : '';
     let dbPk = '';
     try {
       const r = await db.query("SELECT value FROM site_settings WHERE key = 'stripe_publishable_key'");
-      dbPk = (r.rows[0] && r.rows[0].value) || '';
+      const v = (r.rows[0] && r.rows[0].value) || '';
+      if (PK_RE.test(v)) dbPk = v;
     } catch (e) { /* settings table missing = not configured */ }
     const stripe = {
       keyPresent: !!key,
@@ -928,7 +933,8 @@ router.get('/payments', async (req, res) => {
       webhookSecretLast4: whsec ? whsec.slice(-4) : null,
       publishable: {
         value: envPk || dbPk,
-        source: envPk ? 'env' : (dbPk ? 'admin' : null)
+        source: envPk ? 'env' : (dbPk ? 'admin' : null),
+        envInvalid: !!envPkRaw && !envPk
       }
     };
 
@@ -994,7 +1000,11 @@ router.post('/payments/publishable-key', async (req, res) => {
       req.session.successMessage = `Publishable key saved (${value.startsWith('pk_live') ? 'live' : 'test'} mode) — the in-page payment panel is now active.`;
     } else {
       await db.query("DELETE FROM site_settings WHERE key = 'stripe_publishable_key'");
-      req.session.successMessage = 'Publishable key cleared — checkout falls back to the Stripe-hosted page.';
+      // The env var (when valid) still powers the panel after the DB row is
+      // gone — say so instead of promising a fallback that won't happen.
+      req.session.successMessage = /^pk_(live|test)_[A-Za-z0-9]{10,}$/.test(process.env.STRIPE_PUBLISHABLE_KEY || '')
+        ? 'Admin-saved key cleared — STRIPE_PUBLISHABLE_KEY from the environment is still active, so the in-page panel stays on.'
+        : 'Publishable key cleared — checkout falls back to the Stripe-hosted page.';
     }
     res.redirect('/business/payments');
   } catch (error) {
