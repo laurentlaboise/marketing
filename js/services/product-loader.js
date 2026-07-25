@@ -29,6 +29,183 @@
   var lastProducts = null;
   var lastGrid = null;
 
+  // ── Locale + buyer-facing strings ──────────────────────────
+  // One shared JS serves /en /fr /th (and future /lo) pages, so every
+  // buyer-facing string renders through tr() keyed off <html lang>.
+  var PAGE_LANG = (function () {
+    var l = (document.documentElement.getAttribute('lang') || 'en').toLowerCase().slice(0, 2);
+    return l === 'la' ? 'lo' : l;
+  })();
+
+  var STRINGS = {
+    en: {
+      payNow: 'Pay now',
+      payNowAmount: 'Pay now · {amount}',
+      subscribeAmount: 'Subscribe · {amount}{period}',
+      perMonth: '/mo',
+      perYear: '/yr',
+      continuePayment: 'Continue to payment',
+      bookHoursAmount: 'Book hours · {amount}/hr',
+      hoursHint: 'Not sure how many hours you need? Ask us first — it’s free.',
+      requestQuote: 'Request a Quote',
+      requestQuoteFrom: 'Request quote · from {amount}',
+      signInToBuy: 'Sign in to buy',
+      signInToSee: 'Sign in to see pricing',
+      payWithBcel: 'Pay with BCEL OnePay',
+      whatsappCta: 'Chat on WhatsApp',
+      whatsappPrefill: 'Hello! I’m interested in {product} and would like to know more.',
+      waGenericProduct: 'your services',
+      badgeSelfServe: 'Self-serve',
+      badgeQuote: 'Quote',
+      slaPromise: 'We reply within 1 business day.',
+      consultTagline: 'Tell us what you need — we’ll tailor a plan and quote.',
+      dueToday: 'Due today',
+      estimatedTotal: 'Estimated total',
+      addToServices: 'Add to My Services',
+      addedToServices: 'Added to My Services',
+      signIn: 'Sign in',
+      myAccount: 'My account',
+      signedIn: 'Signed in',
+      learnMore: 'Learn More',
+      redirecting: 'Redirecting…',
+      preparing: 'Preparing…'
+    },
+    fr: {
+      payNow: 'Payer maintenant',
+      payNowAmount: 'Payer · {amount}',
+      subscribeAmount: 'S’abonner · {amount}{period}',
+      perMonth: '/mois',
+      perYear: '/an',
+      continuePayment: 'Continuer vers le paiement',
+      bookHoursAmount: 'Réserver des heures · {amount}/h',
+      hoursHint: 'Pas sûr du nombre d’heures ? Demandez-nous d’abord — c’est gratuit.',
+      requestQuote: 'Demander un devis',
+      requestQuoteFrom: 'Devis · à partir de {amount}',
+      signInToBuy: 'Se connecter pour acheter',
+      signInToSee: 'Connectez-vous pour voir les prix',
+      payWithBcel: 'Payer avec BCEL OnePay',
+      whatsappCta: 'Discuter sur WhatsApp',
+      whatsappPrefill: 'Bonjour ! Je suis intéressé(e) par {product} et j’aimerais en savoir plus.',
+      waGenericProduct: 'vos services',
+      badgeSelfServe: 'Achat en ligne',
+      badgeQuote: 'Sur devis',
+      slaPromise: 'Nous répondons sous 1 jour ouvré.',
+      consultTagline: 'Dites-nous ce qu’il vous faut — nous préparons un plan et un devis sur mesure.',
+      dueToday: 'À payer aujourd’hui',
+      estimatedTotal: 'Total estimé',
+      addToServices: 'Ajouter à mes services',
+      addedToServices: 'Ajouté à mes services',
+      signIn: 'Se connecter',
+      myAccount: 'Mon compte',
+      signedIn: 'Connecté',
+      learnMore: 'En savoir plus',
+      redirecting: 'Redirection…',
+      preparing: 'Préparation…'
+    },
+    th: {
+      payNow: 'ชำระเงินเลย',
+      payNowAmount: 'ชำระเงิน · {amount}',
+      subscribeAmount: 'สมัครสมาชิก · {amount}{period}',
+      perMonth: '/เดือน',
+      perYear: '/ปี',
+      continuePayment: 'ไปหน้าชำระเงิน',
+      bookHoursAmount: 'จองชั่วโมง · {amount}/ชม.',
+      hoursHint: 'ไม่แน่ใจว่าต้องใช้กี่ชั่วโมง? สอบถามเราก่อนได้ ฟรี',
+      requestQuote: 'ขอใบเสนอราคา',
+      requestQuoteFrom: 'ขอใบเสนอราคา · เริ่มต้น {amount}',
+      signInToBuy: 'เข้าสู่ระบบเพื่อซื้อ',
+      signInToSee: 'เข้าสู่ระบบเพื่อดูราคา',
+      payWithBcel: 'ชำระผ่าน BCEL OnePay',
+      whatsappCta: 'แชทผ่าน WhatsApp',
+      whatsappPrefill: 'สวัสดี! สนใจ {product} ขอทราบข้อมูลเพิ่มเติมค่ะ/ครับ',
+      waGenericProduct: 'บริการของคุณ',
+      badgeSelfServe: 'ซื้อออนไลน์ได้',
+      badgeQuote: 'ขอใบเสนอราคา',
+      slaPromise: 'เราจะตอบกลับภายใน 1 วันทำการ',
+      consultTagline: 'บอกเราว่าคุณต้องการอะไร — เราจะเสนอแผนและราคาที่เหมาะกับคุณ',
+      dueToday: 'ยอดชำระวันนี้',
+      estimatedTotal: 'ยอดรวมโดยประมาณ',
+      addToServices: 'เพิ่มในบริการของฉัน',
+      addedToServices: 'เพิ่มแล้ว',
+      signIn: 'เข้าสู่ระบบ',
+      myAccount: 'บัญชีของฉัน',
+      signedIn: 'เข้าสู่ระบบแล้ว',
+      learnMore: 'ดูเพิ่มเติม',
+      redirecting: 'กำลังไปต่อ…',
+      preparing: 'กำลังเตรียม…'
+    },
+    lo: {
+      payNow: 'ຈ່າຍເງິນດຽວນີ້',
+      payNowAmount: 'ຈ່າຍເງິນ · {amount}',
+      subscribeAmount: 'ສະຫມັກສະມາຊິກ · {amount}{period}',
+      perMonth: '/ເດືອນ',
+      perYear: '/ປີ',
+      continuePayment: 'ໄປໜ້າຈ່າຍເງິນ',
+      bookHoursAmount: 'ຈອງຊົ່ວໂມງ · {amount}/ຊມ.',
+      hoursHint: 'ບໍ່ແນ່ໃຈວ່າຕ້ອງການຈັກຊົ່ວໂມງ? ສອບຖາມພວກເຮົາກ່ອນໄດ້ ຟ຺ີ',
+      requestQuote: 'ຂໍໃບສະເໜີລາຄາ',
+      requestQuoteFrom: 'ຂໍໃບສະເໜີລາຄາ · ເລີ່ມຕົ້ນ {amount}',
+      signInToBuy: 'ເຂົ້າສູ່ລະບົບເພື່ອຊື້',
+      signInToSee: 'ເຂົ້າສູ່ລະບົບເພື່ອເບິ່ງລາຄາ',
+      payWithBcel: 'ຈ່າຍຜ່ານ BCEL OnePay',
+      whatsappCta: 'ສົນທະນາຜ່ານ WhatsApp',
+      whatsappPrefill: 'ສະບາຍດີ! ສົນໃຈ {product} ຂໍຂໍ້ມູນເພີ່ມເຕີມແດ່',
+      waGenericProduct: 'ບໍລິການຂອງທ່ານ',
+      badgeSelfServe: 'ຊື້ອອນລາຍໄດ້',
+      badgeQuote: 'ຕາມໃບສະເໜີລາຄາ',
+      slaPromise: 'ພວກເຮົາຈະຕອບກັບພາຍໃນ 1 ວັນລັດຖະການ',
+      consultTagline: 'ບອກພວກເຮົາວ່າທ່ານຕ້ອງການຫຍັງ — ພວກເຮົາຈະສະເໜີແຜນແລະລາຄາທີ່ເໝາະສົມ',
+      dueToday: 'ຍອດຈ່າຍມື້ນີ້',
+      estimatedTotal: 'ຍອດລວມໂດຍປະມານ',
+      addToServices: 'ເພີ່ມໃສ່ບໍລິການຂອງຂ້ອຍ',
+      addedToServices: 'ເພີ່ມແລ້ວ',
+      signIn: 'ເຂົ້າສູ່ລະບົບ',
+      myAccount: 'ບັນຊີຂອງຂ້ອຍ',
+      signedIn: 'ເຂົ້າສູ່ລະບົບແລ້ວ',
+      learnMore: 'ເບິ່ງເພີ່ມເຕີມ',
+      redirecting: 'ກຳລັງໄປຕໍ່…',
+      preparing: 'ກຳລັງກຽມ…'
+    }
+  };
+
+  function tr(key, vars) {
+    var map = STRINGS[PAGE_LANG] || STRINGS.en;
+    var s = map[key] != null ? map[key] : STRINGS.en[key];
+    if (s == null) return key;
+    if (vars) {
+      for (var k in vars) {
+        if (Object.prototype.hasOwnProperty.call(vars, k)) {
+          s = s.split('{' + k + '}').join(String(vars[k]));
+        }
+      }
+    }
+    return s;
+  }
+
+  // ── WhatsApp handoff + lightweight analytics ────────────────
+  // D6: footer sales number (verify it stays the active WhatsApp line).
+  var WHATSAPP_NUMBER = '8562055528034';
+
+  function trackEvent(name, params) {
+    try {
+      if (typeof window.gtag === 'function') window.gtag('event', name, params || {});
+    } catch (e) { /* analytics must never break the flow */ }
+  }
+
+  function waLink(productName) {
+    var msg = tr('whatsappPrefill', { product: productName || tr('waGenericProduct') });
+    return 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(msg);
+  }
+
+  function waButtonHTML(data, small) {
+    var style = small
+      ? 'display:inline-flex;align-items:center;gap:0.4rem;background:#25D366;color:#fff;border:none;padding:0.5rem 1.1rem;border-radius:8px;font-size:0.92rem;font-weight:600;text-decoration:none;'
+      : 'display:inline-flex;align-items:center;gap:0.45rem;background:#25D366;color:#fff;border:none;padding:0.6rem 1.5rem;border-radius:8px;font-size:1rem;font-weight:600;text-decoration:none;';
+    return '<a class="btn-wts-whatsapp" href="' + esc(waLink(data.name)) + '" target="_blank" rel="noopener noreferrer"' +
+      ' data-product-name="' + esc(data.name || '') + '" style="' + style + '">' +
+      '<i class="fab fa-whatsapp" style="font-size:1.15em;"></i> ' + tr('whatsappCta') + '</a>';
+  }
+
   /** Public site: prices only after portal sign-in. Guests see teaser cards. */
   function canShowPrices() {
     return !!customerState.signedIn;
@@ -112,10 +289,10 @@
     var pillStyle = 'display:inline-flex;align-items:center;gap:0.45rem;background:#fff;border:1px solid #e2e8f0;box-shadow:0 4px 14px rgba(15,23,42,0.15);border-radius:999px;padding:0.5rem 1.05rem;font-size:0.85rem;font-weight:600;color:#334155;font-family:inherit;';
     if (customerState.signedIn) {
       pill.innerHTML = '<a href="' + PORTAL_URL + '" rel="noopener" style="' + pillStyle + 'text-decoration:none;">' +
-        '<i class="fas fa-circle-check" style="color:#16a34a;"></i> My account</a>';
+        '<i class="fas fa-circle-check" style="color:#16a34a;"></i> ' + tr('myAccount') + '</a>';
     } else {
       pill.innerHTML = '<button type="button" style="' + pillStyle + 'cursor:pointer;">' +
-        '<i class="fas fa-user" style="color:var(--accent-color,#d62b83);"></i> Sign in</button>';
+        '<i class="fas fa-user" style="color:var(--accent-color,#d62b83);"></i> ' + tr('signIn') + '</button>';
       pill.firstChild.addEventListener('click', function () { openLoginModal(); });
     }
   }
@@ -223,9 +400,71 @@
     };
   }
 
-  // Compact price line shown on the service card — portal sign-in only.
+  // ── CTA classification (docs/SHOPPING-WORKBOARD-PLAN.md §5 0.1) ──
+  // One classifier → one renderer, so labels can't drift per pricing type.
+  function ctaKind(data) {
+    var pr = data.pricing || getPricing(data);
+    if ((data.purchase_mode || 'consult') === 'buy') {
+      if (pr.type === 'subscription') return 'subscribe';
+      if (pr.type === 'options') return 'pay_options';
+      if (pr.type === 'tiered') return 'pay_qty';
+      if (pr.unit === 'hour') return 'book_hours';
+      return 'pay_fixed';
+    }
+    return minPriceOf(pr) != null ? 'quote_fixed' : 'quote_open';
+  }
+
+  // Lowest meaningful price point across pricing shapes ("from $X").
+  function minPriceOf(pr) {
+    if (!pr) return null;
+    var vals = [];
+    var push = function (v) {
+      v = v != null ? parseFloat(v) : NaN;
+      if (!isNaN(v) && v > 0) vals.push(v);
+    };
+    push(pr.one_time_price);
+    if (pr.type === 'options' && Array.isArray(pr.options)) {
+      pr.options.forEach(function (o) { if (o) push(o.price); });
+    }
+    if (pr.type === 'tiered') {
+      if (pr.from_unit_price != null) push(pr.from_unit_price);
+      else if (Array.isArray(pr.tiers) && pr.tiers.length) {
+        push(Math.min.apply(null, pr.tiers.map(function (x) { return x.unit_price; })));
+      }
+    }
+    if (pr.type === 'subscription') {
+      push(pr.monthly_price != null ? pr.monthly_price : pr.yearly_price);
+    }
+    return vals.length ? Math.min.apply(null, vals) : null;
+  }
+
+  // First LAK price point for the BCEL button label (options carry their own).
+  function bcelLakAmount(data) {
+    if (!data.bcel) return null;
+    var opts = (data.bcel.options && data.bcel.options.length) ? data.bcel.options : null;
+    var v = opts ? opts[0].lak : data.bcel.price_lak;
+    v = v != null ? parseFloat(v) : NaN;
+    return (isNaN(v) || v <= 0) ? null : v;
+  }
+
+  // D4 (amended 2026-07-25): guests see the exact price on small self-serve
+  // SKUs only — buy mode, fixed one-time, ≤ $50. Bigger scopes stay gated.
+  var GUEST_TEASER_MAX = 50;
+  function guestTeaserHTML(product) {
+    if ((product.purchase_mode || 'consult') !== 'buy') return '';
+    var pr = getPricing(product);
+    if (pr.type !== 'one_time' || pr.one_time_price == null) return '';
+    if (pr.unit && pr.unit !== 'fixed') return '';
+    var v = parseFloat(pr.one_time_price);
+    if (isNaN(v) || v <= 0 || v > GUEST_TEASER_MAX) return '';
+    return '<span class="product-price" style="display:block;margin:0.5rem 0;font-weight:600;color:var(--accent-color,#d62b83);">' +
+      fmtMoney(v, pr.currency) + '</span>';
+  }
+
+  // Compact price line shown on the service card — portal sign-in only
+  // (except the ≤ $50 self-serve teaser above).
   function cardPriceHTML(product) {
-    if (!canShowPrices()) return '';
+    if (!canShowPrices()) return guestTeaserHTML(product);
     var pr = getPricing(product);
     var style = 'display:block;margin:0.5rem 0;font-weight:600;color:var(--accent-color,#d62b83);';
 
@@ -318,6 +557,16 @@
         ? '<p class="service-description">' + esc(desc) + '</p>'
         : '';
 
+      // Signed-in mode badge: makes "checkout now" vs "quote first" obvious
+      // before the click (plan §5 0.2).
+      var badgeHTML = '';
+      if (canShowPrices()) {
+        var isBuyMode = (product.purchase_mode || 'consult') === 'buy';
+        badgeHTML = '<span class="wts-mode-badge" style="display:inline-block;margin:0 auto 0.45rem;padding:0.18rem 0.7rem;border-radius:999px;font-size:0.68rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;' +
+          (isBuyMode ? 'background:#dcfce7;color:#166534;' : 'background:#eff6ff;color:#1d4ed8;') + '">' +
+          (isBuyMode ? tr('badgeSelfServe') : tr('badgeQuote')) + '</span>';
+      }
+
       var card = document.createElement('div');
       card.className = 'service-card reveal' + delay;
       // Stable anchor so a product-targeted button (or a deep link) can scroll
@@ -327,10 +576,11 @@
       card.innerHTML =
         '<div class="icon ' + anim + '"><i class="' + icon + '"></i></div>' +
         '<h3 class="service-title">' + esc(product.name) + '</h3>' +
+        badgeHTML +
         descHTML +
         priceHTML +
         '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;margin-top:auto;">' +
-          '<button class="btn btn-premium btn-learn-more" data-service="' + esc(slug) + '">Learn More</button>' +
+          '<button class="btn btn-premium btn-learn-more" data-service="' + esc(slug) + '">' + tr('learnMore') + '</button>' +
         '</div>';
 
       container.appendChild(card);
@@ -526,11 +776,19 @@
       if (dynPrice) {
         dynPrice.innerHTML = canShowPrices()
           ? fmtMoney(opt.price, pr.currency)
-          : '<span style="font-size:0.88rem;font-weight:600;color:#64748b;">Sign in to see pricing</span>';
+          : '<span style="font-size:0.88rem;font-weight:600;color:#64748b;">' + tr('signInToSee') + '</span>';
       }
       var ctas = block.querySelectorAll('.product-cta');
       for (var i = 0; i < ctas.length; i++) {
         ctas[i].setAttribute('data-option-key', opt.key);
+      }
+      // The pay CTA states the selected option's exact amount (plan §5 0.1).
+      var optBuyBtn = block.querySelector('.btn-buy-now');
+      if (optBuyBtn && canShowPrices()) {
+        var optAmount = opt.price != null ? parseFloat(opt.price) : NaN;
+        optBuyBtn.innerHTML = '<i class="fas fa-bolt"></i> ' + (!isNaN(optAmount) && optAmount > 0
+          ? tr('payNowAmount', { amount: fmtMoney(optAmount, pr.currency) })
+          : tr('continuePayment'));
       }
       // Highlight selected card
       var labels = block.querySelectorAll('.price-option-label');
@@ -815,6 +1073,11 @@
       }
       var ctas = elContent.querySelectorAll('.product-cta');
       for (var j = 0; j < ctas.length; j++) ctas[j].setAttribute('data-quantity', q);
+      // The pay CTA carries the live total for the chosen quantity.
+      var qtyBuyBtn = elContent.querySelector('.btn-buy-now');
+      if (qtyBuyBtn && canShowPrices() && total > 0) {
+        qtyBuyBtn.innerHTML = '<i class="fas fa-bolt"></i> ' + tr('payNowAmount', { amount: fmtMoney(total, pr.currency) });
+      }
     }
 
     if (input) {
@@ -845,6 +1108,25 @@
       if (bcelBtns[k].dataset.bound) continue;
       bcelBtns[k].dataset.bound = '1';
       bcelBtns[k].addEventListener('click', onBcelPay);
+    }
+    // Guest primary: sign-in unlocks checkout (same modal as the pill).
+    var signinBtns = elContent.querySelectorAll('.btn-signin-buy');
+    for (var s = 0; s < signinBtns.length; s++) {
+      if (signinBtns[s].dataset.bound) continue;
+      signinBtns[s].dataset.bound = '1';
+      signinBtns[s].addEventListener('click', function (e) {
+        e.preventDefault();
+        openLoginModal();
+      });
+    }
+    // WhatsApp handoffs: let the link open, count the click (plan §5 0.5).
+    var waBtns = elContent.querySelectorAll('.btn-wts-whatsapp');
+    for (var w = 0; w < waBtns.length; w++) {
+      if (waBtns[w].dataset.bound) continue;
+      waBtns[w].dataset.bound = '1';
+      waBtns[w].addEventListener('click', function () {
+        trackEvent('cta_whatsapp', { product_name: this.getAttribute('data-product-name') || '', source: 'product_panel' });
+      });
     }
   }
 
@@ -955,9 +1237,15 @@
             '<p>Sign in with just your email — build your services plan, request quotes and track orders.</p>' +
           '</button>' +
         '</div>' +
-        '<p class="wts-qm-hint">No pressure, no spam — both options are free.</p>';
+        '<a id="wts-qm-wa" href="' + esc(waLink(productName)) + '" target="_blank" rel="noopener noreferrer" ' +
+          'style="display:flex;align-items:center;justify-content:center;gap:0.45rem;margin-top:0.7rem;background:#25D366;color:#fff;border-radius:12px;padding:0.75rem;font-size:0.95rem;font-weight:700;text-decoration:none;">' +
+          '<i class="fab fa-whatsapp" style="font-size:1.2em;"></i> ' + tr('whatsappCta') + '</a>' +
+        '<p class="wts-qm-hint">No pressure, no spam — both options are free. ' + tr('slaPromise') + '</p>';
       body.querySelector('#wts-qm-pick-quick').addEventListener('click', showQuickForm);
       body.querySelector('#wts-qm-pick-account').addEventListener('click', showAccountForm);
+      body.querySelector('#wts-qm-wa').addEventListener('click', function () {
+        trackEvent('cta_whatsapp', { product_name: productName || '', source: 'quote_modal' });
+      });
     }
 
     function showSuccess(heading, text) {
@@ -1019,7 +1307,8 @@
           .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
           .then(function () {
             showSuccess('Request received!',
-              'Thanks ' + esc(name.split(' ')[0]) + ' — we’ll get back to you at <strong>' + esc(email) + '</strong> with your quotation within one business day.');
+              'Thanks ' + esc(name.split(' ')[0]) + ' — we’ll get back to you at <strong>' + esc(email) + '</strong> with your quotation within one business day.' +
+              ' Prefer to talk it through now? <a href="' + esc(waLink(productName)) + '" target="_blank" rel="noopener noreferrer" style="color:#16a34a;font-weight:700;">WhatsApp us</a>.');
           })
           .catch(function () {
             sendBtn.disabled = false;
@@ -1357,7 +1646,7 @@
 
     var original = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting…';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + tr('redirecting');
 
     var payBase = API_BASE.replace('/api/public', '/api/payments');
     var body = { product_id: productId };
@@ -1421,7 +1710,7 @@
 
     var original = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing…';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + tr('preparing');
 
     var body = { product_id: productId };
     var billing = btn.getAttribute('data-billing-period');
@@ -1593,7 +1882,7 @@
   // "Due today" is only honest when the CTA actually charges; quote-based
   // products get "Estimated total" instead.
   function totalLabel(data) {
-    return data.purchase_mode === 'buy' ? 'Due today' : 'Estimated total';
+    return data.purchase_mode === 'buy' ? tr('dueToday') : tr('estimatedTotal');
   }
 
   // `value` is optional — omit it when a bound updater fills the amount in.
@@ -1612,7 +1901,7 @@
     // Options type still shows path labels (AI vs Designer) with prices masked.
     if (!canShowPrices() && pr.type === 'subscription') {
       html += '<p style="font-size:0.95rem;color:var(--color-slate-500,#64748b);margin-bottom:1rem;">' +
-        '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>Sign in to see pricing</p>';
+        '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>' + tr('signInToSee') + '</p>';
       html += buildCtaHTML(data, pr.default_billing === 'yearly' ? 'yearly' : 'monthly');
       html += buildShareHTML(data);
       html += '</div>';
@@ -1620,7 +1909,7 @@
     }
     if (!canShowPrices() && pr.type === 'tiered') {
       html += '<p style="font-size:0.95rem;color:var(--color-slate-500,#64748b);margin-bottom:1rem;">' +
-        '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>Sign in to see pricing</p>';
+        '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>' + tr('signInToSee') + '</p>';
       html += buildCtaHTML(data, null);
       html += buildShareHTML(data);
       html += '</div>';
@@ -1722,7 +2011,7 @@
         '<div class="opt-dyn-price" style="margin-top:0.55rem;font-size:1.25rem;font-weight:800;color:#d62b83;">' +
           (show$
             ? fmtMoney(first.price, pr.currency)
-            : '<span style="font-size:0.88rem;font-weight:600;color:#64748b;">Sign in to see pricing</span>') +
+            : '<span style="font-size:0.88rem;font-weight:600;color:#64748b;">' + tr('signInToSee') + '</span>') +
         '</div>' +
       '</div>';
       html += '<p style="font-size:0.85rem;color:var(--color-slate-600,#475569);margin:0 0 0.6rem;text-align:left;">Choose how you want it done</p>';
@@ -1755,7 +2044,7 @@
     if (pr.one_time_price != null) {
       if (!canShowPrices()) {
         html += '<p style="font-size:0.95rem;color:var(--color-slate-500,#64748b);margin-bottom:1rem;">' +
-          '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>Sign in to see pricing</p>';
+          '<i class="fas fa-lock" style="margin-right:0.35rem;opacity:0.8;"></i>' + tr('signInToSee') + '</p>';
       } else if (data.purchase_mode === 'buy' && (!pr.unit || pr.unit === 'fixed')) {
         // Same order-summary treatment as subscriptions, so the checkout
         // amount is stated explicitly.
@@ -1765,7 +2054,7 @@
             '<strong style="white-space:nowrap;">' + fmtMoney(pr.one_time_price, pr.currency) + '</strong>' +
           '</div>' +
           BREAKDOWN_DIVIDER +
-          breakdownTotalRow('Due today', 'pb-onetime-total', fmtMoney(pr.one_time_price, pr.currency)) +
+          breakdownTotalRow(tr('dueToday'), 'pb-onetime-total', fmtMoney(pr.one_time_price, pr.currency)) +
         '</div>';
       } else {
         // Per-hour / per-unit rates and quote-first products keep the simple
@@ -1791,9 +2080,10 @@
     return '';
   }
 
-  // Render the call-to-action based on how the product is sold:
-  //   consult (default) → "Request a Quote" (opens the enquiry form)
-  //   buy               → "Buy Now" (Stripe), with a secondary "save to plan"
+  // Render the call-to-action from ctaKind() — one matrix, one renderer
+  // (docs/SHOPPING-WORKBOARD-PLAN.md §5 0.1):
+  //   pay_fixed/pay_options/pay_qty/subscribe/book_hours → checkout CTAs
+  //   quote_fixed/quote_open                             → quote + WhatsApp
   function buildCtaHTML(data, billing) {
     var billingAttr = billing ? ' data-billing-period="' + esc(billing) + '"' : '';
     var idAttr = ' data-product-id="' + esc(String(data.id)) + '"';
@@ -1801,52 +2091,109 @@
     // Which form the enquiry CTA opens (admin-configurable per product).
     var formAttr = data.cta_form_type ? ' data-cta-form-type="' + esc(data.cta_form_type) + '"' : '';
     var ctaStyle = ' style="font-size:1.1rem;padding:0.8rem 2rem;"';
+    var pr = data.pricing || getPricing(data);
+    var kind = ctaKind(data);
 
-    if (data.purchase_mode === 'buy') {
-      // Payment-method logos: Stripe wordmark + card brands, and the BCEL
-      // OnePay badge when QR payment is available.
-      var logos = '<div style="margin-top:0.8rem;display:flex;gap:0.6rem;justify-content:center;align-items:center;color:#94a3b8;" aria-label="Accepted payment methods">' +
-        '<i class="fab fa-stripe" style="font-size:1.9rem;" title="Payments by Stripe"></i>' +
-        '<i class="fab fa-cc-visa" style="font-size:1.35rem;" title="Visa"></i>' +
-        '<i class="fab fa-cc-mastercard" style="font-size:1.35rem;" title="Mastercard"></i>' +
-        (data.bcel
-          ? '<span title="BCEL OnePay (Laos)" style="font-weight:800;color:#c8102e;font-size:0.72rem;letter-spacing:0.02em;border:1.5px solid #c8102e;border-radius:4px;padding:0.12rem 0.4rem;white-space:nowrap;">BCEL <span style="font-weight:600;">OnePay</span></span>'
-          : '') +
-        '</div>';
-
-      // Signed-out visitors: Request a Quote only. The quote modal's second
-      // option covers account creation, and the floating pill lets returning
-      // customers sign in — no separate sign-in button in the CTA stack.
-      if (!customerState.signedIn) {
-        return '<button class="btn btn-accent-magenta product-cta btn-request-quote"' + idAttr + nameAttr + formAttr + billingAttr +
-          ctaStyle + '><i class="fas fa-comments"></i> Request a Quote</button>' +
-          logos;
-      }
-
-      var buy = '<button class="btn btn-accent-magenta product-cta btn-buy-now"' + idAttr + nameAttr + formAttr + billingAttr +
-        (data.stripe_payment_link ? ' data-stripe-link="' + esc(data.stripe_payment_link) + '"' : '') +
-        ctaStyle + '><i class="fas fa-bolt"></i> Activate service</button>';
-      // BCEL OnePay (Laos): a second payment path that opens the merchant QR.
-      if (data.bcel) {
-        buy += '<div style="margin-top:0.6rem;"><button class="btn-bcel-pay product-cta"' + idAttr + nameAttr + billingAttr +
-          ' style="background:#fff;border:1.5px solid #c8102e;color:#c8102e;padding:0.6rem 1.5rem;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;">' +
-          '<i class="fas fa-qrcode"></i> Pay with <strong style="letter-spacing:0.01em;">BCEL OnePay</strong></button></div>';
-      }
-      var save = '<div style="margin-top:0.6rem;"><button class="btn-add-service"' + idAttr + nameAttr +
-        ' style="background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.45rem 1.1rem;border-radius:8px;cursor:pointer;color:var(--color-slate-500,#64748b);font-size:0.95rem;">' +
-        (isSaved(data.id) ? '<i class="fas fa-check"></i> Added to My Services' : '<i class="fas fa-plus"></i> Add to My Services') +
-        '</button></div>';
-      var signedIn = '<p style="font-size:0.78rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">' +
-        '<i class="fas fa-circle-check" style="color:#16a34a;"></i> Signed in' +
-        (customerState.email ? ' as ' + esc(customerState.email) : '') +
-        ' · <a href="' + PORTAL_URL + '" style="color:var(--accent-color,#d62b83);text-decoration:none;font-weight:600;" rel="noopener">My account</a></p>';
-      return buy + save + logos + signedIn;
+    // consult (quote-first) products — WhatsApp handoff beside the form.
+    if (kind === 'quote_fixed' || kind === 'quote_open') {
+      var fromPrice = minPriceOf(pr);
+      var quoteLabel = (kind === 'quote_fixed' && canShowPrices() && fromPrice != null)
+        ? tr('requestQuoteFrom', { amount: fmtMoney(fromPrice, pr.currency) })
+        : tr('requestQuote');
+      return '<button class="btn btn-accent-magenta product-cta btn-request-quote"' + idAttr + nameAttr + formAttr + billingAttr +
+        ctaStyle + '><i class="fas fa-comments"></i> ' + quoteLabel + '</button>' +
+        '<div style="margin-top:0.6rem;">' + waButtonHTML(data) + '</div>' +
+        '<p style="font-size:0.82rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">' + tr('consultTagline') + ' ' + tr('slaPromise') + '</p>';
     }
 
-    // consult (default for most services)
-    return '<button class="btn btn-accent-magenta product-cta btn-request-quote"' + idAttr + nameAttr + formAttr + billingAttr +
-      ctaStyle + '><i class="fas fa-comments"></i> Request a Quote</button>' +
-      '<p style="font-size:0.82rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">Tell us what you need — we\'ll tailor a plan and quote.</p>';
+    // buy products
+    // Payment-method logos: Stripe wordmark + card brands, and the BCEL
+    // OnePay badge when QR payment is available.
+    var logos = '<div style="margin-top:0.8rem;display:flex;gap:0.6rem;justify-content:center;align-items:center;color:#94a3b8;" aria-label="Accepted payment methods">' +
+      '<i class="fab fa-stripe" style="font-size:1.9rem;" title="Payments by Stripe"></i>' +
+      '<i class="fab fa-cc-visa" style="font-size:1.35rem;" title="Visa"></i>' +
+      '<i class="fab fa-cc-mastercard" style="font-size:1.35rem;" title="Mastercard"></i>' +
+      (data.bcel
+        ? '<span title="BCEL OnePay (Laos)" style="font-weight:800;color:#c8102e;font-size:0.72rem;letter-spacing:0.02em;border:1.5px solid #c8102e;border-radius:4px;padding:0.12rem 0.4rem;white-space:nowrap;">BCEL <span style="font-weight:600;">OnePay</span></span>'
+        : '') +
+      '</div>';
+
+    // Guests: one clear primary — sign-in unlocks checkout — with quote and
+    // WhatsApp as visually smaller secondaries, never two equal primaries.
+    if (!customerState.signedIn) {
+      var secStyle = 'background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.5rem 1.1rem;border-radius:8px;cursor:pointer;color:var(--color-slate-600,#475569);font-size:0.92rem;font-weight:600;';
+      return '<button class="btn btn-accent-magenta product-cta btn-signin-buy"' + idAttr + nameAttr + ctaStyle + '>' +
+          '<i class="fas fa-unlock"></i> ' + tr('signInToBuy') + '</button>' +
+        '<div style="display:flex;gap:0.5rem;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:0.6rem;">' +
+          '<button class="btn-request-quote product-cta"' + idAttr + nameAttr + formAttr + billingAttr + ' style="' + secStyle + '"><i class="fas fa-comments"></i> ' + tr('requestQuote') + '</button>' +
+          waButtonHTML(data, true) +
+        '</div>' +
+        logos;
+    }
+
+    // Signed-in label per pricing type (option/qty/billing handlers keep
+    // the amount live as the selection changes).
+    var buyLabel;
+    if (kind === 'subscribe') {
+      var isYearlyInit = billing === 'yearly';
+      var subAmount = isYearlyInit ? pr.yearly_price : pr.monthly_price;
+      if (subAmount == null) {
+        subAmount = isYearlyInit ? pr.monthly_price : pr.yearly_price;
+        isYearlyInit = !isYearlyInit;
+      }
+      buyLabel = subAmount != null
+        ? tr('subscribeAmount', { amount: fmtMoney(subAmount, pr.currency), period: isYearlyInit ? tr('perYear') : tr('perMonth') })
+        : tr('payNow');
+    } else if (kind === 'pay_options') {
+      var firstOpt = pr.options && pr.options[0];
+      var firstPrice = firstOpt && firstOpt.price != null ? parseFloat(firstOpt.price) : NaN;
+      buyLabel = (!isNaN(firstPrice) && firstPrice > 0)
+        ? tr('payNowAmount', { amount: fmtMoney(firstPrice, pr.currency) })
+        : tr('continuePayment');
+    } else if (kind === 'pay_qty') {
+      buyLabel = tr('payNow'); // bindQuantitySelector fills in the live total
+    } else if (kind === 'book_hours') {
+      buyLabel = pr.one_time_price != null
+        ? tr('bookHoursAmount', { amount: fmtMoney(pr.one_time_price, pr.currency) })
+        : tr('payNow');
+    } else {
+      buyLabel = pr.one_time_price != null
+        ? tr('payNowAmount', { amount: fmtMoney(pr.one_time_price, pr.currency) })
+        : tr('payNow');
+    }
+
+    var buy = '<button class="btn btn-accent-magenta product-cta btn-buy-now"' + idAttr + nameAttr + formAttr + billingAttr +
+      (data.stripe_payment_link ? ' data-stripe-link="' + esc(data.stripe_payment_link) + '"' : '') +
+      ctaStyle + '><i class="fas fa-bolt"></i> ' + buyLabel + '</button>';
+
+    // BCEL OnePay: co-equal payment rail with the LAK amount stated up
+    // front — QR-first on Lao pages, card-first elsewhere (plan §5 0.4).
+    var bcel = '';
+    if (data.bcel) {
+      var lak = bcelLakAmount(data);
+      bcel = '<button class="btn-bcel-pay product-cta"' + idAttr + nameAttr + billingAttr +
+        ' style="font-size:1.05rem;padding:0.75rem 1.7rem;background:#c8102e;border:none;color:#fff;border-radius:8px;cursor:pointer;font-weight:700;">' +
+        '<i class="fas fa-qrcode"></i> ' + tr('payWithBcel') + (lak ? ' · ' + fmtKip(lak) : '') + '</button>';
+    }
+    var stack = bcel
+      ? (PAGE_LANG === 'lo'
+          ? bcel + '<div style="margin-top:0.6rem;">' + buy + '</div>'
+          : buy + '<div style="margin-top:0.6rem;">' + bcel + '</div>')
+      : buy;
+
+    var hoursHint = kind === 'book_hours'
+      ? '<p style="font-size:0.82rem;color:var(--color-slate-500,#64748b);margin-top:0.5rem;">' + tr('hoursHint') + '</p>'
+      : '';
+
+    var save = '<div style="margin-top:0.6rem;"><button class="btn-add-service"' + idAttr + nameAttr +
+      ' style="background:none;border:1px solid var(--color-border,#e2e8f0);padding:0.45rem 1.1rem;border-radius:8px;cursor:pointer;color:var(--color-slate-500,#64748b);font-size:0.95rem;">' +
+      (isSaved(data.id) ? '<i class="fas fa-check"></i> ' + tr('addedToServices') : '<i class="fas fa-plus"></i> ' + tr('addToServices')) +
+      '</button></div>';
+    var signedIn = '<p style="font-size:0.78rem;color:var(--color-slate-500,#64748b);margin-top:0.6rem;">' +
+      '<i class="fas fa-circle-check" style="color:#16a34a;"></i> ' + tr('signedIn') +
+      (customerState.email ? ' — ' + esc(customerState.email) : '') +
+      ' · <a href="' + PORTAL_URL + '" style="color:var(--accent-color,#d62b83);text-decoration:none;font-weight:600;" rel="noopener">' + tr('myAccount') + '</a></p>';
+    return stack + hoursHint + save + logos + signedIn;
   }
 
   function bindBillingToggle(data) {
@@ -1928,6 +2275,12 @@
     // Every CTA (Buy Now, BCEL OnePay, Request a Quote) carries the period.
     var ctas = block.querySelectorAll('.product-cta');
     for (var c = 0; c < ctas.length; c++) ctas[c].setAttribute('data-billing-period', billing);
+    // The subscribe CTA restates the amount for the period just picked.
+    var subBuyBtn = block.querySelector('.btn-buy-now');
+    if (subBuyBtn && amount != null) {
+      subBuyBtn.innerHTML = '<i class="fas fa-bolt"></i> ' +
+        tr('subscribeAmount', { amount: fmtMoney(amount, pr.currency), period: isYearly ? tr('perYear') : tr('perMonth') });
+    }
 
     // Active button styling
     var options = block.querySelectorAll('.billing-option');
@@ -2007,8 +2360,8 @@
           if (adding) serverSaved[String(productId)] = true;
           else delete serverSaved[String(productId)];
           btn.innerHTML = adding
-            ? '<i class="fas fa-check"></i> Added to My Services'
-            : '<i class="fas fa-plus"></i> Add to My Services';
+            ? '<i class="fas fa-check"></i> ' + tr('addedToServices')
+            : '<i class="fas fa-plus"></i> ' + tr('addToServices');
         })
         .catch(function () { /* leave the button as it was */ })
         .then(function () { btn.disabled = false; });
@@ -2017,11 +2370,11 @@
 
     if (isSaved(productId)) {
       removeService(productId);
-      btn.innerHTML = '<i class="fas fa-plus"></i> Add to My Services';
+      btn.innerHTML = '<i class="fas fa-plus"></i> ' + tr('addToServices');
       console.log('[ProductLoader] Removed service:', productName);
     } else {
       saveService(productId, productName, billingPeriod);
-      btn.innerHTML = '<i class="fas fa-check"></i> Added to My Services';
+      btn.innerHTML = '<i class="fas fa-check"></i> ' + tr('addedToServices');
       console.log('[ProductLoader] Added service:', productName, billingPeriod || '');
     }
   }

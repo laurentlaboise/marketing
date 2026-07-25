@@ -387,3 +387,48 @@ status lives only in the portal — decision D7.
 - Time from payment → first client-visible update (2.2 target: minutes, automated)
 - "Any update?" inbound chat volume per active project (expect down after Phase 2)
 - Repeat purchase rate from portal catalog (3.1)
+
+---
+
+## 10. Decision log
+
+**2026-07-25 — Plan approved ("ok go"); Phase 0 implemented on this branch.**
+
+| # | Decision |
+|---|----------|
+| D1 | SLA promise ships as **"within 1 business day"** (under-promise). It is a single string per surface (`slaPromise` in `product-loader.js`, plus the checkout pages) — flip to "4 business hours" once ops confirms it is consistently hittable. |
+| D2 | Deposits 30%, opt-in per product — lands with Phase 1. |
+| D3 | Cart v1 is Stripe-only; BCEL stays per-product until an open-amount merchant QR is verified in the bank app — Phase 1. |
+| D4 | Soft gate kept; guest teaser implemented for buy + fixed one-time ≤ $50 (`GUEST_TEASER_MAX`). This formally amends the 2026-07-13 locked guest pattern. |
+| D5 | Workboard stages approved as written — Phase 2. |
+| D6 | WhatsApp CTAs use the footer number +856 20 5552 8034 (single `WHATSAPP_NUMBER` constant) — **verify it is the active sales line before announcing**. |
+| D7 | Notion stays internal-only; the `workboard.html` redirect lands with Phase 2.6. |
+| D8 | Lao locale remains Phase 4; the Phase 0 string map already carries `lo` keys. |
+
+### Phase 0 — implemented (this PR)
+
+- `js/services/product-loader.js` — `ctaKind()` classifier + one CTA renderer; localized
+  string map (en/fr/th live, lo ready) via `tr()`; "Activate service" replaced by per-type
+  labels with live amounts (option picker, quantity selector and billing toggle keep the
+  label in sync); guest hierarchy (Sign in to buy primary; quote + WhatsApp secondaries);
+  Self-serve/Quote card badges; ≤ $50 guest price teaser; BCEL OnePay as a co-equal solid
+  button with the LAK amount (QR-first on Lao pages); WhatsApp handoff on consult CTAs,
+  guest CTAs and the quote modal, all firing `cta_whatsapp` GA4 events; quote-received
+  confirmation carries the SLA promise + WhatsApp follow-up link.
+- `wts-admin/src/routes/payments.js` — `order-status` additionally returns `reference`
+  (WTS-XXXXXXXX, same shape as BCEL) and `service_page`. Additive, backwards-compatible.
+- `en|fr|th/checkout/success.html` — reference row, "what happens next" steps, Open-portal
+  + WhatsApp buttons (reference prefilled), service-page-aware back link, and a
+  `wts_purchase_complete` GA4 event. Also fixed a live bug: the Thai page's Product label
+  contained a leaked translation-prompt string shown to every Thai buyer.
+- `en|fr|th/checkout/cancel.html` — reassurance, WhatsApp / alternative-payment path
+  (BCEL, bank transfer), back link now goes to the services hub.
+
+### Phase 0 — conscious deferrals
+
+- Quote/login modal internals stay English for now (full modal i18n rides with the Lao
+  pass in Phase 4).
+- Quote requests have no server-issued reference id yet (needs a `/submissions` response
+  change — bundled into Phase 1 backend work).
+- Hourly products got the "Book hours · $X/hr" label + hint only; the hours stepper ships
+  with Phase 1 as decided.

@@ -545,7 +545,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 router.get('/order-status/:session_id', async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT o.*, p.name as product_name, p.download_url, p.product_type
+      `SELECT o.*, p.name as product_name, p.download_url, p.product_type, p.service_page
        FROM orders o
        LEFT JOIN products p ON o.product_id = p.id
        WHERE o.stripe_session_id = $1`,
@@ -562,7 +562,13 @@ router.get('/order-status/:session_id', async (req, res) => {
       product_name: order.product_name,
       product_type: order.product_type,
       amount: order.amount,
-      currency: order.currency
+      currency: order.currency,
+      // Human-typeable reference (same shape as the BCEL flow) so the
+      // success page and follow-up chats can name the order.
+      reference: 'WTS-' + String(order.id).replace(/-/g, '').slice(0, 8).toUpperCase(),
+      // Lets the success page link back to the service page the buyer
+      // actually came from instead of a hardcoded category.
+      service_page: order.service_page || null
     };
 
     // Only include download URL if order is completed
