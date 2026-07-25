@@ -85,15 +85,12 @@ EOF
 
 echo -e "${GREEN}✅ .env file created${NC}"
 
-# Step 6: Install npm dependencies (if not already installed)
-if [ ! -d "node_modules" ]; then
-    echo ""
-    echo "📦 Installing npm dependencies..."
-    npm install
-    echo -e "${GREEN}✅ Dependencies installed${NC}"
-else
-    echo -e "${GREEN}✅ Dependencies already installed${NC}"
-fi
+# Step 6: Install npm dependencies — unconditionally, so every deploy
+# enforces package-lock.json instead of reusing whatever tree is present.
+echo ""
+echo "📦 Installing npm dependencies..."
+npm ci
+echo -e "${GREEN}✅ Dependencies installed${NC}"
 
 # Step 7: Show next steps
 echo ""

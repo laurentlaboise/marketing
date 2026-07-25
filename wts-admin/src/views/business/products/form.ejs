@@ -932,10 +932,16 @@ document.getElementById('slug').dataset.manual = 'true';
       html += '<div style="margin-bottom:1.5rem;"><iframe width="100%" height="360" src="' + esc(siVideo) + '" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="border-radius:12px;"></iframe></div>';
     }
 
-    // HTML Content — rendered raw (this is the HTML textbox output)
+    // HTML Content — sanitized before rendering. Fail closed: if DOMPurify
+    // did not load, show the escaped source instead of injecting raw HTML
+    // (slide_in_content can arrive via import/machine-api, not only this form).
     if (siContent) {
-      var safeContent = (window.DOMPurify && window.DOMPurify.sanitize) ? window.DOMPurify.sanitize(siContent) : siContent;
-      html += '<div class="preview-html-content" style="margin-bottom:1.5rem;line-height:1.7;color:#334155;">' + safeContent + '</div>';
+      if (window.DOMPurify && window.DOMPurify.sanitize) {
+        html += '<div class="preview-html-content" style="margin-bottom:1.5rem;line-height:1.7;color:#334155;">' + window.DOMPurify.sanitize(siContent) + '</div>';
+      } else {
+        html += '<div style="margin-bottom:1.5rem;padding:0.75rem 1rem;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;color:#92400e;font-size:0.85rem;">Sanitizer unavailable — showing source instead of rendered HTML.</div>' +
+          '<pre style="margin-bottom:1.5rem;white-space:pre-wrap;word-break:break-word;font-size:0.8rem;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:0.75rem 1rem;">' + esc(siContent) + '</pre>';
+      }
     }
 
     // Features list
@@ -1123,6 +1129,10 @@ document.getElementById('slug').dataset.manual = 'true';
   recompute();
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-uT3pX9zt2ChjFuO5YPuMV+KCYQ7LTYxt6++YOaiq4O4psZxfqyD7ZTjZJNMIafzV" crossorigin="anonymous"></script>
+<%# DOMPurify 3.4.12, vendored in public/vendor (verified against the npm
+    registry shasum). The previous CDN pin (3.1.6) predated the CVE-2025-26791
+    fix AND carried a wrong SRI hash, so SRI-enforcing browsers silently
+    refused to load it — leaving the preview unsanitized. %>
+<script src="/vendor/purify.min.js"></script>
 
 <%- include('../../partials/footer') %>
