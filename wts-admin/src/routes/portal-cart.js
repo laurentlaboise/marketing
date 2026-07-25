@@ -430,7 +430,6 @@ router.post('/checkout', async (req, res) => {
     if (embedded) {
       // Embedded sessions take return_url only — success_url/cancel_url are
       // rejected. Closing the panel is the cancel path; the cart is unchanged.
-      sessionConfig.ui_mode = 'embedded';
       sessionConfig.return_url = `${base}/portal/cart/success?session_id={CHECKOUT_SESSION_ID}`;
     } else {
       sessionConfig.success_url = `${base}/portal/cart/success?session_id={CHECKOUT_SESSION_ID}`;
@@ -438,7 +437,21 @@ router.post('/checkout', async (req, res) => {
     }
     if (req.session.locale === 'th') sessionConfig.locale = 'th';
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
+    // Stripe renamed the embedded ui_mode: newer API versions reject
+    // 'embedded' ("use embedded_page instead") while older ones don't know
+    // 'embedded_page'. Try the modern name first, fall back once on a
+    // ui_mode complaint so either API pin works.
+    let session;
+    if (embedded) {
+      try {
+        session = await stripe.checkout.sessions.create({ ...sessionConfig, ui_mode: 'embedded_page' });
+      } catch (e) {
+        if (!/ui_mode/i.test(e.message || '')) throw e;
+        session = await stripe.checkout.sessions.create({ ...sessionConfig, ui_mode: 'embedded' });
+      }
+    } else {
+      session = await stripe.checkout.sessions.create(sessionConfig);
+    }
 
     // One order row per line — billing and fulfillment stay per-product;
     // the shared cart_id groups them (and becomes ONE project in Phase 2).
