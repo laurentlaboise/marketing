@@ -150,22 +150,18 @@ async function seedFaqsIfEmpty() {
 
 module.exports = { runSeed, seedFaqsIfEmpty };
 
-// CLI mode: standalone pool, full idempotent pass (no empty-table gate) so
-// it also converges a partially seeded database.
+// CLI mode: full idempotent pass (no empty-table gate) so it also converges
+// a partially seeded database. Goes through the shared db module so it gets
+// the exact TLS/PGSSLROOTCERT handling the server uses — never a hand-rolled
+// pool with weaker SSL settings.
 if (require.main === module) {
-    const { Pool } = require('pg');
-    const pool = new Pool({
-        connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/wts_admin',
-        ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
-    });
+    const db = require('./db');
     (async () => {
-        const client = await pool.connect();
         try {
-            const stats = await runSeed(client);
+            const stats = await runSeed(db);
             console.log(`Done! Categories: ${stats.categories}, FAQs: ${stats.faqs}, placements: ${stats.placements}, translations: ${stats.translations}, skipped existing: ${stats.skipped}`);
         } finally {
-            client.release();
-            await pool.end();
+            await db.close();
         }
     })().catch(err => {
         console.error('Seed failed:', err);
