@@ -89,9 +89,13 @@ const escapeHtml = (t) => String(t)
 const TREE_TAGS = ['a', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'br'];
 const TREE_TAG_RE = new RegExp(`<(\\/)?(${TREE_TAGS.join('|')})\\b([^>]*)>`, 'gi');
 
+// &amp; decodes LAST: doing it first would turn pre-escaped sequences like
+// "&amp;lt;" into "&lt;" and then double-unescape them into a real "<"
+// (CodeQL js/double-escaping).
 const decodeEntities = (s) => String(s)
-  .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-  .replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+  .replace(/&amp;/g, '&');
 
 const stripToText = (html) => decodeEntities(String(html).replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
 

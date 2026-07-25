@@ -139,6 +139,25 @@ test('pool island is a structured tree with lang tags; hostile strings stay text
   assert.equal(frIsland.lang, 'fr');
 });
 
+test('entity decoding is single-pass: pre-escaped text never double-unescapes', () => {
+  const cfg = JSON.parse(JSON.stringify(CONFIG));
+  cfg.faqs.push({
+    slug: 'delta',
+    category: 'general',
+    sort_order: 40,
+    question: { en: 'Delta?' },
+    // Author wrote the literal text "5 < 6 & &lt;tag&gt;" — the admin
+    // sanitizer stores it entity-escaped like this:
+    answer_html: { en: '<p>5 &lt; 6 &amp; &amp;lt;tag&amp;gt;</p>' },
+  });
+  cfg.placements['/en/pool-only/'].pool.push('delta');
+  bake(cfg);
+  const island = JSON.parse(/id="faq-pool">(.*?)<\/script>/s.exec(region('en/pool-only/index.html'))[1]);
+  const delta = island.items.find((i) => i.slug === 'delta');
+  assert.deepEqual(delta.tree, [{ t: 'p', c: ['5 < 6 & &lt;tag&gt;'] }]);
+  bake(); // restore baseline config
+});
+
 test('malformed answer markup degrades to plain text instead of failing the bake', () => {
   const cfg = JSON.parse(JSON.stringify(CONFIG));
   cfg.faqs.push({
