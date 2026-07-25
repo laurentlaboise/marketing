@@ -1,0 +1,143 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= faq && faq.id ? 'Edit FAQ' : 'New FAQ' %></h1>
+        <p class="page-subtitle"><a href="/content/faqs"><i class="fas fa-arrow-left"></i> Back to FAQs</a></p>
+      </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-error"><span><%= error %></span></div>
+    <% } %>
+
+    <div class="card form-card">
+      <div class="card-body">
+        <form action="<%= faq && faq.id ? '/content/faqs/' + faq.id : '/content/faqs' %>" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-question-circle"></i> Question &amp; Answer</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="question">Question *</label>
+              <input type="text" id="question" name="question" class="form-input" value="<%= faq ? faq.question : '' %>" required>
+              <% if (faq && faq.slug) { %>
+              <p class="form-help">Anchor: <code>#faq-<%= faq.slug %></code> (frozen — renaming the question never moves the anchor)</p>
+              <% } %>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="answer_html">Answer (HTML) *</label>
+              <textarea id="answer_html" name="answer_html" class="form-input" rows="8" required><%= faq ? faq.answer_html : '' %></textarea>
+              <p class="form-help">
+                Allowed tags: <code>&lt;p&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;strong&gt; &lt;em&gt; &lt;br&gt; &lt;a href&gt;</code>.
+                Internal links: author against the canonical <code>/en/</code> tree (e.g. <code>&lt;a href="/en/company/contact-us/"&gt;</code>) —
+                localized mirrors rewrite them automatically. Everything else is stripped on save.
+              </p>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="fas fa-sliders-h"></i> Organization</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="category_id">Category</label>
+              <select id="category_id" name="category_id" class="form-input">
+                <option value="">Uncategorized</option>
+                <% categories.forEach(cat => { %>
+                <option value="<%= cat.id %>" <%= faq && String(faq.category_id) === String(cat.id) ? 'selected' : '' %>><%= cat.name %></option>
+                <% }); %>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="status">Status</label>
+              <select id="status" name="status" class="form-input">
+                <option value="draft" <%= faq && faq.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                <option value="published" <%= faq && faq.status === 'published' ? 'selected' : '' %>>Published</option>
+                <option value="archived" <%= faq && faq.status === 'archived' ? 'selected' : '' %>>Archived</option>
+              </select>
+              <p class="form-help">Only published FAQs are served by the public API and eligible for translation.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="sort_order">Sort order</label>
+              <input type="number" id="sort_order" name="sort_order" class="form-input" value="<%= faq ? (faq.sort_order || 0) : 0 %>">
+              <p class="form-help">Default ordering within its category (lower = earlier).</p>
+            </div>
+          </div>
+
+          <div class="form-actions form-actions-sticky">
+            <a href="/content/faqs" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <% if (faq && faq.id) { %>
+    <div class="card form-card">
+      <div class="card-body">
+        <div class="form-section">
+          <h3 class="form-section-title"><i class="fas fa-map-pin"></i> Page Placements</h3>
+          <p class="form-help">
+            Pages this FAQ appears on (canonical <code>/en/</code> paths; localized mirrors derive from them).
+            <strong>Pinned</strong> = server-rendered on the page and included in its FAQPage schema;
+            unpinned = part of the page's "Ask another question" pool.
+          </p>
+
+          <% if (placements.length > 0) { %>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th>Pinned</th>
+                  <th>Order</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% placements.forEach(p => { %>
+                <tr>
+                  <td><code><%= p.page_path %></code></td>
+                  <td><%= p.pinned ? 'Yes' : 'Pool' %></td>
+                  <td><%= p.sort_order %></td>
+                  <td>
+                    <form action="/content/faqs/<%= faq.id %>/placements/<%= p.id %>/delete" method="POST" style="display: inline;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% } else { %>
+          <p class="form-help">No placements yet — this FAQ is not assigned to any page.</p>
+          <% } %>
+
+          <form action="/content/faqs/<%= faq.id %>/placements" method="POST" class="filter-form" style="margin-top: 12px;">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="text" name="page_path" class="form-input filter-input" placeholder="/en/resources/" required>
+            <label class="form-label" style="display: flex; align-items: center; gap: 6px; margin: 0;">
+              <input type="checkbox" name="pinned"> Pinned
+            </label>
+            <input type="number" name="sort_order" class="form-input filter-select" placeholder="Order" value="0">
+            <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-plus"></i> Add / Update</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

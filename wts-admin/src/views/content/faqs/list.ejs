@@ -1,0 +1,114 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">FAQs</h1>
+        <p class="page-subtitle">Questions, answers and page placements for the site FAQ accordions</p>
+      </div>
+      <div class="page-actions">
+        <a href="/content/faq-categories" class="btn btn-secondary"><i class="fas fa-tags"></i> Categories</a>
+        <a href="/content/faqs/new" class="btn btn-primary"><i class="fas fa-plus"></i> New FAQ</a>
+      </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-error"><span><%= error %></span></div>
+    <% } %>
+
+    <div class="card">
+      <div class="card-header">
+        <form action="/content/faqs" method="GET" class="filter-form">
+          <input type="text" name="search" class="form-input filter-input" placeholder="Search questions..." value="<%= pagination.search || '' %>">
+          <select name="category" class="form-input filter-select">
+            <option value="">All Categories</option>
+            <% categories.forEach(cat => { %>
+            <option value="<%= cat.id %>" <%= pagination.category === String(cat.id) ? 'selected' : '' %>><%= cat.name %></option>
+            <% }); %>
+          </select>
+          <select name="status" class="form-input filter-select">
+            <option value="">All Status</option>
+            <option value="draft" <%= pagination.status === 'draft' ? 'selected' : '' %>>Draft</option>
+            <option value="published" <%= pagination.status === 'published' ? 'selected' : '' %>>Published</option>
+            <option value="archived" <%= pagination.status === 'archived' ? 'selected' : '' %>>Archived</option>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm">
+            <i class="fas fa-search"></i> Search
+          </button>
+        </form>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <% if (faqs.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Question</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Placements</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% faqs.forEach(faq => { %>
+              <tr>
+                <td data-label="Question"><strong><%= faq.question %></strong></td>
+                <td data-label="Category"><%= faq.category_name || '-' %></td>
+                <td data-label="Status"><span class="badge badge-<%= faq.status === 'published' ? 'success' : (faq.status === 'draft' ? 'warning' : 'secondary') %>"><%= faq.status %></span></td>
+                <td data-label="Placements"><%= faq.placement_count %></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <a href="/content/faqs/<%= faq.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/content/faqs/<%= faq.id %>/delete" method="POST" style="display: inline;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-question-circle"></i></div>
+          <h3>No FAQs Found</h3>
+          <p>Create your first question and answer set.</p>
+          <a href="/content/faqs/new" class="btn btn-primary"><i class="fas fa-plus"></i> New FAQ</a>
+        </div>
+        <% } %>
+        <% if (pagination.totalPages > 1) { %>
+        <div class="card-footer">
+          <div class="pagination">
+            <% if (pagination.page > 1) { %>
+            <a href="?page=<%= pagination.page - 1 %>&search=<%= pagination.search || '' %>&status=<%= pagination.status || '' %>&category=<%= pagination.category || '' %>" class="pagination-btn">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+            <% } %>
+
+            <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+            <a href="?page=<%= i %>&search=<%= pagination.search || '' %>&status=<%= pagination.status || '' %>&category=<%= pagination.category || '' %>" class="pagination-btn <%= i === pagination.page ? 'active' : '' %>">
+              <%= i %>
+            </a>
+            <% } %>
+
+            <% if (pagination.page < pagination.totalPages) { %>
+            <a href="?page=<%= pagination.page + 1 %>&search=<%= pagination.search || '' %>&status=<%= pagination.status || '' %>&category=<%= pagination.category || '' %>" class="pagination-btn">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+            <% } %>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

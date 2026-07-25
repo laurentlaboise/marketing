@@ -51,6 +51,20 @@ const ENTITY_SOURCES = {
     fields: ['name', 'description', 'slide_in_title', 'slide_in_subtitle', 'slide_in_content'],
     filter: "status = 'active'",
   },
+  faq: {
+    table: 'faqs',
+    label: 'FAQ',
+    titleField: 'question',
+    fields: ['question', 'answer_html'],
+    filter: "status = 'published'",
+  },
+  faq_category: {
+    table: 'faq_categories',
+    label: 'FAQ category',
+    titleField: 'name',
+    fields: ['name', 'description'],
+    filter: "status = 'active'",
+  },
   // Static site pages (see site_pages DDL). `dynamic`: the translatable
   // fields are not fixed columns but the keys of the segments JSON —
   // one field per extracted text block, keyed s_<sha1-prefix> by

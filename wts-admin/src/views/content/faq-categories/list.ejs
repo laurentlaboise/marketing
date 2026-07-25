@@ -1,0 +1,72 @@
+<%- include('../../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">FAQ Categories</h1>
+        <p class="page-subtitle"><a href="/content/faqs"><i class="fas fa-arrow-left"></i> Back to FAQs</a></p>
+      </div>
+      <div class="page-actions">
+        <a href="/content/faq-categories/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Category</a>
+      </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-error"><span><%= error %></span></div>
+    <% } %>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (items.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>FAQs</th>
+                <th>Status</th>
+                <th>Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% items.forEach(item => { %>
+              <tr>
+                <td data-label="Name"><strong><%= item.name %></strong></td>
+                <td data-label="Slug"><code><%= item.slug %></code></td>
+                <td data-label="FAQs"><%= item.faq_count %></td>
+                <td data-label="Status"><span class="badge badge-<%= item.status === 'active' ? 'success' : 'secondary' %>"><%= item.status %></span></td>
+                <td data-label="Order"><%= item.sort_order %></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <a href="/content/faq-categories/<%= item.id %>/edit" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                    <form action="/content/faq-categories/<%= item.id %>/delete" method="POST" style="display: inline;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-tags"></i></div>
+          <h3>No FAQ Categories Found</h3>
+          <p>Group your FAQs by topic.</p>
+          <a href="/content/faq-categories/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Category</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../../partials/footer') %>

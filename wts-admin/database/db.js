@@ -1947,6 +1947,49 @@ const db = {
           ON whatsapp_messages (wa_message_id);
       `);
 
+      // FAQ platform (docs/FAQ_BACKEND_MIGRATION_PLAN.md): categories,
+      // canonical-English Q&As, and per-page placements. pinned = the
+      // server-rendered, JSON-LD-bearing set; unpinned rows form the
+      // "Ask another question" pool. Translations ride the generic
+      // translations table (entity_type 'faq' / 'faq_category'). The slug
+      // is the stable public anchor (#faq-<slug>) — frozen at creation,
+      // never re-derived from the question.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS faq_categories (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          slug VARCHAR(120) UNIQUE NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          sort_order INTEGER DEFAULT 0,
+          status VARCHAR(20) DEFAULT 'active',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS faqs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          category_id UUID REFERENCES faq_categories(id) ON DELETE SET NULL,
+          slug VARCHAR(160) UNIQUE NOT NULL,
+          question TEXT NOT NULL,
+          answer_html TEXT NOT NULL,
+          status VARCHAR(20) DEFAULT 'draft',
+          sort_order INTEGER DEFAULT 0,
+          created_by UUID REFERENCES users(id),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_faqs_status_category ON faqs (status, category_id);
+        CREATE TABLE IF NOT EXISTS faq_placements (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          page_path VARCHAR(300) NOT NULL,
+          faq_id UUID NOT NULL REFERENCES faqs(id) ON DELETE CASCADE,
+          pinned BOOLEAN DEFAULT FALSE,
+          sort_order INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE (page_path, faq_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_faq_placements_page ON faq_placements (page_path);
+      `);
+
       await client.query('COMMIT');
       console.log('Database tables initialized successfully');
 

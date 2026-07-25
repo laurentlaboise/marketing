@@ -51,6 +51,7 @@ const CONTENT_HREFS = {
   'ai-tool': (id) => `/content/ai-tools/${id}/edit`,
   glossary: (id) => `/content/glossary/${id}/edit`,
   product: (id) => `/business/products/${id}/edit`,
+  faq: (id) => `/content/faqs/${id}/edit`,
 };
 
 // Entity-title UNION shared by both role branches: resolves translation
@@ -82,6 +83,11 @@ const TRANSLATION_TITLE_UNION = `
          t.translator_id, t.verifier_id, t.updated_at
     FROM translations t JOIN products p ON t.entity_type = 'product' AND p.id = t.entity_id
    WHERE p.name ILIKE $1
+  UNION ALL
+  SELECT t.id, f.question, t.entity_type, t.target_language, t.status,
+         t.translator_id, t.verifier_id, t.updated_at
+    FROM translations t JOIN faqs f ON t.entity_type = 'faq' AND f.id = t.entity_id
+   WHERE f.question ILIKE $1
 `;
 
 router.get('/search', ensureAuthenticated, searchLimiter, async (req, res) => {
@@ -142,6 +148,8 @@ router.get('/search', ensureAuthenticated, searchLimiter, async (req, res) => {
            SELECT id, term, 'glossary', 'active', updated_at FROM glossary WHERE term ILIKE $1
            UNION ALL
            SELECT id, name, 'product', status, updated_at FROM products WHERE name ILIKE $1
+           UNION ALL
+           SELECT id, question, 'faq', status, updated_at FROM faqs WHERE question ILIKE $1
          ) c ORDER BY updated_at DESC NULLS LAST LIMIT 5`,
         [term]
       ),
