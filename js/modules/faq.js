@@ -19,6 +19,39 @@ function readPool() {
   }
 }
 
+// Answers are sanitized server-side (save + bake), but the client never
+// trusts markup either: parse inertly and copy only allowlisted elements —
+// the same allowlist the admin enforces — with `href` as the sole surviving
+// attribute (site-relative or https only). No innerHTML sink anywhere.
+const ALLOWED_ANSWER_TAGS = new Set(['A', 'P', 'UL', 'OL', 'LI', 'STRONG', 'EM', 'BR']);
+
+function sanitizedAnswerFragment(html) {
+  const doc = new DOMParser().parseFromString(String(html), 'text/html');
+  const fragment = document.createDocumentFragment();
+  const copyChildren = (src, dst) => {
+    src.childNodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        dst.appendChild(document.createTextNode(node.textContent));
+        return;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      if (!ALLOWED_ANSWER_TAGS.has(node.tagName)) {
+        copyChildren(node, dst); // unwrap: keep the text, drop the element
+        return;
+      }
+      const el = document.createElement(node.tagName.toLowerCase());
+      if (node.tagName === 'A') {
+        const href = node.getAttribute('href') || '';
+        if (/^(\/|https:\/\/)/.test(href)) el.setAttribute('href', href);
+      }
+      copyChildren(node, el);
+      dst.appendChild(el);
+    });
+  };
+  copyChildren(doc.body, fragment);
+  return fragment;
+}
+
 export function initFaqSection() {
   const faqList = document.getElementById('faq-list');
   const generateFaqBtn = document.getElementById('generate-faq-btn');
@@ -51,7 +84,7 @@ export function initFaqSection() {
     summary.append(heading, icon);
     const content = document.createElement('div');
     content.className = 'accordion-content';
-    content.innerHTML = item.a; // sanitized at save + bake (tag allowlist)
+    content.appendChild(sanitizedAnswerFragment(item.a));
     details.append(summary, content);
     faqList.appendChild(details);
     revealObserver.observe(details); // animate newly added item
