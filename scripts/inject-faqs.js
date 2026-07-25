@@ -79,6 +79,10 @@ function jsonForScript(value) {
 const escapeHtml = (t) => String(t)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+// Attribute values additionally need quote escaping — text-context escaping
+// alone would let a double quote terminate the attribute.
+const escapeAttr = (t) => escapeHtml(t).replace(/"/g, '&quot;');
+
 // The pool data island carries NO HTML strings: answers are decomposed into
 // a structured node tree ({ t: tag, href?, c: [child|string...] }) that the
 // frontend renders with createElement/textContent only. The browser never
@@ -156,7 +160,7 @@ function treeToHtml(nodes) {
     if (typeof node === 'string') return escapeHtml(node);
     if (!node || !TREE_TAGS.includes(node.t)) return '';
     if (node.t === 'br') return '<br>';
-    const attrs = node.t === 'a' && node.href ? ` href="${escapeHtml(node.href)}"` : '';
+    const attrs = node.t === 'a' && node.href ? ` href="${escapeAttr(node.href)}"` : '';
     return `<${node.t}${attrs}>${treeToHtml(node.c || [])}</${node.t}>`;
   }).join('');
 }
