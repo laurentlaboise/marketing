@@ -1489,4 +1489,385 @@ router.post('/guides/:id/delete', async (req, res) => {
   res.redirect('/content/guides');
 });
 
+// ==================== FAQS ====================
+
+// Answer HTML is editor-authored rich text that later gets baked into the
+// public site, so it is sanitized on every write: only these tags survive,
+// and the only attribute that survives is a safe href on <a> (site-relative
+// or https). striptags removes disallowed tags but keeps attributes, hence
+// the second attribute-scrubbing pass.
+const FAQ_ALLOWED_TAGS = ['a', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'br'];
+const sanitizeAnswerHtml = (html) => {
+  let out = striptags(String(html || ''), FAQ_ALLOWED_TAGS);
+  out = out.replace(/<a\b[^>]*>/gi, (tag) => {
+    const m = /href\s*=\s*("([^"]*)"|'([^']*)')/i.exec(tag);
+    const href = m ? (m[2] !== undefined ? m[2] : m[3]) : '';
+    const safe = /^(\/|https:\/\/)/i.test(href) && !/[<>"'\s]/.test(href);
+    return safe ? `<a href="${href}">` : '<a>';
+  });
+  out = out.replace(/<(p|ul|ol|li|strong|em|br)\b[^>]*(\/)?>/gi, (t, name) => `<${name.toLowerCase()}>`);
+  return out.trim();
+};
+
+// Page paths for placements are stored against the canonical /en/ tree; the
+// localized mirrors are derived from it downstream, never stored.
+const normalizePagePath = (raw) => {
+  let p = String(raw || '').trim();
+  if (!p) return null;
+  if (!p.startsWith('/')) p = `/${p}`;
+  if (!p.endsWith('/')) p = `${p}/`;
+  if (!/^\/en\/[a-z0-9\-/]*$/.test(p) && p !== '/en/') return null;
+  return p;
+};
+
+const renderFaqForm = async (res, faq, error) => {
+  const categories = await db.query(
+    `SELECT id, name FROM faq_categories WHERE status = 'active' ORDER BY sort_order ASC, name ASC`
+  );
+  let placements = { rows: [] };
+  if (faq && faq.id) {
+    placements = await db.query(
+      `SELECT * FROM faq_placements WHERE faq_id = $1 ORDER BY page_path ASC, pinned DESC, sort_order ASC`,
+      [faq.id]
+    );
+  }
+  res.render('content/faqs/form', {
+    title: faq && faq.id ? 'Edit FAQ - WTS Admin' : 'New FAQ - WTS Admin',
+    faq,
+    categories: categories.rows,
+    placements: placements.rows,
+    currentPage: 'faqs',
+    ...(error ? { error } : {})
+  });
+};
+
+router.get('/faqs', async (req, res) => {
+  try {
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = 20;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const status = req.query.status || '';
+    const category = req.query.category || '';
+
+    let query = `SELECT f.*, c.name AS category_name,
+                        (SELECT COUNT(*) FROM faq_placements p WHERE p.faq_id = f.id) AS placement_count
+                 FROM faqs f LEFT JOIN faq_categories c ON c.id = f.category_id`;
+    let countQuery = 'SELECT COUNT(*) FROM faqs f';
+    const params = [];
+    const conditions = [];
+
+    if (search) {
+      conditions.push(`(f.question ILIKE $${params.length + 1} OR f.answer_html ILIKE $${params.length + 1})`);
+      params.push(`%${search}%`);
+    }
+    if (status) {
+      conditions.push(`f.status = $${params.length + 1}`);
+      params.push(status);
+    }
+    if (category) {
+      conditions.push(`f.category_id = $${params.length + 1}`);
+      params.push(category);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+      countQuery += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ` ORDER BY f.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+
+    const [faqs, count, categories] = await Promise.all([
+      db.query(query, [...params, limit, offset]),
+      db.query(countQuery, params),
+      db.query(`SELECT id, name FROM faq_categories WHERE status = 'active' ORDER BY sort_order ASC, name ASC`)
+    ]);
+
+    const totalPages = Math.ceil(count.rows[0].count / limit);
+
+    res.render('content/faqs/list', {
+      title: 'FAQs - WTS Admin',
+      faqs: faqs.rows,
+      categories: categories.rows,
+      currentPage: 'faqs',
+      pagination: { page, totalPages, search, status, category }
+    });
+  } catch (error) {
+    console.error('FAQ list error:', error);
+    res.render('content/faqs/list', {
+      title: 'FAQs - WTS Admin',
+      faqs: [],
+      categories: [],
+      currentPage: 'faqs',
+      pagination: { page: 1, totalPages: 0, search: '', status: '', category: '' },
+      error: 'Failed to load FAQs'
+    });
+  }
+});
+
+router.get('/faqs/new', async (req, res) => {
+  try {
+    await renderFaqForm(res, null);
+  } catch (error) {
+    console.error('New FAQ form error:', error);
+    res.redirect('/content/faqs');
+  }
+});
+
+router.post('/faqs', [
+  body('question').trim().notEmpty().withMessage('Question is required'),
+  body('answer_html').trim().notEmpty().withMessage('Answer is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return renderFaqForm(res, req.body, errors.array()[0].msg);
+  }
+
+  try {
+    const { question, answer_html, category_id, status, sort_order } = req.body;
+    const answer = sanitizeAnswerHtml(answer_html);
+    if (!answer) {
+      return renderFaqForm(res, req.body, 'Answer is empty after sanitization');
+    }
+
+    // Freeze the public anchor at creation (ai-tools slug convention):
+    // renaming the question later never moves the #faq-<slug> anchor.
+    // Retry on unique-violation: a concurrent create can land between the
+    // dedup check and the insert.
+    const slugBase = createSlug(question).slice(0, 150) || 'faq';
+    for (let attempt = 1; ; attempt++) {
+      let slug = slugBase;
+      for (let n = 2; (await db.query('SELECT 1 FROM faqs WHERE slug = $1 LIMIT 1', [slug])).rows.length; n++) {
+        slug = `${slugBase}-${n}`;
+      }
+      try {
+        await db.query(
+          `INSERT INTO faqs (slug, question, answer_html, category_id, status, sort_order, created_by)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [slug, question, answer, category_id || null, status || 'draft',
+           Number.parseInt(sort_order, 10) || 0, req.user.id]
+        );
+        break;
+      } catch (e) {
+        if (e.code === '23505' && attempt < 3) continue;
+        throw e;
+      }
+    }
+
+    req.session.successMessage = 'FAQ created successfully';
+    res.redirect('/content/faqs');
+  } catch (error) {
+    console.error('Create FAQ error:', error);
+    renderFaqForm(res, req.body, 'Failed to create FAQ');
+  }
+});
+
+router.get('/faqs/:id/edit', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM faqs WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.redirect('/content/faqs');
+    }
+    await renderFaqForm(res, result.rows[0]);
+  } catch (error) {
+    console.error('Edit FAQ form error:', error);
+    res.redirect('/content/faqs');
+  }
+});
+
+router.post('/faqs/:id', async (req, res) => {
+  try {
+    const { question, answer_html, category_id, status, sort_order } = req.body;
+    const answer = sanitizeAnswerHtml(answer_html);
+    if (!String(question || '').trim() || !answer) {
+      req.session.errorMessage = 'Question and answer are required';
+      return res.redirect(`/content/faqs/${req.params.id}/edit`);
+    }
+    await db.query(
+      `UPDATE faqs SET question = $1, answer_html = $2, category_id = $3, status = $4,
+       sort_order = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6`,
+      [question, answer, category_id || null, status || 'draft',
+       Number.parseInt(sort_order, 10) || 0, req.params.id]
+    );
+    req.session.successMessage = 'FAQ updated successfully';
+    res.redirect('/content/faqs');
+  } catch (error) {
+    console.error('Update FAQ error:', error);
+    req.session.errorMessage = 'Failed to update FAQ';
+    res.redirect(`/content/faqs/${req.params.id}/edit`);
+  }
+});
+
+router.post('/faqs/:id/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM faqs WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'FAQ deleted successfully';
+  } catch (error) {
+    console.error('Delete FAQ error:', error);
+    req.session.errorMessage = 'Failed to delete FAQ';
+  }
+  res.redirect('/content/faqs');
+});
+
+router.post('/faqs/:id/placements', async (req, res) => {
+  try {
+    const pagePath = normalizePagePath(req.body.page_path);
+    if (!pagePath) {
+      req.session.errorMessage = 'Page path must be a canonical /en/ path (e.g. /en/ or /en/resources/)';
+      return res.redirect(`/content/faqs/${req.params.id}/edit`);
+    }
+    await db.query(
+      `INSERT INTO faq_placements (page_path, faq_id, pinned, sort_order)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (page_path, faq_id)
+       DO UPDATE SET pinned = EXCLUDED.pinned, sort_order = EXCLUDED.sort_order`,
+      [pagePath, req.params.id, req.body.pinned === 'on' || req.body.pinned === 'true',
+       Number.parseInt(req.body.sort_order, 10) || 0]
+    );
+    req.session.successMessage = 'Placement saved';
+  } catch (error) {
+    console.error('Add FAQ placement error:', error);
+    req.session.errorMessage = 'Failed to save placement';
+  }
+  res.redirect(`/content/faqs/${req.params.id}/edit`);
+});
+
+router.post('/faqs/:id/placements/:placementId/delete', async (req, res) => {
+  try {
+    await db.query('DELETE FROM faq_placements WHERE id = $1 AND faq_id = $2',
+      [req.params.placementId, req.params.id]);
+    req.session.successMessage = 'Placement removed';
+  } catch (error) {
+    console.error('Delete FAQ placement error:', error);
+    req.session.errorMessage = 'Failed to remove placement';
+  }
+  res.redirect(`/content/faqs/${req.params.id}/edit`);
+});
+
+// ==================== FAQ CATEGORIES ====================
+
+router.get('/faq-categories', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT c.*, (SELECT COUNT(*) FROM faqs f WHERE f.category_id = c.id) AS faq_count
+       FROM faq_categories c ORDER BY c.sort_order ASC, c.name ASC`
+    );
+    res.render('content/faq-categories/list', {
+      title: 'FAQ Categories - WTS Admin',
+      items: result.rows,
+      currentPage: 'faqs'
+    });
+  } catch (error) {
+    console.error('FAQ categories list error:', error);
+    res.render('content/faq-categories/list', {
+      title: 'FAQ Categories - WTS Admin',
+      items: [],
+      currentPage: 'faqs',
+      error: 'Failed to load FAQ categories'
+    });
+  }
+});
+
+router.get('/faq-categories/new', (req, res) => {
+  res.render('content/faq-categories/form', {
+    title: 'New FAQ Category - WTS Admin',
+    item: null,
+    currentPage: 'faqs'
+  });
+});
+
+router.post('/faq-categories', [
+  body('name').trim().notEmpty().withMessage('Name is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.render('content/faq-categories/form', {
+      title: 'New FAQ Category - WTS Admin',
+      item: req.body,
+      currentPage: 'faqs',
+      error: errors.array()[0].msg
+    });
+  }
+  try {
+    const { name, description, sort_order, status } = req.body;
+    const slugBase = createSlug(name).slice(0, 110) || 'category';
+    for (let attempt = 1; ; attempt++) {
+      let slug = slugBase;
+      for (let n = 2; (await db.query('SELECT 1 FROM faq_categories WHERE slug = $1 LIMIT 1', [slug])).rows.length; n++) {
+        slug = `${slugBase}-${n}`;
+      }
+      try {
+        await db.query(
+          `INSERT INTO faq_categories (slug, name, description, sort_order, status)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [slug, name, description || null, Number.parseInt(sort_order, 10) || 0, status || 'active']
+        );
+        break;
+      } catch (e) {
+        if (e.code === '23505' && attempt < 3) continue;
+        throw e;
+      }
+    }
+    req.session.successMessage = 'FAQ category created successfully';
+    res.redirect('/content/faq-categories');
+  } catch (error) {
+    console.error('Create FAQ category error:', error);
+    res.render('content/faq-categories/form', {
+      title: 'New FAQ Category - WTS Admin',
+      item: req.body,
+      currentPage: 'faqs',
+      error: 'Failed to create FAQ category'
+    });
+  }
+});
+
+router.get('/faq-categories/:id/edit', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM faq_categories WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.redirect('/content/faq-categories');
+    }
+    res.render('content/faq-categories/form', {
+      title: 'Edit FAQ Category - WTS Admin',
+      item: result.rows[0],
+      currentPage: 'faqs'
+    });
+  } catch (error) {
+    res.redirect('/content/faq-categories');
+  }
+});
+
+router.post('/faq-categories/:id', async (req, res) => {
+  try {
+    const { name, description, sort_order, status } = req.body;
+    if (!String(name || '').trim()) {
+      req.session.errorMessage = 'Name is required';
+      return res.redirect(`/content/faq-categories/${req.params.id}/edit`);
+    }
+    await db.query(
+      `UPDATE faq_categories SET name = $1, description = $2, sort_order = $3, status = $4,
+       updated_at = CURRENT_TIMESTAMP WHERE id = $5`,
+      [name, description || null, Number.parseInt(sort_order, 10) || 0, status || 'active', req.params.id]
+    );
+    req.session.successMessage = 'FAQ category updated successfully';
+    res.redirect('/content/faq-categories');
+  } catch (error) {
+    console.error('Update FAQ category error:', error);
+    req.session.errorMessage = 'Failed to update FAQ category';
+    res.redirect(`/content/faq-categories/${req.params.id}/edit`);
+  }
+});
+
+router.post('/faq-categories/:id/delete', async (req, res) => {
+  try {
+    // faqs.category_id is ON DELETE SET NULL — deleting a category keeps its FAQs.
+    await db.query('DELETE FROM faq_categories WHERE id = $1', [req.params.id]);
+    req.session.successMessage = 'FAQ category deleted (its FAQs are kept, uncategorized)';
+  } catch (error) {
+    console.error('Delete FAQ category error:', error);
+    req.session.errorMessage = 'Failed to delete FAQ category';
+  }
+  res.redirect('/content/faq-categories');
+});
+
 module.exports = router;

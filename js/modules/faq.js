@@ -111,7 +111,9 @@ const allFaqs = [
 export function initFaqSection() {
   const faqList = document.getElementById('faq-list');
   const generateFaqBtn = document.getElementById('generate-faq-btn');
-  if (!faqList || !generateFaqBtn) return;
+  // The list is required; the "Ask another" button is optional (some pages,
+  // e.g. resources, render the accordion without it).
+  if (!faqList) return;
 
   let usedFaqIndexes = new Set();
 
@@ -168,5 +170,5 @@ export function initFaqSection() {
 
   // init
   generateInitialFaqs();
-  generateFaqBtn.addEventListener('click', addNewFaq);
+  if (generateFaqBtn) generateFaqBtn.addEventListener('click', addNewFaq);
 }

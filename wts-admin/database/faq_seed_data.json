@@ -1,0 +1,959 @@
+{
+  "generated_from": "js/modules/faq.js + en/company/contact-us static items",
+  "categories": [
+    {
+      "slug": "working-with-us",
+      "name": "Working With Us",
+      "description": "Onboarding, process, reporting, pricing and guarantees."
+    },
+    {
+      "slug": "seo",
+      "name": "SEO",
+      "description": "Search engine optimization: technical, on-page, link building."
+    },
+    {
+      "slug": "local-seo",
+      "name": "Local SEO & Google Business Profile",
+      "description": "Google Maps, citations, near-me visibility in Laos and beyond."
+    },
+    {
+      "slug": "content-marketing",
+      "name": "Content Marketing",
+      "description": "Content strategy, creation, copywriting and RSS."
+    },
+    {
+      "slug": "social-media",
+      "name": "Social Media",
+      "description": "Organic social management and paid social advertising."
+    },
+    {
+      "slug": "web-development",
+      "name": "Web Development & Apps",
+      "description": "Websites, e-commerce, apps, performance and security."
+    },
+    {
+      "slug": "ai-automation",
+      "name": "AI & Automation",
+      "description": "AI-assisted marketing and business automation."
+    },
+    {
+      "slug": "markets",
+      "name": "Asian Markets",
+      "description": "Country-specific strategy across Asia."
+    },
+    {
+      "slug": "industries",
+      "name": "Industry Expertise",
+      "description": "SaaS, hotels, real estate, fintech, healthcare and more."
+    },
+    {
+      "slug": "digital-marketing",
+      "name": "Digital Marketing Strategy",
+      "description": "Strategy, packages, channels and measurement."
+    }
+  ],
+  "faqs": [
+    {
+      "slug": "what-makes-you-the-best-seo-expert-in-asia-for-a-small",
+      "category": "seo",
+      "question": "What makes you the best SEO expert in Asia for a small business?",
+      "answer_html": "<p>Our focus on affordable SEO services with transparent digital marketing packages and a proven track record of delivering ROI makes us the best choice for SMEs.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "how-does-your-ai-marketing-agency-improve-vientiane-seo",
+      "category": "local-seo",
+      "question": "How does your AI Marketing Agency improve Vientiane SEO?",
+      "answer_html": "<p>We use AI to analyze local search trends in Vientiane, optimize your Google My Business profile, and create content that attracts local customers.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "what-is-included-in-your-seo-services-in-asia-package",
+      "category": "seo",
+      "question": "What is included in your SEO services in Asia package?",
+      "answer_html": "<p>Our SEO services include a full technical SEO audit, on-page optimization, content creation, and high-quality link building services Asia.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "as-a-top-digital-marketing-agency-in-asia-how-do-you-handle",
+      "category": "digital-marketing",
+      "question": "As a top digital marketing agency in Asia, how do you handle clients in different time zones?",
+      "answer_html": "<p>We use modern project management tools and flexible communication schedules to seamlessly serve clients across Asia, from the UAE to South Korea.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "why-should-i-choose-your-seo-company-in-asia-over-a-cheaper",
+      "category": "seo",
+      "question": "Why should I choose your SEO company in Asia over a cheaper freelancer?",
+      "answer_html": "<p>Our SEO company provides a full team of experts, advanced tools, and accountability, which a freelance SEO expert in Asia often cannot match.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "how-long-does-it-take-for-seo-to-work-in-a-competitive-like",
+      "category": "markets",
+      "question": "How long does it take for SEO to work in a competitive market like Singapore?",
+      "answer_html": "<p>In competitive markets, initial SEO results can be seen in 4-6 months, with significant gains typically achieved after a year of consistent effort.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "what-is-the-best-b2b-digital-marketing-strategy-for-the",
+      "category": "digital-marketing",
+      "question": "What is the best B2B digital marketing strategy for the Asian market?",
+      "answer_html": "<p>The best B2B strategy combines targeted LinkedIn campaigns, expert content marketing, and specialized B2B SEO services in Asia to reach key decision-makers.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "do-you-offer-specific-digital-marketing-services-for-market",
+      "category": "markets",
+      "question": "Do you offer specific digital marketing services for Malaysia's market?",
+      "answer_html": "<p>Yes, we tailor our digital marketing services for Malaysia by focusing on local consumer behavior, popular platforms, and multilingual SEO.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "as-a-leading-seo-consultant-in-asia-whats-your-top-tip-for",
+      "category": "seo",
+      "question": "As a leading SEO consultant in Asia, what's your top tip for 2025?",
+      "answer_html": "<p>My top tip is to focus on creating genuinely helpful content that answers user questions, as Google's AI-driven algorithms are prioritizing it more than ever.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "how-do-you-perform-e-commerce-seo-in-asia-differently",
+      "category": "industries",
+      "question": "How do you perform e-commerce SEO in Asia differently?",
+      "answer_html": "<p>Our e-commerce SEO in Asia involves localizing product pages, optimizing for regional payment keywords, and creating culturally relevant marketing campaigns.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "what-exactly-is-a-laos-digital-roadmap-consulting-service",
+      "category": "markets",
+      "question": "What exactly is a 'Laos digital roadmap consulting' service?",
+      "answer_html": "<p>It's a strategic service where we assess your business and create a step-by-step plan for your digital transformation within the Lao market.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "can-a-hotel-seo-expert-in-asia-really-increase-my-direct",
+      "category": "industries",
+      "question": "Can a hotel SEO expert in Asia really increase my direct bookings?",
+      "answer_html": "<p>Absolutely. A hotel SEO expert improves your website's visibility to travelers, reducing your reliance on commission-based booking sites.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "what-should-i-look-for-when-hiring-an-asian-seo-agency",
+      "category": "seo",
+      "question": "What should I look for when hiring an Asian SEO agency?",
+      "answer_html": "<p>Look for case studies in your industry, transparency in reporting, and a clear understanding of the diverse markets across Asia.</p>",
+      "status": "published",
+      "sort_order": 50
+    },
+    {
+      "slug": "how-much-does-an-seo-expert-cost-in-asia",
+      "category": "working-with-us",
+      "question": "How much does an SEO expert cost in Asia?",
+      "answer_html": "<p>The cost varies, but we offer scalable digital marketing packages designed to fit different budgets, from startups to large enterprises.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "why-is-your-agency-considered-a-top-seo-company-in-india",
+      "category": "markets",
+      "question": "Why is your agency considered a top SEO company in India?",
+      "answer_html": "<p>Our success comes from helping Indian companies expand globally with robust international SEO services and world-class content marketing.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "what-is-an-rss-feed-and-what-are-its-seo-benefits-today",
+      "category": "content-marketing",
+      "question": "What is an RSS feed and what are its SEO benefits today?",
+      "answer_html": "<p>An RSS feed helps Google discover your new content instantly. The key RSS feed SEO benefits are faster indexing and easy content syndication.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "how-does-your-technical-seo-consultant-in-asia-improve-speed",
+      "category": "web-development",
+      "question": "How does your technical SEO consultant in Asia improve website speed?",
+      "answer_html": "<p>Our technical SEO consultant optimizes images, leverages browser caching, minifies code, and improves server response times to boost Core Web Vitals.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "do-you-offer-ppc-management-in-asia",
+      "category": "digital-marketing",
+      "question": "Do you offer PPC management in Asia?",
+      "answer_html": "<p>Yes, we provide expert PPC management in Asia, creating targeted ad campaigns on Google and social media to deliver immediate traffic and leads.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "what-is-involved-in-your-content-creation-service-for-laos",
+      "category": "content-marketing",
+      "question": "What is involved in your content creation service for Laos?",
+      "answer_html": "<p>Our Content Creation Laos service includes writing SEO-optimized blog posts, creating social media content, and producing videos in both Lao and English.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "as-a-saas-seo-agency-in-asia-what-metrics-do-you-focus-on",
+      "category": "industries",
+      "question": "As a SaaS SEO agency in Asia, what metrics do you focus on?",
+      "answer_html": "<p>We focus on metrics that drive revenue for SaaS businesses: increasing trial sign-ups, improving conversion rates, and reducing customer acquisition cost.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "can-you-provide-real-estate-digital-marketing-in-thailand",
+      "category": "markets",
+      "question": "Can you provide real estate digital marketing in Thailand?",
+      "answer_html": "<p>Yes, we offer specialized real estate digital marketing in Thailand, using local SEO and targeted ads to connect developers with property buyers.</p>",
+      "status": "published",
+      "sort_order": 50
+    },
+    {
+      "slug": "what-makes-a-fintech-marketing-company-in-asia-successful",
+      "category": "industries",
+      "question": "What makes a fintech marketing company in Asia successful?",
+      "answer_html": "<p>Success in fintech marketing requires building trust. We do this through expert content, secure website practices, and transparent communication.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "how-do-you-handle-healthcare-digital-marketing-in-asias",
+      "category": "industries",
+      "question": "How do you handle healthcare digital marketing in Asia's strict regulatory environment?",
+      "answer_html": "<p>We focus on patient education and ethical marketing, creating medically accurate, trustworthy content that complies with all local regulations.</p>",
+      "status": "published",
+      "sort_order": 50
+    },
+    {
+      "slug": "why-is-your-agency-on-the-list-of-top-digital-marketing-in",
+      "category": "digital-marketing",
+      "question": "Why is your agency on the list of top digital marketing agencies in Asia?",
+      "answer_html": "<p>We are on the list because of our innovative use of AI, consistent client results, and our expertise across Southeast Asia's diverse markets.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "can-you-help-me-hire-a-digital-marketer-in-asia",
+      "category": "working-with-us",
+      "question": "Can you help me hire a digital marketer in Asia?",
+      "answer_html": "<p>We provide dedicated resources, so you can hire a digital marketer from our expert team to work exclusively on your projects.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "what-makes-you-a-five-star-rated-seo-services-provider-in",
+      "category": "seo",
+      "question": "What makes you a five-star rated SEO services provider in Asia?",
+      "answer_html": "<p>Our five-star rating comes from our commitment to client success, transparent reporting, and delivering measurable improvements in rankings and revenue.</p>",
+      "status": "published",
+      "sort_order": 60
+    },
+    {
+      "slug": "how-do-you-approach-social-media-management-for-a-brand-in",
+      "category": "social-media",
+      "question": "How do you approach social media management for a brand in Thailand?",
+      "answer_html": "<p>Our social media management in Thailand focuses on creating highly engaging, culturally relevant content for platforms like LINE, Facebook, and Instagram.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "is-link-building-still-important-for-seo-in-2025",
+      "category": "seo",
+      "question": "Is link building still important for SEO in 2025?",
+      "answer_html": "<p>Yes, but quality over quantity is key. Our link building services in Asia focus on earning high-authority, relevant backlinks that build trust.</p>",
+      "status": "published",
+      "sort_order": 70
+    },
+    {
+      "slug": "what-is-b2b-technology-marketing",
+      "category": "industries",
+      "question": "What is B2B technology marketing?",
+      "answer_html": "<p>B2B technology marketing is a specialized field focused on selling complex tech products to other businesses, requiring long-term, content-driven strategies.</p>",
+      "status": "published",
+      "sort_order": 60
+    },
+    {
+      "slug": "can-you-create-a-brand-identity-with-your-laos-branding",
+      "category": "markets",
+      "question": "Can you create a brand identity with your Laos branding consulting service?",
+      "answer_html": "<p>Absolutely. Our Laos branding consulting service helps you define your brand's mission, voice, and visual identity to stand out in the local market.</p>",
+      "status": "published",
+      "sort_order": 60
+    },
+    {
+      "slug": "what-kind-of-results-can-i-expect-from-your-southeast-asia",
+      "category": "markets",
+      "question": "What kind of results can I expect from your Southeast Asia digital marketing consulting?",
+      "answer_html": "<p>You can expect a clear market-entry strategy, a deep understanding of your competitors, and a customized plan to achieve your business goals in the region.</p>",
+      "status": "published",
+      "sort_order": 70
+    },
+    {
+      "slug": "does-your-seo-consultant-in-hong-kong-have-experience-with",
+      "category": "markets",
+      "question": "Does your SEO consultant in Hong Kong have experience with financial services?",
+      "answer_html": "<p>Yes, our SEO consultant in Hong Kong has extensive experience helping financial services firms improve their online visibility and attract high-net-worth clients.</p>",
+      "status": "published",
+      "sort_order": 80
+    },
+    {
+      "slug": "how-does-your-digital-marketing-agency-in-the-philippines",
+      "category": "markets",
+      "question": "How does your digital marketing agency in the Philippines help BPO companies?",
+      "answer_html": "<p>We help BPO companies by building their online reputation, generating inbound leads through SEO, and positioning them as industry leaders.</p>",
+      "status": "published",
+      "sort_order": 90
+    },
+    {
+      "slug": "what-are-the-first-steps-for-website-seo-in-asia",
+      "category": "web-development",
+      "question": "What are the first steps for website SEO in Asia?",
+      "answer_html": "<p>The first steps are a thorough technical audit, comprehensive keyword research for your target markets, and analyzing your competitors.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "how-is-google-seo-marketing-in-asia-different-from-other",
+      "category": "seo",
+      "question": "How is Google SEO marketing in Asia different from other regions?",
+      "answer_html": "<p>Google SEO marketing in Asia must account for multiple languages, diverse cultural nuances, and different search behaviors in each country.</p>",
+      "status": "published",
+      "sort_order": 80
+    },
+    {
+      "slug": "what-is-asiamoney-content-marketing-services",
+      "category": "content-marketing",
+      "question": "What is 'Asiamoney content marketing services'?",
+      "answer_html": "<p>While 'Asiamoney' is a specific publication, we provide similar financial content marketing services: creating expert articles and reports for the finance industry.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "what-is-the-role-of-rss-in-digital-marketing",
+      "category": "content-marketing",
+      "question": "What is the role of RSS in digital marketing?",
+      "answer_html": "<p>Beyond SEO, RSS in digital marketing is used to power email newsletters, syndicate content across platforms, and keep an audience updated automatically.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "how-do-i-choose-the-right-digital-marketing-package-in-asia",
+      "category": "working-with-us",
+      "question": "How do I choose the right digital marketing package in Asia?",
+      "answer_html": "<p>Choose a package based on your business goals. We offer a free consultation to help you select the right services for maximum impact.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "why-is-your-agency-considered-an-interactive-marketing",
+      "category": "digital-marketing",
+      "question": "Why is your agency considered an 'interactive marketing company'?",
+      "answer_html": "<p>We are an interactive marketing company because we create engaging experiences like quizzes, polls, and calculators that capture user attention.</p>",
+      "status": "published",
+      "sort_order": 50
+    },
+    {
+      "slug": "what-does-your-laos-digital-commerce-consulting-cover",
+      "category": "markets",
+      "question": "What does your 'Laos digital commerce consulting' cover?",
+      "answer_html": "<p>This service covers everything needed to sell online in Laos, from choosing an e-commerce platform to setting up digital payments and marketing your store.</p>",
+      "status": "published",
+      "sort_order": 100
+    },
+    {
+      "slug": "how-do-you-handle-seo-management-in-asia-on-an-ongoing-basis",
+      "category": "seo",
+      "question": "How do you handle SEO management in Asia on an ongoing basis?",
+      "answer_html": "<p>Ongoing SEO management involves continuous monitoring of rankings, monthly performance reports, and adapting our strategy to algorithm changes and market trends.</p>",
+      "status": "published",
+      "sort_order": 90
+    },
+    {
+      "slug": "can-you-provide-seo-writing-in-multiple-asian-languages",
+      "category": "seo",
+      "question": "Can you provide SEO writing in multiple Asian languages?",
+      "answer_html": "<p>Yes, our SEO copywriting Asia service includes a team of native writers who can create optimized content in Thai, Vietnamese, Bahasa, and other languages.</p>",
+      "status": "published",
+      "sort_order": 100
+    },
+    {
+      "slug": "how-does-business-automation-help-my-company-in-laos",
+      "category": "ai-automation",
+      "question": "How does business automation help my company in Laos?",
+      "answer_html": "<p>Business automation handles repetitive marketing and sales tasks, freeing up your team to focus on strategy and customer relationships, thus boosting efficiency.</p>",
+      "status": "published",
+      "sort_order": 10
+    },
+    {
+      "slug": "what-kind-of-web-development-do-you-offer-in-laos",
+      "category": "web-development",
+      "question": "What kind of web development do you offer in Laos?",
+      "answer_html": "<p>Our web development in Laos ranges from creating fast, mobile-friendly business websites to building complex e-commerce platforms and custom web applications.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "are-you-the-digital-marketing-king-in-asia",
+      "category": "digital-marketing",
+      "question": "Are you the 'digital marketing king in asia'?",
+      "answer_html": "<p>We strive to be the 'digital marketing king in Asia' by delivering royal results and treating every client's business like our own kingdom.</p>",
+      "status": "published",
+      "sort_order": 60
+    },
+    {
+      "slug": "whats-the-difference-between-seo-in-the-uae-versus-southeast",
+      "category": "markets",
+      "question": "What's the difference between SEO in the UAE versus Southeast Asia?",
+      "answer_html": "<p>SEO in the UAE often focuses on luxury goods and services with English and Arabic, while Southeast Asia requires a hyperlocal, multilingual approach.</p>",
+      "status": "published",
+      "sort_order": 110
+    },
+    {
+      "slug": "how-do-you-find-the-right-keywords-for-a-top-seo-company-in",
+      "category": "markets",
+      "question": "How do you find the right keywords for a top SEO company in Vietnam?",
+      "answer_html": "<p>We use advanced tools and local insights to find what Vietnamese consumers are searching for, focusing on user intent rather than just search volume.</p>",
+      "status": "published",
+      "sort_order": 120
+    },
+    {
+      "slug": "what-is-the-most-common-mistake-in-seo-for-indonesia",
+      "category": "markets",
+      "question": "What is the most common mistake in SEO for Indonesia?",
+      "answer_html": "<p>The most common mistake is not localizing content properly for Bahasa Indonesia and underestimating the importance of mobile-first optimization.</p>",
+      "status": "published",
+      "sort_order": 130
+    },
+    {
+      "slug": "do-i-need-an-seo-company-in-south-korea-to-rank-on-naver",
+      "category": "markets",
+      "question": "Do I need an SEO company in South Korea to rank on Naver?",
+      "answer_html": "<p>Yes, ranking on Naver requires a different set of skills and strategies than Google, making a specialized SEO company in South Korea essential.</p>",
+      "status": "published",
+      "sort_order": 140
+    },
+    {
+      "slug": "how-can-i-improve-my-websites-domain-authority",
+      "category": "web-development",
+      "question": "How can I improve my website's Domain Authority?",
+      "answer_html": "<p>Improve it by earning high-quality backlinks from reputable sites in your industry, which is a core part of our link building services.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "what-are-core-web-vitals-and-why-are-they-important",
+      "category": "web-development",
+      "question": "What are Core Web Vitals and why are they important?",
+      "answer_html": "<p>Core Web Vitals are Google's metrics for user experience (speed, interactivity, stability). They are a critical ranking factor for SEO today.</p>",
+      "status": "published",
+      "sort_order": 50
+    },
+    {
+      "slug": "can-ai-write-all-my-marketing-content",
+      "category": "ai-automation",
+      "question": "Can AI write all my marketing content?",
+      "answer_html": "<p>AI is a powerful assistant for generating ideas and drafts, but our content marketing agency always has human experts edit and refine it for quality and brand voice.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "how-do-you-ensure-my-website-is-secure",
+      "category": "web-development",
+      "question": "How do you ensure my website is secure?",
+      "answer_html": "<p>Our web development process includes implementing HTTPS, using secure plugins, and conducting regular security audits to protect your site and user data.</p>",
+      "status": "published",
+      "sort_order": 60
+    },
+    {
+      "slug": "whats-the-roi-of-content-marketing",
+      "category": "content-marketing",
+      "question": "What's the ROI of content marketing?",
+      "answer_html": "<p>Content marketing delivers long-term ROI by building organic traffic, generating leads, and establishing your brand as an authority, making it a sustainable growth strategy.</p>",
+      "status": "published",
+      "sort_order": 50
+    },
+    {
+      "slug": "do-you-offer-social-media-advertising-services",
+      "category": "social-media",
+      "question": "Do you offer social media advertising services?",
+      "answer_html": "<p>Yes, we create and manage targeted ad campaigns on Facebook, Instagram, LinkedIn, and TikTok to reach your ideal customers and drive conversions.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "how-can-you-help-my-business-rank-higher-on-google-maps",
+      "category": "local-seo",
+      "question": "How can you help my business rank higher on Google Maps?",
+      "answer_html": "<p>We fully optimize your Google My Business profile, build local citations, and generate positive reviews to improve your ranking on Google Maps.</p>",
+      "status": "published",
+      "sort_order": 20
+    },
+    {
+      "slug": "what-industries-do-you-have-the-most-experience-with",
+      "category": "digital-marketing",
+      "question": "What industries do you have the most experience with?",
+      "answer_html": "<p>We have deep experience as a SaaS SEO agency, hotel SEO expert, and in real estate, fintech, and B2B technology marketing across Asia.</p>",
+      "status": "published",
+      "sort_order": 70
+    },
+    {
+      "slug": "can-you-redesign-my-existing-website-for-better-performance",
+      "category": "web-development",
+      "question": "Can you redesign my existing website for better performance?",
+      "answer_html": "<p>Yes, our web development team can redesign your website to be faster, mobile-friendly, and optimized for conversions and modern SEO standards.</p>",
+      "status": "published",
+      "sort_order": 70
+    },
+    {
+      "slug": "do-you-offer-a-free-seo-audit",
+      "category": "working-with-us",
+      "question": "Do you offer a free SEO audit?",
+      "answer_html": "<p>Yes, we offer a free, no-obligation SEO audit to identify the key opportunities for improving your website's performance.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "what-is-e-e-a-t-and-why-is-it-important-for-seo",
+      "category": "seo",
+      "question": "What is 'E-E-A-T' and why is it important for SEO?",
+      "answer_html": "<p>E-E-A-T stands for Experience, Expertise, Authoritativeness, and Trustworthiness. It's a critical concept from Google for ranking high-quality, reliable content.</p>",
+      "status": "published",
+      "sort_order": 110
+    },
+    {
+      "slug": "how-do-you-build-a-digital-marketing-strategy-from-scratch",
+      "category": "digital-marketing",
+      "question": "How do you build a digital marketing strategy from scratch?",
+      "answer_html": "<p>We start with deep research into your business, audience, and competitors, then set clear goals and select the best channels to achieve them.</p>",
+      "status": "published",
+      "sort_order": 80
+    },
+    {
+      "slug": "can-you-manage-my-entire-digital-presence",
+      "category": "digital-marketing",
+      "question": "Can you manage my entire digital presence?",
+      "answer_html": "<p>Yes, we offer comprehensive SEO management in Asia, social media, PPC, and content services to manage your entire digital footprint.</p>",
+      "status": "published",
+      "sort_order": 90
+    },
+    {
+      "slug": "whats-the-benefit-of-hiring-an-agency-over-an-in-house-team",
+      "category": "working-with-us",
+      "question": "What's the benefit of hiring an agency over an in-house team?",
+      "answer_html": "<p>An agency gives you immediate access to a diverse team of specialists and expensive marketing tools for a fraction of the cost of building an in-house team.</p>",
+      "status": "published",
+      "sort_order": 50
+    },
+    {
+      "slug": "how-do-you-stay-updated-with-googles-algorithm-changes",
+      "category": "digital-marketing",
+      "question": "How do you stay updated with Google's algorithm changes?",
+      "answer_html": "<p>Our team is constantly researching, testing, and participating in industry forums to stay ahead of Google's algorithm updates.</p>",
+      "status": "published",
+      "sort_order": 100
+    },
+    {
+      "slug": "do-you-provide-graphic-design-for-social-media",
+      "category": "social-media",
+      "question": "Do you provide graphic design for social media?",
+      "answer_html": "<p>Yes, our social media management services include professional graphic design to create visually appealing and on-brand posts.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "can-you-develop-a-mobile-app-for-my-business",
+      "category": "web-development",
+      "question": "Can you develop a mobile app for my business?",
+      "answer_html": "<p>Yes, our app development team can design and build custom mobile apps for both iOS and Android to engage your customers.</p>",
+      "status": "published",
+      "sort_order": 80
+    },
+    {
+      "slug": "how-do-you-track-conversions-on-a-website",
+      "category": "web-development",
+      "question": "How do you track conversions on a website?",
+      "answer_html": "<p>We use Google Analytics and Google Tag Manager to set up conversion tracking for key actions like form submissions, sales, and phone calls.</p>",
+      "status": "published",
+      "sort_order": 90
+    },
+    {
+      "slug": "what-is-a-local-citation-in-seo",
+      "category": "local-seo",
+      "question": "What is a 'local citation' in SEO?",
+      "answer_html": "<p>A local citation is any online mention of your business's name, address, and phone number. Consistent citations help improve local search ranking.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "do-you-guarantee-1-rankings-on-google",
+      "category": "working-with-us",
+      "question": "Do you guarantee #1 rankings on Google?",
+      "answer_html": "<p>No reputable SEO expert can guarantee a #1 ranking. We do guarantee a transparent, data-driven strategy designed to achieve the best possible results.</p>",
+      "status": "published",
+      "sort_order": 60
+    },
+    {
+      "slug": "how-do-you-conduct-keyword-research",
+      "category": "seo",
+      "question": "How do you conduct keyword research?",
+      "answer_html": "<p>We use advanced tools like Ahrefs and SEMrush, combined with competitor analysis and an understanding of user intent, to find the most valuable keywords.</p>",
+      "status": "published",
+      "sort_order": 120
+    },
+    {
+      "slug": "whats-the-difference-between-on-page-and-off-page-seo",
+      "category": "seo",
+      "question": "What's the difference between on-page and off-page SEO?",
+      "answer_html": "<p>On-page SEO involves optimizing elements on your website (e.g., content, titles). Off-page SEO involves actions taken elsewhere (e.g., link building).</p>",
+      "status": "published",
+      "sort_order": 130
+    },
+    {
+      "slug": "can-you-help-me-recover-from-a-google-penalty",
+      "category": "seo",
+      "question": "Can you help me recover from a Google penalty?",
+      "answer_html": "<p>Yes, our technical SEO consultants can diagnose the cause of a Google penalty and create a recovery plan to restore your rankings.</p>",
+      "status": "published",
+      "sort_order": 140
+    },
+    {
+      "slug": "what-payment-methods-do-you-accept",
+      "category": "working-with-us",
+      "question": "What payment methods do you accept?",
+      "answer_html": "<p>We accept bank transfers and major credit cards. For larger projects, we can arrange flexible payment schedules.</p>",
+      "status": "published",
+      "sort_order": 70
+    },
+    {
+      "slug": "do-you-work-with-startups",
+      "category": "working-with-us",
+      "question": "Do you work with startups?",
+      "answer_html": "<p>Yes, we love working with startups! We offer affordable digital marketing packages specifically designed to help new businesses grow.</p>",
+      "status": "published",
+      "sort_order": 80
+    },
+    {
+      "slug": "how-do-you-report-on-campaign-performance",
+      "category": "working-with-us",
+      "question": "How do you report on campaign performance?",
+      "answer_html": "<p>We provide monthly reports with clear data visualizations and expert analysis, explaining what we did, the results, and our plans for the next month.</p>",
+      "status": "draft",
+      "sort_order": 90
+    },
+    {
+      "slug": "can-you-create-video-content-for-marketing",
+      "category": "content-marketing",
+      "question": "Can you create video content for marketing?",
+      "answer_html": "<p>Yes, we offer video production services, from short social media clips to professional corporate videos, to help tell your brand's story.</p>",
+      "status": "published",
+      "sort_order": 60
+    },
+    {
+      "slug": "what-is-your-process-for-a-new-client",
+      "category": "working-with-us",
+      "question": "What is your process for a new client?",
+      "answer_html": "<p>Our process is Discovery, Strategy, Execution, and Reporting. We start by understanding your goals and end by delivering measurable results.</p>",
+      "status": "draft",
+      "sort_order": 100
+    },
+    {
+      "slug": "how-can-i-improve-my-email-marketing",
+      "category": "content-marketing",
+      "question": "How can I improve my email marketing?",
+      "answer_html": "<p>We can help you build your email list, segment your audience, and create automated email sequences that nurture leads and drive sales.</p>",
+      "status": "published",
+      "sort_order": 70
+    },
+    {
+      "slug": "what-is-a-content-marketing-funnel",
+      "category": "content-marketing",
+      "question": "What is a content marketing funnel?",
+      "answer_html": "<p>It's a system for creating content tailored to different stages of the customer journey: awareness, consideration, and decision.</p>",
+      "status": "published",
+      "sort_order": 80
+    },
+    {
+      "slug": "why-is-website-maintenance-important",
+      "category": "web-development",
+      "question": "Why is website maintenance important?",
+      "answer_html": "<p>Regular maintenance keeps your website secure, fast, and functioning correctly, which is crucial for both user experience and SEO.</p>",
+      "status": "published",
+      "sort_order": 100
+    },
+    {
+      "slug": "how-do-i-know-if-my-current-seo-is-working",
+      "category": "seo",
+      "question": "How do I know if my current SEO is working?",
+      "answer_html": "<p>Key signs of working SEO include a steady increase in organic traffic, higher rankings for target keywords, and more leads or sales from organic search.</p>",
+      "status": "published",
+      "sort_order": 150
+    },
+    {
+      "slug": "do-you-offer-marketing-services-for-non-profits",
+      "category": "working-with-us",
+      "question": "Do you offer marketing services for non-profits?",
+      "answer_html": "<p>Yes, we are proud to offer discounted digital marketing services for registered non-profit organizations to help them amplify their cause.</p>",
+      "status": "published",
+      "sort_order": 110
+    },
+    {
+      "slug": "can-you-help-me-market-my-podcast",
+      "category": "content-marketing",
+      "question": "Can you help me market my podcast?",
+      "answer_html": "<p>Yes, we can help promote your podcast through social media, create SEO-friendly show notes, and run ads to grow your listener base.</p>",
+      "status": "published",
+      "sort_order": 90
+    },
+    {
+      "slug": "what-is-a-backlink",
+      "category": "seo",
+      "question": "What is a 'backlink'?",
+      "answer_html": "<p>A backlink is a link from one website to another. Google views them as 'votes' of confidence, making them a crucial factor in SEO.</p>",
+      "status": "published",
+      "sort_order": 160
+    },
+    {
+      "slug": "how-do-you-use-ai-for-competitive-analysis",
+      "category": "ai-automation",
+      "question": "How do you use AI for competitive analysis?",
+      "answer_html": "<p>We use AI tools to analyze competitors' SEO strategies, ad copy, and social media content at scale, identifying weaknesses and opportunities for you.</p>",
+      "status": "published",
+      "sort_order": 30
+    },
+    {
+      "slug": "can-you-create-a-content-calendar-for-my-blog",
+      "category": "content-marketing",
+      "question": "Can you create a content calendar for my blog?",
+      "answer_html": "<p>Yes, as part of our content marketing services, we will create a strategic content calendar with topics designed to attract and engage your target audience.</p>",
+      "status": "published",
+      "sort_order": 100
+    },
+    {
+      "slug": "what-is-retargeting-or-remarketing",
+      "category": "social-media",
+      "question": "What is 'retargeting' or 'remarketing'?",
+      "answer_html": "<p>Retargeting is showing ads to people who have already visited your website, helping to bring them back to complete a purchase or inquiry.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "how-important-is-a-mobile-friendly-website-in-2025",
+      "category": "web-development",
+      "question": "How important is a mobile-friendly website in 2025?",
+      "answer_html": "<p>It is absolutely essential. Most internet users in Asia browse on mobile, and Google uses mobile-friendliness as a major ranking signal.</p>",
+      "status": "published",
+      "sort_order": 110
+    },
+    {
+      "slug": "do-you-provide-crisis-communication-management",
+      "category": "digital-marketing",
+      "question": "Do you provide crisis communication management?",
+      "answer_html": "<p>Yes, we can help manage your online reputation during a crisis by controlling the narrative on social media and search results.</p>",
+      "status": "published",
+      "sort_order": 110
+    },
+    {
+      "slug": "can-you-integrate-my-website-with-a-crm",
+      "category": "web-development",
+      "question": "Can you integrate my website with a CRM?",
+      "answer_html": "<p>Yes, our web development team can integrate your website with popular CRMs like HubSpot or Salesforce to streamline your lead management.</p>",
+      "status": "published",
+      "sort_order": 120
+    },
+    {
+      "slug": "what-is-your-client-onboarding-process-like",
+      "category": "working-with-us",
+      "question": "What is your client onboarding process like?",
+      "answer_html": "<p>Our onboarding is seamless. We have a kickoff meeting, set up all necessary accounts and tracking, and establish clear communication channels.</p>",
+      "status": "draft",
+      "sort_order": 120
+    },
+    {
+      "slug": "what-does-client-onboarding-look-like",
+      "category": "working-with-us",
+      "question": "What does client onboarding look like?",
+      "answer_html": "<p>Onboarding starts with a kickoff call to confirm goals, access (Analytics, GBP, ads, CMS), and brand guidelines. Within the first week we set tracking, a 30–90 day plan, and a shared communication channel so execution can begin without delays.</p>",
+      "status": "published",
+      "sort_order": 130
+    },
+    {
+      "slug": "how-long-until-seo-or-content-work-shows-results",
+      "category": "content-marketing",
+      "question": "How long until SEO or content work shows results?",
+      "answer_html": "<p>Local SEO and technical fixes can move map visibility within weeks. Competitive organic rankings typically need 3–6 months of consistent content and optimization. Paid social and landing pages can generate leads much faster while organic compounds.</p>",
+      "status": "published",
+      "sort_order": 110
+    },
+    {
+      "slug": "how-do-you-report-progress",
+      "category": "working-with-us",
+      "question": "How do you report progress?",
+      "answer_html": "<p>You receive clear monthly reports covering rankings, traffic, leads or inquiries, and work completed, plus next-month priorities. We explain results in plain language so owners and marketing teams can act on the data.</p>",
+      "status": "published",
+      "sort_order": 140
+    },
+    {
+      "slug": "what-services-does-wordsthatsells-offer-in-laos",
+      "category": "markets",
+      "question": "What services does WordsThatSells offer in Laos?",
+      "answer_html": "<p>We provide AI-assisted SEO, content creation, social media management, web development, Google Business Profile optimization, and business automation for SMEs, affiliates, and agencies across Laos and Southeast Asia.</p>",
+      "status": "published",
+      "sort_order": 150
+    },
+    {
+      "slug": "how-do-you-optimize-google-business-profile-for-vientiane",
+      "category": "local-seo",
+      "question": "How do you optimize Google Business Profile for Vientiane SEO?",
+      "answer_html": "<p>We verify categories, photos, services, posts, and review responses; keep NAP consistent; and support the profile with localized pages so you rank for relevant near-me and city searches in Vientiane and nearby markets.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "where-can-i-read-your-privacy-and-terms-policies",
+      "category": "working-with-us",
+      "question": "Where can I read your privacy and terms policies?",
+      "answer_html": "<p>Legal documents are published on our site: <a href=\"/en/company/legal/privacy-policy.html\">Privacy Policy</a>, <a href=\"/en/company/legal/terms-and-conditions.html\">Terms and Conditions</a>, and <a href=\"/en/company/legal/cookie-policy.html\">Cookie Policy</a>.</p>",
+      "status": "published",
+      "sort_order": 150
+    },
+    {
+      "slug": "what-if-im-not-happy-with-the-results",
+      "category": "working-with-us",
+      "question": "What if I'm not happy with the results?",
+      "answer_html": "<p>We believe in partnership. If you're not happy, we'll schedule an in-depth strategy review to realign our approach with your goals.</p>",
+      "status": "published",
+      "sort_order": 160
+    },
+    {
+      "slug": "how-do-you-protect-my-data-and-privacy",
+      "category": "working-with-us",
+      "question": "How do you protect my data and privacy?",
+      "answer_html": "<p>We adhere to strict data privacy protocols and use secure systems. Client confidentiality and data protection are our top priorities.</p>",
+      "status": "published",
+      "sort_order": 170
+    },
+    {
+      "slug": "can-you-help-with-influencer-marketing-in-asia",
+      "category": "social-media",
+      "question": "Can you help with influencer marketing in Asia?",
+      "answer_html": "<p>Yes, we can identify and partner with relevant influencers across Asia to promote your brand authentically to their followers.</p>",
+      "status": "published",
+      "sort_order": 50
+    },
+    {
+      "slug": "what-is-the-future-of-search-beyond-google",
+      "category": "seo",
+      "question": "What is the future of search beyond Google?",
+      "answer_html": "<p>The future includes voice search (like Alexa), visual search (like Google Lens), and AI-powered conversational search, all of which we are preparing for.</p>",
+      "status": "published",
+      "sort_order": 170
+    },
+    {
+      "slug": "do-you-offer-website-hosting-services",
+      "category": "web-development",
+      "question": "Do you offer website hosting services?",
+      "answer_html": "<p>While we don't host websites directly, we partner with top-tier hosting providers and can manage your hosting environment for optimal performance and security.</p>",
+      "status": "published",
+      "sort_order": 130
+    },
+    {
+      "slug": "how-can-i-get-started-with-your-agency",
+      "category": "working-with-us",
+      "question": "How can I get started with your agency?",
+      "answer_html": "<p>It's easy! Just visit our contact page, fill out the short form, and our team will schedule a free consultation to discuss your needs.</p>",
+      "status": "published",
+      "sort_order": 180
+    },
+    {
+      "slug": "do-you-replace-our-team-with-ai",
+      "category": "ai-automation",
+      "question": "Do you replace our team with AI?",
+      "answer_html": "<p>No. AI is a productivity layer. Strategy, creative direction, client communication, and final quality control stay with experienced marketers and creators.</p>",
+      "status": "published",
+      "sort_order": 40
+    },
+    {
+      "slug": "how-fast-will-you-reply",
+      "category": "digital-marketing",
+      "question": "How fast will you reply?",
+      "answer_html": "<p>We aim to respond within one business day. Urgent requests via WhatsApp are welcome for existing conversations.</p>",
+      "status": "published",
+      "sort_order": 120
+    },
+    {
+      "slug": "can-you-work-with-agencies-or-affiliates",
+      "category": "digital-marketing",
+      "question": "Can you work with agencies or affiliates?",
+      "answer_html": "<p>Yes. We support white-label delivery for agencies and commission-based affiliate partners. Mention that in the form so we route you correctly.</p>",
+      "status": "published",
+      "sort_order": 130
+    },
+    {
+      "slug": "where-are-you-based",
+      "category": "digital-marketing",
+      "question": "Where are you based?",
+      "answer_html": "<p>Our office is at 20 Rue Samsenthai, Vientiane, Laos. We serve clients across Southeast Asia, primarily in English with local market support.</p>",
+      "status": "published",
+      "sort_order": 140
+    }
+  ],
+  "placements": {
+    "/en/": {
+      "pinned": [
+        "what-services-does-wordsthatsells-offer-in-laos",
+        "what-does-client-onboarding-look-like",
+        "how-long-until-seo-or-content-work-shows-results",
+        "how-do-you-report-progress",
+        "how-do-you-optimize-google-business-profile-for-vientiane",
+        "where-can-i-read-your-privacy-and-terms-policies"
+      ],
+      "pool": "all"
+    },
+    "/en/digital-marketing-services/web-development/": {
+      "pinned": [],
+      "pool": "all"
+    },
+    "/en/digital-marketing-services/social-media-management/": {
+      "pinned": [],
+      "pool": "all"
+    },
+    "/en/digital-marketing-services/content-creation/": {
+      "pinned": [],
+      "pool": "all"
+    },
+    "/en/digital-marketing-services/business-tools/": {
+      "pinned": [],
+      "pool": "all"
+    },
+    "/en/company/": {
+      "pinned": [],
+      "pool": "all"
+    },
+    "/en/resources/": {
+      "pinned": [],
+      "pool": "all"
+    },
+    "/en/company/contact-us/": {
+      "pinned": [
+        "do-you-replace-our-team-with-ai",
+        "how-fast-will-you-reply",
+        "can-you-work-with-agencies-or-affiliates",
+        "where-are-you-based"
+      ],
+      "pool": []
+    }
+  }
+}

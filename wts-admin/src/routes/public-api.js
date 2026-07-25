@@ -1732,6 +1732,127 @@ router.get('/translations/:lang/:entityType', async (req, res) => {
   }
 });
 
+// ==================== FAQS ====================
+
+// Internal locale keys are the site's directory codes; the la ↔ lo mapping
+// belongs to HTML-facing output only (the bake step), never to this API.
+const FAQ_LANGS = ['en', 'th', 'la', 'fr'];
+
+const resolveFaqLang = (req) => {
+  const lang = String(req.query.lang || 'en').toLowerCase();
+  return FAQ_LANGS.includes(lang) ? lang : 'en';
+};
+
+// Row → payload. When a published translation row exists its payload wins
+// and the item is tagged with the target language; otherwise the English
+// source ships tagged 'en', so the consumer (the bake step) can enforce
+// the withhold-untranslated-pinned rule without a second lookup.
+const transformFaq = (row) => ({
+  slug: row.slug,
+  question: row.t_question || row.question,
+  answer_html: row.t_answer || row.answer_html,
+  category: row.category_slug || null,
+  sort_order: row.sort_order,
+  lang: row.t_question ? row.lang : 'en',
+  ...(row.pinned !== undefined && row.pinned !== null ? {
+    pinned: row.pinned,
+    placement_order: row.placement_order,
+  } : {})
+});
+
+// Published FAQs, optionally filtered by category slug and/or page placement.
+router.get('/faqs', async (req, res) => {
+  try {
+    const lang = resolveFaqLang(req);
+    const category = String(req.query.category || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+    const page = req.query.page ? String(req.query.page) : '';
+
+    const params = [lang];
+    let query = `
+      SELECT f.slug, f.question, f.answer_html, f.sort_order,
+             c.slug AS category_slug, $1::text AS lang,
+             t.content_payload->>'question' AS t_question,
+             t.content_payload->>'answer_html' AS t_answer`;
+    let from = `
+        FROM faqs f
+        LEFT JOIN faq_categories c ON c.id = f.category_id
+        LEFT JOIN translations t ON t.entity_type = 'faq' AND t.entity_id = f.id
+             AND t.target_language = $1 AND t.status = 'published'`;
+    const conditions = [`f.status = 'published'`];
+
+    if (page) {
+      query += `, p.pinned, p.sort_order AS placement_order`;
+      from += ` JOIN faq_placements p ON p.faq_id = f.id AND p.page_path = $${params.length + 1}`;
+      params.push(page);
+    }
+    if (category) {
+      conditions.push(`c.slug = $${params.length + 1}`);
+      params.push(category);
+    }
+
+    query += from + ' WHERE ' + conditions.join(' AND ');
+    query += page
+      ? ' ORDER BY p.pinned DESC, p.sort_order ASC, f.sort_order ASC'
+      : ' ORDER BY c.sort_order ASC NULLS LAST, f.sort_order ASC, f.created_at ASC';
+
+    const result = await db.query(query, params);
+    respond(res, result.rows.map(transformFaq));
+  } catch (error) {
+    console.error('Public API - FAQs error:', error);
+    respond(res, { error: 'Failed to load FAQs' }, 500);
+  }
+});
+
+// Active FAQ categories with translated names when published.
+router.get('/faqs/categories', async (req, res) => {
+  try {
+    const lang = resolveFaqLang(req);
+    const result = await db.query(
+      `SELECT c.slug, c.name, c.description, c.sort_order,
+              t.content_payload->>'name' AS t_name,
+              t.content_payload->>'description' AS t_description
+         FROM faq_categories c
+         LEFT JOIN translations t ON t.entity_type = 'faq_category' AND t.entity_id = c.id
+              AND t.target_language = $1 AND t.status = 'published'
+        WHERE c.status = 'active'
+        ORDER BY c.sort_order ASC, c.name ASC`,
+      [lang]
+    );
+    respond(res, result.rows.map((row) => ({
+      slug: row.slug,
+      name: row.t_name || row.name,
+      description: row.t_description || row.description,
+      sort_order: row.sort_order,
+      lang: row.t_name ? lang : 'en',
+    })));
+  } catch (error) {
+    console.error('Public API - FAQ categories error:', error);
+    respond(res, { error: 'Failed to load FAQ categories' }, 500);
+  }
+});
+
+// Page → { pinned: [slug...], pool: [slug...] } map for every page with
+// placements (published FAQs only). This is what the bake step consumes.
+router.get('/faqs/placements', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT p.page_path, p.pinned, p.sort_order, f.slug
+         FROM faq_placements p
+         JOIN faqs f ON f.id = p.faq_id AND f.status = 'published'
+        ORDER BY p.page_path ASC, p.pinned DESC, p.sort_order ASC, f.sort_order ASC`
+    );
+    const pages = {};
+    for (const row of result.rows) {
+      if (!pages[row.page_path]) pages[row.page_path] = { pinned: [], pool: [] };
+      pages[row.page_path][row.pinned ? 'pinned' : 'pool'].push(row.slug);
+    }
+    respond(res, pages);
+  } catch (error) {
+    console.error('Public API - FAQ placements error:', error);
+    respond(res, { error: 'Failed to load FAQ placements' }, 500);
+  }
+});
+
 // Health check
 router.get('/health', (req, res) => {
   respond(res, { status: 'ok', timestamp: new Date().toISOString() });
