@@ -125,7 +125,9 @@ function answerTree(html) {
       const node = { t: tag, c: [] };
       if (tag === 'a') {
         const href = /href\s*=\s*"([^"]*)"/i.exec(m[3]);
-        if (href && /^(\/|https:\/\/)/.test(href[1])) node.href = href[1];
+        // Site-relative (single slash — "//host" is protocol-relative and
+        // therefore external) or absolute https only.
+        if (href && /^(\/(?!\/)|https:\/\/)/.test(href[1])) node.href = href[1];
       }
       stack[stack.length - 1].c.push(node);
       stack.push(node);
@@ -144,6 +146,20 @@ const answerTreeSafe = (html) => {
     return [stripToText(html)];
   }
 };
+
+// Serialize a tree back to allowlisted HTML. Pinned answers pass through
+// tree-then-serialize so the static markup and the pool island share one
+// normalization pipeline: non-allowlisted attributes and tags can never
+// reach the page even if an unsanitized string slips into faqs.json.
+function treeToHtml(nodes) {
+  return nodes.map((node) => {
+    if (typeof node === 'string') return escapeHtml(node);
+    if (!node || !TREE_TAGS.includes(node.t)) return '';
+    if (node.t === 'br') return '<br>';
+    const attrs = node.t === 'a' && node.href ? ` href="${escapeHtml(node.href)}"` : '';
+    return `<${node.t}${attrs}>${treeToHtml(node.c || [])}</${node.t}>`;
+  }).join('');
+}
 
 // Editors author links against /en/; mirrors get language-local hrefs.
 // Covers root-relative and absolute-origin forms, same as the l10n pipeline.
@@ -165,7 +181,9 @@ function resolveItem(faq, langDir) {
   return {
     slug: faq.slug,
     q: q || faq.question.en,
-    a: localizeLinks(a || faq.answer_html.en, langDir),
+    // Normalized through the same tree pipeline as the pool island (see
+    // treeToHtml) — never the raw answer_html string.
+    a: treeToHtml(answerTreeSafe(localizeLinks(a || faq.answer_html.en, langDir))),
     lang: q && a ? langDir : 'en',
   };
 }

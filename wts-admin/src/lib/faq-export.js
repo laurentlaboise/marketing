@@ -13,7 +13,8 @@ async function buildFaqsJson() {
     db.query(`SELECT id, slug, name, description, sort_order FROM faq_categories
               WHERE status = 'active' ORDER BY sort_order ASC, name ASC`),
     db.query(`SELECT f.id, f.slug, f.question, f.answer_html, f.sort_order, c.slug AS category_slug
-              FROM faqs f LEFT JOIN faq_categories c ON c.id = f.category_id
+              FROM faqs f LEFT JOIN faq_categories c
+                ON c.id = f.category_id AND c.status = 'active'
               WHERE f.status = 'published'
               ORDER BY f.sort_order ASC, f.created_at ASC`),
     db.query(`SELECT p.page_path, p.pinned, p.sort_order, f.slug

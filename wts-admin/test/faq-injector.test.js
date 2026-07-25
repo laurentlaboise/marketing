@@ -2,7 +2,7 @@
 // withhold-untranslated-pinned rule, la→lo mapping, HTML-safe script
 // serialization, the all-or-nothing error contract, and idempotency.
 // Pure filesystem — no server, no database.
-const { test, before } = require('node:test');
+const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { execFileSync } = require('child_process');
 const fs = require('fs');
@@ -24,10 +24,11 @@ const CONFIG = {
       slug: 'alpha',
       category: 'general',
       sort_order: 10,
-      question: { en: 'Alpha question?', fr: 'Question alpha ?' },
+      question: { en: 'Alpha question?', fr: 'Question alpha ?', la: 'ຄຳຖາມ ນຶ່ງ?' },
       answer_html: {
         en: '<p>Alpha answer with a <a href="/en/company/">link</a>.</p>',
         fr: '<p>Réponse alpha avec un <a href="/en/company/">lien</a>.</p>',
+        la: '<p>ຄຳຕອບ ນຶ່ງ.</p>',
       },
     },
     {
@@ -79,6 +80,10 @@ before(() => {
   fs.writeFileSync(path.join(base, 'fr/pool-only/index.html'), PAGE(false));
 });
 
+after(() => {
+  fs.rmSync(base, { recursive: true, force: true });
+});
+
 test('bakes pinned items, JSON-LD and pool island; localizes links; maps la→lo', () => {
   bake();
 
@@ -101,12 +106,16 @@ test('bakes pinned items, JSON-LD and pool island; localizes links; maps la→lo
   // Editors author /en/ links; the fr page gets /fr/.
   assert.match(fr, /href="\/fr\/company\/"/);
 
-  // la has no translations at all → no pinned items, no JSON-LD, island only,
-  // and the island's page lang stays the internal 'la' key.
+  // la: alpha is translated, bravo is not → one pinned item, and the
+  // la → lo mapping applies ONLY to HTML-facing output: JSON-LD says
+  // inLanguage "lo" while the island keeps the internal 'la' key.
   const la = region('la/index.html');
-  assert.equal((la.match(/<details/g) || []).length, 0);
-  assert.doesNotMatch(la, /ld\+json/);
-  assert.match(la, /id="faq-pool"/);
+  assert.equal((la.match(/<details/g) || []).length, 1);
+  assert.match(la, /ຄຳຖາມ ນຶ່ງ\?/);
+  const laLd = JSON.parse(/<script type="application\/ld\+json">(.*?)<\/script>/s.exec(la)[1]);
+  assert.equal(laLd.inLanguage, 'lo');
+  const laIsland = JSON.parse(/id="faq-pool">(.*?)<\/script>/s.exec(la)[1]);
+  assert.equal(laIsland.lang, 'la');
 });
 
 test('pool island is a structured tree with lang tags; hostile strings stay text', () => {

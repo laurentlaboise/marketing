@@ -176,6 +176,10 @@ test('faq-export builds per-language payloads and expanded placements', async ()
   const page = snapshot.placements['/en/testfaq-page/'];
   assert.deepEqual(page.pinned, ['testfaq-alpha']);
   assert.deepEqual(page.pool, ['testfaq-bravo']);
+});
 
+// Separate from the fixture-cleanup after(): closes the in-process shared
+// db pool (used by the lib tests above) regardless of test order.
+after(async () => {
   await require('../database/db').close();
 });

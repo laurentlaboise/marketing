@@ -132,7 +132,10 @@ async function seedFaqs() {
                      VALUES ('faq', $1, $2, $3, $4, 'published', $5, CURRENT_TIMESTAMP)
                      ON CONFLICT (entity_type, entity_id, target_language) DO NOTHING`,
                     [faqIds[slug], lang, JSON.stringify(payload), hash,
-                     String(en.question + ' ' + en.answer_html).split(/\s+/).length]
+                     `${en.question} ${en.answer_html}`
+                         .replace(/<[^>]*>/g, ' ')
+                         .split(/\s+/)
+                         .filter(Boolean).length]
                 );
                 stats.translations = (stats.translations || 0) + r.rowCount;
             }

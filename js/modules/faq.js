@@ -4,9 +4,9 @@ import { revealObserver } from './ui.js';
 // FAQ content is admin-managed (wts-admin → faqs.json → scripts/inject-faqs.js).
 // The bake writes the pinned, crawlable items as static <details> and embeds
 // the page's remaining pool in a <script type="application/json" id="faq-pool">
-// data island: { lang, items: [{ slug, q, a, lang }] }. Answer HTML is
-// sanitized server-side at save and at bake; `lang` differs from the page
-// language only for English-fallback pool entries.
+// data island: { lang, items: [{ slug, q, tree, lang }] }, where `tree` is a
+// structured node tree produced at bake time — never HTML. `lang` differs
+// from the page language only for English-fallback pool entries.
 
 function readPool() {
   const el = document.getElementById('faq-pool');
@@ -35,7 +35,9 @@ function renderAnswerNodes(nodes, parent) {
     }
     if (!node || !ALLOWED_ANSWER_TAGS.has(node.t)) return;
     const el = document.createElement(node.t);
-    if (node.t === 'a' && typeof node.href === 'string' && /^(\/|https:\/\/)/.test(node.href)) {
+    // Site-relative (single slash — "//host" is protocol-relative and
+    // therefore external) or absolute https only.
+    if (node.t === 'a' && typeof node.href === 'string' && /^(\/(?!\/)|https:\/\/)/.test(node.href)) {
       el.setAttribute('href', node.href);
     }
     if (node.t !== 'br') renderAnswerNodes(node.c, el);
@@ -86,7 +88,15 @@ export function initFaqSection() {
   function addRandomFaq(scrollTo) {
     const pick = available();
     if (pick.length === 0) return false;
-    const item = pick[Math.floor(Math.random() * pick.length)];
+    // On localized pages, prefer items translated into the page language;
+    // English fallback entries surface only once those are exhausted, so
+    // "Ask another question" doesn't drown a small translated set in the
+    // much larger English corpus.
+    const translated = pool && pool.lang !== 'en'
+      ? pick.filter((entry) => entry.lang === pool.lang)
+      : pick;
+    const from = translated.length > 0 ? translated : pick;
+    const item = from[Math.floor(Math.random() * from.length)];
     used.add(item.slug);
     addFaqToDom(item);
     if (scrollTo) {

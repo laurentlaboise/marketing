@@ -1502,7 +1502,9 @@ const sanitizeAnswerHtml = (html) => {
   out = out.replace(/<a\b[^>]*>/gi, (tag) => {
     const m = /href\s*=\s*("([^"]*)"|'([^']*)')/i.exec(tag);
     const href = m ? (m[2] !== undefined ? m[2] : m[3]) : '';
-    const safe = /^(\/|https:\/\/)/i.test(href) && !/[<>"'\s]/.test(href);
+    // Single-slash site-relative or absolute https — "//host" is
+    // protocol-relative and therefore an external URL.
+    const safe = /^(\/(?!\/)|https:\/\/)/i.test(href) && !/[<>"'\s]/.test(href);
     return safe ? `<a href="${href}">` : '<a>';
   });
   out = out.replace(/<(p|ul|ol|li|strong|em|br)\b[^>]*(\/)?>/gi, (t, name) => `<${name.toLowerCase()}>`);
@@ -1668,10 +1670,12 @@ router.post('/faqs', [
 // FAQPage JSON-LD and question pools into the static pages.
 // Registered before the /faqs/:id routes so "publish-site" is never
 // captured as an id.
-router.post('/faqs/publish-site', async (req, res) => {
+router.post('/faqs/publish-site', logActivity('faqs_publish_site'), async (req, res) => {
   try {
     const { publishFaqSnapshot } = require('../lib/faq-export');
-    const result = await publishFaqSnapshot(`manual publish by ${req.user.email}`);
+    // Commit messages are public git history — identify the actor by id,
+    // never by email (the activity log carries the full attribution).
+    const result = await publishFaqSnapshot(`manual publish by admin ${req.user.id}`);
     if (result.ok && result.reason === 'unchanged') {
       req.session.successMessage = 'FAQs already up to date on the site — nothing to publish.';
     } else if (result.ok) {
