@@ -2,6 +2,12 @@
 
 **Status: PROPOSAL — nothing in this document is implemented. For review before any change.**
 
+*v2 (2026-07-25): incorporates external review feedback — single-classifier CTA renderer,
+guest CTA hierarchy, cart fulfillment edge cases, deposit sequencing split, `ball_with`
+staleness guard, Phase 2 split (2A trust core → 2B kanban), independent `FEATURE_CART` /
+`FEATURE_DEPOSITS` flags, revised estimates, tightened D1–D8 recommendations.
+D1–D8 still await final sign-off.*
+
 Date: 2026-07-25 · Scope: marketing site purchase flow, portal, admin, and the
 order-to-delivery "workboard" process. Grounded in the actual code (file paths cited
 throughout), building on the purchase-flow report already reviewed.
@@ -99,9 +105,9 @@ Payment confirmed (Stripe webhook / admin BCEL confirm)
 
 | Phase | Name | Contents | Risk | Rough effort |
 |-------|------|----------|------|--------------|
-| **0** | Say what it costs, say what happens | CTA matrix by pricing type, card badges, Success page v2, BCEL prominence + LAK display, WhatsApp handoff, quote-received experience, CTA i18n | Very low — copy + front-end only | 3–5 dev-days |
+| **0** | Say what it costs, say what happens | CTA matrix by pricing type, card badges, Success page v2, BCEL prominence + LAK display, WhatsApp handoff, quote-received experience, CTA i18n | Very low — copy + front-end only | 4–6 dev-days |
 | **1** | Checkout that matches the catalog | Mini-cart ("Checkout selected" from My Services), deposits for fixed-price consult, hourly "book hours" framing | Low–medium | 5–8 dev-days |
-| **2** | **The Workboard** | `projects` layer, admin kanban, portal "My Projects", auto-create on payment, updates + notifications, whiteboard/deliverables linking, retire Notion embed | Medium — new schema, flagged | 8–12 dev-days |
+| **2** | **The Workboard** | `projects` layer, admin kanban, portal "My Projects", auto-create on payment, updates + notifications, whiteboard/deliverables linking, retire Notion embed | Medium — new schema, flagged | 12–16 dev-days (2A trust core → 2B kanban) |
 | **3** | Portal as a storefront | In-portal catalog "Add services", post-pay provisioning, kickoff checklist, billing empty-state cross-links | Low | 4–6 dev-days |
 | **4** | Trust & ops hardening | Lao locale, price-privacy decision, per-option Stripe price IDs, payment links for proposals only, funnel analytics | Low, ongoing | continuous |
 
@@ -127,11 +133,16 @@ independently; nothing blocks on a later phase.
 | Hourly buy | **Book hours · $25/hr** | qty stepper = hours + "not sure how many? Ask us" |
 | Consult with fixed price (Sprint $349) | **Request quote · from $349** | "+ optional *Reserve with 30% deposit* (Phase 1)" |
 | Consult, no price | **Request a quote** | "We reply within N business hours" |
-| Guest (any buy product) | **Sign in to buy** (opens existing login modal) + **Request a Quote** | replaces quote-only dead end |
+| Guest (any buy product) | **Sign in to buy** — the single primary; quote / WhatsApp as visually smaller secondaries, never two equal primaries | replaces quote-only dead end; price teaser per D4 |
 
 Note the guest change: today a guest on a $4 buy product only sees "Request a Quote"
 (`product-loader.js:1820-1824`) — a quote request for a $4 SKU. "Sign in to buy" keeps the
 locked-pricing pattern but names the path.
+
+Implementation shape: **one `ctaKind()` classifier**
+(`pay_fixed | pay_options | pay_qty | subscribe | book_hours | quote_fixed | quote_open`)
+feeding **one renderer + i18n keys** — not seven bespoke HTML branches in `buildCtaHTML`
+that drift apart. Hourly is copy-only in Phase 0; its hours stepper ships with Phase 1.
 
 **0.2 Card badges (signed-in):** `Self-serve` vs `Quote` chip on service cards
 (`renderCards`, `product-loader.js:305`), so Logo vs Landing-Page-Sprint is obvious pre-click.
@@ -156,7 +167,11 @@ LAK price present. Keep Stripe first elsewhere.
 **0.5 WhatsApp handoff everywhere a form is:** quote modal and consult CTAs gain
 "Chat on WhatsApp instead" using the number already in the footer (`wa.me/8562055528034`),
 pre-filled: `"Hi — I'm interested in <product> (<option>, <qty/billing>). My name is …"`.
-Zero backend. This is the single highest-leverage SEA conversion change in the plan.
+Zero backend. This is the single highest-leverage SEA conversion change in the plan —
+**non-optional in Phase 0.** Implementation notes: the prefill uses the localized product
+name as rendered on the page (FR/TH pages must not send English prefills), the `?text=`
+parameter is URL-encoded UTF-8, and a `cta_whatsapp` GA4 event fires from day one — ahead
+of the full funnel work in 4.5.
 
 **0.6 Quote-received experience:** after submit (`public-api.js:1571` → `form_submissions`),
 show a reference-style confirmation ("Got it — quote request #… · we reply within N business
@@ -183,7 +198,17 @@ showing English buy buttons. (Full Lao rollout is Phase 4.)
 - **BCEL cart constraint:** static per-amount QRs can't express an arbitrary cart total.
   v1: BCEL cart checkout renders one combined order + reference with the account/open-amount
   QR and the exact LAK total to type. If no open-amount merchant QR exists, BCEL stays
-  per-product and the cart is card-only — decision D3.
+  per-product and the cart is card-only — decision D3. **Default posture until the bank app
+  is checked: cart v1 is Stripe-only.**
+- **Fulfillment edge cases (required so Phase 2 can trust cart orders):**
+  (a) *Webhook idempotency* — the completion webhook's single `UPDATE … WHERE
+  stripe_session_id` already flips all N rows at once (`payments.js:468-482`), which is fine;
+  the real risk is side effects on retries, so project auto-creation (Phase 2) must guard on
+  "no project exists for this `order_id`" before insert — same guard on the admin BCEL
+  confirm path. (b) *Per-line refunds/cancellations* — refunding one item cancels that order
+  row and closes its project only, never the whole cart. (c) *Cart review gating* —
+  "Checkout selected (N)" stays disabled until every selected line has its option/qty
+  resolved.
 
 **1.2 Deposits for fixed-price consult products.** Standard SEA practice: 30–50% down to
 start, balance on delivery.
@@ -191,9 +216,11 @@ start, balance on delivery.
 - Consult CTA gains secondary button **Reserve with 30% deposit ($105)** → normal checkout
   session flagged `metadata.wts_kind='deposit'`; order records `amount_total_expected`.
 - Balance collected later via a balance checkout link from the project (Phase 2) or invoice.
-- Keeps "consult" products consultative while letting a ready buyer commit today —
-  and a paid deposit auto-creates the project (Phase 2), which is exactly the moment
-  clients most need visible progress.
+- Keeps "consult" products consultative while letting a ready buyer commit today.
+- **Sequencing (explicit):** Phase 1 ships checkout mechanics only — deposit session,
+  `metadata.wts_kind='deposit'`, order fields. The deposit → auto-project + balance-payment
+  link wiring lands with Phase 2. Phase 1 release notes must not promise a project view
+  that doesn't exist yet.
 
 **1.3 Hourly products** get the "Book hours" framing from the CTA matrix: quantity = hours,
 estimate note, and "Ask us to estimate" opens quote/WhatsApp. No schema change.
@@ -239,7 +266,14 @@ the order row and the customer page. Deposit paid (1.2) → project too.
 **2.3 Admin: `/business/workboard`** — kanban, columns = stages, cards = projects showing
 client, product, days-in-stage (stale = amber), ball-with, next action. Drag-drop with a
 plain `<select>` fallback; filters by owner/service page/stale. Same auth chain as other
-admin surfaces (`ensureAuthenticated, ensureAdmin`). Card → project detail: updates feed,
+admin surfaces (`ensureAuthenticated, ensureAdmin`).
+**Build order:** 2A ships the trust core first — stages, `ball_with`, updates feed, portal
+progress, auto-create, and an admin **list** view with filters; 2B adds the drag-drop
+kanban. If capacity is tight, 2B slips and 2A doesn't.
+**Staleness guard (protect the killer feature):** a stage change prompts for — and
+default-requires — an updated `next_action` + `ball_with` before saving. A board whose
+cards move while next-actions go stale reads as neglect and costs more trust than having
+no board at all. Card → project detail: updates feed,
 checklist, deliverables upload (existing per-customer upload gains a project picker),
 link/create whiteboard board, balance-payment link for deposit projects.
 
@@ -300,7 +334,10 @@ status lives only in the portal — decision D7.
    subscription logic; the report's own analysis holds.
 2. **No guest checkout in v1** — purchase-creates-account via checkout email is working
    and matches the locked guest/signed-in pattern (2026-07-13 decision). Revisit only if
-   funnel data shows sign-in as the #1 drop-off.
+   funnel data shows sign-in as the #1 drop-off — call that revisit "Phase 1.5". When it
+   comes, the engineering is already done (checkout provisions the portal account via the
+   webhook, `payments.js:487-495`); what's open is purely the price-visibility product
+   decision (D4), since a guest can't buy a price they can't see.
 3. **No third-party cart/e-commerce platform** — the Express + Stripe stack already handles
    the hard parts; a platform migration is months of risk for a 36-SKU catalog.
 4. **No fulfillment states inside `ORDER_STATUSES`** — money and work stay separate state
@@ -314,12 +351,12 @@ status lives only in the portal — decision D7.
 
 | # | Decision | Recommendation |
 |---|----------|----------------|
-| D1 | CTA matrix wording (§5 0.1) — approve/adjust, incl. response-time promise "N business hours" | N = 4 business hours |
-| D2 | Deposits on fixed-price consult: yes/no, default % | Yes, 30% |
-| D3 | BCEL cart: is there an open-amount merchant QR we can use for cart totals? | If yes → combined QR + reference; if no → cart is Stripe-only v1 |
-| D4 | Price gating: keep soft gate (teaser "from $X" for guests?) or hard-gate the API | Keep soft gate; show "from $X" teaser on cards to feed the funnel |
+| D1 | CTA matrix wording (§5 0.1) — approve/adjust, incl. response-time promise "N business hours" | Honest SLA only: 4 business hours if ops can truly hit it, else promise 1 business day — under-promise beats a broken promise |
+| D2 | Deposits on fixed-price consult: yes/no, default % | Yes, 30% — **opt-in per product** (start with Landing Page Sprint + site packages), not global |
+| D3 | BCEL cart: is there an open-amount merchant QR we can use for cart totals? | Assume **no** until verified in the bank app; cart v1 ships Stripe-only either way, BCEL stays per-product — don't block Phase 1 on bank ops |
+| D4 | Price gating: keep soft gate (teaser "from $X" for guests?) or hard-gate the API | Keep soft gate; guest teaser only on buy + fixed products ≤ $50, never on consult packages — and record this as an **explicit amendment** to the 2026-07-13 locked guest pattern |
 | D5 | Workboard stage names (client-facing, will be translated) | received / kickoff / in progress / review / delivered / closed |
-| D6 | WhatsApp number for product CTAs | footer number +856 20 5552 8034 |
+| D6 | WhatsApp number for product CTAs | footer number +856 20 5552 8034 — **verify it is the active sales / WhatsApp Business number** (vs any ads number) before launch |
 | D7 | Notion: retire fully, or internal-only | Internal-only allowed; client-facing portal-only |
 | D8 | Lao locale priority: Phase 4 as planned, or pull forward | Phase 4, unless Lao-market push is imminent |
 
@@ -328,7 +365,10 @@ status lives only in the portal — decision D7.
 ## 8. Rollout & risk
 
 - **Flags:** `FEATURE_WORKBOARD` mirrors the proven `FEATURE_WHITEBOARD` pattern (off →
-  module never loads, no tables, no nav). Front-end phases ship behind small, reviewable PRs
+  module never loads, no tables, no nav). `FEATURE_CART` and `FEATURE_DEPOSITS` gate the two
+  risky checkout additions independently, so a buggy cart can never block the Phase 0
+  CTA/i18n wins (deposits are additionally off per-product: `deposit_pct` null = no deposit
+  CTA). Front-end phases ship behind small, reviewable PRs
   per phase; `product-loader.js` changes are pure-render and fall back exactly like today
   (checkout failure already degrades to the quote modal, `product-loader.js:1388-1401`).
 - **Migrations:** additive only; every new column nullable; portal pages render with zero
