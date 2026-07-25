@@ -58,28 +58,28 @@
                 <dd id="detail-product">-</dd>
                 <dt>Montant</dt>
                 <dd id="detail-amount">-</dd>
-                <dt>Référence</dt>
+                <dt>Reference</dt>
                 <dd id="detail-reference">-</dd>
                 <dt>Statut</dt>
                 <dd id="detail-status">-</dd>
             </dl>
             <div id="download-section" style="display:none;text-align:center;margin-top:1rem;">
-                <a id="download-link" href="#" class="download-btn"><i class="fas fa-download"></i> Télécharger votre produit</a>
+                <a id="download-link" href="#" class="download-btn"><i class="fas fa-download"></i> Download Your Product</a>
             </div>
         </div>
         <div class="next-steps">
-            <h2>Et maintenant ?</h2>
+            <h2>What happens next</h2>
             <ol>
-                <li>Votre e-mail de confirmation est en route — gardez la référence de commande à portée de main.</li>
-                <li>Votre espace client est prêt : suivez cette commande, vos fichiers et les mises à jour au même endroit.</li>
-                <li>Notre équipe démarre et vous envoie un premier point sous 1 jour ouvré.</li>
+                <li>Your confirmation email is on its way — keep the order reference handy.</li>
+                <li>Your portal account is ready: track this order, your files and updates in one place.</li>
+                <li>Our team starts on it and sends you a first update within 1 business day.</li>
             </ol>
         </div>
         <p style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">
-            <a href="https://admin.wordsthatsells.website/portal" class="download-btn"><i class="fas fa-door-open"></i> Ouvrir mon espace client</a>
-            <a id="wa-link" class="wa-btn" href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+            <a href="https://admin.wordsthatsells.website/portal" class="download-btn"><i class="fas fa-door-open"></i> Open my portal</a>
+            <a id="wa-link" class="wa-btn" href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> WhatsApp us</a>
         </p>
-        <p><a id="back-link" href="/fr/digital-marketing-services/" style="color:#667eea;">Retour aux services</a></p>
+        <p><a id="back-link" href="/fr/digital-marketing-services/" style="color:#667eea;">Back to Services</a></p>
     </div>
 
     <script>
@@ -90,18 +90,18 @@
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('order-details').style.display = 'block';
-                    document.getElementById('detail-product').textContent = data.product_name || 'Produit digital';
+                    document.getElementById('detail-product').textContent = data.product_name || 'Digital Product';
                     const amt = parseFloat(data.amount);
                     document.getElementById('detail-amount').textContent = !isNaN(amt) ? '$' + amt.toFixed(2) + ' ' + (data.currency || 'USD') : '—';
-                    document.getElementById('detail-status').textContent = data.status || 'En cours';
+                    document.getElementById('detail-status').textContent = data.status || 'Processing';
                     if (data.reference) {
                         document.getElementById('detail-reference').textContent = data.reference;
                         const wa = document.getElementById('wa-link');
-                        if (wa) wa.href = 'https://wa.me/8562055528034?text=' + encodeURIComponent('Bonjour ! Je viens de finaliser une commande (référence ' + data.reference + ').');
+                        if (wa) wa.href = 'https://wa.me/8562055528034?text=' + encodeURIComponent('Hello! I just completed an order (reference ' + data.reference + ').');
                     }
                     if (data.service_page) {
                         const back = document.getElementById('back-link');
-                        if (back) back.href = '/fr/digital-marketing-services/' + encodeURIComponent(data.service_page) + '/';
+                        if (back) back.href = '/en/digital-marketing-services/' + encodeURIComponent(data.service_page) + '/';
                     }
                     if (data.download_url) {
                         document.getElementById('download-section').style.display = 'block';
