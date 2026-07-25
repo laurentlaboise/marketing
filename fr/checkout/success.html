@@ -33,7 +33,19 @@
         .order-details { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; text-align: left; }
         .order-details dt { font-weight: 600; color: #333; }
         .order-details dd { color: #666; margin-bottom: 0.75rem; margin-left: 0; }
+        .next-steps { background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; text-align: left; }
+        .next-steps h2 { font-size: 1.05rem; margin: 0 0 0.6rem; color: #1a1a2e; }
+        .next-steps ol { margin: 0; padding-left: 1.3rem; color: #475569; }
+        .next-steps li { margin-bottom: 0.45rem; line-height: 1.55; }
+        .wa-btn { display: inline-block; padding: 0.8rem 2rem; background: #25D366; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; }
     </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMRKC1VBBB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-LMRKC1VBBB');
+    </script>
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png"><link rel="shortcut icon" href="/favicon/favicon.ico"><link rel="manifest" href="/favicon/site.webmanifest"></head>
 <body>
     <div class="checkout-result success">
@@ -46,14 +58,28 @@
                 <dd id="detail-product">-</dd>
                 <dt>Montant</dt>
                 <dd id="detail-amount">-</dd>
+                <dt>Référence</dt>
+                <dd id="detail-reference">-</dd>
                 <dt>Statut</dt>
                 <dd id="detail-status">-</dd>
             </dl>
             <div id="download-section" style="display:none;text-align:center;margin-top:1rem;">
-                <a id="download-link" href="#" class="download-btn"><i class="fas fa-download"></i> Download Your Product</a>
+                <a id="download-link" href="#" class="download-btn"><i class="fas fa-download"></i> Télécharger votre produit</a>
             </div>
         </div>
-        <p><a href="/fr/digital-marketing-services/content-creation/" style="color:#667eea;">Retour aux services</a></p>
+        <div class="next-steps">
+            <h2>Et maintenant ?</h2>
+            <ol>
+                <li>Votre e-mail de confirmation est en route — gardez la référence de commande à portée de main.</li>
+                <li>Votre espace client est prêt : suivez cette commande, vos fichiers et les mises à jour au même endroit.</li>
+                <li>Notre équipe démarre et vous envoie un premier point sous 1 jour ouvré.</li>
+            </ol>
+        </div>
+        <p style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">
+            <a href="https://admin.wordsthatsells.website/portal" class="download-btn"><i class="fas fa-door-open"></i> Ouvrir mon espace client</a>
+            <a id="wa-link" class="wa-btn" href="https://wa.me/8562055528034" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+        </p>
+        <p><a id="back-link" href="/fr/digital-marketing-services/" style="color:#667eea;">Retour aux services</a></p>
     </div>
 
     <script>
@@ -64,13 +90,24 @@
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('order-details').style.display = 'block';
-                    document.getElementById('detail-product').textContent = data.product_name || 'Digital Product';
-                    document.getElementById('detail-amount').textContent = '$' + parseFloat(data.amount).toFixed(2) + ' ' + (data.currency || 'USD');
-                    document.getElementById('detail-status').textContent = data.status || 'Processing';
+                    document.getElementById('detail-product').textContent = data.product_name || 'Produit digital';
+                    const amt = parseFloat(data.amount);
+                    document.getElementById('detail-amount').textContent = !isNaN(amt) ? '$' + amt.toFixed(2) + ' ' + (data.currency || 'USD') : '—';
+                    document.getElementById('detail-status').textContent = data.status || 'En cours';
+                    if (data.reference) {
+                        document.getElementById('detail-reference').textContent = data.reference;
+                        const wa = document.getElementById('wa-link');
+                        if (wa) wa.href = 'https://wa.me/8562055528034?text=' + encodeURIComponent('Bonjour ! Je viens de finaliser une commande (référence ' + data.reference + ').');
+                    }
+                    if (data.service_page) {
+                        const back = document.getElementById('back-link');
+                        if (back) back.href = '/fr/digital-marketing-services/' + encodeURIComponent(data.service_page) + '/';
+                    }
                     if (data.download_url) {
                         document.getElementById('download-section').style.display = 'block';
                         document.getElementById('download-link').href = data.download_url;
                     }
+                    try { if (typeof gtag === 'function' && data.reference) gtag('event', 'purchase', { transaction_id: data.reference, value: !isNaN(amt) ? amt : 0, currency: data.currency || 'USD' }); } catch (e) {}
                 })
                 .catch(() => {});
         }
