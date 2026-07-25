@@ -1662,6 +1662,34 @@ router.post('/faqs', [
   }
 });
 
+// Publish the FAQ content to the live site: export faqs.json from the
+// database (published FAQs + published translations) and commit it to the
+// repo. The commit triggers faq-sync.yml, which bakes the accordion items,
+// FAQPage JSON-LD and question pools into the static pages.
+// Registered before the /faqs/:id routes so "publish-site" is never
+// captured as an id.
+router.post('/faqs/publish-site', async (req, res) => {
+  try {
+    const { publishFaqSnapshot } = require('../lib/faq-export');
+    const result = await publishFaqSnapshot(`manual publish by ${req.user.email}`);
+    if (result.ok && result.reason === 'unchanged') {
+      req.session.successMessage = 'FAQs already up to date on the site — nothing to publish.';
+    } else if (result.ok) {
+      req.session.successMessage = 'FAQs published. The site will rebuild and update shortly.';
+    } else if (result.reason === 'no_token') {
+      req.session.errorMessage = 'FAQs not published: GITHUB_TOKEN is not configured on the server.';
+    } else if (result.reason === 'auth') {
+      req.session.errorMessage = 'FAQs not published: the GitHub token is invalid or lacks write access.';
+    } else {
+      req.session.errorMessage = 'FAQs not published: ' + (result.reason || 'unknown error') + '.';
+    }
+  } catch (error) {
+    console.error('Publish FAQs error:', error);
+    req.session.errorMessage = 'Failed to publish FAQs.';
+  }
+  res.redirect('/content/faqs');
+});
+
 router.get('/faqs/:id/edit', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM faqs WHERE id = $1', [req.params.id]);

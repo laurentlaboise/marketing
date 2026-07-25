@@ -11,6 +11,10 @@
         <p class="page-subtitle">Questions, answers and page placements for the site FAQ accordions</p>
       </div>
       <div class="page-actions">
+        <form action="/content/faqs/publish-site" method="POST" style="display: inline;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-secondary"><i class="fas fa-cloud-upload-alt"></i> Publish to site</button>
+        </form>
         <a href="/content/faq-categories" class="btn btn-secondary"><i class="fas fa-tags"></i> Categories</a>
         <a href="/content/faqs/new" class="btn btn-primary"><i class="fas fa-plus"></i> New FAQ</a>
       </div>

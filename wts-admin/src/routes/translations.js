@@ -600,6 +600,13 @@ router.post('/:id/interlink', ensureSuperAdmin, logActivity('translation_interli
 // approve — the next successful dispatch or manual run regenerates all
 // published rows anyway (the generator is idempotent).
 async function triggerSiteRegeneration(translation) {
+  // FAQ content reaches the site through the committed faqs.json snapshot
+  // (baked by scripts/inject-faqs.js via faq-sync.yml), not the page-mirror
+  // generator — publishing a FAQ translation re-exports the snapshot.
+  if (['faq', 'faq_category'].includes(translation.entity_type)) {
+    const { publishFaqSnapshot } = require('../lib/faq-export');
+    return publishFaqSnapshot(`publish ${translation.entity_type} ${translation.entity_id} → ${translation.target_language}`);
+  }
   if (!['page', 'glossary', 'article'].includes(translation.entity_type)) return null;
   try {
     const { dispatchWorkflow } = require('../lib/github-content');

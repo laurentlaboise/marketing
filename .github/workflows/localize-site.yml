@@ -79,6 +79,14 @@ jobs:
       - name: Localize footers on generated pages
         run: node scripts/inject-footers.js --source
 
+      # Regenerated mirrors are built from the EN sources, whose FAQ marker
+      # regions carry EN-baked content — re-run the FAQ injector so every
+      # language's region is rebuilt from faqs.json (localized items,
+      # localized FAQPage JSON-LD, withhold rules) instead of shipping the
+      # copied EN region.
+      - name: Bake FAQs on generated pages
+        run: node scripts/inject-faqs.js --source
+
       - name: Regenerate multi-language sitemap
         run: node scripts/generate-sitemap.js
 

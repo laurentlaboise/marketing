@@ -18,6 +18,21 @@
 const { Pool } = require('pg');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+
+// Identical to translation-core.sourceHash: sha256 over the canonical
+// (key-sorted) JSON of the English source fields. Seeded translations must
+// carry the same hash the sync sweep computes, or the sweep would flip
+// them straight back to pending as "stale".
+function sourceHash(sourceFields) {
+    const canonical = JSON.stringify(
+        Object.keys(sourceFields).sort().reduce((acc, k) => {
+            acc[k] = sourceFields[k];
+            return acc;
+        }, {})
+    );
+    return crypto.createHash('sha256').update(canonical, 'utf8').digest('hex');
+}
 
 const seedDataPath = path.join(__dirname, 'faq_seed_data.json');
 const seed = JSON.parse(fs.readFileSync(seedDataPath, 'utf8'));
@@ -101,7 +116,29 @@ async function seedFaqs() {
             }
         }
 
-        console.log(`Done! Categories: ${stats.categories}, FAQs: ${stats.faqs}, placements: ${stats.placements}, skipped existing: ${stats.skipped}`);
+        // Published translations harvested from the static mirrors (the
+        // fr/th FAQ content that already shipped on the site). Insert-if-
+        // absent: ON CONFLICT keeps any row the platform already owns.
+        const translationEntries = Object.entries(seed.translations || {});
+        console.log(`Seeding translations for ${translationEntries.length} FAQs...`);
+        for (const [slug, langs] of translationEntries) {
+            if (!faqIds[slug]) { console.warn(`  Unknown translation slug "${slug}"`); continue; }
+            const en = seed.faqs.find((f) => f.slug === slug);
+            const hash = sourceHash({ question: en.question, answer_html: en.answer_html });
+            for (const [lang, payload] of Object.entries(langs)) {
+                const r = await client.query(
+                    `INSERT INTO translations (entity_type, entity_id, target_language, content_payload,
+                                               source_hash, status, word_count, published_at)
+                     VALUES ('faq', $1, $2, $3, $4, 'published', $5, CURRENT_TIMESTAMP)
+                     ON CONFLICT (entity_type, entity_id, target_language) DO NOTHING`,
+                    [faqIds[slug], lang, JSON.stringify(payload), hash,
+                     String(en.question + ' ' + en.answer_html).split(/\s+/).length]
+                );
+                stats.translations = (stats.translations || 0) + r.rowCount;
+            }
+        }
+
+        console.log(`Done! Categories: ${stats.categories}, FAQs: ${stats.faqs}, placements: ${stats.placements}, translations: ${stats.translations || 0}, skipped existing: ${stats.skipped}`);
     } finally {
         client.release();
         await pool.end();

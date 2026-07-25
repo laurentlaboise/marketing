@@ -955,5 +955,107 @@
       ],
       "pool": []
     }
+  },
+  "translations": {
+    "what-services-does-wordsthatsells-offer-in-laos": {
+      "fr": {
+        "question": "Quels services WordsThatSells propose-t-il au Laos ?",
+        "answer_html": "<p>Nous proposons du SEO assisté par IA, de la création de contenu, de la gestion des réseaux sociaux, du développement web, de l'optimisation du profil Google Business, et de l'automatisation des processus métier pour les PME, les affiliés et les agences au Laos et en Asie du Sud-Est.</p>"
+      },
+      "th": {
+        "question": "WordsThatSells มีบริการอะไรบ้างในลาว?",
+        "answer_html": "<p>เรามีบริการ SEO ด้วย AI, การสร้างเนื้อหา, การจัดการโซเชียลมีเดีย, การพัฒนาเว็บไซต์, การปรับแต่ง Google Business Profile และระบบอัตโนมัติทางธุรกิจสำหรับ SMEs, Affiliates และเอเจนซี่ทั่วลาวและเอเชียตะวันออกเฉียงใต้</p>"
+      }
+    },
+    "what-does-client-onboarding-look-like": {
+      "fr": {
+        "question": "À quoi ressemble l'intégration des clients ?",
+        "answer_html": "<p>L'intégration commence par un appel de lancement pour confirmer les objectifs, les accès (Analytics, GBP, annonces, CMS) et les directives de marque. Au cours de la première semaine, nous mettons en place le suivi, un plan de 30 à 90 jours et un canal de communication partagé afin que l'exécution puisse commencer sans délai.</p>"
+      },
+      "th": {
+        "question": "การเริ่มต้นทำงานกับลูกค้า (Client Onboarding) มีลักษณะอย่างไร?",
+        "answer_html": "<p>การเริ่มต้น Onboarding เริ่มต้นด้วยการประชุม Kickoff เพื่อยืนยันเป้าหมาย การเข้าถึง (Analytics, GBP, โฆษณา, CMS) และแนวทางของแบรนด์ ภายในสัปดาห์แรก เราจะตั้งค่าระบบติดตามผล แผน 30–90 วัน และช่องทางการสื่อสารร่วมกัน เพื่อให้การดำเนินงานเริ่มต้นได้โดยไม่ล่าช้า</p>"
+      }
+    },
+    "how-long-until-seo-or-content-work-shows-results": {
+      "fr": {
+        "question": "Combien de temps avant que le SEO ou le marketing de contenu ne montre des résultats ?",
+        "answer_html": "<p>Le référencement local et les correctifs techniques peuvent améliorer la visibilité sur les cartes en quelques semaines. Les classements organiques concurrentiels nécessitent généralement 3 à 6 mois de contenu et d'optimisation constants. Les pages de réseaux sociaux payantes et les pages d'atterrissage peuvent générer des prospects beaucoup plus rapidement, tandis que le référencement organique s'accumule progressivement.</p>"
+      },
+      "th": {
+        "question": "งาน SEO หรือการตลาดด้วยเนื้อหา (Content Marketing) จะใช้เวลานานแค่ไหนถึงจะเห็นผลลัพธ์?",
+        "answer_html": "<p>Local SEO และการแก้ไขทางเทคนิคสามารถปรับปรุงการมองเห็นบนแผนที่ได้ภายในไม่กี่สัปดาห์ ส่วนอันดับ (Rankings) แบบออร์แกนิกที่แข่งขันได้มักต้องใช้เวลา 3–6 เดือนในการสร้างเนื้อหาและการปรับแต่งอย่างสม่ำเสมอ การใช้โซเชียลมีเดียแบบเสียเงินและหน้า Landing Page สามารถสร้างลีดได้เร็วกว่ามาก ในขณะที่ผลลัพธ์แบบออร์แกนิกจะค่อยๆ สะสมเพิ่มขึ้น</p>"
+      }
+    },
+    "how-do-you-report-progress": {
+      "fr": {
+        "question": "Comment rapportez-vous l'avancement ?",
+        "answer_html": "<p>Vous recevez des rapports mensuels clairs couvrant les classements, le trafic, les leads ou demandes, et le travail effectué, ainsi que les priorités du mois suivant. Nous expliquons les résultats en langage simple afin que les propriétaires et les équipes marketing puissent agir sur les données.</p>"
+      },
+      "th": {
+        "question": "คุณรายงานความคืบหน้าอย่างไร?",
+        "answer_html": "<p>คุณจะได้รับรายงานประจำเดือนที่ชัดเจนครอบคลุมอันดับ (Rankings) ปริมาณการเข้าชม ลีดหรือการสอบถาม และงานที่ดำเนินการเสร็จสิ้น พร้อมลำดับความสำคัญของเดือนถัดไป เราอธิบายผลลัพธ์ด้วยภาษาที่เข้าใจง่าย เพื่อให้เจ้าของธุรกิจและทีมการตลาดสามารถนำข้อมูลไปดำเนินการต่อได้</p>"
+      }
+    },
+    "how-do-you-optimize-google-business-profile-for-vientiane": {
+      "fr": {
+        "question": "Comment optimiser un profil Google Business pour le SEO à Vientiane ?",
+        "answer_html": "<p>Nous vérifions les catégories, les photos, les services, les publications et les réponses aux avis ; nous maintenons la cohérence des NAP ; et nous soutenons le profil avec des pages localisées pour que vous soyez bien classé pour les recherches pertinentes « près de chez moi » et par ville à Vientiane et sur les marchés voisins.</p>"
+      },
+      "th": {
+        "question": "คุณจะปรับแต่ง Google Business Profile สำหรับ SEO ในเวียงจันทน์ได้อย่างไร?",
+        "answer_html": "<p>เราตรวจสอบหมวดหมู่ รูปภาพ บริการ โพสต์ และการตอบกลับรีวิว รักษา NAP ให้สอดคล้องกัน และสนับสนุนโปรไฟล์ด้วยหน้าเพจที่ปรับให้เหมาะกับท้องถิ่น เพื่อให้คุณติดอันดับสำหรับการค้นหา \"near me\" และการค้นหาตามเมืองที่เกี่ยวข้องในเวียงจันทน์และตลาดใกล้เคียง</p>"
+      }
+    },
+    "where-can-i-read-your-privacy-and-terms-policies": {
+      "fr": {
+        "question": "Où puis-je consulter vos politiques de confidentialité et conditions d'utilisation ?",
+        "answer_html": "<p>Les documents juridiques sont publiés sur notre site : <a href=\"/en/company/legal/privacy-policy.html\">Politique de confidentialité</a>, <a href=\"/en/company/legal/terms-and-conditions.html\">Conditions générales</a> et <a href=\"/en/company/legal/cookie-policy.html\">Politique en matière de cookies</a>.</p>"
+      },
+      "th": {
+        "question": "ฉันสามารถอ่านนโยบายความเป็นส่วนตัวและข้อกำหนดของคุณได้ที่ไหน?",
+        "answer_html": "<p>เอกสารทางกฎหมายเผยแพร่บนเว็บไซต์ของเรา: <a href=\"/en/company/legal/privacy-policy.html\">นโยบายความเป็นส่วนตัว</a>, <a href=\"/en/company/legal/terms-and-conditions.html\">ข้อกำหนดและเงื่อนไข</a>, และ <a href=\"/en/company/legal/cookie-policy.html\">นโยบายคุกกี้</a></p>"
+      }
+    },
+    "do-you-replace-our-team-with-ai": {
+      "fr": {
+        "question": "Remplacez-vous notre équipe par l’IA ?",
+        "answer_html": "<p>Non. L'IA est une couche de productivité. La stratégie, la direction créative, la communication client et le contrôle qualité final restent entre les mains de spécialistes du marketing et de créateurs expérimentés.</p>"
+      },
+      "th": {
+        "question": "คุณจะเปลี่ยนทีมงานของเราเป็น AI หรือไม่?",
+        "answer_html": "<p>ไม่ เลขที่ AI เป็นเพียงชั้นเสริมประสิทธิภาพ กลยุทธ์ ทิศทางสร้างสรรค์ การสื่อสารกับลูกค้า และการควบคุมคุณภาพขั้นสุดท้ายยังคงอยู่กับนักการตลาดและผู้สร้างที่มีประสบการณ์</p>"
+      }
+    },
+    "how-fast-will-you-reply": {
+      "fr": {
+        "question": "À quelle rapidité répondrez-vous ?",
+        "answer_html": "<p>Nous visons à répondre sous un jour ouvrable. Les demandes urgentes via WhatsApp sont les bienvenues pour les conversations existantes.</p>"
+      },
+      "th": {
+        "question": "คุณจะตอบกลับเร็วแค่ไหน?",
+        "answer_html": "<p>เรามุ่งมั่นที่จะตอบกลับภายในหนึ่งวันทำการ สำหรับการร้องขอเร่งด่วนผ่าน WhatsApp ยินดีต้อนรับสำหรับการสนทนาที่มีอยู่แล้ว</p>"
+      }
+    },
+    "can-you-work-with-agencies-or-affiliates": {
+      "fr": {
+        "question": "Travaillez-vous avec des agences ou des affiliés ?",
+        "answer_html": "<p>Oui. Nous prenons en charge la livraison en marque blanche pour les agences et les partenaires affiliés basés sur commission. Mentionnez-le dans le formulaire afin que nous puissions vous orienter correctement.</p>"
+      },
+      "th": {
+        "question": "คุณทำงานกับเอเจนซี่หรือพันธมิตรได้หรือไม่?",
+        "answer_html": "<p>ใช่ เรารองรับการจัดส่งแบบ White-Label สำหรับเอเจนซี่และพาร์ทเนอร์ในรูปแบบคอมมิชชั่น โปรดระบุข้อมูลดังกล่าวในแบบฟอร์มเพื่อให้เราสามารถจัดเส้นทางให้คุณได้อย่างถูกต้อง</p>"
+      }
+    },
+    "where-are-you-based": {
+      "fr": {
+        "question": "Où êtes-vous basé ?",
+        "answer_html": "<p>Notre bureau se trouve au 20 Rue Samsenthai, Vientiane, Laos. Nous servons des clients dans toute l'Asie du Sud-Est, principalement en anglais avec un accompagnement sur les marchés locaux.</p>"
+      },
+      "th": {
+        "question": "คุณอยู่ที่ไหน?",
+        "answer_html": "<p>ที่อยู่สำนักงานของเราคือ 20 Rue Samsenthai, Vientiane, Laos เราบริการลูกค้าทั่วเอเชียตะวันออกเฉียงใต้ โดยส่วนใหญ่ใช้ภาษาอังกฤษ พร้อมการสนับสนุนตลาดท้องถิ่น</p>"
+      }
+    }
   }
 }
