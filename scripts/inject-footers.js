@@ -347,6 +347,35 @@ function mirrorExists(base, dir, fileRest) {
   }
 }
 
+// ── Localize footer content links to the page's own language ───
+//
+// footers.json hrefs are authored in English (/en/…). translateFooterHtml
+// swaps the visible link TEXT to the page language but leaves the HREFS on
+// /en/, so a Thai (or Lao/French) visitor who clicks any footer nav link is
+// bounced back to the English site — the "language resets on navigation" bug
+// this fixes. Rewrite each same-site /en/ footer link to the page's locale,
+// but ONLY when that localized page really exists as content on disk — the
+// same mirror rule the language selector uses (mirrorExists rejects missing
+// files and meta-refresh redirect stubs). A missing mirror keeps the working
+// English URL rather than minting a crawlable 404: an honest fallback, never a
+// bouncing link. External links (social, maps, WhatsApp, mail) and any non-/en
+// path are left untouched — the pattern only matches an /en segment at the
+// root of a same-site (or root-relative) href.
+const FOOTER_EN_HREF_RE =
+  /(href=")((?:https?:\/\/(?:www\.)?wordsthatsells\.website)?)\/en(\/[^"?#]*)?((?:[?#][^"]*)?)(")/gi;
+
+function localizeFooterLinks(footerHtml, lang, base = BASE) {
+  if (!lang || lang === 'en') return footerHtml;
+  return footerHtml.replace(FOOTER_EN_HREF_RE, (full, pre, host, rest, qh, post) => {
+    // Map the URL path to the file that would serve it: a directory URL
+    // ('/x/' or the locale root '/') resolves to its index.html.
+    const pathRest = rest || '/';
+    const fileRest = pathRest.endsWith('/') ? pathRest + 'index.html' : pathRest;
+    if (!mirrorExists(base, lang, fileRest)) return full; // no mirror → keep English
+    return pre + host + '/' + lang + (rest || '') + qh + post;
+  });
+}
+
 // Build the selector for a page file, or null when the file is not under a
 // language directory. index.html collapses to its directory URL.
 function langSwitcherFor(file, base = BASE) {
@@ -666,6 +695,9 @@ function main() {
         let newFooter = injectIntoFooter(fm.block, variant);
         if (newFooter == null) { stats.noFooter++; continue; }
         newFooter = translateFooterHtml(newFooter, langOfPath(urlPath));
+        // Point English footer links at the page's own locale (when that
+        // page exists) so navigation keeps the visitor's chosen language.
+        newFooter = localizeFooterLinks(newFooter, langOfPath(urlPath));
         let out = html.slice(0, fm.start) + newFooter + html.slice(fm.end);
         // Ensure footer styling: injects the inline footer CSS when the page has
         // none (skips pages that link the site stylesheet), and refreshes an
@@ -685,7 +717,8 @@ function main() {
       } else if (pick.explicit || isContentPage(urlPath)) {
         // Content page (or explicitly assigned) with no footer — build one
         // (self-styled so it works even on standalone pages) and insert it.
-        const created = translateFooterHtml(buildWholeFooter(variant), langOfPath(urlPath));
+        let created = translateFooterHtml(buildWholeFooter(variant), langOfPath(urlPath));
+        created = localizeFooterLinks(created, langOfPath(urlPath));
         const withCss = ensureFavicon(ensureFontAwesome(ensureFooterCss(stripLegacyFooterCss(html))));
         fs.writeFileSync(file, ensureLangSwitcher(insertBeforeBodyClose(withCss, created), file));
         stats.created++;
@@ -711,4 +744,4 @@ if (require.main === module) main();
 
 // Exported for tests (wts-admin/test/footer-lang-switcher.test.js), which
 // pass an explicit fixture `base` instead of the repo's real tree.
-module.exports = { langSwitcherFor, ensureLangSwitcher, ensureSocialRegion, stripLegacyFooterCss, stripFooterRulesFromCss };
+module.exports = { langSwitcherFor, ensureLangSwitcher, ensureSocialRegion, stripLegacyFooterCss, stripFooterRulesFromCss, localizeFooterLinks };
