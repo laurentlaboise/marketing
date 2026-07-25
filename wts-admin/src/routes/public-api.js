@@ -1423,8 +1423,9 @@ router.get('/my-services', async (req, res) => {
   if (!requirePortalSession(req, res)) return;
   try {
     const result = await db.query(
-      `SELECT s.product_id, s.billing_period, s.created_at,
-              p.name, p.slug, p.service_page
+      `SELECT s.product_id, s.billing_period, s.option_key, s.quantity,
+              s.quote_requested_at, s.created_at,
+              p.name, p.slug, p.service_page, p.purchase_mode
        FROM saved_services s
        JOIN products p ON p.id = s.product_id
        WHERE s.customer_id = $1
@@ -1442,18 +1443,28 @@ router.post('/my-services', async (req, res) => {
   if (!isOriginAllowed(req)) return respond(res, { error: 'Origin not allowed.' }, 403);
   if (!requirePortalSession(req, res)) return;
   try {
-    const { product_id, billing_period } = req.body;
+    const { product_id, billing_period, option_key, quantity } = req.body;
     if (!product_id) return respond(res, { error: 'product_id is required' }, 400);
     const product = await db.query(
       "SELECT id FROM products WHERE id = $1 AND status = 'active'", [product_id]
     );
     if (!product.rows.length) return respond(res, { error: 'Product not found' }, 404);
     const period = (billing_period === 'monthly' || billing_period === 'yearly') ? billing_period : null;
+    // Cart context: the line remembers which option/quantity the customer had
+    // picked in the panel. Full validation against the product's price shape
+    // happens at cart review/checkout — here we only bound the values.
+    const opt = (typeof option_key === 'string' && option_key.trim())
+      ? option_key.trim().slice(0, 100) : null;
+    const qtyNum = parseInt(quantity, 10);
+    const qty = Number.isFinite(qtyNum) && qtyNum >= 1 && qtyNum <= 9999 ? qtyNum : null;
     await db.query(
-      `INSERT INTO saved_services (customer_id, product_id, billing_period)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (customer_id, product_id) DO UPDATE SET billing_period = EXCLUDED.billing_period`,
-      [req.session.customerId, product_id, period]
+      `INSERT INTO saved_services (customer_id, product_id, billing_period, option_key, quantity)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (customer_id, product_id) DO UPDATE
+         SET billing_period = EXCLUDED.billing_period,
+             option_key = COALESCE(EXCLUDED.option_key, saved_services.option_key),
+             quantity = COALESCE(EXCLUDED.quantity, saved_services.quantity)`,
+      [req.session.customerId, product_id, period, opt, qty]
     );
     respond(res, { ok: true });
   } catch (e) {

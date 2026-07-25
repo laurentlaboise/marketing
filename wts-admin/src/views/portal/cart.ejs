@@ -1,0 +1,187 @@
+<%- include('partials/head') %>
+  <style>
+    .cart-note { border-radius: var(--wts-radius); padding: 0.8rem 1.05rem; font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; }
+    .cart-note.ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .cart-note.warn { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+    .cart-section { margin-bottom: 1.75rem; }
+    .cart-section h2 { font-size: 1.02rem; margin: 0 0 0.7rem; color: var(--wts-text); }
+    .cart-line { background: #fff; border: 1px solid var(--wts-border); border-radius: var(--wts-radius); box-shadow: var(--wts-shadow); padding: 1rem 1.15rem; margin-bottom: 0.7rem; display: flex; flex-wrap: wrap; gap: 0.85rem; align-items: center; justify-content: space-between; }
+    .cart-line .l-main { flex: 1; min-width: 200px; }
+    .cart-line strong { color: var(--wts-text); font-size: 0.98rem; }
+    .cart-line .l-meta { color: var(--wts-text-3); font-size: 0.84rem; margin-top: 0.25rem; }
+    .cart-line .l-amount { font-weight: 800; color: var(--wts-magenta); white-space: nowrap; font-size: 1.02rem; }
+    .cart-line form.inline { display: inline-flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-top: 0.45rem; }
+    .cart-line select, .cart-line input[type=number] { padding: 0.35rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.86rem; font-family: inherit; max-width: 220px; }
+    .cart-line input[type=number] { width: 5.2rem; }
+    .btn-mini { border: 1px solid var(--wts-border); background: #fff; color: var(--wts-text-2); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-mini:hover { border-color: #f9a8d4; color: var(--wts-magenta); }
+    .btn-mini.danger:hover { border-color: #fca5a5; color: #b91c1c; }
+    .needs-choice { color: #92400e; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 999px; font-size: 0.74rem; font-weight: 700; padding: 0.1rem 0.6rem; }
+    .quote-flag { color: #1d4ed8; background: #eff6ff; border-radius: 999px; font-size: 0.74rem; font-weight: 700; padding: 0.1rem 0.6rem; }
+    .cart-total { background: #fff; border: 1px solid var(--wts-border); border-radius: var(--wts-radius); box-shadow: var(--wts-shadow); padding: 1.15rem 1.25rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+    .cart-total .t-label { color: var(--wts-text-2); font-weight: 700; }
+    .cart-total .t-amount { font-size: 1.45rem; font-weight: 800; color: var(--wts-magenta); }
+    .btn-pay { background: var(--wts-magenta); color: #fff; border: none; border-radius: 999px; padding: 0.75rem 1.8rem; font-size: 1rem; font-weight: 800; cursor: pointer; font-family: inherit; }
+    .btn-pay:hover { background: var(--wts-magenta-dark, #b91c6f); }
+    .btn-quote { background: #fff; color: var(--wts-magenta); border: 1.5px solid var(--wts-magenta); border-radius: 999px; padding: 0.65rem 1.4rem; font-size: 0.92rem; font-weight: 800; cursor: pointer; font-family: inherit; }
+    .btn-wa { display: inline-flex; align-items: center; gap: 0.45rem; background: #25D366; color: #fff; border-radius: 999px; padding: 0.65rem 1.4rem; font-size: 0.92rem; font-weight: 800; text-decoration: none; }
+    .quote-note { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0.6rem 0.8rem; font-size: 0.92rem; font-family: inherit; resize: vertical; min-height: 70px; margin: 0.6rem 0; }
+    .empty-cart { text-align: center; background: #fff; border: 1px dashed var(--wts-border); border-radius: var(--wts-radius); padding: 2.5rem 1.5rem; color: var(--wts-text-3); }
+    .empty-cart a.cta { display: inline-block; margin-top: 0.9rem; background: var(--wts-magenta); color: #fff; border-radius: 999px; padding: 0.6rem 1.4rem; font-weight: 700; text-decoration: none; }
+    .hint { color: var(--wts-muted); font-size: 0.82rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body class="portal-app">
+  <%- include('partials/topbar') %>
+  <div class="app-shell">
+    <%- include('partials/nav', { active: 'cart' }) %>
+    <main class="main">
+      <div class="main-inner">
+        <div class="page-head">
+          <p class="page-kicker"><%= t('cart.kicker') %></p>
+          <h1><%= t('cart.title') %></h1>
+          <p class="page-sub"><%= t('cart.subtitle') %></p>
+        </div>
+
+        <% if (notice.quoted) { %><div class="cart-note ok"><%= t('cart.noticeQuoted') %></div><% } %>
+        <% if (notice.updated) { %><div class="cart-note ok"><%= t('cart.noticeUpdated') %></div><% } %>
+        <% if (notice.removed) { %><div class="cart-note ok"><%= t('cart.noticeRemoved') %></div><% } %>
+        <% if (notice.incomplete) { %><div class="cart-note warn"><%= t('cart.noticeIncomplete') %></div><% } %>
+        <% if (notice.mixed) { %><div class="cart-note warn"><%= t('cart.noticeMixed') %></div><% } %>
+        <% if (notice.payerr) { %><div class="cart-note warn"><%= t('cart.noticePayError') %></div><% } %>
+
+        <% if (cart.itemCount === 0) { %>
+          <div class="empty-cart">
+            <p><strong><%= t('cart.emptyTitle') %></strong></p>
+            <p><%= t('cart.emptyBody') %></p>
+            <a class="cta" href="https://wordsthatsells.website/en/digital-marketing-services/" rel="noopener"><%= t('cart.emptyCta') %></a>
+          </div>
+        <% } else { %>
+
+          <% if (cart.payable.length) { %>
+          <div class="cart-section">
+            <h2><%= t('cart.sectionPay') %></h2>
+            <% cart.payable.forEach(function (l) { %>
+            <div class="cart-line">
+              <div class="l-main">
+                <strong><%= l.name %></strong>
+                <% if (l.needs_choice) { %> <span class="needs-choice"><%= t('cart.chooseOption') %></span><% } %>
+                <div class="l-meta">
+                  <% if (l.kind === 'options') { %>
+                    <form class="inline" method="POST" action="/portal/cart/items/<%= l.product_id %>">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <select name="option_key">
+                        <% if (l.needs_choice) { %><option value="" selected>— <%= t('cart.chooseOption') %> —</option><% } %>
+                        <% l.options.forEach(function (o) { %>
+                          <option value="<%= o.key %>" <%= l.option_key === o.key ? 'selected' : '' %>><%= o.label %><%= o.price != null ? ' · ' + o.price.toFixed(2) + ' ' + l.currency : '' %></option>
+                        <% }); %>
+                      </select>
+                      <button class="btn-mini" type="submit"><%= t('cart.update') %></button>
+                    </form>
+                  <% } else if (l.kind === 'tiered' || l.price_unit === 'hour' || l.price_unit === 'item') { %>
+                    <form class="inline" method="POST" action="/portal/cart/items/<%= l.product_id %>">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <label><%= l.price_unit === 'hour' ? t('cart.hours') : t('cart.quantity') %>
+                        <input type="number" name="quantity" min="<%= l.min_qty || 1 %>" max="9999" value="<%= l.quantity %>">
+                      </label>
+                      <button class="btn-mini" type="submit"><%= t('cart.update') %></button>
+                      <span><%= l.unit_price.toFixed(2) %> <%= l.currency %><%= l.price_unit === 'hour' ? t('cart.perHour') : (l.kind === 'tiered' ? t('cart.perUnit') : '') %></span>
+                    </form>
+                  <% } %>
+                </div>
+              </div>
+              <span class="l-amount"><%= l.amount != null ? l.amount.toFixed(2) + ' ' + l.currency : '—' %></span>
+              <form method="POST" action="/portal/cart/items/<%= l.product_id %>/remove">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn-mini danger" type="submit"><%= t('cart.remove') %></button>
+              </form>
+            </div>
+            <% }); %>
+
+            <div class="cart-total">
+              <span class="t-label"><%= t('cart.totalLabel') %></span>
+              <span class="t-amount"><%= cart.total != null ? cart.total.toFixed(2) + ' ' + cart.currency : '—' %></span>
+              <form method="POST" action="/portal/cart/checkout">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn-pay" type="submit"><%= t('cart.payNow', { amount: cart.total != null ? cart.total.toFixed(2) + ' ' + cart.currency : '' }) %></button>
+              </form>
+            </div>
+            <p class="hint"><%= t('cart.payHint') %></p>
+          </div>
+          <% } %>
+
+          <% if (cart.subscriptions.length) { %>
+          <div class="cart-section">
+            <h2><%= t('cart.sectionSubs') %></h2>
+            <% cart.subscriptions.forEach(function (l) { %>
+            <div class="cart-line">
+              <div class="l-main">
+                <strong><%= l.name %></strong>
+                <div class="l-meta">
+                  <%= l.monthly_price != null ? l.monthly_price.toFixed(2) + ' ' + l.currency + t('cart.perMonth') : '' %>
+                  <%= l.monthly_price != null && l.yearly_price != null ? ' · ' : '' %>
+                  <%= l.yearly_price != null ? l.yearly_price.toFixed(2) + ' ' + l.currency + t('cart.perYear') : '' %>
+                </div>
+              </div>
+              <button class="btn-mini js-subscribe" data-product-id="<%= l.product_id %>" data-billing="<%= l.billing_period || '' %>" type="button"><%= t('cart.subscribe') %></button>
+              <form method="POST" action="/portal/cart/items/<%= l.product_id %>/remove">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn-mini danger" type="submit"><%= t('cart.remove') %></button>
+              </form>
+            </div>
+            <% }); %>
+            <p class="hint"><%= t('cart.subsHint') %></p>
+          </div>
+          <% } %>
+
+          <% if (cart.quote.length) { %>
+          <div class="cart-section">
+            <h2><%= t('cart.sectionQuote') %></h2>
+            <% cart.quote.forEach(function (l) { %>
+            <div class="cart-line">
+              <div class="l-main">
+                <strong><%= l.name %></strong>
+                <% if (l.quote_requested_at) { %> <span class="quote-flag"><%= t('cart.quoteRequested') %></span><% } %>
+              </div>
+              <form method="POST" action="/portal/cart/items/<%= l.product_id %>/remove">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn-mini danger" type="submit"><%= t('cart.remove') %></button>
+              </form>
+            </div>
+            <% }); %>
+            <form method="POST" action="/portal/cart/quote">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <textarea class="quote-note" name="note" maxlength="2000" placeholder="<%= t('cart.notePlaceholder') %>"></textarea>
+              <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;">
+                <button class="btn-quote" type="submit"><%= t('cart.requestQuote', { count: cart.quote.length }) %></button>
+                <a class="btn-wa" href="<%= waQuoteLink %>" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+              </div>
+            </form>
+            <p class="hint"><%= t('cart.quoteHint') %></p>
+          </div>
+          <% } %>
+
+        <% } %>
+      </div>
+    </main>
+  </div>
+  <script>
+    // Subscriptions check out individually in v1 (plan §5 1.6 lifts this):
+    // reuse the same public endpoint the marketing site uses.
+    document.querySelectorAll('.js-subscribe').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        btn.disabled = true;
+        var body = { product_id: btn.getAttribute('data-product-id') };
+        var billing = btn.getAttribute('data-billing');
+        if (billing) body.billing_period = billing;
+        fetch('/api/payments/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        }).then(function (r) { return r.json(); })
+          .then(function (d) { if (d && d.url) { window.location.href = d.url; } else { btn.disabled = false; } })
+          .catch(function () { btn.disabled = false; });
+      });
+    });
+  </script>
+  <%- include('partials/footer') %>

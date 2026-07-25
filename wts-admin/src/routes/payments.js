@@ -501,6 +501,20 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         console.warn('Stripe webhook customer link failed:', e.message);
       }
 
+      // A paid cart empties itself: purchased lines leave the customer's
+      // cart, which is pre-purchase only (plan §5 1.0 / 3.2). Idempotent —
+      // a webhook retry deletes nothing the first delivery didn't.
+      try {
+        await db.query(
+          `DELETE FROM saved_services s USING orders o
+           WHERE o.stripe_session_id = $1 AND o.cart_id IS NOT NULL
+             AND s.customer_id = o.customer_id AND s.product_id = o.product_id`,
+          [session.id]
+        );
+      } catch (e) {
+        console.warn('Cart clear after payment failed:', e.message);
+      }
+
       // Gated board deliverable: the checkout session was created by the
       // review board with the asset id in its metadata — flip the asset to
       // 'unlocked' so the client's Download final button goes live.

@@ -105,6 +105,27 @@ const requireCustomer = (req, res, next) => {
 // Scoped id checks — used by deliverable download and action-item mark-done.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// ── Cart (plan §5 1.0–1.5) ─────────────────────────────────────
+//
+// Every portal render learns whether the cart is enabled and how many lines
+// the signed-in customer has, so the nav can show the badge. Kill-switch:
+// FEATURE_CART=0 hides the nav item and the /portal/cart routes redirect.
+router.use(async (req, res, next) => {
+  res.locals.featureCart = process.env.FEATURE_CART !== '0';
+  res.locals.cartCount = 0;
+  if (res.locals.featureCart && req.session && req.session.customerId) {
+    try {
+      const c = await db.query(
+        'SELECT COUNT(*)::int AS n FROM saved_services WHERE customer_id = $1',
+        [req.session.customerId]
+      );
+      res.locals.cartCount = c.rows[0].n;
+    } catch (e) { /* the badge is best-effort — never block a page on it */ }
+  }
+  next();
+});
+router.use('/cart', require('./portal-cart'));
+
 // Tight limit on the endpoints that send email / mint sessions.
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

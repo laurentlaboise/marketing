@@ -23,6 +23,14 @@
   <a class="nav-item <%= active === 'workspace' ? 'active' : '' %>" href="/portal/workspace">
     <span class="ico"><%- ico('work') %></span><%= t('nav.workspace') %>
   </a>
+  <% if (typeof featureCart !== 'undefined' && featureCart) { %>
+  <a class="nav-item <%= active === 'cart' ? 'active' : '' %>" href="/portal/cart">
+    <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h2l2.2 10.2a1.6 1.6 0 0 0 1.57 1.3h7.7a1.6 1.6 0 0 0 1.56-1.23L21 8H7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10.4" cy="19.6" r="1.35" fill="currentColor"/><circle cx="17.6" cy="19.6" r="1.35" fill="currentColor"/></svg></span><%= t('nav.cart') %>
+    <% if (typeof cartCount !== 'undefined' && cartCount > 0) { %>
+    <span style="margin-left:auto;background:var(--wts-magenta,#d62b83);color:#fff;border-radius:999px;font-size:0.7rem;font-weight:800;padding:0.08rem 0.5rem;line-height:1.4;"><%= cartCount %></span>
+    <% } %>
+  </a>
+  <% } %>
   <% if (typeof featureWhiteboard !== 'undefined' && featureWhiteboard) { %>
   <a class="nav-item <%= active === 'boards' ? 'active' : '' %>" href="/portal/boards">
     <span class="ico"><%- ico('board') %></span><%= t('nav.boards') %>
