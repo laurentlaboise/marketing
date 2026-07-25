@@ -89,7 +89,7 @@ echo -e "${GREEN}✅ .env file created${NC}"
 if [ ! -d "node_modules" ]; then
     echo ""
     echo "📦 Installing npm dependencies..."
-    npm install
+    npm ci
     echo -e "${GREEN}✅ Dependencies installed${NC}"
 else
     echo -e "${GREEN}✅ Dependencies already installed${NC}"

@@ -1,8 +1,12 @@
+# Node 22 = active LTS (EOL 2027-04); Node 20 went EOL 2026-04-30.
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs_22"]
 
+# Plain npm ci on purpose: if manifest and lock ever drift, the deploy must
+# FAIL, not silently re-resolve unreviewed dependency versions on a server
+# that processes payments (the old "|| npm install" fallback did exactly that).
 [phases.install]
-cmds = ["npm ci || npm install"]
+cmds = ["npm ci"]
 
 [phases.build]
 cmds = []
