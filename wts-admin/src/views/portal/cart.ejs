@@ -30,6 +30,21 @@
     .empty-cart { text-align: center; background: #fff; border: 1px dashed var(--wts-border); border-radius: var(--wts-radius); padding: 2.5rem 1.5rem; color: var(--wts-text-3); }
     .empty-cart a.cta { display: inline-block; margin-top: 0.9rem; background: var(--wts-magenta); color: #fff; border-radius: 999px; padding: 0.6rem 1.4rem; font-weight: 700; text-decoration: none; }
     .hint { color: var(--wts-muted); font-size: 0.82rem; margin-top: 0.5rem; }
+    /* Slide-in payment panel — same drawer pattern as the other right-hand
+       sidebars; Stripe's embedded checkout mounts inside it. */
+    .pay-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.55); z-index: 60; opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s; }
+    .pay-panel { position: fixed; top: 0; right: 0; height: 100%; width: 100%; max-width: 520px; background: #fff; z-index: 61; transform: translateX(100%); transition: transform .3s ease; display: flex; flex-direction: column; box-shadow: -12px 0 32px rgba(15,23,42,0.18); }
+    body.pay-open .pay-overlay { opacity: 1; visibility: visible; }
+    body.pay-open .pay-panel { transform: translateX(0); }
+    .pay-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--wts-border); }
+    .pay-panel-head strong { font-size: 1.02rem; color: var(--wts-text); }
+    .pay-panel-close { background: none; border: none; font-size: 1.6rem; line-height: 1; color: var(--wts-text-3); cursor: pointer; padding: 0.25rem 0.55rem; font-family: inherit; }
+    .pay-panel-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0.6rem 0.75rem 1.25rem; }
+    .pay-panel-status { text-align: center; color: var(--wts-text-3); font-size: 0.9rem; padding: 2.5rem 1rem; }
+    .pay-panel-status.error { color: #b91c1c; }
+    .pay-panel-status .spin { display: inline-block; width: 26px; height: 26px; border: 3px solid #fbcfe8; border-top-color: var(--wts-magenta); border-radius: 50%; animation: payspin .9s linear infinite; margin-bottom: 0.7rem; }
+    .pay-panel-status .err-hint { display: block; margin-top: 0.5rem; font-size: 0.82rem; color: var(--wts-text-3); }
+    @keyframes payspin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body class="portal-app">
@@ -116,7 +131,7 @@
             <div class="cart-total">
               <span class="t-label"><%= t('cart.totalLabel') %></span>
               <span class="t-amount"><%= cart.total != null ? cart.total.toFixed(2) + ' ' + cart.currency : '—' %></span>
-              <form method="POST" action="/portal/cart/checkout">
+              <form method="POST" action="/portal/cart/checkout" id="cart-pay-form">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button class="btn-pay" type="submit"><%= t('cart.payNow', { amount: cart.total != null ? cart.total.toFixed(2) + ' ' + cart.currency : '' }) %></button>
               </form>
@@ -128,6 +143,119 @@
             </div>
             <p class="hint"><%= t('cart.payHint') %></p>
           </div>
+
+          <div class="pay-overlay" id="pay-overlay"></div>
+          <aside class="pay-panel" id="pay-panel" role="dialog" aria-modal="true" aria-label="<%= t('cart.payPanelTitle') %>" hidden>
+            <div class="pay-panel-head">
+              <strong><%= t('cart.payPanelTitle') %></strong>
+              <button type="button" class="pay-panel-close" id="pay-panel-close" aria-label="<%= t('cart.payPanelClose') %>">&times;</button>
+            </div>
+            <div class="pay-panel-body">
+              <div class="pay-panel-status" id="pay-panel-status">
+                <span class="spin" id="pay-panel-spin"></span>
+                <div id="pay-panel-msg"><%= t('cart.payPanelLoading') %></div>
+                <span class="err-hint" id="pay-panel-hint"></span>
+              </div>
+              <div id="pay-embed"></div>
+            </div>
+          </aside>
+          <script nonce="<%= cspNonce %>">
+          (function () {
+            var form = document.getElementById('cart-pay-form');
+            if (!form || !window.fetch) return;
+            var panel = document.getElementById('pay-panel');
+            var overlay = document.getElementById('pay-overlay');
+            var status = document.getElementById('pay-panel-status');
+            var spin = document.getElementById('pay-panel-spin');
+            var msg = document.getElementById('pay-panel-msg');
+            var hint = document.getElementById('pay-panel-hint');
+            var embedHost = document.getElementById('pay-embed');
+            var payBtn = form.querySelector('button[type="submit"]');
+            var checkout = null;
+            var stripeJsPromise = null;
+            var I18N = {
+              loading: <%- JSON.stringify(t('cart.payPanelLoading')) %>,
+              error: <%- JSON.stringify(t('cart.payPanelError')) %>,
+              errorHint: <%- JSON.stringify(t('cart.payPanelErrorHint')) %>
+            };
+
+            function loadStripeJs() {
+              if (window.Stripe) return Promise.resolve();
+              if (!stripeJsPromise) {
+                stripeJsPromise = new Promise(function (resolve, reject) {
+                  var s = document.createElement('script');
+                  s.src = 'https://js.stripe.com/v3/';
+                  s.onload = resolve;
+                  s.onerror = function () { stripeJsPromise = null; reject(new Error('Stripe.js could not load')); };
+                  document.head.appendChild(s);
+                });
+              }
+              return stripeJsPromise;
+            }
+
+            function openPanel() {
+              panel.hidden = false;
+              status.hidden = false;
+              status.classList.remove('error');
+              spin.hidden = false;
+              msg.textContent = I18N.loading;
+              hint.textContent = '';
+              requestAnimationFrame(function () { document.body.classList.add('pay-open'); });
+            }
+
+            function closePanel() {
+              document.body.classList.remove('pay-open');
+              if (checkout) { try { checkout.destroy(); } catch (e) {} checkout = null; }
+              embedHost.innerHTML = '';
+              payBtn.disabled = false;
+              setTimeout(function () { panel.hidden = true; }, 300);
+            }
+
+            function showError(detail) {
+              status.hidden = false;
+              status.classList.add('error');
+              spin.hidden = true;
+              msg.textContent = detail || I18N.error;
+              hint.textContent = I18N.errorHint;
+            }
+
+            form.addEventListener('submit', function (e) {
+              e.preventDefault();
+              if (payBtn.disabled) return;
+              payBtn.disabled = true;
+              openPanel();
+              fetch(form.action, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                  'Accept': 'application/json',
+                  'X-CSRF-Token': (form.querySelector('input[name="_csrf"]') || {}).value || ''
+                }
+              })
+                .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+                .then(function (res) {
+                  if (!res.ok || res.j.error) {
+                    throw new Error((res.j && res.j.error ? res.j.error + (res.j.detail ? ' — ' + res.j.detail : '') : I18N.error));
+                  }
+                  if (res.j.url) { window.location.assign(res.j.url); return; }
+                  return loadStripeJs().then(function () {
+                    return window.Stripe(res.j.publishableKey).initEmbeddedCheckout({ clientSecret: res.j.clientSecret });
+                  }).then(function (co) {
+                    checkout = co;
+                    status.hidden = true;
+                    co.mount('#pay-embed');
+                  });
+                })
+                .catch(function (err) { showError(err && err.message); });
+            });
+
+            document.getElementById('pay-panel-close').addEventListener('click', closePanel);
+            overlay.addEventListener('click', closePanel);
+            document.addEventListener('keydown', function (e) {
+              if (e.key === 'Escape' && document.body.classList.contains('pay-open')) closePanel();
+            });
+          })();
+          </script>
           <% } %>
 
           <% if (cart.quote.length) { %>
