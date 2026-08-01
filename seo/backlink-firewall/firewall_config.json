@@ -5,13 +5,10 @@
 
   "thresholds": {
     "min_domain_rating": 20,
-    "preferred_domain_rating": 30,
     "min_organic_traffic_monthly": 100,
     "min_domain_age_years": 1,
-    "preferred_domain_age_years": 2,
     "max_hyphens_in_domain": 2,
-    "max_domain_name_length": 30,
-    "max_spam_keyword_hits": 0
+    "max_domain_name_length": 30
   },
 
   "scoring": {
@@ -24,13 +21,15 @@
     "suspicious_tld": 25,
     "spam_keyword": 30,
     "spam_keyword_extra": 15,
+    "suspicious_tld_spam_combo": 20,
     "spam_bigram": 60,
     "too_many_hyphens": 20,
     "excessive_length": 15,
     "digits_in_domain": 10,
     "known_blacklist_domain": 100,
     "low_dr": 20,
-    "no_traffic": 15
+    "no_traffic": 15,
+    "young_domain": 15
   },
 
   "tld_blacklist": [
@@ -73,14 +72,18 @@
     "co.th", "com.la", "org.la", "edu.la", "gov.la", "com.sg", "co.uk"
   ],
 
-  "placement_rules": {
-    "preferred": ["editorial-in-content", "resource-page", "interview", "podcast-shownotes", "directory-curated"],
-    "review": ["author-bio", "comment", "forum-profile", "pingback"],
-    "reject": ["sidebar-sitewide", "footer-sitewide", "sponsored-undisclosed", "link-farm-page", "fake-testimonial"]
-  },
-
-  "dofollow_policy": {
-    "note": "Prefer dofollow from relevant, real sites, but a natural profile is 60-80% dofollow with the rest nofollow/UGC/sponsored. Never chase dofollow from low-quality domains.",
-    "min_target_dofollow_ratio": 0.3
+  "manual_review_reference": {
+    "_note": "Reference data for the human checklist in README section 4. NOT consumed by link_firewall.py — placement type and dofollow status require looking at the linking page, which the script cannot do offline.",
+    "preferred_domain_rating": 30,
+    "preferred_domain_age_years": 2,
+    "placement_rules": {
+      "preferred": ["editorial-in-content", "resource-page", "interview", "podcast-shownotes", "directory-curated"],
+      "review": ["author-bio", "comment", "forum-profile", "pingback"],
+      "reject": ["sidebar-sitewide", "footer-sitewide", "sponsored-undisclosed", "link-farm-page", "fake-testimonial"]
+    },
+    "dofollow_policy": {
+      "note": "Prefer dofollow from relevant, real sites, but a natural profile is 60-80% dofollow with the rest nofollow/UGC/sponsored. Never chase dofollow from low-quality domains.",
+      "min_target_dofollow_ratio": 0.3
+    }
   }
 }

@@ -72,10 +72,15 @@ DEFAULT_CONFIG = {
     "scoring": {"reject_at": 60, "review_at": 25},
     "penalties": {
         "blacklisted_tld": 60, "suspicious_tld": 25, "spam_keyword": 30,
-        "spam_keyword_extra": 15, "spam_bigram": 60, "too_many_hyphens": 20,
+        "spam_keyword_extra": 15, "suspicious_tld_spam_combo": 20,
+        "spam_bigram": 60, "too_many_hyphens": 20,
         "excessive_length": 15, "digits_in_domain": 10,
         "known_blacklist_domain": 100, "low_dr": 20, "no_traffic": 15,
+        "young_domain": 15,
     },
+    "trusted_tlds": ["com", "org", "net", "edu", "gov", "co", "io", "dev",
+                     "la", "th", "vn", "kh", "sg", "asia", "co.th", "com.la",
+                     "org.la", "co.uk"],
     "tld_blacklist": ["shop", "store", "space", "icu", "top", "click", "buzz",
                       "cyou", "rest", "monster", "cfd", "sbs", "bond", "lol"],
     "tld_suspicious": ["xyz", "online", "site", "website", "live", "world",
@@ -153,21 +158,30 @@ def evaluate(domain: str, row: dict, cfg: dict, blacklist: set,
         score += pen["known_blacklist_domain"]
         reasons.append("domain already on the known-spam blacklist")
 
-    # --- Rule 1: TLD checks ---
+    # --- Rule 1: TLD checks (trusted TLDs skip the suspicious penalty) ---
     tld = get_tld(domain)
+    suspicious_tld_hit = False
     if tld in cfg["tld_blacklist"]:
         score += pen["blacklisted_tld"]
         reasons.append(f"blacklisted TLD .{tld} (spam-heavy registry)")
-    elif tld in cfg.get("tld_suspicious", []):
+    elif tld not in cfg.get("trusted_tlds", []) and tld in cfg.get("tld_suspicious", []):
+        suspicious_tld_hit = True
         score += pen["suspicious_tld"]
         reasons.append(f"suspicious TLD .{tld} (extra scrutiny)")
 
-    # --- Rule 2: spam keywords in the domain name ---
-    name_for_match = domain.replace(".", "-")
+    # --- Rule 2: spam keywords in the domain name (TLD stripped so the
+    #     TLD itself never triggers keyword or topical matches) ---
+    name_only = domain[: -(len(tld) + 1)] if domain.endswith("." + tld) else domain
+    name_for_match = name_only.replace(".", "-")
     hits = [kw for kw in cfg["spam_keywords"] if kw in name_for_match]
     if hits:
         score += pen["spam_keyword"] + pen["spam_keyword_extra"] * (len(hits) - 1)
         reasons.append("spam keyword(s) in domain name: " + ", ".join(hits))
+        if suspicious_tld_hit:
+            # Spam keyword + throwaway TLD is the exact footprint of the
+            # domains this toolkit disavows — escalate straight to REJECT.
+            score += pen.get("suspicious_tld_spam_combo", 20)
+            reasons.append("spam keyword combined with suspicious TLD")
 
     # --- Rule 3: spam keyword combinations (bigrams) ---
     words = set(domain_words(domain))
@@ -177,9 +191,10 @@ def evaluate(domain: str, row: dict, cfg: dict, blacklist: set,
             reasons.append(f"spam word combination '{a}'+'{b}' in domain")
             break
 
-    # --- Rule 4: structural red flags ---
-    name = domain.split(".")[0] if domain.count(".") == 1 else domain
-    hyphens = domain.count("-")
+    # --- Rule 4: structural red flags (on the registrable label only, so
+    #     compound TLDs like co.th/com.la and subdomains don't skew checks) ---
+    name = name_only.split(".")[-1]
+    hyphens = name.count("-")
     if hyphens > thr["max_hyphens_in_domain"]:
         score += pen["too_many_hyphens"]
         reasons.append(f"{hyphens} hyphens in domain (keyword-stuffed pattern)")
@@ -200,6 +215,12 @@ def evaluate(domain: str, row: dict, cfg: dict, blacklist: set,
         score += pen["no_traffic"]
         reasons.append(f"organic traffic {traffic:g} below minimum "
                        f"{thr['min_organic_traffic_monthly']}/month")
+    age = _age_years(row.get("first_seen") or row.get("first seen"))
+    min_age = thr.get("min_domain_age_years")
+    if age is not None and min_age is not None and age < min_age:
+        score += pen.get("young_domain", 15)
+        reasons.append(f"first seen only {age:.1f} year(s) ago "
+                       f"(minimum age {min_age})")
 
     # --- Positive signal: topical relevance can soften a REVIEW ---
     topical = [kw for kw in cfg.get("topical_whitelist_keywords", [])
@@ -230,6 +251,23 @@ def _num(value):
         return float(value)
     except ValueError:
         return None
+
+
+def _age_years(value):
+    """Parse a 'first_seen' date ('2024-03-01', '2024/03/01', ISO datetime,
+    or bare '2024') → age in years from today, or None if unparseable."""
+    if not value:
+        return None
+    match = re.match(r"(\d{4})(?:[-/](\d{1,2}))?(?:[-/](\d{1,2}))?",
+                     str(value).strip())
+    if not match:
+        return None
+    year, month, day = (int(g) if g else 1 for g in match.groups())
+    try:
+        seen = date(year, month, day)
+    except ValueError:
+        return None
+    return (date.today() - seen).days / 365.25
 
 
 DOMAIN_COLUMNS = ("domain", "referring domain", "referring page url",

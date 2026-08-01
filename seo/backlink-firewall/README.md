@@ -182,10 +182,18 @@ fails → REJECT (and add to blacklist).
 
 ### Machine-readable configuration
 
-The same rules live in [`firewall_config.json`](firewall_config.json) —
-thresholds, penalty weights, TLD lists, spam keywords/bigrams, topical
-keywords, placement rules. `link_firewall.py` loads it at runtime, so tuning
-the firewall never requires touching code.
+The rules live in [`firewall_config.json`](firewall_config.json), which
+`link_firewall.py` loads at runtime. Two kinds of keys:
+
+- **Enforced by the script**: `thresholds` (DR, traffic, domain age, hyphen
+  and length limits), `scoring`, `penalties`, `tld_blacklist`,
+  `tld_suspicious`, `trusted_tlds`, `spam_keywords`, `spam_bigrams`,
+  `topical_whitelist_keywords`. Tuning any of these changes classification
+  without touching code.
+- **Manual-review reference only** (`manual_review_reference` section):
+  preferred DR/age targets, `placement_rules`, and `dofollow_policy`. These
+  back the human checklist above — placement type and dofollow status require
+  looking at the linking page, which the offline script cannot do.
 
 ---
 
