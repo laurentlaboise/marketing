@@ -1,0 +1,3 @@
+# WordsThatSells always-accept whitelist
+# Domains here always pass the firewall (one per line).
+reelnreel.com

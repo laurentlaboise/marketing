@@ -1,0 +1,89 @@
+{
+  "name": "WordsThatSells Link Quality Firewall",
+  "version": "1.0",
+  "site": "wordsthatsells.website",
+
+  "thresholds": {
+    "min_domain_rating": 20,
+    "min_organic_traffic_monthly": 100,
+    "min_domain_age_years": 1,
+    "max_hyphens_in_domain": 2,
+    "max_domain_name_length": 30
+  },
+
+  "scoring": {
+    "reject_at": 60,
+    "review_at": 25
+  },
+
+  "penalties": {
+    "blacklisted_tld": 60,
+    "suspicious_tld": 25,
+    "spam_keyword": 30,
+    "spam_keyword_extra": 15,
+    "suspicious_tld_spam_combo": 20,
+    "spam_bigram": 60,
+    "too_many_hyphens": 20,
+    "excessive_length": 15,
+    "digits_in_domain": 10,
+    "known_blacklist_domain": 100,
+    "low_dr": 20,
+    "no_traffic": 15,
+    "young_domain": 15
+  },
+
+  "tld_blacklist": [
+    "shop", "store", "space", "icu", "top", "click", "buzz", "cyou",
+    "rest", "monster", "cfd", "sbs", "bond", "lol", "beauty", "hair",
+    "skin", "makeup", "quest", "boats", "mom", "uno"
+  ],
+
+  "tld_suspicious": [
+    "xyz", "online", "site", "website", "live", "world", "today",
+    "fun", "pro", "vip", "work", "link", "biz", "info"
+  ],
+
+  "spam_keywords": [
+    "rank", "backlink", "back-link", "seo", "linkbuild", "link-build",
+    "dofollow", "do-follow", "pbn", "guestpost", "guest-post",
+    "outreach", "da-boost", "dr-boost", "domain-authority",
+    "high-da", "high-dr", "crawl-budget", "traffic-surge",
+    "outrank", "serp", "linksnexa", "rankzly", "seoexpress",
+    "monetize", "webrank", "siterank", "toplink", "linkory",
+    "buylink", "buy-link", "cheaplink"
+  ],
+
+  "spam_bigrams": [
+    ["digital", "pr"], ["link", "boost"], ["instant", "seo"],
+    ["expert", "traffic"], ["authority", "boost"], ["seo", "express"],
+    ["web", "rank"], ["site", "rank"], ["domain", "rank"]
+  ],
+
+  "topical_whitelist_keywords": [
+    "marketing", "digital", "business", "startup", "entrepreneur",
+    "tech", "ai", "content", "media", "news", "laos", "lao",
+    "vientiane", "asean", "asia", "mekong", "thailand", "vietnam",
+    "cambodia", "travel", "chamber", "commerce", "university", "edu"
+  ],
+
+  "trusted_tlds": [
+    "com", "org", "net", "edu", "gov", "co", "io", "dev",
+    "la", "th", "vn", "kh", "sg", "my", "id", "ph", "asia",
+    "co.th", "com.la", "org.la", "edu.la", "gov.la", "com.sg", "co.uk"
+  ],
+
+  "manual_review_reference": {
+    "_note": "Reference data for the human checklist in README section 4. NOT consumed by link_firewall.py — placement type and dofollow status require looking at the linking page, which the script cannot do offline.",
+    "preferred_domain_rating": 30,
+    "preferred_domain_age_years": 2,
+    "placement_rules": {
+      "preferred": ["editorial-in-content", "resource-page", "interview", "podcast-shownotes", "directory-curated"],
+      "review": ["author-bio", "comment", "forum-profile", "pingback"],
+      "reject": ["sidebar-sitewide", "footer-sitewide", "sponsored-undisclosed", "link-farm-page", "fake-testimonial"]
+    },
+    "dofollow_policy": {
+      "note": "Prefer dofollow from relevant, real sites, but a natural profile is 60-80% dofollow with the rest nofollow/UGC/sponsored. Never chase dofollow from low-quality domains.",
+      "min_target_dofollow_ratio": 0.3
+    }
+  }
+}
