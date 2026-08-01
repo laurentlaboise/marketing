@@ -1,0 +1,22 @@
+# WordsThatSells known-spam domain blacklist
+# One domain per line. Lines starting with # are comments.
+# link_firewall.py --update-blacklist appends new REJECTs here.
+
+# Confirmed spam referring domains (Ahrefs, August 2026)
+linksnexa.shop
+rankbasket.shop
+webrankinsights.shop
+nexabacklinks.shop
+siterankexpress.shop
+rankcart.shop
+modern-studio-outrank-hq-blogger.store
+seoexpress.space
+rankyour.website
+domainrankresults.shop
+rankseopartners.shop
+high-da-and-crawl-budget-strategic-exchange.store
+linkrankboost.shop
+seomart.shop
+linkory.shop
+expert-systems-for-traffic-surge-and-digital-pr.store
+instant-webpage-seoexpress-consultants.store

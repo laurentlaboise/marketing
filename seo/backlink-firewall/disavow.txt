@@ -1,0 +1,56 @@
+# ============================================================
+# Google Disavow File — wordsthatsells.website
+# Generated: 2026-08-01
+# Reason: Removal of manipulative / spam backlinks from
+#         SEO-service seller domains (fake testimonials and
+#         fake "case studies" on disposable .shop/.store/.space
+#         TLD domains created to sell link-building packages).
+# These links were never requested, provide no value, and
+# match known link-scheme footprints.
+#
+# Format notes:
+#  - "domain:" lines disavow every link from that domain
+#    including all subdomains.
+#  - Upload at:
+#    https://search.google.com/search-console/disavow-links
+# ============================================================
+
+# ---- Group 1: "rank" keyword spam domains (.shop) ----
+domain:rankbasket.shop
+domain:rankcart.shop
+domain:rankseopartners.shop
+domain:siterankexpress.shop
+domain:webrankinsights.shop
+domain:domainrankresults.shop
+
+# ---- Group 2: "link/backlink" keyword spam domains (.shop) ----
+domain:linksnexa.shop
+domain:nexabacklinks.shop
+domain:linkrankboost.shop
+domain:linkory.shop
+
+# ---- Group 3: "seo" keyword spam domains (.shop / .space) ----
+domain:seomart.shop
+domain:seoexpress.space
+
+# ---- Group 4: long keyword-stuffed .store spam domains ----
+domain:modern-studio-outrank-hq-blogger.store
+domain:high-da-and-crawl-budget-strategic-exchange.store
+domain:expert-systems-for-traffic-surge-and-digital-pr.store
+domain:instant-webpage-seoexpress-consultants.store
+
+# ---- Group 5: spam domains on other TLDs ----
+domain:rankyour.website
+
+# ============================================================
+# HOW TO EXTEND THIS FILE
+# Export the full backlink list from Ahrefs (free Backlink
+# Checker → "Export" or copy the referring domains table) and
+# run:
+#   python3 link_firewall.py ahrefs_export.csv --disavow-out new_disavow_lines.txt
+# Then paste the generated "domain:" lines below, dedupe, and
+# re-upload the complete file (each upload REPLACES the
+# previous file — always upload the full cumulative list).
+# ============================================================
+
+# ---- Group 6: additional confirmed spam (append below) ----
