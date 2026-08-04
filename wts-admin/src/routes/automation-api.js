@@ -376,8 +376,14 @@ router.post('/images', async (req, res) => {
       ? slugify(filename.replace(/\.\w+$/, ''))
       : crypto.randomBytes(8).toString('hex');
     const finalName = `${Date.now()}-${safeName}.${ext}`;
+    // Containment check on the resolved path: slugify + the extension
+    // whitelist already forbid separators, this guarantees it.
+    const dest = path.resolve(UPLOAD_DIR, finalName);
+    if (!dest.startsWith(path.resolve(UPLOAD_DIR) + path.sep)) {
+      return res.status(422).json({ error: 'Invalid filename' });
+    }
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-    fs.writeFileSync(path.join(UPLOAD_DIR, finalName), buffer);
+    fs.writeFileSync(dest, buffer);
 
     res.status(201).json({
       url: `${PUBLIC_BASE_URL}/uploads/${finalName}`,
