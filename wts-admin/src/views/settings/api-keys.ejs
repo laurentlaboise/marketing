@@ -1,0 +1,140 @@
+<%- include('../partials/head', { title, bodyClass: 'dashboard-layout' }) %>
+<%- include('../partials/sidebar', { currentPage, user }) %>
+
+<main class="main-content">
+  <%- include('../partials/header', { user, messages }) %>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">API Keys</h1>
+        <p class="page-subtitle">Credentials for external tools (Make.com, n8n, partner sites) that connect to the automation API. Each integration gets its own key with its own permissions — revoke one without affecting the others.</p>
+      </div>
+    </div>
+
+    <% if (error) { %>
+    <div class="alert alert-error"><i class="fas fa-circle-exclamation"></i> <%= error %></div>
+    <% } %>
+
+    <% if (newKey) { %>
+    <div class="card" style="border: 2px solid #16a34a; margin-bottom: 1.5rem;">
+      <div class="card-body">
+        <h3 style="margin-top: 0; color: #16a34a;"><i class="fas fa-key"></i> Key created: <%= newKey.name %></h3>
+        <p style="font-weight: 600;">Copy it now — this is the only time it will ever be shown. If you lose it, revoke it and create a new one.</p>
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <code id="new-key-value" style="background: #f3f4f6; padding: 0.6rem 0.8rem; border-radius: 6px; word-break: break-all; flex: 1; min-width: 260px;"><%= newKey.plaintext %></code>
+          <button type="button" id="copy-key-btn" class="btn btn-primary"><i class="fas fa-copy"></i> Copy</button>
+        </div>
+        <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 0;">The integration sends it on every request as the <code>x-api-key</code> header.</p>
+      </div>
+    </div>
+    <script nonce="<%= cspNonce %>">
+      document.getElementById('copy-key-btn').addEventListener('click', function () {
+        var text = document.getElementById('new-key-value').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          this.innerHTML = '<i class="fas fa-check"></i> Copied';
+        }).catch(() => {
+          var range = document.createRange();
+          range.selectNodeContents(document.getElementById('new-key-value'));
+          var sel = window.getSelection();
+          sel.removeAllRanges(); sel.addRange(range);
+        });
+      });
+    </script>
+    <% } %>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div class="card-body">
+        <h3 style="margin-top: 0;">Create a key</h3>
+        <form action="/settings/api-keys/create" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+            <div style="flex: 2; min-width: 220px;">
+              <label for="key-name" style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Name (who is this for?)</label>
+              <input type="text" id="key-name" name="name" class="form-control" placeholder="e.g. Make.com articles, partner-site CRM" required maxlength="255">
+            </div>
+            <div style="flex: 1; min-width: 160px;">
+              <label for="key-expires" style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Expires (optional)</label>
+              <input type="date" id="key-expires" name="expires_at" class="form-control">
+            </div>
+          </div>
+          <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Permissions</label>
+          <p style="color: #6b7280; font-size: 0.85rem; margin-top: 0;"><code>*</code> = full access, <code>*:read</code> = read-only everything; otherwise pick individual areas. <code>:read</code> variants allow reading but not changing.</p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.35rem 1rem; margin-bottom: 1rem;">
+            <% allScopes.forEach(scope => { %>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 0.4rem;">
+              <input type="checkbox" name="scopes" value="<%= scope %>"> <code><%= scope %></code>
+            </label>
+            <% }); %>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Create key</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <% if (keys.length > 0) { %>
+        <div class="table-container">
+          <table class="table table-responsive-cards">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Key</th>
+                <th>Permissions</th>
+                <th>Status</th>
+                <th>Last used</th>
+                <th>Expires</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% keys.forEach(key => { %>
+              <tr>
+                <td data-label="Name"><strong><%= key.name %></strong></td>
+                <td data-label="Key"><code><%= key.key_prefix %>…</code></td>
+                <td data-label="Permissions" style="max-width: 220px;"><% (key.scopes || []).forEach(s => { %><code style="margin-right: 4px;"><%= s %></code><% }); %></td>
+                <td data-label="Status">
+                  <% if (key.status === 'active') { %>
+                  <span style="color: #16a34a;"><i class="fas fa-circle-check"></i> active</span>
+                  <% } else { %>
+                  <span style="color: #dc2626;"><i class="fas fa-ban"></i> revoked</span>
+                  <% } %>
+                </td>
+                <td data-label="Last used"><%= key.last_used_at ? new Date(key.last_used_at).toLocaleString() : 'never' %></td>
+                <td data-label="Expires"><%= key.expires_at ? new Date(key.expires_at).toLocaleDateString() : '—' %></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <form action="/settings/api-keys/<%= key.id %>/status" method="POST" style="display: inline;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <% if (key.status === 'active') { %>
+                      <input type="hidden" name="status" value="revoked">
+                      <button type="submit" class="btn btn-sm btn-secondary" title="Revoke"><i class="fas fa-ban"></i></button>
+                      <% } else { %>
+                      <input type="hidden" name="status" value="active">
+                      <button type="submit" class="btn btn-sm btn-secondary" title="Reactivate"><i class="fas fa-rotate-left"></i></button>
+                      <% } %>
+                    </form>
+                    <form action="/settings/api-keys/<%= key.id %>/delete" method="POST" style="display: inline;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-sm btn-danger" title="Delete" data-confirm-delete><i class="fas fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div style="padding: 2rem; text-align: center; color: #6b7280;">
+          <i class="fas fa-key" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+          <p>No API keys yet. Create the first one above — for example a Make.com key with <code>articles</code>, <code>images</code>, and <code>guides</code> permissions.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

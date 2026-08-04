@@ -39,10 +39,7 @@ try {
 //      and the only key allowed to manage other keys (/api/v1/keys).
 //   2. Issued keys ('wts_…') minted via POST /api/v1/keys, stored as
 //      salted PBKDF2 digests with per-entity scopes, revocable any time.
-const KEY_PREFIX_LEN = 12; // 'wts_' + 8 hex chars, used to narrow the row lookup
-const PBKDF2_ITERATIONS = 100000;
-const hashApiKey = (plaintext, saltHex) =>
-  crypto.pbkdf2Sync(plaintext, Buffer.from(saltHex, 'hex'), PBKDF2_ITERATIONS, 32, 'sha512').toString('hex');
+const { KEY_PREFIX_LEN, hashApiKey, mintKey } = require('../lib/api-keys');
 
 // The PBKDF2 cost is paid once per key per process: verified plaintexts
 // cache to their row id, and every request still re-reads the row so
@@ -423,16 +420,9 @@ router.post('/keys', async (req, res) => {
       return res.status(422).json({ error: 'expires_at must be an ISO date or null' });
     }
 
-    const plaintext = 'wts_' + crypto.randomBytes(32).toString('hex');
-    const salt = crypto.randomBytes(16).toString('hex');
-    const { rows } = await db.query(
-      `INSERT INTO api_keys (name, key_hash, key_salt, key_prefix, scopes, expires_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, name, key_prefix, scopes, status, expires_at, created_at`,
-      [String(name).trim(), hashApiKey(plaintext, salt), salt, plaintext.slice(0, KEY_PREFIX_LEN), scopes, expires_at]
-    );
+    const { key, plaintext } = await mintKey({ name, scopes, expiresAt: expires_at });
     res.status(201).json({
-      ...rows[0],
+      ...key,
       key: plaintext,
       warning: 'Store this key now — it is shown only once and cannot be recovered.'
     });
@@ -829,3 +819,6 @@ router.delete('/:entity/:id', async (req, res) => {
 });
 
 module.exports = router;
+// Single source of truth for scope names — the admin API Keys page
+// builds its checkbox list from this.
+module.exports.validScopes = validScopes;

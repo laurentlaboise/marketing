@@ -355,6 +355,10 @@ app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webd
 // Partner-program approval queue (applications come from the client portal).
 app.use('/partners', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, require('./src/routes/partners'));
 
+// Automation API key management UI — session/CSRF admin surface over the
+// same api_keys table the /api/v1/keys endpoints use.
+app.use('/settings/api-keys', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, require('./src/routes/api-keys'));
+
 // Localization platform. Deliberately NOT behind ensureAdmin: the router
 // carries per-route RBAC (ensureSuperAdmin for the pipeline/ledger,
 // ensureTranslator + language scoping for the vendor workspace).

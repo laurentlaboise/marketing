@@ -23,7 +23,14 @@ Two kinds of key work:
    hand to a third party (another website's CRM, an agency, a Make.com
    scenario) so you can revoke one consumer without rotating everyone.
 
-## API keys (master key only)
+## API keys
+
+**Easiest way:** the admin dashboard at **`/settings/api-keys`** (sidebar →
+Web & Connections → API Keys). Create, revoke, and inspect keys there with
+your normal admin login — no master key or Railway access needed.
+
+The same operations are also available over HTTP, gated on the master key
+(useful for scripting):
 
 | Method | Path | Purpose |
 |---|---|---|
