@@ -34,6 +34,7 @@ const EXEMPT_PREFIXES = [
   '/api/payments',
   '/api/webhooks',
   '/api/machine', // Bearer-token machine API (no session cookies)
+  '/api/v1',      // x-api-key automation API (no session cookies)
 ];
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
