@@ -10,9 +10,47 @@ header and covers the day-to-day content + CRM entities.
 Every request:
 
 ```
-x-api-key: <AUTOMATION_API_KEY>
+x-api-key: <key>
 Content-Type: application/json
 ```
+
+Two kinds of key work:
+
+1. **Master key** — the `AUTOMATION_API_KEY` env var. Full access, and the
+   only key that can manage other keys. Keep this one to yourself.
+2. **Issued keys** (`wts_…`) — minted per integration/partner via the key
+   endpoints below, with their own scopes and lifecycle. This is what you
+   hand to a third party (another website's CRM, an agency, a Make.com
+   scenario) so you can revoke one consumer without rotating everyone.
+
+## API keys (master key only)
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/v1/keys` | Mint a key — plaintext is returned **once**, only a SHA-256 hash is stored |
+| GET | `/api/v1/keys` | List keys (name, prefix, scopes, status, last_used_at — never the secret) |
+| PATCH | `/api/v1/keys/:id` | Rename, rescope, set `expires_at`, or `status: revoked`/`active` |
+| DELETE | `/api/v1/keys/:id` | Hard delete (prefer revoking, which keeps the audit row) |
+
+```bash
+# Example: a key for another website that may only manage CRM leads
+curl -X POST https://<host>/api/v1/keys \
+  -H "x-api-key: $MASTER_KEY" -H "Content-Type: application/json" \
+  -d '{"name": "partner-site CRM", "scopes": ["leads", "form-submissions"]}'
+# → { "id": "...", "key": "wts_abc123...", "warning": "Store this key now — shown only once" }
+```
+
+**Scopes** (per entry in the `scopes` array):
+
+| Scope | Grants |
+|---|---|
+| `*` | everything |
+| `*:read` | read everything, write nothing |
+| `<entity>` | read + write one entity, e.g. `leads`, `articles`, `images` |
+| `<entity>:read` | read one entity |
+
+`/ping` and `/entities` work with any valid key; out-of-scope requests get
+`403` with the key name and the missing scope spelled out.
 
 Railway env vars (service → Variables):
 
@@ -102,8 +140,14 @@ The same HTTP-module shape works for every entity above — swap the path.
 
 ## Security notes
 
-- Timing-safe key comparison; key lives only in Railway env vars.
-- Rotate by changing the env var.
+- Master key: timing-safe comparison, lives only in Railway env vars.
+- Issued keys: stored as SHA-256 hashes (a database leak exposes no usable
+  keys); revocation and expiry take effect on the next request.
+- Rotate the master key by changing the env var; rotate a partner by
+  revoking their key and minting a new one — nobody else is affected.
+- API keys are for **server-to-server** use. Never embed one in browser
+  JavaScript on another site — proxy through that site's backend instead
+  (browser calls would also be blocked by CORS here).
 - The router is exempt from the session CSRF guard and the shared `/api`
   rate-limit bucket (it has no session cookies to forge), and parses its own
   JSON with a 25 MB cap for base64 image payloads.

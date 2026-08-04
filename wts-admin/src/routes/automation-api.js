@@ -30,21 +30,82 @@ try {
 }
 
 // ─── 1. AUTH MIDDLEWARE ──────────────────────────────────────────
-// Make.com / n8n / Zapier send header:  x-api-key: <AUTOMATION_API_KEY>
-router.use((req, res, next) => {
-  const provided = req.headers['x-api-key'] || '';
-  const expected = process.env.AUTOMATION_API_KEY || '';
-  if (!expected) return res.status(500).json({ error: 'AUTOMATION_API_KEY not configured' });
+// Every consumer (Make.com, n8n, a partner site's CRM hookup, …) sends:
+//   x-api-key: <key>
+// Two kinds of key are accepted:
+//   1. The master key from the AUTOMATION_API_KEY env var — full access,
+//      and the only key allowed to manage other keys (/api/v1/keys).
+//   2. Issued keys ('wts_…') minted via POST /api/v1/keys, stored hashed
+//      in the api_keys table with per-entity scopes, revocable any time.
+const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
 
-  const a = Buffer.from(provided);
-  const b = Buffer.from(expected);
-  const valid = a.length === b.length && crypto.timingSafeEqual(a, b);
-  if (!valid) return res.status(401).json({ error: 'Invalid API key' });
-  next();
+router.use(async (req, res, next) => {
+  const provided = String(req.headers['x-api-key'] || '');
+  const master = process.env.AUTOMATION_API_KEY || '';
+  if (!provided) return res.status(401).json({ error: 'Missing x-api-key header' });
+
+  if (master) {
+    const a = Buffer.from(provided);
+    const b = Buffer.from(master);
+    if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
+      req.apiKey = { master: true, name: 'master', scopes: ['*'] };
+      return next();
+    }
+  }
+
+  if (provided.startsWith('wts_')) {
+    try {
+      const { rows } = await db.query(
+        'SELECT id, name, scopes, status, expires_at FROM api_keys WHERE key_hash = $1',
+        [sha256(provided)]
+      );
+      const key = rows[0];
+      if (key && key.status === 'active' && (!key.expires_at || new Date(key.expires_at) > new Date())) {
+        req.apiKey = { master: false, id: key.id, name: key.name, scopes: key.scopes || [] };
+        // Best-effort usage stamp; never blocks or fails the request.
+        db.query('UPDATE api_keys SET last_used_at = NOW() WHERE id = $1', [key.id]).catch(() => {});
+        return next();
+      }
+    } catch (e) {
+      console.error('[automation-api] key lookup failed:', e.message);
+    }
+  }
+
+  return res.status(401).json({ error: 'Invalid API key' });
 });
 
 // server.js skips its global 1 MB JSON parser for /api/v1 so this cap governs.
 router.use(express.json({ limit: '25mb' })); // allows base64 image payloads
+
+// ─── 1b. SCOPE ENFORCEMENT ───────────────────────────────────────
+// Scope grammar (per api_keys.scopes entry):
+//   '*'              everything the API can do
+//   '*:read'         read everything, write nothing
+//   '<entity>'       read + write one entity ('articles', 'images', 'leads', …)
+//   '<entity>:read'  read one entity
+// /ping and /entities are open to any valid key; /keys is master-only.
+const hasScope = (scopes, entity, write) =>
+  scopes.includes('*') ||
+  scopes.includes(entity) ||
+  (!write && (scopes.includes('*:read') || scopes.includes(`${entity}:read`)));
+
+router.use((req, res, next) => {
+  const seg = (req.path.split('/')[1] || '').toLowerCase();
+  if (seg === 'ping' || seg === 'entities') return next();
+  if (seg === 'keys') {
+    if (!req.apiKey.master) {
+      return res.status(403).json({ error: 'Key management requires the master AUTOMATION_API_KEY' });
+    }
+    return next();
+  }
+  const write = req.method !== 'GET';
+  if (!hasScope(req.apiKey.scopes, seg, write)) {
+    return res.status(403).json({
+      error: `API key '${req.apiKey.name}' does not allow ${write ? 'write' : 'read'} access to '${seg}'`
+    });
+  }
+  next();
+});
 
 // ─── 2. HELPERS ──────────────────────────────────────────────────
 const slugify = (s) =>
@@ -237,7 +298,117 @@ router.post('/images', async (req, res) => {
   }
 });
 
-// ─── 6. GENERIC ENTITY CRUD ──────────────────────────────────────
+// ─── 6. API KEY MANAGEMENT (master key only — gated in 1b) ───────
+// Mint a key per integration/partner, hand out the plaintext once, and
+// revoke it independently of every other consumer.
+
+const validScopes = () => {
+  const names = ['articles', 'images', ...Object.keys(ENTITIES)];
+  return new Set(['*', '*:read', ...names, ...names.map(n => `${n}:read`)]);
+};
+
+// POST /api/v1/keys  { "name": "partner-site CRM", "scopes": ["leads"], "expires_at": null }
+router.post('/keys', async (req, res) => {
+  try {
+    const { name, scopes = ['*'], expires_at = null } = req.body;
+    if (!name || !String(name).trim()) return res.status(422).json({ error: 'name is required' });
+    if (!Array.isArray(scopes) || scopes.length === 0) {
+      return res.status(422).json({ error: 'scopes must be a non-empty array' });
+    }
+    const valid = validScopes();
+    const bad = scopes.filter(s => !valid.has(s));
+    if (bad.length) {
+      return res.status(422).json({ error: `Unknown scopes: ${bad.join(', ')}`, valid_scopes: [...valid] });
+    }
+    if (expires_at && isNaN(Date.parse(expires_at))) {
+      return res.status(422).json({ error: 'expires_at must be an ISO date or null' });
+    }
+
+    const plaintext = 'wts_' + crypto.randomBytes(32).toString('hex');
+    const { rows } = await db.query(
+      `INSERT INTO api_keys (name, key_hash, key_prefix, scopes, expires_at)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, name, key_prefix, scopes, status, expires_at, created_at`,
+      [String(name).trim(), sha256(plaintext), plaintext.slice(0, 12), scopes, expires_at]
+    );
+    res.status(201).json({
+      ...rows[0],
+      key: plaintext,
+      warning: 'Store this key now — it is shown only once and cannot be recovered.'
+    });
+  } catch (err) {
+    console.error('[API] create key failed:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/v1/keys — list (never returns secrets, only the display prefix)
+router.get('/keys', async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT id, name, key_prefix, scopes, status, expires_at, last_used_at, created_at
+       FROM api_keys ORDER BY created_at DESC`
+    );
+    res.json({ count: rows.length, keys: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/v1/keys/:id — rename, rescope, expire, or revoke/reactivate
+router.patch('/keys/:id', async (req, res) => {
+  try {
+    const sets = [], vals = [];
+    let i = 1;
+    if (req.body.name !== undefined) { sets.push(`name = $${i++}`); vals.push(String(req.body.name).trim()); }
+    if (req.body.scopes !== undefined) {
+      const valid = validScopes();
+      const bad = (Array.isArray(req.body.scopes) ? req.body.scopes : [null]).filter(s => !valid.has(s));
+      if (bad.length) return res.status(422).json({ error: `Unknown scopes: ${bad.join(', ')}`, valid_scopes: [...valid] });
+      sets.push(`scopes = $${i++}`); vals.push(req.body.scopes);
+    }
+    if (req.body.status !== undefined) {
+      if (!['active', 'revoked'].includes(req.body.status)) {
+        return res.status(422).json({ error: "status must be 'active' or 'revoked'" });
+      }
+      sets.push(`status = $${i++}`); vals.push(req.body.status);
+    }
+    if (req.body.expires_at !== undefined) {
+      if (req.body.expires_at !== null && isNaN(Date.parse(req.body.expires_at))) {
+        return res.status(422).json({ error: 'expires_at must be an ISO date or null' });
+      }
+      sets.push(`expires_at = $${i++}`); vals.push(req.body.expires_at);
+    }
+    if (!sets.length) return res.status(422).json({ error: 'No updatable fields provided' });
+    sets.push('updated_at = NOW()');
+    vals.push(req.params.id);
+
+    const { rows, rowCount } = await db.query(
+      `UPDATE api_keys SET ${sets.join(', ')} WHERE id = $${i}
+       RETURNING id, name, key_prefix, scopes, status, expires_at, last_used_at`,
+      vals
+    );
+    if (!rowCount) return res.status(404).json({ error: 'Key not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    if (err.code === '22P02') return res.status(404).json({ error: 'Key not found' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/v1/keys/:id — hard delete (prefer PATCH status=revoked for audit)
+router.delete('/keys/:id', async (req, res) => {
+  try {
+    const { rowCount } = await db.query('DELETE FROM api_keys WHERE id = $1', [req.params.id]);
+    if (!rowCount) return res.status(404).json({ error: 'Key not found' });
+    res.json({ deleted: true, id: req.params.id });
+  } catch (err) {
+    if (err.code === '22P02') return res.status(404).json({ error: 'Key not found' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── 7. GENERIC ENTITY CRUD ──────────────────────────────────────
 // One registry entry per automatable entity; the routes below are shared.
 //   GET    /api/v1/entities            → discovery (what exists, what's allowed)
 //   GET    /api/v1/:entity             → list (?limit ?offset ?q + filters below)

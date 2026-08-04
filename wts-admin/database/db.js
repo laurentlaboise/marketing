@@ -2033,6 +2033,26 @@ const db = {
         CREATE INDEX IF NOT EXISTS idx_faq_placements_page ON faq_placements (page_path);
       `);
 
+      // Automation API keys (src/routes/automation-api.js): one row per
+      // integration/partner. Only a SHA-256 hash of the key is stored —
+      // the plaintext is shown once at creation and never again. scopes
+      // entries: '*', '*:read', '<entity>', '<entity>:read'.
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS api_keys (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          key_hash CHAR(64) UNIQUE NOT NULL,
+          key_prefix VARCHAR(16) NOT NULL,
+          scopes TEXT[] NOT NULL DEFAULT '{}',
+          status VARCHAR(20) DEFAULT 'active',
+          expires_at TIMESTAMP,
+          last_used_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_api_keys_status ON api_keys (status);
+      `);
+
       await client.query('COMMIT');
       console.log('Database tables initialized successfully');
 
