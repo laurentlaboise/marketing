@@ -97,7 +97,8 @@ const limiter = rateLimit({
   // especially must not drain this shared bucket out from under the
   // header search and notification polling.
   skip: (req) => (req.originalUrl || '').startsWith('/api/machine')
-    || (req.originalUrl || '').startsWith('/api/help-ai'),
+    || (req.originalUrl || '').startsWith('/api/help-ai')
+    || (req.originalUrl || '').startsWith('/api/v1'),
 });
 app.use('/api/', limiter);
 
@@ -122,8 +123,11 @@ const jsonDefault = express.json({ limit: '1mb' });
 const urlencodedLarge = express.urlencoded({ extended: true, limit: '10mb' });
 const urlencodedDefault = express.urlencoded({ extended: true, limit: '1mb' });
 
+// The automation API (/api/v1) is also excluded — it mounts its own JSON
+// parser with a 25 MB cap for base64 image payloads.
 app.use((req, res, next) => {
-  if (req.originalUrl === '/api/payments/webhook' || req.originalUrl === '/api/webhooks/telemetry') {
+  if (req.originalUrl === '/api/payments/webhook' || req.originalUrl === '/api/webhooks/telemetry'
+    || req.originalUrl.startsWith('/api/v1')) {
     return next();
   }
   (allowsLargeBody(req) ? jsonLarge : jsonDefault)(req, res, next);
@@ -259,6 +263,15 @@ app.use('/api/public', publicApiRoutes);
 const machineApiRoutes = require('./src/routes/machine-api');
 app.use('/api/machine', machineApiRoutes);
 
+// Automation API v1 (x-api-key AUTOMATION_API_KEY — no session / no CSRF).
+// Make.com / n8n article + image pipeline. Mounted before the
+// session-protected /api routes below so automation never hits the
+// admin auth guards.
+app.use('/api/v1', require('./src/routes/automation-api'));
+
+// Public URLs for images the automation API stores on the Railway Volume.
+app.use('/uploads', express.static(process.env.UPLOAD_DIR || '/data/uploads'));
+
 // Payment routes (no authentication - public facing)
 app.use('/api/payments', paymentsRoutes);
 
@@ -341,6 +354,10 @@ app.use('/images', imagesSurfaceLimiter, imagesAiBurstLimiter, ensureAuthenticat
 app.use('/webdev', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, webdevRoutes);
 // Partner-program approval queue (applications come from the client portal).
 app.use('/partners', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, require('./src/routes/partners'));
+
+// Automation API key management UI — session/CSRF admin surface over the
+// same api_keys table the /api/v1/keys endpoints use.
+app.use('/settings/api-keys', adminSurfaceLimiter(), ensureAuthenticated, ensureAdmin, require('./src/routes/api-keys'));
 
 // Localization platform. Deliberately NOT behind ensureAdmin: the router
 // carries per-route RBAC (ensureSuperAdmin for the pipeline/ledger,

@@ -30,7 +30,7 @@
       localization: ['translations', 'translation-vendors', 'translation-payouts'],
       workforce: ['leads', 'engagement', 'work-hub'],
       commerce: ['orders', 'payments', 'customers', 'boards', 'products', 'pricing'],
-      web: ['microsites', 'menus', 'footers', 'footer-settings', 'sidebar', 'form-templates', 'submissions', 'affiliates', 'agencies'],
+      web: ['microsites', 'menus', 'footers', 'footer-settings', 'sidebar', 'form-templates', 'submissions', 'affiliates', 'agencies', 'api-keys'],
     };
     var isOpen = function (key) { return OPERATE[key].includes(currentPage); };
     var isUtility = ['profile', 'settings'].includes(currentPage);
@@ -168,6 +168,7 @@
           <li><a href="/webdev/submissions" class="<%= currentPage === 'submissions' ? 'active' : '' %>"><i class="fas fa-inbox"></i> Submissions</a></li>
           <li><a href="/business/affiliates" class="<%= currentPage === 'affiliates' ? 'active' : '' %>"><i class="fas fa-handshake"></i> Affiliate Solutions</a></li>
           <li><a href="/business/agencies" class="<%= currentPage === 'agencies' ? 'active' : '' %>"><i class="fas fa-building"></i> Agency Management</a></li>
+          <li><a href="/settings/api-keys" class="<%= currentPage === 'api-keys' ? 'active' : '' %>"><i class="fas fa-key"></i> API Keys</a></li>
         </ul>
       </li>
       <% } %>
