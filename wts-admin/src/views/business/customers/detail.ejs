@@ -69,7 +69,7 @@
             <input type="hidden" name="customer_id" value="<%= customer.id %>">
             <div>
               <label class="form-label" for="board-title">New board with this client</label>
-              <input class="form-control" type="text" id="board-title" name="title" maxlength="200" required
+              <input class="form-input" type="text" id="board-title" name="title" maxlength="200" required
                      value="<%= (customer.name || customer.email.split('@')[0]) + ' — working session' %>" style="min-width:260px;">
             </div>
             <button type="submit" class="btn btn-primary"><i class="fas fa-chalkboard"></i> Create &amp; open board</button>
@@ -159,11 +159,11 @@
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.6rem;">
             <div>
               <label class="form-label" for="dlv-title">Title *</label>
-              <input class="form-control" type="text" id="dlv-title" name="title" maxlength="200" required placeholder="March SEO report">
+              <input class="form-input" type="text" id="dlv-title" name="title" maxlength="200" required placeholder="March SEO report">
             </div>
             <div>
               <label class="form-label" for="dlv-cat">Category</label>
-              <select class="form-control" id="dlv-cat" name="category">
+              <select class="form-input" id="dlv-cat" name="category">
                 <option value="file">File / asset</option>
                 <option value="report">Report (Workspace)</option>
                 <option value="design">Design</option>
@@ -172,7 +172,7 @@
             </div>
             <div>
               <label class="form-label" for="dlv-order">Attach to order (optional)</label>
-              <select class="form-control" id="dlv-order" name="order_id">
+              <select class="form-input" id="dlv-order" name="order_id">
                 <option value="">—</option>
                 <% orders.forEach((o) => { const m = o.metadata || {}; %>
                 <option value="<%= o.id %>"><%= (o.product_name || 'Order') %> · <%= new Date(o.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %><%= m.reference ? ' · ' + m.reference : '' %></option>
@@ -182,16 +182,16 @@
           </div>
           <div>
             <label class="form-label" for="dlv-desc">Description (optional)</label>
-            <input class="form-control" type="text" id="dlv-desc" name="description" maxlength="500" placeholder="What this file is, in one line">
+            <input class="form-input" type="text" id="dlv-desc" name="description" maxlength="500" placeholder="What this file is, in one line">
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
             <div>
               <label class="form-label" for="dlv-file">Upload a file (max 15 MB)</label>
-              <input class="form-control" type="file" id="dlv-file" name="file">
+              <input class="form-input" type="file" id="dlv-file" name="file">
             </div>
             <div>
               <label class="form-label" for="dlv-url">&hellip;or paste a link (Drive, Dropbox&hellip;)</label>
-              <input class="form-control" type="url" id="dlv-url" name="external_url" placeholder="https://">
+              <input class="form-input" type="url" id="dlv-url" name="external_url" placeholder="https://">
             </div>
           </div>
           <div>
@@ -252,16 +252,16 @@
           <div style="display:grid;grid-template-columns:2fr 1fr;gap:0.6rem;">
             <div>
               <label class="form-label" for="act-title">Action title *</label>
-              <input class="form-control" type="text" id="act-title" name="title" maxlength="280" required placeholder="Approve March content calendar">
+              <input class="form-input" type="text" id="act-title" name="title" maxlength="280" required placeholder="Approve March content calendar">
             </div>
             <div>
               <label class="form-label" for="act-due">Due date (optional)</label>
-              <input class="form-control" type="date" id="act-due" name="due_date">
+              <input class="form-input" type="date" id="act-due" name="due_date">
             </div>
           </div>
           <div>
             <label class="form-label" for="act-notes">Notes (optional)</label>
-            <input class="form-control" type="text" id="act-notes" name="notes" maxlength="1000" placeholder="Link or one-line context">
+            <input class="form-input" type="text" id="act-notes" name="notes" maxlength="1000" placeholder="Link or one-line context">
           </div>
           <div>
             <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add action for client</button>

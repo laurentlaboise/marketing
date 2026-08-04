@@ -4918,3 +4918,69 @@ img, video, iframe, canvas, svg, embed, object {
   /* Keep page content clear of the dock */
   .main-content { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
 }
+
+/* ── API Keys page (/settings/api-keys) ─────────────────────────── */
+.key-reveal-card {
+  border: 2px solid var(--success);
+  margin-bottom: 24px;
+}
+
+.key-reveal-title {
+  color: var(--success);
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.key-reveal-warning {
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 12px;
+}
+
+.key-reveal-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.key-reveal-value {
+  flex: 1;
+  min-width: 260px;
+  background: var(--gray-100);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  word-break: break-all;
+  font-size: 14px;
+}
+
+.scope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px 20px;
+}
+
+.scope-grid .form-checkbox label {
+  cursor: pointer;
+}
+
+.scope-grid-help {
+  margin-bottom: 14px;
+}
+
+.key-scopes-cell {
+  max-width: 240px;
+}
+
+.key-scopes-cell code {
+  margin-right: 4px;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+
+@media (max-width: 640px) {
+  .scope-grid {
+    grid-template-columns: 1fr;
+  }
+}
