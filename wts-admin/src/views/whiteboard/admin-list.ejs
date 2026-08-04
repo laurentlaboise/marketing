@@ -27,7 +27,7 @@
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <div style="flex:1;min-width:220px;">
             <label class="form-label" for="board-title">New board title *</label>
-            <input class="form-control" type="text" id="board-title" name="title" maxlength="200" required placeholder="Q3 campaign planning">
+            <input class="form-input" type="text" id="board-title" name="title" maxlength="200" required placeholder="Q3 campaign planning">
           </div>
           <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Create Board</button>
         </form>
@@ -68,13 +68,13 @@
                 <td data-label="Invite client">
                   <form method="POST" action="/business/boards/<%= b.id %>/members" style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                    <select class="form-control" name="customer_id" required style="width:auto;max-width:180px;font-size:0.82rem;padding:0.3rem 0.4rem;">
+                    <select class="form-input" name="customer_id" required style="width:auto;max-width:180px;font-size:0.82rem;padding:0.3rem 0.4rem;">
                       <option value="">Choose client&hellip;</option>
                       <% customers.forEach(function (c) { %>
                       <option value="<%= c.id %>"><%= c.name ? c.name + ' · ' + c.email : c.email %></option>
                       <% }); %>
                     </select>
-                    <select class="form-control" name="role" style="width:auto;font-size:0.82rem;padding:0.3rem 0.4rem;">
+                    <select class="form-input" name="role" style="width:auto;font-size:0.82rem;padding:0.3rem 0.4rem;">
                       <option value="editor">Editor</option>
                       <option value="commenter">Commenter</option>
                       <option value="viewer">Viewer</option>
