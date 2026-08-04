@@ -27,7 +27,7 @@ Two kinds of key work:
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/api/v1/keys` | Mint a key — plaintext is returned **once**, only a SHA-256 hash is stored |
+| POST | `/api/v1/keys` | Mint a key — plaintext is returned **once**, only a salted PBKDF2 digest is stored |
 | GET | `/api/v1/keys` | List keys (name, prefix, scopes, status, last_used_at — never the secret) |
 | PATCH | `/api/v1/keys/:id` | Rename, rescope, set `expires_at`, or `status: revoked`/`active` |
 | DELETE | `/api/v1/keys/:id` | Hard delete (prefer revoking, which keeps the audit row) |
@@ -141,8 +141,13 @@ The same HTTP-module shape works for every entity above — swap the path.
 ## Security notes
 
 - Master key: timing-safe comparison, lives only in Railway env vars.
-- Issued keys: stored as SHA-256 hashes (a database leak exposes no usable
-  keys); revocation and expiry take effect on the next request.
+- Issued keys: stored as salted PBKDF2-SHA512 digests (a database leak
+  exposes no usable keys); revocation and expiry take effect on the next
+  request.
+- `POST /images` only fetches public http(s) origins — URLs resolving to
+  private/internal addresses (including cloud metadata) are rejected, and
+  redirects are re-validated hop by hop. File extensions come from a
+  fixed whitelist, never from the raw filename.
 - Rotate the master key by changing the env var; rotate a partner by
   revoking their key and minting a new one — nobody else is affected.
 - API keys are for **server-to-server** use. Never embed one in browser

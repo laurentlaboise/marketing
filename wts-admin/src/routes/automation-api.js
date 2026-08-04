@@ -15,6 +15,8 @@ const express = require('express');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
+const net = require('net');
+const dns = require('dns').promises;
 const db = require('../../database/db');
 
 const router = express.Router();
@@ -35,9 +37,46 @@ try {
 // Two kinds of key are accepted:
 //   1. The master key from the AUTOMATION_API_KEY env var — full access,
 //      and the only key allowed to manage other keys (/api/v1/keys).
-//   2. Issued keys ('wts_…') minted via POST /api/v1/keys, stored hashed
-//      in the api_keys table with per-entity scopes, revocable any time.
-const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
+//   2. Issued keys ('wts_…') minted via POST /api/v1/keys, stored as
+//      salted PBKDF2 digests with per-entity scopes, revocable any time.
+const KEY_PREFIX_LEN = 12; // 'wts_' + 8 hex chars, used to narrow the row lookup
+const PBKDF2_ITERATIONS = 100000;
+const hashApiKey = (plaintext, saltHex) =>
+  crypto.pbkdf2Sync(plaintext, Buffer.from(saltHex, 'hex'), PBKDF2_ITERATIONS, 32, 'sha512').toString('hex');
+
+// The PBKDF2 cost is paid once per key per process: verified plaintexts
+// cache to their row id, and every request still re-reads the row so
+// revocation/expiry take effect immediately.
+const VERIFIED_KEY_IDS = new Map(); // plaintext → api_keys.id
+
+async function verifyIssuedKey(provided) {
+  let id = VERIFIED_KEY_IDS.get(provided);
+  if (!id) {
+    const { rows } = await db.query(
+      'SELECT id, key_hash, key_salt FROM api_keys WHERE key_prefix = $1',
+      [provided.slice(0, KEY_PREFIX_LEN)]
+    );
+    for (const row of rows) {
+      const digest = Buffer.from(hashApiKey(provided, row.key_salt));
+      const stored = Buffer.from(row.key_hash);
+      if (digest.length === stored.length && crypto.timingSafeEqual(digest, stored)) {
+        id = row.id;
+        break;
+      }
+    }
+    if (!id) return null;
+    if (VERIFIED_KEY_IDS.size > 500) VERIFIED_KEY_IDS.clear();
+    VERIFIED_KEY_IDS.set(provided, id);
+  }
+  const { rows } = await db.query(
+    'SELECT id, name, scopes, status, expires_at FROM api_keys WHERE id = $1',
+    [id]
+  );
+  const key = rows[0];
+  if (!key || key.status !== 'active') return null;
+  if (key.expires_at && new Date(key.expires_at) <= new Date()) return null;
+  return key;
+}
 
 router.use(async (req, res, next) => {
   const provided = String(req.headers['x-api-key'] || '');
@@ -55,12 +94,8 @@ router.use(async (req, res, next) => {
 
   if (provided.startsWith('wts_')) {
     try {
-      const { rows } = await db.query(
-        'SELECT id, name, scopes, status, expires_at FROM api_keys WHERE key_hash = $1',
-        [sha256(provided)]
-      );
-      const key = rows[0];
-      if (key && key.status === 'active' && (!key.expires_at || new Date(key.expires_at) > new Date())) {
+      const key = await verifyIssuedKey(provided);
+      if (key) {
         req.apiKey = { master: false, id: key.id, name: key.name, scopes: key.scopes || [] };
         // Best-effort usage stamp; never blocks or fails the request.
         db.query('UPDATE api_keys SET last_used_at = NOW() WHERE id = $1', [key.id]).catch(() => {});
@@ -259,6 +294,61 @@ router.delete('/articles/:id', async (req, res) => {
 //   { "base64": "<data>", "filename": "name.png" }
 // Server fetches/stores the file on the Railway Volume, returns a public URL
 // you feed straight into the article's featured_image or content body.
+
+// SSRF guard: source_url comes from API consumers, and the fetch runs from
+// inside the Railway network — so only public http(s) origins are allowed.
+// Redirects are followed manually so every hop is re-validated.
+const isPrivateIp = (ip) => {
+  if (net.isIPv6(ip)) {
+    const lower = ip.toLowerCase();
+    if (lower === '::' || lower === '::1') return true;
+    if (lower.startsWith('fe80') || lower.startsWith('fc') || lower.startsWith('fd')) return true;
+    if (lower.startsWith('::ffff:')) return isPrivateIp(lower.slice(7)); // v4-mapped
+    return false;
+  }
+  const o = ip.split('.').map(Number);
+  if (o.length !== 4 || o.some(Number.isNaN)) return true; // fail closed
+  return o[0] === 0 || o[0] === 10 || o[0] === 127 ||
+    (o[0] === 100 && o[1] >= 64 && o[1] <= 127) ||  // CGNAT
+    (o[0] === 169 && o[1] === 254) ||               // link-local / cloud metadata
+    (o[0] === 172 && o[1] >= 16 && o[1] <= 31) ||
+    (o[0] === 192 && o[1] === 168);
+};
+
+const badUrl = (message) => Object.assign(new Error(message), { status: 422 });
+
+async function fetchPublicUrl(rawUrl) {
+  let current = String(rawUrl);
+  for (let hop = 0; hop < 3; hop++) {
+    let url;
+    try { url = new URL(current); } catch { throw badUrl('source_url is not a valid URL'); }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') throw badUrl('source_url must be http(s)');
+    const host = url.hostname.replace(/^\[|\]$/g, '');
+    let addrs;
+    try {
+      addrs = net.isIP(host) ? [host] : (await dns.lookup(host, { all: true })).map(a => a.address);
+    } catch {
+      throw badUrl('source_url host could not be resolved');
+    }
+    if (!addrs.length || addrs.some(isPrivateIp)) {
+      throw badUrl('source_url resolves to a private or internal address');
+    }
+    const resp = await fetch(url.href, { redirect: 'manual' });
+    if ([301, 302, 303, 307, 308].includes(resp.status)) {
+      const location = resp.headers.get('location');
+      if (!location) throw badUrl('source_url redirect had no location');
+      current = new URL(location, url).href;
+      continue;
+    }
+    return resp;
+  }
+  throw badUrl('source_url had too many redirects');
+}
+
+// Extension whitelist: values only ever come out of this constant map, so
+// a crafted filename ("x.png/../../etc") can never reach the fs path.
+const SAFE_EXT = { png: 'png', jpg: 'jpg', jpeg: 'jpg', webp: 'webp', gif: 'gif', avif: 'avif', svg: 'svg' };
+
 router.post('/images', async (req, res) => {
   try {
     const { source_url, base64, filename } = req.body;
@@ -267,7 +357,7 @@ router.post('/images', async (req, res) => {
     let buffer, ext = 'png';
 
     if (source_url) {
-      const resp = await fetch(source_url);
+      const resp = await fetchPublicUrl(source_url);
       if (!resp.ok) return res.status(422).json({ error: `Could not fetch source_url (${resp.status})` });
       const ct = resp.headers.get('content-type') || '';
       ext = ct.includes('jpeg') ? 'jpg' : ct.includes('webp') ? 'webp' : ct.includes('gif') ? 'gif' : 'png';
@@ -275,7 +365,9 @@ router.post('/images', async (req, res) => {
     } else {
       const clean = base64.replace(/^data:image\/\w+;base64,/, '');
       buffer = Buffer.from(clean, 'base64');
-      if (filename && filename.includes('.')) ext = filename.split('.').pop().toLowerCase();
+      if (filename && filename.includes('.')) {
+        ext = SAFE_EXT[filename.split('.').pop().toLowerCase()] || 'png';
+      }
     }
 
     if (buffer.length > 15 * 1024 * 1024) return res.status(422).json({ error: 'Image exceeds 15MB' });
@@ -293,6 +385,7 @@ router.post('/images', async (req, res) => {
       bytes: buffer.length
     });
   } catch (err) {
+    if (err.status === 422) return res.status(422).json({ error: err.message });
     console.error('[API] image upload failed:', err);
     res.status(500).json({ error: err.message });
   }
@@ -325,11 +418,12 @@ router.post('/keys', async (req, res) => {
     }
 
     const plaintext = 'wts_' + crypto.randomBytes(32).toString('hex');
+    const salt = crypto.randomBytes(16).toString('hex');
     const { rows } = await db.query(
-      `INSERT INTO api_keys (name, key_hash, key_prefix, scopes, expires_at)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO api_keys (name, key_hash, key_salt, key_prefix, scopes, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, name, key_prefix, scopes, status, expires_at, created_at`,
-      [String(name).trim(), sha256(plaintext), plaintext.slice(0, 12), scopes, expires_at]
+      [String(name).trim(), hashApiKey(plaintext, salt), salt, plaintext.slice(0, KEY_PREFIX_LEN), scopes, expires_at]
     );
     res.status(201).json({
       ...rows[0],
@@ -618,7 +712,7 @@ router.get('/:entity', async (req, res) => {
     );
     res.json({ count: rows.length, [req.params.entity.replace(/-/g, '_')]: rows });
   } catch (err) {
-    console.error(`[API] list ${req.params.entity} failed:`, err);
+    console.error('[API] list entity failed:', req.params.entity, err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -675,7 +769,7 @@ router.post('/:entity', async (req, res) => {
     res.status(201).json({ id: rows[0].id, entity: req.params.entity });
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Duplicate value for a unique field: ' + err.detail });
-    console.error(`[API] create ${req.params.entity} failed:`, err);
+    console.error('[API] create entity failed:', req.params.entity, err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -708,7 +802,7 @@ router.patch('/:entity/:id', async (req, res) => {
   } catch (err) {
     if (err.code === '22P02') return res.status(404).json({ error: 'Not found' });
     if (err.code === '23505') return res.status(409).json({ error: 'Duplicate value for a unique field: ' + err.detail });
-    console.error(`[API] update ${req.params.entity} failed:`, err);
+    console.error('[API] update entity failed:', req.params.entity, err);
     res.status(500).json({ error: err.message });
   }
 });

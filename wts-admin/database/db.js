@@ -2034,14 +2034,16 @@ const db = {
       `);
 
       // Automation API keys (src/routes/automation-api.js): one row per
-      // integration/partner. Only a SHA-256 hash of the key is stored —
-      // the plaintext is shown once at creation and never again. scopes
-      // entries: '*', '*:read', '<entity>', '<entity>:read'.
+      // integration/partner. Only a salted PBKDF2 digest of the key is
+      // stored — the plaintext is shown once at creation and never again;
+      // key_prefix narrows the lookup to candidate rows. scopes entries:
+      // '*', '*:read', '<entity>', '<entity>:read'.
       await client.query(`
         CREATE TABLE IF NOT EXISTS api_keys (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           name VARCHAR(255) NOT NULL,
-          key_hash CHAR(64) UNIQUE NOT NULL,
+          key_hash VARCHAR(255) NOT NULL,
+          key_salt VARCHAR(64) NOT NULL,
           key_prefix VARCHAR(16) NOT NULL,
           scopes TEXT[] NOT NULL DEFAULT '{}',
           status VARCHAR(20) DEFAULT 'active',
@@ -2050,7 +2052,7 @@ const db = {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        CREATE INDEX IF NOT EXISTS idx_api_keys_status ON api_keys (status);
+        CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON api_keys (key_prefix);
       `);
 
       await client.query('COMMIT');
