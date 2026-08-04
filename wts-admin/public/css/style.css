@@ -4955,18 +4955,66 @@ img, video, iframe, canvas, svg, embed, object {
   font-size: 14px;
 }
 
-.scope-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px 20px;
-}
-
-.scope-grid .form-checkbox label {
-  cursor: pointer;
-}
-
-.scope-grid-help {
+.perm-help {
   margin-bottom: 14px;
+}
+
+.perm-table-wrap {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: 560px;
+}
+
+.perm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.perm-table th {
+  background: var(--gray-50);
+  color: var(--gray-600);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.perm-table th:not(:first-child),
+.perm-table td:not(:first-child) {
+  text-align: center;
+  width: 110px;
+}
+
+.perm-table td {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+}
+
+.perm-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.perm-table tbody tr:hover {
+  background: var(--gray-50);
+}
+
+.perm-table .perm-name {
+  text-transform: capitalize;
+}
+
+.perm-table .perm-all-row td {
+  background: rgba(32, 133, 200, 0.06);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.perm-table input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
 }
 
 .key-scopes-cell {
@@ -4977,10 +5025,4 @@ img, video, iframe, canvas, svg, embed, object {
   margin-right: 4px;
   display: inline-block;
   margin-bottom: 2px;
-}
-
-@media (max-width: 640px) {
-  .scope-grid {
-    grid-template-columns: 1fr;
-  }
 }

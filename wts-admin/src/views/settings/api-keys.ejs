@@ -67,14 +67,32 @@
 
           <div class="form-section">
             <h3 class="form-section-title"><i class="fas fa-shield-halved"></i> Permissions</h3>
-            <p class="form-help scope-grid-help"><code>*</code> grants full access and <code>*:read</code> read-only access to everything; otherwise pick individual areas — <code>:read</code> variants allow reading but not changing.</p>
-            <div class="scope-grid">
-              <% allScopes.forEach(scope => { %>
-              <div class="form-checkbox">
-                <input type="checkbox" id="scope-<%= scope.replace(/[^a-z0-9-]/gi, '-') %>" name="scopes" value="<%= scope %>">
-                <label for="scope-<%= scope.replace(/[^a-z0-9-]/gi, '-') %>"><code><%= scope %></code></label>
-              </div>
-              <% }); %>
+            <p class="form-help perm-help">Full access lets the key create and change things in that area; Read only lets it look things up. "Everything" covers all areas, including ones added later.</p>
+            <% var entityScopes = allScopes.filter(s => s !== '*' && s !== '*:read' && !s.endsWith(':read')); %>
+            <div class="perm-table-wrap">
+              <table class="perm-table">
+                <thead>
+                  <tr>
+                    <th>Area</th>
+                    <th>Full access</th>
+                    <th>Read only</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="perm-all-row">
+                    <td><strong>Everything</strong></td>
+                    <td><input type="checkbox" name="scopes" value="*" aria-label="Everything — full access"></td>
+                    <td><input type="checkbox" name="scopes" value="*:read" aria-label="Everything — read only"></td>
+                  </tr>
+                  <% entityScopes.forEach(e => { %>
+                  <tr>
+                    <td class="perm-name"><%= e.replace(/-/g, ' ') %></td>
+                    <td><input type="checkbox" name="scopes" value="<%= e %>" aria-label="<%= e %> — full access"></td>
+                    <td><input type="checkbox" name="scopes" value="<%= e %>:read" aria-label="<%= e %> — read only"></td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
             </div>
           </div>
 
