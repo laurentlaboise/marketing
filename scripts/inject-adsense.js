@@ -163,8 +163,8 @@ function makeSeg(fragment, start, end, tag) {
 
 function stripTags(html) {
   return html
-    .replace(/<script[\s\S]*?<\/script\s*>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style\s*>/gi, ' ')
+    .replace(/<script[\s\S]*?<\/script\b[^>]*>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style\b[^>]*>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&[a-zA-Z#0-9]+;/g, ' ');
 }
@@ -259,9 +259,9 @@ function mainContentWords(html, template) {
   }
   if (!region) region = html; // last resort: whole page, minus chrome below
   region = region
-    .replace(/<nav[\s\S]*?<\/nav\s*>/gi, ' ')
-    .replace(/<footer[\s\S]*?<\/footer\s*>/gi, ' ')
-    .replace(/<aside[\s\S]*?<\/aside\s*>/gi, ' ');
+    .replace(/<nav[\s\S]*?<\/nav\b[^>]*>/gi, ' ')
+    .replace(/<footer[\s\S]*?<\/footer\b[^>]*>/gi, ' ')
+    .replace(/<aside[\s\S]*?<\/aside\b[^>]*>/gi, ' ');
   return countWords(stripTags(region));
 }
 
