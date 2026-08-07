@@ -1,0 +1,14 @@
+<!-- Reusable AdSense ad-unit partial.
+     Rendered by scripts/inject-adsense.js — do not include this file directly.
+     Tokens: {{PLACEMENT}} {{FORMAT_CLASS}} {{LAZY}} {{CLIENT}} {{SLOT_ID}} {{FORMAT_ATTRS}}
+     The wts-ad marker comments make every rendered unit idempotently
+     detectable and strippable (`--strip`). The visible small-caps
+     "Advertisement" label keeps ads distinguishable from content (AdSense
+     ad-placement policy); the container's min-height class reserves space so
+     the ad loading causes zero layout shift. -->
+<!-- wts-ad:start:{{PLACEMENT}} -->
+<div class="ad-container ad-slot--{{FORMAT_CLASS}}" role="complementary" aria-label="Advertisement" data-wts-lazy="{{LAZY}}">
+  <span class="ad-label">Advertisement</span>
+  <ins class="adsbygoogle" style="display:block" data-ad-client="ca-{{CLIENT}}" data-ad-slot="{{SLOT_ID}}"{{FORMAT_ATTRS}}></ins>
+</div>
+<!-- wts-ad:end -->

@@ -8,6 +8,8 @@
     "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js && node scripts/inject-faqs.js",
     "build:webpack": "webpack --mode=production",
     "inject-footers": "node scripts/inject-footers.js",
+    "inject:ads": "node scripts/inject-adsense.js",
+    "inject:ads:dry": "node scripts/inject-adsense.js --dry-run",
     "generate:ai-tools": "node scripts/generate-ai-tool-pages.js && node scripts/inject-footers.js --source",
     "localize": "node scripts/generate-localized-pages.js",
     "sitemap": "node scripts/generate-sitemap.js",
