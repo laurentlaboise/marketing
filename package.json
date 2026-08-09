@@ -5,7 +5,7 @@
   "scripts": {
     "bundle:css": "node scripts/bundle-css.js",
     "normalize:css": "node scripts/bundle-css.js && node scripts/normalize-site-css.js",
-    "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js && node scripts/inject-faqs.js",
+    "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js && node scripts/inject-faqs.js && npm run inject:ads",
     "build:webpack": "webpack --mode=production",
     "inject-footers": "node scripts/inject-footers.js",
     "inject:ads": "node scripts/inject-adsense.js",

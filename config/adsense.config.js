@@ -25,11 +25,11 @@ const ADS_ENABLED = true;
  * placeholder markup never renders a broken grey box in production.
  */
 const SLOTS = {
-  ARTICLE_TOP: 'REPLACE_ME_ARTICLE_TOP',         // "WTS Article Top"      — display, horizontal
-  IN_ARTICLE: 'REPLACE_ME_IN_ARTICLE',           // "WTS In-Article"       — in-article native (all mid-content positions)
-  ARTICLE_SIDEBAR: 'REPLACE_ME_ARTICLE_SIDEBAR', // "WTS Article Sidebar"  — display, 300×250 / responsive vertical
-  MULTIPLEX_BOTTOM: 'REPLACE_ME_MULTIPLEX_BOTTOM', // "WTS Multiplex Bottom" — multiplex (shared bottom, all templates)
-  RESOURCE_TOP: 'REPLACE_ME_RESOURCE_TOP',       // "WTS Resource Top"     — display, horizontal (glossary + tools top)
+  ARTICLE_TOP: '8924528663',         // "WTS Article Top"      — display, horizontal
+  IN_ARTICLE: '6647663773',           // "WTS In-Article"       — in-article native (all mid-content positions)
+  ARTICLE_SIDEBAR: '2420378223', // "WTS Article Sidebar"  — display, 300×250 / responsive vertical
+  MULTIPLEX_BOTTOM: '9503113164', // "WTS Multiplex Bottom" — multiplex (shared bottom, all templates)
+  RESOURCE_TOP: '2228806539',       // "WTS Resource Top"     — display, horizontal (glossary + tools top)
 };
 
 /**
