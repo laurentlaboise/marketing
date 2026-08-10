@@ -3,7 +3,9 @@
 // --- Shared On-Scroll Reveal Observer (singleton) ---
 // rootMargin pre-reveals content slightly before it enters the viewport so
 // below-the-fold sections (forms, FAQs) are not stuck at opacity:0 after jump links.
+let revealObserverFired = false;
 const revealObserver = new IntersectionObserver((entries) => {
+  revealObserverFired = true;
   entries.forEach((entry) => {
     if (entry.isIntersecting) entry.target.classList.add('visible');
   });
@@ -35,6 +37,17 @@ export function initScrollReveal() {
       revealIfNear();
     }
   });
+
+  // Safety net: a healthy observer reports every observed element's initial
+  // intersection state almost immediately, even off-screen ones. If it has
+  // reported nothing after 3s, it is broken (embedded webviews, quirky mobile
+  // viewports) — show everything rather than leave content trapped invisible.
+  setTimeout(() => {
+    if (revealObserverFired) return;
+    document.querySelectorAll('.reveal:not(.visible)').forEach((el) => {
+      el.classList.add('visible');
+    });
+  }, 3000);
 }
 
 // --- Floating Buttons & Quote Modal ---
