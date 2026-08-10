@@ -1097,7 +1097,6 @@ font-weight: 600;
 text-transform: uppercase;
 letter-spacing: 1.5px;
 color: var(--color-slate-900);
-overflow-wrap: break-word;
 }
 .services-grid-four-column {
 display: grid;
@@ -1827,14 +1826,6 @@ font-size: var(--font-size-xl);
 font-size: var(--font-size-4xl);
 }
 }
-/* Long unbreakable tokens (brand names like "WordsThatSells.Website",
-   example URLs in glossary text) must wrap instead of forcing phones
-   into a wider virtual viewport. Inherited from body so it covers
-   headings, paragraphs, list items, and table cells alike. `anywhere`
-   (unlike `break-word`) also shrinks min-content size, which is what
-   mobile browsers use when deciding to expand the layout viewport;
-   normal prose is unaffected — breaks only happen where a token would
-   otherwise overflow its line. */
 body {
 overflow-wrap: anywhere;
 }
