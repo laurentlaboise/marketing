@@ -224,6 +224,13 @@
             align-items: start;
         }
 
+        /* Grid items default to min-width:auto, so the tables' min-width would
+           inflate the column past the phone viewport instead of letting the
+           .table-responsive wrappers scroll. */
+        .article-layout > * {
+            min-width: 0;
+        }
+
         .article-header {
             margin-bottom: var(--spacing-2xl);
             text-align: center;
