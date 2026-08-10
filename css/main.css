@@ -1827,11 +1827,14 @@ font-size: var(--font-size-xl);
 font-size: var(--font-size-4xl);
 }
 }
-/* Long unbreakable tokens in headings (brand names like
-   "WordsThatSells.Website", URLs) must wrap inside their column instead
-   of forcing phones into a wider virtual viewport. `anywhere` (unlike
-   `break-word`) also shrinks the heading's min-content size, which is
-   what mobile browsers use when deciding to expand the layout viewport. */
-h1, h2, h3, h4 {
+/* Long unbreakable tokens (brand names like "WordsThatSells.Website",
+   example URLs in glossary text) must wrap instead of forcing phones
+   into a wider virtual viewport. Inherited from body so it covers
+   headings, paragraphs, list items, and table cells alike. `anywhere`
+   (unlike `break-word`) also shrinks min-content size, which is what
+   mobile browsers use when deciding to expand the layout viewport;
+   normal prose is unaffected — breaks only happen where a token would
+   otherwise overflow its line. */
+body {
 overflow-wrap: anywhere;
 }
