@@ -1546,6 +1546,13 @@
       @media (max-width: 768px) {
         .whatsapp-sticky-cta { display: inline-flex; }
       }
+      /* JS enhancement: hidden while the footer is in view so the pill never
+         covers the footer's links (same behaviour as .back-to-top). */
+      .whatsapp-sticky-cta.footer-in-view {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
       @media print {
         .whatsapp-sticky-cta { display: none; }
       }
@@ -1771,6 +1778,16 @@
     <!-- Works with zero JavaScript: primary contact path for mobile visitors
          even when scripts or the dynamic form fail to load. -->
     <a href="https://wa.me/8562055528034" rel="noopener noreferrer" target="_blank" class="whatsapp-sticky-cta" aria-label="Chat with us on WhatsApp"><i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+    <script>
+      (function () {
+        var cta = document.querySelector('.whatsapp-sticky-cta');
+        var footer = document.querySelector('footer.footer');
+        if (!cta || !footer || typeof IntersectionObserver !== 'function') return;
+        new IntersectionObserver(function (entries) {
+          cta.classList.toggle('footer-in-view', entries[0].isIntersecting);
+        }).observe(footer);
+      })();
+    </script>
 
     <div id="quote-modal-overlay" class="modal-overlay" data-form-type="contact">
         <div id="quote-modal-container" class="modal-container">
