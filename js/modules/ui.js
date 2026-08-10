@@ -3,11 +3,23 @@
 // --- Shared On-Scroll Reveal Observer (singleton) ---
 // rootMargin pre-reveals content slightly before it enters the viewport so
 // below-the-fold sections (forms, FAQs) are not stuck at opacity:0 after jump links.
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) entry.target.classList.add('visible');
-  });
-}, { threshold: 0.05, rootMargin: '0px 0px 20% 0px' });
+let revealObserverFired = false;
+// Guarded so module evaluation never throws where IntersectionObserver is
+// missing — an unguarded throw here would take down every main.js feature
+// (FAQ, modals, forms), not just the reveal animation. The stub reveals
+// immediately, so importers (faq.js, slide.js) can call observe() unchanged.
+const revealObserver = typeof IntersectionObserver === 'function'
+  ? new IntersectionObserver((entries) => {
+      revealObserverFired = true;
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.05, rootMargin: '0px 0px 20% 0px' })
+  : {
+      observe(el) { el.classList.add('visible'); },
+      unobserve() {},
+      disconnect() {},
+    };
 
 export { revealObserver };
 
@@ -35,6 +47,17 @@ export function initScrollReveal() {
       revealIfNear();
     }
   });
+
+  // Safety net: a healthy observer reports every observed element's initial
+  // intersection state almost immediately, even off-screen ones. If it has
+  // reported nothing after 3s, it is broken (embedded webviews, quirky mobile
+  // viewports) — show everything rather than leave content trapped invisible.
+  setTimeout(() => {
+    if (revealObserverFired) return;
+    document.querySelectorAll('.reveal:not(.visible)').forEach((el) => {
+      el.classList.add('visible');
+    });
+  }, 3000);
 }
 
 // --- Floating Buttons & Quote Modal ---
