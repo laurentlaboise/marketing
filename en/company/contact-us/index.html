@@ -1679,12 +1679,14 @@
                                               toolparamdescription="Details about the project, market, timeline, and success criteria" aria-description="Details about the project, market, timeline, and success criteria"></textarea>
                                 </div>
                                 <button type="submit" class="btn btn-accent-blue"><i class="fas fa-paper-plane"></i> Submit Request</button>
-                                <p class="wts-form-privacy-note">No spam, no mailing-list tricks — a real person replies within one business day. Your details go only to our team. See our <a href="/en/company/legal/privacy-policy.html">Privacy Policy</a>.</p>
                             </form>
                             <noscript>
                                 <p>Please enable JavaScript to use the contact form, or email us at <a href="mailto:info@wordsthatsells.website">info@wordsthatsells.website</a>.</p>
                             </noscript>
                         </div>
+                        <!-- Outside the #wts-contact-form mount: survives the admin
+                             template replacing the static form on successful load. -->
+                        <p class="wts-form-privacy-note">No spam, no mailing-list tricks — a real person replies within one business day. Your details go only to our team. See our <a href="/en/company/legal/privacy-policy.html">Privacy Policy</a>.</p>
                     </div>
                     <div class="column-right">
                         <div class="card-base card" style="padding:1.5rem;">

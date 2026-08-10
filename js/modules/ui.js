@@ -4,12 +4,22 @@
 // rootMargin pre-reveals content slightly before it enters the viewport so
 // below-the-fold sections (forms, FAQs) are not stuck at opacity:0 after jump links.
 let revealObserverFired = false;
-const revealObserver = new IntersectionObserver((entries) => {
-  revealObserverFired = true;
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) entry.target.classList.add('visible');
-  });
-}, { threshold: 0.05, rootMargin: '0px 0px 20% 0px' });
+// Guarded so module evaluation never throws where IntersectionObserver is
+// missing — an unguarded throw here would take down every main.js feature
+// (FAQ, modals, forms), not just the reveal animation. The stub reveals
+// immediately, so importers (faq.js, slide.js) can call observe() unchanged.
+const revealObserver = typeof IntersectionObserver === 'function'
+  ? new IntersectionObserver((entries) => {
+      revealObserverFired = true;
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.05, rootMargin: '0px 0px 20% 0px' })
+  : {
+      observe(el) { el.classList.add('visible'); },
+      unobserve() {},
+      disconnect() {},
+    };
 
 export { revealObserver };
 
