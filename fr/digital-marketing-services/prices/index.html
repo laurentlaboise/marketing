@@ -1167,11 +1167,15 @@
         .section-lead {
             font-size: clamp(1.1rem, 1.6vw, 1.25rem) !important;
         }
-        .compare-table {
-            font-size: 1rem;
-        }
-        .compare-table th, .compare-table td {
-            padding: 1rem 1.1rem;
+        /* Desktop-only readability bump; below 641px the compact sizing
+           defined in the mobile media query above must win the cascade. */
+        @media (min-width: 641px) {
+            .compare-table {
+                font-size: 1rem;
+            }
+            .compare-table th, .compare-table td {
+                padding: 1rem 1.1rem;
+            }
         }
         .subscription-card .plan-name { font-size: clamp(1.35rem, 2vw, 1.65rem) !important; }
         .subscription-card .plan-price { font-size: clamp(2.5rem, 4vw, 3.1rem) !important; }

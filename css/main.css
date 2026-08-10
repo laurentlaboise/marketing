@@ -1097,6 +1097,7 @@ font-weight: 600;
 text-transform: uppercase;
 letter-spacing: 1.5px;
 color: var(--color-slate-900);
+overflow-wrap: break-word;
 }
 .services-grid-four-column {
 display: grid;
@@ -1821,6 +1822,8 @@ font-size: var(--font-size-xl);
 font-size: var(--font-size-xl);
 }
 }
+@media (min-width: 481px) {
 .services-section-header h1 {
 font-size: var(--font-size-4xl);
+}
 }
