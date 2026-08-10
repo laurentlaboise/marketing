@@ -1097,7 +1097,6 @@ font-weight: 600;
 text-transform: uppercase;
 letter-spacing: 1.5px;
 color: var(--color-slate-900);
-overflow-wrap: break-word;
 }
 .services-grid-four-column {
 display: grid;
@@ -1827,11 +1826,6 @@ font-size: var(--font-size-xl);
 font-size: var(--font-size-4xl);
 }
 }
-/* Long unbreakable tokens in headings (brand names like
-   "WordsThatSells.Website", URLs) must wrap inside their column instead
-   of forcing phones into a wider virtual viewport. `anywhere` (unlike
-   `break-word`) also shrinks the heading's min-content size, which is
-   what mobile browsers use when deciding to expand the layout viewport. */
-h1, h2, h3, h4 {
+body {
 overflow-wrap: anywhere;
 }
