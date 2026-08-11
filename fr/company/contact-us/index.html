@@ -1498,6 +1498,57 @@
       }
       .wts-form-loading { margin: 0; color: #64748b; }
       .wts-form-error { color: #b91c1c; }
+      .wts-form-privacy-note {
+        margin: 0.75rem 0 0;
+        font-size: 0.85rem;
+        color: #64748b;
+      }
+      .btn-whatsapp {
+        background-color: #25d366;
+        border-color: #25d366;
+        color: #fff;
+      }
+      .btn-whatsapp:hover,
+      .btn-whatsapp:focus {
+        background-color: #1eb85a;
+        border-color: #1eb85a;
+        color: #fff;
+      }
+      .contact-map-embed {
+        width: 100%;
+        height: 260px;
+        border: 0;
+        border-radius: var(--border-radius-lg, 12px);
+        margin-top: 1.25rem;
+        display: block;
+      }
+      /* Mobile-only sticky WhatsApp CTA. Bottom-left: back-to-top and the
+         admin sticky form tabs both occupy the right edge. */
+      .whatsapp-sticky-cta {
+        display: none;
+        position: fixed;
+        left: 16px;
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        z-index: 1000;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: #25d366;
+        color: #fff;
+        font-weight: 700;
+        padding: 0.8rem 1.2rem;
+        border-radius: 999px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        text-decoration: none;
+      }
+      .whatsapp-sticky-cta i { font-size: 1.35rem; }
+      .whatsapp-sticky-cta:hover,
+      .whatsapp-sticky-cta:focus { background-color: #1eb85a; color: #fff; }
+      @media (max-width: 768px) {
+        .whatsapp-sticky-cta { display: inline-flex; }
+      }
+      @media print {
+        .whatsapp-sticky-cta { display: none; }
+      }
     </style>
 
 </head>
@@ -1623,14 +1674,20 @@
                                 <p>Please enable JavaScript to use the contact form, or email us at <a href="mailto:info@wordsthatsells.website">info@wordsthatsells.website</a>.</p>
                             </noscript>
                         </div>
+                        <!-- Outside the #wts-contact-form mount: survives the admin
+                             template replacing the static form on successful load. -->
+                        <p class="wts-form-privacy-note">No spam, no mailing-list tricks — a real person replies within one business day. Your details go only to our team. See our <a href="/fr/company/legal/privacy-policy.html">Politique de confidentialité</a>.</p>
                     </div>
                     <div class="column-right">
                         <div class="card-base card" style="padding:1.5rem;">
                             <h3 style="margin-top:0;">Autres moyens de nous joindre</h3>
+                            <a href="https://wa.me/8562055528034" rel="noopener noreferrer" target="_blank" class="btn btn-whatsapp" style="width:100%;margin-bottom:1rem;"><i class="fab fa-whatsapp"></i> Chat on WhatsApp</a>
                             <p><i class="fas fa-map-marker-alt" style="color:var(--color-accent-magenta, #e91e8c); margin-right:0.4rem;"></i> 20 Rue Samsenthai, Vientiane, Laos</p>
                             <p><i class="fab fa-whatsapp" style="color:var(--color-accent-magenta, #e91e8c); margin-right:0.4rem;"></i> <a href="https://wa.me/8562055528034" rel="noopener noreferrer" target="_blank">020 5552 8034</a></p>
                             <p><i class="fas fa-envelope" style="color:var(--color-accent-magenta, #e91e8c); margin-right:0.4rem;"></i> <a href="mailto:info@wordsthatsells.website">info@wordsthatsells.website</a></p>
                             <p><i class="fab fa-google" style="color:var(--color-accent-magenta, #e91e8c); margin-right:0.4rem;"></i> <a href="https://maps.app.goo.gl/X8ywZsgKEcSzZrwR6" rel="noopener noreferrer" target="_blank">Trouvez-nous sur Google Maps</a></p>
+                            <div class="social-links" style="margin-top:0.75rem;"><a href="https://www.linkedin.com/company/wordsthatsells" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn"><i class="fab fa-linkedin"></i></a><a href="https://www.facebook.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook"><i class="fab fa-facebook-square"></i></a><a href="https://x.com/wordsthatsells/" target="_blank" rel="noopener noreferrer" aria-label="Visit our X (Twitter)"><i class="fab fa-twitter-square"></i></a><a href="https://www.instagram.com/wordsthatsells.website.laos/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram"><i class="fab fa-instagram"></i></a></div>
+                            <iframe class="contact-map-embed" src="https://maps.google.com/maps?q=20%20Rue%20Samsenthai%2C%20Vientiane%2C%20Laos&output=embed" title="Map: WordsThatSells office, 20 Rue Samsenthai, Vientiane" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
                             <hr style="border:none;border-top:1px solid #e2e8f0;margin:1.25rem 0;">
                             <h3>À qui cela s’adresse</h3>
                             <p style="margin-bottom:0;">Propriétaires de PME, responsables marketing, affiliés et agences qui souhaitent une croissance numérique sans avoir à choisir entre rapidité et qualité. Si vous voulez une IA utilisée de manière responsable — avec une responsabilité humaine — vous êtes au bon endroit.</p>
@@ -1709,6 +1766,20 @@
     </footer>
     
     <a href="#top" class="back-to-top" aria-label="Retour en haut"><i class="fas fa-angle-up"></i></a>
+
+    <!-- Works with zero JavaScript: primary contact path for mobile visitors
+         even when scripts or the dynamic form fail to load. -->
+    <a href="https://wa.me/8562055528034" rel="noopener noreferrer" target="_blank" class="whatsapp-sticky-cta" aria-label="Chat with us on WhatsApp"><i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+    <script>
+      (function () {
+        var cta = document.querySelector('.whatsapp-sticky-cta');
+        var footer = document.querySelector('footer.footer');
+        if (!cta || !footer || typeof IntersectionObserver !== 'function') return;
+        new IntersectionObserver(function (entries) {
+          cta.classList.toggle('footer-in-view', entries[0].isIntersecting);
+        }).observe(footer);
+      })();
+    </script>
 
     <div id="quote-modal-overlay" class="modal-overlay" data-form-type="contact">
         <div id="quote-modal-container" class="modal-container">

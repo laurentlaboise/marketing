@@ -1546,13 +1546,6 @@
       @media (max-width: 768px) {
         .whatsapp-sticky-cta { display: inline-flex; }
       }
-      /* JS enhancement: hidden while the footer is in view so the pill never
-         covers the footer's links (same behaviour as .back-to-top). */
-      .whatsapp-sticky-cta.footer-in-view {
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s;
-      }
       @media print {
         .whatsapp-sticky-cta { display: none; }
       }
