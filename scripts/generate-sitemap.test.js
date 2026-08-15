@@ -27,7 +27,7 @@ test('sitemap-google.xml is English-only urlset 0.9 and includes /en/', () => {
   assert.doesNotMatch(body, /<image:/);
   assert.doesNotMatch(body, /hreflang/);
   assert.doesNotMatch(body, /xmlns:xhtml|xmlns:image/);
-  assert.match(body, new RegExp(`<loc>${HOME.replace(/\//g, '\\/')}<\\/loc>`));
+  assert.ok(body.includes(`<loc>${HOME}</loc>`), 'sitemap-google must include /en/');
   const firstLoc = /<loc>([^<]+)<\/loc>/.exec(body)[1];
   assert.equal(firstLoc, HOME, 'homepage must be the first URL');
   assert.doesNotMatch(body, /https:\/\/wordsthatsells\.website\/(th|la|fr|lo)\//);
@@ -53,7 +53,7 @@ test('sitemap.xml stays well-formed urlset', () => {
   const body = xml(FULL);
   assert.match(body, /<urlset xmlns="http:\/\/www.sitemaps.org\/schemas\/sitemap\/0.9"/);
   assert.doesNotMatch(body, /<!--/);
-  assert.match(body, new RegExp(`<loc>${HOME.replace(/\//g, '\\/')}<\\/loc>`));
+  assert.ok(body.includes(`<loc>${HOME}</loc>`), 'sitemap.xml must include /en/');
 });
 
 test('xmllint --noout passes on the three submitted sitemaps', () => {
