@@ -113,16 +113,14 @@
                     return;
                 }
             }
-            // Bare non-en language codes sometimes used as /lo (ISO) vs /la (site)
-            if (path === '/lo' || path === '/lo/') {
-                window.location.replace('/en/' + window.location.search + window.location.hash);
+            // Bare /lo and /lo/* (old ISO code; Lao locale is coming-soon).
+            if (path === '/lo' || path === '/lo/' || path.indexOf('/lo/') === 0) {
+                const rest = path.replace(/^\/lo\/?/, '');
+                window.location.replace('/en/' + rest + window.location.hash);
                 return;
             }
-            // Fake sitelinks-searchbox URL from old WebSite SearchAction schema
-            if (path === '/search' || path.indexOf('/search') === 0) {
-                window.location.replace('/en/resources/glossary/' + window.location.search + window.location.hash);
-                return;
-            }
+            // /search?q={search_term_string} is a schema template, not a page.
+            // Leave it as a 404 — do not 200 or redirect it.
 
             // 3. Localized 404 message (strings mirror src/locales/site/*.json).
             const MESSAGES = {

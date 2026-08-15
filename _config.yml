@@ -8,6 +8,7 @@ include:
   - sitemap.xml
   - sitemap-images.xml
   - sitemap-google.xml
+  - sitemap-index.xml
   - robots.txt
   - llms.txt
   - llm.txt

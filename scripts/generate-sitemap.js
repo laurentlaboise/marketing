@@ -9,12 +9,16 @@
  *     (never a soft-fallback URL), plus x-default → English
  *   - localized pages get their own <url> entries with the same cluster
  *
- * Also emits sitemap-images.xml (Google image sitemap) from on-page
- * og:image / featured <img> + alt/title/caption so Image Library SEO
- * on the front is discoverable by Google Images.
+ * Also emits:
+ *   - sitemap-google.xml — GSC-safe English-only urlset 0.9 (no comments,
+ *     no image tags, no hreflang). Always includes /en/.
+ *   - sitemap-index.xml — comment-free index of the three children.
+ *   - sitemap-images.xml — Google image sitemap from on-page og:image /
+ *     featured <img> + alt/title/caption.
  *
  * Skips: pages whose <meta name="robots"> contains noindex (e.g. the
- * /xx/articles/ SPA shells), checkout pages, and backup/dynamic files.
+ * /xx/articles/ SPA shells), checkout pages, redirect stubs, empty
+ * glossary placeholders, and backup/dynamic files.
  *
  * Usage: node scripts/generate-sitemap.js [--out sitemap.xml] [--dry-run]
  */
@@ -31,6 +35,9 @@ const DRY_RUN = args.includes('--dry-run');
 const outIndex = args.indexOf('--out');
 const OUT_FILE = outIndex !== -1 ? path.resolve(args[outIndex + 1]) : path.join(ROOT, 'sitemap.xml');
 const IMAGE_OUT = path.join(ROOT, 'sitemap-images.xml');
+const GOOGLE_OUT = path.join(ROOT, 'sitemap-google.xml');
+const INDEX_OUT = path.join(ROOT, 'sitemap-index.xml');
+const HOMEPAGE_LOC = `${SITE_ORIGIN}/en/`;
 
 function walkHtml(dir, base = dir) {
   if (!fs.existsSync(dir)) return [];
@@ -54,6 +61,7 @@ function isRedirectStub(html) {
 
 function isIndexable(absFile, relFile) {
   if (relFile.startsWith('checkout/')) return false;
+  if (relFile === 'search/index.html' || relFile.startsWith('search/')) return false;
   if (/example-article|index-static-backup|articles-dynamic/i.test(relFile)) return false;
   const html = fs.readFileSync(absFile, 'utf8');
   if (isRedirectStub(html)) return false;
@@ -173,6 +181,38 @@ function urlEntry(loc, meta, mod, alternates, image) {
   return lines.join('\n');
 }
 
+function googleUrlEntry(loc, meta, mod) {
+  return [
+    '  <url>',
+    `    <loc>${loc}</loc>`,
+    `    <lastmod>${mod}</lastmod>`,
+    `    <changefreq>${meta.changefreq}</changefreq>`,
+    `    <priority>${meta.priority}</priority>`,
+    '  </url>',
+  ].join('\n');
+}
+
+function writeSitemapIndex(generated) {
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '  <sitemap>',
+    `    <loc>${SITE_ORIGIN}/sitemap-google.xml</loc>`,
+    `    <lastmod>${generated}</lastmod>`,
+    '  </sitemap>',
+    '  <sitemap>',
+    `    <loc>${SITE_ORIGIN}/sitemap.xml</loc>`,
+    `    <lastmod>${generated}</lastmod>`,
+    '  </sitemap>',
+    '  <sitemap>',
+    `    <loc>${SITE_ORIGIN}/sitemap-images.xml</loc>`,
+    `    <lastmod>${generated}</lastmod>`,
+    '  </sitemap>',
+    '</sitemapindex>',
+    '',
+  ].join('\n');
+}
+
 function imageOnlyEntry(pageLoc, image) {
   const lines = [
     '  <url>',
@@ -240,10 +280,6 @@ function main() {
     '        xmlns:xhtml="http://www.w3.org/1999/xhtml"'
       + (hasImages ? '\n        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' : '')
       + '>',
-    '',
-    '  <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->',
-    `  <!-- URL count: ${urlCount} | generated ${generated} by scripts/generate-sitemap.js -->`,
-    '',
     entries.join('\n'),
     '</urlset>',
     '',
@@ -253,22 +289,59 @@ function main() {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
     '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
-    `  <!-- Image sitemap | ${imageEntries.length} pages with images | generated ${generated} -->`,
     imageEntries.join('\n'),
     '</urlset>',
     '',
   ].join('\n');
 
+  // GSC-safe English list: urlset 0.9 only. Homepage is mandatory even if
+  // a future filter would drop en/index.html.
+  const googleByLoc = new Map();
+  for (const rel of enPages) {
+    const loc = `${SITE_ORIGIN}/en${filePathToSitePath(rel)}`;
+    googleByLoc.set(loc, googleUrlEntry(loc, pageMeta(rel), lastmod(path.join(ROOT, 'en', rel))));
+  }
+  if (!googleByLoc.has(HOMEPAGE_LOC)) {
+    const homeAbs = path.join(ROOT, 'en', 'index.html');
+    googleByLoc.set(HOMEPAGE_LOC, googleUrlEntry(
+      HOMEPAGE_LOC,
+      pageMeta('index.html'),
+      fs.existsSync(homeAbs) ? lastmod(homeAbs) : generated
+    ));
+  }
+  const googleEntries = [googleByLoc.get(HOMEPAGE_LOC)]
+    .concat([...googleByLoc.entries()]
+      .filter(([loc]) => loc !== HOMEPAGE_LOC)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, entry]) => entry));
+  const googleXml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    googleEntries.join('\n'),
+    '</urlset>',
+    '',
+  ].join('\n');
+
+  const indexXml = writeSitemapIndex(generated);
+
   if (DRY_RUN) {
     console.log(xml);
+    console.error('--- sitemap-google.xml ---');
+    console.log(googleXml);
     console.error('--- sitemap-images.xml ---');
     console.log(imageXml);
+    console.error('--- sitemap-index.xml ---');
+    console.log(indexXml);
   } else {
     fs.writeFileSync(OUT_FILE, xml, 'utf8');
+    fs.writeFileSync(GOOGLE_OUT, googleXml, 'utf8');
     fs.writeFileSync(IMAGE_OUT, imageXml, 'utf8');
+    fs.writeFileSync(INDEX_OUT, indexXml, 'utf8');
   }
   console.error(`[sitemap] ${urlCount} URLs (${enPages.length} English pages) → ${DRY_RUN ? 'stdout' : path.relative(ROOT, OUT_FILE)}`);
+  console.error(`[sitemap-google] ${googleEntries.length} English URLs → ${DRY_RUN ? 'stdout' : path.relative(ROOT, GOOGLE_OUT)}`);
   console.error(`[sitemap-images] ${imageEntries.length} image pages → ${DRY_RUN ? 'stdout' : path.relative(ROOT, IMAGE_OUT)}`);
+  console.error(`[sitemap-index] 3 children → ${DRY_RUN ? 'stdout' : path.relative(ROOT, INDEX_OUT)}`);
 }
 
 main();

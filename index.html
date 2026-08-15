@@ -50,6 +50,12 @@
       // no-JS fallback to /en/. Missing localized trees are safe — the 404
       // handler bounces any not-yet-generated /th /la /fr path back to /en.
       (function () {
+        var params = new URLSearchParams(window.location.search || '');
+        // Leftover WordPress query (GSC /?p=26587) — never keep as a thin page.
+        if (params.has('p')) {
+          window.location.replace('/en/');
+          return;
+        }
         var SUPPORTED = { en: 'en', th: 'th', lo: 'la', fr: 'fr' };
         var m = document.cookie.match(/(?:^|;\s*)wts_lang=(en|th|la|fr)/);
         var target = m && m[1];
