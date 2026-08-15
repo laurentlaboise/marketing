@@ -37,6 +37,7 @@ test('sitemaps contain no 404/noindex/redirect-stub markers in loc text', () => 
   const body = xml(GOOGLE);
   assert.doesNotMatch(body, /\/en\/blog\/|\/en\/shop\/|\/lo\//);
   assert.doesNotMatch(body, /checkout\//);
+  assert.doesNotMatch(body, /<loc>https:\/\/wordsthatsells\.website\/search/);
 });
 
 test('sitemap-index.xml is comment-free and lists the three children', () => {

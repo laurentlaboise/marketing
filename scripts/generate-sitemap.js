@@ -61,6 +61,7 @@ function isRedirectStub(html) {
 
 function isIndexable(absFile, relFile) {
   if (relFile.startsWith('checkout/')) return false;
+  if (relFile === 'search/index.html' || relFile.startsWith('search/')) return false;
   if (/example-article|index-static-backup|articles-dynamic/i.test(relFile)) return false;
   const html = fs.readFileSync(absFile, 'utf8');
   if (isRedirectStub(html)) return false;

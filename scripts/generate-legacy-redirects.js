@@ -18,11 +18,10 @@ const DRY = process.argv.includes('--dry-run');
 
 /** Exact path (no trailing slash) → destination path (absolute site path). */
 const EXACT = {
-  // Language roots that 404 today (translations not published yet)
-  '/fr': '/en/',
-  '/th': '/en/',
-  '/la': '/en/',
-  '/lo': '/en/', // old ISO code; site uses /la/
+  // /fr /th /en without a slash are expected GH Pages 301s to /fr/ /th/ /en/.
+  // Do not map live locales to /en/ — that is a Netlify-only footgun.
+  '/la': '/en/', // Lao tree not published yet
+  '/lo': '/en/', // old ISO code; GSC noindex on /lo and /lo/
 
   // Legacy campaign / brand landing pages
   '/digital-business-services-lao-asia': '/en/',
@@ -53,8 +52,8 @@ const EXACT = {
   '/articles': '/en/articles/',
   '/checkout': '/en/checkout/',
 
-  // Fake sitelinks-searchbox URL Google crawled from old schema
-  '/search': '/en/resources/glossary/',
+  // Do NOT stub /search — GSC lists /search?q={search_term_string} as a
+  // schema SearchAction template. A 404 is correct; keep it out of sitemaps.
 
   // Retired /en/blog and /en/shop (never shipped; GSC still requests them)
   '/blog': '/en/resources/articles/',
@@ -68,6 +67,18 @@ const EXACT = {
   '/seo-digital-marketing/prices': '/en/digital-marketing-services/prices/',
   '/seo-digital-marketing/social-media-management': '/en/digital-marketing-services/social-media-management/',
   '/seo-digital-marketing/web-development': '/en/digital-marketing-services/web-development/',
+
+  // Exact GSC 404s (15 Aug 2026) — only still-missing nested paths.
+  // Prefer the live /th/ or /fr/ equivalent when that page 200s.
+  '/fr/digital-marketing-services/business-tools/automation': '/fr/digital-marketing-services/business-tools/',
+  '/fr/digital-marketing-services/web-development/landing-page': '/fr/digital-marketing-services/web-development/',
+  '/fr/digital-marketing-services/web-development/website-design': '/fr/digital-marketing-services/web-development/',
+  '/en/digital-marketing-services/social-media-management/campaigns': '/en/digital-marketing-services/social-media-management/',
+  '/lo/digital-marketing-services/web-development/landing-page/mobile-apps': '/en/digital-marketing-services/web-development/',
+  '/lo/digital-marketing-services/social-media-management/profile-activation': '/en/digital-marketing-services/social-media-management/',
+  '/lo/resources/articles/ai-content-marketing-trends': '/en/resources/articles/',
+  '/th/resources/articles/ai-content-marketing-trends': '/th/resources/articles/',
+  '/th/digital-marketing-services/social-media-management/profile-activation': '/th/digital-marketing-services/social-media-management/',
 };
 
 /** /lo/{section} → /en/{section} (old ISO code; published Lao lives at /la/). */
@@ -175,7 +186,9 @@ function patchRedirectsFile() {
   const file = path.join(ROOT, '_redirects');
   let body = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
   const block = netlifyRules();
-  if (/# BEGIN_LEGACY_REDIRECTS[\s\S]*?# END_LEGACY_REDIRECTS/.test(body)) {
+  if (/# --- Legacy URL 301s[\s\S]*?# END_LEGACY_REDIRECTS/.test(body)) {
+    body = body.replace(/# --- Legacy URL 301s[\s\S]*?# END_LEGACY_REDIRECTS\n?/, block);
+  } else if (/# BEGIN_LEGACY_REDIRECTS[\s\S]*?# END_LEGACY_REDIRECTS/.test(body)) {
     body = body.replace(/# BEGIN_LEGACY_REDIRECTS[\s\S]*?# END_LEGACY_REDIRECTS\n?/, block);
   } else {
     body = body.trimEnd() + '\n\n' + block;

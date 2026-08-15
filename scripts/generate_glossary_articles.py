@@ -317,6 +317,9 @@ def build_article(t: dict, filename: str) -> str:
         schema["video"] = {
             "@type": "VideoObject",
             "name": f"{term} explainer",
+            "description": definition or meta_desc,
+            "thumbnailUrl": f"https://i.ytimg.com/vi/{ytid}/hqdefault.jpg",
+            "uploadDate": date.today().isoformat(),
             "embedUrl": f"https://www.youtube.com/embed/{ytid}",
             "contentUrl": video,
         }
