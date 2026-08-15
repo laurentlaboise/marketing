@@ -13,6 +13,7 @@
     "generate:ai-tools": "node scripts/generate-ai-tool-pages.js && node scripts/inject-footers.js --source",
     "localize": "node scripts/generate-localized-pages.js",
     "sitemap": "node scripts/generate-sitemap.js",
+    "test:sitemap": "node scripts/generate-sitemap.js && node --test scripts/generate-sitemap.test.js",
     "legacy-redirects": "node scripts/generate-legacy-redirects.js",
     "audit:hreflang": "node scripts/check-hreflang.js",
     "analyze-schema": "node analyze-schema.js",

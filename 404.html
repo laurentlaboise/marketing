@@ -113,9 +113,10 @@
                     return;
                 }
             }
-            // Bare non-en language codes sometimes used as /lo (ISO) vs /la (site)
-            if (path === '/lo' || path === '/lo/') {
-                window.location.replace('/en/' + window.location.search + window.location.hash);
+            // Bare /lo and /lo/* (old ISO code; published Lao lives at /la/).
+            if (path === '/lo' || path === '/lo/' || path.indexOf('/lo/') === 0) {
+                const rest = path.replace(/^\/lo\/?/, '');
+                window.location.replace('/en/' + rest + window.location.search + window.location.hash);
                 return;
             }
             // Fake sitelinks-searchbox URL from old WebSite SearchAction schema

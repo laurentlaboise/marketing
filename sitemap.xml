@@ -2,10 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-
-  <!-- Multi-language sitemap (en/th/la/fr). SPA article shells excluded (noindex). -->
-  <!-- URL count: 912 | generated 2026-08-15 by scripts/generate-sitemap.js -->
-
   <url>
     <loc>https://wordsthatsells.website/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html</loc>
     <lastmod>2026-08-09</lastmod>

@@ -55,7 +55,53 @@ const EXACT = {
 
   // Fake sitelinks-searchbox URL Google crawled from old schema
   '/search': '/en/resources/glossary/',
+
+  // Retired /en/blog and /en/shop (never shipped; GSC still requests them)
+  '/blog': '/en/resources/articles/',
+  '/shop': '/en/digital-marketing-services/prices/',
+  '/en/blog': '/en/resources/articles/',
+  '/en/shop': '/en/digital-marketing-services/prices/',
+
+  // Old /seo-digital-marketing/ campaign children
+  '/seo-digital-marketing/business-tools': '/en/digital-marketing-services/business-tools/',
+  '/seo-digital-marketing/content-creation': '/en/digital-marketing-services/content-creation/',
+  '/seo-digital-marketing/prices': '/en/digital-marketing-services/prices/',
+  '/seo-digital-marketing/social-media-management': '/en/digital-marketing-services/social-media-management/',
+  '/seo-digital-marketing/web-development': '/en/digital-marketing-services/web-development/',
 };
+
+/** /lo/{section} → /en/{section} (old ISO code; published Lao lives at /la/). */
+const LO_SECTIONS = [
+  '/digital-marketing-services',
+  '/digital-marketing-services/business-tools',
+  '/digital-marketing-services/content-creation',
+  '/digital-marketing-services/prices',
+  '/digital-marketing-services/social-media-management',
+  '/digital-marketing-services/web-development',
+  '/company',
+  '/company/about-us',
+  '/company/affiliate-sales',
+  '/company/contact-us',
+  '/company/digital-agencies',
+  '/company/legal',
+  '/resources',
+  '/resources/ai-tools',
+  '/resources/articles',
+  '/resources/glossary',
+  '/resources/guides',
+  '/articles',
+  '/blog',
+  '/shop',
+];
+
+for (const section of LO_SECTIONS) {
+  const dest = section === '/blog'
+    ? '/en/resources/articles/'
+    : section === '/shop'
+      ? '/en/digital-marketing-services/prices/'
+      : `/en${section}/`;
+  EXACT[`/lo${section}`] = dest;
+}
 
 function redirectHtml(to) {
   const abs = `https://wordsthatsells.website${to}`;
@@ -138,12 +184,53 @@ function patchRedirectsFile() {
   console.log(DRY ? 'would patch _redirects' : 'patched _redirects');
 }
 
+/** Write a file-level stub (e.g. old glossary slugs that 404 as .html). */
+function writeFileStub(relFile, dest) {
+  const file = path.join(ROOT, relFile);
+  if (DRY) {
+    console.log(`would write ${relFile} → ${dest}`);
+    return;
+  }
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  if (fs.existsSync(file)) {
+    const existing = fs.readFileSync(file, 'utf8');
+    const isOurs = existing.includes('Moved permanently — WordsThatSells')
+      || existing.includes('This page has moved');
+    if (!isOurs && existing.length > 1500) {
+      console.warn(`[skip] real page exists: ${relFile}`);
+      return;
+    }
+  }
+  fs.writeFileSync(file, redirectHtml(dest), 'utf8');
+  console.log(`wrote ${relFile} → ${dest}`);
+}
+
+function glossaryOldSlugStubs() {
+  let GLOSSARY_SLUG_MAP;
+  try {
+    ({ GLOSSARY_SLUG_MAP } = require('../wts-admin/src/lib/link-hygiene'));
+  } catch (e) {
+    console.warn('[legacy-redirects] GLOSSARY_SLUG_MAP unavailable — skip old glossary slugs');
+    return 0;
+  }
+  let n = 0;
+  for (const [oldSlug, newSlug] of Object.entries(GLOSSARY_SLUG_MAP)) {
+    // Never overwrite the live glossary hub (map has an "index" key).
+    if (oldSlug === 'index') continue;
+    const dest = `/en/resources/glossary/${newSlug}.html`;
+    writeFileStub(`en/resources/glossary/${oldSlug}.html`, dest);
+    n += 1;
+  }
+  return n;
+}
+
 function main() {
   for (const [from, to] of Object.entries(EXACT)) {
     writeStub(from, to);
   }
+  const glossaryN = glossaryOldSlugStubs();
   patchRedirectsFile();
-  console.error(`[legacy-redirects] ${Object.keys(EXACT).length} path groups`);
+  console.error(`[legacy-redirects] ${Object.keys(EXACT).length} path groups + ${glossaryN} glossary slugs`);
 }
 
 main();
