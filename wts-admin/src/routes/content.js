@@ -396,6 +396,11 @@ router.post('/articles/publish-github', logActivity('article_publish_github'), a
     if (!/^en\/articles\/[a-z0-9][a-z0-9-]*\.html$/.test(repoPath)) {
       return res.status(400).json({ success: false, error: 'path must look like en/articles/<slug>.html' });
     }
+    const bodyHtml = (html.match(/<div class="article-content"[\s\S]*?<\/div>/i) || html.match(/<article[\s\S]*?<\/article>/i) || [html])[0];
+    const githubBlock = publishBlockedReason('published', bodyHtml, null);
+    if (githubBlock) {
+      return res.status(400).json({ success: false, error: githubBlock });
+    }
 
     const existing = await githubContent.getFile(repoPath);
     const message = `${existing ? 'Update' : 'Add'} article: ${String(req.body.title || repoPath).slice(0, 120)}`;
