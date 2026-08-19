@@ -18,6 +18,7 @@ const fs = require('fs');
 const net = require('net');
 const dns = require('dns').promises;
 const db = require('../../database/db');
+const { publishBlockedReason } = require('../lib/article-adsense-gate');
 
 const router = express.Router();
 
@@ -196,6 +197,8 @@ router.post('/articles', async (req, res) => {
 
     if (!title || !content) return res.status(422).json({ error: 'title and content are required' });
     if (!['draft', 'published'].includes(status)) return res.status(422).json({ error: 'status must be draft or published' });
+    const publishBlock = publishBlockedReason(status, content, null);
+    if (publishBlock) return res.status(422).json({ error: publishBlock });
 
     const slug = await uniqueSlug(slugInput ? slugify(slugInput) : slugify(title));
     const publishedAt = status === 'published' ? new Date() : null;

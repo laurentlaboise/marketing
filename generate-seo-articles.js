@@ -22,6 +22,8 @@ const linkHygiene = require('./wts-admin/src/lib/link-hygiene');
 const API_BASE_URL = 'https://admin.wordsthatsells.website/api/public';
 const SITE_BASE_URL = 'https://wordsthatsells.website';
 const OUTPUT_DIR = path.join(__dirname, 'en', 'articles');
+const { RULES } = require('./config/adsense.config.js');
+const ARTICLE_PUBLISH_MIN = RULES.ARTICLE_PUBLISH_MIN || 800;
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -580,7 +582,7 @@ ${JSON.stringify(faqSchema, null, 2)}
     <script src="https://kit.fontawesome.com/a521ce00f6.js" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -593,7 +595,7 @@ ${JSON.stringify(faqSchema, null, 2)}
             --color-light: #f9f9f9;
             --color-border: #e5e7eb;
             --font-family-heading: 'Poppins', sans-serif;
-            --font-family-body: 'Inter', sans-serif;
+            --font-family-body: 'Poppins', sans-serif;
             --spacing-sm: 0.5rem;
             --spacing-md: 1rem;
             --spacing-lg: 1.5rem;
@@ -1222,6 +1224,13 @@ async function generateArticle(article) {
   console.log(`\n📝 Generating: ${article.title}`);
   console.log(`   Slug: ${article.slug}`);
 
+  const body = article.full_article_content || article.text_article || article.content || '';
+  const words = Number(article.word_count) || String(body).replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
+  if (words < ARTICLE_PUBLISH_MIN) {
+    console.log(`   ⏭️  Skip: ${words} words (need ≥${ARTICLE_PUBLISH_MIN} for AdSense inventory)`);
+    return null;
+  }
+
   const html = generateArticleHTML(article);
   const filename = `${article.slug}.html`;
   const filepath = path.join(OUTPUT_DIR, filename);
@@ -1252,7 +1261,7 @@ async function main() {
     } else if (generateAll) {
       // Generate all published articles
       console.log('🔍 Fetching all published articles...');
-      const articles = await fetchData(`${API_BASE_URL}/articles`);
+      const articles = await fetchData(`${API_BASE_URL}/articles?limit=200`);
 
       if (articles.length === 0) {
         console.log('⚠️  No published articles found.');
@@ -1281,8 +1290,9 @@ async function main() {
     console.log('\n🌐 Next steps:');
     console.log('   1. Test generated HTML files in a browser');
     console.log('   2. Verify Schema.org markup: https://search.google.com/test/rich-results');
-    console.log('   3. Deploy to your hosting');
-    console.log('   4. Submit to Google Search Console\n');
+    console.log('   3. npm run inject:ads   # Claude AdSense layer (skip thin pages)');
+    console.log('   4. Deploy GitHub Pages (public site). Admin itself is Railway.');
+    console.log('   5. Submit new URLs in Google Search Console before Request review\n');
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
