@@ -181,7 +181,7 @@ test('machine POST creates a draft with a deduplicated slug, PUT fills it', asyn
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify({
-      text_article: '<h2>Only Section</h2><p>Body.</p>',
+      text_article: '<h2>Only Section</h2><p>' + Array(800).fill('word').join(' ') + '</p>',
       content_labels: { description: 'Hook', chapters: ['Only Section'] },
       status: 'published',
     }),
