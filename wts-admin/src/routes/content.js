@@ -36,6 +36,7 @@ const createSlug = (title) => {
 // Regenerated on every article save — admin form and machine API alike — so
 // the listing modal never drifts from Advanced → Chapters / Quick Facts / Sources.
 const { buildArticleListingTeaserHtml } = require('../lib/article-teaser');
+const { publishBlockedReason } = require('../lib/article-adsense-gate');
 
 // The teaser is derived data; an article is savable as long as there is a
 // real body (Full Article) or Content Labels to regenerate the teaser from.
@@ -228,6 +229,17 @@ router.post('/articles', [
     // Compute word count from full article text (not the teaser)
     const rawText = (text_article || contentToSave || '').replace(/<[^>]*>/g, '');
     const wordCount = rawText.split(/\s+/).filter(w => w.length > 0).length || null;
+    const publishBlock = publishBlockedReason(status, text_article || contentToSave, wordCount);
+    if (publishBlock) {
+      req.session.errorMessage = publishBlock;
+      return res.status(400).render('content/articles/form', {
+        title: 'New Article - WTS Admin',
+        article: req.body,
+        articleId: null,
+        currentPage: 'articles',
+        error: publishBlock
+      });
+    }
 
     // Normalize tags to human-readable names
     const normalizedTags = tagsArray.map(t => t.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
@@ -562,6 +574,11 @@ router.post('/articles/:id', async (req, res) => {
     const rawTextSource = text_article || contentToSave || '';
     const rawText = striptags(rawTextSource);
     const wordCount = rawText.split(/\s+/).filter(w => w.length > 0).length || null;
+    const publishBlock = publishBlockedReason(status, rawTextSource, wordCount);
+    if (publishBlock) {
+      req.session.errorMessage = publishBlock;
+      return res.redirect(`/content/articles/${req.params.id}/edit`);
+    }
 
     // Normalize tags to human-readable names
     const normalizedTags = tagsArray.map(t => t.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));

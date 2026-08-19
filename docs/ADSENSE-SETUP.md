@@ -108,6 +108,16 @@ Content published anywhere else — homepage, `/company/**`,
 monetized unless `PATH_PATTERNS` in `config/adsense.config.js` is extended
 deliberately. Category `index.html` listing pages are always skipped.
 
+**Future articles (Claude / Railway CMS):** write the full post in admin → publish only at ≥800 words (the admin, machine API, and Make endpoint refuse thinner “published” rows) → bake static HTML from the Railway public API → inject ads on GitHub Pages build.
+
+```bash
+# 1. Publish in admin.wordsthatsells.website (Railway)
+# 2. Bake + ads (GitHub Pages source — not Railway):
+npm run bake:articles
+```
+
+Do **not** bulk-generate more AI-tool pages to “qualify.” That is scaled thin inventory.
+
 To monetize newly published pages, run:
 
 ```bash

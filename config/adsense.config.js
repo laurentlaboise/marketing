@@ -68,6 +68,7 @@ const PATH_PATTERNS = {
 /** Density / policy thresholds (words of extracted main content). */
 const RULES = {
   MIN_WORD_COUNT: 400,        // hard floor — thin-content pages get no ads at all
+  ARTICLE_PUBLISH_MIN: 800,   // CMS + baker refuse to publish/bake below this (AdSense inventory)
   IN_ARTICLE_INTERVAL: 800,   // one fluid unit per ~800 words of article body
   MAX_IN_ARTICLE: 3,          // cap on mid-article units per page
   GLOSSARY_MID_MIN: 900,      // glossary pages need ≥900 words for a mid unit

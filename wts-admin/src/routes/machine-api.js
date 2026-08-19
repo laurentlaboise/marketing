@@ -12,6 +12,7 @@ const { requireMachineToken } = require('../middleware/machine-auth');
 const { seedPricingDefaults } = require('../lib/pricing-seed-data');
 const { seedAiTools } = require('../lib/ai-tools-seed');
 const { buildArticleListingTeaserHtml } = require('../lib/article-teaser');
+const { publishBlockedReason, countArticleWords } = require('../lib/article-adsense-gate');
 
 const router = express.Router();
 
@@ -1698,6 +1699,8 @@ router.post('/v1/articles', async (req, res) => {
     if (!['draft', 'published', 'archived'].includes(status)) {
       return fail(res, 'status must be draft|published|archived');
     }
+    const createBlock = publishBlockedReason(status, body.text_article || body.content, null);
+    if (createBlock) return fail(res, createBlock);
 
     const requested = String(body.slug || title).toLowerCase();
     const slugBase = requested.split(/[^a-z0-9]+/).filter(Boolean).join('-').slice(0, 200) || 'article';
@@ -1932,10 +1935,20 @@ router.put('/v1/articles/:idOrSlug', async (req, res) => {
 
     // Word count from text_article or content when either is set
     const textSrc = body.text_article != null ? body.text_article : body.content;
+    let wc = null;
     if (textSrc != null) {
-      const raw = String(textSrc).replace(/<[^>]*>/g, ' ');
-      const wc = raw.split(/\s+/).filter((w) => w.length > 0).length || null;
+      wc = countArticleWords(textSrc) || null;
       add('word_count', wc);
+    }
+
+    if (body.status === 'published') {
+      if (wc == null) {
+        const current = await db.query('SELECT text_article, content, word_count FROM articles WHERE id = $1', [id]);
+        const row = current.rows[0] || {};
+        wc = Number(row.word_count) || countArticleWords(row.text_article || row.content);
+      }
+      const publishBlock = publishBlockedReason('published', textSrc, wc);
+      if (publishBlock) return fail(res, publishBlock);
     }
 
     // Auto-set published_at when publishing first time

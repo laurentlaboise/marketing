@@ -105,6 +105,18 @@ test('machine PUT with a stale base_updated_at is rejected with 409, force overr
   assert.equal(after1.seo_title, 'Forced through');
 });
 
+test('machine PUT cannot flip a thin article to published', async () => {
+  const res = await fetch(`${machine()}/articles/${SLUG}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({ status: 'published', text_article: '<p>Too thin for AdSense.</p>' }),
+  });
+  assert.equal(res.status, 400);
+  const body = await res.json();
+  assert.equal(body.success, false);
+  assert.match(body.error, /800/);
+});
+
 test('machine PUT with a fresh base_updated_at passes the guard', async () => {
   const get = await fetch(`${machine()}/articles/${SLUG}`, { headers: authHeaders() });
   const current = (await get.json()).article;

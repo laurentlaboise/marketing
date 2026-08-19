@@ -8,6 +8,7 @@
     "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js && node scripts/inject-faqs.js && npm run inject:ads && npm run inject:pixel",
     "build:webpack": "webpack --mode=production",
     "inject-footers": "node scripts/inject-footers.js",
+    "bake:articles": "node generate-seo-articles.js --all && npm run inject:ads",
     "inject:ads": "node scripts/inject-adsense.js",
     "inject:ads:dry": "node scripts/inject-adsense.js --dry-run",
     "inject:pixel": "node scripts/inject-pixel.js",
