@@ -61,6 +61,18 @@ test('stripTeaserCtaButtons also drops class-based and icon-arrow CTAs', () => {
   );
 });
 
+test('stripTeaserCtaButtons is insensitive to attribute spacing, and cheap on padded input', () => {
+  const spaced = '<a  class = "cta-btn"  href = "/a"  style = "display : inline-block ; background : #1f85c9 ; border-radius : 8px ;" >Read →</a>';
+  assert.equal(stripTeaserCtaButtons('<p>x</p>' + spaced), '<p>x</p>');
+
+  // Uncontrolled teaser HTML: long whitespace runs must not send the matcher
+  // into backtracking (CodeQL flagged the earlier \s*-wrapped pattern).
+  const padded = '<a ' + ' '.repeat(50000) + 'href="https://example.org/x">plain link</a>';
+  const started = Date.now();
+  assert.equal(stripTeaserCtaButtons(padded), padded, 'a plain link survives untouched');
+  assert.ok(Date.now() - started < 1000, 'matching stays linear on padded input');
+});
+
 test('stripTeaserCtaButtons passes through empty and non-string input', () => {
   assert.equal(stripTeaserCtaButtons(''), '');
   assert.equal(stripTeaserCtaButtons(null), null);

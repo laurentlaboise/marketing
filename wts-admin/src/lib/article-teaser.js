@@ -70,20 +70,45 @@ function buildArticleListingTeaserHtml({
 }
 
 // Any <a>…</a> in a stored teaser. Non-greedy so each anchor is matched on
-// its own; anchors cannot nest in valid HTML.
-const ANCHOR_RE = /\s*<a\b[^>]*>[\s\S]*?<\/a>\s*/gi;
+// its own; anchors cannot nest in valid HTML. No leading/trailing \s* — the
+// teaser HTML is uncontrolled input, and whitespace runs next to a literal
+// make the match backtrack on long strings of spaces (CodeQL: polynomial
+// regex on uncontrolled data).
+const ANCHOR_RE = /<a\b[^>]*>[\s\S]*?<\/a>/gi;
 
-// A CTA button, as opposed to a source badge or an inline link: it both looks
-// like a button (button/CTA class, or an inline-block pill with a background)
-// and carries the trailing arrow the CTA always rendered with.
+// Markers of the trailing arrow the CTA always rendered with.
+const ARROW_MARKERS = ['→', '&rarr;', '&#8594;', '&#x2192;', 'fa-arrow-right'];
+
+/**
+ * A CTA button, as opposed to a source badge or an inline link: it both looks
+ * like a button (button/CTA class, or an inline-block pill with a background)
+ * and carries the trailing arrow. Deliberately substring tests over a
+ * once-normalized open tag rather than whitespace-tolerant regexes, so hostile
+ * teaser HTML has nothing to backtrack.
+ */
 function isCtaButtonAnchor(anchorHtml) {
-  const openTag = anchorHtml.slice(0, anchorHtml.indexOf('>') + 1);
-  const looksLikeButton = /class\s*=\s*["'][^"']*\b(btn|button|cta)[\w-]*\b/i.test(openTag)
-    || (/display\s*:\s*inline-(block|flex)/i.test(openTag)
-      && /background\s*:/i.test(openTag)
-      && /border-radius\s*:/i.test(openTag));
-  const hasArrow = /(→|&rarr;|&#8594;|&#x2192;|fa-arrow-right)/i.test(anchorHtml);
-  return looksLikeButton && hasArrow;
+  const lower = anchorHtml.toLowerCase();
+  if (!ARROW_MARKERS.some((marker) => lower.includes(marker))) return false;
+
+  // One linear normalization pass: collapse whitespace runs, then close the
+  // gaps around "=" and ":" so attributes and CSS declarations read the same
+  // however they were spaced.
+  const tag = lower
+    .slice(0, lower.indexOf('>') + 1)
+    .replace(/\s+/g, ' ')
+    .replace(/ ?([=:]) ?/g, '$1');
+
+  const quote = tag.includes('class="') ? '"' : (tag.includes("class='") ? "'" : '');
+  if (quote) {
+    const start = tag.indexOf('class=' + quote) + 'class='.length + 1;
+    const end = tag.indexOf(quote, start);
+    const classNames = (end === -1 ? tag.slice(start) : tag.slice(start, end)).split(' ');
+    if (classNames.some((name) => /(?:^|[-_])(?:btn|button|cta)(?:[-_]|$)/.test(name))) return true;
+  }
+
+  return (tag.includes('display:inline-block') || tag.includes('display:inline-flex'))
+    && tag.includes('background')
+    && tag.includes('border-radius');
 }
 
 /**
