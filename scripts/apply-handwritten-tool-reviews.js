@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Apply unique localized reviews onto the 8 GSC-click AI-tool URLs.
+ * Apply unique localized reviews onto handwritten AI-tool URLs.
  * Re-run after a localized regenerate that accidentally overwrote them.
  */
 'use strict';
@@ -8,7 +8,15 @@
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
-const REVIEWS = require('./data/handwritten-tool-reviews.js');
+const REVIEWS = [
+  ...require('./data/handwritten-tool-reviews.js'),
+  ...require('./data/gsc20-th-a.js'),
+  ...require('./data/gsc20-th-b.js'),
+  ...require('./data/gsc20-th-c.js'),
+  ...require('./data/gsc20-fr-a.js'),
+  ...require('./data/gsc20-fr-b.js'),
+  ...require('./data/gsc20-en.js'),
+];
 
 function applyOne(rel, review) {
   const abs = path.join(ROOT, rel);
