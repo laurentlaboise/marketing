@@ -11,6 +11,11 @@
  * Usage:
  *   node scripts/generate-ai-tool-pages.js
  *   node scripts/generate-ai-tool-pages.js --clean
+ *   node scripts/generate-ai-tool-pages.js --skip-slugs dora-ai,groq
+ *
+ * Pages listed in config/ai-tool-handwritten.js are localized reviews.
+ * This script only writes English; skip those slugs if you later add EN
+ * handwritten copies so a regenerate cannot wipe them.
  */
 const fs = require('fs');
 const path = require('path');
@@ -19,7 +24,43 @@ const ROOT = path.resolve(__dirname, '..');
 const SEED = path.join(ROOT, 'wts-admin/database/seed/top-100-ai-tools.json');
 const OUT_DIR = path.join(ROOT, 'en/resources/ai-tools');
 const SITE = 'https://wordsthatsells.website';
+const GTAG = fs.readFileSync(path.join(ROOT, 'partials/gtag.html'), 'utf8').trim();
 const CLEAN = process.argv.includes('--clean');
+
+function parseSkipSlugs(argv) {
+  const skip = new Set();
+  const addHandwritten = argv.includes('--skip-handwritten') || argv.includes('--skip-slugs');
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--skip-slugs' && argv[i + 1]) {
+      String(argv[++i]).split(',').map((s) => s.trim()).filter(Boolean).forEach((s) => skip.add(s));
+    }
+  }
+  if (addHandwritten && !skip.size) {
+    try {
+      const handwritten = require(path.join(ROOT, 'config/ai-tool-handwritten.js'));
+      for (const rel of handwritten.pages || []) {
+        const m = rel.match(/resources\/ai-tools\/([^/]+)\//);
+        if (m) skip.add(m[1]);
+      }
+    } catch {
+      /* optional */
+    }
+  }
+  return skip;
+}
+
+const SKIP_SLUGS = parseSkipSlugs(process.argv);
+
+/**
+ * Seed rows were bulk-filled with identical clone bullets. Future pages
+ * should only render fields that look tool-specific. Generic lines are dropped.
+ */
+const GENERIC_SEED_LINE = /(?:capabilities for teams|Web access for collaboration|Fits marketing|Integrates into modern SaaS|Actively maintained product|Regular product updates from the vendor|Widely recognized in the AI ecosystem|Strong product momentum|Useful for SEA digital marketing|Recognized among top tools|Useful for digital marketing and ops|Scales from individual to team|Pricing can (?:increase|grow)|May need onboarding|Advanced features may need onboarding|Outputs still need human|AI outputs still need human review)/i;
+
+function seedSpecific(items) {
+  const arr = Array.isArray(items) ? items.filter(Boolean) : [];
+  return arr.filter((item) => !GENERIC_SEED_LINE.test(String(item)));
+}
 
 function slugify(name) {
   return String(name || '')
@@ -89,9 +130,10 @@ function renderPage(tool, related) {
   const website = tool.website_url || tool.website_link || '';
   const appStore = tool.app_store_url || tool.app_store_link || '';
   const playStore = tool.play_store_url || tool.play_store_link || '';
-  const features = tool.features || tool.key_features || [];
-  const pros = tool.pros || [];
-  const cons = tool.cons || [];
+  const features = seedSpecific(tool.features || tool.key_features || []);
+  const pros = seedSpecific(tool.pros || []);
+  const cons = seedSpecific(tool.cons || []);
+  const whoShouldUse = seedSpecific(tool.who_should_use || tool.whoShouldUse || []);
   const description = tool.description || '';
   const metaDesc = String(description).replace(/\s+/g, ' ').trim().slice(0, 158);
   const canonical = `${SITE}/en/resources/ai-tools/${slug}/`;
@@ -172,6 +214,7 @@ function renderPage(tool, related) {
   <meta name="twitter:title" content="${escAttr(`${name} — AI Tool Guide`)}">
   <meta name="twitter:description" content="${escAttr(metaDesc)}">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  ${GTAG}
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -248,37 +291,29 @@ function renderPage(tool, related) {
       <h2>What is ${esc(name)}?</h2>
       <div class="card">
         ${paragraphs(description)}
-        <p>${esc(name)} is listed in the WordsThatSells AI tools directory for marketers, agencies, and founders building growth systems across Southeast Asia. Compare features, pricing model, and mobile availability before adding it to your stack.</p>
       </div>
     </section>
 
-    <section>
+    ${features.length ? `<section>
       <h2>Key features</h2>
       <div class="card">${listHtml(features)}</div>
-    </section>
+    </section>` : ''}
 
-    <section class="cols">
-      <div>
+    ${pros.length || cons.length ? `<section class="cols">
+      ${pros.length ? `<div>
         <h2>Pros</h2>
         <div class="card">${listHtml(pros)}</div>
-      </div>
-      <div>
+      </div>` : ''}
+      ${cons.length ? `<div>
         <h2>Cons</h2>
         <div class="card">${listHtml(cons)}</div>
-      </div>
-    </section>
+      </div>` : ''}
+    </section>` : ''}
 
-    <section>
+    ${whoShouldUse.length ? `<section>
       <h2>Who should use ${esc(name)}?</h2>
-      <div class="card">
-        <ul>
-          <li>Marketing teams producing content, creatives, or campaigns faster</li>
-          <li>Agencies evaluating tools for client delivery and white-label workflows</li>
-          <li>Founders and operators automating research, support, or sales tasks</li>
-          <li>SEA businesses that need practical AI with clear pricing signals</li>
-        </ul>
-      </div>
-    </section>
+      <div class="card">${listHtml(whoShouldUse)}</div>
+    </section>` : ''}
 
     <section>
       <h2>Pricing</h2>
@@ -337,7 +372,12 @@ function main() {
   if (CLEAN) cleanOldToolDirs(tools);
 
   let written = 0;
+  let skipped = 0;
   for (const tool of tools) {
+    if (SKIP_SLUGS.has(tool.slug)) {
+      skipped += 1;
+      continue;
+    }
     const dir = path.join(OUT_DIR, tool.slug);
     fs.mkdirSync(dir, { recursive: true });
     const related = relatedTools(tool, tools);
@@ -374,7 +414,7 @@ ${seoList}
     fs.writeFileSync(indexPath, indexHtml, 'utf8');
   }
 
-  console.log(`[generate-ai-tool-pages] wrote ${written} pages → en/resources/ai-tools/{slug}/`);
+  console.log(`[generate-ai-tool-pages] wrote ${written} pages → en/resources/ai-tools/{slug}/${skipped ? ` (skipped ${skipped} handwritten slugs)` : ''}`);
 }
 
 main();

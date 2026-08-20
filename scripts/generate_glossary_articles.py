@@ -379,6 +379,14 @@ def build_article(t: dict, filename: str) -> str:
     </noscript>
     <title>{esc(title)}</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMRKC1VBBB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-LMRKC1VBBB');
+    </script>
     <meta name="description" content="{esc(meta_desc)}">
     <meta name="robots" content="index, follow">
     <meta name="keywords" content="{esc(term)}, SEO, search engine optimization, crawling, ranking, keywords, Southeast Asia, digital marketing">

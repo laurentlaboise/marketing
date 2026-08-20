@@ -43,6 +43,9 @@
 const fs = require('fs');
 const path = require('path');
 const l10n = require('./lib/html-l10n');
+const HANDWRITTEN_PAGES = new Set(
+  (require(path.join(__dirname, '..', 'config', 'ai-tool-handwritten.js')).pages || [])
+);
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -186,6 +189,12 @@ async function main() {
 
     for (const lang of args.langs) {
       if (!(plan.get(rel) || new Set()).has(lang)) {
+        summary.skipped += 1;
+        continue;
+      }
+      const outRel = `${lang}/${rel}`.replace(/\\/g, '/');
+      if (HANDWRITTEN_PAGES.has(outRel)) {
+        console.log(`[skip-handwritten] ${outRel}`);
         summary.skipped += 1;
         continue;
       }

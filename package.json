@@ -5,7 +5,7 @@
   "scripts": {
     "bundle:css": "node scripts/bundle-css.js",
     "normalize:css": "node scripts/bundle-css.js && node scripts/normalize-site-css.js",
-    "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js && node scripts/inject-faqs.js && npm run inject:ads && npm run inject:pixel",
+    "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js && node scripts/inject-faqs.js && npm run inject:ads && npm run inject:pixel && npm run inject:ga",
     "build:webpack": "webpack --mode=production",
     "inject-footers": "node scripts/inject-footers.js",
     "bake:articles": "node generate-seo-articles.js --all && npm run inject:ads",
@@ -14,6 +14,9 @@
     "inject:pixel": "node scripts/inject-pixel.js",
     "inject:pixel:dry": "node scripts/inject-pixel.js --dry-run",
     "test:pixel": "node --test scripts/inject-pixel.test.js",
+    "inject:ga": "node scripts/inject-ga.js",
+    "inject:ga:dry": "node scripts/inject-ga.js --dry-run",
+    "test:ga": "node --test scripts/inject-ga.test.js",
     "generate:ai-tools": "node scripts/generate-ai-tool-pages.js && node scripts/inject-footers.js --source",
     "localize": "node scripts/generate-localized-pages.js",
     "sitemap": "node scripts/generate-sitemap.js",
