@@ -472,7 +472,7 @@ function generateSchemaMarkup(article) {
 function generateSidebarHTML(article, headings) {
   const entries = sidebarLib.resolveChapters(
     sidebarLib.chaptersFromLabels(article.content_labels), headings || []);
-  const card = sidebarLib.buildCardHTML(article, entries, { ctaHref: '#article-container' });
+  const card = sidebarLib.buildCardHTML(article, entries);
   if (!card) return '';
   return '<aside class="article-sidebar">' + card + '</aside>';
 }
@@ -919,8 +919,6 @@ ${JSON.stringify(faqSchema, null, 2)}
         .sidebar-read-stats { display: flex; gap: 14px; font-size: 0.72rem; color: var(--color-slate-500); }
         .sidebar-read-stats span { display: flex; align-items: center; gap: 4px; }
         .sidebar-read-stats i { color: var(--color-primary-base); font-size: 0.7rem; }
-        .sidebar-cta-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--color-accent-magenta); color: var(--color-white); font-size: 0.78rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; transition: background 0.2s; white-space: nowrap; }
-        .sidebar-cta-btn:hover { background: #b91c6f; color: var(--color-white); }
 
         @media (max-width: 960px) {
             .article-layout { grid-template-columns: 1fr; }

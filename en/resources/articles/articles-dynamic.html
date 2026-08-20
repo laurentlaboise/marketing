@@ -726,8 +726,6 @@
       if (!desc && !chapters.length && !facts.length) return null;
 
       const sm = article.social_meta || {};
-      const articleUrl = article.published_url || sm.canonical_url || (window.location.origin + '/en/articles/' + article.slug + '.html');
-      const cta = cl.cta_text || 'Read full article';
       const img = article.featured_image_url || sm.og_image || '';
       const cat = (article.categories && article.categories[0]) || '';
       const read = article.time_to_read ? (article.time_to_read + ' min read') : '';
@@ -757,7 +755,6 @@
         });
         html += '</p>';
       }
-      html += '<a class="btn" href="' + articleUrl + '" style="display:inline-block;margin-top:4px;">' + cta + ' →</a>';
       html += '</article>';
       return html;
     }

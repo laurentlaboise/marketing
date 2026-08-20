@@ -37,7 +37,7 @@ test('resolveChapters fuzzy-matches hand-written labels to numbered headings', (
   assert.equal(entries[2].id, null, 'unmatched chapters stay non-clickable');
 });
 
-test('buildCardHTML renders chapters as links, escapes text, honors ctaHref', () => {
+test('buildCardHTML renders chapters as links, escapes text, ships no CTA button', () => {
   const article = {
     title: 'Title <script>alert(1)</script>',
     category: 'branding',
@@ -53,12 +53,13 @@ test('buildCardHTML renders chapters as links, escapes text, honors ctaHref', ()
       cta_text: 'Read it',
     },
   };
-  const html = lib.buildCardHTML(article, [{ text: 'First section', id: 'first-section' }, { text: 'No anchor', id: null }], { ctaHref: '#article-container' });
+  const html = lib.buildCardHTML(article, [{ text: 'First section', id: 'first-section' }, { text: 'No anchor', id: null }]);
   assert.match(html, /class="sidebar-chapter-link" href="#first-section"/);
   assert.ok(!html.includes('<script>alert'), 'title is escaped');
   assert.match(html, /A hook &amp; a promise/);
   assert.match(html, /href="https:\/\/doi.org\/x"[^>]*class="sidebar-source-badge"/);
-  assert.match(html, /href="#article-container"/);
+  assert.ok(!html.includes('sidebar-cta-btn'), 'the side menu carries no CTA button');
+  assert.ok(!html.includes('Read it'), 'a stored cta_text label is ignored');
   assert.match(html, /1,234 words/);
   assert.match(html, /2 FAQs/);
   assert.ok(html.includes('<li>No anchor</li>'), 'unmatched chapter renders as plain text');

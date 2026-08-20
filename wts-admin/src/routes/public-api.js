@@ -3,6 +3,9 @@ const db = require('../../database/db');
 const rateLimit = require('express-rate-limit');
 const { isOriginAllowed } = require('../utils/origins');
 const { normalizeTiers, normalizePriceOptions } = require('../utils/pricing');
+// Teasers saved before the CTA button was dropped still carry it in the
+// content column; strip it at read time so no consumer renders the button.
+const { stripTeaserCtaButtons } = require('../lib/article-teaser');
 const { translate } = require('../lib/i18n');
 
 // The portal i18n middleware is not mounted on /api/public, so the portal
@@ -106,6 +109,10 @@ router.get('/articles', async (req, res) => {
 
     const result = await db.query(query, params);
 
+    // The stored teaser (content column) may still carry the CTA button from
+    // before it was dropped — strip it on the way out, for every consumer.
+    result.rows.forEach((row) => { row.content = stripTeaserCtaButtons(row.content); });
+
     // Transform data for frontend compatibility
     const articles = result.rows.map(article => ({
       id: article.id,
@@ -186,6 +193,8 @@ router.get('/articles/:slug', async (req, res) => {
     }
 
     const article = result.rows[0];
+    // Same CTA-button strip as the list endpoint (see above).
+    article.content = stripTeaserCtaButtons(article.content);
     await refreshArticleImages([article]);
     respond(res, {
       id: article.id,

@@ -171,8 +171,7 @@
    * `chapterEntries` comes from resolveChapters(). Text is escaped here —
    * callers pass raw values.
    */
-  function buildCardHTML(article, chapterEntries, opts) {
-    opts = opts || {};
+  function buildCardHTML(article, chapterEntries) {
     var cl = article.content_labels || {};
     var chapters = chapterEntries || [];
     var facts = Array.isArray(cl.facts) ? cl.facts.filter(Boolean).slice(0, 4) : [];
@@ -190,8 +189,6 @@
     var publishedDate = formatDate(article.published_at || article.created_at);
     var sourcesCount = (cl.sources || []).length || (article.citations || []).length;
     var faqsCount = Number(cl.faqs_count) || 0;
-    var ctaText = cl.cta_text || 'Read full article';
-    var ctaHref = opts.ctaHref || '#article-container';
 
     var html = '<div class="sidebar-card">';
 
@@ -251,13 +248,15 @@
 
     html += '</div>'; // /sidebar-card-body
 
-    html += '<div class="sidebar-read-bar">';
-    html += '<div class="sidebar-read-stats">';
-    if (wordCount) html += '<span><i class="fas fa-file-alt"></i> ' + Number(wordCount).toLocaleString() + ' words</span>';
-    if (faqsCount > 0) html += '<span><i class="fas fa-question-circle"></i> ' + faqsCount + ' FAQs</span>';
-    html += '</div>';
-    html += '<a href="' + escapeHtml(ctaHref) + '" class="sidebar-cta-btn">' + escapeHtml(ctaText) + ' <i class="fas fa-arrow-right"></i></a>';
-    html += '</div>';
+    // Read bar: stats only — the sidebar carries no CTA button. Skip the bar
+    // entirely when there is no stat to show, so it can't render as an empty
+    // grey strip.
+    var stats = '';
+    if (wordCount) stats += '<span><i class="fas fa-file-alt"></i> ' + Number(wordCount).toLocaleString() + ' words</span>';
+    if (faqsCount > 0) stats += '<span><i class="fas fa-question-circle"></i> ' + faqsCount + ' FAQs</span>';
+    if (stats) {
+      html += '<div class="sidebar-read-bar"><div class="sidebar-read-stats">' + stats + '</div></div>';
+    }
 
     html += '</div>'; // /sidebar-card
     return html;
@@ -297,8 +296,6 @@
     '.sidebar-read-stats{display:flex;gap:14px;font-size:0.72rem;color:var(--color-slate-500,#64748b);}',
     '.sidebar-read-stats span{display:flex;align-items:center;gap:4px;}',
     '.sidebar-read-stats i{color:var(--color-primary-base,#1f85c9);font-size:0.7rem;}',
-    '.sidebar-cta-btn{display:inline-flex;align-items:center;gap:6px;background:var(--color-accent-magenta,#d62b83);color:var(--color-white,#fff);font-size:0.78rem;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;transition:background 0.2s;white-space:nowrap;}',
-    '.sidebar-cta-btn:hover{background:#b91c6f;color:var(--color-white,#fff);}',
     '.article-content h2,.article-content h3{scroll-margin-top:96px;}',
     '@media (max-width:960px){.wts-article-layout{grid-template-columns:minmax(0,1fr);}.article-sidebar{position:static;order:-1;}}',
   ].join('\n');
@@ -376,11 +373,11 @@
   }
 
   // Render the card into a sidebar element from live data (article shell path).
-  function renderInto(sidebarEl, article, headings, opts) {
+  function renderInto(sidebarEl, article, headings) {
     if (!sidebarEl) return;
     injectStyles();
     var entries = resolveChapters(chaptersFromLabels(article.content_labels), headings || []);
-    var html = buildCardHTML(article, entries, opts);
+    var html = buildCardHTML(article, entries);
     if (!html) { sidebarEl.style.display = 'none'; return; }
     sidebarEl.innerHTML = html;
     sidebarEl.style.display = '';
@@ -423,7 +420,7 @@
     if (!contentEl.id) contentEl.id = 'article-container';
 
     var headings = buildHeadingAnchors(contentEl);
-    renderInto(aside, article, headings, { ctaHref: '#' + contentEl.id });
+    renderInto(aside, article, headings);
   }
 
   return {
