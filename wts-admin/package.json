@@ -17,7 +17,7 @@
   "author": "WordsThatSells",
   "license": "MIT",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.116.0",
+    "@anthropic-ai/sdk": "^0.117.1",
     "bcryptjs": "^3.0.3",
     "connect-pg-simple": "^10.0.0",
     "cors": "^2.8.5",
@@ -38,7 +38,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.23.0",
     "sharp": "^0.35.3",
-    "stripe": "^22.4.0",
+    "stripe": "^22.5.0",
     "striptags": "^3.2.0",
     "uuid": "^14.0.1"
   },
