@@ -269,8 +269,26 @@
   // that don't define the site variables. Explicit margins guard against
   // heading/list resets bleeding in from a host page's own stylesheet.
   var CARD_CSS = [
-    '.article-sidebar{position:sticky;top:24px;}',
-    '.wts-article-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:var(--spacing-2xl,3rem);align-items:start;}',
+    // Reading layout — the same system every article surface uses (the static
+    // generator and the article shell carry a copy in their own stylesheets).
+    // The text column is capped at a comfortable measure (44rem ≈ 70
+    // characters) instead of stretching to the page width, the pair is centred
+    // in whatever room the page gives it, and the side menu sticks beside the
+    // text — scrolling inside itself when the card is taller than a short
+    // laptop or landscape-tablet viewport.
+    //
+    // The shell is the wrapper the layout lands in: a page sized for text
+    // alone (a 900px container, say) has no room for a side menu next to it,
+    // so it widens to hold both.
+    '.wts-article-shell{width:100%;max-width:76.5rem;margin-inline:auto;}',
+    '.wts-article-layout{display:grid;grid-template-columns:minmax(0,44rem) clamp(16rem,24vw,21rem);justify-content:center;gap:clamp(1.5rem,3vw,3rem);align-items:start;}',
+    '.wts-article-layout>*{min-width:0;}',
+    '.article-sidebar{position:sticky;top:24px;max-height:calc(100vh - 3rem);overflow-y:auto;overscroll-behavior:contain;}',
+    // Body type grows with the viewport: 17px on a phone, 19px on a desktop,
+    // with the headings scaling alongside it.
+    '.article-content{font-size:clamp(1.0625rem,1rem + 0.25vw,1.1875rem);line-height:1.75;}',
+    '.article-content h2{font-size:clamp(1.5rem,1.25rem + 1vw,1.875rem);line-height:1.25;}',
+    '.article-content h3{font-size:clamp(1.25rem,1.1rem + 0.6vw,1.5rem);line-height:1.3;}',
     '.sidebar-card{background:var(--color-white,#fff);border:1px solid var(--color-border,#e5e7eb);border-radius:var(--border-radius-lg,0.75rem);box-shadow:var(--shadow-md,0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.1));overflow:hidden;}',
     '.sidebar-card-image{width:100%;height:180px;object-fit:cover;margin:0;}',
     '.sidebar-card-body{padding:20px;}',
@@ -297,7 +315,10 @@
     '.sidebar-read-stats span{display:flex;align-items:center;gap:4px;}',
     '.sidebar-read-stats i{color:var(--color-primary-base,#1f85c9);font-size:0.7rem;}',
     '.article-content h2,.article-content h3{scroll-margin-top:96px;}',
-    '@media (max-width:960px){.wts-article-layout{grid-template-columns:minmax(0,1fr);}.article-sidebar{position:static;order:-1;}}',
+    // Tablet portrait and below (a landscape tablet is 1024 wide and keeps the
+    // two-column layout): one column, menu first, text centred and still
+    // capped at its measure so a wide tablet doesn't run lines edge to edge.
+    '@media (max-width:1023px){.wts-article-layout{grid-template-columns:minmax(0,1fr);justify-items:center;}.wts-article-layout>*{width:100%;max-width:44rem;}.article-sidebar{position:static;max-height:none;overflow:visible;order:-1;}.ad-slot--sidebar{display:none;}}',
   ].join('\n');
 
   function injectStyles() {
@@ -409,11 +430,15 @@
 
     injectStyles();
 
-    // Two-column layout around the article, sidebar alongside
+    // Two-column layout around the article, sidebar alongside. The wrapper
+    // that receives it gets .wts-article-shell so a container sized for text
+    // alone widens to hold the menu too.
     var layout = document.createElement('div');
     layout.className = 'wts-article-layout';
-    contentEl.parentNode.insertBefore(layout, contentEl);
+    var shell = contentEl.parentNode;
+    shell.insertBefore(layout, contentEl);
     layout.appendChild(contentEl);
+    if (shell.classList) shell.classList.add('wts-article-shell');
     var aside = document.createElement('aside');
     aside.className = 'article-sidebar';
     layout.appendChild(aside);
