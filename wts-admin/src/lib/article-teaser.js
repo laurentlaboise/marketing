@@ -3,6 +3,11 @@
  * of truth for the article preview card. Shared by the admin form save
  * (src/routes/content.js) and the machine API (src/routes/machine-api.js) so
  * the teaser can never drift depending on which writer saved last.
+ *
+ * The teaser carries no CTA/"next article" button: the surfaces that show it
+ * (listing modal, article side menu) provide their own link to the article.
+ * stripTeaserCtaButtons() removes that button from teasers saved before this,
+ * so legacy rows lose it without waiting for a re-save.
  */
 
 function escapeHtmlLite(s) {
@@ -18,8 +23,6 @@ function buildArticleListingTeaserHtml({
   featured_image,
   author_name,
   time_to_read,
-  published_url,
-  slug,
   category,
   content_labels,
 }) {
@@ -32,10 +35,7 @@ function buildArticleListingTeaserHtml({
   const facts = Array.isArray(cl.facts) ? cl.facts.map(String).filter(Boolean).slice(0, 6) : [];
   const sources = Array.isArray(cl.sources) ? cl.sources.slice(0, 4) : [];
   const desc = (cl.description || '').trim();
-  const cta = (cl.cta_text || 'Read full article').trim();
   const faqs = cl.faqs_count || 0;
-  const url = published_url
-    || (slug ? `https://wordsthatsells.website/en/articles/${slug}.html` : '#');
   const read = time_to_read ? `${time_to_read} min read` : '';
   const author = author_name || 'Words That Sells';
   const cat = category || '';
@@ -65,9 +65,59 @@ function buildArticleListingTeaserHtml({
     ${chapterLis ? `<h3 style="margin:0 0 8px;font-size:14px;color:#122a3f;">In this guide</h3><ul style="margin:0 0 14px;padding-left:1.1rem;color:#334155;font-size:14px;line-height:1.5;">${chapterLis}</ul>` : ''}
     ${factLis ? `<h3 style="margin:0 0 8px;font-size:14px;color:#122a3f;">Quick facts</h3><ul style="margin:0 0 14px;padding-left:1.1rem;color:#334155;font-size:14px;line-height:1.5;">${factLis}</ul>` : ''}
     ${sourceBadges ? `<h3 style="margin:0 0 8px;font-size:14px;color:#122a3f;">Sources</h3><div style="margin:0 0 16px;">${sourceBadges}</div>` : ''}
-    <a href="${escapeHtmlLite(url)}" style="display:inline-block;background:#1f85c9;color:#fff;padding:10px 18px;border-radius:8px;font-weight:700;text-decoration:none;font-size:14px;">${escapeHtmlLite(cta)} →</a>
   </div>
 </article>`;
 }
 
-module.exports = { buildArticleListingTeaserHtml, escapeHtmlLite };
+// Any <a>…</a> in a stored teaser. Non-greedy so each anchor is matched on
+// its own; anchors cannot nest in valid HTML. No leading/trailing \s* — the
+// teaser HTML is uncontrolled input, and whitespace runs next to a literal
+// make the match backtrack on long strings of spaces (CodeQL: polynomial
+// regex on uncontrolled data).
+const ANCHOR_RE = /<a\b[^>]*>[\s\S]*?<\/a>/gi;
+
+// Markers of the trailing arrow the CTA always rendered with.
+const ARROW_MARKERS = ['→', '&rarr;', '&#8594;', '&#x2192;', 'fa-arrow-right'];
+
+/**
+ * A CTA button, as opposed to a source badge or an inline link: it both looks
+ * like a button (button/CTA class, or an inline-block pill with a background)
+ * and carries the trailing arrow. Deliberately substring tests over a
+ * once-normalized open tag rather than whitespace-tolerant regexes, so hostile
+ * teaser HTML has nothing to backtrack.
+ */
+function isCtaButtonAnchor(anchorHtml) {
+  const lower = anchorHtml.toLowerCase();
+  if (!ARROW_MARKERS.some((marker) => lower.includes(marker))) return false;
+
+  // One linear normalization pass: collapse whitespace runs, then close the
+  // gaps around "=" and ":" so attributes and CSS declarations read the same
+  // however they were spaced.
+  const tag = lower
+    .slice(0, lower.indexOf('>') + 1)
+    .replace(/\s+/g, ' ')
+    .replace(/ ?([=:]) ?/g, '$1');
+
+  const quote = tag.includes('class="') ? '"' : (tag.includes("class='") ? "'" : '');
+  if (quote) {
+    const start = tag.indexOf('class=' + quote) + 'class='.length + 1;
+    const end = tag.indexOf(quote, start);
+    const classNames = (end === -1 ? tag.slice(start) : tag.slice(start, end)).split(' ');
+    if (classNames.some((name) => /(?:^|[-_])(?:btn|button|cta)(?:[-_]|$)/.test(name))) return true;
+  }
+
+  return (tag.includes('display:inline-block') || tag.includes('display:inline-flex'))
+    && tag.includes('background')
+    && tag.includes('border-radius');
+}
+
+/**
+ * Drop the legacy "read full article →" CTA button from a stored teaser card.
+ * Source badges (pills without an arrow) and body links are left untouched.
+ */
+function stripTeaserCtaButtons(html) {
+  if (!html || typeof html !== 'string') return html;
+  return html.replace(ANCHOR_RE, (anchor) => (isCtaButtonAnchor(anchor) ? '' : anchor));
+}
+
+module.exports = { buildArticleListingTeaserHtml, stripTeaserCtaButtons, escapeHtmlLite };

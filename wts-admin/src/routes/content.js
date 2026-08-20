@@ -35,7 +35,7 @@ const createSlug = (title) => {
 // Listing/sidemenu teaser HTML from Content Labels (single source of truth).
 // Regenerated on every article save — admin form and machine API alike — so
 // the listing modal never drifts from Advanced → Chapters / Quick Facts / Sources.
-const { buildArticleListingTeaserHtml } = require('../lib/article-teaser');
+const { buildArticleListingTeaserHtml, stripTeaserCtaButtons } = require('../lib/article-teaser');
 const { publishBlockedReason } = require('../lib/article-adsense-gate');
 
 // The teaser is derived data; an article is savable as long as there is a
@@ -224,7 +224,9 @@ router.post('/articles', [
       category,
       content_labels: contentLabelsJson,
     });
-    const contentToSave = regeneratedTeaser || content;
+    // Falling back to the posted teaser: strip any CTA button it still
+    // carries, so a legacy card can't survive a save.
+    const contentToSave = regeneratedTeaser || stripTeaserCtaButtons(content);
 
     // Compute word count from full article text (not the teaser)
     const rawText = (text_article || contentToSave || '').replace(/<[^>]*>/g, '');
@@ -464,9 +466,14 @@ router.get('/articles/:id/edit', async (req, res) => {
       req.session.errorMessage = 'Article not found';
       return res.redirect('/content/articles');
     }
+    // Teasers saved before the CTA button was dropped still carry it; strip it
+    // so the preview matches what the site renders (and what the next save
+    // regenerates).
+    const article = result.rows[0];
+    article.content = stripTeaserCtaButtons(article.content);
     res.render('content/articles/form', {
       title: 'Edit Article - WTS Admin',
-      article: result.rows[0],
+      article,
       currentPage: 'articles'
     });
   } catch (error) {
@@ -573,7 +580,9 @@ router.post('/articles/:id', async (req, res) => {
       category,
       content_labels: contentLabelsJson,
     });
-    const contentToSave = regeneratedTeaser || content;
+    // Falling back to the posted teaser: strip any CTA button it still
+    // carries, so a legacy card can't survive a save.
+    const contentToSave = regeneratedTeaser || stripTeaserCtaButtons(content);
 
     // Compute word count from full article text (not the teaser)
     const rawTextSource = text_article || contentToSave || '';

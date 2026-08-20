@@ -11,7 +11,7 @@ const db = require('../../database/db');
 const { requireMachineToken } = require('../middleware/machine-auth');
 const { seedPricingDefaults } = require('../lib/pricing-seed-data');
 const { seedAiTools } = require('../lib/ai-tools-seed');
-const { buildArticleListingTeaserHtml } = require('../lib/article-teaser');
+const { buildArticleListingTeaserHtml, stripTeaserCtaButtons } = require('../lib/article-teaser');
 const { publishBlockedReason, countArticleWords } = require('../lib/article-adsense-gate');
 
 const router = express.Router();
@@ -1853,7 +1853,9 @@ router.put('/v1/articles/:idOrSlug', async (req, res) => {
 
     if (body.title != null) add('title', str(body.title, 500));
     if (contentOverride != null) add('content', contentOverride);
-    else if (body.content != null) add('content', str(body.content));
+    // Hand-written teasers go in stripped of any CTA button — the surfaces
+    // that render the teaser link to the article themselves.
+    else if (body.content != null) add('content', stripTeaserCtaButtons(str(body.content)));
     if (body.excerpt != null) add('excerpt', str(body.excerpt, 5000));
     if (body.category != null) add('category', str(body.category, 100) || null);
     if (body.tags != null) {

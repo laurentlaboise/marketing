@@ -751,11 +751,6 @@
                 <input type="number" id="cl_faqs_count" name="cl_faqs_count" class="form-input" min="0" placeholder="e.g. 5">
                 <p class="form-help">Number of FAQs in the article</p>
               </div>
-              <div class="form-group">
-                <label class="form-label" for="cl_cta_text"><i class="fas fa-mouse-pointer"></i> CTA Button Text</label>
-                <input type="text" id="cl_cta_text" name="cl_cta_text" class="form-input" placeholder="Read Full Article">
-                <p class="form-help">Custom text for the call-to-action button (default: "Read Full Article")</p>
-              </div>
             </div>
           </div>
 
@@ -2937,7 +2932,6 @@ document.addEventListener('DOMContentLoaded', function() {
     factsEl.value = contentLabelsData.facts.join('\n');
   }
   if (contentLabelsData.faqs_count) document.getElementById('cl_faqs_count').value = contentLabelsData.faqs_count;
-  if (contentLabelsData.cta_text) document.getElementById('cl_cta_text').value = contentLabelsData.cta_text;
 
   keyPointsData = contentLabelsData.key_points || [];
   sidebarSourcesData = contentLabelsData.sources || [];
@@ -2945,7 +2939,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderSidebarSources();
 
   // Keep hidden JSON in sync when teaser fields change
-  ['cl_description', 'cl_chapters', 'cl_facts', 'cl_who_should_read', 'cl_faqs_count', 'cl_cta_text'].forEach(function(id) {
+  ['cl_description', 'cl_chapters', 'cl_facts', 'cl_who_should_read', 'cl_faqs_count'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.addEventListener('input', updateContentLabels);
   });
@@ -2966,7 +2960,6 @@ function updateContentLabels() {
     ? factsEl.value.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l; }).slice(0, 6)
     : [];
   var faqsCount = parseInt(document.getElementById('cl_faqs_count').value) || 0;
-  var ctaText = document.getElementById('cl_cta_text').value.trim();
 
   contentLabelsData.description = desc;
   contentLabelsData.chapters = chapters;
@@ -2978,7 +2971,8 @@ function updateContentLabels() {
     : keyPointsData;
   contentLabelsData.sources = sidebarSourcesData;
   contentLabelsData.faqs_count = faqsCount;
-  contentLabelsData.cta_text = ctaText || 'Read full article';
+  // No cta_text: the teaser and the article side menu carry no CTA button.
+  delete contentLabelsData.cta_text;
 
   document.getElementById('content_labels').value = JSON.stringify(contentLabelsData);
 }
@@ -3691,7 +3685,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (featImgEl) featImgEl.addEventListener('input', function() { updateFeaturedPreview(); });
 
   // Content labels fields
-  var clFields = ['cl_description', 'cl_who_should_read', 'cl_faqs_count', 'cl_cta_text'];
+  var clFields = ['cl_description', 'cl_who_should_read', 'cl_faqs_count'];
   for (var c = 0; c < clFields.length; c++) {
     var clEl = document.getElementById(clFields[c]);
     if (clEl) clEl.addEventListener('input', function() { updateContentLabels(); });
