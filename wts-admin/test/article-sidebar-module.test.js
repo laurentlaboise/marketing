@@ -86,3 +86,15 @@ test('source URLs with unsafe schemes render as plain badges, never links', () =
   assert.match(html, /<span class="sidebar-source-badge">Evil<\/span>/, 'unsafe source falls back to a span');
   assert.match(html, /href="https:\/\/example.org\/x"/, 'https link stays clickable');
 });
+
+test('CARD_CSS carries the responsive reading layout every article surface copies', () => {
+  const css = lib.CARD_CSS;
+  // Text column capped at a comfortable measure, sidebar column fluid.
+  assert.match(css, /\.wts-article-layout\{[^}]*grid-template-columns:minmax\(0,44rem\) clamp\(16rem,24vw,21rem\)/);
+  // Sticky beside the text, and scrollable inside itself on short viewports.
+  assert.match(css, /\.article-sidebar\{[^}]*position:sticky[^}]*max-height:calc\(100vh - 3rem\)[^}]*overflow-y:auto/);
+  // Body type scales with the viewport rather than sitting at one size.
+  assert.match(css, /\.article-content\{[^}]*font-size:clamp\(/);
+  // Stacks below a landscape tablet (1024 wide keeps the two columns).
+  assert.match(css, /@media \(max-width:1023px\)\{[^@]*\.article-sidebar\{position:static/);
+});

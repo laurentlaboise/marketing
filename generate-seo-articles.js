@@ -620,18 +620,31 @@ ${JSON.stringify(faqSchema, null, 2)}
             background-color: var(--color-white);
         }
 
+        /* Reading shell: grows with the viewport, keeps a consistent gutter,
+           and stops at 1200px so the two columns below never spread out. */
         .container {
-            width: 90%;
-            max-width: 1200px;
+            width: min(100% - 2.5rem, 1200px);
             margin: 0 auto;
             padding: var(--spacing-3xl) 0;
         }
 
+        /* Reading layout — mirrors js/services/article-sidebar.js so every
+           article surface reads the same. The text column is capped at a
+           comfortable measure (44rem ≈ 70 characters) instead of stretching to
+           the page width, and the column pair is centred in the container. */
         .article-layout {
             display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: var(--spacing-2xl);
+            grid-template-columns: minmax(0, 44rem) clamp(16rem, 24vw, 21rem);
+            justify-content: center;
+            gap: clamp(1.5rem, 3vw, 3rem);
             align-items: start;
+        }
+
+        /* Grid items default to min-width:auto, so the tables' min-width would
+           inflate the column past the phone viewport instead of letting the
+           .table-responsive wrappers scroll. */
+        .article-layout > * {
+            min-width: 0;
         }
 
         .article-header {
@@ -692,14 +705,15 @@ ${JSON.stringify(faqSchema, null, 2)}
             margin-bottom: var(--spacing-2xl);
         }
 
+        /* Body type grows with the viewport: 17px on a phone, 19px on a desktop. */
         .article-content {
-            font-size: 1.125rem;
-            line-height: 1.8;
+            font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+            line-height: 1.75;
         }
 
         .article-content h2 {
             font-family: var(--font-family-heading);
-            font-size: 1.875rem;
+            font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
             color: var(--color-slate-900);
             margin-top: var(--spacing-2xl);
             margin-bottom: var(--spacing-md);
@@ -707,7 +721,7 @@ ${JSON.stringify(faqSchema, null, 2)}
 
         .article-content h3 {
             font-family: var(--font-family-heading);
-            font-size: 1.5rem;
+            font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
             color: var(--color-slate-900);
             margin-top: var(--spacing-xl);
             margin-bottom: var(--spacing-md);
@@ -894,7 +908,7 @@ ${JSON.stringify(faqSchema, null, 2)}
         }
 
         /* --- Article Sidebar Card --- */
-        .article-sidebar { position: sticky; top: 24px; }
+        .article-sidebar { position: sticky; top: 24px; max-height: calc(100vh - 3rem); overflow-y: auto; overscroll-behavior: contain; }
         .sidebar-card { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-md); overflow: hidden; }
         .sidebar-card-image { width: 100%; height: 180px; object-fit: cover; }
         .sidebar-card-body { padding: 20px; }
@@ -920,23 +934,43 @@ ${JSON.stringify(faqSchema, null, 2)}
         .sidebar-read-stats span { display: flex; align-items: center; gap: 4px; }
         .sidebar-read-stats i { color: var(--color-primary-base); font-size: 0.7rem; }
 
-        @media (max-width: 960px) {
-            .article-layout { grid-template-columns: 1fr; }
-            .article-sidebar { position: static; order: -1; }
+        /* Tablet portrait and below — a landscape tablet is 1024 wide and keeps
+           the two-column layout with its sticky menu. Stacked, the menu comes
+           first and the text stays at its measure so a wide tablet doesn't run
+           lines edge to edge. */
+        @media (max-width: 1023px) {
+            .article-layout {
+                grid-template-columns: minmax(0, 1fr);
+                justify-items: center;
+            }
+
+            .article-layout > * {
+                width: 100%;
+                max-width: 44rem;
+            }
+
+            .article-sidebar {
+                position: static;
+                max-height: none;
+                overflow: visible;
+                order: -1;
+            }
+
+            /* No sidebar beside the text means no sidebar ad — the shared ads
+               stylesheet only hides it below 960. */
+            .ad-slot--sidebar {
+                display: none;
+            }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             .container {
-                width: 95%;
+                width: min(100% - 2rem, 1200px);
                 padding: var(--spacing-xl) 0;
             }
 
             h1 {
-                font-size: 2rem;
-            }
-
-            .article-content {
-                font-size: 1rem;
+                font-size: clamp(1.75rem, 6vw, 2.25rem);
             }
 
             .seo-term-tooltip {
