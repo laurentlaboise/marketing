@@ -37,6 +37,7 @@ const createSlug = (title) => {
 // the listing modal never drifts from Advanced → Chapters / Quick Facts / Sources.
 const { buildArticleListingTeaserHtml, stripTeaserCtaButtons } = require('../lib/article-teaser');
 const { publishBlockedReason } = require('../lib/article-adsense-gate');
+const { syncArticleKeywordLinks } = require('../lib/article-keyword-sync');
 
 // The teaser is derived data; an article is savable as long as there is a
 // real body (Full Article) or Content Labels to regenerate the teaser from.
@@ -252,6 +253,14 @@ router.post('/articles', [
       [title, slug, contentToSave, excerpt, category, normalizedTags, seo_title, seo_description, keywordsArray, status || 'draft', featured_image, published_url, article_code, isFeatured, req.user.id, publishedAtValue, updatedAtValue, timeToRead, JSON.stringify(articleImagesArray), og_title, og_description, og_image, og_type || 'article', twitter_card || 'summary_large_image', twitter_title, twitter_description, twitter_image, normalizedTwitterSite, normalizedTwitterCreator, resolvedCanonical, robots_meta || 'index, follow', schemaMarkupJson ? JSON.stringify(schemaMarkupJson) : null, JSON.stringify(citationsArray), JSON.stringify(contentLabelsJson), text_article || null, JSON.stringify(audioFilesJson), wordCount, author_type || 'organization', author_name || null, author_job_title || null, author_url || null]
     );
 
+    if ((status || 'draft') === 'published') {
+      try {
+        await syncArticleKeywordLinks({ slug, keywords: keywordsArray });
+      } catch (syncErr) {
+        console.warn('[article-keyword-sync] create skipped:', syncErr.message);
+      }
+    }
+
     req.session.successMessage = 'Article created successfully';
     res.redirect('/content/articles');
   } catch (error) {
@@ -416,11 +425,25 @@ router.post('/articles/publish-github', logActivity('article_publish_github'), a
       return res.status(502).json({ success: false, error: why });
     }
 
+    const publishedUrl = `https://wordsthatsells.website/${repoPath}`;
+    let sitemap = null;
+    try {
+      sitemap = await githubContent.upsertArticleSitemap(publishedUrl);
+    } catch (smErr) {
+      console.warn('[article-sitemap] skipped:', smErr.message);
+    }
+    try {
+      await githubContent.dispatchWorkflow('localize-site.yml');
+    } catch (wfErr) {
+      console.warn('[article-localize] dispatch skipped:', wfErr.message);
+    }
+
     res.json({
       success: true,
       path: repoPath,
       updated: !!existing,
-      published_url: `https://wordsthatsells.website/${repoPath}`,
+      published_url: publishedUrl,
+      sitemap,
       github_url: `https://github.com/${CDN_CONFIG.user}/${CDN_CONFIG.repo}/blob/${CDN_CONFIG.branch}/${repoPath}`,
     });
   } catch (error) {
@@ -622,6 +645,14 @@ router.post('/articles/:id', async (req, res) => {
     if (result.rowCount === 0) {
       req.session.errorMessage = 'Article not found';
       return res.redirect('/content/articles');
+    }
+
+    if (status === 'published') {
+      try {
+        await syncArticleKeywordLinks({ slug, keywords: keywordsArray });
+      } catch (syncErr) {
+        console.warn('[article-keyword-sync] update skipped:', syncErr.message);
+      }
     }
 
     req.session.successMessage = 'Article updated successfully';

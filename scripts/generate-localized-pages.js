@@ -90,12 +90,18 @@ function walkHtml(dir, base = dir) {
   return files.sort();
 }
 
-// Static article exports are 'article' entities (dynamic shell / later
-// static export), not 'page' entities — everything else localizes as a page.
+// Article HTML is a first-class localizable page. The SPA shell
+// (articles/index.html) plus each real `articles/<slug>.html` export must
+// generate FR/TH mirrors — skipping them left /fr/articles/ and
+// /th/articles/ as 404s and hid every article from hreflang.
+// Stubs, examples, and folder redirect indexes stay out.
 function isPageFile(relFile) {
   const normalized = relFile.replace(/\\/g, '/');
-  if (normalized.startsWith('articles/')) return normalized === 'articles/index.html';
-  return true;
+  if (!normalized.startsWith('articles/')) return true;
+  if (normalized === 'articles/index.html') return true;
+  if (/example-article|logo-design\.html$/i.test(normalized)) return false;
+  if (/\/index\.html$/.test(normalized)) return false;
+  return normalized.endsWith('.html');
 }
 
 // True when the file exists AND is real localized content — not one of

@@ -1789,7 +1789,7 @@ test('article interlink links glossary terms and other articles, never itself', 
 
     const saved = (await pool.query('SELECT content, text_article FROM articles WHERE id = $1', [mine.rows[0].id])).rows[0];
     assert.ok(saved.text_article.includes('href="/en/resources/glossary/testterm-anchor-text.html"'));
-    assert.ok(saved.text_article.includes('href="/en/articles/testterm-local-seo-playbook"'));
+    assert.ok(saved.text_article.includes('href="/en/articles/testterm-local-seo-playbook.html"'));
     assert.ok(!saved.content.includes('auto-linked'), 'the generated teaser stays link-free');
 
     // Sitewide pass right after: everything already linked → no new links

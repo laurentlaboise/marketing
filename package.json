@@ -21,6 +21,7 @@
     "localize": "node scripts/generate-localized-pages.js",
     "sitemap": "node scripts/generate-sitemap.js",
     "test:sitemap": "node scripts/generate-sitemap.js && node --test scripts/generate-sitemap.test.js",
+    "test:article-seo": "node --test scripts/assert-article-seo.js scripts/lib/article-seo.test.js",
     "legacy-redirects": "node scripts/generate-legacy-redirects.js",
     "audit:hreflang": "node scripts/check-hreflang.js",
     "analyze-schema": "node analyze-schema.js",

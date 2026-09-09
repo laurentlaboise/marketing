@@ -127,7 +127,7 @@ async function buildTermIndex(lang, { exclude = null, client = db } = {}) {
     ...articles.rows.map((a) => ({
       entityType: 'article', entityId: String(a.id), type: 'article',
       name: titlePhrase(a.title), definition: (a.excerpt || '').slice(0, 200),
-      link: `/en/articles/${a.slug}`, localizedLink: `/${lang}/articles/${a.slug}`,
+      link: `/en/articles/${a.slug}.html`, localizedLink: `/${lang}/articles/${a.slug}.html`,
     })),
     ...sitePages.rows.map((p) => ({
       entityType: 'page', entityId: String(p.id), type: 'page',

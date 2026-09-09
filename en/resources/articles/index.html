@@ -905,11 +905,29 @@ src="https://www.facebook.com/tr?id=870830501505334&ev=PageView&noscript=1"
 
                 <!-- Featured Posts Section -->
                 <h2 class="text-center reveal" style="margin-top: var(--spacing-3xl);">Featured Articles</h2>
-                <div id="featured-posts-container" class="featured-blogs"></div>
+                <div id="featured-posts-container" class="featured-blogs">
+                    <a class="featured-post-card" href="/en/articles/logo-design-in-laos-the-data-backed-guide-for-2026.html"><strong>Logo Design in Laos: The Data-Backed Guide for 2026</strong></a>
+                    <a class="featured-post-card" href="/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html"><strong>South Korea AI Law Compliance Guide 2026</strong></a>
+                </div>
 
                 <h2 class="text-center reveal" style="margin-top: var(--spacing-3xl);">All Articles</h2>
-                <!-- Blog Posts List -->
-                <div id="blog-posts-container" class="blog-list" style="margin-top: var(--spacing-xl);"></div>
+                <!-- Blog Posts List. Static hrefs stay in the HTML so Googlebot
+                     can crawl articles without executing the listing SPA. JS
+                     replaces this on load for visitors. -->
+                <div id="blog-posts-container" class="blog-list" style="margin-top: var(--spacing-xl);">
+                    <ul class="article-crawl-list">
+                        <li><a href="/en/articles/logo-design-in-laos-the-data-backed-guide-for-2026.html">Logo Design in Laos: The Data-Backed Guide for 2026</a></li>
+                        <li><a href="/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html">AI in Southeast Asia 2026: Market Opportunities &amp; Business Transformation</a></li>
+                        <li><a href="/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html">South Korea AI Law Compliance: What Marketers Need to Know in 2026</a></li>
+                    </ul>
+                </div>
+                <noscript>
+                    <ul class="article-crawl-list">
+                        <li><a href="/en/articles/logo-design-in-laos-the-data-backed-guide-for-2026.html">Logo Design in Laos: The Data-Backed Guide for 2026</a></li>
+                        <li><a href="/en/articles/ai-in-southeast-asia-market-opportunities-and-business-transformation-in-2026.html">AI in Southeast Asia 2026: Market Opportunities &amp; Business Transformation</a></li>
+                        <li><a href="/en/articles/south-korea-ai-law-compliance-what-marketers-need-to-know-in-2026.html">South Korea AI Law Compliance: What Marketers Need to Know in 2026</a></li>
+                    </ul>
+                </noscript>
             </div>
         </div>
     </main>

@@ -13,6 +13,7 @@ const { seedPricingDefaults } = require('../lib/pricing-seed-data');
 const { seedAiTools } = require('../lib/ai-tools-seed');
 const { buildArticleListingTeaserHtml, stripTeaserCtaButtons } = require('../lib/article-teaser');
 const { publishBlockedReason, countArticleWords } = require('../lib/article-adsense-gate');
+const { syncArticleKeywordLinks } = require('../lib/article-keyword-sync');
 
 const router = express.Router();
 
@@ -1964,6 +1965,15 @@ router.put('/v1/articles/:idOrSlug', async (req, res) => {
     const sql = `UPDATE articles SET ${fields.join(', ')} WHERE id = $${params.length} RETURNING id, slug, title, status, updated_at, published_at, author_type, author_name, word_count, time_to_read`;
     const result = await db.query(sql, params);
     await audit(req, 'articles/update', `${slug} status=${result.rows[0]?.status}`);
+    if ((result.rows[0]?.status || body.status) === 'published') {
+      try {
+        const kws = body.seo_keywords != null ? asArray(body.seo_keywords) : null;
+        const keywords = kws || (await db.query('SELECT seo_keywords FROM articles WHERE id = $1', [id])).rows[0]?.seo_keywords || [];
+        await syncArticleKeywordLinks({ slug: result.rows[0].slug || slug, keywords });
+      } catch (syncErr) {
+        console.warn('[article-keyword-sync] machine PUT skipped:', syncErr.message);
+      }
+    }
     return ok(res, { article: result.rows[0] });
   } catch (e) {
     console.error('[machine-api] PUT articles', e);

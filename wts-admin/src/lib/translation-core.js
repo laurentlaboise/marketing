@@ -20,7 +20,7 @@ const ENTITY_SOURCES = {
     table: 'articles',
     label: 'Article',
     titleField: 'title',
-    fields: ['title', 'excerpt', 'content', 'seo_title', 'seo_description'],
+    fields: ['title', 'excerpt', 'content', 'text_article', 'seo_title', 'seo_description'],
     filter: "status = 'published'",
   },
   glossary: {

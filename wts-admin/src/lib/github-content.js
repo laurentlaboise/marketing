@@ -100,4 +100,51 @@ async function dispatchWorkflow(workflowFile, inputs) {
   return { ok: false, reason: 'http_' + res.statusCode, statusCode: res.statusCode };
 }
 
-module.exports = { getFile, putFile, dispatchWorkflow };
+/**
+ * After a static article lands on GitHub, make sure both sitemaps name it.
+ * Railway does not have the marketing generate-sitemap.js tree, so we patch
+ * the committed XML via the Contents API. Best-effort — never fail publish.
+ */
+async function upsertArticleSitemap(publicUrl) {
+  const loc = String(publicUrl || '').trim();
+  if (!/^https:\/\/wordsthatsells\.website\/[a-z]{2}\/articles\/[a-z0-9-]+\.html$/.test(loc)) {
+    return { ok: false, reason: 'bad_url' };
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  const entry = [
+    '  <url>',
+    `    <loc>${loc}</loc>`,
+    `    <lastmod>${today}</lastmod>`,
+    '    <changefreq>weekly</changefreq>',
+    '    <priority>0.6</priority>',
+    '  </url>',
+    '',
+  ].join('\n');
+  const results = {};
+  for (const repoPath of ['sitemap-google.xml', 'sitemap.xml']) {
+    const file = await getFile(repoPath);
+    if (!file) {
+      results[repoPath] = 'missing';
+      continue;
+    }
+    if (file.content.includes(`<loc>${loc}</loc>`)) {
+      results[repoPath] = 'already';
+      continue;
+    }
+    if (!/<\/urlset>/i.test(file.content)) {
+      results[repoPath] = 'malformed';
+      continue;
+    }
+    const next = file.content.replace(/<\/urlset>/i, `${entry}</urlset>`);
+    const put = await putFile(
+      repoPath,
+      next,
+      `seo: add ${loc} to ${repoPath}`,
+      file.sha,
+    );
+    results[repoPath] = put.ok ? 'updated' : (put.reason || 'failed');
+  }
+  return { ok: true, results };
+}
+
+module.exports = { getFile, putFile, dispatchWorkflow, upsertArticleSitemap };

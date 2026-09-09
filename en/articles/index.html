@@ -572,7 +572,7 @@
 
         // Update SEO meta tags using social_meta from API (with fallbacks)
         function updateMetaTags(article) {
-            const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
+            const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
             const defaultImage = 'https://wordsthatsells.website/images/default-blog.jpg';
             const sm = article.social_meta || {};
 
@@ -665,7 +665,7 @@
                 });
             }
 
-            const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
+            const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
             const description = sm.og_description || article.description || '';
             const content = article.full_article_content || article.content || '';
             const tempDiv = document.createElement('div');
@@ -995,7 +995,7 @@
                 const updatedDate = article.updated_at ? formatDate(article.updated_at) : null;
 
                 // Current page URL for sharing
-                const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}`;
+                const articleUrl = `${SITE_BASE_URL}/en/articles/${article.slug}.html`;
 
                 // Author line (Person author preferred for E-E-A-T)
                 let authorMetaHtml = '';
