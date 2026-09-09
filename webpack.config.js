@@ -73,6 +73,9 @@ module.exports = {
         { from: 'google*.html', to: '[name][ext]', noErrorOnMissing: true },
         { from: 'schema.json', to: 'schema.json', noErrorOnMissing: true },
         { from: 'robots.txt', to: 'robots.txt', noErrorOnMissing: true },
+        // AdSense crawler (Mediapartners-Google) must find this at the site root.
+        // Missing from dist made GitHub Pages omit ads.txt → AdSense "ads.txt not found".
+        { from: 'ads.txt', to: 'ads.txt', noErrorOnMissing: false },
         { from: 'sitemap.xml', to: 'sitemap.xml', noErrorOnMissing: true },
         // Image + clean Google sitemaps (must ship for GSC / Google Images)
         { from: 'sitemap-images.xml', to: 'sitemap-images.xml', noErrorOnMissing: true },

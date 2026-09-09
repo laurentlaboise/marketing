@@ -32,6 +32,12 @@ jobs:
       - name: Build Project
         run: npm run build
 
+      - name: AdSense ads.txt must ship in Pages artifact
+        run: |
+          test -s dist/ads.txt
+          grep -q 'google.com, pub-8300153677207733, DIRECT, f08c47fec0942fa0' dist/ads.txt
+
+
       - name: Upload Artifact for Deployment
         uses: actions/upload-pages-artifact@v5
         with:
