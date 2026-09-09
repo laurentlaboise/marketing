@@ -1,0 +1,16 @@
+{
+  "name": "Labware WTS",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "repositoryDependencies": [
+    "github.com/laurentlaboise/ai-team",
+    "github.com/laurentlaboise/labware.icu",
+    "github.com/laurentlaboise/digitalcards"
+  ],
+  "ports": [
+    { "name": "marketing static preview", "port": 8080 },
+    { "name": "ai-team (Vite dev)", "port": 5173 },
+    { "name": "digitalcards (Nest/Next)", "port": 3000 },
+    { "name": "labware.icu (dev/preview)", "port": 4173 }
+  ]
+}
