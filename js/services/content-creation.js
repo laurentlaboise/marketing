@@ -43,9 +43,7 @@
                                     <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
                                     <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
                                 </div>
-                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);">
-                                    <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe>
-                                </div>
+                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"></div>
                                 <center>
                                     <div class="heading-accent-line"></div>
                                 </center>
@@ -97,9 +95,7 @@
                                     <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
                                     <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
                                 </div>
-                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);">
-                                    <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe>
-                                </div>
+                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"></div>
                                 <center>
                                     <div class="heading-accent-line"></div>
                                 </center>
@@ -151,9 +147,7 @@
                                     <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
                                     <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
                                 </div>
-                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);">
-                                    <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe>
-                                </div>
+                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"></div>
                                 <center>
                                     <div class="heading-accent-line"></div>
                                 </center>
@@ -205,9 +199,7 @@
                                     <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
                                     <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
                                 </div>
-                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);">
-                                    <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe>
-                                </div>
+                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"></div>
                                 <center>
                                     <div class="heading-accent-line"></div>
                                 </center>
@@ -259,9 +251,7 @@
                                     <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
                                     <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
                                 </div>
-                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);">
-                                    <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe>
-                                </div>
+                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"></div>
                                 <center>
                                     <div class="heading-accent-line"></div>
                                 </center>
@@ -313,9 +303,7 @@
                                     <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
                                     <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
                                 </div>
-                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);">
-                                    <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe>
-                                </div>
+                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"></div>
                                 <center>
                                     <div class="heading-accent-line"></div>
                                 </center>
@@ -367,9 +355,7 @@
                                     <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
                                     <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
                                 </div>
-                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);">
-                                    <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe>
-                                </div>
+                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"></div>
                                 <center>
                                     <div class="heading-accent-line"></div>
                                 </center>
@@ -421,9 +407,7 @@
                                     <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
                                     <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
                                 </div>
-                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);">
-                                    <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe>
-                                </div>
+                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"></div>
                                 <center>
                                     <div class="heading-accent-line"></div>
                                 </center>
@@ -475,9 +459,7 @@
                                     <h2>Website Copywriting That Captivates, Converts & Builds Your Brand</h2>
                                     <p class="service-description" style="font-size: var(--font-size-lg);">We don’t just write words — we craft strategic stories designed to engage visitors, inspire trust, and drive action.</p>
                                 </div>
-                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);">
-                                    <iframe width="100%" height="400" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Discover Our Website Copywriting Approach" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: var(--border-radius-lg);"></iframe>
-                                </div>
+                                <div class="feature-visual" style="margin-bottom: var(--spacing-2xl);"></div>
                                 <center>
                                     <div class="heading-accent-line"></div>
                                 </center>

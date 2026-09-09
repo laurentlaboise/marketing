@@ -229,7 +229,10 @@ def build_article(t: dict, filename: str) -> str:
       <p><strong>In practice:</strong> {esc_text(example)}</p>
     </div>"""
 
-    ytid = youtube_id(video)
+    # Third-party YouTube on every glossary term reads as reused/low-value
+    # content to AdSense. Only embed WTS-owned videos.
+    ytid = youtube_id(video) if "wordsthatsells" in (video or "").lower() else ""
+    video_block = ""
     if ytid:
         video_block = f"""
     <h2>Watch a quick explainer</h2>
@@ -243,12 +246,6 @@ def build_article(t: dict, filename: str) -> str:
         referrerpolicy="strict-origin-when-cross-origin"></iframe>
     </div>
     <p class="video-fallback"><a href="{esc(video)}" target="_blank" rel="noopener noreferrer">Open on YouTube</a></p>"""
-    elif video:
-        video_block = f"""
-    <h2>Watch a quick explainer</h2>
-    <p><a href="{esc(video)}" target="_blank" rel="noopener noreferrer">Watch on YouTube</a></p>"""
-    else:
-        video_block = ""
 
     share_block = f"""
     <nav class="share-dock" aria-label="Share this article">

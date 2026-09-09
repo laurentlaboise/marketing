@@ -2420,8 +2420,10 @@ src="https://www.facebook.com/tr?id=870830501505334&ev=PageView&noscript=1"
                 content.appendChild(exP);
             }
 
-            // Video embed
-            if (termData.definition.video_url && termData.definition.video_url !== '#') {
+            // Video embed — WTS-owned videos only (third-party YouTube on
+            // glossary terms is reused content for AdSense).
+            if (termData.definition.video_url && termData.definition.video_url !== '#'
+                && /wordsthatsells/i.test(termData.definition.video_url)) {
                 const ytId = getYouTubeId(termData.definition.video_url);
                 if (ytId) {
                     const vidTitle = document.createElement('h3');
