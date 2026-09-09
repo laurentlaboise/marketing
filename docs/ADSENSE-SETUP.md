@@ -7,7 +7,7 @@ paste their slot IDs into the config file.** Until then every injected unit
 hides itself automatically (no broken grey boxes render).
 
 - Publisher account: `pub-8300153677207733` (already active)
-- `ads.txt`: already live at https://wordsthatsells.website/ads.txt and correct — do not change it.
+- `ads.txt`: must be copied into `dist/` by webpack (`from: 'ads.txt'`). GitHub Pages deploys **only** `dist/`. If this file is missing from the artifact, AdSense reports **ads.txt not found** even when the repo root file is correct. Live URL: https://wordsthatsells.website/ads.txt
 - Config file: [`config/adsense.config.js`](../config/adsense.config.js)
 
 ---
@@ -108,11 +108,15 @@ Content published anywhere else — homepage, `/company/**`,
 monetized unless `PATH_PATTERNS` in `config/adsense.config.js` is extended
 deliberately. Category `index.html` listing pages are always skipped.
 
-**Future articles (Claude / Railway CMS):** write the full post in admin → publish only at ≥800 words (the admin, machine API, and Make endpoint refuse thinner “published” rows) → bake static HTML from the Railway public API → inject ads on GitHub Pages build.
+**Future articles (standing rule):** every published article page gets AdSense units automatically. Do not paste ad markup by hand.
+
+1. CMS Status = Published only at ≥800 words (admin / machine API refuse thinner inventory).
+2. Bake (`generate-seo-articles.js`) injects units at write time.
+3. Admin **Publish to GitHub** injects the same units into the HTML **before** the commit.
+4. `npm run build` runs `inject:ads` **before** webpack copies `en/` into `dist/` (otherwise CI would inject source files that never reach GitHub Pages).
 
 ```bash
-# 1. Publish in admin.wordsthatsells.website (Railway)
-# 2. Bake + ads (GitHub Pages source — not Railway):
+# Bake all published CMS rows + ads:
 npm run bake:articles
 ```
 

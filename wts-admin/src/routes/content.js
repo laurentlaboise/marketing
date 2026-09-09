@@ -413,9 +413,26 @@ router.post('/articles/publish-github', logActivity('article_publish_github'), a
       return res.status(400).json({ success: false, error: githubBlock });
     }
 
+    let htmlToPublish = html;
+    try {
+      let injectHtml;
+      try {
+        ({ injectHtml } = require('../../../scripts/inject-adsense'));
+      } catch (_) {
+        ({ injectHtml } = require('../lib/adsense-inject'));
+      }
+      const ads = injectHtml(html, repoPath);
+      if (ads && ads.html) {
+        htmlToPublish = ads.html;
+        console.log('[adsense]', repoPath, ads.status, (ads.injected || []).join(','));
+      }
+    } catch (adsErr) {
+      console.warn('[adsense] inject skipped:', adsErr.message);
+    }
+
     const existing = await githubContent.getFile(repoPath);
     const message = `${existing ? 'Update' : 'Add'} article: ${String(req.body.title || repoPath).slice(0, 120)}`;
-    const result = await githubContent.putFile(repoPath, html, message, existing ? existing.sha : undefined);
+    const result = await githubContent.putFile(repoPath, htmlToPublish, message, existing ? existing.sha : undefined);
     if (!result.ok) {
       const why = result.reason === 'auth'
         ? 'GitHub rejected the server token — check the GITHUB_TOKEN permissions on Railway'

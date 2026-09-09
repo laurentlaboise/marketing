@@ -5,7 +5,7 @@
   "scripts": {
     "bundle:css": "node scripts/bundle-css.js",
     "normalize:css": "node scripts/bundle-css.js && node scripts/normalize-site-css.js",
-    "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && webpack --mode=production && node scripts/inject-footers.js && node scripts/inject-faqs.js && npm run inject:ads && npm run inject:pixel && npm run inject:ga",
+    "build": "node scripts/bundle-css.js && node scripts/normalize-site-css.js && npm run inject:ads && node scripts/inject-footers.js && node scripts/inject-faqs.js && npm run inject:pixel && npm run inject:ga && webpack --mode=production",
     "build:webpack": "webpack --mode=production",
     "inject-footers": "node scripts/inject-footers.js",
     "bake:articles": "node generate-seo-articles.js --all && npm run inject:ads",

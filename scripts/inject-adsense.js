@@ -484,27 +484,37 @@ function placeTool(html, words) {
 // ---------------------------------------------------------------------------
 // Per-file processing
 // ---------------------------------------------------------------------------
-function processFile(rel) {
-  const abs = path.join(ROOT, rel);
-  const html = fs.readFileSync(abs, 'utf8');
+/**
+ * Inject (or strip) AdSense markup on an HTML string. Does not touch disk.
+ * `rel` is the repo-relative path used for classification (e.g. en/articles/foo.html).
+ * opts.strip — remove existing markup instead of injecting.
+ */
+function injectHtml(html, rel, opts) {
+  const strip = !!(opts && opts.strip);
   const template = templateForPath(rel);
-  const result = { rel, template, status: '', words: 0, injected: [], skipped: [] };
+  const result = { html, rel, template, status: '', words: 0, injected: [], skipped: [] };
 
-  if (STRIP) {
+  if (strip) {
     const stripped = html
       .replace(/[ \t]*<!-- wts-adsense:head:start -->[\s\S]*?<!-- wts-adsense:head:end -->\n?/g, '')
       .replace(/[ \t]*<!-- wts-ad:start:[\s\S]*?<!-- wts-ad:end -->\n?/g, '');
-    if (stripped !== html) {
-      if (!DRY_RUN) fs.writeFileSync(abs, stripped);
-      result.status = 'STRIPPED';
-    } else result.status = 'CLEAN';
+    result.html = stripped;
+    result.status = stripped !== html ? 'STRIPPED' : 'CLEAN';
     return result;
   }
 
+  if (!ADS_ENABLED) {
+    result.status = 'SKIPPED: ADS_ENABLED is false';
+    return result;
+  }
   if (isCategoryIndex(rel)) { result.status = 'EXCLUDED: category index page'; return result; }
   if (hasNoindex(html)) { result.status = 'EXCLUDED: noindex'; return result; }
   if (html.includes(HEAD_START) || html.includes('class="ad-container')) {
     result.status = 'SKIPPED: already injected (idempotent)';
+    return result;
+  }
+  if (!template) {
+    result.status = 'EXCLUDED: path is not a monetizable article/glossary/tool page';
     return result;
   }
 
@@ -523,7 +533,6 @@ function processFile(rel) {
     return result;
   }
 
-  // Apply insertions bottom-up so earlier positions stay valid, then the head block.
   let out = html;
   insertions.sort((a, b) => b.pos - a.pos);
   for (const ins of insertions) out = out.slice(0, ins.pos) + ins.text + out.slice(ins.pos);
@@ -535,9 +544,22 @@ function processFile(rel) {
   }
   out = out.slice(0, headClose) + headBlock() + '\n' + out.slice(headClose);
 
-  if (!DRY_RUN) fs.writeFileSync(abs, out);
+  result.html = out;
   result.injected = insertions.map((i) => i.unit).reverse();
-  result.status = DRY_RUN ? 'WOULD INJECT' : 'INJECTED';
+  result.status = 'INJECTED';
+  return result;
+}
+
+function processFile(rel) {
+  const abs = path.join(ROOT, rel);
+  const html = fs.readFileSync(abs, 'utf8');
+  const result = injectHtml(html, rel, { strip: STRIP });
+  if (DRY_RUN && result.status === 'INJECTED') {
+    result.status = 'WOULD INJECT';
+    result.html = html;
+    return result;
+  }
+  if (result.html !== html && !DRY_RUN) fs.writeFileSync(abs, result.html);
   return result;
 }
 
@@ -623,4 +645,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { processFile, discover, countWords, mainContentWords };
+module.exports = { processFile, injectHtml, discover, countWords, mainContentWords };

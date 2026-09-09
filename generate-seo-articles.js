@@ -1266,9 +1266,12 @@ async function generateArticle(article) {
   const html = generateArticleHTML(article);
   const filename = `${article.slug}.html`;
   const filepath = path.join(OUTPUT_DIR, filename);
-
-  fs.writeFileSync(filepath, html, 'utf8');
+  const rel = path.join('en', 'articles', filename).split(path.sep).join('/');
+  const adsense = require('./scripts/inject-adsense');
+  const injected = adsense.injectHtml(html, rel);
+  fs.writeFileSync(filepath, injected.html, 'utf8');
   console.log(`   ✅ Created: ${filepath}`);
+  console.log(`   adsense: ${injected.status}${injected.injected.length ? ' [' + injected.injected.join(', ') + ']' : ''}`);
 
   return filepath;
 }
@@ -1322,7 +1325,7 @@ async function main() {
     console.log('\n🌐 Next steps:');
     console.log('   1. Test generated HTML files in a browser');
     console.log('   2. Verify Schema.org markup: https://search.google.com/test/rich-results');
-    console.log('   3. npm run inject:ads   # Claude AdSense layer (skip thin pages)');
+    console.log('   3. AdSense units are injected at bake time (also `npm run inject:ads`).');
     console.log('   4. Deploy GitHub Pages (public site). Admin itself is Railway.');
     console.log('   5. Submit new URLs in Google Search Console before Request review\n');
 
