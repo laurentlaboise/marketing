@@ -104,17 +104,33 @@ function isPageFile(relFile) {
   return normalized.endsWith('.html');
 }
 
-// True when the file exists AND is real localized content — not one of
-// the legacy meta-refresh redirect stubs ("Moved permanently" pages that
-// bounce to /en/). Stubs keep serving visitors, but only real mirrors
-// may join an hreflang cluster.
-function isRealMirror(file) {
+// /a/, /a/index.html, /a.html and /a all address the same page on GitHub
+// Pages — compare URLs by the shape they share, so a mirror is never
+// dropped from its cluster over spelling alone.
+function urlKey(url) {
+  return url.replace(/\/index\.html$/, '/').replace(/\.html$/, '').replace(/\/$/, '');
+}
+
+// True when the file exists AND is real localized content that speaks for
+// itself at `selfUrl` (its own URL for the page being clustered). Two kinds
+// of stub fail that: the legacy meta-refresh redirects ("Moved permanently"
+// pages that bounce to /en/), and crawl bridges that canonicalize away to a
+// different page. Both keep serving visitors, but neither may join an
+// hreflang cluster — a member that hands its authority to another URL
+// annotates that other URL's cluster instead, so it never links back and the
+// check-hreflang audit fails on the missing reciprocal.
+function isRealMirror(file, selfUrl) {
+  let html;
   try {
-    const head = fs.readFileSync(file, 'utf8').slice(0, 2048);
-    return !/http-equiv=["']refresh["']/i.test(head);
+    html = fs.readFileSync(file, 'utf8');
   } catch {
     return false; // missing/unreadable — not a mirror
   }
+  if (/http-equiv=["']refresh["']/i.test(html.slice(0, 2048))) return false;
+  const canonical = /<link\b[^>]*rel="canonical"[^>]*href="([^"]*)"/i.exec(html) ||
+    /<link\b[^>]*href="([^"]*)"[^>]*rel="canonical"/i.exec(html);
+  if (canonical && selfUrl && urlKey(canonical[1]) !== urlKey(selfUrl)) return false;
+  return true;
 }
 
 function loadSiteLocales() {
@@ -180,17 +196,23 @@ async function main() {
     const englishHtml = fs.readFileSync(path.join(args.src, rel), 'utf8');
 
     // Languages present after this run: being written now, or already on
-    // disk as a REAL mirror. Legacy redirect stubs (meta-refresh "moved"
-    // pages that bounce to /en/) still serve visitors but are not
-    // alternates: advertising one in an hreflang cluster points search
-    // engines at a noindex redirect and breaks cluster reciprocity — the
-    // exact failure mode the check-hreflang audit exists to block.
+    // disk as a REAL mirror. Stubs that merely stand in at the URL still
+    // serve visitors but are not alternates: advertising one in an hreflang
+    // cluster points search engines at a noindex redirect, or at a page that
+    // canonicalizes elsewhere, and breaks cluster reciprocity — the exact
+    // failure mode the check-hreflang audit exists to block.
+    const allAlternates = l10n.buildAlternates(sitePath);
+    const selfUrlByDir = new Map(
+      allAlternates
+        .filter((a) => a.hreflang !== 'x-default')
+        .map((a) => [DIR_BY_HREFLANG[a.hreflang], a.href])
+    );
     const presentDirs = new Set(['en']);
     for (const lang of l10n.TARGET_DIRS) {
       if ((plan.get(rel) || new Set()).has(lang)) presentDirs.add(lang);
-      else if (isRealMirror(path.join(args.out, lang, rel))) presentDirs.add(lang);
+      else if (isRealMirror(path.join(args.out, lang, rel), selfUrlByDir.get(lang))) presentDirs.add(lang);
     }
-    const alternates = l10n.buildAlternates(sitePath)
+    const alternates = allAlternates
       .filter((a) => a.hreflang === 'x-default' || presentDirs.has(DIR_BY_HREFLANG[a.hreflang]));
 
     for (const lang of args.langs) {
