@@ -26,7 +26,7 @@ Copy `.env.example` to `.env` if you need to override defaults.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `VITE_PORTAL_API` | `https://admin.wordsthatsells.website/api/public` | Public products + signup/me/my-services |
+| `VITE_PORTAL_API` | prod: admin public API; `npm run dev`: `/portal-api` proxy | Public products + signup/me/my-services |
 | `VITE_PORTAL_ORIGIN` | `https://admin.wordsthatsells.website` | Portal cart / chat / login |
 | `VITE_DEMO` | `0` | `1` forces `catalog-seed.json` and skips the live API |
 | `VITE_PUBLIC_ORIGIN` | (page origin) | Origin encoded into printed QR URLs |
@@ -53,6 +53,8 @@ Demo mode uses `src/data/catalog-seed.json` (31 printed v2.1 products) only when
 - `GET {VITE_PORTAL_API}/products` fails
 
 When the API is up, printed rows are **matched** onto live products (SKU first, including option SKUs, then slug) so the cart shows portal prices. Printed slugs stay the QR identity (`seo3`, `wpdivi`). Live portal slugs are often longer (`seo-article-copywriting-package`, `wordpress-divi-services`).
+
+`npm run dev` proxies `/portal-api` → `https://admin.wordsthatsells.website/api/public` so localhost can read the live catalog without a CORS change. A production static host still needs the catalog origin on `ALLOWED_ORIGINS` (or `VITE_DEMO=1`).
 
 `/api/public/qr/:id` is a **BCEL payment image**. Do not reuse it for catalog deep links.
 

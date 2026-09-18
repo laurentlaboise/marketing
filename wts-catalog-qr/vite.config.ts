@@ -5,4 +5,13 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   base: './',
+  server: {
+    proxy: {
+      '/portal-api': {
+        target: 'https://admin.wordsthatsells.website',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/portal-api/, '/api/public'),
+      },
+    },
+  },
 });

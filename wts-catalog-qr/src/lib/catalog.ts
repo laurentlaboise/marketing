@@ -109,6 +109,51 @@ function defaultOptions(code: string, price: number | null): { options: PriceOpt
       ],
     };
   }
+  if (code === 'WPDIVI' || code === 'WPHOME' || code === 'WPMOD') {
+    const key = code === 'WPHOME' ? 'home3' : code === 'WPMOD' ? 'module' : 'full_setup';
+    return {
+      type: 'options',
+      key,
+      options: [
+        { key: 'module', label: 'Additional module or section', price: 47, sku: '19106799' },
+        { key: 'home3', label: 'Home page with 3 modules', price: 175, sku: '19106798' },
+        { key: 'full_setup', label: 'Full website setup and design', price: 355, sku: '19106797' },
+      ],
+    };
+  }
+  if (code === 'COPY1K' || code === 'COPY25K' || code === 'COPY5K' || code === 'COPY10K') {
+    const key = ({ COPY1K: 'chars_1000', COPY25K: 'chars_2500', COPY5K: 'chars_5000', COPY10K: 'chars_10000' } as const)[code];
+    return {
+      type: 'options',
+      key,
+      options: [
+        { key: 'chars_1000', label: 'Up to 1,000 characters', price: 27, sku: '19106834' },
+        { key: 'chars_2500', label: 'Up to 2,500 characters', price: 64, sku: '19106835' },
+        { key: 'chars_5000', label: 'Up to 5,000 characters', price: 123, sku: '19106836' },
+        { key: 'chars_10000', label: 'Up to 10,000 characters', price: 241, sku: '19106837' },
+      ],
+    };
+  }
+  if (code === 'SEO3' || code === 'SEO12') {
+    return {
+      type: 'options',
+      key: code === 'SEO12' ? 'articles_12' : 'articles_3',
+      options: [
+        { key: 'articles_3', label: '3 SEO articles', price: 811.2, sku: '19106863' },
+        { key: 'articles_12', label: '12 SEO articles', price: 1500, sku: '19106865' },
+      ],
+    };
+  }
+  if (code === 'LOGOAI' || code === 'LOGODES') {
+    return {
+      type: 'options',
+      key: code === 'LOGODES' ? 'designer' : 'ai',
+      options: [
+        { key: 'ai', label: 'AI-powered creation', price: 49, sku: '19106773' },
+        { key: 'designer', label: 'Graphic designer support', price: 149, sku: '19106774' },
+      ],
+    };
+  }
   return { type: 'one_time', key: null, options: [] };
 }
 
@@ -235,7 +280,7 @@ function mergeLive(demo: CatalogProduct[], live: LiveProduct[]): CatalogProduct[
       live_id: hit.id || null,
       live_matched: true,
       source: 'merged',
-      live_in_portal: product.live_in_portal || purchaseMode === 'buy',
+      live_in_portal: product.live_in_portal,
     };
   });
 }
@@ -255,8 +300,11 @@ function toState(products: CatalogProduct[], meta: { demoForced: boolean; liveOk
 }
 
 export function portalApiBase(): string {
-  const raw = (import.meta.env.VITE_PORTAL_API || PORTAL_API_DEFAULT).trim();
-  return raw.replace(/\/$/, '');
+  const raw = (import.meta.env.VITE_PORTAL_API || '').trim();
+  if (raw) return raw.replace(/\/$/, '');
+  // Dev proxy avoids CORS against admin.wordsthatsells.website (see vite.config.ts).
+  if (import.meta.env.DEV) return '/portal-api';
+  return PORTAL_API_DEFAULT;
 }
 
 export function portalOrigin(): string {

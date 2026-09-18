@@ -4,7 +4,6 @@ import { resolveLines, totals } from '../lib/cart';
 import { money } from '../lib/format';
 import { fetchPortalMe, portalCartDirectUrl, portalCartUrl, portalSignup, seedFromLines, seedPortalCart } from '../lib/portal';
 import { resolveUnitPrice } from '../lib/catalog';
-import { isDemoForced } from '../lib/catalog';
 import { useCatalog } from '../state';
 
 export function CartPage() {
@@ -17,7 +16,6 @@ export function CartPage() {
   const resolved = useMemo(() => (catalog ? resolveLines(catalog, lines) : []), [catalog, lines]);
   const sums = useMemo(() => totals(resolved), [resolved]);
   const payload = useMemo(() => seedFromLines(resolved), [resolved]);
-  const demo = isDemoForced() || !catalog?.liveOk;
 
   async function continuePortal() {
     setBusy(true);
@@ -133,11 +131,9 @@ export function CartPage() {
             <button className="btn primary block" type="button" disabled={busy} onClick={continuePortal}>
               Continue to portal checkout · ไปชำระที่พอร์ทัล
             </button>
-            {demo && (
-              <button className="btn secondary block" type="button" onClick={() => setDemoPaid(true)}>
-                Simulate demo success
-              </button>
-            )}
+            <button className="btn secondary block" type="button" onClick={() => setDemoPaid(true)}>
+              Simulate local success (no charge)
+            </button>
             <button className="btn ghost" type="button" onClick={clear}>
               Clear cart
             </button>
@@ -177,11 +173,11 @@ function CartRow({
         <div className="field" style={{ margin: '0.6rem 0' }}>
           <label>Option</label>
           <select
-            value={r.line.option_key || ''}
+            value={r.line.option_key || r.product.default_option_key || ''}
             onChange={(e) =>
               update({
                 ...r.line,
-                option_key: e.target.value || null,
+                option_key: e.target.value || r.product.default_option_key,
               })
             }
           >
