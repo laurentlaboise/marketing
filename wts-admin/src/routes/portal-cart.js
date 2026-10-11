@@ -219,6 +219,8 @@ router.get('/', async (req, res) => {
       cart,
       waQuoteLink: waCartLink(cart.quote, req.locale),
       notice: {
+        added: req.query.added === '1',
+        unknown: req.query.unknown === '1',
         updated: req.query.updated === '1',
         removed: req.query.removed === '1',
         quoted: req.query.quoted === '1',

@@ -59,6 +59,8 @@
           <p class="page-sub"><%= t('cart.subtitle') %></p>
         </div>
 
+        <% if (notice.added) { %><div class="cart-note ok"><%= t('cart.noticeAdded') %></div><% } %>
+        <% if (notice.unknown) { %><div class="cart-note warn"><%= t('cart.noticeUnknownQr') %></div><% } %>
         <% if (notice.quoted) { %><div class="cart-note ok"><%= t('cart.noticeQuoted') %></div><% } %>
         <% if (notice.updated) { %><div class="cart-note ok"><%= t('cart.noticeUpdated') %></div><% } %>
         <% if (notice.removed) { %><div class="cart-note ok"><%= t('cart.noticeRemoved') %></div><% } %>

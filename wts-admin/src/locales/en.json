@@ -104,7 +104,9 @@
     "featSocialTitle": "Social & omni-channel",
     "featSocialBody": "Launch once — publish across Facebook, LINE, TikTok, and WhatsApp.",
     "featAnalyticsTitle": "Analytics, linked live",
-    "featAnalyticsBody": "Connect your analytics and watch results update on your board."
+    "featAnalyticsBody": "Connect your analytics and watch results update on your board.",
+    "qrPending": "After you sign in, {name} will be waiting in your cart.",
+    "qrUnknown": "That QR code is not a live product. Ask us, or scan a different page."
   },
   "errors": {
     "backToPortal": "Back to portal",
@@ -585,6 +587,8 @@
     "quoteRequested": "Quote requested",
     "notePlaceholder": "Anything we should know? Deadline, budget, examples…",
     "quoteHint": "We reply within 1 business day — or continue on WhatsApp with your list ready to send.",
+    "noticeAdded": "Added from your catalog QR — pay when you are ready.",
+    "noticeUnknownQr": "That QR code is not a live product, so nothing was added.",
     "noticeQuoted": "Quote request sent — we reply within 1 business day.",
     "noticeUpdated": "Cart updated.",
     "noticeRemoved": "Item removed.",

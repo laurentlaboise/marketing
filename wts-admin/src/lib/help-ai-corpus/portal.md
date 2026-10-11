@@ -6,6 +6,12 @@
 - Login endpoints are rate-limited (about 8 attempts per 15 minutes) — if locked out, wait a few minutes and retry.
 - Sessions last up to 30 days. If an account is not active, all sign-in methods are blocked and the customer must contact the team.
 
+## Paper QR → cart (`/q/{slug}`)
+- A QR on the printed catalog encodes the live product **slug** (or SKU), not a second shop. Example: `https://admin.wordsthatsells.website/q/metal-utap-nfc-card`.
+- Same host as the portal cookie. Guest is sent to `/portal/login`; after sign-in the line is in `/portal/cart`. Already signed in → cart immediately.
+- Cart still prices from the products table. Buy SKUs can pay; consult SKUs sit in the quote bucket. Nothing is charged until they tap Pay on the existing cart.
+- Unknown / inactive tokens bounce to login with “not a live product”. Do not print QRs until the slug is live and the cart flag is on (`FEATURE_CART`).
+
 ## Workspace (/portal/workspace)
 - Package scope hints (what retainers typically include — hard monthly caps, not unlimited catalogue).
 - Reports: deliverables marked category=report (or titles containing report/monthly/performance).

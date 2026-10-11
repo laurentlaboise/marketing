@@ -534,6 +534,8 @@
         </a>
 
         <% if (typeof error !== 'undefined' && error) { %><div class="error" role="alert"><%= error %></div><% } %>
+        <% if (typeof qrUnknown !== 'undefined' && qrUnknown) { %><div class="error" role="alert"><%= t('login.qrUnknown') %></div><% } %>
+        <% if (typeof qrPendingName !== 'undefined' && qrPendingName) { %><div class="notice"><%= t('login.qrPending', { name: qrPendingName }) %></div><% } %>
         <% if (sent) { %>
           <h1><%= t('login.checkEmailTitle') %></h1>
           <p class="sub"><%- t('login.checkEmailBody', { email: '<strong>' + esc(email) + '</strong>' }) %></p>
