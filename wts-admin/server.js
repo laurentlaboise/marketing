@@ -283,6 +283,11 @@ app.use('/api/webhooks', webhooksApiRoutes);
 // req.session.customerId, which no admin guard accepts).
 app.use('/portal', portalRoutes);
 
+// Paper catalog QR: /q/{slug-or-sku} → portal cart (same host as the
+// session cookie). Guests are sent to /portal/login with the product
+// stashed; signed-in customers land on /portal/cart with the line added.
+app.use('/q', require('./src/routes/portal-qr'));
+
 // Staff Help AI ("AI Guide") — session-authenticated + CSRF-protected, with
 // its own rate limiter. Mounted before the admin /api router so translator
 // vendors (who are staff but not admins) can reach it too; the router does

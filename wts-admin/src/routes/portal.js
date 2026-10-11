@@ -7,6 +7,14 @@ const db = require('../../database/db');
 const { sendMagicLink } = require('../utils/mailer');
 const { portalOAuthEnabled } = require('../utils/portal-oauth');
 const { isDisposableEmail } = require('../lib/disposable-emails');
+const {
+  captureQrStash,
+  restoreQrStash,
+  consumeQrAndRedirect,
+  findProductByQrToken,
+  stashQrProduct,
+  normalizeQrToken,
+} = require('../lib/portal-qr-cart');
 
 const router = express.Router();
 
@@ -63,10 +71,12 @@ async function establishCustomerSession(req, customer, opts = {}) {
   // Session regeneration wipes everything, including the locale a visitor
   // picked before signing in — capture it first, then restore/persist it.
   const preLoginLocale = req.session.locale;
+  const pendingQr = captureQrStash(req.session);
   await new Promise((resolve, reject) => req.session.regenerate((err) => err ? reject(err) : resolve()));
   req.session.customerId = customer.id;
   req.session.customerEmail = customer.email;
   req.session.locale = customer.preferred_language || preLoginLocale || undefined;
+  restoreQrStash(req.session, pendingQr);
   req.session.cookie.maxAge = persist ? CUSTOMER_SESSION_MS : null;
   await db.query('UPDATE customers SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1', [customer.id]);
   if (!customer.preferred_language && preLoginLocale) {
@@ -88,19 +98,27 @@ async function establishCustomerSession(req, customer, opts = {}) {
 
 // Mint a single-use magic-link token and email it. The one token path for
 // self-serve login, admin invites and public portal signups alike.
-async function issueLoginLink(customer, locale = 'en') {
+async function issueLoginLink(customer, locale = 'en', addToken = null) {
   const token = crypto.randomBytes(32).toString('hex');
   await db.query(
     'INSERT INTO customer_login_tokens (customer_id, token_hash, expires_at) VALUES ($1, $2, $3)',
     [customer.id, hashToken(token), new Date(Date.now() + TOKEN_TTL_MS)]
   );
-  return sendMagicLink(customer.email, `${PORTAL_BASE()}/portal/auth?token=${token}`, locale);
+  let url = `${PORTAL_BASE()}/portal/auth?token=${token}`;
+  const add = normalizeQrToken(addToken);
+  if (add) url += `&add=${encodeURIComponent(add)}`;
+  return sendMagicLink(customer.email, url, locale);
 }
 
 const requireCustomer = (req, res, next) => {
   if (req.session && req.session.customerId) return next();
   return res.redirect('/portal/login');
 };
+
+async function redirectAfterLogin(req, res) {
+  const dest = await consumeQrAndRedirect(req, db);
+  return res.redirect(dest);
+}
 
 // Scoped id checks — used by deliverable download and action-item mark-done.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -112,6 +130,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // FEATURE_CART=0 hides the nav item and the /portal/cart routes redirect.
 router.use(async (req, res, next) => {
   res.locals.featureCart = process.env.FEATURE_CART !== '0';
+  res.locals.qrPendingName = (req.session && req.session.qrAddName) || null;
+  res.locals.qrUnknown = req.query.qr === 'unknown';
   res.locals.cartCount = 0;
   if (res.locals.featureCart && req.session && req.session.customerId) {
     try {
@@ -144,8 +164,8 @@ const socialFlags = () => ({
   facebookEnabled: portalOAuthEnabled('facebook'),
 });
 
-router.get('/login', (req, res) => {
-  if (req.session.customerId) return res.redirect('/portal');
+router.get('/login', async (req, res) => {
+  if (req.session.customerId) return redirectAfterLogin(req, res);
   // Bot timing base: humans read the form before submitting; the POST
   // treats a near-instant magic-link submit as automation.
   req.session.portalFormAt = Date.now();
@@ -166,7 +186,7 @@ router.post('/login', loginLimiter, async (req, res) => {
         if (customer && customer.status === 'active' && customer.password_hash &&
             await bcrypt.compare(password, customer.password_hash)) {
           await establishCustomerSession(req, customer);
-          return res.redirect('/portal');
+          return redirectAfterLogin(req, res);
         }
       }
     } catch (e) {
@@ -195,7 +215,7 @@ router.post('/login', loginLimiter, async (req, res) => {
   }
   try {
     const customer = await upsertCustomer(email, null);
-    await issueLoginLink(customer, req.locale);
+    await issueLoginLink(customer, req.locale, req.session.qrAddToken);
   } catch (e) {
     console.error('Portal login error:', e);
     // Fall through to the neutral response.
@@ -229,7 +249,11 @@ router.get('/auth', loginLimiter, async (req, res) => {
     }
 
     await establishCustomerSession(req, customer);
-    res.redirect('/portal');
+    if (req.query.add) {
+      const product = await findProductByQrToken(db, req.query.add);
+      if (product) stashQrProduct(req, product);
+    }
+    return redirectAfterLogin(req, res);
   } catch (e) {
     console.error('Portal auth error:', e);
     res.status(500).render('portal/login', { title: req.t('login.title'), sent: false, email: '', error: req.t('login.errorGeneric') });
@@ -274,7 +298,7 @@ router.get('/auth/:provider/callback', loginLimiter, (req, res, next) => {
       const customer = await upsertCustomer(identity.email, identity.name);
       if (customer.status !== 'active') return fail(req.t('login.errorInactive'));
       await establishCustomerSession(req, customer);
-      return res.redirect('/portal');
+      return redirectAfterLogin(req, res);
     } catch (e) {
       console.error(`Portal ${provider} sign-in failed:`, e);
       return fail(req.t('login.errorGeneric'));
