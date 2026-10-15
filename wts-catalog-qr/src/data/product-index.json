@@ -1,0 +1,253 @@
+{
+  "updated": "2026-09-18",
+  "products": {
+    "ADSENSE": {
+      "title": "How to use",
+      "sku": "19385830",
+      "price": "USD 33.00 / hour",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "AIDOC": {
+      "title": "AI Document Translation",
+      "sku": "19106869",
+      "price": "USD 8.50 per hour (1 hour quoted)",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "BANNER": {
+      "title": "How to use",
+      "sku": "19385829",
+      "price": "USD 33.00 / hour",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "BLOG3": {
+      "title": "How to use",
+      "sku": "19106859",
+      "price": "USD 282.60 (3 \u00d7 94.20)",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "CANVAM": {
+      "title": "How to use",
+      "sku": "15354843",
+      "price": "USD 15.00 / month",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "CANVAY": {
+      "title": "How to use",
+      "sku": "15354844",
+      "price": "USD 126.00 / year",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "CARLIST": {
+      "title": "How to use",
+      "sku": "19385838",
+      "price": "USD 45.30 per listing",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "COPY10K": {
+      "title": "How to use",
+      "sku": "19106837",
+      "price": "USD 241.00",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "COPY1K": {
+      "title": "How to use",
+      "sku": "19106834",
+      "price": "USD 27.00",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "COPY25K": {
+      "title": "How to use",
+      "sku": "19106835",
+      "price": "USD 64.00",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "COPY5K": {
+      "title": "How to use",
+      "sku": "19106836",
+      "price": "USD 123.00",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "GBP": {
+      "title": "GBP",
+      "sku": null,
+      "price": null,
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "LOGOAI": {
+      "title": "How to use",
+      "sku": "19106773",
+      "price": "USD 49.00",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "LOGODES": {
+      "title": "Logo Design \u2014 Graphic Designer Support",
+      "sku": "19106774",
+      "price": "USD 149.00 one-time",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "MENU": {
+      "title": "How to use",
+      "sku": "19385837",
+      "price": "USD 33.00 / hour",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "NFC": {
+      "title": "How to use",
+      "sku": "10259341",
+      "price": "USD 69.00",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "NFCC": {
+      "title": "How to use",
+      "sku": "10259342",
+      "price": "USD 143.00",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "ONSITE": {
+      "title": "How to use",
+      "sku": "19385847",
+      "price": "USD 21.00 / hour",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "QRCD": {
+      "title": "How to use",
+      "sku": "10259405",
+      "price": "USD 29.00",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "RSS": {
+      "title": "How to use",
+      "sku": "19106853",
+      "price": "USD 79.00 / year",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "SEO12": {
+      "title": "12 SEO Article Copywriting Package",
+      "sku": "19106865",
+      "price": "USD 1,500.00 (1 package = 12 in-depth articles)",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "SEO3": {
+      "title": "3 SEO Article Copywriting Package",
+      "sku": "19106863",
+      "price": "USD 811.20 (1 package = 3 in-depth articles)",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "SMEBM": {
+      "title": "How to use",
+      "sku": "20486641",
+      "price": "USD 290.00 / month",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "STOCK10": {
+      "title": "10 Stock Photos",
+      "sku": "19106871",
+      "price": "USD 4.00 for one pack of 10",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "STOCKSEO": {
+      "title": "10 SEO-Branded Stock Photos",
+      "sku": "19106872",
+      "price": "USD 13.00 for one pack of 10",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "VCPRO": {
+      "title": "How to use",
+      "sku": "10259403",
+      "price": "USD 58.60",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "WPDIVI": {
+      "title": "WordPress & Divi Website Setup and Design",
+      "sku": "19106797",
+      "price": "USD 355.00 one-time",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "WPHOME": {
+      "title": "WordPress & Divi Home Page with 3 Modules",
+      "sku": "19106798",
+      "price": "USD 175.00 one-time",
+      "has_quotation": true,
+      "has_intake": false,
+      "has_sales": false
+    },
+    "WPMOD": {
+      "title": "WordPress & Divi Additional Module or Section",
+      "sku": "19106799",
+      "price": "USD 47.00 per module",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "XLSEO": {
+      "title": "SEO-Friendly Website Translation",
+      "sku": "19106867",
+      "price": "USD 19.00 (one-time, one small piece)",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    },
+    "XLSEOY": {
+      "title": "Website SEO Translation Package",
+      "sku": "19106868",
+      "price": "USD 360.00 per year",
+      "has_quotation": true,
+      "has_intake": true,
+      "has_sales": true
+    }
+  }
+}
