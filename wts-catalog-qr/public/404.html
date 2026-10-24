@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>WordsThatSells catalog</title>
+    <script>
+      // GitHub Pages static fallback: send /q/:slug (and other app routes) to index.html.
+      sessionStorage.setItem('wts-catalog-qr-redirect', location.pathname + location.search + location.hash);
+      var parts = location.pathname.split('/').filter(Boolean);
+      var repo = parts[0] && parts[0] !== 'q' && parts[0] !== 'wizard' && parts[0] !== 'cart' && parts[0] !== 'print-qrs' && parts[0] !== 'help'
+        ? '/' + parts[0] + '/'
+        : '/';
+      location.replace(repo);
+    </script>
+  </head>
+  <body>
+    <p>Redirecting…</p>
+  </body>
+</html>
